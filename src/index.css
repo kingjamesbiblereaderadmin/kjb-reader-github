@@ -411,7 +411,7 @@
      intentionally rounded-full or rounded-none keep their shape. */
 @layer utilities {
   button:not(.rounded-full):not(.rounded-none) {
-    border-radius: 0.75rem;
+    border-radius: 0.375rem;
   }
 }
 
