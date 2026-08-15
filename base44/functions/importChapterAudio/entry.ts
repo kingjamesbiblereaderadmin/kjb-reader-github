@@ -7,12 +7,19 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 //      voice?, duration_seconds?, verse_count? }, ... ] }
 // data_url takes precedence when both are present.
 //
-// Each incoming record is matched against existing ChapterAudio rows by the
-// composite key (book_order + chapter + voice) and UPDATED in place; records
-// with no existing match are CREATED. Other voices' rows are preserved, so
-// multiple voices (e.g. coqui-vctk-p234, kokoro-bm_george, kokoro-bf_emma)
-// can coexist for the same chapter — the Male/Female selector on the reader
-// switches between them. Returns { updated, created, total }.
+// Matching & retirement:
+//   • Each incoming record is matched against existing rows by the composite
+//     key (book_order + chapter + voice) — UPDATED in place on match, CREATED
+//     otherwise. This lets the two Kokoro voices (kokoro-bm_george = Male,
+//     kokoro-bf_emma = Female) each keep their own row per chapter instead of
+//     overwriting each other.
+//   • Coqui retirement: for every (book_order + chapter) this import provides a
+//     NON-coqui voice for, any existing 'coqui-vctk-p234' row for that same
+//     (book_order + chapter) is DELETED — the old Coqui voice is fully
+//     replaced, so the reader selector only ever offers the two Kokoro voices.
+// Returns { updated, created, deleted_coqui, total }.
+
+const RETIRED_VOICE = 'coqui-vctk-p234';
 
 const stripUndef = (obj) => {
   const out = {};
@@ -22,8 +29,8 @@ const stripUndef = (obj) => {
   return out;
 };
 
-// Normalize a blank/missing voice to 'default' so it keys consistently.
 const voiceKey = (voice) => (typeof voice === 'string' && voice ? voice : 'default');
+const chapterKey = (bookOrder, chapter) => `${bookOrder}|${chapter}`;
 
 const chunk = (arr, n) => {
   const out = [];
@@ -81,12 +88,13 @@ export default async function(req) {
         verse_count: typeof r.verse_count === 'number' ? r.verse_count : undefined,
       });
     }
-    if (!clean.length) return Response.json({ updated: 0, created: 0, total: 0 });
+    if (!clean.length) return Response.json({ updated: 0, created: 0, deleted_coqui: 0, total: 0 });
 
-    // Fetch ALL existing ChapterAudio records (paginated, 5,000/page max) and
-    // index them by the composite key so we can upsert per (book_order, chapter,
-    // voice) without touching other voices' rows.
+    // Fetch ALL existing ChapterAudio records (paginated, 5,000/page max).
+    // Index by composite key for upsert, and separately collect coqui rows per
+    // chapter so we can retire them when a replacement voice is imported.
     const byKey = new Map();
+    const coquiByChapter = new Map(); // chapterKey -> array of coqui record ids
     let skip = 0;
     const PAGE = 5000;
     for (;;) {
@@ -94,12 +102,41 @@ export default async function(req) {
       if (!page || !page.length) break;
       for (const e of page) {
         byKey.set(`${e.book_order}|${e.chapter}|${voiceKey(e.voice)}`, e);
+        if (voiceKey(e.voice) === RETIRED_VOICE) {
+          const ck = chapterKey(e.book_order, e.chapter);
+          if (!coquiByChapter.has(ck)) coquiByChapter.set(ck, []);
+          coquiByChapter.get(ck).push(e.id);
+        }
       }
       if (page.length < PAGE) break;
       skip += PAGE;
     }
 
-    // Split incoming records into updates (existing key) vs creates.
+    // Chapters that receive a non-coqui voice in this import -> retire coqui there.
+    const retireCoquiChapters = new Set();
+    for (const r of clean) {
+      if (voiceKey(r.voice) !== RETIRED_VOICE) {
+        retireCoquiChapters.add(chapterKey(r.book_order, r.chapter));
+      }
+    }
+    const coquiIdsToDelete = [];
+    for (const ck of retireCoquiChapters) {
+      const ids = coquiByChapter.get(ck);
+      if (ids) coquiIdsToDelete.push(...ids);
+    }
+    // Dedupe ids (a chapter could have multiple coqui rows from old imports).
+    const uniqueCoquiIds = [...new Set(coquiIdsToDelete)];
+
+    let deletedCoqui = 0;
+    if (uniqueCoquiIds.length) {
+      await base44.asServiceRole.entities.ChapterAudio.deleteMany({ id: { $in: uniqueCoquiIds } });
+      deletedCoqui = uniqueCoquiIds.length;
+      // Drop deleted coqui from byKey so they aren't treated as existing for upsert.
+      for (const [k, v] of byKey) {
+        if (uniqueCoquiIds.includes(v.id)) byKey.delete(k);
+      }
+    }
+
     const toUpdate = [];
     const toCreate = [];
     for (const r of clean) {
@@ -124,7 +161,7 @@ export default async function(req) {
       created += batch.length;
     }
 
-    return Response.json({ updated, created, total: updated + created });
+    return Response.json({ updated, created, deleted_coqui: deletedCoqui, total: updated + created });
   } catch (error) {
     return Response.json({ error: error?.message || 'Internal error' }, { status: 500 });
   }
