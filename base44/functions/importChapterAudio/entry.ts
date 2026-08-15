@@ -1,18 +1,33 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 
-// Admin-only full-replace batch import endpoint for ChapterAudio narration
-// records. POST JSON in ONE of two modes:
+// Admin-only upsert import endpoint for ChapterAudio narration records.
+// POST JSON in ONE of two modes:
 //   1. { "data_url": "<https url to a JSON file { records: [...] }>" }
 //   2. { "records": [ { book, book_order, chapter, audio_url, timing_url?,
 //      voice?, duration_seconds?, verse_count? }, ... ] }
-// data_url takes precedence when both are present. Deletes ALL existing
-// ChapterAudio records first, then creates all new ones. Returns { created }.
+// data_url takes precedence when both are present.
+//
+// Each incoming record is matched against existing ChapterAudio rows by the
+// composite key (book_order + chapter + voice) and UPDATED in place; records
+// with no existing match are CREATED. Other voices' rows are preserved, so
+// multiple voices (e.g. coqui-vctk-p234, kokoro-bm_george, kokoro-bf_emma)
+// can coexist for the same chapter — the Male/Female selector on the reader
+// switches between them. Returns { updated, created, total }.
 
 const stripUndef = (obj) => {
   const out = {};
   for (const [k, v] of Object.entries(obj)) {
     if (v !== undefined) out[k] = v;
   }
+  return out;
+};
+
+// Normalize a blank/missing voice to 'default' so it keys consistently.
+const voiceKey = (voice) => (typeof voice === 'string' && voice ? voice : 'default');
+
+const chunk = (arr, n) => {
+  const out = [];
+  for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
   return out;
 };
 
@@ -55,7 +70,7 @@ export default async function(req) {
         || typeof r.audio_url !== 'string' || !r.audio_url) {
         return Response.json({ error: 'Each record requires book (string), book_order (number), chapter (number), and audio_url (string)' }, { status: 400 });
       }
-      clean.push(stripUndef({
+      clean.push({
         book: r.book,
         book_order: r.book_order,
         chapter: r.chapter,
@@ -64,18 +79,52 @@ export default async function(req) {
         voice: typeof r.voice === 'string' ? r.voice : undefined,
         duration_seconds: typeof r.duration_seconds === 'number' ? r.duration_seconds : undefined,
         verse_count: typeof r.verse_count === 'number' ? r.verse_count : undefined,
-      }));
+      });
     }
-    if (!clean.length) return Response.json({ created: 0 });
+    if (!clean.length) return Response.json({ updated: 0, created: 0, total: 0 });
 
-    // Full replace: wipe every existing ChapterAudio record, then insert the
-    // new batch. deleteMany with an empty match removes all records the caller
-    // is permitted to delete (RLS allows admin to delete all).
-    await base44.asServiceRole.entities.ChapterAudio.deleteMany({});
+    // Fetch ALL existing ChapterAudio records (paginated, 5,000/page max) and
+    // index them by the composite key so we can upsert per (book_order, chapter,
+    // voice) without touching other voices' rows.
+    const byKey = new Map();
+    let skip = 0;
+    const PAGE = 5000;
+    for (;;) {
+      const page = await base44.asServiceRole.entities.ChapterAudio.filter({}, undefined, PAGE, skip);
+      if (!page || !page.length) break;
+      for (const e of page) {
+        byKey.set(`${e.book_order}|${e.chapter}|${voiceKey(e.voice)}`, e);
+      }
+      if (page.length < PAGE) break;
+      skip += PAGE;
+    }
 
-    await base44.asServiceRole.entities.ChapterAudio.bulkCreate(clean);
+    // Split incoming records into updates (existing key) vs creates.
+    const toUpdate = [];
+    const toCreate = [];
+    for (const r of clean) {
+      const key = `${r.book_order}|${r.chapter}|${voiceKey(r.voice)}`;
+      const match = byKey.get(key);
+      if (match) {
+        toUpdate.push({ id: match.id, ...stripUndef(r) });
+      } else {
+        toCreate.push(stripUndef(r));
+      }
+    }
 
-    return Response.json({ created: clean.length });
+    // bulkUpdate / bulkCreate are capped at 500 records per call.
+    let updated = 0;
+    let created = 0;
+    for (const batch of chunk(toUpdate, 500)) {
+      await base44.asServiceRole.entities.ChapterAudio.bulkUpdate(batch);
+      updated += batch.length;
+    }
+    for (const batch of chunk(toCreate, 500)) {
+      await base44.asServiceRole.entities.ChapterAudio.bulkCreate(batch);
+      created += batch.length;
+    }
+
+    return Response.json({ updated, created, total: updated + created });
   } catch (error) {
     return Response.json({ error: error?.message || 'Internal error' }, { status: 500 });
   }
