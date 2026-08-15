@@ -96,29 +96,41 @@ export function buildWordTimeline(verses, timing) {
     return out;
   }
 
-  // Mismatch (timing data out of sync with verse text) — distribute timing
-  // words across verses proportionally by cumulative word count.
   if (totalVerseWords === 0) {
     // No verse text available; tag everything as verse 0.
     tWords.forEach((w, i) => out.push({ ...w, verse: 0, wordIndex: i }));
     return out;
   }
-  const boundaries = [];
-  let acc = 0;
+
+  // Mismatch (transcript word count differs from the verse text — common with
+  // TTS/Whisper transcripts that add, drop, or mis-hear words, and that emit
+  // garbage tokens like ".C" / ".s." for a single real word). Walk the verse
+  // words in order and match each to the next equal transcript word within a
+  // small forward window. This locks every highlighted word to its real audio
+  // timestamp and lets verse boundaries land where the narrator actually
+  // starts each verse — instead of a proportional guess that drifts (which
+  // made the highlight appear to speed up / desync partway through a chapter).
+  const WINDOW = 8;
+  let ti = 0;
   for (const v of verseWords) {
-    acc += v.words.length;
-    boundaries.push({ verse: v.verse, frac: acc / totalVerseWords });
-  }
-  let vi = 0;
-  let wordIndex = 0;
-  for (let i = 0; i < tWords.length; i++) {
-    const frac = (i + 1) / tWords.length;
-    while (vi < boundaries.length - 1 && frac > boundaries[vi].frac) {
-      vi++;
-      wordIndex = 0;
+    for (let i = 0; i < v.words.length; i++) {
+      const target = normWord(v.words[i]);
+      let found = -1;
+      for (let j = ti; j < Math.min(tWords.length, ti + WINDOW); j++) {
+        if (normWord(tWords[j].text) === target) { found = j; break; }
+      }
+      if (found >= 0) {
+        out.push({ text: v.words[i], start: tWords[found].start, end: tWords[found].end, verse: v.verse, wordIndex: i });
+        ti = found + 1;
+      } else {
+        // No close match (transcript insertion or a mis-heard word). Keep the
+        // word in the timeline at the current audio position so its karaoke
+        // span still lights roughly when the narrator reaches this point, and
+        // leave ti in place so the next verse word can skip past the insertion.
+        const ts = ti < tWords.length ? tWords[ti].start : (out.length ? out[out.length - 1].end : 0);
+        out.push({ text: v.words[i], start: ts, end: ts, verse: v.verse, wordIndex: i });
+      }
     }
-    out.push({ ...tWords[i], verse: boundaries[vi].verse, wordIndex });
-    wordIndex++;
   }
   return out;
 }
