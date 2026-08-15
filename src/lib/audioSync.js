@@ -308,33 +308,29 @@ export function buildWordTimeline(verses, timing) {
     return out;
   }
 
-  // For pathological chapter sizes, fall back to a greedy windowed match so the
-  // DP table stays bounded in memory. (Genesis and even Psalm 119 are well
-  // under this cap.)
-  if ((aWords.length + 1) * (introTrimmed.length + 1) > 6000000) {
-    const WINDOW = 8;
-    let ti = 0;
-    for (let k = 0; k < aWords.length; k++) {
-      let found = -1;
-      for (let j = ti; j < Math.min(introTrimmed.length, ti + WINDOW); j++) {
-        if (normWord(introTrimmed[j].text) === normWord(aWords[k].text)) { found = j; break; }
-      }
-      if (found >= 0) {
-        out.push({ text: aWords[k].text, start: introTrimmed[found].start, end: introTrimmed[found].end, verse: aWords[k].verse, wordIndex: aWords[k].wordIndex });
-        ti = found + 1;
-      } else {
-        const ts = ti < introTrimmed.length ? introTrimmed[ti].start : (out.length ? out[out.length - 1].end : 0);
-        out.push({ text: aWords[k].text, start: ts, end: ts, verse: aWords[k].verse, wordIndex: aWords[k].wordIndex });
-      }
-    }
-    return out;
-  }
-
-  // Global DP alignment (Needleman–Wunsch) so each verse word maps to the
-  // transcript word actually spoken at that point.
-  const aligned = alignWords(aWords.map((a) => a.text), introTrimmed);
+  // Greedy windowed match: walk verse words and transcript words together,
+  // assigning each verse word the timestamp of the next matching transcript
+  // word. A mis-hear (no match in the window) gets the current cursor's
+  // timestamp WITHOUT consuming a transcript word, so the error stays local
+  // to that one word and never cascades to later verses. This uses the
+  // transcript's real per-word timestamps directly — unlike global NW, where
+  // a single count mismatch (e.g. "Moab" spoken as "Mu"/"ab" = 2 transcript
+  // words) inserts a gap that shifts the alignment diagonal for the rest of
+  // the chapter, producing the perceived "highlight runs ahead/behind" offset.
+  const WINDOW = 14;
+  let ti = 0;
   for (let k = 0; k < aWords.length; k++) {
-    out.push({ text: aWords[k].text, start: aligned[k].start, end: aligned[k].end, verse: aWords[k].verse, wordIndex: aWords[k].wordIndex });
+    let found = -1;
+    for (let j = ti; j < Math.min(introTrimmed.length, ti + WINDOW); j++) {
+      if (normWord(introTrimmed[j].text) === normWord(aWords[k].text)) { found = j; break; }
+    }
+    if (found >= 0) {
+      out.push({ text: aWords[k].text, start: introTrimmed[found].start, end: introTrimmed[found].end, verse: aWords[k].verse, wordIndex: aWords[k].wordIndex });
+      ti = found + 1;
+    } else {
+      const ts = ti < introTrimmed.length ? introTrimmed[ti].start : (out.length ? out[out.length - 1].end : 0);
+      out.push({ text: aWords[k].text, start: ts, end: ts, verse: aWords[k].verse, wordIndex: aWords[k].wordIndex });
+    }
   }
   return out;
 }

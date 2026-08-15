@@ -33,8 +33,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     try {
       const stored = localStorage.getItem('kjb-audio-voice');
       // Fall back to DEFAULT_VOICE when the stored voice is no longer in the
-      // catalog (e.g. legacy 'bm_george'/'bf_emma'/'coqui-vctk-p234' values from
-      // the previous Coqui / single-voice era), and persist the correction.
+      // catalog, and persist the correction.
       if (stored && VOICE_OPTIONS.some((o) => o.voice === stored)) return stored;
       localStorage.setItem('kjb-audio-voice', DEFAULT_VOICE);
       return DEFAULT_VOICE;
