@@ -139,7 +139,16 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     const arr = rawTiming?.verses;
     if (!Array.isArray(arr) || !arr.length) return null;
     const m = new Map();
-    arr.forEach((v) => { m.set(parseInt(v.verse, 10), { start: Number(v.start), end: Number(v.end) }); });
+    arr.forEach((v) => {
+      const vn = parseInt(v.verse, 10);
+      // Timing files may store verse bounds in milliseconds (start_ms/end_ms)
+      // or legacy seconds (start/end). Accept both so range mode + intro
+      // detection use the real timestamps instead of NaN.
+      const hasMs = Number.isFinite(Number(v.start_ms));
+      const start = hasMs ? Number(v.start_ms) / 1000 : Number(v.start);
+      const end = hasMs ? Number(v.end_ms ?? v.start_ms) / 1000 : Number(v.end);
+      if (Number.isFinite(start) && Number.isFinite(end)) m.set(vn, { start, end });
+    });
     return m;
   }, [rawTiming]);
 

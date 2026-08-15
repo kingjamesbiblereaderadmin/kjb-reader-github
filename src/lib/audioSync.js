@@ -145,9 +145,57 @@ function findScriptureStart(tWords, verseWords) {
 
 export function buildWordTimeline(verses, timing) {
   if (!timing || !Array.isArray(timing.words) || !timing.words.length) return [];
+
+  // ── DIRECT per-word format (authoritative) ──
+  // The TTS/Whisper pipeline emits one entry per spoken word, each carrying
+  // its own `verse`, `word_index`, and `start_ms`/`end_ms` (milliseconds).
+  // Use these timestamps directly — no alignment heuristics — so the karaoke
+  // highlight lands exactly where the narrator says each word. This is what
+  // "the audio files have the word-by-word thing right, use it" means: the
+  // timing file already knows which word belongs to which verse and when it
+  // is spoken, so we must not re-derive that with Needleman–Wunsch (which
+  // drifts and ignores the ms fields, reading `start`/`end` as seconds and
+  // getting NaN→0).
+  const hasDirectVerse = timing.words.some((w) => Number.isFinite(Number(w?.verse)));
+  const hasMsTime = timing.words.some((w) => Number.isFinite(Number(w?.start_ms)));
+  if (hasDirectVerse && hasMsTime) {
+    // verse number → cleaned display words (only used as a label; the reader
+    // renders the real verse text with italics/drop-cap intact).
+    const verseWordsMap = new Map();
+    (verses || []).forEach((v) => {
+      verseWordsMap.set(parseInt(v.verse, 10), cleanVerseToWords(v.text));
+    });
+    const out = [];
+    for (const w of timing.words) {
+      const vn = Number(w?.verse);
+      if (!Number.isFinite(vn)) continue;
+      const startMs = Number(w?.start_ms);
+      if (!Number.isFinite(startMs)) continue;
+      const endMsRaw = Number(w?.end_ms ?? w?.start_ms);
+      const endMs = Number.isFinite(endMsRaw) ? endMsRaw : startMs;
+      const wi = Math.max(0, Number(w?.word_index ?? 0));
+      const vWords = verseWordsMap.get(vn);
+      const text = vWords && wi < vWords.length ? vWords[wi] : String(w?.word ?? w?.text ?? '');
+      out.push({ text, start: startMs / 1000, end: endMs / 1000, verse: vn, wordIndex: wi });
+    }
+    // Display order: by verse, then word_index. Reassign a sequential
+    // per-verse wordIndex (0,1,2,…) so renderVerseText's span assignment —
+    // which wraps letter/digit tokens in order — maps 1:1 to these entries
+    // regardless of the timing file's word_index base (raw verse.split(' ')
+    // vs filtered). This keeps the highlight on the correct word.
+    out.sort((a, b) => a.verse - b.verse || a.wordIndex - b.wordIndex);
+    let curVerse = null, seq = 0;
+    for (const e of out) {
+      if (e.verse !== curVerse) { curVerse = e.verse; seq = 0; }
+      e.wordIndex = seq++;
+    }
+    if (out.length) return out;
+    // else fall through to the legacy whole-chapter path.
+  }
+
   const tWords = timing.words.map((w) => ({
-    // Timing JSON uses `word` as the spoken-token key (some older files used
-    // `text`); accept both so the parser handles every format.
+    // Legacy timing JSON used `word` (or `text`) + `start`/`end` in seconds
+    // with NO per-word verse markers. Accept both keys for the fallback path.
     text: String(w?.word ?? w?.text ?? ''),
     start: Number(w?.start ?? 0),
     end: Number(w?.end ?? 0),
