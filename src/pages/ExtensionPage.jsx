@@ -161,19 +161,27 @@ export default function ExtensionPage() {
               href={urls.chrome}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-sans text-base font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg bg-green-500 hover:bg-green-600"
+              title="Get for Chrome/Brave — Chrome Web Store"
+              className="inline-flex items-center justify-center self-center transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
-              <Puzzle className="w-5 h-5" />
-              Get for Chrome/Brave
+              <img
+                src="https://developer.chrome.com/static/docs/webstore/branding/image/HRs9MPufa1J1h5glNhut.png"
+                alt="Available in the Chrome Web Store"
+                className="h-[58px] w-auto rounded-lg shadow-lg"
+              />
             </a>
             <a
               href={urls.edge}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-sans text-base font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg bg-green-500 hover:bg-green-600"
+              title="Get for Microsoft Edge — Edge Add-ons"
+              className="inline-flex items-center justify-center self-center transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
-              <Puzzle className="w-5 h-5" />
-              Get for Microsoft Edge
+              <img
+                src="https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/add-ons-badge-images/microsoft-edge-add-ons-badge.png"
+                alt="Get it from Microsoft Edge"
+                className="h-[58px] w-auto rounded-lg shadow-lg"
+              />
             </a>
             <a
               href={urls.firefox}
