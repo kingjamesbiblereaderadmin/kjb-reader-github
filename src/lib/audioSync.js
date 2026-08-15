@@ -31,7 +31,12 @@ function cleanVerseToWords(raw) {
     .replace(/[\u00B6\u000F\u0091\u0092\u2018\u2019]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
-  return t ? t.split(' ') : [];
+  // A "word" is any token containing at least one letter or digit. This drops
+  // pilcrows (¶/\u00B6), control chars (\u000F), replacement chars (\uFFFD),
+  // and stray punctuation — and must match the rule used in
+  // bibleApi.renderVerseText's audio-word wrapper, or the karaoke spans and
+  // the timeline drift out of sync by one per dropped token.
+  return t ? t.split(' ').filter((w) => /[\p{L}\p{N}]/u.test(w)) : [];
 }
 
 // Lowercase + strip all punctuation/diacritics for fuzzy word comparison

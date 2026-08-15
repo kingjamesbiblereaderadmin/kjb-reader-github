@@ -172,7 +172,11 @@ export function renderVerseText(text, searchTerm = null, audioWordIndices = null
     let wi = 0;
     result = result.replace(/(<[^>]+>)|(\S+)/g, (chunk, tag, word) => {
       if (tag) return tag;
-      if (word === '¶' || word === '\u00B6') return word;
+      // Skip tokens with no letter/digit (pilcrows ¶, control chars \u000F,
+      // replacement chars \uFFFD, stray punctuation). These are filtered out of
+      // the verse word list in audioSync.cleanVerseToWords, so they must NOT
+      // consume a word index here or the karaoke spans drift out of sync.
+      if (!/[\p{L}\p{N}]/u.test(word)) return word;
       const idx = audioWordIndices[wi++];
       if (idx == null) return word;
       return `<span class="kjb-audio-word" data-audio-idx="${idx}">${word}</span>`;
