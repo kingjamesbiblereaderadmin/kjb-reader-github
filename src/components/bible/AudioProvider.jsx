@@ -130,18 +130,40 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
 
   const timeline = useMemo(() => buildWordTimeline(verses, rawTiming), [verses, rawTiming]);
 
-  // Resolve the range's start/end times from the chapter-wide timeline.
+  // Per-verse start/end from the timing JSON's `verses` array — precise verse
+  // boundaries (incl. leading/trailing pauses) the word timeline can't infer.
+  // Used to seek straight to a verse and stop exactly at its end in range mode
+  // (search results / filtered read / daily verse). Falls back to word-level
+  // bounds for timing files that don't yet carry a `verses` array.
+  const verseTimings = useMemo(() => {
+    const arr = rawTiming?.verses;
+    if (!Array.isArray(arr) || !arr.length) return null;
+    const m = new Map();
+    arr.forEach((v) => { m.set(parseInt(v.verse, 10), { start: Number(v.start), end: Number(v.end) }); });
+    return m;
+  }, [rawTiming]);
+
+  // Resolve the range's start/end times. Prefer the `verses` array, fall back
+  // to the word timeline.
   const rangeStart = useMemo(() => {
     if (!range) return null;
+    if (verseTimings) {
+      const vt = verseTimings.get(range.firstVerse);
+      if (vt && Number.isFinite(vt.start)) return vt.start;
+    }
     const w = timeline.find((w) => w.verse === range.firstVerse);
     return w ? w.start : null;
-  }, [timeline, range]);
+  }, [timeline, range, verseTimings]);
   const rangeEnd = useMemo(() => {
     if (!range) return null;
+    if (verseTimings) {
+      const vt = verseTimings.get(range.lastVerse);
+      if (vt && Number.isFinite(vt.end)) return vt.end;
+    }
     let end = null;
     for (const w of timeline) if (w.verse === range.lastVerse) end = Math.max(end ?? -1, w.end);
     return end != null ? end : null;
-  }, [timeline, range]);
+  }, [timeline, range, verseTimings]);
   useEffect(() => { rangeStartRef.current = rangeStart; }, [rangeStart]);
   useEffect(() => { rangeEndRef.current = rangeEnd; }, [rangeEnd]);
 

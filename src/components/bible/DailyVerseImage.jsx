@@ -11,6 +11,7 @@ import { formatDailyVerseForCopy, cleanVerseText } from '@/lib/formatDailyVerse'
 import { getAccessibilityFont, setAccessibilityFont } from '@/lib/accessibilityFont';
 import { VERSE_BACKGROUNDS } from '@/lib/dailyVerseTheme';
 import { shrinkImageUnderLimit } from '@/lib/imageCompress';
+import DailyVerseAudio from './DailyVerseAudio';
 
 // Map a font choice to an actual CSS font-family. When an app-wide
 // accessibility font is active, it always takes priority.
@@ -531,6 +532,7 @@ export default function DailyVerseImage({ verse, onClick, onToggleNotif, notifEn
       <div className="absolute top-2 right-2 flex gap-1 z-[80]" onClick={(e) => e.stopPropagation()}>
         {!capturing && showButtons ? (
           <>
+            <DailyVerseAudio verse={verse} />
             <button
               onClick={(e) => {
                 e.stopPropagation();
