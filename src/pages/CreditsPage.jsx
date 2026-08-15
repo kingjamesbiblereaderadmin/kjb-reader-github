@@ -45,17 +45,27 @@ export default function CreditsPage() {
           </p>
         </section>
 
-        {/* Audio Narration */}
+        {/* Audio & Voice Credits */}
         <section className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Volume2 className="w-5 h-5" />
             </div>
-            <h2 className="font-serif text-xl font-semibold text-foreground">Audio Narration</h2>
+            <h2 className="font-serif text-xl font-semibold text-foreground">Audio &amp; Voice Credits</h2>
           </div>
           <p className="font-sans text-sm text-foreground/85 leading-relaxed">
-            Chapter audio narration generated using Microsoft Edge Neural Text-to-Speech
-            (voice: en-GB-RyanNeural), via the open-source edge-tts library.
+            Bible chapter audio narration is generated using Piper TTS
+            (<a href="https://github.com/rhasspy/piper" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">MIT License</a>)
+            with a voice model trained on the CSTR VCTK Corpus, University of Edinburgh.
+          </p>
+          <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-3">
+            <strong className="text-foreground/80">Citation:</strong> Yamagishi, J.; Veaux, C.;
+            MacDonald, K. (2019). <em>CSTR VCTK Corpus: English Multi-speaker Corpus for CSTR
+            Voice Cloning Toolkit (version 0.92)</em>, University of Edinburgh, The Centre for
+            Speech Technology Research (CSTR).{' '}
+            <a href="https://doi.org/10.7488/ds/2645" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+              https://doi.org/10.7488/ds/2645
+            </a>
           </p>
         </section>
 
