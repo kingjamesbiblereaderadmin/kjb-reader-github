@@ -452,17 +452,19 @@
     padding: 1rem 1.25rem;
   }
 
-  /* The large book-name + "Chapter N" heading and the two-column RunningHead
-     are emphasised while Listen mode narrates the chapter, marking them as
-     part of what's being read. */
-  .kjb-audio-listening .kjb-book-title,
-  .kjb-audio-listening .kjb-chapter-heading {
+  /* The book title / chapter heading / running head are tinted ONLY while
+     the narration is speaking the chapter header (before verse 1) — the
+     reader container carries .kjb-audio-intro during that window. They no
+     longer stay tinted for the whole listening session, so once the reading
+     moves on to the verse text only the spoken words are highlighted. */
+  .kjb-audio-listening.kjb-audio-intro .kjb-book-title,
+  .kjb-audio-listening.kjb-audio-intro .kjb-chapter-heading {
     display: inline-block;
     background-color: hsl(var(--accent) / 0.14);
     border-radius: 0.4rem;
     padding: 0.1em 0.45em;
   }
-  .kjb-audio-listening .kjb-running-head {
+  .kjb-audio-listening.kjb-audio-intro .kjb-running-head {
     background-color: hsl(var(--accent) / 0.1);
     border-radius: 0.5rem;
     padding: 0.25em 0.4em;

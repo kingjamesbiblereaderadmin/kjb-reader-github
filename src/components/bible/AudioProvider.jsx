@@ -184,6 +184,29 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     activeIdxRef.current = -1;
   }, []);
 
+  // verse 1's start time = where the actual scripture narration begins.
+  // Before it, the audio is narrating the chapter title / book name header.
+  const verse1Start = useMemo(() => {
+    const w = timeline.find((t) => t.verse === 1);
+    return w ? w.start : 0;
+  }, [timeline]);
+  const verse1StartRef = useRef(verse1Start);
+  useEffect(() => { verse1StartRef.current = verse1Start; }, [verse1Start]);
+
+  // Toggle `.kjb-audio-intro` on the reader container so the book title /
+  // chapter heading / running head tint ONLY while the narration is speaking
+  // the chapter header (before verse 1) — not for the whole listening session.
+  const syncIntro = useCallback((time) => {
+    const container = audioRef.current?.closest?.('.kjb-audio-listening');
+    if (!container) return;
+    const v1 = verse1StartRef.current;
+    const inIntro = v1 > 0 && time > 0 && time < v1;
+    container.classList.toggle('kjb-audio-intro', inIntro);
+  }, []);
+  const clearIntro = useCallback(() => {
+    audioRef.current?.closest?.('.kjb-audio-listening')?.classList.remove('kjb-audio-intro');
+  }, []);
+
   // Apply the active-word highlight DOM-direct + auto-scroll into view.
   const updateActive = useCallback((idx, scroll = true) => {
     if (idx === activeIdxRef.current) return;
@@ -213,19 +236,21 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     const tick = () => {
       setCurrentTime(a.currentTime);
       updateActive(findActiveWordIndex(timeline, a.currentTime));
+      syncIntro(a.currentTime);
       const re = rangeEndRef.current;
       if (re != null && a.currentTime >= re) {
         a.pause();
         a.currentTime = rangeStartRef.current ?? 0;
         setPlaying(false);
         clearHighlight();
+        clearIntro();
         return;
       }
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, [playing, timeline, updateActive]);
+  }, [playing, timeline, updateActive, syncIntro, clearIntro]);
 
   // Wire <audio> element events.
   useEffect(() => {
@@ -245,7 +270,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     };
     const onTime = () => setCurrentTime(a.currentTime);
     const onEnd = () => {
-      setPlaying(false); setCurrentTime(0); a.currentTime = 0; clearHighlight();
+      setPlaying(false); setCurrentTime(0); a.currentTime = 0; clearHighlight(); clearIntro();
       // In range mode the tick loop pauses at rangeEnd before the audio ends;
       // if onEnd still fires, don't auto-advance out of the selected passage.
       if (rangeStartRef.current != null) return;
@@ -276,8 +301,8 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   // Pause + clear when deactivated, or when timeline changes.
   useEffect(() => {
     if (!active && audioRef.current) audioRef.current.pause();
-    if (!active) { clearHighlight(); autoPlayRef.current = false; }
-  }, [active, clearHighlight]);
+    if (!active) { clearHighlight(); clearIntro(); autoPlayRef.current = false; }
+  }, [active, clearHighlight, clearIntro]);
   useEffect(() => { clearHighlight(); }, [timeline, clearHighlight]);
 
   const togglePlay = useCallback(() => {
@@ -290,10 +315,11 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       a.play().catch(() => {});
       // On play, jump to (scroll) the verse currently being read.
       updateActive(findActiveWordIndex(timeline, a.currentTime), true);
+      syncIntro(a.currentTime);
     } else {
       a.pause();
     }
-  }, [record, timeline, updateActive]);
+  }, [record, timeline, updateActive, syncIntro]);
 
   const restart = useCallback(() => {
     const a = audioRef.current; if (!a || !record) return;
@@ -301,14 +327,16 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     setCurrentTime(a.currentTime);
     a.play().catch(() => {});
     updateActive(findActiveWordIndex(timeline, a.currentTime), true);
-  }, [record, timeline, updateActive]);
+    syncIntro(a.currentTime);
+  }, [record, timeline, updateActive, syncIntro]);
 
   const seek = useCallback((t) => {
     const a = audioRef.current; if (!a) return;
     a.currentTime = Math.max(0, Math.min(t, a.duration || t));
     setCurrentTime(a.currentTime);
     updateActive(findActiveWordIndex(timeline, a.currentTime), false);
-  }, [timeline, updateActive]);
+    syncIntro(a.currentTime);
+  }, [timeline, updateActive, syncIntro]);
 
   const seekToWord = useCallback((w) => {
     if (w && Number.isFinite(w.start)) seek(w.start);
