@@ -66,8 +66,32 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   // Strip <<...>> superscription markers
   let displayVerseText = currentText.replace(/^<<[^>]*>>\s*/, '');
 
+  // In Listen mode, wrap each spoken word in a highlightable span carrying its
+  // global timeline index, so AudioProvider can karaoke-highlight words in
+  // place — using the REAL verse text (italics + drop cap intact), not the TTS
+  // transcript.
+  const audioWords = audio?.active ? (audio.wordsByVerse?.get(parseInt(verse.verse, 10)) || []) : [];
+  const audioIdxArr = audioWords.length
+    ? audioWords.slice().sort((a, b) => a.wordIndex - b.wordIndex).map((w) => w.idx)
+    : null;
+
   // renderVerseText handles [italics] and ¶ pilcrow styling, plus search term highlighting
-  let html = renderVerseText(displayVerseText, searchTerm);
+  let html = renderVerseText(displayVerseText, searchTerm, audioIdxArr);
+
+  // Shared click handler: in Listen mode, tapping a word seeks the audio to it;
+  // otherwise it toggles the verse action menu (or selects in select mode).
+  const handleVerseClick = (e) => {
+    if (audio?.active) {
+      const el = e.target?.closest?.('[data-audio-idx]');
+      const idx = el?.dataset?.audioIdx;
+      if (idx != null && idx !== '') {
+        const w = audioWords.find((w) => String(w.idx) === String(idx));
+        if (w) { audio.seekToWord(w); return; }
+      }
+    }
+    if (selectMode) { onSelect?.(verse.verse); return; }
+    setSelected((s) => !s);
+  };
 
   // Drop cap: wrap the FIRST visible letter of the text in a styled span (instead
   // of CSS ::first-letter, which doesn't work reliably in inline/paragraph flow
@@ -378,48 +402,6 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   // ── PARAGRAPH MODE: verses flow inline; pilcrow verses break to a new line ──
   const hasPilcrow = currentText.includes('\u00B6') || currentText.includes('\u000F');
 
-  // ── AUDIO (Listen) MODE: render this verse as clickable word spans so the
-  // active word can be karaoke-highlighted in place within the existing Read
-  // layout. The highlight is applied DOM-direct by AudioProvider (no per-frame
-  // re-render of verse text). Clicking a word seeks to it; clicking the verse
-  // number seeks to the verse start. Falls back to the normal HTML render when
-  // no word-timing data exists for the chapter.
-  if (audio?.active) {
-    const audioWords = audio.wordsByVerse?.get(parseInt(verse.verse, 10)) || [];
-    return (
-      <span id={id} className={`block relative scroll-mt-24 ${hasPilcrow && !isFirstVerse ? 'mt-12' : 'mt-3'}`}>
-        {stanzaHeading}
-        <span className="flex items-start leading-relaxed rounded px-[0.4em] py-[0.15em] gap-[0.6em] w-full">
-          <sup
-            onClick={(e) => { e.stopPropagation(); if (audioWords[0]) audio.seekToWord(audioWords[0]); }}
-            className="text-accent font-sans font-bold text-[0.6em] shrink-0 select-none mt-[0.2em] mr-[0.3em] cursor-pointer hover:opacity-70"
-          >{verse.verse}</sup>
-          <span className="flex-1 min-w-0 flex items-start gap-[0.6em]">
-            <span className="flex-1 min-w-0 leading-relaxed break-words text-left">
-              <span
-                className={`inline [&_em]:italic [&_em]:text-foreground/75 box-decoration-clone rounded px-[0.3em] py-[0.1em] ${isCursive ? 'cursive-em-style' : ''}`}
-                style={{ display: 'inline', ...(isCursive ? { fontSize: `${zoomLevel / 100 * 1.125}rem` } : textStyle) }}
-              >
-                {audioWords.length === 0 ? (
-                  <span dangerouslySetInnerHTML={{ __html: html }} />
-                ) : (
-                  audioWords.map((w) => (
-                    <span
-                      key={w.idx}
-                      data-audio-idx={w.idx}
-                      onClick={(e) => { e.stopPropagation(); audio.seekToWord(w); }}
-                      className="kjb-audio-word cursor-pointer rounded transition-colors duration-100"
-                    >{w.text}{' '}</span>
-                  ))
-                )}
-              </span>
-            </span>
-          </span>
-        </span>
-      </span>
-    );
-  }
-
   if (paragraphMode) {
     // Pilcrow verse: render as a block (new paragraph) with gap above, no indent
     if (hasPilcrow && !isFirstVerse) {
@@ -427,7 +409,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
         <span id={id} className="block relative mt-12 scroll-mt-24">
           {stanzaHeading}
           <span
-            onClick={() => selectMode ? onSelect?.(verse.verse) : setSelected(s => !s)}
+            onClick={handleVerseClick}
             className="inline leading-relaxed rounded cursor-pointer px-[0.3em] py-[0.2em]"
           >
             <sup className="text-accent font-sans font-bold text-[0.65em] mr-2 select-none">{verse.verse}</sup>
@@ -453,7 +435,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
       <span id={id} className="inline relative scroll-mt-24">
         {stanzaHeading}
         <span
-          onClick={() => selectMode ? onSelect?.(verse.verse) : setSelected(s => !s)}
+          onClick={handleVerseClick}
           className="inline leading-loose rounded cursor-pointer px-[0.3em] py-[0.2em]"
         >
           {!(dropCap && !selectMode) && (
@@ -488,7 +470,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
       <span id={id} className="block relative mt-2 scroll-mt-24" style={{ display: 'flow-root' }}>
         {stanzaHeading}
         <span
-          onClick={() => setSelected(s => !s)}
+          onClick={handleVerseClick}
           className="flex items-start leading-relaxed rounded cursor-pointer px-[0.4em] py-[0.15em] gap-[0.6em] w-full"
         >
           {/* Spacer matching the verse-number column so verse 1's text column
@@ -510,7 +492,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     <span id={id} className={`block relative scroll-mt-24 ${hasPilcrow && !isFirstVerse ? 'mt-12' : 'mt-3'}`}>
       {stanzaHeading}
       <span
-        onClick={() => selectMode ? onSelect?.(verse.verse) : setSelected(s => !s)}
+        onClick={handleVerseClick}
         className="flex items-start leading-relaxed rounded cursor-pointer px-[0.4em] py-[0.15em] gap-[0.6em] w-full"
       >
         <sup className="text-accent font-sans font-bold text-[0.6em] shrink-0 select-none mt-[0.2em] mr-[0.3em]">{verse.verse}</sup>
