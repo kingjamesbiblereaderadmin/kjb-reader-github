@@ -303,8 +303,6 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       const advanced = onChapterEndRef.current?.();
       if (advanced) {
         autoPlayRef.current = true;
-        // This is a continuation — don't re-highlight the book name header.
-        suppressIntroRef.current = true;
         setTimeout(() => { autoPlayRef.current = false; }, 8000);
       }
     };
