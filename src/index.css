@@ -424,6 +424,12 @@
     color: hsl(var(--foreground));
     font-weight: 600;
   }
+  /* The floated drop-cap letter sits outside the active word's inline
+     background box, so it needs its own tint to show the karaoke highlight. */
+  .kjb-audio-active .kjb-dropcap-letter {
+    background-color: hsl(var(--accent) / 0.4);
+    border-radius: 0.1em;
+  }
 
 @media print {
   @page {
