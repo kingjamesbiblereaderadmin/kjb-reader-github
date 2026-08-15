@@ -1963,10 +1963,22 @@ export default function BibleReader() {
       )}
       {!isViewingTitlePage && (
         <div className={`text-center mb-6 pt-8 ${(!columnMode || pos.chapter === 1) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
-          <h1 className={`${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} text-3xl md:text-4xl font-bold text-foreground mb-2 leading-tight`} style={{ fontStyle: 'normal', fontWeight: '900' }}>{book.name}</h1>
-          <p className={`font-sans text-muted-foreground tracking-widest uppercase mt-5 ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100 * 0.875}rem`, fontWeight: fontFamily === 'cursive' ? '400' : undefined }}>
-            {pos.chapter}
-          </p>
+          {filterMode && selectedVerses.size > 0 ? (
+            // Verses-only (filtered) view: the full book title stacked over a
+            // lone chapter number reads as orphaned when only 1-3 short verses
+            // follow it. A single compact "Book Chapter" line matches the scale
+            // of the content actually shown.
+            <h1 className={`${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} text-2xl md:text-3xl font-bold text-foreground mb-2 leading-tight`} style={{ fontStyle: 'normal', fontWeight: '900' }}>
+              {book.shortName} {pos.chapter}
+            </h1>
+          ) : (
+            <>
+              <h1 className={`${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} text-3xl md:text-4xl font-bold text-foreground mb-2 leading-tight`} style={{ fontStyle: 'normal', fontWeight: '900' }}>{book.name}</h1>
+              <p className={`font-sans text-muted-foreground tracking-widest uppercase mt-5 ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100 * 0.875}rem`, fontWeight: fontFamily === 'cursive' ? '400' : undefined }}>
+                {pos.chapter}
+              </p>
+            </>
+          )}
           {chapterSubscript && (
             <p
               onClick={() => handleSectionClick('subscript')} id="kjb-subscript-anchor"
