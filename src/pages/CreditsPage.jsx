@@ -6,7 +6,10 @@ import { Heart, BookOpen, Volume2, Type, Server, Info, ArrowLeft, ExternalLink }
 // Linked from Settings (the "About & Credits" card).
 export default function CreditsPage() {
   const navigate = useNavigate();
-  const goBack = () => navigate(-1);
+  const goBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate('/');
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
       <div className="w-full max-w-3xl mx-auto px-5 sm:px-8 lg:px-12 py-10 pb-24">
