@@ -1,8 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { OLD_TESTAMENT, NEW_TESTAMENT } from '@/lib/bibleData';
 
 export default function BookSelector({ currentAbbr, onSelect, onClose, initialTestament }) {
   const [tab, setTab] = useState(initialTestament === 'new' ? 'new' : 'old');
+  const scrollRef = useRef(null);
+
+  // Reset the book list to the top whenever the testament tab changes, so a
+  // user scrolled deep into the Old Testament lands at the top of the New.
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [tab]);
 
   const books = tab === 'new' ? NEW_TESTAMENT : OLD_TESTAMENT;
   const titleBook = tab === 'new'
@@ -53,7 +60,7 @@ export default function BookSelector({ currentAbbr, onSelect, onClose, initialTe
         </button>
       </div>
 
-      <div className="overflow-y-auto flex-1 pb-6 overscroll-contain">
+      <div ref={scrollRef} className="overflow-y-auto flex-1 pb-6 overscroll-contain">
         {/* Title Page for this testament */}
         <button
           onClick={() => { onSelect(titleBook, true, false); onClose(); }}
