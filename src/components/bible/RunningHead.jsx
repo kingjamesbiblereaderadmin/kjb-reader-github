@@ -9,7 +9,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
   const rightRef = useRef(null);
   const [scale, setScale] = useState(1);
 
-  const chapterText = `${chapter}`;
+  const chapterText = `Chapter ${chapter}`;
 
   // Reset to full size when inputs change so we re-measure cleanly.
   useLayoutEffect(() => { setScale(1); }, [bookName, chapter, baseFontRem]);
@@ -30,7 +30,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
 
   return (
     <div className={`mb-6 print:hidden ${isCursive ? 'cursive-em-style' : 'font-serif'}`}>
-      <div className="text-left">
+      <div className="flex justify-between items-baseline gap-4 min-w-0">
         <div className="min-w-0">
           <span
             ref={leftRef}
@@ -40,7 +40,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
             {bookName}
           </span>
         </div>
-        <div className="min-w-0 mt-1">
+        <div className="min-w-0">
           <span
             ref={rightRef}
             className="inline-block max-w-full whitespace-nowrap font-semibold tracking-wide text-foreground"
