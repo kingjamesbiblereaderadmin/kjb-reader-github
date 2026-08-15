@@ -88,6 +88,9 @@ export default function CreditsPage() {
             Source:{' '}
             <a href="https://www.bibleprotector.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://www.bibleprotector.com</a>
           </p>
+          <p className="font-sans text-sm text-foreground/85 leading-relaxed mt-4">
+            <strong className="text-foreground/80">Background Music:</strong> Original ambient compositions (Public Domain)
+          </p>
         </section>
 
         {/* Fonts */}

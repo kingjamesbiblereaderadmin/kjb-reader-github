@@ -2,6 +2,7 @@ import React, { createContext, useContext, useRef, useEffect, useState, useMemo,
 import { base44 } from '@/api/base44Client';
 import { buildWordTimeline, findActiveWordIndex } from '@/lib/audioSync';
 import { getCachedRecords, saveRecords, getCachedTiming, saveTiming } from '@/lib/audioCache';
+import { VOICE_OPTIONS, DEFAULT_VOICE } from '@/lib/voices';
 
 const AudioContext = createContext(null);
 export const useAudio = () => useContext(AudioContext);
@@ -28,7 +29,10 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [speed, setSpeed] = useState(1);
-  const [voice, setVoice] = useState(null);
+  const [selectedVoice, setSelectedVoice] = useState(() => {
+    try { return localStorage.getItem('kjb-audio-voice') || DEFAULT_VOICE; } catch { return DEFAULT_VOICE; }
+  });
+  const [voice, setVoice] = useState(selectedVoice);
 
   const audioRef = useRef(null);
   const rafRef = useRef(null);
@@ -57,9 +61,6 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       if (cancelled) return;
       if (cached && cached.length) {
         setRecords(cached);
-        const first = cached.find(r => r.audio_url) || cached[0];
-        setRecord(first);
-        setVoice(first.voice || null);
         setLoading(false);
       }
       try {
@@ -67,9 +68,6 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
         if (cancelled) return;
         if (recs && recs.length) {
           setRecords(recs);
-          const first = recs.find(r => r.audio_url) || recs[0];
-          setRecord(first);
-          setVoice(first.voice || null);
           saveRecords(book.name, chapter, recs);
         }
       } catch {
@@ -101,6 +99,15 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     return () => { cancelled = true; };
   }, [record]);
 
+  // Select the record matching the user's chosen voice. If no record exists
+  // for the selected voice (e.g. that voice hasn't been generated yet for this
+  // chapter), record is null and the player shows "Audio coming soon".
+  useEffect(() => {
+    const match = records.find(r => (r.voice || 'default') === selectedVoice && r.audio_url) || null;
+    setRecord(match);
+    setVoice(selectedVoice);
+  }, [records, selectedVoice]);
+
   const timeline = useMemo(() => buildWordTimeline(verses, rawTiming), [verses, rawTiming]);
 
   // Per-verse word slices with global timeline indices, for VerseText.
@@ -115,21 +122,14 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     return m;
   }, [timeline]);
 
-  // Distinct voices available for this chapter (for the voice selector).
-  const voices = useMemo(() => {
-    const seen = new Map();
-    for (const r of records) {
-      if (!r.audio_url) continue;
-      const v = r.voice || 'default';
-      if (!seen.has(v)) seen.set(v, r);
-    }
-    return [...seen.entries()].map(([v, r]) => ({ voice: v, record: r }));
-  }, [records]);
+  // Voice catalog (always both options so the user can pick and see "coming
+  // soon" if their chosen voice isn't generated for this chapter yet).
+  const voices = useMemo(() => VOICE_OPTIONS, []);
 
   const selectVoice = useCallback((v) => {
-    const r = records.find(x => (x.voice || 'default') === v);
-    if (r) { setRecord(r); setVoice(v); }
-  }, [records]);
+    setSelectedVoice(v);
+    try { localStorage.setItem('kjb-audio-voice', v); } catch {}
+  }, []);
 
   // Keep <audio> src + playbackRate in sync.
   useEffect(() => {
@@ -245,11 +245,12 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   const cycleSpeed = useCallback(() => setSpeed(s => SPEEDS[(SPEEDS.indexOf(s) + 1) % SPEEDS.length]), []);
 
   // Stable context value — changes only on play/pause, load, speed, voice.
+  const hasAnyAudio = records.some(r => r.audio_url);
   const audioValue = useMemo(() => ({
-    active: !!active, ready: !loading, record, timeline, wordsByVerse,
+    active: !!active, ready: !loading, record, hasAnyAudio, timeline, wordsByVerse,
     playing, duration, speed, voices, voice, selectVoice,
     togglePlay, seek, skip, seekToWord, cycleSpeed, onClose,
-  }), [active, loading, record, timeline, wordsByVerse, playing, duration, speed, voices, voice, selectVoice, togglePlay, seek, skip, seekToWord, cycleSpeed, onClose]);
+  }), [active, loading, record, hasAnyAudio, timeline, wordsByVerse, playing, duration, speed, voices, voice, selectVoice, togglePlay, seek, skip, seekToWord, cycleSpeed, onClose]);
 
   // Memoize children so per-frame currentTime re-renders don't re-render
   // the verse text (which only needs the stable audioValue).

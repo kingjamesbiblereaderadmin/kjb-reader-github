@@ -1,5 +1,6 @@
 import React from 'react';
 import { Play, Pause, X, SkipBack, SkipForward, Gauge, Loader2, Headphones } from 'lucide-react';
+import { voiceLabel } from '@/lib/voices';
 
 function fmt(t) {
   if (!Number.isFinite(t) || t < 0) t = 0;
@@ -12,7 +13,7 @@ function fmt(t) {
 
 // Persistent bottom mini-player for the Read page. Lives on the Read page
 // itself (not a separate route). Re-renders with currentTime for the scrubber.
-export default function AudioMiniPlayer({ loading, hasAudio, playing, currentTime, duration, speed, voices, voice, onToggle, onSeek, onSkip, onSpeed, onSelectVoice, onClose }) {
+export default function AudioMiniPlayer({ loading, hasAudio, hasAnyAudio, playing, currentTime, duration, speed, voices, voice, onToggle, onSeek, onSkip, onSpeed, onSelectVoice, onClose }) {
   return (
     <div className="border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 py-2.5 print:hidden">
       <div className="max-w-3xl mx-auto">
@@ -24,7 +25,20 @@ export default function AudioMiniPlayer({ loading, hasAudio, playing, currentTim
         ) : !hasAudio ? (
           <div className="flex items-center justify-center gap-3 py-1.5">
             <Headphones className="w-4 h-4 text-muted-foreground/60" />
-            <span className="font-sans text-sm text-muted-foreground">No narration for this chapter yet.</span>
+            <span className="font-sans text-sm text-muted-foreground">
+              {hasAnyAudio ? `Audio coming soon — ${voiceLabel(voice)}` : 'No narration for this chapter yet.'}
+            </span>
+            {hasAnyAudio && voices && voices.length > 1 && (
+              <select
+                value={voice || ''}
+                onChange={(e) => onSelectVoice(e.target.value)}
+                className="px-2 py-1.5 rounded-full border border-border bg-secondary text-foreground font-sans text-xs hover:bg-accent/20 transition-colors cursor-pointer max-w-[9rem]"
+                title="Voice"
+                aria-label="Voice"
+              >
+                {voices.map(v => <option key={v.voice} value={v.voice}>{v.label || v.voice}</option>)}
+              </select>
+            )}
             {onClose && (
               <button onClick={onClose} title="Close" className="p-1.5 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-4 h-4" />
@@ -69,11 +83,11 @@ export default function AudioMiniPlayer({ loading, hasAudio, playing, currentTim
                 <select
                   value={voice || ''}
                   onChange={(e) => onSelectVoice(e.target.value)}
-                  className="px-2 py-1.5 rounded-full border border-border bg-secondary text-foreground font-sans text-xs hover:bg-accent/20 transition-colors cursor-pointer max-w-[8rem]"
+                  className="px-2 py-1.5 rounded-full border border-border bg-secondary text-foreground font-sans text-xs hover:bg-accent/20 transition-colors cursor-pointer max-w-[9rem]"
                   title="Voice"
                   aria-label="Voice"
                 >
-                  {voices.map(v => <option key={v.voice} value={v.voice}>{v.voice}</option>)}
+                  {voices.map(v => <option key={v.voice} value={v.voice}>{v.label || v.voice}</option>)}
                 </select>
               )}
               {onClose && (
