@@ -1,33 +1,27 @@
 import React from 'react';
+import { ArrowLeft } from 'lucide-react';
 
-// Embeds the externally-hosted TTS generation progress dashboard (a
-// self-contained HTML page served by the elara app's getTTSProgress
-// function). The dashboard auto-refreshes itself every 5 seconds via fetch
-// to ?format=json, so all we need here is a full-bleed iframe.
-const TTS_DASHBOARD_URL =
-  'https://elara-1ee07417.base44.app/functions/getTTSProgress';
-
-export default function TTSProgressDashboard() {
+// Full-screen iframe embedding the externally-hosted TTS progress dashboard.
+// The hosted page already fetches live data and auto-refreshes every 5s, so
+// we just embed it directly — no native reimplementation, no CORS issues.
+// A small floating button lets the admin return to the Dev Tools tab list.
+export default function TTSProgressDashboard({ onBack }) {
   return (
-    <div className="w-full">
-      <div className="mb-4">
-        <h2 className="font-serif text-xl font-bold text-foreground mb-1">
-          TTS Progress Dashboard
-        </h2>
-        <p className="font-sans text-xs text-muted-foreground">
-          Live narration generation progress for bm_george &amp; bf_emma voices.
-          Auto-refreshes every 5 seconds.
-        </p>
-      </div>
-      <div className="rounded-xl overflow-hidden border border-border shadow-sm bg-card" style={{ height: '75vh' }}>
-        <iframe
-          src={TTS_DASHBOARD_URL}
-          title="TTS Progress Dashboard"
-          className="w-full h-full block"
-          style={{ border: 'none' }}
-          loading="lazy"
-        />
-      </div>
+    <div className="relative w-full" style={{ height: '100vh' }}>
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background/80 backdrop-blur border border-border text-xs font-medium text-foreground hover:bg-accent/20 transition-colors shadow-sm"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Dev Tools
+        </button>
+      )}
+      <iframe
+        src="https://elara-1ee07417.base44.app/functions/getTTSProgress"
+        style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+        title="TTS Progress Dashboard"
+      />
     </div>
   );
 }

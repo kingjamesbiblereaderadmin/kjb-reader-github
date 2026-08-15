@@ -42,6 +42,11 @@ export default function DevToolsPage() {
     return <DevToolsSignIn />;
   }
 
+  // TTS Progress dashboard is a full-screen embed — no Dev Tools chrome.
+  if (tab === 'tts') {
+    return <TTSProgressDashboard onBack={() => setTab('image')} />;
+  }
+
   const handleLogout = () => {
     base44.auth.logout('/dev-tools');
   };
