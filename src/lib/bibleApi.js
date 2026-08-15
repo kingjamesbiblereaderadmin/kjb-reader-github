@@ -170,7 +170,12 @@ export function renderVerseText(text, searchTerm = null, audioWordIndices = null
   // they don't consume a word index.
   if (audioWordIndices && audioWordIndices.length) {
     let wi = 0;
-    result = result.replace(/(<[^>]+>)|(\S+)/g, (chunk, tag, word) => {
+    // Match HTML tags, OR a run of non-space, non-'<' chars. Stopping at '<'
+    // prevents a glued closing tag from being absorbed into a word token —
+    // e.g. the pilcrow span "¶</span>" would otherwise match as one \S+ token
+    // whose "span" has letters, so the no-letter skip fails and the pilcrow
+    // wrongly consumes a word index (shifting every later span by one).
+    result = result.replace(/(<[^>]+>)|([^\s<]+)/g, (chunk, tag, word) => {
       if (tag) return tag;
       // Skip tokens with no letter/digit (pilcrows ¶, control chars \u000F,
       // replacement chars \uFFFD, stray punctuation). These are filtered out of
