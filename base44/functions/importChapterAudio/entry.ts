@@ -1,10 +1,12 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 
 // Admin-only full-replace batch import endpoint for ChapterAudio narration
-// records. POST JSON: { "records": [ { book, book_order, chapter, audio_url,
-// timing_url?, voice?, duration_seconds?, verse_count? }, ... ] }
-// Deletes ALL existing ChapterAudio records first, then creates all new ones.
-// Returns { created } on success.
+// records. POST JSON in ONE of two modes:
+//   1. { "data_url": "<https url to a JSON file { records: [...] }>" }
+//   2. { "records": [ { book, book_order, chapter, audio_url, timing_url?,
+//      voice?, duration_seconds?, verse_count? }, ... ] }
+// data_url takes precedence when both are present. Deletes ALL existing
+// ChapterAudio records first, then creates all new ones. Returns { created }.
 
 const stripUndef = (obj) => {
   const out = {};
@@ -25,8 +27,22 @@ export default async function(req) {
     try { body = await req.json(); } catch {
       return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
-    const records = Array.isArray(body?.records) ? body.records : null;
-    if (!records) return Response.json({ error: 'Missing "records" array' }, { status: 400 });
+
+    // Resolve records either from a remote JSON file (data_url) or inline.
+    let records = null;
+    if (typeof body?.data_url === 'string' && body.data_url) {
+      try {
+        const res = await fetch(body.data_url);
+        if (!res.ok) return Response.json({ error: `Failed to fetch data_url (${res.status})` }, { status: 502 });
+        const json = await res.json();
+        records = Array.isArray(json?.records) ? json.records : null;
+      } catch (e) {
+        return Response.json({ error: `Failed to fetch/parse data_url: ${e?.message || e}` }, { status: 502 });
+      }
+    } else if (Array.isArray(body?.records)) {
+      records = body.records;
+    }
+    if (!records) return Response.json({ error: 'Missing "records" array or "data_url"' }, { status: 400 });
 
     // Validate + normalize each record. book, book_order, chapter, and
     // audio_url are required by the entity schema.
