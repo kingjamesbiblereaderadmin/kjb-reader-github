@@ -521,12 +521,6 @@ export default function BibleReader() {
   // Set by goNext(isAutoAdvance) so loadChapter knows to keep Listen mode on
   // across the chapter switch (it normally resets listenMode on every load).
   const autoAdvanceRef = useRef(false);
-  // Monotonic load token. Each loadChapter call captures a value; after its
-  // async fetch resolves it only commits state (verses/colophon/loading) if
-  // its token is still the latest. This prevents a slower older load from
-  // overwriting a newer navigation's data — the race that left the header
-  // showing one book/chapter while the verse body showed another's content.
-  const loadIdRef = useRef(0);
   const book = BIBLE_BOOKS.find(b => b.abbr === pos.abbr) || BIBLE_BOOKS[0];
   // Subscript for the current chapter, honouring any admin override. Recomputed
   // when verses reload (loadOverrides populates the cache by then).
@@ -537,33 +531,28 @@ export default function BibleReader() {
   const isViewingTitlePage = pos.chapter === 0;
 
   const loadChapter = useCallback(async (bookAbbr, chapter, jumpVerse) => {
-    const myId = ++loadIdRef.current;
     setLoading(true); setError(null); setVerses([]); setColophon(null);
     const keepListen = autoAdvanceRef.current;
     autoAdvanceRef.current = false;
     if (!keepListen) setListenMode(false);
     (document.getElementById('kjb-scroll') || window).scrollTo({ top: 0 });
     const b = BIBLE_BOOKS.find(bk => bk.abbr === bookAbbr);
-    if (!b) { if (myId === loadIdRef.current) { setError('Book not found'); setLoading(false); } return; }
+    if (!b) { setError('Book not found'); setLoading(false); return; }
     if (!jumpVerse) setHighlightVerse(null);
     if (chapter === 0) {
-      if (myId === loadIdRef.current) {
-        setVerseCount(0); setLoading(false); setHighlightVerse(jumpVerse || null);
-        savePosition(bookAbbr, chapter);
-      }
+      setVerseCount(0); setLoading(false); setHighlightVerse(jumpVerse || null);
+      savePosition(bookAbbr, chapter);
       return;
     }
     try {
       const data = await fetchChapter(b.apiName, chapter);
-      if (myId !== loadIdRef.current) return; // superseded by a newer navigation — discard stale data
       setVerses(data.verses); setColophon(data.colophon || null); setVerseCount(data.verses.length);
       if (jumpVerse) setHighlightVerse(jumpVerse);
       savePosition(bookAbbr, chapter, jumpVerse || null);
     } catch (err) {
-      if (myId !== loadIdRef.current) return;
       setError('Failed to load chapter. Please check your connection.');
     }
-    if (myId === loadIdRef.current) setLoading(false);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
