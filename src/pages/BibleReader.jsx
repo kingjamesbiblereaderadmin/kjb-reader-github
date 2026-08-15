@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, Loader2, AlignJustify, AlignLeft, List, Columns2, Maximize2, Minimize2, ChevronDown, CheckSquare, Square, Copy, X, BookMarked, ZoomIn, Minus, Plus, Type, Share2, Printer } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, AlignJustify, AlignLeft, List, Columns2, Maximize2, Minimize2, ChevronDown, CheckSquare, Square, Copy, X, BookMarked, ZoomIn, Minus, Plus, Type, Share2, Printer, Headphones } from 'lucide-react';
 import { buildVerseUrl, formatVerseShare, cleanVerseText } from '@/lib/formatDailyVerse';
 import { BIBLE_BOOKS, getNextBook, getPrevBook } from '@/lib/bibleData';
 import { fetchChapter, fetchVerseCount, renderVerseText, renderColophonText, renderSubscriptText, resolveSubscript, resolveEndMarker } from '@/lib/bibleApi';
@@ -18,6 +18,7 @@ import CurrentlyReadingIndicator from '@/components/bible/CurrentlyReadingIndica
 import MinimizedHeaderBar from '@/components/bible/MinimizedHeaderBar';
 import ReadingRangeBar from '@/components/bible/ReadingRangeBar';
 import SelectActionBar from '@/components/bible/SelectActionBar';
+import AudioPlayer from '@/components/bible/AudioPlayer';
 import { useHeaderHide } from '@/lib/HeaderHideContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -105,6 +106,7 @@ export default function BibleReader() {
   const [showBookPicker, setShowBookPicker] = useState(false);
   const [showChapterPicker, setShowChapterPicker] = useState(false);
   const [showVersePicker, setShowVersePicker] = useState(false);
+  const [listenMode, setListenMode] = useState(false);
   const [flowMode, setFlowMode] = useState(() => {
     try {
       const v = localStorage.getItem('kjb-flow');
@@ -526,6 +528,7 @@ export default function BibleReader() {
 
   const loadChapter = useCallback(async (bookAbbr, chapter, jumpVerse) => {
     setLoading(true); setError(null); setVerses([]); setColophon(null);
+    setListenMode(false);
     (document.getElementById('kjb-scroll') || window).scrollTo({ top: 0 });
     const b = BIBLE_BOOKS.find(bk => bk.abbr === bookAbbr);
     if (!b) { setError('Book not found'); setLoading(false); return; }
@@ -1729,6 +1732,15 @@ export default function BibleReader() {
               </DropdownMenu>
 
               <button
+                onClick={() => setListenMode(m => !m)}
+                title={listenMode ? 'Close audio' : 'Listen (word-by-word)'}
+                className={`kjb-fixed-btn flex items-center justify-center gap-1.5 px-3 rounded-lg border transition-all duration-200 touch-manipulation h-11 whitespace-nowrap ${listenMode ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary border-border text-secondary-foreground hover:bg-accent/20'}`}
+              >
+                <Headphones className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />
+                <span className="hidden lg:inline">{listenMode ? 'Reading' : 'Listen'}</span>
+              </button>
+
+              <button
                 onClick={() => printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode)}
                 title="Print"
                 className="kjb-fixed-btn flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-11 whitespace-nowrap"
@@ -1920,7 +1932,7 @@ export default function BibleReader() {
         />
       )}
 
-      {!isViewingTitlePage && (
+      {!isViewingTitlePage && !listenMode && (
         <div className={`text-center mb-6 pt-8 ${(!columnMode || pos.chapter === 1) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
           <h1 className={`${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} text-3xl md:text-4xl font-bold text-foreground mb-2 leading-tight`} style={{ fontStyle: 'normal', fontWeight: '900' }}>{book.name}</h1>
           <p className={`font-sans text-muted-foreground tracking-widest uppercase mt-5 ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100 * 0.875}rem`, fontWeight: fontFamily === 'cursive' ? '400' : undefined }}>
@@ -1945,13 +1957,23 @@ export default function BibleReader() {
       >
         {loading && <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>}
         {error && <div className="text-center py-16 text-destructive font-sans">{error}</div>}
+        {!loading && !error && !isViewingTitlePage && verses.length > 0 && listenMode && (
+          <AudioPlayer
+            verses={verses}
+            book={book}
+            chapter={pos.chapter}
+            zoomLevel={zoomLevel}
+            fontFamily={fontFamily}
+            onClose={() => setListenMode(false)}
+          />
+        )}
         {!loading && !error && isViewingTitlePage && (
           <div style={{ fontFamily: "'Merriweather', 'Cormorant Garamond', Georgia, serif" }} className="[&_*]:!font-serif"><TitlePage type={pos.abbr === 'GEN' ? 'testament-old' : pos.abbr === 'MAT' ? 'testament-new' : 'book'} book={book} /></div>
         )}
-        {!loading && !error && verses.length > 0 && columnMode && !isViewingTitlePage && pos.chapter !== 1 && (
+        {!loading && !error && verses.length > 0 && columnMode && !isViewingTitlePage && pos.chapter !== 1 && !listenMode && (
           <RunningHead bookName={book.name} chapter={pos.chapter} baseFontRem={zoomLevel / 100 * 0.7} isCursive={fontFamily === 'cursive'} />
         )}
-        {!loading && !error && verses.length > 0 && (() => {
+        {!loading && !error && verses.length > 0 && !listenMode && (() => {
           // selectedVerses may contain numbers (restored from localStorage) while
           // v.verse can be a string from the cached Bible data. Coerce both so the
           // filter matches — otherwise every verse is filtered out and only the
@@ -1991,7 +2013,7 @@ export default function BibleReader() {
           </div>
           );
         })()}
-        {!loading && !error && colophon && (
+        {!loading && !error && colophon && !listenMode && (
           <div onClick={() => handleSectionClick('colophon')} id="kjb-colophon-anchor" className={`${columnMode ? 'mt-6 mb-4' : 'mt-12 mb-4 border-t border-border pt-6'} text-center transition-colors duration-500 rounded-lg cursor-pointer ${sectionActive('colophon') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`}>
             <p className={`kjb-colophon text-sm text-muted-foreground leading-relaxed ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}><SubscriptContent text={colophon} searchTerm={sectionActive('colophon') ? searchTerm : null} /></p>
           </div>

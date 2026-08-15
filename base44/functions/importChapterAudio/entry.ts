@@ -1,9 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 
-// Admin-only batch import endpoint for ChapterAudio narration records.
-// POST JSON: { "records": [ { book, book_order, chapter, audio_url, timing_url?, voice?, duration_seconds?, verse_count? }, ... ] }
-// Upserts by book + chapter (updates an existing record if one already exists,
-// otherwise creates). Returns { created, updated } on success.
+// Admin-only full-replace batch import endpoint for ChapterAudio narration
+// records. POST JSON: { "records": [ { book, book_order, chapter, audio_url,
+// timing_url?, voice?, duration_seconds?, verse_count? }, ... ] }
+// Deletes ALL existing ChapterAudio records first, then creates all new ones.
+// Returns { created } on success.
 
 const stripUndef = (obj) => {
   const out = {};
@@ -27,16 +28,20 @@ export default async function(req) {
     const records = Array.isArray(body?.records) ? body.records : null;
     if (!records) return Response.json({ error: 'Missing "records" array' }, { status: 400 });
 
-    // Validate + normalize each record. Only book, chapter, audio_url are
-    // required; the rest are optional metadata.
+    // Validate + normalize each record. book, book_order, chapter, and
+    // audio_url are required by the entity schema.
     const clean = [];
     for (const r of records) {
-      if (!r || typeof r.book !== 'string' || typeof r.chapter !== 'number' || typeof r.audio_url !== 'string' || !r.audio_url) {
-        return Response.json({ error: 'Each record requires book (string), chapter (number), and audio_url (string)' }, { status: 400 });
+      if (!r
+        || typeof r.book !== 'string' || !r.book
+        || typeof r.book_order !== 'number'
+        || typeof r.chapter !== 'number'
+        || typeof r.audio_url !== 'string' || !r.audio_url) {
+        return Response.json({ error: 'Each record requires book (string), book_order (number), chapter (number), and audio_url (string)' }, { status: 400 });
       }
       clean.push(stripUndef({
         book: r.book,
-        book_order: typeof r.book_order === 'number' ? r.book_order : undefined,
+        book_order: r.book_order,
         chapter: r.chapter,
         audio_url: r.audio_url,
         timing_url: typeof r.timing_url === 'string' && r.timing_url ? r.timing_url : undefined,
@@ -45,40 +50,16 @@ export default async function(req) {
         verse_count: typeof r.verse_count === 'number' ? r.verse_count : undefined,
       }));
     }
-    if (!clean.length) return Response.json({ created: 0, updated: 0 });
+    if (!clean.length) return Response.json({ created: 0 });
 
-    // Fetch only the existing records for the books in this batch so we can
-    // upsert by book + chapter without loading the whole table.
-    const books = [...new Set(clean.map((r) => r.book))];
-    const existing = await base44.asServiceRole.entities.ChapterAudio.filter({ book: { $in: books } });
-    const existingMap = new Map();
-    for (const e of existing) {
-      existingMap.set(`${e.book}|${e.chapter}`, e);
-    }
+    // Full replace: wipe every existing ChapterAudio record, then insert the
+    // new batch. deleteMany with an empty match removes all records the caller
+    // is permitted to delete (RLS allows admin to delete all).
+    await base44.asServiceRole.entities.ChapterAudio.deleteMany({});
 
-    const toCreate = [];
-    const toUpdate = [];
-    for (const r of clean) {
-      const ex = existingMap.get(`${r.book}|${r.chapter}`);
-      if (ex) {
-        toUpdate.push({ id: ex.id, ...r });
-      } else {
-        toCreate.push(r);
-      }
-    }
+    await base44.asServiceRole.entities.ChapterAudio.bulkCreate(clean);
 
-    let created = 0;
-    let updated = 0;
-    if (toCreate.length) {
-      await base44.asServiceRole.entities.ChapterAudio.bulkCreate(toCreate);
-      created = toCreate.length;
-    }
-    if (toUpdate.length) {
-      await base44.asServiceRole.entities.ChapterAudio.bulkUpdate(toUpdate);
-      updated = toUpdate.length;
-    }
-
-    return Response.json({ created, updated });
+    return Response.json({ created: clean.length });
   } catch (error) {
     return Response.json({ error: error?.message || 'Internal error' }, { status: 500 });
   }
