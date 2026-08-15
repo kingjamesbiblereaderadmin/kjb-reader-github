@@ -281,19 +281,18 @@ const AuthenticatedApp = () => {
             <Route path="/oauth/consent" element={<Suspense fallback={<RouteLoader />}><OAuthConsentPage /></Suspense>} />
             <Route path="/tab-ui-test" element={<Suspense fallback={<RouteLoader />}><TabbedUiTestPage /></Suspense>} />
             <Route path="/credits" element={<Suspense fallback={<RouteLoader />}><CreditsPage /></Suspense>} />
+            <Route path="/terms" element={<Suspense fallback={<RouteLoader />}><TermsOfServicePage /></Suspense>} />
+            <Route path="/privacy" element={<Suspense fallback={<RouteLoader />}><PrivacyPolicyPage /></Suspense>} />
+            <Route path="/contact" element={<Suspense fallback={<RouteLoader />}><ContactPage /></Suspense>} />
+            <Route path="/salvation" element={<Suspense fallback={<RouteLoader />}><SalvationPage /></Suspense>} />
+            <Route path="/discord" element={<Suspense fallback={<RouteLoader />}><DiscordInvitePage /></Suspense>} />
+            <Route path="/extension" element={<Suspense fallback={<RouteLoader />}><ExtensionPage /></Suspense>} />
+            <Route path="/extension-privacy" element={<Suspense fallback={<RouteLoader />}><ExtensionPrivacyPage /></Suspense>} />
+            <Route path="/extension/privacy" element={<Suspense fallback={<RouteLoader />}><ExtensionPrivacyPage /></Suspense>} />
+            <Route path="/extension-terms" element={<Suspense fallback={<RouteLoader />}><ExtensionTermsPage /></Suspense>} />
+            <Route path="/extension-license" element={<Suspense fallback={<RouteLoader />}><ExtensionLicensePage /></Suspense>} />
             <Route element={<MarketingLayout />}>
               <Route path="/landing" element={<Suspense fallback={<RouteLoader />}><LandingPage /></Suspense>} />
-              <Route path="/terms" element={<Suspense fallback={<RouteLoader />}><TermsOfServicePage /></Suspense>} />
-              <Route path="/privacy" element={<Suspense fallback={<RouteLoader />}><PrivacyPolicyPage /></Suspense>} />
-              <Route path="/contact" element={<Suspense fallback={<RouteLoader />}><ContactPage /></Suspense>} />
-
-              <Route path="/salvation" element={<Suspense fallback={<RouteLoader />}><SalvationPage /></Suspense>} />
-              <Route path="/discord" element={<Suspense fallback={<RouteLoader />}><DiscordInvitePage /></Suspense>} />
-              <Route path="/extension" element={<Suspense fallback={<RouteLoader />}><ExtensionPage /></Suspense>} />
-              <Route path="/extension-privacy" element={<Suspense fallback={<RouteLoader />}><ExtensionPrivacyPage /></Suspense>} />
-              <Route path="/extension/privacy" element={<Suspense fallback={<RouteLoader />}><ExtensionPrivacyPage /></Suspense>} />
-              <Route path="/extension-terms" element={<Suspense fallback={<RouteLoader />}><ExtensionTermsPage /></Suspense>} />
-              <Route path="/extension-license" element={<Suspense fallback={<RouteLoader />}><ExtensionLicensePage /></Suspense>} />
             </Route>
             <Route element={<AppLayout />}>
               <Route path="/" element={<Suspense fallback={<RouteLoader />}><FadeIn><HomePage /></FadeIn></Suspense>} />
