@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from '@/App.jsx'
 import '@/index.css'
 import { initNotifications } from '@/lib/notifications'
+import { backfillPushSubscription } from '@/lib/pushSub'
 import { getDailyVerse } from '@/lib/dailyVerse'
 import { cacheSplashLogo } from '@/lib/splashLogo'
 import { toast } from 'sonner'
@@ -224,6 +225,12 @@ window.addEventListener('load', async () => {
       });
       
       initNotifications(getDailyVerse());
+
+      // Self-heal push subscriptions for returning visitors (same domain, new
+      // app instance): silently re-bind + backfill any existing browser push
+      // subscription into this app's PushSubscription entity. No new prompt —
+      // only runs when Notification.permission is already 'granted'.
+      backfillPushSubscription().catch(() => {});
     } catch (err) {
       console.warn('[SW] Registration failed:', err);
       initNotifications(getDailyVerse());

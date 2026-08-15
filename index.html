@@ -140,7 +140,16 @@
         }
       })();
     </script>
+    <!-- Favicons: the same KJB Reader icon used by the PWA manifest, served
+         same-origin via the pwaIcon proxy (which fetches the kjb-icon192/512
+         PNG assets) so it always resolves — never the dead cross-app media
+         reference from the previous app instance. Browsers prefer these
+         explicit <link rel="icon"> entries over the platform's default
+         /favicon.ico redirect. -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/functions/pwaIcon?size=192" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/functions/pwaIcon?size=512" />
     <link rel="icon" type="image/png" href="/functions/pwaIcon?size=192" />
+    <link rel="shortcut icon" href="/functions/pwaIcon?size=192" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <!-- Capture beforeinstallprompt early (Chrome/Edge/Samsung/Android mobile) -->
     <script>
@@ -199,7 +208,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="KJB Reader" />
-    <link rel="apple-touch-icon" href="/functions/pwaIcon?size=512" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/functions/pwaIcon?size=192" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/functions/pwaIcon?size=512" />
     <meta name="mobile-web-app-capable" content="yes" />
     <!-- Performance optimizations -->
     <link rel="preconnect" href="https://media.base44.com" crossorigin />
