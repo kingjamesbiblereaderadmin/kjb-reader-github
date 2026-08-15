@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
@@ -15,7 +15,18 @@ export const AuthProvider = ({ children }) => {
   const [appPublicSettings, setAppPublicSettings] = useState(null); // Contains only { id, public_settings }
 
   useEffect(() => {
+    const timeout = setTimeout(() => {
+      // Fallback: if loading takes too long, allow app to continue
+      if (isLoadingAuth || isLoadingPublicSettings) {
+        console.warn('[Auth] Loading timeout - allowing app to continue');
+        setIsLoadingAuth(false);
+        setIsLoadingPublicSettings(false);
+      }
+    }, 3000); // 3 second timeout — faster offline recovery
+    
     checkAppState();
+    
+    return () => clearTimeout(timeout);
   }, []);
 
   const checkAppState = async () => {
@@ -50,7 +61,20 @@ export const AuthProvider = ({ children }) => {
       } catch (appError) {
         console.error('App state check failed:', appError);
         
-        // Handle app-level errors
+        // Check if this is a network error (offline mode)
+        const isNetworkError = !appError.status || appError.status === 0 || !navigator.onLine ||
+          appError.code === 'ECONNABORTED' || appError.message?.toLowerCase().includes('network');
+        
+        if (isNetworkError) {
+          // Allow app to continue in offline mode
+          console.log('Offline mode - continuing without auth check');
+          setIsLoadingPublicSettings(false);
+          setIsLoadingAuth(false);
+          setAuthChecked(true);
+          return;
+        }
+        
+        // Handle app-level errors (not network errors)
         if (appError.status === 403 && appError.data?.extra_data?.reason) {
           const reason = appError.data.extra_data.reason;
           if (reason === 'auth_required') {

@@ -1,33 +1,62 @@
-import { useEffect } from "react";
-import { useLocation, useNavigationType } from "react-router-dom";
-
-const getHashId = (hash) => {
-  const rawId = hash.slice(1);
-
-  try {
-    return decodeURIComponent(rawId);
-  } catch {
-    return rawId;
-  }
-};
+import React, { useState, useEffect } from 'react';
+import { ChevronUp } from 'lucide-react';
 
 export default function ScrollToTop() {
-  const { pathname, hash } = useLocation();
-  const navigationType = useNavigationType();
+  const [visible, setVisible] = useState(false);
+  const [footerHeight, setFooterHeight] = useState(80);
 
   useEffect(() => {
-    if (navigationType === "POP") return;
+    const scroller = document.getElementById('kjb-scroll');
+    const target = scroller || window;
+    const getY = () => (scroller ? scroller.scrollTop : window.scrollY);
+    const handleScroll = () => {
+      setVisible(getY() > 300);
+    };
+    target.addEventListener('scroll', handleScroll, { passive: true });
 
-    if (hash) {
-      const id = getHashId(hash);
-      const timer = window.setTimeout(() => {
-        document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-      }, 50);
-      return () => window.clearTimeout(timer);
-    }
+    // Calculate footer height based on nav mode
+    const updateFooterHeight = () => {
+      try {
+        const showMode = localStorage.getItem('kjb-footer-mode') || 'one';
+        // Mobile footer: one row = ~56px, two rows = ~112px, none = 0
+        // Add safe area inset for bottom
+        const safeArea = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat-bottom') || '0');
+        const baseHeight = showMode === 'two' ? 112 : showMode === 'one' ? 56 : 0;
+        setFooterHeight(baseHeight + safeArea + 16); // 16px extra padding
+      } catch {
+        setFooterHeight(80);
+      }
+    };
 
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-  }, [pathname, hash, navigationType]);
+    updateFooterHeight();
+    window.addEventListener('storage', updateFooterHeight);
+    
+    // Also check periodically in case localStorage changes
+    const interval = setInterval(updateFooterHeight, 1000);
 
-  return null;
+    return () => {
+      target.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('storage', updateFooterHeight);
+      clearInterval(interval);
+    };
+  }, []);
+
+  const scrollToTop = () => {
+    const scroller = document.getElementById('kjb-scroll');
+    if (scroller) scroller.scrollTo({ top: 0, behavior: 'smooth' });
+    else window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (!visible) return null;
+
+  return (
+    <button
+      onClick={scrollToTop}
+      className="fixed right-4 sm:right-6 z-[55] p-2 rounded-full bg-primary/90 text-primary-foreground shadow-lg hover:bg-primary transition-all duration-300 opacity-80 hover:opacity-100 backdrop-blur-sm"
+      aria-label="Scroll to top"
+      style={{ bottom: `${footerHeight}px` }}
+    >
+      <ChevronUp className="w-4 h-4" />
+    </button>
+  );
 }

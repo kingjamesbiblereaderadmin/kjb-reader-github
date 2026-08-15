@@ -1,77 +1,88 @@
-# Base44 Project
+Welcome to the KJB Reader Github page!
 
-Use this repository to run and edit the app locally, then publish changes back through Base44.
+King James Bible Reader is an amazing Bible app where you can read the pure, infalliable word of God in English with resources, gospel resources to easily share with others as you street preach!
 
-Any change pushed to the repo will also be reflected in the Base44 Builder.
+Its works offline as well after you download (automatic) the offline Bible data, there is search abilites, daily verses and much more. 
 
-## Prerequisites
+Link: https://kingjamesbiblereader.com
 
-1. Clone the repository using the project's Git URL.
-2. Navigate to the project directory.
-3. Install dependencies: `npm install`.
-4. Install the Base44 CLI: `npm install -g base44@latest`.
+--=-------------------------------------------
+HOW TO BE SAVED?
 
-See the [Base44 CLI docs](https://docs.base44.com/developers/references/cli/get-started/overview) if you want to run Base44 commands directly.
+The Gospel of Jesus Christ:
 
-## Run Locally
+The Gospel is the glad tidings of the Lord Jesus Christ:
 
-Run the full local development environment from the project root:
+Trust he is God, died, shed his blood, buried and rose again on the 3rd day for our sins.
 
-```bash
-base44 dev
-```
+------------------------
 
-`base44 dev` starts the local Base44 development backend and, when this app is configured for it, also starts the frontend dev server for you. Use the frontend URL printed by the command.
+1. Believe you are a sinner that deserves hell:
 
-For example, when the Base44 project config includes a `serveCommand`, `base44 dev` can launch the frontend too:
+“Therefore by the deeds of the law there shall no flesh be justified in his sight: for by the law is the knowledge of sin.”
+— Romans 3:20
+https://preview-sandbox--6a05d76723afe58d80c589e8.base44.app/read?book=Rom&chapter=3&verse=20&from=gospel
 
-```json5
-{
-  "site": {
-    "serveCommand": "npm run dev"
-  }
-}
-```
+“The wicked shall be turned into hell, and all the nations that forget God.”
+— Psalm 9:17
+https://preview-sandbox--6a05d76723afe58d80c589e8.base44.app/read?book=Psa&chapter=9&verse=17&from=gospel
 
-In a Base44 project this lives in `base44/config.jsonc`.
+------------------------
 
-## Run Only The Frontend
+2. Believe that Jesus is God manifested in the flesh:
 
-If you only want to work on the frontend against the hosted Base44 backend, run:
+“And without controversy great is the mystery of godliness: God was manifest in the flesh, justified in the Spirit, seen of angels, preached unto the Gentiles, believed on in the world, received up into glory.”
+— 1 Timothy 3:16
+https://preview-sandbox--6a05d76723afe58d80c589e8.base44.app/read?book=1Tim&chapter=3&verse=16&from=gospel
 
-```bash
-npm run dev
-```
+------------------------
 
-Open the local URL printed by Vite.
+3. Believe he died, shed his blood, was buried and rose again:
 
-## Use The Hosted Backend
+“Moreover, brethren, I declare unto you the gospel which I preached unto you... how that Christ died for our sins according to the scriptures; And that he was buried, and that he rose again the third day according to the scriptures.”
+— 1 Corinthians 15:1-4
+https://preview-sandbox--6a05d76723afe58d80c589e8.base44.app/read?book=1Cor&chapter=15&verse=1&from=gospel
 
-For frontend-only development, create or update `.env.local` in the project root:
+“Whom God hath set forth to be a propitiation through faith in his blood, to declare his righteousness for the remission of sins that are past, through the forbearance of God;”
+— Romans 3:25
+https://preview-sandbox--6a05d76723afe58d80c589e8.base44.app/read?book=Rom&chapter=3&verse=25&from=gospel
 
-```bash
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=https://your-app.base44.app
-```
+------------------------
 
-`VITE_BASE44_APP_ID` identifies the Base44 app.
+These do NOT make you a Christian:
 
-`VITE_BASE44_APP_BASE_URL` tells the Base44 Vite plugin where to send local `/api` requests. Point it at your deployed Base44 app URL when you want the local frontend to use the hosted backend.
+• Repenting of sins
+• Making Jesus Lord
+• Being a member of a church
+• Tithing
+• Being baptised (water)
+• Saying a sinner's prayer
+• Confessing with your mouth
+• Lordship Salvation
 
-When you use `base44 dev`, the command injects the local Base44 values for you, so `.env.local` is mainly needed for frontend-only workflows.
+------------------------
 
-## Publish Your Changes
+Once Saved, Always Saved:
 
-After pushing your changes to git, open the Base44 dashboard and publish the app:
+“In whom ye also trusted, after that ye heard the word of truth, the gospel of your salvation: in whom also after that ye believed, ye were sealed with that holy Spirit of promise.”
+— Ephesians 1:13
+https://preview-sandbox--6a05d76723afe58d80c589e8.base44.app/read?book=Eph&chapter=1&verse=13&from=gospel
 
-```bash
-base44 dashboard open
-```
+------------------------
 
-## Docs & Support
+Trust the blood — believe the gospel and be saved.
 
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
+Read the full gospel:
+https://preview-sandbox--6a05d76723afe58d80c589e8.base44.app/gospel
 
-Base44 CLI command reference: [https://docs.base44.com/developers/references/cli/commands/introduction](https://docs.base44.com/developers/references/cli/commands/introduction)
+Watch “THE GOSPEL THAT SAVES” by Robert Breaker:
+https://www.youtube.com/watch?v=znP9Dr6tOzU
 
-Support: [https://app.base44.com/support](https://app.base44.com/support)
+Watch the full gospel video playlist:
+https://www.youtube.com/playlist?list=PLNGhZnJavRf3f2_NI79j5GigC6xK5_YYq
+
+-----------------------------------------------
+
+Thank you for checkinig the GitHub page out!
+
+Shawn
