@@ -12,7 +12,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40 transition-all duration-300">
       <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 group">
+        <Link to="/landing" className="flex items-center gap-3 group">
           <div className="relative overflow-hidden rounded-lg">
             <img
               src={LOGO_URL}
@@ -35,14 +35,17 @@ export default function Header() {
         </Link>
 
         <nav className="hidden sm:flex items-center gap-8">
-          <Link to="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-300 relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 hover:after:w-full after:bg-foreground after:transition-all after:duration-300">Home</Link>
-          <Link to="/Salvation" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-300 relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 hover:after:w-full after:bg-foreground after:transition-all after:duration-300">Salvation</Link>
-          <Link to="/Contact" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-300 relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 hover:after:w-full after:bg-foreground after:transition-all after:duration-300">Contact</Link>
-          <a href="#" target="_blank" rel="noopener noreferrer">
+          <Link to="/landing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-300 relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 hover:after:w-full after:bg-foreground after:transition-all after:duration-300">Home</Link>
+          <Link to="/salvation" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-300 relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 hover:after:w-full after:bg-foreground after:transition-all after:duration-300">Salvation</Link>
+          <Link to="/contact" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-300 relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 hover:after:w-full after:bg-foreground after:transition-all after:duration-300">Contact</Link>
+          <Link
+            to="/"
+            onClick={() => { try { localStorage.setItem('kjb-has-visited-app', 'true'); } catch {} }}
+          >
             <Button size="sm" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 rounded-full px-5">
               Open Reader <ArrowRight className="w-3.5 h-3.5" />
             </Button>
-          </a>
+          </Link>
         </nav>
 
         <Sheet open={open} onOpenChange={setOpen}>
@@ -53,21 +56,24 @@ export default function Header() {
           </SheetTrigger>
           <SheetContent side="right" className="bg-card border-border shadow-2xl">
             <nav className="flex flex-col gap-6 mt-12 px-2">
-              <Link to="/" onClick={() => setOpen(false)} className="text-lg font-medium text-foreground hover:text-primary transition-colors duration-300 flex items-center gap-3">
+              <Link to="/landing" onClick={() => setOpen(false)} className="text-lg font-medium text-foreground hover:text-primary transition-colors duration-300 flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-primary/50" /> Home
               </Link>
-              <Link to="/Salvation" onClick={() => setOpen(false)} className="text-lg font-medium text-foreground hover:text-primary transition-colors duration-300 flex items-center gap-3">
+              <Link to="/salvation" onClick={() => setOpen(false)} className="text-lg font-medium text-foreground hover:text-primary transition-colors duration-300 flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-primary/50" /> Salvation
               </Link>
-              <Link to="/Contact" onClick={() => setOpen(false)} className="text-lg font-medium text-foreground hover:text-primary transition-colors duration-300 flex items-center gap-3">
+              <Link to="/contact" onClick={() => setOpen(false)} className="text-lg font-medium text-foreground hover:text-primary transition-colors duration-300 flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-primary/50" /> Contact
               </Link>
               <div className="pt-6 mt-2 border-t border-border/50">
-                <a href="#" target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>
+                <Link
+                  to="/"
+                  onClick={() => { try { localStorage.setItem('kjb-has-visited-app', 'true'); } catch {}; setOpen(false); }}
+                >
                   <Button className="gap-2 w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-md rounded-xl h-12 text-base">
                     Open Reader <ArrowRight className="w-4 h-4" />
                   </Button>
-                </a>
+                </Link>
               </div>
             </nav>
           </SheetContent>
