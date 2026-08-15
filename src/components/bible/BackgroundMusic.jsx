@@ -1,16 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Music, Music2, Volume2 } from 'lucide-react';
 
-// Ambient background-music tracks. Each is a 3-minute loop, 100% public domain.
+// Instrumental hymn recordings placed into the public domain in 2005 by
+// AudioTreasure.com (source: publicdomainaudiobibles.com). Each loops under
+// the TTS narration at a low default volume.
 const TRACKS = [
-  { label: 'Warm Pad', url: 'https://base44.app/api/apps/6a7fc6e4b04bcee11ee07417/files/mp/public/6a7fc6e4b04bcee11ee07417/77a3ead8c_ambient_warm_pad.mp3' },
-  { label: 'Peaceful Pad', url: 'https://base44.app/api/apps/6a7fc6e4b04bcee11ee07417/files/mp/public/6a7fc6e4b04bcee11ee07417/6cd61e6aa_ambient_peaceful_pad.mp3' },
-  { label: 'Deep Drone', url: 'https://base44.app/api/apps/6a7fc6e4b04bcee11ee07417/files/mp/public/6a7fc6e4b04bcee11ee07417/8b27e6f0a_ambient_deep_drone.mp3' },
-  { label: 'Ethereal', url: 'https://base44.app/api/apps/6a7fc6e4b04bcee11ee07417/files/mp/public/6a7fc6e4b04bcee11ee07417/f7ad576cd_ambient_ethereal.mp3' },
+  { label: 'Amazing Grace', url: 'https://base44.app/api/apps/6a7fc6e4b04bcee11ee07417/files/mp/public/6a7fc6e4b04bcee11ee07417/5adbafea6_amazing_grace.mp3' },
+  { label: 'Be Still, My Soul', url: 'https://base44.app/api/apps/6a7fc6e4b04bcee11ee07417/files/mp/public/6a7fc6e4b04bcee11ee07417/c2547f9cb_be_still_my_soul.mp3' },
+  { label: 'Be Thou My Vision', url: 'https://base44.app/api/apps/6a7fc6e4b04bcee11ee07417/files/mp/public/6a7fc6e4b04bcee11ee07417/9f14f5d37_be_thou_my_vision.mp3' },
+  { label: 'Abide With Me', url: 'https://base44.app/api/apps/6a7fc6e4b04bcee11ee07417/files/mp/public/6a7fc6e4b04bcee11ee07417/8028a7617_abide_with_me.mp3' },
+  { label: 'It Is Well With My Soul', url: 'https://base44.app/api/apps/6a7fc6e4b04bcee11ee07417/files/mp/public/6a7fc6e4b04bcee11ee07417/08a4b0648_it_is_well_with_my_soul.mp3' },
+  { label: 'Nearer, My God, To Thee', url: 'https://base44.app/api/apps/6a7fc6e4b04bcee11ee07417/files/mp/public/6a7fc6e4b04bcee11ee07417/30a3fa402_nearer_my_god_to_thee.mp3' },
+  { label: 'Sweet Hour of Prayer', url: 'https://base44.app/api/apps/6a7fc6e4b04bcee11ee07417/files/mp/public/6a7fc6e4b04bcee11ee07417/e00899a6c_sweet_hour_of_prayer.mp3' },
+  { label: 'Fairest Lord Jesus', url: 'https://base44.app/api/apps/6a7fc6e4b04bcee11ee07417/files/mp/public/6a7fc6e4b04bcee11ee07417/4ce26b23f_fairest_lord_jesus.mp3' },
+  { label: 'Just As I Am', url: 'https://base44.app/api/apps/6a7fc6e4b04bcee11ee07417/files/mp/public/6a7fc6e4b04bcee11ee07417/5aa9eb100_just_as_i_am.mp3' },
+  { label: 'For the Beauty of the Earth', url: 'https://base44.app/api/apps/6a7fc6e4b04bcee11ee07417/files/mp/public/6a7fc6e4b04bcee11ee07417/b169806b5_for_the_beauty_of_the_earth.mp3' },
+  { label: 'Immortal, Invisible, God Only Wise', url: 'https://base44.app/api/apps/6a7fc6e4b04bcee11ee07417/files/mp/public/6a7fc6e4b04bcee11ee07417/216abd720_immortal_invisible_god_only_wise.mp3' },
+  { label: 'Rock of Ages, Cleft for Me', url: 'https://base44.app/api/apps/6a7fc6e4b04bcee11ee07417/files/mp/public/6a7fc6e4b04bcee11ee07417/3f4e403f2_rock_of_ages_cleft_for_me.mp3' },
 ];
 
 const LS_KEY = 'kjb-bg-music';
-const DEFAULTS = { enabled: false, volume: 0.3, track: 0 };
+const DEFAULTS = { enabled: false, volume: 0.2, track: 0 };
 
 function loadPrefs() {
   try {

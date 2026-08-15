@@ -89,7 +89,11 @@ export default function CreditsPage() {
             <a href="https://www.bibleprotector.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://www.bibleprotector.com</a>
           </p>
           <p className="font-sans text-sm text-foreground/85 leading-relaxed mt-4">
-            <strong className="text-foreground/80">Background Music:</strong> Original ambient compositions (Public Domain)
+            <strong className="text-foreground/80">Background Music:</strong> Instrumental Hymns (Public Domain)
+          </p>
+          <p className="font-sans text-xs text-muted-foreground leading-relaxed">
+            Source: AudioTreasure.com, placed into public domain 2005{' '}
+            <a href="https://publicdomainaudiobibles.com/Hymns.html" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://publicdomainaudiobibles.com/Hymns.html</a>
           </p>
         </section>
 
