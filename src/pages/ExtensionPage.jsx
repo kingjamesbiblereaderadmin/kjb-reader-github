@@ -7,11 +7,11 @@ import { Globe, ArrowLeft, Search, BookOpen, Sparkles, MousePointer2, Heart, Dow
 // (Dev Tools → Extension Links). Each field falls back here when blank.
 const DEFAULT_URLS = {
   chrome: 'https://chromewebstore.google.com/detail/kjb-reader-sidepanel/gbnipepkpenjgdpjfepgcgddmgbofmah',
-  firefox: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/ba0fe6ccf_kjb-reader-v04134-firefox.zip',
-  opera: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/0f19162a5_kjb-reader-v04134-opera.zip',
+  firefox: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/08d4c1fe6_kjb-reader-v04135-firefox.zip',
+  opera: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/2726ddd81_kjb-reader-v04135-opera.zip',
   edge: 'https://microsoftedge.microsoft.com/addons/detail/kjb-reader-sidepanel/bphmmbiepbhfnfijaapbmpimkkjdceee',
 };
-const DEFAULT_VERSION = 'v0.4.134';
+const DEFAULT_VERSION = 'v0.4.135';
 
 const EXAMPLES = [
   {
