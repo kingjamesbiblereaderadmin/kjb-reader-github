@@ -66,7 +66,7 @@
     --radius: 0.25rem;
     --sidebar-background: 245 40% 98%;
     --sidebar-foreground: 245 35% 15%;
-    --sidebar-primary: 250 75% 55%;
+    --sidebar-primary: 245 33% 17%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 245 40% 95%;
     --sidebar-accent-foreground: 250 45% 25%;
@@ -97,7 +97,7 @@
     --ring: 255 80% 68%;
     --sidebar-background: 250 30% 9%;
     --sidebar-foreground: 245 25% 88%;
-    --sidebar-primary: 255 80% 68%;
+    --sidebar-primary: 255 55% 55%;
     --sidebar-primary-foreground: 250 30% 8%;
     --sidebar-accent: 250 22% 18%;
     --sidebar-accent-foreground: 245 25% 88%;
