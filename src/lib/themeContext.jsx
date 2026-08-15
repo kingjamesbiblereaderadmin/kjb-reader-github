@@ -295,6 +295,20 @@ export function ThemeProvider({ children }) {
     try {
       applyReaderFont(localStorage.getItem('kjb-reader-font-family') || 'serif');
     } catch {}
+    // Preload the Cursive (Dancing Script) and Comic (Comic Neue) web fonts so
+    // they render the instant they're chosen. Without this, font-display:block
+    // leaves the chosen text invisible until the font fetches on first use —
+    // which made "Cursive" and "Comic" look like they did nothing.
+    try {
+      if (document.fonts) {
+        document.fonts.load('400 32px "Dancing Script"');
+        document.fonts.load('700 32px "Dancing Script"');
+        document.fonts.load('italic 400 32px "Dancing Script"');
+        document.fonts.load('400 32px "Comic Neue"');
+        document.fonts.load('700 32px "Comic Neue"');
+        document.fonts.load('italic 400 32px "Comic Neue"');
+      }
+    } catch {}
   }, []);
 
   // Re-read theme + font settings from localStorage when cloud sync applies new values
