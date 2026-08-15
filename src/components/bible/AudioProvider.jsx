@@ -55,6 +55,9 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   // the first highlighted verse on play and pauses at the last one's end.
   const rangeStartRef = useRef(null);
   const rangeEndRef = useRef(null);
+  // When the user switches voice mid-playback, capture the current position so
+  // the new voice's audio resumes from the same spot instead of restarting.
+  const pendingResumeRef = useRef(null);
   const onChapterEndRef = useRef(onChapterEnd);
   useEffect(() => { onChapterEndRef.current = onChapterEnd; }, [onChapterEnd]);
 
@@ -159,11 +162,20 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     try { localStorage.setItem('kjb-audio-voice', v); } catch {}
   }, []);
 
-  // Keep <audio> src + playbackRate in sync.
+  // Keep <audio> src + playbackRate in sync. When the voice changes (new record
+  // → new src) mid-playback, remember the position + playing state so the new
+  // voice can resume in place once its metadata loads.
   useEffect(() => {
     const a = audioRef.current;
     if (!a || !record) return;
-    if (a.src !== record.audio_url) { a.src = record.audio_url; }
+    if (a.src !== record.audio_url) {
+      if (!a.paused) {
+        pendingResumeRef.current = { time: a.currentTime, play: true };
+      } else if (a.currentTime > 0 && a.readyState >= 1) {
+        pendingResumeRef.current = { time: a.currentTime, play: false };
+      }
+      a.src = record.audio_url;
+    }
   }, [record]);
   useEffect(() => { const a = audioRef.current; if (a) a.playbackRate = speed; }, [speed]);
 
@@ -223,6 +235,12 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       if (autoPlayRef.current) {
         autoPlayRef.current = false;
         a.play().catch(() => {});
+      } else if (pendingResumeRef.current) {
+        const { time, play } = pendingResumeRef.current;
+        pendingResumeRef.current = null;
+        a.currentTime = time;
+        setCurrentTime(time);
+        if (play) a.play().catch(() => {});
       }
     };
     const onTime = () => setCurrentTime(a.currentTime);
@@ -270,10 +288,20 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
         a.currentTime = rs;
       }
       a.play().catch(() => {});
+      // On play, jump to (scroll) the verse currently being read.
+      updateActive(findActiveWordIndex(timeline, a.currentTime), true);
     } else {
       a.pause();
     }
-  }, [record]);
+  }, [record, timeline, updateActive]);
+
+  const restart = useCallback(() => {
+    const a = audioRef.current; if (!a || !record) return;
+    a.currentTime = rangeStartRef.current ?? 0;
+    setCurrentTime(a.currentTime);
+    a.play().catch(() => {});
+    updateActive(findActiveWordIndex(timeline, a.currentTime), true);
+  }, [record, timeline, updateActive]);
 
   const seek = useCallback((t) => {
     const a = audioRef.current; if (!a) return;
@@ -294,8 +322,8 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   const audioValue = useMemo(() => ({
     active: !!active, ready: !loading, record, hasAnyAudio, timeline, wordsByVerse,
     playing, duration, speed, voices, voice, selectVoice,
-    togglePlay, seek, skip, seekToWord, cycleSpeed, onClose,
-  }), [active, loading, record, hasAnyAudio, timeline, wordsByVerse, playing, duration, speed, voices, voice, selectVoice, togglePlay, seek, skip, seekToWord, cycleSpeed, onClose]);
+    togglePlay, seek, skip, seekToWord, cycleSpeed, restart, onClose,
+  }), [active, loading, record, hasAnyAudio, timeline, wordsByVerse, playing, duration, speed, voices, voice, selectVoice, togglePlay, seek, skip, seekToWord, cycleSpeed, restart, onClose]);
 
   // Memoize children so per-frame currentTime re-renders don't re-render
   // the verse text (which only needs the stable audioValue).

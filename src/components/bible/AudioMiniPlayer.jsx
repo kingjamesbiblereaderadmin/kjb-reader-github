@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, X, SkipBack, SkipForward, Gauge, Loader2, Headphones } from 'lucide-react';
+import { Play, Pause, X, SkipBack, SkipForward, Gauge, Loader2, Headphones, RotateCcw } from 'lucide-react';
 
 function fmt(t) {
   if (!Number.isFinite(t) || t < 0) t = 0;
@@ -12,7 +12,7 @@ function fmt(t) {
 
 // Persistent bottom mini-player for the Read page. Lives on the Read page
 // itself (not a separate route). Re-renders with currentTime for the scrubber.
-export default function AudioMiniPlayer({ loading, hasAudio, hasAnyAudio, playing, currentTime, duration, speed, voices, voice, onToggle, onSeek, onSkip, onSpeed, onSelectVoice, onClose }) {
+export default function AudioMiniPlayer({ loading, hasAudio, hasAnyAudio, playing, currentTime, duration, speed, voices, voice, onToggle, onSeek, onSkip, onSpeed, onSelectVoice, onRestart, onClose }) {
   return (
     <div className="border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 py-2.5 print:hidden">
       <div className="max-w-3xl mx-auto">
@@ -61,6 +61,9 @@ export default function AudioMiniPlayer({ loading, hasAudio, hasAnyAudio, playin
               <span className="font-sans text-xs text-muted-foreground tabular-nums w-12">{fmt(duration)}</span>
             </div>
             <div className="flex items-center justify-center gap-3 sm:gap-4">
+              <button onClick={onRestart} title="Restart" className="p-2 rounded-full hover:bg-secondary text-foreground transition-colors">
+                <RotateCcw className="w-5 h-5" />
+              </button>
               <button onClick={() => onSkip(-15)} title="Back 15s" className="p-2 rounded-full hover:bg-secondary text-foreground transition-colors">
                 <SkipBack className="w-5 h-5" />
               </button>

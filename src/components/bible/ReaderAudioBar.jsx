@@ -27,6 +27,7 @@ export default function ReaderAudioBar() {
       onSkip={audio.skip}
       onSpeed={audio.cycleSpeed}
       onSelectVoice={audio.selectVoice}
+      onRestart={audio.restart}
       onClose={audio.onClose}
     />
   );
