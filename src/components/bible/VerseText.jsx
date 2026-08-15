@@ -130,9 +130,15 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     // (aligned with verses 2+), so the floated group holds ONLY the big letter —
     // its left edge then lands flush with the next verse's first word. Paragraph
     // mode has no gutter, so the number stays inside the floated group there.
+    // Give the drop-cap letter its OWN data-audio-idx (matching verse 1's first
+    // spoken word) so AudioProvider highlights it directly. The floated letter
+    // sits outside the active word span's inline background box, so an ancestor
+    // selector alone doesn't reliably tint the cap.
+    const firstAudioIdx = audioIdxArr && audioIdxArr.length ? audioIdxArr[0] : null;
+    const letterAudioAttr = firstAudioIdx != null ? ` data-audio-idx="${firstAudioIdx}"` : '';
     const groupInner = paragraphMode
-      ? `<span class="kjb-dropcap-num">${verse.verse}</span><span class="kjb-dropcap-letter"${letterStyle}>$2</span>`
-      : `<span class="kjb-dropcap-letter"${letterStyle}>$2</span>`;
+      ? `<span class="kjb-dropcap-num">${verse.verse}</span><span class="kjb-dropcap-letter"${letterStyle}${letterAudioAttr}>$2</span>`
+      : `<span class="kjb-dropcap-letter"${letterStyle}${letterAudioAttr}>$2</span>`;
     html = html.replace(
       /^((?:<[^>]+>|\s)*)([A-Za-z])/,
       `$1<span class="kjb-dropcap-group"${groupStyle}>${groupInner}</span>`

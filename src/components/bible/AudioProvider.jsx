@@ -158,19 +158,17 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     const old = activeIdxRef.current;
     activeIdxRef.current = idx;
     if (old >= 0) {
-      const oe = document.querySelector(`[data-audio-idx="${old}"]`);
-      if (oe) oe.classList.remove('kjb-audio-active');
+      document.querySelectorAll(`[data-audio-idx="${old}"]`).forEach((el) => el.classList.remove('kjb-audio-active'));
     }
     if (idx >= 0) {
-      const ne = document.querySelector(`[data-audio-idx="${idx}"]`);
-      if (ne) {
-        ne.classList.add('kjb-audio-active');
-        if (scroll) {
-          const rect = ne.getBoundingClientRect();
-          const vh = window.innerHeight;
-          if (rect.top < 100 || rect.bottom > vh - 150) {
-            ne.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
+      const matches = document.querySelectorAll(`[data-audio-idx="${idx}"]`);
+      matches.forEach((el) => el.classList.add('kjb-audio-active'));
+      const ne = matches[0];
+      if (ne && scroll) {
+        const rect = ne.getBoundingClientRect();
+        const vh = window.innerHeight;
+        if (rect.top < 100 || rect.bottom > vh - 150) {
+          ne.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       }
     }
