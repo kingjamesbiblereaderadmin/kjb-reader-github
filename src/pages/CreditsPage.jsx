@@ -1,6 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Heart, BookOpen, Volume2, Type, Server, Info, ChevronLeft, ExternalLink } from 'lucide-react';
+import { Heart, BookOpen, Volume2, Type, Server, Info, ExternalLink } from 'lucide-react';
 
 // A simple, static credits / acknowledgements page.
 // Linked from Settings (the "About & Credits" card).
@@ -8,15 +7,6 @@ export default function CreditsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
       <div className="w-full max-w-3xl mx-auto px-5 sm:px-8 py-10">
-        {/* Back link */}
-        <Link
-          to="/settings"
-          className="inline-flex items-center gap-1.5 font-sans text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          Back to Settings
-        </Link>
-
         {/* Header */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/30 mb-4">
@@ -107,7 +97,6 @@ export default function CreditsPage() {
             <h2 className="font-serif text-xl font-semibold text-foreground">Disclaimers</h2>
           </div>
           <ul className="space-y-2 font-sans text-sm text-foreground/85">
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span>This app is not affiliated with or endorsed by Microsoft.</span></li>
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">AI Disclaimer:</strong> This app was built with the assistance of artificial intelligence (AI). AI-generated code and content may contain errors. The King James Bible text itself is not AI-generated. Please report any issues so we can correct them.</span></li>
           </ul>
           <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-3">This app is public domain and freely shareable.</p>

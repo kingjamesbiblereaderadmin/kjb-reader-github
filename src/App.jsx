@@ -285,7 +285,7 @@ const AuthenticatedApp = () => {
               <Route path="/terms" element={<Suspense fallback={<RouteLoader />}><TermsOfServicePage /></Suspense>} />
               <Route path="/privacy" element={<Suspense fallback={<RouteLoader />}><PrivacyPolicyPage /></Suspense>} />
               <Route path="/contact" element={<Suspense fallback={<RouteLoader />}><ContactPage /></Suspense>} />
-              <Route path="/credits" element={<Suspense fallback={<RouteLoader />}><CreditsPage /></Suspense>} />
+
               <Route path="/salvation" element={<Suspense fallback={<RouteLoader />}><SalvationPage /></Suspense>} />
               <Route path="/discord" element={<Suspense fallback={<RouteLoader />}><DiscordInvitePage /></Suspense>} />
               <Route path="/extension" element={<Suspense fallback={<RouteLoader />}><ExtensionPage /></Suspense>} />
@@ -301,6 +301,7 @@ const AuthenticatedApp = () => {
               <Route path="/resources" element={<Suspense fallback={<RouteLoader />}><FadeIn><ResourcesPage /></FadeIn></Suspense>} />
               <Route path="/kjb-defence" element={<Suspense fallback={<RouteLoader />}><FadeIn><KjbDefencePage /></FadeIn></Suspense>} />
               <Route path="/about" element={<Suspense fallback={<RouteLoader />}><FadeIn><AboutPage /></FadeIn></Suspense>} />
+              <Route path="/credits" element={<Suspense fallback={<RouteLoader />}><FadeIn><CreditsPage /></FadeIn></Suspense>} />
               <Route path="/contents" element={<Suspense fallback={<RouteLoader />}><FadeIn><ContentsPage /></FadeIn></Suspense>} />
               <Route path="/settings" element={<Suspense fallback={<RouteLoader />}><FadeIn><SettingsPage /></FadeIn></Suspense>} />
               <Route path="/search" element={<Suspense fallback={<RouteLoader />}><FadeIn><SearchPage /></FadeIn></Suspense>} />
