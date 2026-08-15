@@ -19,7 +19,7 @@ const SPEEDS = [0.75, 1, 1.25, 1.5, 1.75, 2];
 // karaoke highlight is applied DOM-direct (via data-audio-idx attributes) so
 // verse text never re-renders on each animation frame — only the mini-player
 // bar (a single small component) re-renders with currentTime.
-export default function AudioProvider({ book, chapter, verses, active, onClose, children }) {
+export default function AudioProvider({ book, chapter, verses, active, onClose, onChapterEnd, children }) {
   const [records, setRecords] = useState([]);
   const [record, setRecord] = useState(null);
   const [rawTiming, setRawTiming] = useState(null);
@@ -33,6 +33,13 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   const audioRef = useRef(null);
   const rafRef = useRef(null);
   const activeIdxRef = useRef(-1);
+  // When the chapter's audio ends, auto-advance to the next chapter and keep
+  // playing. autoPlayRef is set on end and consumed when the next chapter's
+  // audio metadata loads (onLoaded); a fallback timeout clears it if the next
+  // chapter has no audio record.
+  const autoPlayRef = useRef(false);
+  const onChapterEndRef = useRef(onChapterEnd);
+  useEffect(() => { onChapterEndRef.current = onChapterEnd; }, [onChapterEnd]);
 
   // Fetch all ChapterAudio records for this book+chapter when active.
   useEffect(() => {
@@ -177,9 +184,22 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   // Wire <audio> element events.
   useEffect(() => {
     const a = audioRef.current; if (!a) return;
-    const onLoaded = () => setDuration(a.duration || 0);
+    const onLoaded = () => {
+      setDuration(a.duration || 0);
+      if (autoPlayRef.current) {
+        autoPlayRef.current = false;
+        a.play().catch(() => {});
+      }
+    };
     const onTime = () => setCurrentTime(a.currentTime);
-    const onEnd = () => { setPlaying(false); setCurrentTime(0); a.currentTime = 0; clearHighlight(); };
+    const onEnd = () => {
+      setPlaying(false); setCurrentTime(0); a.currentTime = 0; clearHighlight();
+      const advanced = onChapterEndRef.current?.();
+      if (advanced) {
+        autoPlayRef.current = true;
+        setTimeout(() => { autoPlayRef.current = false; }, 8000);
+      }
+    };
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
     a.addEventListener('loadedmetadata', onLoaded);
@@ -201,7 +221,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   // Pause + clear when deactivated, or when timeline changes.
   useEffect(() => {
     if (!active && audioRef.current) audioRef.current.pause();
-    if (!active) clearHighlight();
+    if (!active) { clearHighlight(); autoPlayRef.current = false; }
   }, [active, clearHighlight]);
   useEffect(() => { clearHighlight(); }, [timeline, clearHighlight]);
 

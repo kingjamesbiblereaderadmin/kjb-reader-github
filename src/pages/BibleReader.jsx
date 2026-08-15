@@ -518,6 +518,9 @@ export default function BibleReader() {
   usePinchZoom(readerContentRef, zoomLevel, setZoomPersist);
   const posRef = useRef(pos);
   useEffect(() => { posRef.current = pos; }, [pos]);
+  // Set by goNext(isAutoAdvance) so loadChapter knows to keep Listen mode on
+  // across the chapter switch (it normally resets listenMode on every load).
+  const autoAdvanceRef = useRef(false);
   const book = BIBLE_BOOKS.find(b => b.abbr === pos.abbr) || BIBLE_BOOKS[0];
   // Subscript for the current chapter, honouring any admin override. Recomputed
   // when verses reload (loadOverrides populates the cache by then).
@@ -529,7 +532,9 @@ export default function BibleReader() {
 
   const loadChapter = useCallback(async (bookAbbr, chapter, jumpVerse) => {
     setLoading(true); setError(null); setVerses([]); setColophon(null);
-    setListenMode(false);
+    const keepListen = autoAdvanceRef.current;
+    autoAdvanceRef.current = false;
+    if (!keepListen) setListenMode(false);
     (document.getElementById('kjb-scroll') || window).scrollTo({ top: 0 });
     const b = BIBLE_BOOKS.find(bk => bk.abbr === bookAbbr);
     if (!b) { setError('Book not found'); setLoading(false); return; }
@@ -1431,8 +1436,18 @@ export default function BibleReader() {
   };
 
   const goNext = (isAutoAdvance = false) => {
-    if (pos.chapter < book.chapters) { navigate(pos.abbr, pos.chapter + 1, null, false, false, isAutoAdvance); }
-    else { const next = getNextBook(pos.abbr); if (next) navigate(next.abbr, 1, null, false, false, isAutoAdvance); }
+    if (pos.chapter < book.chapters) {
+      if (isAutoAdvance) autoAdvanceRef.current = true;
+      navigate(pos.abbr, pos.chapter + 1, null, false, false, isAutoAdvance);
+      return true;
+    }
+    const next = getNextBook(pos.abbr);
+    if (next) {
+      if (isAutoAdvance) autoAdvanceRef.current = true;
+      navigate(next.abbr, 1, null, false, false, isAutoAdvance);
+      return true;
+    }
+    return false;
   };
 
   const goPrev = () => {
@@ -1474,7 +1489,7 @@ export default function BibleReader() {
 
   return (
     <div onClick={(e) => { if (!e.target.closest('.kjb-verse-container, h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a')) { setHighlightVerse(null); setHighlightSection(null); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-3 ${hideHeader ? 'pt-16' : ''}`}>
-      <AudioProvider book={book} chapter={pos.chapter} verses={verses} active={listenMode && !isViewingTitlePage} onClose={() => setListenMode(false)}>
+      <AudioProvider book={book} chapter={pos.chapter} verses={verses} active={listenMode && !isViewingTitlePage} onClose={() => setListenMode(false)} onChapterEnd={() => goNext(true)}>
       {!hideHeader && (
         <div ref={topRef} className="print:hidden sticky top-0 z-[100] border-b border-border pb-4 pt-3 mb-8 relative shadow-sm -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background before:content-[''] before:absolute before:bottom-full before:left-0 before:right-0 before:h-12 before:bg-background">
           <div
