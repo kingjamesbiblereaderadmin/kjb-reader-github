@@ -9,6 +9,7 @@ import { ThemeProvider } from '@/lib/themeContext';
 import { HeaderHideProvider } from '@/lib/HeaderHideContext';
 import { SoftReloadProvider, useSoftReload } from '@/lib/SoftReloadContext';
 import AppLayout from '@/components/layout/AppLayout';
+import MarketingLayout from '@/components/layout/MarketingLayout';
 import ChunkErrorBoundary from '@/components/ChunkErrorBoundary';
 import React, { lazy, Suspense, useEffect, useState } from 'react';
 
