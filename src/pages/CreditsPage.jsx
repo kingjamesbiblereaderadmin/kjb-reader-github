@@ -60,18 +60,33 @@ export default function CreditsPage() {
             <h2 className="font-serif text-xl font-semibold text-foreground">Audio &amp; Voice Credits</h2>
           </div>
           <p className="font-sans text-sm text-foreground/85 leading-relaxed">
-            Bible chapter audio narration is generated using Piper TTS
-            (<a href="https://github.com/rhasspy/piper" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">MIT License</a>)
-            with a voice model trained on the CSTR VCTK Corpus, University of Edinburgh.
+            Bible chapter audio narration is generated using <strong className="text-foreground">Kokoro-82M</strong>,
+            an open-source text-to-speech model licensed under the Apache License 2.0.
           </p>
-          <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-3">
-            <strong className="text-foreground/80">Citation:</strong> Yamagishi, J.; Veaux, C.;
-            MacDonald, K. (2019). <em>CSTR VCTK Corpus: English Multi-speaker Corpus for CSTR
-            Voice Cloning Toolkit (version 0.92)</em>, University of Edinburgh, The Centre for
-            Speech Technology Research (CSTR).{' '}
-            <a href="https://doi.org/10.7488/ds/2645" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-              https://doi.org/10.7488/ds/2645
-            </a>
+          <ul className="space-y-1.5 font-sans text-sm text-foreground/85 mt-3">
+            <li><strong className="text-foreground/80">TTS Engine:</strong> Kokoro-82M</li>
+            <li><strong className="text-foreground/80">Voice:</strong> bm_george (British Male)</li>
+            <li><strong className="text-foreground/80">License:</strong> Apache 2.0</li>
+            <li><strong className="text-foreground/80">Source:</strong>{' '}
+              <a href="https://huggingface.co/hexgrad/Kokoro-82M" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://huggingface.co/hexgrad/Kokoro-82M</a>
+            </li>
+            <li><strong className="text-foreground/80">GitHub:</strong>{' '}
+              <a href="https://github.com/hexgrad/kokoro" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://github.com/hexgrad/kokoro</a>
+            </li>
+          </ul>
+          <p className="font-sans text-sm text-foreground/85 leading-relaxed mt-4">
+            <strong className="text-foreground/80">Word-level timing:</strong> OpenAI Whisper (MIT License)
+          </p>
+          <p className="font-sans text-xs text-muted-foreground leading-relaxed">
+            Source:{' '}
+            <a href="https://github.com/openai/whisper" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://github.com/openai/whisper</a>
+          </p>
+          <p className="font-sans text-sm text-foreground/85 leading-relaxed mt-4">
+            <strong className="text-foreground/80">Bible text:</strong> King James Bible — Pure Cambridge Edition (Public Domain)
+          </p>
+          <p className="font-sans text-xs text-muted-foreground leading-relaxed">
+            Source:{' '}
+            <a href="https://www.bibleprotector.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://www.bibleprotector.com</a>
           </p>
         </section>
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, ArrowLeft } from 'lucide-react';
 
-const LAST_UPDATED = 'August 14th, 2026';
+const LAST_UPDATED = 'August 15th, 2026';
 
 function AIDisclaimer() {
   return (
@@ -204,22 +204,25 @@ export default function PrivacyPolicyPage() {
 
       <Section title="Third-Party Content & Licenses">
         <p>
-          The App incorporates open-source software and open-licensed datasets. Bible chapter
-          audio narration is generated using <strong className="text-foreground">Piper TTS</strong>,
-          an open-source text-to-speech engine released under the MIT License. The voice model used
-          was trained on the <strong className="text-foreground">CSTR VCTK Corpus</strong>
-          (University of Edinburgh), an open-licensed speech dataset made available under the Open
-          Data Commons Attribution License, which requires attribution. No audio data is sent to
-          or stored on my servers — narration is pre-generated and delivered as static audio files.
+          This application uses <strong className="text-foreground">Kokoro-82M</strong>, an
+          open-source text-to-speech model licensed under the Apache License 2.0. The model
+          weights and training data are all permissively licensed for commercial use. For more
+          information, visit{' '}
+          <a href="https://huggingface.co/hexgrad/Kokoro-82M" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+            https://huggingface.co/hexgrad/Kokoro-82M
+          </a>.
         </p>
         <p>
-          <strong className="text-foreground">Citation:</strong> Yamagishi, J.; Veaux, C.;
-          MacDonald, K. (2019). <em>CSTR VCTK Corpus: English Multi-speaker Corpus for CSTR Voice
-          Cloning Toolkit (version 0.92)</em>, University of Edinburgh, The Centre for Speech
-          Technology Research (CSTR).{' '}
-          <a href="https://doi.org/10.7488/ds/2645" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-            https://doi.org/10.7488/ds/2645
-          </a>
+          Word-level timing data is generated using <strong className="text-foreground">OpenAI Whisper</strong>,
+          licensed under the MIT License. See{' '}
+          <a href="https://github.com/openai/whisper" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+            https://github.com/openai/whisper
+          </a>.
+        </p>
+        <p>
+          The Bible text used is the King James Bible (Pure Cambridge Edition), which is in the
+          public domain. No audio data is sent to or stored on my servers — narration is
+          pre-generated and delivered as static audio files.
         </p>
       </Section>
 
