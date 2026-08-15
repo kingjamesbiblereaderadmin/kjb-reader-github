@@ -424,11 +424,32 @@
     color: hsl(var(--foreground));
     font-weight: 600;
   }
-  /* The floated drop-cap letter sits outside the active word's inline
-     background box, so it needs its own tint to show the karaoke highlight. */
-  .kjb-audio-active .kjb-dropcap-letter {
+  /* The floated drop-cap group sits outside the active word's inline
+     background box, so it needs its own tint to show the karaoke highlight.
+     Tinting the whole group (verse-number cell + big letter) makes the drop
+     cap clearly read as "highlighted" when verse 1's first word is narrated. */
+  .kjb-audio-active .kjb-dropcap-group {
     background-color: hsl(var(--accent) / 0.4);
-    border-radius: 0.1em;
+    border-radius: 0.12em;
+  }
+
+  /* Structural texts — Psalm superscriptions, Pauline colophons, "The End…"
+     end markers, and the Psalm 119 acrostic headings — are highlighted while
+     Listen mode is on, marking them as part of what's being read. The reader
+     container carries .kjb-audio-listening while listening (and on title
+     pages, so the title page is emphasised too). */
+  .kjb-audio-listening .kjb-subscript,
+  .kjb-audio-listening .kjb-colophon,
+  .kjb-audio-listening .kjb-end-marker,
+  .kjb-audio-listening .kjb-psalm119-heading {
+    background-color: hsl(var(--accent) / 0.22);
+    border-radius: 0.25rem;
+    padding: 0.1em 0.35em;
+  }
+  .kjb-audio-listening .kjb-titlepage {
+    background-color: hsl(var(--accent) / 0.1);
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
   }
 
 @media print {
