@@ -19,6 +19,7 @@ import MinimizedHeaderBar from '@/components/bible/MinimizedHeaderBar';
 import ReadingRangeBar from '@/components/bible/ReadingRangeBar';
 import SelectActionBar from '@/components/bible/SelectActionBar';
 import AudioProvider from '@/components/bible/AudioProvider';
+import ReaderAudioBar from '@/components/bible/ReaderAudioBar';
 import { useHeaderHide } from '@/lib/HeaderHideContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -1473,6 +1474,7 @@ export default function BibleReader() {
 
   return (
     <div onClick={(e) => { if (!e.target.closest('.kjb-verse-container, h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a')) { setHighlightVerse(null); setHighlightSection(null); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-3 ${hideHeader ? 'pt-16' : ''}`}>
+      <AudioProvider book={book} chapter={pos.chapter} verses={verses} active={listenMode && !isViewingTitlePage} onClose={() => setListenMode(false)}>
       {!hideHeader && (
         <div ref={topRef} className="print:hidden sticky top-0 z-[100] border-b border-border pb-4 pt-3 mb-8 relative shadow-sm -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background before:content-[''] before:absolute before:bottom-full before:left-0 before:right-0 before:h-12 before:bg-background">
           <div
@@ -1917,10 +1919,11 @@ export default function BibleReader() {
             />
           )}
 
-        </div>
-      )}
+          <ReaderAudioBar />
+          </div>
+          )}
 
-      {hideHeader && <MinimizedHeaderBar fullscreen={fullscreen} toggleFullscreen={toggleFullscreen} setHideHeader={setHideHeader} />}
+          {hideHeader && <MinimizedHeaderBar fullscreen={fullscreen} toggleFullscreen={toggleFullscreen} setHideHeader={setHideHeader} />}
 
       {/* Desktop-only backdrop for the inline popovers. On mobile the selectors
           use the Vaul drawer (SelectorSheet), which has its own overlay — rendering
@@ -1932,7 +1935,11 @@ export default function BibleReader() {
         />
       )}
 
-      <AudioProvider book={book} chapter={pos.chapter} verses={verses} active={listenMode && !isViewingTitlePage} onClose={() => setListenMode(false)}>
+      {hideHeader && (
+        <div className="sticky top-0 z-[100] -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background/95 backdrop-blur border-b border-border print:hidden">
+          <ReaderAudioBar />
+        </div>
+      )}
       {!isViewingTitlePage && (
         <div className={`text-center mb-6 pt-8 ${(!columnMode || pos.chapter === 1) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
           <h1 className={`${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} text-3xl md:text-4xl font-bold text-foreground mb-2 leading-tight`} style={{ fontStyle: 'normal', fontWeight: '900' }}>{book.name}</h1>

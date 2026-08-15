@@ -1,10 +1,14 @@
 import React, { createContext, useContext, useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { buildWordTimeline, findActiveWordIndex } from '@/lib/audioSync';
-import AudioMiniPlayer from '@/components/bible/AudioMiniPlayer';
 
 const AudioContext = createContext(null);
 export const useAudio = () => useContext(AudioContext);
+
+// Per-frame playback position. Kept in its own context (separate from the
+// stable audioValue) so only the mini-bar consumer re-renders each animation
+// frame — the reader content (memoized children) never re-renders for time.
+export const CurrentTimeContext = createContext({ currentTime: 0 });
 
 const SPEEDS = [0.75, 1, 1.25, 1.5, 1.75, 2];
 
@@ -203,8 +207,8 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   const audioValue = useMemo(() => ({
     active: !!active, ready: !loading, record, timeline, wordsByVerse,
     playing, duration, speed, voices, voice, selectVoice,
-    togglePlay, seek, skip, seekToWord, cycleSpeed,
-  }), [active, loading, record, timeline, wordsByVerse, playing, duration, speed, voices, voice, selectVoice, togglePlay, seek, skip, seekToWord, cycleSpeed]);
+    togglePlay, seek, skip, seekToWord, cycleSpeed, onClose,
+  }), [active, loading, record, timeline, wordsByVerse, playing, duration, speed, voices, voice, selectVoice, togglePlay, seek, skip, seekToWord, cycleSpeed, onClose]);
 
   // Memoize children so per-frame currentTime re-renders don't re-render
   // the verse text (which only needs the stable audioValue).
@@ -212,26 +216,10 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
 
   return (
     <AudioContext.Provider value={audioValue}>
-      {cachedChildren}
-      {active && (
-        <AudioMiniPlayer
-          loading={loading}
-          hasAudio={!!record}
-          playing={playing}
-          currentTime={currentTime}
-          duration={duration}
-          speed={speed}
-          voices={voices}
-          voice={voice}
-          onToggle={togglePlay}
-          onSeek={seek}
-          onSkip={skip}
-          onSpeed={cycleSpeed}
-          onSelectVoice={selectVoice}
-          onClose={onClose}
-        />
-      )}
-      <audio ref={audioRef} preload="metadata" />
+      <CurrentTimeContext.Provider value={{ currentTime }}>
+        {cachedChildren}
+        <audio ref={audioRef} preload="metadata" />
+      </CurrentTimeContext.Provider>
     </AudioContext.Provider>
   );
 }
