@@ -65,8 +65,13 @@ export function applyDailyAccent(isDark = document.documentElement.classList.con
     root.style.setProperty('--ring', accent);
     root.style.setProperty('--sidebar-ring', accent);
 
-    // Primary (buttons, key actions) — use brighter stop for dark mode
-    const primary = hexToHslString(isDark ? bg.hex[1] : bg.hex[0]);
+    // Primary (buttons, key actions) — muted, ink-dark tone in light mode
+    // (matches the older, calmer scaffold look) instead of the full-vivid
+    // gradient stop; dark mode keeps a brighter, more saturated primary so
+    // buttons still stand out against a dark background.
+    const primary = isDark
+      ? hexToHslString(bg.hex[1])
+      : `${hue} 33% 17%`;
     root.style.setProperty('--primary', primary);
     root.style.setProperty('--sidebar-primary', primary);
 
