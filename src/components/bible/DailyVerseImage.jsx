@@ -328,10 +328,14 @@ export default function DailyVerseImage({ verse, onClick, onToggleNotif, notifEn
     return await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
   };
   
+  // Use the daily colour's hex stops as an inline gradient so the card always
+  // renders the correct daily colour — the same authoritative colour the theme
+  // accent and the shared image use — rather than relying on generated
+  // gradient stop classes.
   const bgStyle = (pendingBg || customBg)
     ? { backgroundImage: `url(${pendingBg || customBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-    : {};
-  const gradientClass = (pendingBg || customBg) ? '' : `bg-gradient-to-br ${defaultBg.gradient}`;
+    : { backgroundImage: `linear-gradient(to bottom right, ${defaultBg.hex[0]}, ${defaultBg.hex[1]})` };
+  const gradientClass = '';
   const accentClass = (pendingBg || customBg) ? 'text-white' : defaultBg.accent;
   const hasCustomBg = !!(pendingBg || customBg);
 

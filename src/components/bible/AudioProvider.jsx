@@ -20,7 +20,7 @@ const SPEEDS = [0.75, 1, 1.25, 1.5, 1.75, 2];
 // karaoke highlight is applied DOM-direct (via data-audio-idx attributes) so
 // verse text never re-renders on each animation frame — only the mini-player
 // bar (a single small component) re-renders with currentTime.
-export default function AudioProvider({ book, chapter, verses, active, onClose, onChapterEnd, children }) {
+export default function AudioProvider({ book, chapter, verses, active, onClose, onChapterEnd, children, range }) {
   const [records, setRecords] = useState([]);
   const [record, setRecord] = useState(null);
   const [rawTiming, setRawTiming] = useState(null);
@@ -50,6 +50,11 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   // audio metadata loads (onLoaded); a fallback timeout clears it if the next
   // chapter has no audio record.
   const autoPlayRef = useRef(false);
+  // When a verse range is highlighted (filtered view / search result / "Read
+  // Selected" passage / daily verse), Listen plays only that span: it seeks to
+  // the first highlighted verse on play and pauses at the last one's end.
+  const rangeStartRef = useRef(null);
+  const rangeEndRef = useRef(null);
   const onChapterEndRef = useRef(onChapterEnd);
   useEffect(() => { onChapterEndRef.current = onChapterEnd; }, [onChapterEnd]);
 
@@ -118,6 +123,21 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
 
   const timeline = useMemo(() => buildWordTimeline(verses, rawTiming), [verses, rawTiming]);
 
+  // Resolve the range's start/end times from the chapter-wide timeline.
+  const rangeStart = useMemo(() => {
+    if (!range) return null;
+    const w = timeline.find((w) => w.verse === range.firstVerse);
+    return w ? w.start : null;
+  }, [timeline, range]);
+  const rangeEnd = useMemo(() => {
+    if (!range) return null;
+    let end = null;
+    for (const w of timeline) if (w.verse === range.lastVerse) end = Math.max(end ?? -1, w.end);
+    return end != null ? end : null;
+  }, [timeline, range]);
+  useEffect(() => { rangeStartRef.current = rangeStart; }, [rangeStart]);
+  useEffect(() => { rangeEndRef.current = rangeEnd; }, [rangeEnd]);
+
   // Per-verse word slices with global timeline indices, for VerseText.
   const wordsByVerse = useMemo(() => {
     const m = new Map();
@@ -181,6 +201,14 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     const tick = () => {
       setCurrentTime(a.currentTime);
       updateActive(findActiveWordIndex(timeline, a.currentTime));
+      const re = rangeEndRef.current;
+      if (re != null && a.currentTime >= re) {
+        a.pause();
+        a.currentTime = rangeStartRef.current ?? 0;
+        setPlaying(false);
+        clearHighlight();
+        return;
+      }
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
@@ -200,6 +228,9 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     const onTime = () => setCurrentTime(a.currentTime);
     const onEnd = () => {
       setPlaying(false); setCurrentTime(0); a.currentTime = 0; clearHighlight();
+      // In range mode the tick loop pauses at rangeEnd before the audio ends;
+      // if onEnd still fires, don't auto-advance out of the selected passage.
+      if (rangeStartRef.current != null) return;
       const advanced = onChapterEndRef.current?.();
       if (advanced) {
         autoPlayRef.current = true;
@@ -233,7 +264,15 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
 
   const togglePlay = useCallback(() => {
     const a = audioRef.current; if (!a || !record) return;
-    if (a.paused) a.play().catch(() => {}); else a.pause();
+    if (a.paused) {
+      const rs = rangeStartRef.current;
+      if (rs != null && (a.currentTime < rs - 0.05 || a.currentTime >= (rangeEndRef.current ?? Infinity))) {
+        a.currentTime = rs;
+      }
+      a.play().catch(() => {});
+    } else {
+      a.pause();
+    }
   }, [record]);
 
   const seek = useCallback((t) => {

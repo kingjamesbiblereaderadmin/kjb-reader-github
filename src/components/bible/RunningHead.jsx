@@ -29,7 +29,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
   const fontSize = `${baseFontRem * scale}rem`;
 
   return (
-    <div className={`mb-6 print:hidden ${isCursive ? 'cursive-em-style' : 'font-serif'}`}>
+    <div className={`kjb-running-head mb-6 print:hidden ${isCursive ? 'cursive-em-style' : 'font-serif'}`}>
       <div className="flex justify-between items-baseline gap-4 min-w-0">
         <div className="min-w-0">
           <span
