@@ -60,11 +60,23 @@ export default function BackgroundMusic() {
     const a = audioRef.current; if (a) a.volume = volume;
   }, [volume]);
 
-  // Toggle play/pause independently of the track.
-  useEffect(() => {
-    const a = audioRef.current; if (!a) return;
-    if (enabled) a.play().catch(() => {}); else a.pause();
-  }, [enabled]);
+  // Play/pause is driven from the toggle handler directly (synchronously within
+  // the user gesture) so browsers allow playback; the [track] effect handles
+  // (re)loading and continues playback when switching tracks while enabled.
+  const toggle = () => {
+    const a = audioRef.current;
+    const next = !enabled;
+    setEnabled(next);
+    if (!a) return;
+    if (next) {
+      if (a.src !== TRACKS[track].url) a.src = TRACKS[track].url;
+      a.loop = true;
+      a.volume = volume;
+      a.play().catch(() => {});
+    } else {
+      a.pause();
+    }
+  };
 
   // Stop music when the player (Listen mode) closes.
   useEffect(() => () => { const a = audioRef.current; if (a) a.pause(); }, []);
@@ -73,7 +85,7 @@ export default function BackgroundMusic() {
     <div className="border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-3 py-2 print:hidden">
       <div className="max-w-3xl mx-auto flex items-center gap-2.5">
         <button
-          onClick={() => setEnabled((e) => !e)}
+          onClick={toggle}
           title={enabled ? 'Turn music off' : 'Turn music on'}
           aria-label={enabled ? 'Music on' : 'Music off'}
           aria-pressed={enabled}
