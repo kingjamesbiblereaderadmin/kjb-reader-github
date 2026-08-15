@@ -159,6 +159,26 @@ export function buildWordTimeline(verses, timing) {
     .sort((a, b) => parseInt(a.verse, 10) - parseInt(b.verse, 10))
     .map((v) => ({ verse: parseInt(v.verse, 10), words: cleanVerseToWords(v.text) }));
 
+  // The first `intro_word_count` words in the `words` array are the spoken
+  // chapter/book announcement ("The First Book of Moses, called Genesis.
+  // Chapter 1.") that the narrator says but the reading view never displays.
+  // Strip them so displayed-word index 0 maps to words[intro_word_count] —
+  // otherwise the highlight runs ahead by exactly the intro word count.
+  // Prefer the explicit `intro_word_count` field; fall back to counting words
+  // whose start is before verses[0].start (which sits at the first scripture
+  // word). When neither is available, findScriptureStart is used below.
+  let introWordCount = Number(timing.intro_word_count);
+  if (!Number.isFinite(introWordCount) || introWordCount < 0) introWordCount = 0;
+  if (introWordCount === 0 && Array.isArray(timing.verses) && timing.verses.length) {
+    const v0 = Number(timing.verses[0]?.start);
+    if (Number.isFinite(v0) && v0 > 0) {
+      let n = 0;
+      for (const w of tWords) { if (w.start < v0 - 0.05) n++; else break; }
+      introWordCount = n;
+    }
+  }
+  const scriptureWords = introWordCount > 0 ? tWords.slice(introWordCount) : tWords;
+
   // ── PRECISE path: per-verse windowed alignment using the `verses` array ──
   // Each verse is aligned against only the transcript words inside its own
   // [start, end] window, so alignment errors can't accumulate across verses
@@ -177,7 +197,9 @@ export function buildWordTimeline(verses, timing) {
         const bounds = vMap.get(v.verse);
         if (!bounds || !v.words.length) continue;
         // Transcript words whose midpoint falls inside this verse's window.
-        const slice = tWords.filter((w) => {
+        // scriptureWords already has the spoken intro removed, so an intro
+        // word can never sneak into verse 1's window.
+        const slice = scriptureWords.filter((w) => {
           const mid = (w.start + w.end) / 2;
           return mid >= bounds.start - 0.15 && mid <= bounds.end + 0.15;
         });
@@ -201,9 +223,14 @@ export function buildWordTimeline(verses, timing) {
   }
 
   // ── FALLBACK path: whole-chapter alignment (no `verses` array) ──
-  let introTrimmed = tWords;
-  const start = findScriptureStart(tWords, verseWords);
-  if (start > 0) introTrimmed = tWords.slice(start);
+  // scriptureWords already has the spoken intro removed when intro_word_count
+  // (or the verses-derived offset) was available. Only when neither is present
+  // do we fall back to the findScriptureStart heuristic on the full transcript.
+  let introTrimmed = scriptureWords;
+  if (introWordCount === 0) {
+    const start = findScriptureStart(scriptureWords, verseWords);
+    if (start > 0) introTrimmed = scriptureWords.slice(start);
+  }
 
   const totalVerseWords = verseWords.reduce((n, v) => n + v.words.length, 0);
   const out = [];
