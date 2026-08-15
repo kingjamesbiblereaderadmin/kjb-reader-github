@@ -71,7 +71,9 @@ function findScriptureStart(tWords, verseWords) {
 export function buildWordTimeline(verses, timing) {
   if (!timing || !Array.isArray(timing.words) || !timing.words.length) return [];
   let tWords = timing.words.map((w) => ({
-    text: String(w?.text ?? ''),
+    // Timing JSON uses `word` as the spoken-token key (some older files used
+    // `text`); accept both so the parser handles every format.
+    text: String(w?.word ?? w?.text ?? ''),
     start: Number(w?.start ?? 0),
     end: Number(w?.end ?? 0),
   }));
