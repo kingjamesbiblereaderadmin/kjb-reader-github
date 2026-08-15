@@ -394,23 +394,25 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
             onClick={(e) => { e.stopPropagation(); if (audioWords[0]) audio.seekToWord(audioWords[0]); }}
             className="text-accent font-sans font-bold text-[0.6em] shrink-0 select-none mt-[0.2em] mr-[0.3em] cursor-pointer hover:opacity-70"
           >{verse.verse}</sup>
-          <span className="flex-1 min-w-0 leading-relaxed break-words text-left">
-            <span
-              className={`inline break-words [&_em]:italic ${isCursive ? 'cursive-em-style' : ''}`}
-              style={{ display: 'inline', ...(isCursive ? { fontSize: `${zoomLevel / 100 * 1.125}rem` } : textStyle) }}
-            >
-              {audioWords.length === 0 ? (
-                <span dangerouslySetInnerHTML={{ __html: html }} />
-              ) : (
-                audioWords.map((w) => (
-                  <span
-                    key={w.idx}
-                    data-audio-idx={w.idx}
-                    onClick={(e) => { e.stopPropagation(); audio.seekToWord(w); }}
-                    className="kjb-audio-word cursor-pointer rounded transition-colors duration-100"
-                  >{w.text}{' '}</span>
-                ))
-              )}
+          <span className="flex-1 min-w-0 flex items-start gap-[0.6em]">
+            <span className="flex-1 min-w-0 leading-relaxed break-words text-left">
+              <span
+                className={`inline [&_em]:italic [&_em]:text-foreground/75 box-decoration-clone rounded px-[0.3em] py-[0.1em] ${isCursive ? 'cursive-em-style' : ''}`}
+                style={{ display: 'inline', ...(isCursive ? { fontSize: `${zoomLevel / 100 * 1.125}rem` } : textStyle) }}
+              >
+                {audioWords.length === 0 ? (
+                  <span dangerouslySetInnerHTML={{ __html: html }} />
+                ) : (
+                  audioWords.map((w) => (
+                    <span
+                      key={w.idx}
+                      data-audio-idx={w.idx}
+                      onClick={(e) => { e.stopPropagation(); audio.seekToWord(w); }}
+                      className="kjb-audio-word cursor-pointer rounded transition-colors duration-100"
+                    >{w.text}{' '}</span>
+                  ))
+                )}
+              </span>
             </span>
           </span>
         </span>
