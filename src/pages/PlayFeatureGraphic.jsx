@@ -2,13 +2,12 @@ import React, { useRef, useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
-// Real KJB (Pure Cambridge Edition) — John 1:1-5
-const JOHN_1_VERSES = [
-  { v: 1, text: 'In the beginning was the Word, and the Word was with God, and the Word was God.' },
-  { v: 2, text: 'The same was in the beginning with God.' },
-  { v: 3, text: '[All] things were made by him; and without him was not any thing made that was made.' },
-  { v: 4, text: 'In him was life; and the life was the light of men.' },
-  { v: 5, text: 'And the light shineth in darkness; and the darkness comprehended it not.' },
+// Real KJB (Pure Cambridge Edition) — 1 Corinthians 15:1-4
+const VERSES = [
+  { v: 1, text: 'Moreover, brethren, I declare unto you the gospel which I preached unto you, which also ye have received, and wherein ye stand;' },
+  { v: 2, text: 'By which also ye are saved, if ye keep in memory what I preached unto you, unless ye have believed in vain.' },
+  { v: 3, text: 'For I delivered unto you first of all that which I also received, how that Christ died for our sins according to the scriptures;' },
+  { v: 4, text: 'And that he was buried, and that he rose again the third day according to the scriptures:' },
 ];
 
 const LOGO_URL = 'https://media.base44.com/images/public/6a05d76723afe58d80c589e8/2279e016e_8e738d108_cfb4bf781_Untitled.png';
@@ -83,22 +82,23 @@ export function FeatureGraphicArtboard({ innerRef }) {
             <div style={{ padding: '38px 22px 18px' }}>
               {/* Book title */}
               <div style={{ textAlign: 'center', marginBottom: '14px' }}>
-                <div style={{ fontSize: '15px', fontWeight: 700, color: '#3b1d9e', letterSpacing: '0.02em' }}>The Gospel According to</div>
-                <div style={{ fontSize: '20px', fontWeight: 800, color: '#1a1a2e', letterSpacing: '0.01em', marginTop: '2px' }}>Saint John</div>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#3b1d9e', letterSpacing: '0.02em' }}>The First Epistle of Paul</div>
+                <div style={{ fontSize: '17px', fontWeight: 800, color: '#1a1a2e', letterSpacing: '0.01em', marginTop: '2px' }}>to the Corinthians</div>
               </div>
               {/* Chapter heading with split underline */}
               <div style={{ textAlign: 'center', marginBottom: '4px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#1a1a2e', letterSpacing: '0.04em' }}>Chapter 1</span>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#1a1a2e', letterSpacing: '0.04em' }}>Chapter 15</span>
               </div>
-              <div style={{ borderBottom: '1px solid #c7c9d6', margin: '0 0 16px' }} />
+              <div style={{ borderBottom: '1px solid #c7c9d6', margin: '0 0 14px' }} />
               {/* Verses */}
-              <div style={{ fontSize: '13.5px', lineHeight: 1.62, color: '#1a1a2e' }}>
-                {JOHN_1_VERSES.map((v) => (
+              <div style={{ fontSize: '11.5px', lineHeight: 1.5, color: '#1a1a2e' }}>
+                {VERSES.map((v) => (
                   <span key={v.v} style={{ display: 'block', marginBottom: '7px' }}>
                     <sup style={{ color: '#4c1d95', fontWeight: 700, fontSize: '9px', marginRight: '3px', verticalAlign: 'super' }}>{v.v}</sup>
                     <span dangerouslySetInnerHTML={{ __html: renderVerse(v.text) }} />
                   </span>
                 ))}
+                <div style={{ textAlign: 'center', marginTop: '6px', fontSize: '10px', color: '#9aa0b4', fontStyle: 'italic' }}>…the gospel…</div>
               </div>
             </div>
           </div>
@@ -142,7 +142,7 @@ export default function PlayFeatureGraphic() {
     <div className="min-h-screen bg-background flex flex-col items-center justify-start py-10 px-4">
       <div className="w-full max-w-5xl">
         <h1 className="font-heading text-2xl font-bold text-foreground mb-1">Play Store Feature Graphic</h1>
-        <p className="text-muted-foreground text-sm mb-6">1024×500 banner built from your real app — actual logo, actual reader content (John 1), actual theme colours.</p>
+        <p className="text-muted-foreground text-sm mb-6">1024×500 banner built from your real app — actual logo, actual reader content (1 Corinthians 15:1-4), actual theme colours.</p>
 
         {/* Scaled-down preview (1024 → fits container) */}
         <div className="rounded-xl overflow-hidden border border-border shadow-lg bg-card" style={{ aspectRatio: '1024 / 500' }}>
