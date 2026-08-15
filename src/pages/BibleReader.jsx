@@ -727,13 +727,19 @@ export default function BibleReader() {
         // be tagged as an ongoing search context, or useToolbarState's focus-listener
         // restore replays it (snapping the reader back to that single-verse filtered
         // view) after the app is backgrounded and reopened.
+        // EXCEPTION: a multi-reference stepper (goToMultiReference / goToPassage)
+        // also has no `q` but carries 2+ results — it needs the same ongoing-context
+        // treatment as a keyword search so the prev/next stepper arrows render
+        // (CurrentlyReadingIndicator gates on totalResults > 1 + an active term)
+        // and the highlight survives the toolbar-state restore/focus cycle.
         const qParam = urlParams.get('q');
+        const isMultiResultNav = !qParam && results.length > 1;
         if (qParam && results.length === 0) {
           results = [{ abbr: urlBookObj.abbr, chapter: chapterNum, verse: verseNum, verseEnd: verseEnd || null }];
           index = 0; setSearchNav(results, index, qParam);
         }
-        if (qParam) {
-          searchClearedRef.current = false; setSearchTerm(qParam);
+        if (qParam || isMultiResultNav) {
+          searchClearedRef.current = false; setSearchTerm(qParam || term || '');
           setSearchResultIndex(index); setSearchTotalResults(results.length);
         } else {
           searchClearedRef.current = true;
