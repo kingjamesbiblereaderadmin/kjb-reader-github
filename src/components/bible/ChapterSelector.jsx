@@ -23,19 +23,20 @@ export default function ChapterSelector({ totalChapters, currentChapter, onSelec
         <div className="grid grid-cols-6 sm:grid-cols-8 gap-2">
           {Array.from({ length: totalChapters }, (_, i) => i + 1).map(ch => {
             const audible = hasAudio(ch);
+            const isSelected = ch === selectedChapter;
+            const hasSelection = selectedChapter != null;
             return (
               <button
                 key={ch}
                 data-vaul-no-drag
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={() => setSelectedChapter(ch)}
-                title={bookName && !audible ? 'No narration yet' : undefined}
                 className={`h-9 w-full rounded text-sm font-sans font-medium border transition-colors ${
-                  ch === selectedChapter
+                  isSelected
                     ? 'bg-accent text-accent-foreground font-bold border-accent'
-                    : audible
-                      ? 'bg-secondary hover:bg-accent/20 text-foreground border-border'
-                      : 'bg-secondary/40 text-muted-foreground/50 border-border/60 hover:bg-secondary/70'
+                    : hasSelection
+                      ? 'bg-secondary/50 text-muted-foreground/60 border-border/60 hover:bg-accent/20 hover:text-foreground'
+                      : 'bg-secondary hover:bg-accent/20 text-foreground border-border'
                 }`}
               >
                 {ch}
