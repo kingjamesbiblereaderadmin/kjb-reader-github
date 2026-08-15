@@ -457,15 +457,25 @@
      reader container carries .kjb-audio-intro during that window. They no
      longer stay tinted for the whole listening session, so once the reading
      moves on to the verse text only the spoken words are highlighted. */
-  .kjb-audio-listening.kjb-audio-intro .kjb-book-title,
-  .kjb-audio-listening.kjb-audio-intro .kjb-chapter-heading {
+  .kjb-audio-listening.kjb-audio-intro .kjb-book-title {
     display: inline-block;
     background-color: hsl(var(--accent) / 0.14);
     border-radius: 0.4rem;
     padding: 0.1em 0.45em;
   }
+  /* The "Chapter N" heading is rendered as its own centered pill (block +
+     fit-content) so it reads as a distinctly highlighted element below the
+     book title, not merged into the same inline line as the book name. */
+  .kjb-audio-listening.kjb-audio-intro .kjb-chapter-heading {
+    display: block;
+    width: fit-content;
+    margin-inline: auto;
+    background-color: hsl(var(--accent) / 0.18);
+    border-radius: 0.4rem;
+    padding: 0.15em 0.6em;
+  }
   .kjb-audio-listening.kjb-audio-intro .kjb-running-head {
-    background-color: hsl(var(--accent) / 0.1);
+    background-color: hsl(var(--accent) / 0.14);
     border-radius: 0.5rem;
     padding: 0.25em 0.4em;
   }
