@@ -6,6 +6,7 @@ import { BIBLE_BOOKS } from '@/lib/bibleData';
 import { formatVerseShare, buildVerseUrl } from '@/lib/formatDailyVerse';
 import VersePopover from '@/components/bible/VersePopover';
 import SaveFolderPicker from '@/components/bible/SaveFolderPicker';
+import { useAudio } from '@/components/bible/AudioProvider';
 
 export default function VerseText({ verse, highlight = false, id, bookName, abbr, chapter, isFirstVerse = false, paragraphMode = false, selectMode = false, isSelected = false, onSelect, onActivateSelect, totalVerses = 0, colophon = null, subscript = null, isCursive = false, fontFamilyValue = null, zoomLevel = 100, hasSubscript = false, searchTerm = null, dropCap = false, columnMode = false }) {
   const bookEntry = BIBLE_BOOKS.find(b => b.abbr === abbr);
@@ -23,6 +24,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   const [saved, setSaved] = useState(() => isVerseSaved(abbr, chapter, verse.verse));
   const [currentText, setCurrentText] = useState(verse.text);
   const [showFolderPicker, setShowFolderPicker] = useState(false);
+  const audio = useAudio();
 
   useEffect(() => {
     setCurrentText(verse.text);
@@ -375,6 +377,47 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
 
   // ── PARAGRAPH MODE: verses flow inline; pilcrow verses break to a new line ──
   const hasPilcrow = currentText.includes('\u00B6') || currentText.includes('\u000F');
+
+  // ── AUDIO (Listen) MODE: render this verse as clickable word spans so the
+  // active word can be karaoke-highlighted in place within the existing Read
+  // layout. The highlight is applied DOM-direct by AudioProvider (no per-frame
+  // re-render of verse text). Clicking a word seeks to it; clicking the verse
+  // number seeks to the verse start. Falls back to the normal HTML render when
+  // no word-timing data exists for the chapter.
+  if (audio?.active) {
+    const audioWords = audio.wordsByVerse?.get(parseInt(verse.verse, 10)) || [];
+    return (
+      <span id={id} className={`block relative scroll-mt-24 ${hasPilcrow && !isFirstVerse ? 'mt-12' : 'mt-3'}`}>
+        {stanzaHeading}
+        <span className="flex items-start leading-relaxed rounded px-[0.4em] py-[0.15em] gap-[0.6em] w-full">
+          <sup
+            onClick={(e) => { e.stopPropagation(); if (audioWords[0]) audio.seekToWord(audioWords[0]); }}
+            className="text-accent font-sans font-bold text-[0.6em] shrink-0 select-none mt-[0.2em] mr-[0.3em] cursor-pointer hover:opacity-70"
+          >{verse.verse}</sup>
+          <span className="flex-1 min-w-0 leading-relaxed break-words text-left">
+            <span
+              className={`inline break-words [&_em]:italic ${isCursive ? 'cursive-em-style' : ''}`}
+              style={{ display: 'inline', ...(isCursive ? { fontSize: `${zoomLevel / 100 * 1.125}rem` } : textStyle) }}
+            >
+              {audioWords.length === 0 ? (
+                <span dangerouslySetInnerHTML={{ __html: html }} />
+              ) : (
+                audioWords.map((w) => (
+                  <span
+                    key={w.idx}
+                    data-audio-idx={w.idx}
+                    onClick={(e) => { e.stopPropagation(); audio.seekToWord(w); }}
+                    className="kjb-audio-word cursor-pointer rounded transition-colors duration-100"
+                  >{w.text}{' '}</span>
+                ))
+              )}
+            </span>
+          </span>
+        </span>
+      </span>
+    );
+  }
+
   if (paragraphMode) {
     // Pilcrow verse: render as a block (new paragraph) with gap above, no indent
     if (hasPilcrow && !isFirstVerse) {

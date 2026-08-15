@@ -403,6 +403,16 @@
 
 }
 
+  /* Audio (Listen mode) word-by-word karaoke highlight. Applied DOM-direct by
+     AudioProvider via the .kjb-audio-active class so verse text never
+     re-renders on each animation frame. */
+  .kjb-audio-word { border-radius: 2px; }
+  .kjb-audio-active {
+    background-color: hsl(var(--accent) / 0.4);
+    color: hsl(var(--foreground));
+    font-weight: 600;
+  }
+
 @media print {
   @page {
     margin: 1.5cm;

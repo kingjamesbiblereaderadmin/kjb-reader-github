@@ -18,7 +18,7 @@ import CurrentlyReadingIndicator from '@/components/bible/CurrentlyReadingIndica
 import MinimizedHeaderBar from '@/components/bible/MinimizedHeaderBar';
 import ReadingRangeBar from '@/components/bible/ReadingRangeBar';
 import SelectActionBar from '@/components/bible/SelectActionBar';
-import AudioPlayer from '@/components/bible/AudioPlayer';
+import AudioProvider from '@/components/bible/AudioProvider';
 import { useHeaderHide } from '@/lib/HeaderHideContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -1932,7 +1932,8 @@ export default function BibleReader() {
         />
       )}
 
-      {!isViewingTitlePage && !listenMode && (
+      <AudioProvider book={book} chapter={pos.chapter} verses={verses} active={listenMode && !isViewingTitlePage} onClose={() => setListenMode(false)}>
+      {!isViewingTitlePage && (
         <div className={`text-center mb-6 pt-8 ${(!columnMode || pos.chapter === 1) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
           <h1 className={`${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} text-3xl md:text-4xl font-bold text-foreground mb-2 leading-tight`} style={{ fontStyle: 'normal', fontWeight: '900' }}>{book.name}</h1>
           <p className={`font-sans text-muted-foreground tracking-widest uppercase mt-5 ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100 * 0.875}rem`, fontWeight: fontFamily === 'cursive' ? '400' : undefined }}>
@@ -1957,23 +1958,13 @@ export default function BibleReader() {
       >
         {loading && <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>}
         {error && <div className="text-center py-16 text-destructive font-sans">{error}</div>}
-        {!loading && !error && !isViewingTitlePage && verses.length > 0 && listenMode && (
-          <AudioPlayer
-            verses={verses}
-            book={book}
-            chapter={pos.chapter}
-            zoomLevel={zoomLevel}
-            fontFamily={fontFamily}
-            onClose={() => setListenMode(false)}
-          />
-        )}
         {!loading && !error && isViewingTitlePage && (
           <div style={{ fontFamily: "'Merriweather', 'Cormorant Garamond', Georgia, serif" }} className="[&_*]:!font-serif"><TitlePage type={pos.abbr === 'GEN' ? 'testament-old' : pos.abbr === 'MAT' ? 'testament-new' : 'book'} book={book} /></div>
         )}
-        {!loading && !error && verses.length > 0 && columnMode && !isViewingTitlePage && pos.chapter !== 1 && !listenMode && (
+        {!loading && !error && verses.length > 0 && columnMode && !isViewingTitlePage && pos.chapter !== 1 && (
           <RunningHead bookName={book.name} chapter={pos.chapter} baseFontRem={zoomLevel / 100 * 0.7} isCursive={fontFamily === 'cursive'} />
         )}
-        {!loading && !error && verses.length > 0 && !listenMode && (() => {
+        {!loading && !error && verses.length > 0 && (() => {
           // selectedVerses may contain numbers (restored from localStorage) while
           // v.verse can be a string from the cached Bible data. Coerce both so the
           // filter matches — otherwise every verse is filtered out and only the
@@ -2013,12 +2004,13 @@ export default function BibleReader() {
           </div>
           );
         })()}
-        {!loading && !error && colophon && !listenMode && (
+        {!loading && !error && colophon && (
           <div onClick={() => handleSectionClick('colophon')} id="kjb-colophon-anchor" className={`${columnMode ? 'mt-6 mb-4' : 'mt-12 mb-4 border-t border-border pt-6'} text-center transition-colors duration-500 rounded-lg cursor-pointer ${sectionActive('colophon') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`}>
             <p className={`kjb-colophon text-sm text-muted-foreground leading-relaxed ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}><SubscriptContent text={colophon} searchTerm={sectionActive('colophon') ? searchTerm : null} /></p>
           </div>
         )}
       </div>
+      </AudioProvider>
 
       {!loading && !error && ((pos.abbr === 'MAL' && pos.chapter === 4) || (pos.abbr === 'REV' && pos.chapter === 22)) && (
         <div className="text-center mt-14 mb-12 select-none">
