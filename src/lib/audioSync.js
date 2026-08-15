@@ -104,32 +104,84 @@ export function buildWordTimeline(verses, timing) {
 
   // Mismatch (transcript word count differs from the verse text — common with
   // TTS/Whisper transcripts that add, drop, or mis-hear words, and that emit
-  // garbage tokens like ".C" / ".s." for a single real word). Walk the verse
-  // words in order and match each to the next equal transcript word within a
-  // small forward window. This locks every highlighted word to its real audio
-  // timestamp and lets verse boundaries land where the narrator actually
-  // starts each verse — instead of a proportional guess that drifts (which
-  // made the highlight appear to speed up / desync partway through a chapter).
-  const WINDOW = 8;
-  let ti = 0;
+  // garbage tokens like ".C" / ".s." for a single real word). Align the full
+  // verse-word sequence against the transcript with a global DP (Needleman–
+  // Wunsch) so each verse word maps to the transcript word actually spoken at
+  // that point. Mis-hears ("And"→"On") become substitutions that consume both
+  // words and stay in sync, instead of skipping ahead to a later common word
+  // and cascading out of alignment.
+  const aWords = [];
   for (const v of verseWords) {
     for (let i = 0; i < v.words.length; i++) {
-      const target = normWord(v.words[i]);
+      aWords.push({ text: v.words[i], verse: v.verse, wordIndex: i });
+    }
+  }
+  const normA = aWords.map((a) => normWord(a.text));
+  const normB = tWords.map((w) => normWord(w.text));
+  const n = normA.length, m = normB.length;
+
+  // For pathological chapter sizes, fall back to a greedy windowed match so the
+  // DP table stays bounded in memory. (Genesis and even Psalm 119 are well
+  // under this cap.)
+  if ((n + 1) * (m + 1) > 6000000) {
+    const WINDOW = 8;
+    let ti = 0;
+    for (let k = 0; k < n; k++) {
       let found = -1;
-      for (let j = ti; j < Math.min(tWords.length, ti + WINDOW); j++) {
-        if (normWord(tWords[j].text) === target) { found = j; break; }
+      for (let j = ti; j < Math.min(m, ti + WINDOW); j++) {
+        if (normB[j] === normA[k]) { found = j; break; }
       }
       if (found >= 0) {
-        out.push({ text: v.words[i], start: tWords[found].start, end: tWords[found].end, verse: v.verse, wordIndex: i });
+        out.push({ text: aWords[k].text, start: tWords[found].start, end: tWords[found].end, verse: aWords[k].verse, wordIndex: aWords[k].wordIndex });
         ti = found + 1;
       } else {
-        // No close match (transcript insertion or a mis-heard word). Keep the
-        // word in the timeline at the current audio position so its karaoke
-        // span still lights roughly when the narrator reaches this point, and
-        // leave ti in place so the next verse word can skip past the insertion.
-        const ts = ti < tWords.length ? tWords[ti].start : (out.length ? out[out.length - 1].end : 0);
-        out.push({ text: v.words[i], start: ts, end: ts, verse: v.verse, wordIndex: i });
+        const ts = ti < m ? tWords[ti].start : (out.length ? out[out.length - 1].end : 0);
+        out.push({ text: aWords[k].text, start: ts, end: ts, verse: aWords[k].verse, wordIndex: aWords[k].wordIndex });
       }
+    }
+    return out;
+  }
+
+  const MATCH = 3, MISMATCH = -2, GAP = -2;
+  const W = m + 1;
+  const dp = new Int16Array((n + 1) * W);
+  const tr = new Int8Array((n + 1) * W); // 0 = diag (substitute/match), 1 = up (A word, B gap), 2 = left (B word, A gap)
+  for (let i = 0; i <= n; i++) dp[i * W] = i * GAP;
+  for (let j = 0; j <= m; j++) dp[j] = j * GAP;
+  for (let i = 1; i <= n; i++) {
+    const ia = i * W, ib = (i - 1) * W;
+    for (let j = 1; j <= m; j++) {
+      const sub = dp[ib + (j - 1)] + (normA[i - 1] === normB[j - 1] ? MATCH : MISMATCH);
+      const up = dp[ib + j] + GAP;
+      const left = dp[ia + (j - 1)] + GAP;
+      let best = sub, dir = 0;
+      if (up > best) { best = up; dir = 1; }
+      if (left > best) { best = left; dir = 2; }
+      dp[ia + j] = best;
+      tr[ia + j] = dir;
+    }
+  }
+
+  const alignB = new Array(n).fill(-1);
+  let i = n, j = m;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && tr[i * W + j] === 0) { alignB[i - 1] = j - 1; i--; j--; }
+    else if (i > 0 && (j === 0 || tr[i * W + j] === 1)) { i--; }
+    else { j--; }
+  }
+
+  for (let k = 0; k < n; k++) {
+    const b = alignB[k];
+    if (b >= 0) {
+      out.push({ text: aWords[k].text, start: tWords[b].start, end: tWords[b].end, verse: aWords[k].verse, wordIndex: aWords[k].wordIndex });
+    } else {
+      // Verse word with no transcript partner — interpolate between neighbours
+      // so its karaoke span still lights in the right audio region.
+      let ts = -1;
+      for (let p = k - 1; p >= 0; p--) { if (alignB[p] >= 0) { ts = tWords[alignB[p]].end; break; } }
+      if (ts < 0) { for (let q = k + 1; q < n; q++) { if (alignB[q] >= 0) { ts = tWords[alignB[q]].start; break; } } }
+      if (ts < 0) ts = out.length ? out[out.length - 1].end : 0;
+      out.push({ text: aWords[k].text, start: ts, end: ts, verse: aWords[k].verse, wordIndex: aWords[k].wordIndex });
     }
   }
   return out;
