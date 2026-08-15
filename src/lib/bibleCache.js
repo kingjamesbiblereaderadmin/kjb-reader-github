@@ -10,11 +10,17 @@ import { parsePceText } from '@/lib/biblePceParser';
 // Bump this version string whenever the Bible text file changes — every client
 // will then re-download and re-parse fresh. Replaces the old remote VERSION.txt
 // check (which 404'd/403'd and broke auto-updates).
-export const CACHE_VERSION = 'v20260713_2200';
+export const CACHE_VERSION = 'v20260815_copy_repair';
 const CACHE_KEY = 'bible_data_pce_v100_SINGLE_FILE';
 // Single clean PCE source file: book titles, CHAPTER headings, [bracketed] italics,
 // and double-space paragraph (pilcrow) markers. No separate italics file needed.
-const PCE_TEXT_FILE_URL = 'https://media.base44.com/files/public/6a05d76723afe58d80c589e8/e74bc3070_KingJamesBible-PureCambridgeEditionTextfile2.txt';
+// Primary PCE Bible text source. The original file lived on the deleted old
+// app's media storage (6a05d76723afe58d80c589e8); this is the recovered and
+// verified complete 4,335,413-byte copy (same PureCambridgeEditionTextfile2
+// format: book titles, CHAPTER headings, [bracketed] italics, double-space
+// pilcrow markers). Bumping CACHE_VERSION forces every device to invalidate
+// stale IndexedDB/localStorage Bible data and re-fetch from this source.
+const PCE_TEXT_FILE_URL = 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/d40e0d37f_recovered-pce-bible.txt';
 
 const EXPECTED_BOOK_COUNT = 66;
 
