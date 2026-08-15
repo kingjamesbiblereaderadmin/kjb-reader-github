@@ -376,16 +376,18 @@
        verse 2. Letting it clear naturally removes that gap. */
   }
   .kjb-dropcap-letter {
-    /* Sized to span two text lines (≈2 × body line-height). Use em instead of
-       the poorly-supported `lh` unit so the cap renders at full size everywhere. */
-    font-size: 3.2em;
+    /* Sized so the letter box spans exactly two body text lines
+       (2 × leading-relaxed 1.625 = 3.25em), making the drop cap's bottom
+       align flush with the top of the next verse down. Use em instead of the
+       poorly-supported `lh` unit so the cap renders at full size everywhere. */
+    font-size: 3.4em;
     line-height: 1;
     font-weight: 700;
     color: inherit;
     font-family: 'Cormorant Garamond', 'Merriweather', Georgia, serif;
-    /* Pull the glyph down so its cap-top aligns with line 1's cap-top and its
-       baseline drops to line 2's baseline (compensates for the font's ascent gap). */
-    margin-top: -0.12em;
+    /* Lift the box so its bottom lands exactly at the 2-line mark (3.25em),
+       while keeping the cap-top near line 1's cap-top. */
+    margin-top: -0.15em;
   }
   /* Verse number sits at the top-left of the group, beside the big letter. */
   .kjb-dropcap-num {
