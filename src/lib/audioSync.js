@@ -338,18 +338,26 @@ export function buildWordTimeline(verses, timing) {
 // Find the index of the active word for a given playback time (seconds).
 export function findActiveWordIndex(timeline, time) {
   if (!timeline.length) return -1;
-  // Fast path: linear scan from a hint isn't worth the bookkeeping for typical
-  // chapter sizes; binary search on `start` is plenty.
+  // Binary search for the last word whose start <= time.
   let lo = 0, hi = timeline.length - 1, ans = -1;
   while (lo <= hi) {
     const mid = (lo + hi) >> 1;
     if (timeline[mid].start <= time) { ans = mid; lo = mid + 1; }
     else hi = mid - 1;
   }
-  // If we're past the last word's end, nothing is active.
-  if (ans >= 0 && time > timeline[ans].end + 0.05) {
-    // small gap tolerance — treat as inactive only if clearly past end
-    if (ans === timeline.length - 1) return -1;
+  if (ans < 0) return -1;
+  const w = timeline[ans];
+  const next = timeline[ans + 1];
+  // A word is active only during its actual spoken window [start, end], so the
+  // highlight tracks the narrator precisely and clears during inter-word pauses
+  // instead of lingering on the previous word through silence (which reads as
+  // "the highlight is behind the voice"). Whisper sometimes emits zero-duration
+  // tokens (start === end); for those, keep the word lit until the next word's
+  // onset so the highlight is still visible.
+  if (w.end > w.start) {
+    const ceiling = next ? next.start : Infinity;
+    // 40ms tolerance absorbs Whisper boundary jitter without bridging the gap.
+    return time <= Math.min(w.end, ceiling) + 0.04 ? ans : -1;
   }
-  return ans;
+  return next ? (time < next.start ? ans : -1) : ans;
 }
