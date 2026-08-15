@@ -1,4 +1,4 @@
-package com.godisgracious1031m.kjbreader
+package kjbreader.app
 
 import android.annotation.SuppressLint
 import android.content.Intent
