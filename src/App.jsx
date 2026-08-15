@@ -9,7 +9,6 @@ import { ThemeProvider } from '@/lib/themeContext';
 import { HeaderHideProvider } from '@/lib/HeaderHideContext';
 import { SoftReloadProvider, useSoftReload } from '@/lib/SoftReloadContext';
 import AppLayout from '@/components/layout/AppLayout';
-import MarketingLayout from '@/components/layout/MarketingLayout';
 import ChunkErrorBoundary from '@/components/ChunkErrorBoundary';
 import React, { lazy, Suspense, useEffect, useState } from 'react';
 
@@ -291,9 +290,7 @@ const AuthenticatedApp = () => {
             <Route path="/extension/privacy" element={<Suspense fallback={<RouteLoader />}><ExtensionPrivacyPage /></Suspense>} />
             <Route path="/extension-terms" element={<Suspense fallback={<RouteLoader />}><ExtensionTermsPage /></Suspense>} />
             <Route path="/extension-license" element={<Suspense fallback={<RouteLoader />}><ExtensionLicensePage /></Suspense>} />
-            <Route element={<MarketingLayout />}>
-              <Route path="/landing" element={<Suspense fallback={<RouteLoader />}><LandingPage /></Suspense>} />
-            </Route>
+            <Route path="/landing" element={<Suspense fallback={<RouteLoader />}><LandingPage /></Suspense>} />
             <Route element={<AppLayout />}>
               <Route path="/" element={<Suspense fallback={<RouteLoader />}><FadeIn><HomePage /></FadeIn></Suspense>} />
               <Route path="/read" element={<Suspense fallback={<RouteLoader />}><FadeIn><BibleReader /></FadeIn></Suspense>} />
