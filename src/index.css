@@ -405,13 +405,13 @@
 
 }
 
-  /* App buttons are pills (fully rounded), not hard squares. Lives in the
-     utilities layer with :not() selectors so its specificity beats the
-     per-button `rounded-lg`/`rounded-md` utilities, while buttons that are
+  /* App buttons use a soft rounded corner (not hard squares, not full pills).
+     Lives in the utilities layer with :not() selectors so its specificity beats
+     the per-button `rounded-lg`/`rounded-md` utilities, while buttons that are
      intentionally rounded-full or rounded-none keep their shape. */
 @layer utilities {
   button:not(.rounded-full):not(.rounded-none) {
-    border-radius: 9999px;
+    border-radius: 0.75rem;
   }
 }
 
