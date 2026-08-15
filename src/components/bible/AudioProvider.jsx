@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { buildWordTimeline, findActiveWordIndex } from '@/lib/audioSync';
+import { getCachedRecords, saveRecords, getCachedTiming, saveTiming } from '@/lib/audioCache';
 
 const AudioContext = createContext(null);
 export const useAudio = () => useContext(AudioContext);
@@ -42,16 +43,31 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     }
     setLoading(true); setRecords([]); setRecord(null); setRawTiming(null);
     (async () => {
+      // Serve cached records instantly so audio works offline after a chapter
+      // has been opened once online (the ChapterAudio /api/ call is bypassed by
+      // the service worker and would otherwise fail offline).
+      const cached = await getCachedRecords(book.name, chapter);
+      if (cancelled) return;
+      if (cached && cached.length) {
+        setRecords(cached);
+        const first = cached.find(r => r.audio_url) || cached[0];
+        setRecord(first);
+        setVoice(first.voice || null);
+        setLoading(false);
+      }
       try {
         const recs = await base44.entities.ChapterAudio.filter({ book: book.name, chapter });
         if (cancelled) return;
-        setRecords(recs || []);
         if (recs && recs.length) {
+          setRecords(recs);
           const first = recs.find(r => r.audio_url) || recs[0];
           setRecord(first);
           setVoice(first.voice || null);
+          saveRecords(book.name, chapter, recs);
         }
-      } catch {}
+      } catch {
+        // Offline / API failed — cached records (if any) remain active above.
+      }
       if (!cancelled) setLoading(false);
     })();
     return () => { cancelled = true; };
@@ -63,11 +79,16 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     setRawTiming(null);
     if (!record?.timing_url) return;
     (async () => {
+      // Cached timing first (offline-friendly); refresh from network in the
+      // background and persist for next time.
+      const cached = await getCachedTiming(record.timing_url);
+      if (cancelled) return;
+      if (cached) setRawTiming(cached);
       try {
         const res = await fetch(record.timing_url, { cache: 'force-cache' });
         if (!res.ok) return;
         const t = await res.json();
-        if (!cancelled) setRawTiming(t);
+        if (!cancelled) { setRawTiming(t); saveTiming(record.timing_url, t); }
       } catch {}
     })();
     return () => { cancelled = true; };
