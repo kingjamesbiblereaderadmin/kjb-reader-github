@@ -1,12 +1,15 @@
 import React from 'react';
-import { Heart, BookOpen, Volume2, Type, Server, Info, ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Heart, BookOpen, Volume2, Type, Server, Info, ArrowLeft, ExternalLink } from 'lucide-react';
 
 // A simple, static credits / acknowledgements page.
 // Linked from Settings (the "About & Credits" card).
 export default function CreditsPage() {
+  const navigate = useNavigate();
+  const goBack = () => navigate(-1);
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
-      <div className="w-full max-w-3xl mx-auto px-5 sm:px-8 py-10">
+      <div className="w-full max-w-3xl mx-auto px-5 sm:px-8 lg:px-12 py-10 pb-24">
         {/* Header */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/30 mb-4">
@@ -14,6 +17,16 @@ export default function CreditsPage() {
           </div>
           <h1 className="font-serif text-4xl font-bold text-foreground mb-3">About &amp; Credits</h1>
           <div className="mt-4 w-16 h-px bg-accent mx-auto" />
+        </div>
+
+        <div className="text-center mb-6">
+          <button
+            onClick={goBack}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-transparent border border-border text-foreground font-sans text-sm font-medium hover:border-accent transition-all duration-200"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
         </div>
 
         {/* Bible Text */}
