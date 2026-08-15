@@ -32,20 +32,20 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wide text-primary-foreground/60 mb-4">Resources</h3>
             <ul className="flex flex-col gap-2.5 text-sm">
-              <li><Link to="/Salvation" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300">Are you saved?</Link></li>
+              <li><Link to="/salvation" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300">Are you saved?</Link></li>
               <li><a href="https://kjbi.org/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300"><GraduationCap className="w-3.5 h-3.5" /> KJBI.org Bible College</a></li>
-              <li><a href="#" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300">SidePanel Extension</a></li>
-              <li><a href="https://discord.gg/HK9Kqmg7Jh" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300">KJB Knights Server</a></li>
+              <li><Link to="/extension" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300">SidePanel Extension</Link></li>
+              <li><Link to="/discord" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300">KJB Knights Server</Link></li>
             </ul>
           </div>
 
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wide text-primary-foreground/60 mb-4">Legal</h3>
             <ul className="flex flex-col gap-2.5 text-sm">
-              <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300">Privacy Policy</a></li>
-              <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300">Terms of Service</a></li>
-              <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300">Legacy Reader</a></li>
-              <li><Link to="/Contact" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300">Contact</Link></li>
+              <li><Link to="/privacy" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300">Terms of Service</Link></li>
+              <li><Link to="/legacy" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300">Legacy Reader</Link></li>
+              <li><Link to="/contact" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300">Contact</Link></li>
             </ul>
           </div>
 
