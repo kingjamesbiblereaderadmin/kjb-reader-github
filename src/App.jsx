@@ -49,7 +49,6 @@ const loaders = {
   OAuthConsent: () => import('@/pages/OAuthConsent.jsx').catch((err) => { console.error('Failed to load OAuthConsent:', err); throw err; }),
   TabbedUiTest: () => import('@/pages/TabbedUiTestPage.jsx').catch((err) => { console.error('Failed to load TabbedUiTestPage:', err); throw err; }),
   Credits: () => import('@/pages/CreditsPage').catch((err) => { console.error('Failed to load CreditsPage:', err); throw err; }),
-  PlayFeatureGraphic: () => import('@/pages/PlayFeatureGraphic').catch((err) => { console.error('Failed to load PlayFeatureGraphic:', err); throw err; }),
 
 };
 const HomePage = lazy(loaders.Home);
@@ -86,7 +85,6 @@ const RegisterPage = lazy(loaders.Register);
 const OAuthConsentPage = lazy(loaders.OAuthConsent);
 const TabbedUiTestPage = lazy(loaders.TabbedUiTest);
 const CreditsPage = lazy(loaders.Credits);
-const PlayFeatureGraphicPage = lazy(loaders.PlayFeatureGraphic);
 
 
 const getLoaderForPath = (pathname) => {
@@ -282,7 +280,6 @@ const AuthenticatedApp = () => {
             <Route path="/oauth/consent" element={<Suspense fallback={<RouteLoader />}><OAuthConsentPage /></Suspense>} />
             <Route path="/tab-ui-test" element={<Suspense fallback={<RouteLoader />}><TabbedUiTestPage /></Suspense>} />
             <Route path="/credits" element={<Suspense fallback={<RouteLoader />}><CreditsPage /></Suspense>} />
-            <Route path="/play-feature-graphic" element={<Suspense fallback={<RouteLoader />}><PlayFeatureGraphicPage /></Suspense>} />
             <Route path="/terms" element={<Suspense fallback={<RouteLoader />}><TermsOfServicePage /></Suspense>} />
             <Route path="/privacy" element={<Suspense fallback={<RouteLoader />}><PrivacyPolicyPage /></Suspense>} />
             <Route path="/contact" element={<Suspense fallback={<RouteLoader />}><ContactPage /></Suspense>} />
