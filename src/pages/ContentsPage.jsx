@@ -189,6 +189,7 @@ export default function ContentsPage() {
               totalChapters={currentBook.chapters}
               currentChapter={selectedChapter}
               onSelect={handleSelectChapter}
+              bookName={currentBook.name}
               onClose={() => {
                 setShowChapterSelector(false);
                 setSelectedBook(null);

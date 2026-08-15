@@ -1570,6 +1570,7 @@ export default function BibleReader() {
                       currentChapter={pos.chapter}
                       onSelect={(ch, showVerse) => { navigate(pos.abbr, ch); setShowChapterPicker(false); if (showVerse) setShowVersePicker(true); }}
                       onClose={() => setShowChapterPicker(false)}
+                      bookName={book.name}
                     />
                   </div>
                 )}
@@ -1579,6 +1580,7 @@ export default function BibleReader() {
                     currentChapter={pos.chapter}
                     onSelect={(ch, showVerse) => { navigate(pos.abbr, ch); setShowChapterPicker(false); if (showVerse) setShowVersePicker(true); }}
                     onClose={() => setShowChapterPicker(false)}
+                    bookName={book.name}
                     bare
                   />
                 </SelectorSheet>
