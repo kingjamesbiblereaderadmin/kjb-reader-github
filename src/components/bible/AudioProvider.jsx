@@ -58,6 +58,10 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   // When the user switches voice mid-playback, capture the current position so
   // the new voice's audio resumes from the same spot instead of restarting.
   const pendingResumeRef = useRef(null);
+  // True when this chapter's playback began by auto-advancing from the previous
+  // chapter (a continuation). In that case the chapter-header highlight is
+  // suppressed — the book name was already "said" on the first manual play.
+  const suppressIntroRef = useRef(false);
   const onChapterEndRef = useRef(onChapterEnd);
   useEffect(() => { onChapterEndRef.current = onChapterEnd; }, [onChapterEnd]);
 
@@ -200,7 +204,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     const container = audioRef.current?.closest?.('.kjb-audio-listening');
     if (!container) return;
     const v1 = verse1StartRef.current;
-    const inIntro = v1 > 0 && time > 0 && time < v1;
+    const inIntro = !suppressIntroRef.current && v1 > 0 && time > 0 && time < v1;
     container.classList.toggle('kjb-audio-intro', inIntro);
   }, []);
   const clearIntro = useCallback(() => {
@@ -277,6 +281,8 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       const advanced = onChapterEndRef.current?.();
       if (advanced) {
         autoPlayRef.current = true;
+        // This is a continuation — don't re-highlight the book name header.
+        suppressIntroRef.current = true;
         setTimeout(() => { autoPlayRef.current = false; }, 8000);
       }
     };
@@ -313,6 +319,8 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
         a.currentTime = rs;
       }
       a.play().catch(() => {});
+      // Manual play (first time) — show the book name header highlight.
+      suppressIntroRef.current = false;
       // On play, jump to (scroll) the verse currently being read.
       updateActive(findActiveWordIndex(timeline, a.currentTime), true);
       syncIntro(a.currentTime);
@@ -326,6 +334,8 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     a.currentTime = rangeStartRef.current ?? 0;
     setCurrentTime(a.currentTime);
     a.play().catch(() => {});
+    // Manual restart — show the book name header highlight again.
+    suppressIntroRef.current = false;
     updateActive(findActiveWordIndex(timeline, a.currentTime), true);
     syncIntro(a.currentTime);
   }, [record, timeline, updateActive, syncIntro]);
