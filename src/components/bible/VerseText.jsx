@@ -126,9 +126,16 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     // leading HTML tags (e.g. <em>, <span class="pilcrow">). Using a bare
     // /[A-Za-z]/ would match the "e" inside a leading "<em>" tag and break it
     // into a stray "<m>" — so we capture any leading tags and re-emit them.
+    // Line/column mode renders the verse number as a normal sup in the gutter
+    // (aligned with verses 2+), so the floated group holds ONLY the big letter —
+    // its left edge then lands flush with the next verse's first word. Paragraph
+    // mode has no gutter, so the number stays inside the floated group there.
+    const groupInner = paragraphMode
+      ? `<span class="kjb-dropcap-num">${verse.verse}</span><span class="kjb-dropcap-letter"${letterStyle}>$2</span>`
+      : `<span class="kjb-dropcap-letter"${letterStyle}>$2</span>`;
     html = html.replace(
       /^((?:<[^>]+>|\s)*)([A-Za-z])/,
-      `$1<span class="kjb-dropcap-group"${groupStyle}><span class="kjb-dropcap-num">${verse.verse}</span><span class="kjb-dropcap-letter"${letterStyle}>$2</span></span>`
+      `$1<span class="kjb-dropcap-group"${groupStyle}>${groupInner}</span>`
     );
   }
 
@@ -475,8 +482,8 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
         >
           {/* Spacer matching the verse-number column so verse 1's text column
               lines up with verses 2+. The actual number lives in the drop-cap. */}
-          <span className="text-[0.6em] shrink-0 select-none mt-[0.2em] mr-[0.3em] invisible" aria-hidden="true">{verse.verse}</span>
-          <span className="flex-1 min-w-0 leading-relaxed break-words text-left [&_.kjb-dropcap-group]:-ml-[1.4em]">
+          <sup className="text-accent font-sans font-bold text-[0.6em] shrink-0 select-none mt-[0.2em] mr-[0.3em]">{verse.verse}</sup>
+          <span className="flex-1 min-w-0 leading-relaxed break-words text-left">
             <span
               className={`inline [&_em]:italic [&_em]:text-foreground/75 box-decoration-clone rounded transition-colors duration-200 px-[0.3em] py-[0.1em] ${isCursive ? 'cursive-em-style' : ''} ${isHighlighted ? highlightBg : 'hover:bg-secondary/60'}`}
               style={{ display: 'inline', ...(isCursive ? { fontSize: `${zoomLevel / 100 * 1.125}rem` } : textStyle) }}
