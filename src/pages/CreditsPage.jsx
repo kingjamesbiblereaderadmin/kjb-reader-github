@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, BookOpen, Volume2, Signpost, Type, Server, Info, ChevronLeft, ExternalLink } from 'lucide-react';
+import { Heart, BookOpen, Volume2, Type, Server, Info, ChevronLeft, ExternalLink } from 'lucide-react';
 
 // A simple, static credits / acknowledgements page.
 // Linked from Settings (the "About & Credits" card).
@@ -35,7 +35,7 @@ export default function CreditsPage() {
             <h2 className="font-serif text-xl font-semibold text-foreground">Bible Text</h2>
           </div>
           <p className="font-sans text-sm text-foreground/85 leading-relaxed">
-            King James Version (KJV) — public domain text, sourced via Project Gutenberg.
+            King James Bible (KJB) — public domain text, sourced via Project Gutenberg.
           </p>
           <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-3">
             This app uses the King James Bible: Pure Cambridge Edition (Wharton Text Format). The KJB text is public
@@ -66,22 +66,6 @@ export default function CreditsPage() {
             <a href="https://doi.org/10.7488/ds/2645" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
               https://doi.org/10.7488/ds/2645
             </a>
-          </p>
-        </section>
-
-        {/* Sign Language Videos */}
-        <section className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Signpost className="w-5 h-5" />
-            </div>
-            <h2 className="font-serif text-xl font-semibold text-foreground">Sign Language Videos</h2>
-          </div>
-          <p className="font-sans text-sm text-foreground/85 leading-relaxed">
-            American Sign Language (ASL) Bible videos provided by Deaf Missions.
-          </p>
-          <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-2">
-            (Integration is still in progress — video links will appear here once available.)
           </p>
         </section>
 
