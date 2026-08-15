@@ -327,7 +327,7 @@ function StepCard({ number, icon, iconBg, title, copyText, children, defaultOpen
     : "flex items-start justify-between gap-4 mb-2";
 
   return (
-    <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-6 shadow-lg shadow-black/[0.03]">
+    <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 shadow-lg shadow-black/[0.03]">
       <div className={headerClass} onClick={collapsible ? () => setOpen(!open) : undefined}>
         <div className="flex-shrink-0 w-10 h-10 rounded-2xl shadow-md flex items-center justify-center" style={{ backgroundImage: iconBg }}>
           {icon}
@@ -474,7 +474,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
       </div>
 
       {/* OSAS */}
-      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-6 mb-8 shadow-lg shadow-black/[0.03]">
+      <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 mb-8 shadow-lg shadow-black/[0.03]">
         <div className="flex items-start justify-between gap-4 mb-2">
           <h3 className="font-serif text-xl font-semibold text-foreground">Once Saved, Always Saved</h3>
           <CopyButton text={`Once Saved, Always Saved\n\nA believer who has trusted the gospel cannot lose salvation, no matter what happens in their life. God's gift of eternal life is just that — eternal.\n\n"In whom ye also trusted, after that ye heard the word of truth, the gospel of your salvation: in whom also after that ye believed, ye were sealed with that holy Spirit of promise." — Ephesians 1:13`} className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors flex-shrink-0 cursor-pointer" />
@@ -522,7 +522,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
       </div>
 
       {/* Full playlist */}
-      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-5 mb-6 shadow-lg shadow-black/[0.03]">
+      <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-5 mb-6 shadow-lg shadow-black/[0.03]">
         <h3 className="font-serif text-xl font-semibold text-foreground mb-2">Playlist on Gospel Videos</h3>
         <div className="flex flex-wrap items-center gap-3">
           <a
@@ -542,7 +542,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
       </div>
 
       {/* KJBI — Free Online Bible College */}
-      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-5 mb-6 shadow-lg shadow-black/[0.03]">
+      <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-5 mb-6 shadow-lg shadow-black/[0.03]">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-indigo-500 to-purple-600">
             <GraduationCap className="w-5 h-5" />

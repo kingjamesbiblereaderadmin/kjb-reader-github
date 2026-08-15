@@ -33,9 +33,9 @@ export default function CreditsPage() {
         </div>
 
         {/* Bible Text */}
-        <section className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
+        <section className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
           <div className="flex items-center gap-3 mb-3">
-            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
               <BookOpen className="w-5 h-5" />
             </div>
             <h2 className="font-serif text-xl font-semibold text-foreground">Bible Text</h2>
@@ -52,9 +52,9 @@ export default function CreditsPage() {
         </section>
 
         {/* Audio & Voice Credits */}
-        <section className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
+        <section className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
           <div className="flex items-center gap-3 mb-3">
-            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
               <Volume2 className="w-5 h-5" />
             </div>
             <h2 className="font-serif text-xl font-semibold text-foreground">Audio &amp; Voice Credits</h2>
@@ -91,9 +91,9 @@ export default function CreditsPage() {
         </section>
 
         {/* Fonts */}
-        <section className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
+        <section className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
           <div className="flex items-center gap-3 mb-3">
-            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
               <Type className="w-5 h-5" />
             </div>
             <h2 className="font-serif text-xl font-semibold text-foreground">Fonts</h2>
@@ -106,9 +106,9 @@ export default function CreditsPage() {
         </section>
 
         {/* App Platform & Thanks */}
-        <section className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
+        <section className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
           <div className="flex items-center gap-3 mb-3">
-            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
               <Server className="w-5 h-5" />
             </div>
             <h2 className="font-serif text-xl font-semibold text-foreground">App Platform &amp; Thanks</h2>
@@ -120,9 +120,9 @@ export default function CreditsPage() {
         </section>
 
         {/* Disclaimers */}
-        <section className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
+        <section className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
           <div className="flex items-center gap-3 mb-3">
-            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
               <Info className="w-5 h-5" />
             </div>
             <h2 className="font-serif text-xl font-semibold text-foreground">Disclaimers</h2>

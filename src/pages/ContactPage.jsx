@@ -31,7 +31,7 @@ export default function ContactPage() {
           </button>
         </div>
 
-        <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-6 sm:p-8 shadow-lg shadow-black/[0.03] text-center">
+        <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 sm:p-8 shadow-lg shadow-black/[0.03] text-center">
           <p className="font-sans text-sm text-foreground/85 leading-relaxed mb-6">
             Have a question, feedback, a verse request, or a prayer request? We'd be glad to hear
             from you. Reach out and we'll do our best to respond.

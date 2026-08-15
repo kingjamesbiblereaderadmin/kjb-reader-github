@@ -6,7 +6,7 @@ import ContactLinks from '@/components/ContactLinks';
 function AccordionSection({ title, children }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl overflow-hidden mb-5 shadow-lg shadow-black/[0.03]">
+    <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl overflow-hidden mb-5 shadow-lg shadow-black/[0.03]">
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
@@ -73,7 +73,7 @@ export default function AboutPage() {
       </div>
 
       {/* About Shawn */}
-      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-7 mb-8 shadow-lg shadow-black/[0.03]">
+      <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-7 mb-8 shadow-lg shadow-black/[0.03]">
         <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">About the Ministry</h2>
         <p className="font-sans text-foreground/85 leading-relaxed mb-4">
           I'm Shawn, a firm believer that the King James Bible is the pure, infallible, perfect Word of God in the English language. 
@@ -111,7 +111,7 @@ export default function AboutPage() {
             href="https://youtube.com/playlist?list=PLNGhZnJavRf01ILv3TJu_ke4IPYcKcpJm&si=DZZUQXC_e-8LaQGI"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 mt-3 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            className="flex items-center gap-3 p-4 mt-3 rounded-2xl bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-red-500 to-rose-600">
               <Youtube className="w-5 h-5" />
@@ -136,7 +136,7 @@ export default function AboutPage() {
             href="https://youtube.com/playlist?list=PLPVNJ2ztsABc&si=YJQYHu7YYT_F8v3s"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 mt-3 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            className="flex items-center gap-3 p-4 mt-3 rounded-2xl bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-red-500 to-rose-600">
               <Youtube className="w-5 h-5" />
@@ -164,7 +164,7 @@ export default function AboutPage() {
             href="https://youtube.com/playlist?list=PLNGhZnJavRf3LX3ZaUiQaSn4kLLT7dt1c&si=M6mzCAKvtJjr_eH4"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 mt-3 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            className="flex items-center gap-3 p-4 mt-3 rounded-2xl bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-red-500 to-rose-600">
               <Youtube className="w-5 h-5" />
@@ -179,7 +179,7 @@ export default function AboutPage() {
             href="https://youtube.com/playlist?list=PLNGhZnJavRf3f2_NI79j5GigC6xK5_YYq&si=JfYeXBybD1baCm74"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 mt-3 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            className="flex items-center gap-3 p-4 mt-3 rounded-2xl bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-red-500 to-rose-600">
               <Youtube className="w-5 h-5" />
@@ -205,7 +205,7 @@ export default function AboutPage() {
             href="https://youtube.com/playlist?list=PLNGhZnJavRf183iEUeQHer5aKnlV3LWKP&si=iaMUuwhLBzeGuHyn"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 mt-3 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            className="flex items-center gap-3 p-4 mt-3 rounded-2xl bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-red-500 to-rose-600">
               <Youtube className="w-5 h-5" />
@@ -226,7 +226,7 @@ export default function AboutPage() {
             href="https://youtube.com/playlist?list=PLNGhZnJavRf293XCMldBgwRpQ4U1o8uEf&si=U518NbpNw7HhaCBx"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-red-500 to-rose-600">
               <Youtube className="w-5 h-5" />
@@ -241,7 +241,7 @@ export default function AboutPage() {
       </div>
 
       {/* Links */}
-      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-7 mb-8 shadow-lg shadow-black/[0.03]">
+      <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-7 mb-8 shadow-lg shadow-black/[0.03]">
         <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">Links & Contact</h2>
         <ContactLinks />
       </div>

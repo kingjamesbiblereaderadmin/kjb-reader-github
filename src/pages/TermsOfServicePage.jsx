@@ -20,7 +20,7 @@ function AIDisclaimer() {
 
 function Section({ title, children }) {
   return (
-    <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-6 sm:p-7 mb-5 shadow-lg shadow-black/[0.03]">
+    <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 sm:p-7 mb-5 shadow-lg shadow-black/[0.03]">
       <h2 className="font-serif text-xl sm:text-2xl font-semibold text-foreground mb-3">{title}</h2>
       <div className="font-sans text-sm text-foreground/85 leading-relaxed space-y-3">
         {children}
