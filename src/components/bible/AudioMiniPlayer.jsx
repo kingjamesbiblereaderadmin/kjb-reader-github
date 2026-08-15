@@ -1,6 +1,5 @@
 import React from 'react';
 import { Play, Pause, X, SkipBack, SkipForward, Gauge, Loader2, Headphones } from 'lucide-react';
-import { voiceLabel } from '@/lib/voices';
 
 function fmt(t) {
   if (!Number.isFinite(t) || t < 0) t = 0;
@@ -26,7 +25,7 @@ export default function AudioMiniPlayer({ loading, hasAudio, hasAnyAudio, playin
           <div className="flex items-center justify-center gap-3 py-1.5">
             <Headphones className="w-4 h-4 text-muted-foreground/60" />
             <span className="font-sans text-sm text-muted-foreground">
-              {hasAnyAudio ? `Audio coming soon — ${voiceLabel(voice)}` : 'No narration for this chapter yet.'}
+              {hasAnyAudio ? 'Audio coming soon' : 'No narration for this chapter yet.'}
             </span>
             {hasAnyAudio && voices && voices.length > 1 && (
               <select
