@@ -34,23 +34,23 @@ const EXAMPLES = [
 
 const MOCKUPS = [
   {
-    light: 'https://media.base44.com/images/public/6a05d76723afe58d80c589e8/de194f2c0_image.png',
-    dark: 'https://media.base44.com/images/public/6a05d76723afe58d80c589e8/2cd1a9033_image.png',
+    light: 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/426f5c30f_Screenshot2026-08-16012745.png',
+    dark: 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/426f5c30f_Screenshot2026-08-16012745.png',
     label: 'Results',
   },
   {
-    light: 'https://media.base44.com/images/public/6a05d76723afe58d80c589e8/b530eb08a_image.png',
-    dark: 'https://media.base44.com/images/public/6a05d76723afe58d80c589e8/e1356f9fe_image.png',
+    light: 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/2d3c47491_Screenshot2026-08-16012601.png',
+    dark: 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/2d3c47491_Screenshot2026-08-16012601.png',
     label: 'Read',
   },
   {
-    light: 'https://media.base44.com/images/public/6a05d76723afe58d80c589e8/043f4e33f_image.png',
-    dark: 'https://media.base44.com/images/public/6a05d76723afe58d80c589e8/56bb30b6a_image.png',
+    light: 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/64c3a9b7b_Screenshot2026-08-16012624.png',
+    dark: 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/64c3a9b7b_Screenshot2026-08-16012624.png',
     label: 'Gospel',
   },
   {
-    light: 'https://media.base44.com/images/public/6a05d76723afe58d80c589e8/75bcdffe1_image.png',
-    dark: 'https://media.base44.com/images/public/6a05d76723afe58d80c589e8/4f7783201_image.png',
+    light: 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/6ed4814da_Screenshot2026-08-16012656.png',
+    dark: 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/6ed4814da_Screenshot2026-08-16012656.png',
     label: 'Resources',
   },
 ];
