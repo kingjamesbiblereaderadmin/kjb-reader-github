@@ -10,6 +10,7 @@ import { useTheme } from '@/lib/themeContext';
 import { detectIncognito } from '@/lib/incognito';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import ThemeColorPicker from '@/components/bible/ThemeColorPicker';
+import AlreadyInstalledHelp from '@/components/AlreadyInstalledHelp';
 import { Switch } from '@/components/ui/switch';
 import {
   getNotificationsEnabled,
@@ -374,9 +375,7 @@ export default function LandingSetupWizard() {
                         <>If an <strong>Install</strong> icon appears in your address bar, click it. Otherwise check your browser menu.</>
                       )}
                     </p>
-                    <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-2">
-                      <strong className="text-foreground">Already installed?</strong> {isMobile() ? 'Check your home screen or app drawer' : 'Check your Applications folder, Start menu, or taskbar'} for "KJB Reader".
-                    </p>
+                    <AlreadyInstalledHelp />
                   </div>
                 )}
               </div>
