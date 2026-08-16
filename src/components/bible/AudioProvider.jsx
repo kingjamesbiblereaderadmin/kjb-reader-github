@@ -20,7 +20,7 @@ const SPEEDS = [0.75, 1, 1.25, 1.5, 1.75, 2];
 // karaoke highlight is applied DOM-direct (via data-audio-idx attributes) so
 // verse text never re-renders on each animation frame — only the mini-player
 // bar (a single small component) re-renders with currentTime.
-export default function AudioProvider({ book, chapter, verses, active, onClose, onChapterEnd, children, range }) {
+export default function AudioProvider({ book, chapter, verses, active, onClose, onChapterEnd, children, range, startVerse, onStartVerseConsumed }) {
   const [records, setRecords] = useState([]);
   const [record, setRecord] = useState(null);
   const [rawTiming, setRawTiming] = useState(null);
@@ -348,16 +348,16 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   }, [active, clearHighlight, clearIntro]);
   useEffect(() => { timelineRef.current = timeline; clearHighlight(); }, [timeline, clearHighlight]);
 
-  // Resume from the same word after a voice switch: once the new voice's audio
-  // is loaded AND its word timeline is built, seek to the remembered word's
-  // start (falling back to the old timestamp if the word isn't found) and
-  // resume playback if the user was playing.
+  // Seek to a specific word after either a voice switch (pendingResumeRef) or a
+  // "Read from here" action (startVerse) — once the audio is loaded AND its word
+  // timeline is built, jump to the target word's start and resume playback.
   useEffect(() => {
-    if (!pendingResumeRef.current || !audioReady || !timeline.length) return;
+    const target = startVerse != null
+      ? { verse: startVerse, wordIndex: 0, play: true }
+      : pendingResumeRef.current;
+    if (!target || !audioReady || !timeline.length) return;
     const a = audioRef.current;
     if (!a) return;
-    const target = pendingResumeRef.current;
-    pendingResumeRef.current = null;
     let ts = target.time;
     if (target.verse != null) {
       const w = timeline.find((x) => x.verse === target.verse && x.wordIndex === target.wordIndex)
@@ -369,7 +369,9 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     updateActive(findActiveWordIndex(timeline, ts), false);
     syncIntro(ts);
     if (target.play) a.play().catch(() => {});
-  }, [timeline, audioReady, updateActive, syncIntro]);
+    if (pendingResumeRef.current) pendingResumeRef.current = null;
+    if (startVerse != null) onStartVerseConsumed?.();
+  }, [timeline, audioReady, startVerse, updateActive, syncIntro, onStartVerseConsumed]);
 
   const togglePlay = useCallback(() => {
     const a = audioRef.current; if (!a || !record) return;

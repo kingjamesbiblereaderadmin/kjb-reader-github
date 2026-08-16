@@ -108,6 +108,7 @@ export default function BibleReader() {
   const [showChapterPicker, setShowChapterPicker] = useState(false);
   const [showVersePicker, setShowVersePicker] = useState(false);
   const [listenMode, setListenMode] = useState(false);
+  const [readFromVerse, setReadFromVerse] = useState(null);
   const [flowMode, setFlowMode] = useState(() => {
     try {
       const v = localStorage.getItem('kjb-flow');
@@ -297,6 +298,19 @@ export default function BibleReader() {
     setSelectMode(true);
     setSelectedVerses(new Set([parseInt(verseNum, 10)]));
   };
+
+  // "Read from here" (verse popover): clear any range filter so playback runs to
+  // the end of the chapter, then activate Listen mode and seek the audio to the
+  // chosen verse once its timeline is ready.
+  const handleReadFromHere = useCallback((verseNum) => {
+    setFilterMode(false);
+    setSelectedVerses(new Set());
+    setHighlightedVerses(new Set());
+    setReadFromVerse(parseInt(verseNum, 10));
+    setListenMode(true);
+  }, []);
+
+  const handleStartVerseConsumed = useCallback(() => setReadFromVerse(null), []);
 
   const toggleVerseSelect = (verseNum) => {
     setSelectedVerses(prev => {
@@ -1495,7 +1509,7 @@ export default function BibleReader() {
 
   return (
     <div onClick={(e) => { if (!e.target.closest('.kjb-verse-container, h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a')) { setHighlightVerse(null); setHighlightSection(null); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-3 ${hideHeader ? 'pt-16' : ''} ${listenMode || isViewingTitlePage ? 'kjb-audio-listening' : ''}`}>
-      <AudioProvider book={book} chapter={pos.chapter} verses={verses} active={listenMode && !isViewingTitlePage} onClose={() => setListenMode(false)} onChapterEnd={() => goNext(true)} range={highlightedVerses.size > 0 ? { firstVerse: Math.min(...highlightedVerses), lastVerse: Math.max(...highlightedVerses) } : null}>
+      <AudioProvider book={book} chapter={pos.chapter} verses={verses} active={listenMode && !isViewingTitlePage} onClose={() => setListenMode(false)} onChapterEnd={() => goNext(true)} range={highlightedVerses.size > 0 ? { firstVerse: Math.min(...highlightedVerses), lastVerse: Math.max(...highlightedVerses) } : null} startVerse={readFromVerse} onStartVerseConsumed={handleStartVerseConsumed}>
       {!hideHeader && (
         <div ref={topRef} className="print:hidden sticky top-0 z-[100] border-b border-border pb-4 pt-3 mb-8 relative shadow-sm -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background before:content-[''] before:absolute before:bottom-full before:left-0 before:right-0 before:h-12 before:bg-background">
           <div
@@ -2039,6 +2053,7 @@ export default function BibleReader() {
                   subscript={parseInt(v.verse, 10) === 1 ? (chapterSubscript || null) : null}
                   isCursive={fontFamily === 'cursive'} fontFamilyValue={getFontFamilyValue(fontFamily)} zoomLevel={zoomLevel} columnMode={useColumns} dropCap={idx === 0 && parseInt(v.verse, 10) === 1}
                   searchTerm={searchTerm && parseInt(highlightVerse, 10) === parseInt(v.verse, 10) ? searchTerm : null}
+                  onReadFromHere={handleReadFromHere}
                 />
               </React.Fragment>
               );
