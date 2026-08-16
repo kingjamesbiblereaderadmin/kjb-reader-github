@@ -441,11 +441,11 @@
      accent "now playing" bar on the left edge of the verse container so the
      listener can tell which verse is being read at a glance. */
   .kjb-audio-filtered .kjb-audio-verse-active .kjb-verse-text {
-    background-color: hsl(var(--accent) / 0.35);
-  }
-  .kjb-audio-filtered .kjb-audio-verse-active {
-    box-shadow: inset 3px 0 0 0 hsl(var(--accent));
-    border-radius: 0.25rem;
+    background-color: hsl(var(--accent) / 0.32);
+    /* A clear accent ring around each line of the narrated verse, so the
+       active verse reads as a distinct highlighted block — clearly set apart
+       from the yellow <mark> highlights on the search term words. */
+    box-shadow: 0 0 0 1.5px hsl(var(--accent) / 0.65);
   }
   .kjb-audio-word { border-radius: 2px; }
   .kjb-audio-active {

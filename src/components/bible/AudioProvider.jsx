@@ -229,13 +229,19 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   }, [timeline, range, verseTimings]);
   const rangeEnd = useMemo(() => {
     if (!range) return null;
+    // Use the LATER of the verse-timing end and the last word's end (from the
+    // word timeline). Timing files often set the verse end slightly before the
+    // last word's audio actually finishes, which cuts off the word's trailing
+    // consonant — taking the max ensures the full word plays before pausing.
+    let verseEnd = null;
     if (verseTimings) {
       const vt = verseTimings.get(range.lastVerse);
-      if (vt && Number.isFinite(vt.end)) return vt.end + 0.35;
+      if (vt && Number.isFinite(vt.end)) verseEnd = vt.end;
     }
-    let end = null;
-    for (const w of timeline) if (w.verse === range.lastVerse) end = Math.max(end ?? -1, w.end);
-    return end != null ? end + 0.35 : null;
+    let wordEnd = null;
+    for (const w of timeline) if (w.verse === range.lastVerse) wordEnd = Math.max(wordEnd ?? -1, w.end);
+    const resolved = Math.max(verseEnd ?? -1, wordEnd ?? -1);
+    return resolved >= 0 ? resolved + 0.4 : null;
   }, [timeline, range, verseTimings]);
   useEffect(() => { rangeStartRef.current = rangeStart; }, [rangeStart]);
   useEffect(() => { rangeEndRef.current = rangeEnd; }, [rangeEnd]);
@@ -412,9 +418,9 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       // position before playback begins. Without it, on some browsers the
       // first frames after a mid-file seek play a stale tail buffer from the
       // previous verse, audible as a faint leading "eh" right after the spoken
-      // reference. 60ms is imperceptible after the reference yet long enough to
-      // clear the artifact.
-      setTimeout(() => a.play().catch(() => {}), 60);
+      // reference. 120ms reliably flushes the stale buffer while remaining
+      // imperceptible after the spoken reference.
+      setTimeout(() => a.play().catch(() => {}), 120);
     };
     if (announce && rangeAnnouncedRef.current === false && rangeRefText) {
       rangeAnnouncedRef.current = true;
