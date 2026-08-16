@@ -7,11 +7,11 @@ import { Globe, ArrowLeft, Search, BookOpen, Sparkles, MousePointer2, Heart, Dow
 // (Dev Tools → Extension Links). Each field falls back here when blank.
 const DEFAULT_URLS = {
   chrome: 'https://chromewebstore.google.com/detail/kjb-reader-sidepanel/gbnipepkpenjgdpjfepgcgddmgbofmah',
-  firefox: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/b90e778d2_kjb-reader-v04139-firefox.zip',
-  opera: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/163b71cf4_kjb-reader-v04139-opera.zip',
+  firefox: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/fae698564_kjb-reader-v04140-firefox.zip',
+  opera: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/a65359390_kjb-reader-v04140-opera.zip',
   edge: 'https://microsoftedge.microsoft.com/addons/detail/kjb-reader-sidepanel/bphmmbiepbhfnfijaapbmpimkkjdceee',
 };
-const DEFAULT_VERSION = 'v0.4.139';
+const DEFAULT_VERSION = 'v0.4.140';
 
 const EXAMPLES = [
   {
@@ -89,6 +89,11 @@ const FEATURES = [
 ];
 
 const RELEASE_NOTES = [
+  {
+    version: 'v0.4.140',
+    title: 'Scroll-to-top button',
+    body: 'v0.4.140 adds a tiny scroll-to-top button in the Read and Results tabs. The button appears as a small circular arrow in the bottom-right corner when the user scrolls down past 200px, and smoothly scrolls back to the top when clicked.',
+  },
   {
     version: 'v0.4.139',
     title: 'Readable references on low-contrast pages',
