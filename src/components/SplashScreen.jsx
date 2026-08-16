@@ -6,7 +6,7 @@ import { getSplashLogo } from '@/lib/splashLogo';
 const STEP_PAUSE_MS = 1500;
 
 // mode: 'first_load' | 'subsequent' | 'home_update'
-export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load', isVisible = true }) {
+export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load', isVisible = true, skipMarkVisited = false }) {
   const [currentMessage, setCurrentMessage] = useState('LOADING KJB READER...');
   const [isIncognito, setIsIncognito] = useState(false);
   // progress: 0-100 for a determinate bar (during downloads); null = indeterminate
@@ -211,8 +211,13 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
       // start. If set early and the page reloads mid-flow (e.g. a SW update),
       // the reloaded splash would wrongly treat a first-time visitor as
       // returning (skipping "DOWNLOADING OFFLINE DATA", showing "WELCOME BACK").
+      // While the setup wizard (/landing) is still on screen, never mark the
+      // app "visited" — that flag must only flip once the user actually
+      // finishes setup (via the wizard's "Enter"/"Open" links), so reopening
+      // an installed-but-unfinished app continues the wizard instead of
+      // jumping to Home.
       const markVisited = () => {
-        if (!detectedIncognito) {
+        if (!detectedIncognito && !skipMarkVisited) {
           try { localStorage.setItem('kjb-has-visited-app', 'true'); } catch {}
         }
       };
