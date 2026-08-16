@@ -229,19 +229,27 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   }, [timeline, range, verseTimings]);
   const rangeEnd = useMemo(() => {
     if (!range) return null;
-    // Use the LATER of the verse-timing end and the last word's end (from the
-    // word timeline). Timing files often set the verse end slightly before the
-    // last word's audio actually finishes, which cuts off the word's trailing
-    // consonant — taking the max ensures the full word plays before pausing.
-    let verseEnd = null;
-    if (verseTimings) {
-      const vt = verseTimings.get(range.lastVerse);
-      if (vt && Number.isFinite(vt.end)) verseEnd = vt.end;
-    }
+    // The last word's end (from the word timeline) is the precise moment the
+    // narrated content of the last verse finishes. The verse-timing `end` can
+    // extend to the next verse's boundary (trailing silence included), which
+    // would bleed playback into the next verse; the last word's end is the
+    // safe base. Fall back to the verse-timing end only if no word timeline.
     let wordEnd = null;
     for (const w of timeline) if (w.verse === range.lastVerse) wordEnd = Math.max(wordEnd ?? -1, w.end);
-    const resolved = Math.max(verseEnd ?? -1, wordEnd ?? -1);
-    return resolved >= 0 ? resolved + 0.4 : null;
+    let base = wordEnd != null && wordEnd >= 0 ? wordEnd : null;
+    if (base == null && verseTimings) {
+      const vt = verseTimings.get(range.lastVerse);
+      if (vt && Number.isFinite(vt.end)) base = vt.end;
+    }
+    if (base == null || base < 0) return null;
+    // Never let the stop point pass the next verse's start, so playback can't
+    // run into the verse after the selection.
+    let ceiling = Infinity;
+    if (verseTimings) {
+      const next = verseTimings.get(range.lastVerse + 1);
+      if (next && Number.isFinite(next.start)) ceiling = next.start;
+    }
+    return Math.min(base + 0.3, ceiling);
   }, [timeline, range, verseTimings]);
   useEffect(() => { rangeStartRef.current = rangeStart; }, [rangeStart]);
   useEffect(() => { rangeEndRef.current = rangeEnd; }, [rangeEnd]);
