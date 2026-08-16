@@ -491,10 +491,22 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     setCurrentTime(ts);
     updateActive(findActiveWordIndex(timeline, ts), false);
     syncIntro(ts);
-    if (target.play) a.play().catch(() => {});
+    if (target.play) {
+      // "Read from here" (startVerse set): announce the single-verse reference
+      // via speech synthesis before starting, so the listener hears
+      // "Genesis chapter 49, verse 16" before the verse is read. Voice-switch
+      // resumes (pendingResumeRef) play immediately with no announcement.
+      if (startVerse != null) {
+        const name = book?.shortName || book?.name || '';
+        const refText = `${name} chapter ${chapter}, verse ${startVerse}`;
+        speakThenPlay(refText, () => a.play().catch(() => {}));
+      } else {
+        a.play().catch(() => {});
+      }
+    }
     if (pendingResumeRef.current) pendingResumeRef.current = null;
     if (startVerse != null) onStartVerseConsumed?.();
-  }, [timeline, audioReady, startVerse, updateActive, syncIntro, onStartVerseConsumed]);
+  }, [timeline, audioReady, startVerse, book, chapter, updateActive, syncIntro, onStartVerseConsumed]);
 
   const togglePlay = useCallback(() => {
     const a = audioRef.current; if (!a || !record) return;
