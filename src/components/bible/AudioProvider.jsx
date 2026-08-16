@@ -273,8 +273,18 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       // or legacy seconds (start/end). Accept both so range mode + intro
       // detection use the real timestamps instead of NaN.
       const hasMs = Number.isFinite(Number(v.start_ms));
-      const start = hasMs ? Number(v.start_ms) / 1000 : Number(v.start);
-      const end = hasMs ? Number(v.end_ms ?? v.start_ms) / 1000 : Number(v.end);
+      let start = hasMs ? Number(v.start_ms) / 1000 : Number(v.start);
+      let end = hasMs ? Number(v.end_ms ?? v.start_ms) / 1000 : Number(v.end);
+      // New per-verse-words format: if the verse object lacks start/end,
+      // derive them from its words array (first word start → last word end).
+      if ((!Number.isFinite(start) || !Number.isFinite(end)) && Array.isArray(v.words) && v.words.length) {
+        const w0 = v.words[0];
+        const wN = v.words[v.words.length - 1];
+        const s0 = Number.isFinite(Number(w0?.start_ms)) ? Number(w0.start_ms) / 1000 : Number(w0?.start);
+        const eN = Number.isFinite(Number(wN?.end_ms)) ? Number(wN.end_ms) / 1000 : Number(wN?.end);
+        if (!Number.isFinite(start) && Number.isFinite(s0)) start = s0;
+        if (!Number.isFinite(end) && Number.isFinite(eN)) end = eN;
+      }
       if (Number.isFinite(start) && Number.isFinite(end)) m.set(vn, { start, end });
     });
     return m;

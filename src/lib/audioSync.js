@@ -185,7 +185,43 @@ function findScriptureStart(tWords, verseWords) {
 }
 
 export function buildWordTimeline(verses, timing) {
-  if (!timing || !Array.isArray(timing.words) || !timing.words.length) return [];
+  if (!timing) return [];
+
+  // ── NEW per-verse words format (authoritative, no alignment) ──
+  // Each entry in timing.verses carries its own .words array, where every
+  // word already knows its verse, per-verse position (verseWordIndex), and
+  // start/end timing (start_ms/end_ms). Build the flat timeline directly
+  // from these per-verse word arrays — no alignment algorithm, no guessing.
+  // This is the restructured format where every word has its own identity.
+  // Intro words (verse 0, in `intro_words`) are excluded — they have no DOM
+  // counterpart in the reader.
+  if (Array.isArray(timing.verses) && timing.verses.some((v) => Array.isArray(v?.words) && v.words.length)) {
+    const out = [];
+    for (const v of timing.verses) {
+      const words = v?.words;
+      if (!Array.isArray(words) || !words.length) continue;
+      const vn = Number(v.verse);
+      if (!Number.isFinite(vn)) continue;
+      for (const w of words) {
+        const startMs = Number(w?.start_ms);
+        if (!Number.isFinite(startMs)) continue;
+        const endMsRaw = Number(w?.end_ms ?? w?.start_ms);
+        const endMs = Number.isFinite(endMsRaw) ? endMsRaw : startMs;
+        const wi = Math.max(0, Number(w?.verseWordIndex ?? 0));
+        out.push({
+          text: String(w?.text ?? ''),
+          start: startMs / 1000,
+          end: endMs / 1000,
+          verse: vn,
+          wordIndex: wi,
+        });
+      }
+    }
+    if (out.length) return out;
+    // else fall through to legacy paths (for chapters not yet restructured).
+  }
+
+  if (!Array.isArray(timing.words) || !timing.words.length) return [];
 
   // ── DIRECT per-word format (authoritative) ──
   // The TTS/Whisper pipeline emits one entry per spoken word, each carrying
