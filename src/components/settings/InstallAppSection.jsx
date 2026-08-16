@@ -153,9 +153,10 @@ export default function InstallAppSection({ expanded, isIncognito }) {
                 localStorage.removeItem('kjb-is-installed');
                 localStorage.removeItem('kjb-install-dismissed');
                 localStorage.removeItem('kjb-prompt-dismissed');
-                setShowInstallHint(false);
-                window.dispatchEvent(new Event('storage'));
-                window.dispatchEvent(new Event('kjb-install-change'));
+                // The browser's native install prompt event can only be used once
+                // per page load — reloading is the only way to get Chrome/Edge to
+                // fire beforeinstallprompt again so the button works right away.
+                window.location.reload();
               }}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive font-sans text-sm font-medium hover:bg-destructive/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
