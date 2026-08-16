@@ -323,7 +323,7 @@ export default function LandingSetupWizard() {
                       ) : isSamsung() ? (
                         <>Tap <strong>Menu (≡)</strong> → <strong>"Add page to"</strong> → <strong>"Home screen"</strong>.</>
                       ) : isMobile() ? (
-                        <>Open browser <strong>Menu (⋮ or ⋯)</strong> → <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.</>
+                        <>Open browser <strong>Menu (⋮ or ⋯)</strong> → <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.{isAndroid() && <> If you don't see that option, the app is likely already installed on this device (Android only allows one install per site) — check your home screen or app drawer for it.</>}</>
                       ) : isEdgeDesktop() ? (
                         <>Click <strong>Apps/Install</strong> in the address bar, or <strong>Menu (⋯) → Apps → Install this site as an app</strong>.</>
                       ) : (
