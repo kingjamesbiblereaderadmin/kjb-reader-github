@@ -159,13 +159,6 @@ export default function TermsOfServicePage() {
             </a>.
           </p>
           <p>
-            Word-level timing data is generated using <strong className="text-foreground">OpenAI Whisper</strong>,
-            licensed under the MIT License. See{' '}
-            <a href="https://github.com/openai/whisper" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-              https://github.com/openai/whisper
-            </a>.
-          </p>
-          <p>
             The Bible text used is the King James Bible (Pure Cambridge Edition), which is in the
             public domain.
           </p>

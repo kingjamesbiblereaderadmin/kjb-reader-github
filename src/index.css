@@ -428,7 +428,10 @@
   /* Audio (Listen mode) verse-level highlight. Applied DOM-direct by
      AudioProvider via the .kjb-audio-verse-active class on the verse container
      (data-audio-verse) so verse text never re-renders on each animation frame. */
-  .kjb-audio-verse-active {
+  /* The highlight wraps the verse text (not the full-width block) by targeting
+     the inline text span (.kjb-verse-text, which has box-decoration-clone so the
+     background hugs the words across line breaks) inside the active verse. */
+  .kjb-audio-verse-active .kjb-verse-text {
     background-color: hsl(var(--accent) / 0.22);
     border-radius: 0.25rem;
   }

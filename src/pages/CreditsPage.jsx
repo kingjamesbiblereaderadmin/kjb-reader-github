@@ -75,13 +75,6 @@ export default function CreditsPage() {
             </li>
           </ul>
           <p className="font-sans text-sm text-foreground/85 leading-relaxed mt-4">
-            <strong className="text-foreground/80">Word-level timing:</strong> OpenAI Whisper (MIT License)
-          </p>
-          <p className="font-sans text-xs text-muted-foreground leading-relaxed">
-            Source:{' '}
-            <a href="https://github.com/openai/whisper" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://github.com/openai/whisper</a>
-          </p>
-          <p className="font-sans text-sm text-foreground/85 leading-relaxed mt-4">
             <strong className="text-foreground/80">Bible text:</strong> King James Bible — Pure Cambridge Edition (Public Domain)
           </p>
           <p className="font-sans text-xs text-muted-foreground leading-relaxed">
