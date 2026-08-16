@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Heart, Library, Info, List, Settings, Bell, BellOff, Bookmark, Shuffle, ChevronRight, FlaskConical } from 'lucide-react';
+import { BookOpen, Heart, Library, Info, List, Settings, Bookmark, Shuffle, ChevronRight, FlaskConical } from 'lucide-react';
 import DailyVerseImage from '@/components/bible/DailyVerseImage';
 import QuickLinkCard from '@/components/home/QuickLinkCard';
 import OfflineStatusBanner from '@/components/OfflineStatusBanner';
@@ -8,7 +8,6 @@ import IncognitoWarning from '@/components/IncognitoWarning';
 import { getDailyVerse, getDailyVerseFromBible, getLastCachedDailyVerse } from '@/lib/dailyVerse';
 import { getTodayVerseBackground } from '@/lib/dailyVerseTheme';
 import { useTheme } from '@/lib/themeContext';
-import { registerSW, scheduleDailyNotification, isNotifReallyOn, requestNotificationPermission, disableNotifications, showLocalNotification } from '@/lib/notifications';
 import { BIBLE_BOOKS } from '@/lib/bibleData';
 import { isBibleCached, CACHE_VERSION } from '@/lib/bibleCache';
 import { toast } from 'sonner';
@@ -113,8 +112,6 @@ export default function HomePage() {
       setVerse(v);
       setIsOffline(navigator.onLine === false);
       window.dispatchEvent(new Event('kjb-daily-verse-updated'));
-      // Trigger notification if enabled
-      scheduleDailyNotification();
     }).catch((err) => {
       console.error("[HomePage] getDailyVerseFromBible failed:", err);
       const fallback = getDailyVerse();
@@ -190,7 +187,6 @@ export default function HomePage() {
             setVerse(v);
             setIsOffline(false);
             window.dispatchEvent(new Event('kjb-daily-verse-updated'));
-            scheduleDailyNotification();
           } catch (e) {
             console.error('[UpdateCheck] Pull-to-refresh check failed:', e);
             setVerse(getDailyVerse());
@@ -202,7 +198,6 @@ export default function HomePage() {
           setVerse(v);
           setIsOffline(false);
           window.dispatchEvent(new Event('kjb-daily-verse-updated'));
-          scheduleDailyNotification();
         }).catch(() => {
           setVerse(getDailyVerse());
           setIsOffline(true);
@@ -220,39 +215,9 @@ export default function HomePage() {
     handleVerseClick();
   };
 
-  const [notifEnabled, setNotifEnabled] = useState(isNotifReallyOn);
-  const [notifPermission, setNotifPermission] = useState(() => {
-    if (!('serviceWorker' in navigator)) return 'unsupported';
-    if (!('Notification' in window)) return 'supported';
-    return Notification.permission;
-  });
-
   useEffect(() => {
-    // Sync notification state on mount and whenever verse changes
-    setNotifEnabled(isNotifReallyOn());
-    
-    registerSW();
-    // Notification init now runs app-wide in AppLayout, so we don't re-init here
-    // (avoids clearing/re-arming the poll timer on every HomePage mount).
-
-    const handleStorageChange = () => {
-      const enabled = isNotifReallyOn();
-      setNotifEnabled(enabled);
-      if (!('serviceWorker' in navigator)) {
-        setNotifPermission('unsupported');
-      } else if (!('Notification' in window)) {
-        setNotifPermission('supported');
-      } else {
-        setNotifPermission(Notification.permission);
-      }
-    };
-    
-    // Listen for storage events (syncs across tabs/pages)
-    window.addEventListener('storage', handleStorageChange);
-    
     // Also check on focus and online (when user returns to the app or internet is restored)
     const handleFocus = () => {
-      setNotifEnabled(isNotifReallyOn());
       // Check if it's a new day and update the verse if needed
       const lastCached = getLastCachedDailyVerse();
       // Only fetch if we don't have today's verse cached
@@ -261,7 +226,6 @@ export default function HomePage() {
           setVerse(v);
           setIsOffline(navigator.onLine === false);
           window.dispatchEvent(new Event('kjb-daily-verse-updated'));
-          scheduleDailyNotification();
         }).catch(() => {
           setVerse(getDailyVerse());
           setIsOffline(true);
@@ -275,7 +239,6 @@ export default function HomePage() {
     });
     
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('online', handleFocus);
       document.removeEventListener('visibilitychange', handleFocus);
@@ -373,43 +336,6 @@ export default function HomePage() {
     setTimeout(() => { try { window.dispatchEvent(new Event('kjb-navigate')); } catch {} }, 0);
   };
 
-  const handleToggleNotif = async () => {
-    if (notifEnabled) {
-      disableNotifications();
-      setNotifEnabled(false);
-      setNotifPermission('Notification' in window ? Notification.permission : 'unsupported');
-      window.dispatchEvent(new Event('storage'));
-      return;
-    }
-    if (!('Notification' in window)) {
-      alert('Notifications are not supported in this browser. Try installing the app or using a different browser.');
-      return;
-    }
-    // Enable: set the flag immediately — no prompt. requestNotificationPermission
-    // asks for the OS + web permission at most once (kjb-notif-asked) so repeated
-    // toggles never re-prompt and never trigger Chrome's auto-block. In the
-    // Android app shell it ALSO requests the OS POST_NOTIFICATIONS runtime
-    // permission — the web permission alone doesn't trigger it there.
-    localStorage.setItem('kjb-notifications-enabled', 'true');
-    setNotifEnabled(true);
-    window.dispatchEvent(new Event('storage'));
-
-    try {
-      const result = await requestNotificationPermission();
-      setNotifPermission('Notification' in window ? Notification.permission : 'unsupported');
-      if (result === 'granted') {
-        scheduleDailyNotification(verse);
-        showLocalNotification(
-          'Daily verse reminders on ✓',
-          `You'll get the daily verse at ${(localStorage.getItem('kjb-notification-time') || '08:00')} each day.`,
-          null
-        );
-      }
-    } catch (err) {
-      console.warn('[Home] notif setup failed (non-fatal):', err?.message);
-    }
-  };
-
   return (
     <div className="bg-gradient-to-br from-background via-accent/10 to-background"
       onTouchStart={handleTouchStart}
@@ -423,7 +349,7 @@ export default function HomePage() {
       {/* Daily verse card */}
       <div className="w-full mx-auto mb-8 relative">
         {verse ? (
-          <DailyVerseImage verse={verse} onClick={handleVerseCardClick} onToggleNotif={handleToggleNotif} notifEnabled={notifEnabled} isOffline={isOffline} />
+          <DailyVerseImage verse={verse} onClick={handleVerseCardClick} isOffline={isOffline} />
         ) : (
           <div className="w-full min-h-[300px] bg-secondary/50 animate-pulse border border-border rounded-2xl shadow-lg flex items-center justify-center">
             <span className="font-sans text-sm text-muted-foreground">Loading daily verse...</span>

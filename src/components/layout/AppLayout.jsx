@@ -5,7 +5,6 @@ import { useTheme } from '@/lib/themeContext';
 import { useHeaderHide } from '@/lib/HeaderHideContext';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import { useBrowserZoom } from '@/hooks/useBrowserZoom';
-import { requestNotificationPermission, scheduleDailyNotification, getNotificationsEnabled, initNotifications } from '@/lib/notifications';
 import BibleSearchBar from '@/components/bible/BibleSearchBar';
 import ShortcutsModal from '@/components/ShortcutsModal';
 import ScrollToTop from '@/components/ScrollToTop';
@@ -275,18 +274,6 @@ export default function AppLayout() {
 
     // Initialize periodic cache refresh (checks every 24 hours when user opens app)
     initPeriodicCacheRefresh();
-
-    // Initialize daily-verse notifications app-wide - check BOTH localStorage AND OS permission
-    // IMPORTANT: Don't auto-request permission on mount - only initialize if user has already granted both
-    const notifEnabled = getNotificationsEnabled();
-    const osPermission = 'Notification' in window ? Notification.permission : 'unsupported';
-    
-    if (notifEnabled && osPermission === 'granted') {
-      initNotifications();
-    }
-    // If permission not granted yet, wait for user to explicitly enable in Settings
-    // (FirstLoadPrompt has been moved to the LandingPage).
-
   }, [isPWAInstalled]);
 
   // Legacy reader gets no layout chrome - just render the outlet
@@ -513,79 +500,6 @@ function DesktopFooter({ navigate, setMenuOpen }) {
 }
 
 
-
-function useAppLayoutPrompt() {
-  const installPromptResult = useInstallPrompt();
-  const { isInstallable, isInstalled, promptInstall, dismiss } = installPromptResult;
-  
-  const [notifPermission, setNotifPermission] = useState(() => {
-    if (!('serviceWorker' in navigator)) return 'unsupported';
-    if (!('Notification' in window)) return 'supported';
-    return Notification.permission;
-  });
-  const [notifEnabled, setNotifEnabled] = useState(() => getNotificationsEnabled());
-
-  useEffect(() => {
-    const checkNotif = () => {
-      if (!('Notification' in window)) return;
-      const perm = Notification.permission;
-      const enabled = getNotificationsEnabled();
-      console.log('[AppLayout] Notif sync | permission:', perm, '| enabled:', enabled);
-      setNotifPermission(perm);
-      setNotifEnabled(enabled);
-    };
-    // Check immediately on mount
-    checkNotif();
-    // Sync on events
-    window.addEventListener('storage', checkNotif);
-    window.addEventListener('focus', checkNotif);
-    document.addEventListener('visibilitychange', checkNotif);
-    // Custom event for cross-context sync
-    window.addEventListener('kjb-notif-changed', checkNotif);
-    return () => {
-      window.removeEventListener('storage', checkNotif);
-      window.removeEventListener('focus', checkNotif);
-      window.removeEventListener('kjb-notif-changed', checkNotif);
-      document.removeEventListener('visibilitychange', checkNotif);
-    };
-  }, []);
-
-  const handleInstall = () => {
-    return promptInstall();
-  };
-
-  const handleEnableNotif = async () => {
-    try {
-      const result = await requestNotificationPermission();
-      // Re-read the actual permission directly (more reliable on Samsung/Android)
-      const actualPermission = 'Notification' in window ? Notification.permission : 'unsupported';
-      setNotifPermission(actualPermission);
-      
-      const granted = actualPermission === 'granted';
-      if (granted) {
-        localStorage.setItem('kjb-notifications-enabled', 'true');
-        scheduleDailyNotification();
-        setNotifEnabled(true);
-        // Force sync across all contexts (PWA + browser tabs)
-        window.dispatchEvent(new Event('storage'));
-        window.dispatchEvent(new CustomEvent('kjb-notif-changed', { detail: { enabled: true } }));
-        return 'granted';
-      } else if (result === 'denied' || actualPermission === 'denied') {
-        alert('Notifications are blocked. Please allow notifications in your browser/app settings for this site.');
-      }
-    } catch (err) {
-      console.error('Notification permission error:', err);
-    }
-    return 'denied';
-  };
-
-  const handleDismiss = () => {
-    dismiss();
-    try { localStorage.setItem('kjb-prompt-dismissed', 'true'); } catch {}
-  };
-
-  return { isInstallable, isInstalled, notifPermission, handleInstall, handleEnableNotif, handleDismiss };
-}
 
 function BottomNav({ pathname, navigate }) {
   const [showMode, setShowMode] = useState(() => {

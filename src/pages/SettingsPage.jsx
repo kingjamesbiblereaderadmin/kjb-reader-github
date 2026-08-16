@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-import { Settings, Bell, BellOff, Download, CheckCircle2, AlertCircle, Loader2, Trash2, Smartphone, MonitorSmartphone, Eye, EyeOff, ZoomIn, ZoomOut, Palette, Upload, Crop, Type, ChevronDown, CheckCircle, ExternalLink, Shield, MessageCircle, Youtube, RotateCcw, Accessibility, Keyboard, Star, Server, Globe, Mail, PlayCircle, Link2, FileText, Lock, Wrench } from 'lucide-react';
+import { Settings, Download, CheckCircle2, AlertCircle, Loader2, Trash2, Smartphone, MonitorSmartphone, Eye, EyeOff, ZoomIn, ZoomOut, Palette, Upload, Crop, Type, ChevronDown, CheckCircle, ExternalLink, Shield, MessageCircle, Youtube, RotateCcw, Accessibility, Keyboard, Star, Server, Globe, Mail, PlayCircle, Link2, FileText, Lock, Wrench } from 'lucide-react';
 import ShortcutsList from '@/components/ShortcutsList';
 
 import DownloadBibleSection from '@/components/bible/DownloadBibleSection';
@@ -15,13 +15,6 @@ import { toast } from 'sonner';
 import { useNavigate, Link } from 'react-router-dom';
 import ContactLinks from '@/components/ContactLinks';
 import { useAuth } from '@/lib/AuthContext';
-import {
-  getNotificationsEnabled, getNotificationTime, setNotificationTime,
-  requestNotificationPermission, disableNotifications, scheduleDailyNotification, showLocalNotification, cleanForNotification, isNotifReallyOn
-} from '@/lib/notifications';
-
-
-import { getDailyVerse } from '@/lib/dailyVerse';
 import { downloadBibleForOffline, downloadBibleForOfflineWithRetry, clearBibleCache, isBibleCached, CACHE_VERSION } from '@/lib/bibleCache';
 import { getAccessibilityFont, setAccessibilityFont } from '@/lib/accessibilityFont';
 import { detectIncognito } from '@/lib/incognito';
@@ -137,7 +130,6 @@ export default function SettingsPage() {
     install: true,
     offline: true,
     downloadPdf: true,
-    notifications: true,
     offlineHtml: true,
     info: true,
     credits: true,
@@ -227,12 +219,6 @@ export default function SettingsPage() {
     window.dispatchEvent(new Event('kjb-fonts-changed'));
   };
 
-  const [notifPermission, setNotifPermission] = useState(() => 'Notification' in window ? Notification.permission : 'unsupported');
-  // The toggle is only truly "on" when BOTH the app flag is set AND the OS
-  // permission is actually granted. Otherwise notifications silently fail
-  // (the old behaviour that showed "Enabled" but never fired anything).
-  const [notifEnabled, setNotifEnabled] = useState(() => isNotifReallyOn());
-  const [notifTime, setNotifTimeState] = useState(getNotificationTime);
   const [cached, setCached] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [dlProgress, setDlProgress] = useState(0);
@@ -277,78 +263,6 @@ export default function SettingsPage() {
   useEffect(() => {
     detectIncognito().then(setIsIncognito);
   }, []);
-
-  // Refresh notification state on focus
-  useEffect(() => {
-    const handleFocus = () => {
-      setNotifPermission('Notification' in window ? Notification.permission : 'unsupported');
-      setNotifEnabled(isNotifReallyOn());
-    };
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleFocus);
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleFocus);
-    };
-  }, []);
-
-  const handleToggleNotifications = async () => {
-    if (notifEnabled) {
-      disableNotifications();
-      setNotifEnabled(false);
-      setNotifPermission('Notification' in window ? Notification.permission : 'unsupported');
-      window.dispatchEvent(new Event('storage'));
-      return;
-    }
-    if (!('Notification' in window)) {
-      alert('Notifications are not supported in this browser. Try installing the app or using a different browser.');
-      return;
-    }
-    // Enable: set the flag immediately — no prompt. requestNotificationPermission
-    // asks for the OS + web permission at most once (kjb-notif-asked) so repeated
-    // toggles never re-prompt and never trigger Chrome's auto-block. In the
-    // Android app shell it ALSO requests the OS POST_NOTIFICATIONS runtime
-    // permission.
-    localStorage.setItem('kjb-notifications-enabled', 'true');
-    setNotifEnabled(true);
-    window.dispatchEvent(new Event('storage'));
-
-    try {
-      const result = await requestNotificationPermission();
-      setNotifPermission('Notification' in window ? Notification.permission : 'unsupported');
-      if (result === 'granted') {
-        scheduleDailyNotification();
-        const v = getDailyVerse();
-        showLocalNotification('KJB — Reminders On', `"${cleanForNotification(v.text)}" — ${v.ref} (KJB)`, null, '/');
-      }
-    } catch (err) {
-      console.warn('[Settings] notif setup failed (non-fatal):', err?.message);
-    }
-  };
-
-  const handleTestNotif = async () => {
-    if (!('Notification' in window)) {
-      alert('This browser/PWA does not support notifications.');
-      return;
-    }
-
-    const permission = await requestNotificationPermission();
-    setNotifPermission('Notification' in window ? Notification.permission : permission);
-
-    if (permission !== 'granted') {
-      alert('Notifications are blocked. Please enable notifications for this app in your device settings, then try again.');
-      return;
-    }
-
-    const v = getDailyVerse();
-    const result = await showLocalNotification('KJB — Daily Verse Test', `"${cleanForNotification(v.text)}" — ${v.ref} (KJB)`, null, `/?test=${Date.now()}`);
-    if (!result.ok) {
-      alert('Test notification could not be shown.\n\nReason: ' + (result.error || 'unknown'));
-    }
-  };
-
-
-
 
 
   const handleDownload = async (e, withRetry = false) => {
@@ -420,7 +334,6 @@ export default function SettingsPage() {
       install: newState,
       offline: newState,
       downloadPdf: newState,
-      notifications: newState,
       offlineHtml: newState,
       info: newState,
       credits: newState,
@@ -431,13 +344,6 @@ export default function SettingsPage() {
   };
 
   const toggleSection = (section) => {
-    // When opening the Notifications section, re-read the live OS permission so
-    // the toggle un-disables itself the moment the user has unblocked the site
-    // (the mounted value can be a stale 'denied').
-    if (section === 'notifications' && !expandedSections.notifications) {
-      setNotifPermission('Notification' in window ? Notification.permission : 'unsupported');
-      setNotifEnabled(isNotifReallyOn());
-    }
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
@@ -819,101 +725,6 @@ export default function SettingsPage() {
       {/* Install App */}
       <InstallAppSection expanded={expandedSections.install} isIncognito={isIncognito} />
 
-      {/* Notifications — hidden in private/incognito windows where they won't persist */}
-      {!isIncognito && (
-      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
-        <button
-          onClick={() => toggleSection('notifications')}
-          className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
-        >
-          <div className="flex flex-col gap-1">
-            <h2 className="font-serif text-lg font-semibold text-foreground">Daily Verse Reminders</h2>
-            <p className="font-sans text-xs text-muted-foreground">Get daily verse notifications</p>
-          </div>
-          <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${expandedSections.notifications ? 'rotate-180' : ''}`} />
-        </button>
-        {expandedSections.notifications && (
-        <div className="px-5 pb-6 pt-2 space-y-3">
-        {isIncognito && (
-          <div className="rounded-xl bg-amber-50 dark:bg-amber-900/15 border border-amber-200 dark:border-amber-900/40 p-3">
-            <p className="font-sans text-xs text-amber-700 dark:text-amber-400 font-medium leading-snug flex items-start gap-1.5">
-              <span className="shrink-0 leading-none mt-0.5">⚠️</span>
-              <span>You're in a private window (Incognito, InPrivate, or Guest) — notifications are unreliable here and won't persist after you close the window.</span>
-            </p>
-          </div>
-        )}
-        {notifPermission === 'unsupported' ? (
-          <div className="space-y-3">
-            <p className="font-sans text-sm text-muted-foreground">
-              Browser notifications are not supported in your current environment. To enable this feature, please install the application:
-            </p>
-            <div className="font-sans text-xs text-muted-foreground space-y-1.5 bg-secondary/50 rounded-xl p-4">
-              <p>• <strong>Apple iOS:</strong> Tap the <span className="inline-flex items-center px-1.5 py-0.5 bg-background rounded text-foreground font-medium">Share</span> button in Safari, then select <span className="text-foreground font-medium">"Add to Home Screen"</span>.</p>
-              <p>• <strong>Android / Chrome:</strong> Open the browser menu <span className="inline-flex items-center px-1.5 py-0.5 bg-background rounded text-foreground font-medium">(⋮ or ⋯)</span>, then select <span className="text-foreground font-medium">"Add to phone"</span>, <span className="text-foreground font-medium">"Install app"</span> or <span className="text-foreground font-medium">"Add to Home screen"</span>.</p>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* Verse of the Day */}
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <p className="font-sans text-sm text-foreground font-medium">Verse of the Day</p>
-                  {notifEnabled && <Bell className="w-3.5 h-3.5 text-primary" />}
-                </div>
-                <p className="font-sans text-xs text-muted-foreground">
-                  {notifPermission === 'denied'
-                    ? 'Blocked — go to your browser/app settings and allow notifications for this site'
-                    : 'Shows the daily verse when you open the app on a new day'}
-                </p>
-              </div>
-              <div
-                role="switch"
-                aria-checked={notifEnabled}
-                tabIndex={notifPermission === 'denied' ? -1 : 0}
-                onClick={(e) => {
-                  if (notifPermission !== 'denied') {
-                    e.stopPropagation();
-                    handleToggleNotifications();
-                  }
-                }}
-                onTouchEnd={(e) => {
-                  if (notifPermission !== 'denied') {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    handleToggleNotifications();
-                  }
-                }}
-                className={`shrink-0 inline-flex h-5 w-9 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors ${
-                  notifEnabled ? 'bg-primary' : 'bg-input'
-                } ${notifPermission === 'denied' ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                <div
-                  className={`pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform ${
-                    notifEnabled ? 'translate-x-4' : 'translate-x-0'
-                  }`}
-                />
-              </div>
-            </div>
-            {notifEnabled && (
-            <div className="pt-1">
-              <button
-                onClick={handleTestNotif}
-                className="px-4 py-2 rounded-xl bg-transparent border border-border text-foreground font-sans text-xs font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:border-accent"
-              >
-                Test Notification
-              </button>
-            </div>
-            )}
-
-
-          </>
-        )}
-        </div>
-        )}
-      </div>
-      )}
-
       {/* Offline Library — shows disabled state in private/incognito windows and iframes */}
       <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
@@ -1211,22 +1022,6 @@ export default function SettingsPage() {
                     <>
                       <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
                       Not Downloaded
-                    </>
-                  )}
-                </span>
-              </div>
-              <div className="flex justify-between items-center font-sans text-sm gap-4">
-                <span className="text-muted-foreground shrink-0">Notifications</span>
-                <span className="text-foreground font-medium text-right flex items-center gap-1">
-                  {notifEnabled ? (
-                    <>
-                      <Bell className="w-3.5 h-3.5 text-primary" />
-                      Enabled
-                    </>
-                  ) : (
-                    <>
-                      <BellOff className="w-3.5 h-3.5 text-muted-foreground" />
-                      Disabled
                     </>
                   )}
                 </span>

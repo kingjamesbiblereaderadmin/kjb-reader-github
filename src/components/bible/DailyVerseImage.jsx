@@ -2,8 +2,8 @@ import React, { useRef, useState, useEffect, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { base44 } from '@/api/base44Client';
 import { renderVerseText } from '@/lib/bibleApi';
-import { Download, Share2, Palette, Type, Eye, Smartphone, Bell, BellOff, Maximize2, ChevronsDown, MoreVertical, Copy, RotateCcw, X, Printer } from 'lucide-react';
-import { getNotificationsEnabled, requestNotificationPermission, disableNotifications, scheduleDailyNotification } from '@/lib/notifications';
+import { Download, Share2, Palette, Type, Eye, Smartphone, Maximize2, ChevronsDown, MoreVertical, Copy, RotateCcw, X, Printer } from 'lucide-react';
+import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 
 const ShareCard = React.lazy(() => import('./ShareCard.jsx'));
 import { formatDailyVerseForCopy, cleanVerseText } from '@/lib/formatDailyVerse';
@@ -43,7 +43,8 @@ function resolveVerseFontFamily(choice, a11yFont) {
   return "'Merriweather', 'Cormorant Garamond', Georgia, serif";
 }
 
-export default function DailyVerseImage({ verse, onClick, onToggleNotif, notifEnabled, isOffline }) {
+export default function DailyVerseImage({ verse, onClick, isOffline }) {
+  const { isInstalled, promptInstall } = useInstallPrompt();
   const dow = new Date().getDay();
   const defaultBg = VERSE_BACKGROUNDS[dow];
   const [showStyleEditor, setShowStyleEditor] = useState(false);
@@ -376,18 +377,18 @@ export default function DailyVerseImage({ verse, onClick, onToggleNotif, notifEn
 
   return (
     <div ref={verseRef} onClick={(e) => { if (!uploadingComplete && !showLightbox) onClick(e); }} className={`w-full min-h-[300px] ${gradientClass} border border-border rounded-2xl shadow-lg px-1 sm:px-3 text-center text-white relative flex flex-col ${capturing ? 'pt-20 pb-8' : 'pt-4 pb-4'} ${uploadingComplete ? 'cursor-default' : 'cursor-pointer transition-all duration-300 hover:shadow-xl'}`} style={bgStyle}>
-      {/* Notification bell indicator button */}
-      {showButtons && onToggleNotif && (
+      {/* Install app button — only shown when running as a plain website (not installed) */}
+      {showButtons && !isInstalled && (
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onToggleNotif();
+            promptInstall();
           }}
           className="absolute top-2 left-2 p-1.5 flex items-center justify-center rounded-lg bg-black/60 hover:bg-black/75 backdrop-blur-md border border-white/40 shadow-md transition-colors z-10 touch-manipulation"
-          title={notifEnabled ? 'Daily verse reminders on (updates when app opens)' : 'Reminders off'}
+          title="Install app"
           type="button"
         >
-          {notifEnabled ? <Bell className="w-3.5 h-3.5 pointer-events-none text-white drop-shadow" /> : <BellOff className="w-3.5 h-3.5 opacity-70 pointer-events-none text-white drop-shadow" />}
+          <Smartphone className="w-3.5 h-3.5 pointer-events-none text-white drop-shadow" />
         </button>
       )}
 

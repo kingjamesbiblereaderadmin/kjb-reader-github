@@ -2,8 +2,6 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import App from '@/App.jsx'
 import '@/index.css'
-import { initNotifications } from '@/lib/notifications'
-import { getDailyVerse } from '@/lib/dailyVerse'
 import { cacheSplashLogo } from '@/lib/splashLogo'
 import { toast } from 'sonner'
 
@@ -231,13 +229,8 @@ if (!rootElement) {
           console.log('[SW] Cache version:', event.data.cacheVersion);
         }
       });
-      
-      initNotifications(getDailyVerse());
     } catch (err) {
       console.warn('[SW] Registration failed:', err);
-      initNotifications(getDailyVerse());
     }
-  } else {
-    initNotifications(getDailyVerse());
   }
 })();

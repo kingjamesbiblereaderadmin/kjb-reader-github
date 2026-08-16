@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Bell, Share, MonitorSmartphone, Download, Accessibility, Palette,
+  Share, MonitorSmartphone, Download, Palette,
   Type, Moon, Sun, Monitor, ChevronLeft, ChevronRight, Check, Star,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getAccessibilityFont, setAccessibilityFont } from '@/lib/accessibilityFont';
 import { useTheme } from '@/lib/themeContext';
 import { detectIncognito } from '@/lib/incognito';
-import {
-  getNotificationsEnabled, requestNotificationPermission,
-  scheduleDailyNotification, showLocalNotification, cleanForNotification,
-} from '@/lib/notifications';
-import { getDailyVerse } from '@/lib/dailyVerse';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import ThemeColorPicker from '@/components/bible/ThemeColorPicker';
 
@@ -75,7 +70,6 @@ export default function LandingSetupWizard() {
   const [installDone, setInstallDone] = useState(false);
   const [promptCancelled, setPromptCancelled] = useState(false);
   const [showManualGuide, setShowManualGuide] = useState(false);
-  const [notifDone, setNotifDone] = useState(false);
 
   const { mode, setMode } = useTheme();
   const [a11yFont, setA11yFont] = useState(getAccessibilityFont);
@@ -93,7 +87,6 @@ export default function LandingSetupWizard() {
     theme: false,
     fonts: false,
     a11y: false,
-    notif: false,
   });
 
   const markDone = (id) => setCompleted(prev => prev[id] ? prev : { ...prev, [id]: true });
@@ -113,19 +106,6 @@ export default function LandingSetupWizard() {
     return () => window.removeEventListener('focus', checkStandalone);
   }, []);
 
-  useEffect(() => {
-    const checkNotif = () => {
-      try {
-        const enabled = localStorage.getItem('kjb-notifications-enabled') === 'true';
-        const granted = 'Notification' in window && Notification.permission === 'granted';
-        const done = enabled && granted;
-        setNotifDone(done);
-        if (done) markDone('notif');
-      } catch {}
-    };
-    checkNotif();
-  }, []);
-
   // Refresh wizard state when cloud sync delivers settings — the initial
   // useState reads happen before the async sync completes, so without this
   // the wizard shows defaults even though synced values just landed.
@@ -135,7 +115,6 @@ export default function LandingSetupWizard() {
         const syncedReader = localStorage.getItem('kjb-reader-font-family');
         const syncedVerse = localStorage.getItem('kjb-verse-font-family');
         const syncedA11y = getAccessibilityFont();
-        const syncedNotif = localStorage.getItem('kjb-notifications-enabled') === 'true';
 
         if (syncedReader) setReaderFontFamily(syncedReader);
         if (syncedVerse) setVerseFontFamily(syncedVerse);
@@ -145,7 +124,6 @@ export default function LandingSetupWizard() {
         if (syncedReader && syncedReader !== 'serif') markDone('fonts');
         if (syncedVerse && syncedVerse !== 'serif') markDone('fonts');
         if (syncedA11y !== 'default') markDone('a11y');
-        if (syncedNotif && 'Notification' in window && Notification.permission === 'granted') markDone('notif');
       } catch {}
     };
     window.addEventListener('kjb-settings-synced', refreshFromSync);
@@ -190,33 +168,10 @@ export default function LandingSetupWizard() {
     }
   };
 
-  const handleNotifClick = async () => {
-    if (!('Notification' in window)) {
-      alert('Notifications are not supported in this browser.');
-      return;
-    }
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        localStorage.setItem('kjb-notifications-enabled', 'true');
-        window.kjbNotifEnabledThisSession = true;
-        setNotifDone(true);
-        markDone('notif');
-        await requestNotificationPermission();
-        scheduleDailyNotification();
-        const v = getDailyVerse();
-        showLocalNotification('KJB — Reminders On', `"${cleanForNotification(v.text)}" — ${v.ref} (KJB)`, null, '/');
-      }
-    } catch (err) {
-      console.error('Notif permission error:', err);
-    }
-  };
-
   const STEPS = [
     { id: 'install', label: 'Install', icon: Download },
     { id: 'theme', label: 'Theme', icon: Palette },
     { id: 'fonts', label: 'Fonts', icon: Type },
-    { id: 'notif', label: 'Notifications', icon: Bell },
   ];
 
   const isFirst = step === 0;
@@ -457,37 +412,6 @@ export default function LandingSetupWizard() {
             </div>
             {a11yFont !== 'default' && (
               <p className="font-sans text-[10px] text-muted-foreground mt-2">Disabled while an accessibility font is active</p>
-            )}
-          </div>
-        )}
-
-        {/* Step 3: Notifications */}
-        {step === 3 && (
-          <div className="text-center">
-            <h3 className="font-serif text-lg font-bold text-foreground mb-1">Daily Verse Notifications</h3>
-            <p className="font-sans text-xs text-muted-foreground mb-2">See the verse of the day when you open the app on a new day</p>
-            <p className="font-sans text-[11px] text-muted-foreground/80 mb-4 max-w-xs mx-auto leading-relaxed">
-              When you open KJB Reader for the first time each day, today's verse appears as a notification. You can also set a daily reminder time in Settings.
-            </p>
-            {!isIncognito ? (
-              notifDone ? (
-                <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-900/40 p-3 inline-flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
-                    <Check className="w-3.5 h-3.5 text-white" />
-                  </div>
-                  <span className="font-sans text-xs text-emerald-800 dark:text-emerald-300 font-bold">Notifications enabled</span>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleNotifClick}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-sans text-sm font-medium bg-primary/10 border-2 border-primary/20 text-primary hover:bg-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                >
-                  <Bell className="w-4 h-4" /> Enable Notifications
-                </button>
-              )
-            ) : (
-              <p className="font-sans text-xs text-muted-foreground">Not available in private browsing</p>
             )}
           </div>
         )}
