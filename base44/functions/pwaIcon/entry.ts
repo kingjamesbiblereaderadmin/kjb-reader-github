@@ -9,9 +9,9 @@
 // with immutable cache headers so the OS only fetches it once.
 
 const ICONS = {
-  '192': 'https://base44.app/api/apps/6a05d76723afe58d80c589e8/files/mp/public/6a05d76723afe58d80c589e8/23dcc4982_kjb-icon192-v20260713.png',
-  '512': 'https://base44.app/api/apps/6a05d76723afe58d80c589e8/files/mp/public/6a05d76723afe58d80c589e8/c2459f3df_kjb-icon512-v20260713.png',
-  'maskable': 'https://base44.app/api/apps/6a05d76723afe58d80c589e8/files/mp/public/6a05d76723afe58d80c589e8/94863d510_kjb-maskable512-v20260713.png',
+  '192': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/c72c2e0d1_8e738d108_cfb4bf781_Untitled.png',
+  '512': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/c72c2e0d1_8e738d108_cfb4bf781_Untitled.png',
+  'maskable': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/c72c2e0d1_8e738d108_cfb4bf781_Untitled.png',
 };
 
 // Module-level byte cache so repeated requests don't re-fetch base44.app.
