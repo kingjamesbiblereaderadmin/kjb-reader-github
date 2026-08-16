@@ -1,11 +1,7 @@
 // Notification helpers for KJB PWA — daily verse reminders.
-//
-// Ground rule: the real OS/browser permission is the ONLY source of truth for
-// whether notifications are "on". The `kjb-notifications-enabled` flag in
-// localStorage just remembers the user's intent (did they turn the toggle on);
-// it is corrected back to 'false' any time we discover the real permission is
-// not granted, so the UI can never show "on" while the browser/OS has it
-// blocked.
+// Plain, standard PWA notifications: the browser's own Notification API is
+// the only source of truth. No native-bridge special-casing, no background
+// re-syncing that can race with the browser's own permission prompt.
 
 import { getDailyVerse, getDailyVerseFromBible } from './dailyVerse';
 
@@ -27,83 +23,18 @@ export function setNotificationTime(time) {
   localStorage.setItem(NOTIF_TIME_KEY, time);
 }
 
-export function todayString() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-// ── Native Android shell bridge ────────────────────────────────────────────
-// In the Android WebView shell, the web Notification API is not wired to the
-// OS permission — window.KJBNative is the only way to ask for / check the
-// real POST_NOTIFICATIONS permission. Calling it is always safe to repeat:
-// Android only shows the OS dialog the first time; once the user has decided,
-// every later call resolves immediately with that same decision — so it also
-// works as a silent "what's the real status right now?" check.
-function inNativeShell() {
-  return typeof window !== 'undefined' && window.KJBNative && typeof window.KJBNative.requestNotificationPermission === 'function';
-}
-
-function nativePermission() {
-  return new Promise((resolve) => {
-    if (!inNativeShell()) return resolve(null);
-    const cbName = '__kjbNotifCb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-    window[cbName] = (granted) => {
-      try { delete window[cbName]; } catch { window[cbName] = undefined; }
-      resolve(!!granted);
-    };
-    try {
-      window.KJBNative.requestNotificationPermission(cbName);
-    } catch (err) {
-      try { delete window[cbName]; } catch { window[cbName] = undefined; }
-      console.warn('[Notif] native bridge call failed:', err?.message);
-      resolve(null);
-    }
-    // Safety timeout in case the native side never calls back.
-    setTimeout(() => {
-      if (window[cbName]) {
-        try { delete window[cbName]; } catch { window[cbName] = undefined; }
-        resolve(false);
-      }
-    }, 15000);
-  });
-}
-
-// Live, authoritative permission check. Never cached — always reflects the
-// real current state. Safe to call as often as needed (e.g. every time the
-// app regains focus) to re-sync the UI.
-export async function checkPermission() {
-  if (inNativeShell()) {
-    const granted = await nativePermission();
-    return granted ? 'granted' : 'denied';
-  }
-  if (!('Notification' in window)) return 'unsupported';
-  return Notification.permission;
-}
-
-// Cheap, synchronous guess for the very first render (before the async
-// checkPermission() sync below has had a chance to run). Corrected shortly
-// after by syncNotificationState().
+// The toggle is "on" only when the user has enabled it AND the browser has
+// actually granted permission — a direct read of Notification.permission,
+// nothing cached or guessed.
 export function isNotifReallyOn() {
   if (!getNotificationsEnabled()) return false;
-  if (inNativeShell()) return true;
   if (!('Notification' in window)) return false;
   return Notification.permission === 'granted';
 }
 
-// Authoritative sync: re-checks the real permission and corrects the stored
-// "enabled" flag if it no longer matches reality (e.g. the user blocked
-// notifications in their browser/OS settings after turning the toggle on).
-// Call this on mount, focus, and visibility change so the bell never shows
-// "on" while notifications are actually blocked. Returns the corrected on/off
-// state.
-export async function syncNotificationState() {
-  if (!getNotificationsEnabled()) return false;
-  const permission = await checkPermission();
-  const isOn = permission === 'granted';
-  if (!isOn) {
-    localStorage.setItem(NOTIF_KEY, 'false');
-  }
-  return isOn;
+export function todayString() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 export async function registerSW() {
@@ -111,8 +42,6 @@ export async function registerSW() {
   try {
     const reg = await navigator.serviceWorker.register('/sw.js');
 
-    // Automatically reload the page when a new service worker takes over
-    // so users get the latest UI updates immediately.
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (!refreshing) {
@@ -149,30 +78,23 @@ export async function registerSW() {
   } catch { return null; }
 }
 
-// Requests notification permission (prompts if not yet decided) and updates
-// the stored "enabled" flag to match the real, resulting permission. Returns
-// 'granted' | 'denied' | 'unsupported'.
+// Standard browser permission request. Only prompts when permission is
+// 'default' (browser silently returns the existing answer otherwise).
+// Updates the stored "enabled" flag to match the real result.
 export async function requestNotificationPermission() {
-  await registerSW();
+  if (!('Notification' in window)) return 'unsupported';
 
-  let permission;
-  if (inNativeShell()) {
-    const granted = await nativePermission();
-    permission = granted ? 'granted' : 'denied';
-  } else if ('Notification' in window) {
-    permission = Notification.permission;
-    if (permission === 'default') {
-      try {
-        permission = await Notification.requestPermission();
-      } catch (err) {
-        console.warn('[Notif] Notification.requestPermission failed:', err.message);
-      }
+  let permission = Notification.permission;
+  if (permission === 'default') {
+    try {
+      permission = await Notification.requestPermission();
+    } catch (err) {
+      console.warn('[Notif] Notification.requestPermission failed:', err.message);
     }
-  } else {
-    permission = 'unsupported';
   }
 
   localStorage.setItem(NOTIF_KEY, permission === 'granted' ? 'true' : 'false');
+  await registerSW();
   return permission;
 }
 
@@ -194,11 +116,13 @@ export function cleanForNotification(text) {
 
 // Show a notification via the service worker (required on Android/PWA),
 // falling back to the plain Notification API. Returns { ok: true } on
-// success, or { ok: false, error: '<reason>' } so callers (e.g. the Test
-// button) can surface a concrete failure instead of silently doing nothing.
+// success, or { ok: false, error: '<reason>' }.
 export async function showLocalNotification(title, body, imageUrl = null, targetUrl = null) {
   if (!('Notification' in window)) {
     return { ok: false, error: 'Notification API not available' };
+  }
+  if (Notification.permission !== 'granted') {
+    return { ok: false, error: 'Permission not granted' };
   }
 
   const url = targetUrl ? (window.location.origin + targetUrl) : (window.location.origin + '/');
@@ -253,7 +177,7 @@ async function fireNotificationNow() {
 // Fire once per day: when the app is opened on a new day (and we haven't
 // shown today's verse yet). No time scheduling — just a new-day check.
 async function checkNewDayNotification() {
-  if (!getNotificationsEnabled()) return;
+  if (!isNotifReallyOn()) return;
   if (localStorage.getItem(NOTIF_LAST_KEY) === todayString()) return;
   await fireNotificationNow();
 }
@@ -268,7 +192,7 @@ export function scheduleDailyNotification() {
 // re-checking on focus/visibility changes.
 let _notificationsInitialized = false;
 export function initNotifications() {
-  if (!getNotificationsEnabled()) return;
+  if (!isNotifReallyOn()) return;
   if (_notificationsInitialized) return;
   _notificationsInitialized = true;
 

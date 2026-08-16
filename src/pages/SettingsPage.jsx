@@ -17,7 +17,7 @@ import ContactLinks from '@/components/ContactLinks';
 import { useAuth } from '@/lib/AuthContext';
 import {
   getNotificationsEnabled, getNotificationTime, setNotificationTime,
-  requestNotificationPermission, disableNotifications, scheduleDailyNotification, showLocalNotification, cleanForNotification, isNotifReallyOn, syncNotificationState
+  requestNotificationPermission, disableNotifications, scheduleDailyNotification, showLocalNotification, cleanForNotification, isNotifReallyOn
 } from '@/lib/notifications';
 
 
@@ -278,14 +278,12 @@ export default function SettingsPage() {
     detectIncognito().then(setIsIncognito);
   }, []);
 
-  // Refresh notification state on mount + focus — corrects the toggle if the
-  // real permission no longer matches the stored "enabled" flag.
+  // Refresh notification state on focus
   useEffect(() => {
     const handleFocus = () => {
       setNotifPermission('Notification' in window ? Notification.permission : 'unsupported');
-      syncNotificationState().then(setNotifEnabled);
+      setNotifEnabled(isNotifReallyOn());
     };
-    handleFocus();
     window.addEventListener('focus', handleFocus);
     document.addEventListener('visibilitychange', handleFocus);
     return () => {
@@ -438,7 +436,7 @@ export default function SettingsPage() {
     // (the mounted value can be a stale 'denied').
     if (section === 'notifications' && !expandedSections.notifications) {
       setNotifPermission('Notification' in window ? Notification.permission : 'unsupported');
-      syncNotificationState().then(setNotifEnabled);
+      setNotifEnabled(isNotifReallyOn());
     }
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
