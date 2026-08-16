@@ -56,6 +56,8 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   // the first highlighted verse on play and pauses at the last one's end.
   const rangeStartRef = useRef(null);
   const rangeEndRef = useRef(null);
+  // Queued play while waiting for the filtered range's start time to load.
+  const pendingRangePlayRef = useRef(false);
   // When the user switches voice mid-playback, capture the current position so
   // the new voice's audio resumes from the same spot instead of restarting.
   const pendingResumeRef = useRef(null);
@@ -176,6 +178,30 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   }, [timeline, range, verseTimings]);
   useEffect(() => { rangeStartRef.current = rangeStart; }, [rangeStart]);
   useEffect(() => { rangeEndRef.current = rangeEnd; }, [rangeEnd]);
+  useEffect(() => { if (!range) pendingRangePlayRef.current = false; }, [range]);
+
+  // Foolproof filtered-mode playback. The verse range's start time can only be
+  // computed once the timing JSON loads (timeline / verseTimings). If the user
+  // presses play before that — or activates Listen right as the chapter loads —
+  // the audio would otherwise start from the beginning of the chapter,
+  // narrating the chapter intro / earlier verses. Once the range start becomes
+  // available, jump the audio to it (if it's still sitting before the verse),
+  // and start any play that was queued while the timing was still loading.
+  useEffect(() => {
+    if (rangeStart == null || !Number.isFinite(rangeStart) || !audioReady) return;
+    const a = audioRef.current;
+    if (!a) return;
+    if (a.currentTime < rangeStart - 0.1) {
+      a.currentTime = rangeStart;
+      setCurrentTime(rangeStart);
+      updateActive(findActiveWordIndex(timeline, rangeStart), false);
+      syncIntro(rangeStart);
+    }
+    if (pendingRangePlayRef.current) {
+      pendingRangePlayRef.current = false;
+      a.play().catch(() => {});
+    }
+  }, [rangeStart, audioReady, timeline, updateActive, syncIntro]);
 
   // Per-verse word slices with global timeline indices, for VerseText.
   const wordsByVerse = useMemo(() => {
@@ -377,10 +403,20 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     const a = audioRef.current; if (!a || !record) return;
     if (a.paused) {
       const rs = rangeStartRef.current;
-      if (rs != null && (a.currentTime < rs - 0.05 || a.currentTime >= (rangeEndRef.current ?? Infinity))) {
-        a.currentTime = rs;
+      const re = rangeEndRef.current;
+      if (rs != null) {
+        if (a.currentTime < rs - 0.05 || a.currentTime >= (re ?? Infinity)) {
+          a.currentTime = rs;
+        }
+        a.play().catch(() => {});
+      } else if (range) {
+        // Range set but its start time isn't ready yet (timing still loading).
+        // Queue the play — the range-start effect seeks to the verse and begins
+        // playback once the timing loads, instead of playing from chapter start.
+        pendingRangePlayRef.current = true;
+      } else {
+        a.play().catch(() => {});
       }
-      a.play().catch(() => {});
       // Manual play (first time) — show the book name header highlight.
       suppressIntroRef.current = false;
       // On play, force-jump (scroll) to the verse currently being read, even
@@ -390,18 +426,25 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     } else {
       a.pause();
     }
-  }, [record, timeline, updateActive, syncIntro]);
+  }, [record, range, timeline, updateActive, syncIntro]);
 
   const restart = useCallback(() => {
     const a = audioRef.current; if (!a || !record) return;
-    a.currentTime = rangeStartRef.current ?? 0;
+    const rs = rangeStartRef.current;
+    if (range && rs == null) {
+      // Range set but timing not ready — queue; the range-start effect seeks
+      // to the verse + plays once loaded (don't jump to 0 / chapter start).
+      pendingRangePlayRef.current = true;
+      return;
+    }
+    a.currentTime = rs ?? 0;
     setCurrentTime(a.currentTime);
     a.play().catch(() => {});
     // Manual restart — show the book name header highlight again.
     suppressIntroRef.current = false;
     updateActive(findActiveWordIndex(timeline, a.currentTime), true, true);
     syncIntro(a.currentTime);
-  }, [record, timeline, updateActive, syncIntro]);
+  }, [record, range, timeline, updateActive, syncIntro]);
 
   const seek = useCallback((t) => {
     const a = audioRef.current; if (!a) return;
