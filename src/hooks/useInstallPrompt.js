@@ -38,6 +38,25 @@ const getTwaInstalled = async () => {
   }
 };
 
+// Same API, but checks for our own web-app manifest listed as a
+// "related_applications" entry (platform: "webapp") — this lets Chrome/Edge
+// report the PWA as installed even from a plain, non-standalone browser tab,
+// which display-mode media queries can't do on their own. Not supported by
+// Firefox/Safari, and can be unreliable on some Chrome versions/platforms —
+// it's an extra signal, not a replacement for display-mode detection.
+const getWebAppInstalled = async () => {
+  try {
+    if (typeof navigator === 'undefined' || typeof navigator.getInstalledRelatedApps !== 'function') {
+      return false;
+    }
+    const apps = await navigator.getInstalledRelatedApps();
+    if (!Array.isArray(apps) || apps.length === 0) return false;
+    return apps.some((a) => a && String(a.platform || '').toLowerCase() === 'webapp');
+  } catch {
+    return false;
+  }
+};
+
 const isAndroidUA = () => {
   if (typeof navigator === 'undefined') return false;
   return /android/i.test(navigator.userAgent);
@@ -190,6 +209,12 @@ export function useInstallPrompt() {
     if (!installed) {
       getTwaInstalled().then((twaInstalled) => {
         if (twaInstalled) {
+          try { localStorage.setItem(INSTALLED_KEY, 'true'); } catch {}
+          setIsInstalled(true);
+        }
+      });
+      getWebAppInstalled().then((webAppInstalled) => {
+        if (webAppInstalled) {
           try { localStorage.setItem(INSTALLED_KEY, 'true'); } catch {}
           setIsInstalled(true);
         }

@@ -104,6 +104,11 @@ Deno.serve(async (req) => {
     console.warn('[manifest] icon/screenshot override load failed, using defaults:', err?.message);
   }
 
+  // Origin of this request, used below so the manifest can point
+  // getInstalledRelatedApps() back at itself (lets a normal browser tab detect
+  // that the PWA is already installed, on Chrome/Edge).
+  const origin = new URL(req.url).origin;
+
   const manifest = {
     id: "/",
     name: "KJB Reader",
@@ -199,7 +204,13 @@ Deno.serve(async (req) => {
       }
     ],
     icons,
-    screenshots
+    screenshots,
+    // Lets navigator.getInstalledRelatedApps() report this PWA as installed
+    // even when called from a plain browser tab (not launched standalone) —
+    // Chrome/Edge only. See useInstallPrompt.js's getWebAppInstalled().
+    related_applications: [
+      { platform: "webapp", url: `${origin}/functions/manifest`, id: `${origin}/` }
+    ]
   };
 
   // Add timestamp to force fresh loading on mobile browsers
