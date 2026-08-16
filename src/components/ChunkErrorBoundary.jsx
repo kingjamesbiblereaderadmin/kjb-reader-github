@@ -15,6 +15,27 @@ export default class ChunkErrorBoundary extends React.Component {
     return { failed: true };
   }
 
+  // Full clean-slate recovery: unregister the stale service worker AND wipe all
+  // caches, so the reload fetches a fresh SW + fresh index.html + fresh chunks.
+  // Without unregistering the SW, clearing caches alone loops: the stale SW
+  // re-caches the missing chunks on the very next fetch, so the chunk keeps
+  // failing and "Updating to the latest version… [Reload]" reappears forever.
+  static async hardRecover() {
+    try {
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations().catch(() => []);
+        await Promise.all((regs || []).map((r) => r.unregister().catch(() => {})));
+      }
+    } catch {}
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+    } catch {}
+    window.location.reload();
+  }
+
   componentDidCatch(error) {
     const msg = String(error?.message || error || '');
     const isChunkError =
@@ -24,14 +45,7 @@ export default class ChunkErrorBoundary extends React.Component {
       const alreadyReloaded = sessionStorage.getItem('kjb-chunk-reloaded') === 'true';
       if (!alreadyReloaded && navigator.onLine !== false) {
         try { sessionStorage.setItem('kjb-chunk-reloaded', 'true'); } catch {}
-        // Clear the stale app cache first so the reload fetches fresh chunks.
-        if ('caches' in window) {
-          caches.keys().then((keys) =>
-            Promise.all(keys.filter((k) => k.startsWith('kjb-reader')).map((k) => caches.delete(k)))
-          ).finally(() => window.location.reload());
-        } else {
-          window.location.reload();
-        }
+        ChunkErrorBoundary.hardRecover();
       }
     }
   }
@@ -44,7 +58,7 @@ export default class ChunkErrorBoundary extends React.Component {
             Updating to the latest version…
           </p>
           <button
-            onClick={() => { try { sessionStorage.removeItem('kjb-chunk-reloaded'); } catch {} window.location.reload(); }}
+            onClick={() => { try { sessionStorage.removeItem('kjb-chunk-reloaded'); } catch {} ChunkErrorBoundary.hardRecover(); }}
             className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium"
           >
             Reload
