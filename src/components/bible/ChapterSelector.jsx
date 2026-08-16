@@ -1,28 +1,14 @@
 import React, { useState } from 'react';
-import { ArrowRight, Loader2 } from 'lucide-react';
-import { useAudioChapters } from '@/hooks/useAudioChapters';
+import { ArrowRight } from 'lucide-react';
 
 export default function ChapterSelector({ totalChapters, currentChapter, onSelect, onClose, bare, bookName }) {
   const [selectedChapter, setSelectedChapter] = useState(currentChapter);
-  // Fetch which chapters have narration fresh each time the picker opens, so
-  // newly synced audio shows up without any publish step. Chapters without a
-  // record are greyed out (still tappable). While loading, everything renders
-  // in the neutral state so nothing flickers grey-then-normal.
-  const { audioChapters, loading } = useAudioChapters(bookName);
-  const hasAudio = (ch) => !bookName || audioChapters === null || audioChapters.has(ch);
 
   return (
     <div className={bare ? 'flex flex-col' : 'bg-card rounded-2xl overflow-hidden w-[90vw] max-w-sm max-h-[70vh] flex flex-col relative'}>
       <div className={bare ? 'p-1' : 'overflow-y-auto flex-1 p-3'}>
-        {bookName && loading && (
-          <div className="flex items-center justify-center gap-2 pb-2 text-muted-foreground">
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            <span className="font-sans text-xs">Checking audio…</span>
-          </div>
-        )}
         <div className="grid grid-cols-6 sm:grid-cols-8 gap-2">
           {Array.from({ length: totalChapters }, (_, i) => i + 1).map(ch => {
-            const audible = hasAudio(ch);
             const isSelected = ch === selectedChapter;
             const hasSelection = selectedChapter != null;
             return (

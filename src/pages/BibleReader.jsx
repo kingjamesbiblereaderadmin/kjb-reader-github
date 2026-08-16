@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, Loader2, AlignJustify, AlignLeft, List, Columns2, Maximize2, Minimize2, ChevronDown, CheckSquare, Square, Copy, X, BookMarked, ZoomIn, Minus, Plus, Type, Share2, Printer, Headphones } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, AlignJustify, AlignLeft, List, Columns2, Maximize2, Minimize2, ChevronDown, CheckSquare, Square, Copy, X, BookMarked, ZoomIn, Minus, Plus, Type, Share2, Printer } from 'lucide-react';
 import { buildVerseUrl, formatVerseShare, cleanVerseText } from '@/lib/formatDailyVerse';
 import { BIBLE_BOOKS, getNextBook, getPrevBook } from '@/lib/bibleData';
 import { fetchChapter, fetchVerseCount, renderVerseText, renderColophonText, renderSubscriptText, resolveSubscript, resolveEndMarker } from '@/lib/bibleApi';
@@ -18,8 +18,6 @@ import CurrentlyReadingIndicator from '@/components/bible/CurrentlyReadingIndica
 import MinimizedHeaderBar from '@/components/bible/MinimizedHeaderBar';
 import ReadingRangeBar from '@/components/bible/ReadingRangeBar';
 import SelectActionBar from '@/components/bible/SelectActionBar';
-import AudioProvider from '@/components/bible/AudioProvider';
-import ReaderAudioBar from '@/components/bible/ReaderAudioBar';
 import { useHeaderHide } from '@/lib/HeaderHideContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -107,8 +105,6 @@ export default function BibleReader() {
   const [showBookPicker, setShowBookPicker] = useState(false);
   const [showChapterPicker, setShowChapterPicker] = useState(false);
   const [showVersePicker, setShowVersePicker] = useState(false);
-  const [listenMode, setListenMode] = useState(false);
-  const [readFromVerse, setReadFromVerse] = useState(null);
   const [flowMode, setFlowMode] = useState(() => {
     try {
       const v = localStorage.getItem('kjb-flow');
@@ -299,19 +295,6 @@ export default function BibleReader() {
     setSelectedVerses(new Set([parseInt(verseNum, 10)]));
   };
 
-  // "Read from here" (verse popover): clear any range filter so playback runs to
-  // the end of the chapter, then activate Listen mode and seek the audio to the
-  // chosen verse once its timeline is ready.
-  const handleReadFromHere = useCallback((verseNum) => {
-    setFilterMode(false);
-    setSelectedVerses(new Set());
-    setHighlightedVerses(new Set());
-    setReadFromVerse(parseInt(verseNum, 10));
-    setListenMode(true);
-  }, []);
-
-  const handleStartVerseConsumed = useCallback(() => setReadFromVerse(null), []);
-
   const toggleVerseSelect = (verseNum) => {
     setSelectedVerses(prev => {
       const next = new Set(prev);
@@ -461,14 +444,6 @@ export default function BibleReader() {
   const handleReadSelected = () => {
     setFilterMode(true);
     setSelectMode(false);
-    // Activate Listen mode so the AudioProvider mounts and the mini-player
-    // appears. Without this, "Read Selected" only filters the view and the
-    // audio bar never shows.
-    setListenMode(true);
-    // Clear any stale "Read from here" start verse so the AudioProvider's
-    // startVerse effect doesn't auto-play immediately (which would overlap
-    // the spoken reference announcement for this selected range).
-    setReadFromVerse(null);
     if (selectedVerses.size > 0) {
       const first = Math.min(...selectedVerses);
       const last = Math.max(...selectedVerses);
@@ -554,9 +529,7 @@ export default function BibleReader() {
 
   const loadChapter = useCallback(async (bookAbbr, chapter, jumpVerse) => {
     setLoading(true); setError(null); setVerses([]); setColophon(null);
-    const keepListen = autoAdvanceRef.current;
     autoAdvanceRef.current = false;
-    if (!keepListen) setListenMode(false);
     (document.getElementById('kjb-scroll') || window).scrollTo({ top: 0 });
     const b = BIBLE_BOOKS.find(bk => bk.abbr === bookAbbr);
     if (!b) { setError('Book not found'); setLoading(false); return; }
@@ -1516,8 +1489,7 @@ export default function BibleReader() {
   const isGenesisChapterOne = pos.abbr === 'GEN' && pos.chapter === 1;
 
   return (
-    <div onClick={(e) => { if (!e.target.closest('.kjb-verse-container, h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a')) { setHighlightVerse(null); setHighlightSection(null); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-3 ${hideHeader ? 'pt-16' : ''} ${listenMode || isViewingTitlePage ? 'kjb-audio-listening' : ''} ${(listenMode && !isViewingTitlePage && ((filterMode && selectedVerses.size > 0) || highlightedVerses.size > 0)) ? 'kjb-audio-filtered' : ''}`}>
-      <AudioProvider book={book} chapter={pos.chapter} verses={verses} active={listenMode && !isViewingTitlePage} onClose={() => setListenMode(false)} onChapterEnd={() => goNext(true)} range={(filterMode && selectedVerses.size > 0) ? { firstVerse: Math.min(...selectedVerses), lastVerse: Math.max(...selectedVerses) } : (highlightedVerses.size > 0 ? { firstVerse: Math.min(...highlightedVerses), lastVerse: Math.max(...highlightedVerses) } : null)} startVerse={readFromVerse} onStartVerseConsumed={handleStartVerseConsumed} searchTerm={searchTerm}>
+    <div onClick={(e) => { if (!e.target.closest('.kjb-verse-container, h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a')) { setHighlightVerse(null); setHighlightSection(null); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-3 ${hideHeader ? 'pt-16' : ''}`}>
       {!hideHeader && (
         <div ref={topRef} className="print:hidden sticky top-0 z-[100] border-b border-border pb-4 pt-3 mb-8 relative shadow-sm -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background before:content-[''] before:absolute before:bottom-full before:left-0 before:right-0 before:h-12 before:bg-background">
           <div
@@ -1779,15 +1751,6 @@ export default function BibleReader() {
               </DropdownMenu>
 
               <button
-                onClick={() => setListenMode(m => !m)}
-                title={listenMode ? 'Close audio' : 'Listen (word-by-word)'}
-                className={`kjb-fixed-btn flex items-center justify-center gap-1.5 px-3 rounded-lg border transition-all duration-200 touch-manipulation h-10 whitespace-nowrap ${listenMode ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary border-border text-secondary-foreground hover:bg-accent/20'}`}
-              >
-                <Headphones className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />
-                <span className="hidden lg:inline">{listenMode ? 'Reading' : 'Listen'}</span>
-              </button>
-
-              <button
                 onClick={() => printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode)}
                 title="Print"
                 className="kjb-fixed-btn flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"
@@ -1964,7 +1927,6 @@ export default function BibleReader() {
             />
           )}
 
-          <ReaderAudioBar />
           </div>
           )}
 
@@ -1980,11 +1942,6 @@ export default function BibleReader() {
         />
       )}
 
-      {hideHeader && (
-        <div className="sticky top-0 z-[100] -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background border-b border-border print:hidden">
-          <ReaderAudioBar />
-        </div>
-      )}
       {!isViewingTitlePage && (
         <div className={`text-center mb-6 pt-8 ${(!columnMode || pos.chapter === 1 || (filterMode && selectedVerses.size > 0)) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
           {filterMode && selectedVerses.size > 0 ? (
@@ -2059,7 +2016,6 @@ export default function BibleReader() {
                   subscript={parseInt(v.verse, 10) === 1 ? (chapterSubscript || null) : null}
                   isCursive={fontFamily === 'cursive'} fontFamilyValue={getFontFamilyValue(fontFamily)} zoomLevel={zoomLevel} columnMode={useColumns} dropCap={idx === 0 && parseInt(v.verse, 10) === 1}
                   searchTerm={searchTerm && parseInt(highlightVerse, 10) === parseInt(v.verse, 10) ? searchTerm : null}
-                  onReadFromHere={handleReadFromHere}
                 />
               </React.Fragment>
               );
@@ -2073,7 +2029,6 @@ export default function BibleReader() {
           </div>
         )}
       </div>
-      </AudioProvider>
 
       {!loading && !error && ((pos.abbr === 'MAL' && pos.chapter === 4) || (pos.abbr === 'REV' && pos.chapter === 22)) && (
         <div className="text-center mt-14 mb-12 select-none">

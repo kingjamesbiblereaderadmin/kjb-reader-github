@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-import { Wrench, Image, CalendarDays, BookOpen, Tag, Smartphone, LogOut, Loader2, Puzzle, Activity } from 'lucide-react';
+import { Wrench, Image, CalendarDays, BookOpen, Tag, Smartphone, LogOut, Loader2, Puzzle } from 'lucide-react';
 import VerseImageTester from '@/components/dev/VerseImageTester';
 import DailyVerseSchedule from '@/components/dev/DailyVerseSchedule';
 import BibleTextEditor from '@/components/dev/BibleTextEditor';
 import VersionInfo from '@/components/dev/VersionInfo';
 import ManifestEditor from '@/components/dev/ManifestEditor';
 import ExtensionLinksEditor from '@/components/dev/ExtensionLinksEditor';
-import TTSProgressDashboard from '@/components/dev/TTSProgressDashboard';
 import DevToolErrorBoundary from '@/components/dev/DevToolErrorBoundary';
 import DevToolsSignIn from '@/components/dev/DevToolsSignIn';
 
@@ -20,7 +19,6 @@ const TABS = [
   { id: 'text', label: 'Edit Bible Text', icon: BookOpen },
   { id: 'manifest', label: 'Manifest & Icons', icon: Smartphone },
   { id: 'links', label: 'Extension Links', icon: Puzzle },
-  { id: 'tts', label: 'TTS Progress', icon: Activity },
   { id: 'version', label: 'Version', icon: Tag },
 ];
 
@@ -40,11 +38,6 @@ export default function DevToolsPage() {
   // Not signed in (or not an admin) → show the inline sign-in form.
   if (!user || user.role !== 'admin') {
     return <DevToolsSignIn />;
-  }
-
-  // TTS Progress dashboard is a full-screen embed — no Dev Tools chrome.
-  if (tab === 'tts') {
-    return <TTSProgressDashboard onBack={() => setTab('image')} />;
   }
 
   const handleLogout = () => {
@@ -91,7 +84,6 @@ export default function DevToolsPage() {
         {tab === 'text' && <BibleTextEditor />}
         {tab === 'manifest' && <ManifestEditor />}
         {tab === 'links' && <ExtensionLinksEditor />}
-        {tab === 'tts' && <TTSProgressDashboard />}
         {tab === 'version' && <VersionInfo />}
       </DevToolErrorBoundary>
     </div>

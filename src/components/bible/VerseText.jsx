@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { renderVerseText } from '@/lib/bibleApi';
-import { Copy, Share2, X, Highlighter, ChevronDown, Bookmark, BookmarkCheck, CheckSquare, Square, Headphones } from 'lucide-react';
+import { Copy, Share2, X, Highlighter, ChevronDown, Bookmark, BookmarkCheck, CheckSquare, Square } from 'lucide-react';
 import { isVerseSaved, saveVerse, removeSavedVerse } from '@/lib/savedVerses';
 import { BIBLE_BOOKS } from '@/lib/bibleData';
 import { formatVerseShare, buildVerseUrl } from '@/lib/formatDailyVerse';
 import VersePopover from '@/components/bible/VersePopover';
 import SaveFolderPicker from '@/components/bible/SaveFolderPicker';
-import { useAudio } from '@/components/bible/AudioProvider';
 
-export default function VerseText({ verse, highlight = false, id, bookName, abbr, chapter, isFirstVerse = false, paragraphMode = false, selectMode = false, isSelected = false, onSelect, onActivateSelect, totalVerses = 0, colophon = null, subscript = null, isCursive = false, fontFamilyValue = null, zoomLevel = 100, hasSubscript = false, searchTerm = null, dropCap = false, columnMode = false, onReadFromHere }) {
+export default function VerseText({ verse, highlight = false, id, bookName, abbr, chapter, isFirstVerse = false, paragraphMode = false, selectMode = false, isSelected = false, onSelect, onActivateSelect, totalVerses = 0, colophon = null, subscript = null, isCursive = false, fontFamilyValue = null, zoomLevel = 100, hasSubscript = false, searchTerm = null, dropCap = false, columnMode = false }) {
   const bookEntry = BIBLE_BOOKS.find(b => b.abbr === abbr);
   const shortBookName = bookEntry ? bookEntry.shortName : bookName;
   const [selected, setSelected] = useState(false);
@@ -24,7 +23,6 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   const [saved, setSaved] = useState(() => isVerseSaved(abbr, chapter, verse.verse));
   const [currentText, setCurrentText] = useState(verse.text);
   const [showFolderPicker, setShowFolderPicker] = useState(false);
-  const audio = useAudio();
 
   useEffect(() => {
     setCurrentText(verse.text);
@@ -66,29 +64,11 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   // Strip <<...>> superscription markers
   let displayVerseText = currentText.replace(/^<<[^>]*>>\s*/, '');
 
-  // In Listen mode, wrap each spoken word in a highlightable span carrying its
-  // global timeline index, so AudioProvider can karaoke-highlight words in
-  // place — using the REAL verse text (italics + drop cap intact), not the TTS
-  // transcript.
-  const audioWords = audio?.active ? (audio.wordsByVerse?.get(parseInt(verse.verse, 10)) || []) : [];
-  const audioIdxArr = audioWords.length
-    ? audioWords.slice().sort((a, b) => a.wordIndex - b.wordIndex).map((w) => w.idx)
-    : null;
-
   // renderVerseText handles [italics] and ¶ pilcrow styling, plus search term highlighting
-  let html = renderVerseText(displayVerseText, searchTerm, audioIdxArr);
+  let html = renderVerseText(displayVerseText, searchTerm, null);
 
-  // Shared click handler: in Listen mode, tapping a word seeks the audio to it;
-  // otherwise it toggles the verse action menu (or selects in select mode).
+  // Shared click handler: toggles the verse action menu (or selects in select mode).
   const handleVerseClick = (e) => {
-    if (audio?.active) {
-      const el = e.target?.closest?.('[data-audio-idx]');
-      const idx = el?.dataset?.audioIdx;
-      if (idx != null && idx !== '') {
-        const w = audioWords.find((w) => String(w.idx) === String(idx));
-        if (w) { audio.seekToWord(w); return; }
-      }
-    }
     if (selectMode) { onSelect?.(verse.verse); return; }
     setSelected((s) => !s);
   };
@@ -130,15 +110,9 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     // (aligned with verses 2+), so the floated group holds ONLY the big letter —
     // its left edge then lands flush with the next verse's first word. Paragraph
     // mode has no gutter, so the number stays inside the floated group there.
-    // Give the drop-cap letter its OWN data-audio-idx (matching verse 1's first
-    // spoken word) so AudioProvider highlights it directly. The floated letter
-    // sits outside the active word span's inline background box, so an ancestor
-    // selector alone doesn't reliably tint the cap.
-    const firstAudioIdx = audioIdxArr && audioIdxArr.length ? audioIdxArr[0] : null;
-    const letterAudioAttr = firstAudioIdx != null ? ` data-audio-idx="${firstAudioIdx}"` : '';
     const groupInner = paragraphMode
-      ? `<span class="kjb-dropcap-num">${verse.verse}</span><span class="kjb-dropcap-letter"${letterStyle}${letterAudioAttr}>$2</span>`
-      : `<span class="kjb-dropcap-letter"${letterStyle}${letterAudioAttr}>$2</span>`;
+      ? `<span class="kjb-dropcap-num">${verse.verse}</span><span class="kjb-dropcap-letter"${letterStyle}>$2</span>`
+      : `<span class="kjb-dropcap-letter"${letterStyle}>$2</span>`;
     html = html.replace(
       /^((?:<[^>]+>|\s)*)([A-Za-z])/,
       `$1<span class="kjb-dropcap-group"${groupStyle}>${groupInner}</span>`
@@ -399,16 +373,6 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
             title="Select verses"
           >
             <CheckSquare className="w-3 h-3" /> Select
-          </button>
-        )}
-        {onReadFromHere && (
-          <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setSelected(false); onReadFromHere(verse.verse); }}
-            onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setSelected(false); onReadFromHere(verse.verse); }}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-accent/20 text-accent hover:bg-accent/30 font-sans text-xs font-medium transition-colors"
-            title="Listen from here"
-          >
-            <Headphones className="w-3 h-3" /> Read from here
           </button>
         )}
         <button
