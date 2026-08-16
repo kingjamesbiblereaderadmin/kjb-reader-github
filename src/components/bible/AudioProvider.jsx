@@ -83,6 +83,7 @@ function scrollVerseIntoView(el, force) {
   } else if (elTop >= visibleTop && elBottom <= visibleBottom) {
     return; // already fully in view
   } else if (elTop < visibleTop) {
+    if (elBottom <= visibleTop) return; // user scrolled past — don't yank back
     target = scroller.scrollTop + elTop - visibleTop;
   } else {
     target = scroller.scrollTop + elBottom - visibleBottom;
