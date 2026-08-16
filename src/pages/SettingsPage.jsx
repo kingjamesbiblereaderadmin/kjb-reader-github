@@ -363,14 +363,22 @@ export default function SettingsPage() {
       alert('This browser/PWA does not support notifications.');
       return;
     }
-    // Only an explicit OS/browser 'denied' blocks the test. In the Android TWA
-    // the web Notification.permission can read as 'default' even after the user
-    // granted via the OS prompt — re-prompting there is what forced the extra
-    // "accept permission" step. showLocalNotification still fires via the TWA's
-    // notification delegation, so just attempt it.
-    if ('Notification' in window && Notification.permission === 'denied') {
-      alert('Notifications are blocked. Please enable notifications for this app in your device settings, then try again.');
+    if (!('Notification' in window)) {
+      alert('This browser/PWA does not support notifications.');
       return;
+    }
+    // A notification can only be shown when the OS/browser permission is
+    // 'granted'. In the Android TWA the web Notification.permission can read
+    // as 'default' even after the user enabled reminders via the home bell, so
+    // request it here (one prompt) and then fire the test. If it's already
+    // 'granted' this is a no-op and the notification fires immediately.
+    if (Notification.permission !== 'granted') {
+      const result = await Notification.requestPermission();
+      setNotifPermission(result);
+      if (result !== 'granted') {
+        alert('Notifications are blocked. Please enable notifications for this app in your device settings, then try again.');
+        return;
+      }
     }
 
     const v = getDailyVerse();
