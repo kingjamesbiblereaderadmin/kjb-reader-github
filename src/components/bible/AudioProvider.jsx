@@ -255,6 +255,23 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     return m;
   }, [rawTiming]);
 
+  // Sorted verse-start list derived from the timing `verses` array. The active
+  // verse is determined by which verse's narration window has opened (largest
+  // verse start <= currentTime), NOT by the last spoken word's timestamp — so
+  // the highlight advances to the next verse as soon as its window opens,
+  // instead of lagging on the previous verse through the inter-verse gap until
+  // the next verse's first word `start` is reached (the "stuck on the last
+  // verse, then syncs back" effect).
+  const verseStarts = useMemo(() => {
+    if (!verseTimings || !verseTimings.size) return null;
+    const arr = [];
+    verseTimings.forEach((v, vn) => { if (Number.isFinite(v.start)) arr.push({ verse: vn, start: v.start }); });
+    arr.sort((a, b) => a.start - b.start);
+    return arr.length ? arr : null;
+  }, [verseTimings]);
+  const verseStartsRef = useRef(null);
+  useEffect(() => { verseStartsRef.current = verseStarts; }, [verseStarts]);
+
   // Resolve the range's start/end times. Prefer the `verses` array, fall back
   // to the word timeline.
   const rangeStart = useMemo(() => {
@@ -511,15 +528,31 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       setCurrentTime(a.currentTime);
       // Highlight both the whole verse and the individual word being narrated.
       const idx = findActiveWordIndex(timeline, a.currentTime);
-      updateActiveVerse(idx >= 0 ? timeline[idx].verse : null);
+      const wordVerse = idx >= 0 ? timeline[idx].verse : null;
+      // Prefer verse-narration windows for the active verse so the highlight
+      // advances to the next verse as soon as its window opens, not when its
+      // first word's `start` is reached (which lags during the inter-verse gap).
+      let tVerse = null;
+      const vs = verseStartsRef.current;
+      if (vs && vs.length) {
+        let lo = 0, hi = vs.length - 1, ans = -1;
+        while (lo <= hi) {
+          const mid = (lo + hi) >> 1;
+          if (vs[mid].start <= a.currentTime) { ans = mid; lo = mid + 1; }
+          else hi = mid - 1;
+        }
+        if (ans >= 0) tVerse = vs[ans].verse;
+      }
+      updateActiveVerse(tVerse != null ? tVerse : wordVerse);
       updateActiveWord(idx);
       // Keep the narrated verse clear of the sticky toolbar (which can clip its
       // top edge after a manual scroll or two-column reflow). Only nudge when
       // the verse is partially clipped at the top edge — never yank when the
       // user has scrolled past it. Instant (not smooth) to avoid janky per-frame
       // scroll queues.
-      if (idx >= 0) {
-        const vn = timeline[idx].verse;
+      const activeVn = tVerse != null ? tVerse : wordVerse;
+      if (activeVn != null) {
+        const vn = activeVn;
         const ve = vn != null ? document.querySelector(`[data-audio-verse="${vn}"]`) : null;
         const scroller = ve && document.getElementById('kjb-scroll');
         if (ve && scroller) {
