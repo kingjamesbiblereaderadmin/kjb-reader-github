@@ -335,28 +335,21 @@ export function buildWordTimeline(verses, timing) {
   return out;
 }
 
-// The browser's reported audio `currentTime` trails the actual sound coming
-// out of the speakers by the audio-output buffer (~150–250 ms on most
-// devices), so a highlight driven directly off `currentTime` lags the narrator
-// — the voice "speeds ahead" of the highlight. Advancing the effective time
-// by this lead makes the highlight anticipate the audio output so it lines up
-// with what the listener actually hears.
 // Find the index of the active word for a given playback time (seconds).
 //
-// The highlight is driven directly off the <audio> element's currentTime.
-// Previously a +0.2s "lead" was applied to anticipate the audible output, but
-// the audible sound actually LAGS currentTime (decoded samples sit in the
-// output buffer before reaching the speakers), so advancing the effective time
-// made the highlight run AHEAD of the narrator — the "speeding" desync. Using
-// currentTime with no lead keeps the highlight aligned with what's being read.
+// The audible output leads the <audio> element's reported currentTime by a
+// small, device-dependent amount (the decoded samples are buffered ahead of
+// the reported position). Empirically: with NO lead the highlight lags behind
+// the narrator ("too slow"); with +0.2s it runs ahead ("speeding"). +0.1s is
+// the sweet spot that keeps the highlight on the spoken word.
 //
-// The highlight is also STICKY: once a word's start is reached it stays active
-// until the next word begins, instead of clearing during the inter-word gap.
-// This prevents the highlight from flickering off and jumping ahead between
-// words, so it advances smoothly word-by-word with the narrator.
+// The highlight is STICKY: once a word's start is reached it stays active until
+// the next word begins, instead of clearing during the inter-word gap. This
+// prevents flicker and makes it advance smoothly word-by-word with the narrator.
+const AUDIO_LEAD_S = 0.1;
 export function findActiveWordIndex(timeline, time) {
   if (!timeline.length) return -1;
-  const t = time;
+  const t = time + AUDIO_LEAD_S;
   // Binary search for the last word whose start <= t.
   let lo = 0, hi = timeline.length - 1, ans = -1;
   while (lo <= hi) {

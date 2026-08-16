@@ -1978,7 +1978,7 @@ export default function BibleReader() {
         </div>
       )}
       {!isViewingTitlePage && (
-        <div className={`text-center mb-6 pt-8 ${(!columnMode || pos.chapter === 1) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
+        <div className={`text-center mb-6 pt-8 ${(!columnMode || pos.chapter === 1 || (filterMode && selectedVerses.size > 0)) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
           {filterMode && selectedVerses.size > 0 ? (
             // Verses-only (filtered) view: show the actual reference (e.g.
             // "John 3:16-18") of the passage being read, not just "John 3".
