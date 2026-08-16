@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.141', date: 'August 16, 2026', items: ['Fixed copy buttons (Read chapter, Results cards, Gospel, Resources) that silently failed when the side panel lost focus — now uses a fallback clipboard method'] },
   { version: 'v0.4.140', date: 'August 16, 2026', items: ['Added a scroll-to-top button in the Read and Results tabs that appears when scrolling past 200px'] },
   { version: 'v0.4.139', date: 'August 16, 2026', items: ['Added WCAG 3:1 contrast safeguard: detected Bible references now fall back to a high-contrast color when the host page\u2019s inherited text color is too low contrast'] },
   { version: 'v0.4.138', date: 'August 16, 2026', items: ['Fixed a race condition where the in-page overlay would open even when the side panel was already visible'] },
