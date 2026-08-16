@@ -98,13 +98,31 @@ export default function LandingSetupWizard() {
   });
   const { promptInstall } = useInstallPrompt();
 
-  // Per-step completion — only true when the user actually interacted.
-  const [completed, setCompleted] = useState({
-    install: false,
-    notifications: false,
-    theme: false,
-    fonts: false,
-    a11y: false,
+  // Per-step completion. Initialized from actual persisted settings (not just
+  // this-session interactions) so a step already configured earlier — e.g.
+  // notifications already granted, or a theme/font already chosen — shows its
+  // tick mark immediately instead of only after re-clicking it in the wizard.
+  const [completed, setCompleted] = useState(() => {
+    let theme = false, fonts = false, a11y = false;
+    try {
+      const m = localStorage.getItem('kjb-theme-mode');
+      const cid = localStorage.getItem('kjb-colour');
+      const cm = localStorage.getItem('kjb-color-mode');
+      theme = (m && m !== 'system') || (cid && cid !== 'gold') || (cm && cm !== 'daily');
+    } catch {}
+    try {
+      const rf = localStorage.getItem('kjb-reader-font-family');
+      const vf = localStorage.getItem('kjb-verse-font-family');
+      fonts = (rf && rf !== 'serif') || (vf && vf !== 'serif') || getAccessibilityFont() !== 'default';
+    } catch {}
+    a11y = getAccessibilityFont() !== 'default';
+    return {
+      install: false,
+      notifications: getNotificationsEnabled(),
+      theme: !!theme,
+      fonts: !!fonts,
+      a11y,
+    };
   });
 
   const [notifEnabled, setNotifEnabled] = useState(getNotificationsEnabled);
