@@ -282,29 +282,43 @@ export async function showLocalNotification(title, body, imageUrl = null, target
           console.log('[Notif] ✅ Service worker notification sent successfully');
           return { ok: true };
         } catch (firstErr) {
-          // Android TWA quirk: Notification.requestPermission() can resolve
-          // 'granted' (OS prompt accepted) while the web Notification.permission
-          // still reads 'default', so the SW's showNotification throws
-          // "No notification permission has been granted for this origin".
-          // Since this flow is triggered from a user gesture (Test button /
-          // toggle), we can re-request the web permission now — the prompt
-          // is either a no-op (already granted at OS level) or shows the web
-          // prompt — then retry showNotification once.
+          // Android TWA / Chrome quirk: Notification.requestPermission() can
+          // resolve 'granted' (OS prompt accepted) while the SW layer hasn't
+          // been told yet, so reg.showNotification throws "No notification
+          // permission has been granted for this origin" — even when
+          // Notification.permission already reads 'granted'. Re-requesting
+          // permission when the JS API already says 'granted' is a no-op, so
+          // the only thing that helps is waiting for the grant to propagate
+          // and retrying. We retry a few times with increasing delays.
           console.warn('[Notif] SW showNotification failed first attempt:', firstErr.message);
+          const isPermError = /notification permission/i.test(firstErr.message || '');
+
+          // If the JS API doesn't think we have permission, re-request once
+          // (this is a user-gesture-initiated call, so the prompt is allowed).
           if ('Notification' in window && Notification.permission !== 'granted') {
             try {
               const r = await Notification.requestPermission();
               console.log('[Notif] re-request result:', r);
-              if (r === 'granted') {
-                // Give the web permission a moment to propagate in the TWA
-                // before retrying the SW call.
-                await waitForNotifGranted(1500);
-                await reg.showNotification(title, opts);
-                console.log('[Notif] ✅ Service worker notification sent on retry');
-                return { ok: true };
-              }
             } catch (retryErr) {
-              console.warn('[Notif] re-request/retry failed:', retryErr.message);
+              console.warn('[Notif] re-request failed:', retryErr.message);
+            }
+          }
+
+          // Whether or not we re-requested, retry showNotification a few
+          // times — the SW permission state can lag behind the JS API by a
+          // couple of seconds (TWA / Chrome after a fresh grant).
+          if (isPermError) {
+            const delays = [800, 1500, 3000];
+            for (let i = 0; i < delays.length; i++) {
+              try {
+                await new Promise((res) => setTimeout(res, delays[i]));
+                await waitForNotifGranted(1000);
+                await reg.showNotification(title, opts);
+                console.log(`[Notif] ✅ Service worker notification sent on retry ${i + 1}`);
+                return { ok: true };
+              } catch (retryErr) {
+                console.warn(`[Notif] retry ${i + 1} failed:`, retryErr.message);
+              }
             }
           }
           throw firstErr;
