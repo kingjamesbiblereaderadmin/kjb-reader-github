@@ -277,9 +277,38 @@ export async function showLocalNotification(title, body, imageUrl = null, target
       ]) || await navigator.serviceWorker.getRegistration();
       if (reg && reg.active) {
         console.log('[Notif] SW active, calling showNotification');
-        await reg.showNotification(title, opts);
-        console.log('[Notif] ✅ Service worker notification sent successfully');
-        return { ok: true };
+        try {
+          await reg.showNotification(title, opts);
+          console.log('[Notif] ✅ Service worker notification sent successfully');
+          return { ok: true };
+        } catch (firstErr) {
+          // Android TWA quirk: Notification.requestPermission() can resolve
+          // 'granted' (OS prompt accepted) while the web Notification.permission
+          // still reads 'default', so the SW's showNotification throws
+          // "No notification permission has been granted for this origin".
+          // Since this flow is triggered from a user gesture (Test button /
+          // toggle), we can re-request the web permission now — the prompt
+          // is either a no-op (already granted at OS level) or shows the web
+          // prompt — then retry showNotification once.
+          console.warn('[Notif] SW showNotification failed first attempt:', firstErr.message);
+          if ('Notification' in window && Notification.permission !== 'granted') {
+            try {
+              const r = await Notification.requestPermission();
+              console.log('[Notif] re-request result:', r);
+              if (r === 'granted') {
+                // Give the web permission a moment to propagate in the TWA
+                // before retrying the SW call.
+                await waitForNotifGranted(1500);
+                await reg.showNotification(title, opts);
+                console.log('[Notif] ✅ Service worker notification sent on retry');
+                return { ok: true };
+              }
+            } catch (retryErr) {
+              console.warn('[Notif] re-request/retry failed:', retryErr.message);
+            }
+          }
+          throw firstErr;
+        }
       } else {
         console.log('[Notif] No active service worker found, falling back to standard API.');
       }
