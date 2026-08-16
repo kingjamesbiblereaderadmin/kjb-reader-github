@@ -1,16 +1,11 @@
 [
   {
-    "relation": [
-      "delegate_permission/common.handle_all_urls"
-    ],
+    "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
       "package_name": "com.godisgracious1031m.kjbreader",
       "sha256_cert_fingerprints": [
-        "20:F8:D9:8F:3D:D4:75:BD:06:C1:CE:F1:10:AA:40:39:69:56:80:30:13:6B:E4:89:07:0A:DB:A6:F1:A2:5F:52",
-        "0B:66:D6:5E:9F:BC:32:0B:D3:08:1A:69:58:CB:A4:DD:E4:B6:00:29:CF:76:09:1D:9C:78:AA:76:BC:A4:7A:3C",
-        "5B:6D:B6:F3:50:7A:BC:9D:B6:88:D0:85:52:C8:43:0C:93:F5:82:53:D9:57:E7:DA:27:CB:29:A8:D3:CD:79:86",
-        "3F:F1:92:CE:DC:FC:CA:F6:49:E6:1B:22:38:96:A3:47:6C:24:EB:1E:13:5C:1C:CA:2E:8D:3C:C5:F7:FB:89:74"
+        "CD:F4:D3:04:49:18:51:EF:63:D4:A5:D8:73:69:49:D9:ED:F6:65:8D:54:EB:DD:3B:65:F9:4C:DF:4C:7A:6A:C6"
       ]
     }
   }
