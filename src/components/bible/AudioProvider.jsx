@@ -14,6 +14,29 @@ export const CurrentTimeContext = createContext({ currentTime: 0 });
 
 const SPEEDS = [0.75, 1, 1.25, 1.5, 1.75, 2];
 
+// Speak a short reference string (e.g. "Genesis chapter 2, verse 2") via the
+// browser's built-in speech synthesis, then call `onDone`. Falls back to
+// calling onDone immediately when speech synthesis is unavailable, and uses a
+// safety timeout so a missing `onend` (some Android WebView builds) never
+// blocks playback. Used to announce the verse reference before a filtered
+// passage begins — the pre-recorded chapter audio has no per-verse header.
+function speakThenPlay(text, onDone) {
+  let done = false;
+  const finish = () => { if (done) return; done = true; onDone(); };
+  try {
+    const synth = window.speechSynthesis;
+    if (!synth || typeof window.SpeechSynthesisUtterance === 'undefined') { finish(); return; }
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 1; u.lang = 'en-US';
+    u.onend = finish;
+    u.onerror = finish;
+    // Safety bound: if the engine never fires onend, proceed anyway.
+    setTimeout(finish, Math.max(2500, text.length * 85));
+    synth.speak(u);
+  } catch { finish(); }
+}
+
 // Provides chapter audio state to the Read page: fetches the ChapterAudio
 // record(s) + timing JSON, builds a chapter-wide word timeline, drives an
 // <audio> element, and exposes play/seek/speed/voice controls. The active-word
@@ -58,6 +81,9 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   const rangeEndRef = useRef(null);
   // Queued play while waiting for the filtered range's start time to load.
   const pendingRangePlayRef = useRef(false);
+  // Whether the filtered passage's reference has already been announced for
+  // the current range (so we announce once per passage, not on every resume).
+  const rangeAnnouncedRef = useRef(false);
   // When the user switches voice mid-playback, capture the current position so
   // the new voice's audio resumes from the same spot instead of restarting.
   const pendingResumeRef = useRef(null);
@@ -180,6 +206,17 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   useEffect(() => { rangeEndRef.current = rangeEnd; }, [rangeEnd]);
   useEffect(() => { if (!range) pendingRangePlayRef.current = false; }, [range]);
 
+  // Spoken reference text for the filtered passage (e.g. "Genesis chapter 2,
+  // verse 2" / "...verses 2 to 5"), announced before playback begins.
+  const rangeRefText = useMemo(() => {
+    if (!range) return '';
+    const name = book?.shortName || book?.name || '';
+    if (range.firstVerse === range.lastVerse) return `${name} chapter ${chapter}, verse ${range.firstVerse}`;
+    return `${name} chapter ${chapter}, verses ${range.firstVerse} to ${range.lastVerse}`;
+  }, [range, book, chapter]);
+  const rangeKey = range ? `${range.firstVerse}-${range.lastVerse}` : null;
+  useEffect(() => { rangeAnnouncedRef.current = false; }, [rangeKey]);
+
   // Per-verse word slices with global timeline indices, for VerseText.
   const wordsByVerse = useMemo(() => {
     const m = new Map();
@@ -280,6 +317,27 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     }
   }, []);
 
+  // Begin (or restart) filtered-mode playback at the verse: seek to the range
+  // start, then — the first time for this passage — announce the reference via
+  // speech synthesis before starting the audio, so the listener hears
+  // "Genesis chapter 2, verse 2" before the verse is read.
+  const startRangePlayback = useCallback((announce) => {
+    const a = audioRef.current; if (!a) return;
+    const rs = rangeStartRef.current;
+    if (rs == null || !Number.isFinite(rs)) return;
+    a.currentTime = rs;
+    setCurrentTime(rs);
+    updateActive(findActiveWordIndex(timeline, rs), true, true);
+    syncIntro(rs);
+    const play = () => { a.play().catch(() => {}); };
+    if (announce && rangeAnnouncedRef.current === false && rangeRefText) {
+      rangeAnnouncedRef.current = true;
+      speakThenPlay(rangeRefText, play);
+    } else {
+      play();
+    }
+  }, [timeline, updateActive, syncIntro, rangeRefText]);
+
   // Foolproof filtered-mode playback. The verse range's start time can only be
   // computed once the timing JSON loads (timeline / verseTimings). If the user
   // presses play before that — or activates Listen right as the chapter loads —
@@ -299,9 +357,9 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     }
     if (pendingRangePlayRef.current) {
       pendingRangePlayRef.current = false;
-      a.play().catch(() => {});
+      startRangePlayback(true);
     }
-  }, [rangeStart, audioReady, timeline, updateActive, syncIntro]);
+  }, [rangeStart, audioReady, timeline, updateActive, syncIntro, startRangePlayback]);
 
   // rAF loop while playing: update scrubber + active word.
   useEffect(() => {
@@ -370,7 +428,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   // Pause + clear when deactivated, or when timeline changes.
   useEffect(() => {
     if (!active && audioRef.current) audioRef.current.pause();
-    if (!active) { clearHighlight(); clearIntro(); autoPlayRef.current = false; }
+    if (!active) { clearHighlight(); clearIntro(); autoPlayRef.current = false; try { window.speechSynthesis?.cancel?.(); } catch {} }
   }, [active, clearHighlight, clearIntro]);
   useEffect(() => { timelineRef.current = timeline; clearHighlight(); }, [timeline, clearHighlight]);
 
@@ -406,8 +464,12 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       const re = rangeEndRef.current;
       if (rs != null) {
         if (a.currentTime < rs - 0.05 || a.currentTime >= (re ?? Infinity)) {
-          a.currentTime = rs;
+          // Starting fresh at the verse — announce the reference first.
+          suppressIntroRef.current = false;
+          startRangePlayback(true);
+          return;
         }
+        // Resuming within the range — no announcement.
         a.play().catch(() => {});
       } else if (range) {
         // Range set but its start time isn't ready yet (timing still loading).
@@ -425,8 +487,9 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       syncIntro(a.currentTime);
     } else {
       a.pause();
+      try { window.speechSynthesis?.cancel?.(); } catch {}
     }
-  }, [record, range, timeline, updateActive, syncIntro]);
+  }, [record, range, timeline, updateActive, syncIntro, startRangePlayback]);
 
   const restart = useCallback(() => {
     const a = audioRef.current; if (!a || !record) return;
@@ -437,6 +500,13 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       pendingRangePlayRef.current = true;
       return;
     }
+    if (range && rs != null) {
+      // Restart the filtered passage — re-announce the reference.
+      suppressIntroRef.current = false;
+      rangeAnnouncedRef.current = false;
+      startRangePlayback(true);
+      return;
+    }
     a.currentTime = rs ?? 0;
     setCurrentTime(a.currentTime);
     a.play().catch(() => {});
@@ -444,7 +514,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     suppressIntroRef.current = false;
     updateActive(findActiveWordIndex(timeline, a.currentTime), true, true);
     syncIntro(a.currentTime);
-  }, [record, range, timeline, updateActive, syncIntro]);
+  }, [record, range, timeline, updateActive, syncIntro, startRangePlayback]);
 
   const seek = useCallback((t) => {
     const a = audioRef.current; if (!a) return;
