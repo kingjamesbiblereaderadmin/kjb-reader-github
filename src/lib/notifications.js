@@ -83,6 +83,26 @@ export async function registerSW() {
   } catch { return null; }
 }
 
+// Wait up to maxMs for Notification.permission to reflect 'granted'. In an
+// Android TWA / WebView, Notification.requestPermission() can resolve with
+// 'granted' (the OS-level prompt was accepted) BEFORE the web
+// Notification.permission actually updates — so an immediate
+// reg.showNotification throws "No notification permission has been granted
+// for this origin". Polling briefly lets the grant propagate.
+export function waitForNotifGranted(maxMs = 2000) {
+  return new Promise((resolve) => {
+    if (!('Notification' in window)) return resolve(false);
+    if (Notification.permission === 'granted') return resolve(true);
+    const start = Date.now();
+    const tick = () => {
+      if (Notification.permission === 'granted') return resolve(true);
+      if (Date.now() - start >= maxMs) return resolve(false);
+      setTimeout(tick, 100);
+    };
+    tick();
+  });
+}
+
 export function todayString() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -186,6 +206,7 @@ export async function showLocalNotification(title, body, imageUrl = null, target
   }
 
   const url = targetUrl ? (window.location.origin ? (window.location.origin + targetUrl) : targetUrl) : (window.location.origin ? (window.location.origin + '/') : '/');
+  let swError = null;
   const opts = {
     body,
     icon: APP_LOGO_URL,
@@ -220,8 +241,10 @@ export async function showLocalNotification(title, body, imageUrl = null, target
       }
     } catch (err) {
       console.error('[Notif] ❌ Service worker notification failed:', err.message);
-      // Fall through to standard API; if that also fails we report this error.
-      return { ok: false, error: 'SW showNotification failed: ' + (err.message || err.name) };
+      // Fall through to the standard Notification API (desktop / iOS). If that
+      // also fails, report the SW error since it's the more useful diagnosis
+      // on Android/PWA/TWA where the standard constructor is unsupported.
+      swError = 'SW showNotification failed: ' + (err.message || err.name);
     }
   } else {
     console.error('[Notif] Service Worker not available');
@@ -247,7 +270,7 @@ export async function showLocalNotification(title, body, imageUrl = null, target
       ? 'permission is ' + Notification.permission + ' (needs "granted")'
       : 'no active service worker';
   console.warn('[Notif] No notification method available:', reason);
-  return { ok: false, error: reason };
+  return { ok: false, error: swError || reason };
 }
 
 async function fireNotificationNow() {

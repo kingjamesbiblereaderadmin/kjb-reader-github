@@ -17,7 +17,7 @@ import ContactLinks from '@/components/ContactLinks';
 import { useAuth } from '@/lib/AuthContext';
 import {
   getNotificationsEnabled, getNotificationTime, setNotificationTime,
-  requestNotificationPermission, disableNotifications, scheduleDailyNotification, showLocalNotification, cleanForNotification, isNotifReallyOn
+  requestNotificationPermission, disableNotifications, scheduleDailyNotification, showLocalNotification, cleanForNotification, isNotifReallyOn, waitForNotifGranted
 } from '@/lib/notifications';
 
 
@@ -57,7 +57,7 @@ const isBookmarkBrowser = () => {
 };
 
 const LAST_REVISED = 'July 13th, 2026';
-const WORKER_VERSION = 'v20260816_1905';
+const WORKER_VERSION = 'v20260816_1912';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -370,6 +370,17 @@ export default function SettingsPage() {
       setNotifPermission(result);
       if (result !== 'granted') {
         alert('Notifications are blocked. Please enable notifications for this app in your device settings, then try again.');
+        return;
+      }
+      // In an Android TWA / WebView, requestPermission can resolve 'granted'
+      // before the web Notification.permission actually reflects it, which
+      // otherwise makes the SW's showNotification throw "No notification
+      // permission has been granted for this origin". Wait briefly for the
+      // grant to propagate before attempting to show.
+      const propagated = await waitForNotifGranted(2500);
+      setNotifPermission(Notification.permission);
+      if (!propagated) {
+        alert('The permission prompt was accepted, but this app shell hasn\'t applied notification permission to the web origin yet.\n\nClose the app fully and reopen it, then tap Test again. If it still fails, enable notifications for this app in your device\'s Settings → Apps → KJB Reader → Notifications.');
         return;
       }
     }
