@@ -455,13 +455,21 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     activeWordIdxRef.current = -1;
   }, []);
 
-  // Scroll the view to the word the narrator is at — or, for a fresh start
-  // whose seek position is before the first scripture word (e.g. t=0 while the
-  // spoken chapter header plays), the first word at/after that position.
-  // findActiveWordIndex returns -1 in that "before first word" case, so a bare
-  // updateActiveVerse(null) scrolls nothing and the view stays put when the user
-  // presses play/restart. This always lands the reader on the narration.
+  // Scroll the view to the word the narrator is at. In full-chapter mode (no
+  // range), when the playback position is during the spoken chapter intro
+  // (before verse 1's first word — e.g. t=0 on a fresh play), the narrator is
+  // still speaking the book name / chapter heading, so the view should stay at
+  // the top of the page showing that header instead of jumping down to verse 1.
+  // findActiveWordIndex returns -1 in that "before first word" case, so without
+  // this the fallback below would scroll to verse 1's first word the moment the
+  // user presses play, skipping past the title being narrated.
   const jumpToNarrator = useCallback((t) => {
+    const v1 = verse1StartRef.current;
+    if (rangeStartRef.current == null && Number.isFinite(v1) && v1 > 0
+        && Number.isFinite(t) && t < v1 - 0.01) {
+      const scroller = document.getElementById('kjb-scroll');
+      if (scroller) { scroller.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    }
     let idx = findActiveWordIndex(timeline, t);
     if (idx < 0) idx = timeline.findIndex((w) => w.start >= (Number.isFinite(t) ? t : 0) - 0.01);
     if (idx < 0 && timeline.length) idx = 0;
