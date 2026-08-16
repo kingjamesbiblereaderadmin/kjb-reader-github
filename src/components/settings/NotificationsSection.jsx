@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, ChevronDown, AlertCircle } from 'lucide-react';
+import { Bell, ChevronDown, AlertCircle, Send } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import {
   getNotificationsEnabled,
@@ -7,6 +7,7 @@ import {
   disableNotifications,
   scheduleDailyNotification,
   showLocalNotification,
+  cleanForNotification,
 } from '@/lib/notifications';
 import { getDailyVerse } from '@/lib/dailyVerse';
 
@@ -51,6 +52,11 @@ export default function NotificationsSection({ expanded, onToggleExpand }) {
     setBlocked(result === 'denied');
   };
 
+  const handleTestNotification = () => {
+    const v = getDailyVerse();
+    showLocalNotification(`Daily Verse — ${v.ref}`, cleanForNotification(v.text), null);
+  };
+
   return (
     <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
       <button
@@ -75,6 +81,15 @@ export default function NotificationsSection({ expanded, onToggleExpand }) {
             </div>
             <Switch checked={enabled} onCheckedChange={handleToggle} />
           </div>
+          {enabled && (
+            <button
+              onClick={handleTestNotification}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-transparent border border-border text-foreground font-sans text-sm font-medium hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Send className="w-3.5 h-3.5" />
+              Send Test Notification
+            </button>
+          )}
           {blocked && (
             <p className="font-sans text-xs text-amber-600 dark:text-amber-400 flex items-start gap-1.5 leading-snug">
               <AlertCircle className="w-4 h-4 shrink-0 -mt-0.5" />

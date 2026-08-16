@@ -38,7 +38,9 @@ export function disableNotifications() {
 
 export function cleanForNotification(text) {
   if (!text) return '';
-  return text.replace(/[\[\]¶]/g, '').replace(/\s+/g, ' ').trim();
+  // Keep pilcrows (¶) so paragraph markers still show in the notification —
+  // only strip the [brackets] that mark supplied/italic words.
+  return text.replace(/[\[\]]/g, '').replace(/\s+/g, ' ').trim();
 }
 
 export async function showLocalNotification(title, body, icon, url) {
