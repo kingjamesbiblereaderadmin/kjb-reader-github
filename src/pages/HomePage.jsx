@@ -394,24 +394,41 @@ export default function HomePage() {
     }
     
     try {
-      console.log('Calling requestNotificationPermission...');
-      const result = await requestNotificationPermission();
-      console.log('Notification permission result:', result);
-      setNotifPermission(result);
-      
-      if (result === 'granted') {
-        console.log('Permission granted, enabling notifications');
+      // Request permission DIRECTLY first (synchronously-adjacent to the tap)
+      // so the browser ties the prompt to the user gesture. Awaiting the
+      // native bridge / SW before this can exhaust the transient-activation
+      // window and cause the browser to auto-deny the prompt — the same fix
+      // the landing-page wizard uses.
+      let permission;
+      try {
+        permission = await Notification.requestPermission();
+      } catch (err) {
+        console.warn('Direct requestPermission failed:', err?.message);
+        permission = Notification.permission;
+      }
+      console.log('Direct notification permission result:', permission);
+      setNotifPermission(permission);
+
+      if (permission === 'granted') {
+        // Persist the flag immediately (same as the wizard) so the toggle
+        // doesn't flip back off on the next isNotifReallyOn() re-check.
+        localStorage.setItem('kjb-notifications-enabled', 'true');
+        // Run the full setup (native bridge, SW registration) now that
+        // permission is already granted — these steps can safely await.
+        try {
+          await requestNotificationPermission();
+        } catch (err) {
+          console.warn('Full notif setup failed (non-fatal):', err?.message);
+        }
         setNotifEnabled(true);
         scheduleDailyNotification(verse);
         window.dispatchEvent(new Event('storage'));
-        // Fire an immediate confirmation notification so the user gets instant
-        // proof it works (and Android/Edge registers the notification channel).
         showLocalNotification(
           'Daily verse reminders on ✓',
           `You'll get the daily verse at ${(localStorage.getItem('kjb-notification-time') || '08:00')} each day.`,
           null
         );
-      } else if (result === 'denied') {
+      } else if (permission === 'denied') {
         console.log('Permission denied');
         alert('Notifications are blocked. Please allow notifications in your browser settings for this site.');
       }
