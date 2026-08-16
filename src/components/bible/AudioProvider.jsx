@@ -241,6 +241,17 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     return () => { cancelled = true; };
   }, [active, book?.name, chapter]);
 
+  // A manual chapter switch (Next/Prev, book/chapter picker, verse jump — not
+  // an auto-advance continuation) must never carry over a resume target set
+  // for the PREVIOUS chapter. pendingResumeRef is set on a mid-playback voice
+  // switch to resume at the same verse/word once the new voice's audio loads;
+  // if the chapter changes before that resume fires (e.g. the voice switch and
+  // the chapter switch happen close together), the stale target (e.g. "verse
+  // 3") would otherwise fire once the NEW chapter's audio becomes ready — the
+  // seek-to-word effect below has no way to tell it's stale — skipping straight
+  // past the recorded book-name + chapter intro and landing mid-chapter.
+  useEffect(() => { pendingResumeRef.current = null; }, [book?.name, chapter]);
+
   // Load timing JSON for the selected record.
   useEffect(() => {
     let cancelled = false;
