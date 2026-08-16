@@ -1981,7 +1981,7 @@ export default function BibleReader() {
       )}
 
       {hideHeader && (
-        <div className="sticky top-0 z-[100] -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background/95 backdrop-blur border-b border-border print:hidden">
+        <div className="sticky top-0 z-[100] -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background border-b border-border print:hidden">
           <ReaderAudioBar />
         </div>
       )}

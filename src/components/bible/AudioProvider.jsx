@@ -513,6 +513,26 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       const idx = findActiveWordIndex(timeline, a.currentTime);
       updateActiveVerse(idx >= 0 ? timeline[idx].verse : null);
       updateActiveWord(idx);
+      // Keep the narrated verse clear of the sticky toolbar (which can clip its
+      // top edge after a manual scroll or two-column reflow). Only nudge when
+      // the verse is partially clipped at the top edge — never yank when the
+      // user has scrolled past it. Instant (not smooth) to avoid janky per-frame
+      // scroll queues.
+      if (idx >= 0) {
+        const vn = timeline[idx].verse;
+        const ve = vn != null ? document.querySelector(`[data-audio-verse="${vn}"]`) : null;
+        const scroller = ve && document.getElementById('kjb-scroll');
+        if (ve && scroller) {
+          const sTop = scroller.getBoundingClientRect().top;
+          const sticky = scroller.querySelector('.sticky.top-0');
+          const topPad = sticky ? Math.max(12, sticky.getBoundingClientRect().bottom - sTop + 12) : 12;
+          const eTop = ve.getBoundingClientRect().top - sTop;
+          const eBottom = ve.getBoundingClientRect().bottom - sTop;
+          if (eTop < topPad - 8 && eBottom > topPad) {
+            scroller.scrollTo({ top: Math.max(0, scroller.scrollTop + eTop - topPad), behavior: 'auto' });
+          }
+        }
+      }
       syncIntro(a.currentTime);
       const re = rangeEndRef.current;
       if (re != null && a.currentTime >= re) {
