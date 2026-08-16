@@ -40,10 +40,12 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     } catch { return DEFAULT_VOICE; }
   });
   const [voice, setVoice] = useState(selectedVoice);
+  const [audioReady, setAudioReady] = useState(false);
 
   const audioRef = useRef(null);
   const rafRef = useRef(null);
   const activeIdxRef = useRef(-1);
+  const timelineRef = useRef([]);
   // When the chapter's audio ends, auto-advance to the next chapter and keep
   // playing. autoPlayRef is set on end and consumed when the next chapter's
   // audio metadata loads (onLoaded); a fallback timeout clears it if the next
@@ -197,17 +199,26 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   }, []);
 
   // Keep <audio> src + playbackRate in sync. When the voice changes (new record
-  // → new src) mid-playback, remember the position + playing state so the new
-  // voice can resume in place once its metadata loads.
+  // → new src) mid-playback, remember the currently-narrated WORD (by verse +
+  // wordIndex) and playing state, so the new voice can resume from the SAME
+  // word — not the same timestamp, since different voices are different
+  // recordings with different pacing and the same timestamp lands on a
+  // different word.
   useEffect(() => {
     const a = audioRef.current;
     if (!a || !record) return;
     if (a.src !== record.audio_url) {
-      if (!a.paused) {
-        pendingResumeRef.current = { time: a.currentTime, play: true };
-      } else if (a.currentTime > 0 && a.readyState >= 1) {
-        pendingResumeRef.current = { time: a.currentTime, play: false };
-      }
+      const wasPlaying = !a.paused;
+      const tl = timelineRef.current;
+      const curIdx = activeIdxRef.current;
+      const curWord = curIdx >= 0 && tl && tl[curIdx] ? tl[curIdx] : null;
+      pendingResumeRef.current = {
+        verse: curWord ? curWord.verse : null,
+        wordIndex: curWord ? curWord.wordIndex : null,
+        time: a.currentTime,
+        play: wasPlaying,
+      };
+      setAudioReady(false);
       a.src = record.audio_url;
     }
   }, [record]);
@@ -294,15 +305,10 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     const a = audioRef.current; if (!a) return;
     const onLoaded = () => {
       setDuration(a.duration || 0);
+      setAudioReady(true);
       if (autoPlayRef.current) {
         autoPlayRef.current = false;
         a.play().catch(() => {});
-      } else if (pendingResumeRef.current) {
-        const { time, play } = pendingResumeRef.current;
-        pendingResumeRef.current = null;
-        a.currentTime = time;
-        setCurrentTime(time);
-        if (play) a.play().catch(() => {});
       }
     };
     const onTime = () => setCurrentTime(a.currentTime);
@@ -340,7 +346,30 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     if (!active && audioRef.current) audioRef.current.pause();
     if (!active) { clearHighlight(); clearIntro(); autoPlayRef.current = false; }
   }, [active, clearHighlight, clearIntro]);
-  useEffect(() => { clearHighlight(); }, [timeline, clearHighlight]);
+  useEffect(() => { timelineRef.current = timeline; clearHighlight(); }, [timeline, clearHighlight]);
+
+  // Resume from the same word after a voice switch: once the new voice's audio
+  // is loaded AND its word timeline is built, seek to the remembered word's
+  // start (falling back to the old timestamp if the word isn't found) and
+  // resume playback if the user was playing.
+  useEffect(() => {
+    if (!pendingResumeRef.current || !audioReady || !timeline.length) return;
+    const a = audioRef.current;
+    if (!a) return;
+    const target = pendingResumeRef.current;
+    pendingResumeRef.current = null;
+    let ts = target.time;
+    if (target.verse != null) {
+      const w = timeline.find((x) => x.verse === target.verse && x.wordIndex === target.wordIndex)
+        || timeline.find((x) => x.verse === target.verse);
+      if (w) ts = w.start;
+    }
+    a.currentTime = ts;
+    setCurrentTime(ts);
+    updateActive(findActiveWordIndex(timeline, ts), false);
+    syncIntro(ts);
+    if (target.play) a.play().catch(() => {});
+  }, [timeline, audioReady, updateActive, syncIntro]);
 
   const togglePlay = useCallback(() => {
     const a = audioRef.current; if (!a || !record) return;
