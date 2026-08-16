@@ -3,6 +3,26 @@ import { useState, useEffect } from 'react';
 const DISMISSED_KEY = 'kjb-install-dismissed';
 const INSTALLED_KEY = 'kjb-is-installed';
 
+// Google Play Store listing for the native Android app (package: kjbreader.app).
+export const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=kjbreader.app';
+
+const isAndroidUA = () => {
+  if (typeof navigator === 'undefined') return false;
+  return /android/i.test(navigator.userAgent);
+};
+
+// Detect the native Android app — a WebView wrapper that loads the PWA. Its
+// MainActivity appends a " KJBReader" token to the user agent so the web side
+// can distinguish it from a plain Chrome-on-Android browser (the default
+// WebView UA lacks the "wv" marker). Fall back to the generic Android WebView
+// "wv" token for any build that doesn't carry the custom token.
+export const isNativeAndroidApp = () => {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  if (/KJBReader/i.test(ua)) return true;
+  return /android/i.test(ua) && /wv/i.test(ua);
+};
+
 // Install detection using display-mode media queries (synchronous, no flicker).
 // Once installed, state persists via localStorage until user manually resets.
 const checkInstalled = () => {
@@ -15,6 +35,14 @@ const checkInstalled = () => {
     return false;
   }
   
+  // 0. Native Android app (WebView wrapper) — already installed. The native
+  // app's UA carries a "KJBReader" token (or the generic Android "wv" marker),
+  // so we can tell it apart from a plain Chrome-on-Android browser.
+  if (isNativeAndroidApp()) {
+    localStorage.setItem(INSTALLED_KEY, 'true');
+    return true;
+  }
+
   // 1. PRIMARY: display-mode media queries (works inside PWA, synchronous, no flicker)
   const dmStandalone = window.matchMedia('(display-mode: standalone)').matches;
   const dmMinimal = window.matchMedia('(display-mode: minimal-ui)').matches;
@@ -163,5 +191,11 @@ export function useInstallPrompt() {
   };
   const handleDismiss = () => dismiss();
 
-  return { isInstallable, isInstalled, isLoading, isSamsung, promptInstall, dismiss, wasDismissed, handleInstall, handleDismiss };
+  return {
+    isInstallable, isInstalled, isLoading, isSamsung,
+    playStoreUrl: PLAY_STORE_URL,
+    isAndroidDevice: isAndroidUA(),
+    isNativeAndroid: isNativeAndroidApp(),
+    promptInstall, dismiss, wasDismissed, handleInstall, handleDismiss,
+  };
 }

@@ -37,7 +37,11 @@ class MainActivity : AppCompatActivity() {
             settings.setSupportMultipleWindows(true)
             // Google's OAuth flow rejects the default Android WebView user agent
             // ("disallowed_useragent"). Use a Chrome UA so sign-in completes in-app.
-            settings.userAgentString = "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+            // Append a "KJBReader" token so the PWA can detect it's running inside
+            // the native Android app (the default WebView UA looks like Chrome and
+            // lacks the "wv" marker, so without this token the web side can't tell
+            // the installed app apart from a plain Chrome-on-Android browser).
+            settings.userAgentString = "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36 KJBReader"
             // Allow 3rd-party cookies so the OAuth popup can set its session cookie.
             CookieManager.getInstance().setAcceptCookie(true)
             CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
