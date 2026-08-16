@@ -6,10 +6,14 @@ const ENABLED_KEY = 'kjb-notifications-enabled';
 const TIME_KEY = 'kjb-notification-time';
 let dailyTimeoutId = null;
 
+// The browser's own Notification permission is the source of truth for
+// "enabled" — granting it through the app's bell OR any other route (the
+// browser's own prompt, a site-settings toggle, etc.) should show the bell as
+// on. The stored flag is only used to remember an explicit in-app "turn off".
 export function getNotificationsEnabled() {
   try {
-    return localStorage.getItem(ENABLED_KEY) === 'true' &&
-      'Notification' in window && Notification.permission === 'granted';
+    if (!('Notification' in window) || Notification.permission !== 'granted') return false;
+    return localStorage.getItem(ENABLED_KEY) !== 'false';
   } catch {
     return false;
   }
