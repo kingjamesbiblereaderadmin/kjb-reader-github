@@ -27,7 +27,7 @@ const isEdgeMobile = () => {
 };
 
 export default function InstallAppSection({ expanded, isIncognito }) {
-  const { isInstallable, isInstalled: hookIsInstalled, isSamsung, promptInstall, playStoreUrl, isAndroidDevice, isNativeAndroid } = useInstallPrompt();
+  const { isInstallable, isInstalled: hookIsInstalled, isSamsung, promptInstall } = useInstallPrompt();
   const [isInstalled, setIsInstalled] = useState(false);
   const [showInstallHint, setShowInstallHint] = useState(false);
   const [bookmarkBrowser] = useState(isBookmarkBrowser);
@@ -187,17 +187,6 @@ export default function InstallAppSection({ expanded, isIncognito }) {
           </div>
         ) : (
           <div className="space-y-3">
-            {isAndroidDevice && !isNativeAndroid && (
-              <a
-                href={playStoreUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 border border-green-700/40 text-white font-sans text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-green-600/20"
-              >
-                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M3.609 1.814 13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893 2.302 2.302-10.937 6.333 8.635-8.635zm3.788-1.716a1.024 1.024 0 0 1 0 1.818l-2.69 1.557-2.602-2.602 2.602-2.602 2.69 1.557zM5.864 2.658 16.802 9.99l-2.302 2.302L5.864 2.658z"/></svg>
-                Get it on Google Play
-              </a>
-            )}
             <button
               onClick={handleInstall}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary border border-primary text-primary-foreground font-sans text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
