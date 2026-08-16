@@ -435,6 +435,18 @@
     background-color: hsl(var(--accent) / 0.22);
     border-radius: 0.25rem;
   }
+  /* Filter / search mode: the matching verses already carry yellow <mark>
+     highlights on the search term, so the subtle accent tint above barely
+     stands out. Give the verse being narrated a stronger tint plus a clear
+     accent "now playing" bar on the left edge of the verse container so the
+     listener can tell which verse is being read at a glance. */
+  .kjb-audio-filtered .kjb-audio-verse-active .kjb-verse-text {
+    background-color: hsl(var(--accent) / 0.35);
+  }
+  .kjb-audio-filtered .kjb-audio-verse-active {
+    box-shadow: inset 3px 0 0 0 hsl(var(--accent));
+    border-radius: 0.25rem;
+  }
   .kjb-audio-word { border-radius: 2px; }
   .kjb-audio-active {
     background-color: hsl(var(--accent) / 0.4);

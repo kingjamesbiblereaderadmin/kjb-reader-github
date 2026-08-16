@@ -60,7 +60,7 @@ function speakThenPlay(text, onDone) {
 // karaoke highlight is applied DOM-direct (via data-audio-idx attributes) so
 // verse text never re-renders on each animation frame — only the mini-player
 // bar (a single small component) re-renders with currentTime.
-export default function AudioProvider({ book, chapter, verses, active, onClose, onChapterEnd, children, range, startVerse, onStartVerseConsumed }) {
+export default function AudioProvider({ book, chapter, verses, active, onClose, onChapterEnd, children, range, startVerse, onStartVerseConsumed, searchTerm }) {
   const [records, setRecords] = useState([]);
   const [record, setRecord] = useState(null);
   const [rawTiming, setRawTiming] = useState(null);
@@ -246,9 +246,18 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   const rangeRefText = useMemo(() => {
     if (!range) return '';
     const name = book?.shortName || book?.name || '';
-    if (range.firstVerse === range.lastVerse) return `${name} chapter ${chapter}, verse ${range.firstVerse}`;
-    return `${name} chapter ${chapter}, verses ${range.firstVerse} to ${range.lastVerse}`;
-  }, [range, book, chapter]);
+    const ref = range.firstVerse === range.lastVerse
+      ? `${name} chapter ${chapter}, verse ${range.firstVerse}`
+      : `${name} chapter ${chapter}, verses ${range.firstVerse} to ${range.lastVerse}`;
+    // When listening to a search result, also speak the search term so the
+    // listener knows what was being looked up, not just where it was found.
+    const term = searchTerm && typeof searchTerm === 'string' ? searchTerm.trim() : '';
+    if (term) {
+      const clean = term.replace(/^["']|["']$/g, '');
+      if (clean) return `${ref}. Searching for ${clean}.`;
+    }
+    return ref;
+  }, [range, book, chapter, searchTerm]);
   const rangeKey = range ? `${range.firstVerse}-${range.lastVerse}` : null;
   useEffect(() => { rangeAnnouncedRef.current = false; }, [rangeKey]);
 
@@ -399,7 +408,13 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       a.currentTime = rs;
       setCurrentTime(rs);
       syncIntro(rs);
-      a.play().catch(() => {});
+      // A short delay after seeking lets the audio decoder settle at the new
+      // position before playback begins. Without it, on some browsers the
+      // first frames after a mid-file seek play a stale tail buffer from the
+      // previous verse, audible as a faint leading "eh" right after the spoken
+      // reference. 60ms is imperceptible after the reference yet long enough to
+      // clear the artifact.
+      setTimeout(() => a.play().catch(() => {}), 60);
     };
     if (announce && rangeAnnouncedRef.current === false && rangeRefText) {
       rangeAnnouncedRef.current = true;
