@@ -142,15 +142,28 @@ function requestNativeNotifPermission() {
   });
 }
 
+// True when running inside the native Android app shell (WebView), where the
+// OS-level POST_NOTIFICATIONS permission — requested via window.KJBNative — is
+// the source of truth. The web Notification.requestPermission() is NOT
+// delegated to the OS there, so calling it would only show a redundant
+// Chrome-style prompt that can disagree with the OS grant.
+function inNativeShell() {
+  return typeof window !== 'undefined' && window.KJBNative && typeof window.KJBNative.requestNotificationPermission === 'function';
+}
+
 export async function requestNotificationPermission() {
   console.log('[Notif] requestNotificationPermission called');
   console.log('[Notif] Service Worker supported:', 'serviceWorker' in navigator);
   console.log('[Notif] Notification API supported:', 'Notification' in window);
 
   // Native Android shell bridge: request the OS POST_NOTIFICATIONS runtime
-  // permission first (Android 13+). This is the documented requirement for
-  // notifications in a TWA/WebView, and without it the web permission can
-  // resolve 'granted' while the OS still blocks the actual notification.
+  // permission (Android 13+). In the WebView shell the web
+  // Notification.requestPermission() is NOT delegated to the OS, so this
+  // bridge is the ONLY way to trigger the OS prompt. The OS grant is the
+  // source of truth in the shell — we do NOT also call the web
+  // requestPermission() there, because that shows a second Chrome-style
+  // prompt that can disagree with the OS grant (the "two permissions" bug).
+  const native = inNativeShell();
   const nativeGranted = await requestNativeNotifPermission();
   if (nativeGranted === false) {
     console.warn('[Notif] Native POST_NOTIFICATIONS permission denied');
@@ -158,24 +171,20 @@ export async function requestNotificationPermission() {
   }
 
   let hasPermission = false;
-  
-  // IMPORTANT: Request the Notification permission FIRST, before any other
-  // await. Mobile Chromium browsers (Edge, Chrome, Samsung Internet) only
-  // treat requestPermission() as tied to the user's tap for a very short
-  // "transient activation" window (a few seconds). If we await service
-  // worker registration first, that window can expire — especially on a
-  // fresh install where registering the SW takes a moment — and the browser
-  // then silently auto-denies the request instead of showing the prompt at
-  // all (looks like notifications got "automatically blocked"). Requesting
-  // permission immediately, synchronously-adjacent to the click, avoids that.
   if ('Notification' in window) {
     if (Notification.permission === 'granted') {
       hasPermission = true;
-    } else if (Notification.permission === 'default' && localStorage.getItem('kjb-notif-asked') !== 'true') {
+    } else if (native && nativeGranted) {
+      // In the Android shell, trust the OS grant even if the web
+      // Notification.permission hasn't synced to 'granted' — the SW
+      // showNotification path checks the OS permission, not the web flag.
+      hasPermission = true;
+    } else if (!native && Notification.permission === 'default' && localStorage.getItem('kjb-notif-asked') !== 'true') {
+      // Browser (not Android shell): ask the web permission at most once,
+      // synchronously-adjacent to the tap so the browser ties the prompt to
+      // the user gesture. Repeated requestPermission calls after a dismissal
+      // are what make Chrome auto-block the site.
       try {
-        // Ask the browser at most once. Repeated requestPermission calls after
-        // a dismissal are what make Chrome auto-block the site, so we track
-        // that we've asked and never re-prompt the web permission.
         localStorage.setItem('kjb-notif-asked', 'true');
         const result = await Notification.requestPermission();
         if (result === 'granted') hasPermission = true;
@@ -294,7 +303,10 @@ export async function showLocalNotification(title, body, imageUrl = null, target
 
           // If the JS API doesn't think we have permission, re-request once
           // (this is a user-gesture-initiated call, so the prompt is allowed).
-          if ('Notification' in window && Notification.permission !== 'granted') {
+          // Skip in the Android shell — the OS permission (via the native
+          // bridge) is the source of truth there, and calling the web
+          // requestPermission() would show a second Chrome-style prompt.
+          if ('Notification' in window && Notification.permission !== 'granted' && !inNativeShell()) {
             try {
               const r = await Notification.requestPermission();
               console.log('[Notif] re-request result:', r);
