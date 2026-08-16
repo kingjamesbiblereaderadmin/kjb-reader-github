@@ -613,21 +613,42 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     if (!playing) return;
     let last = 0;
     const id = setInterval(() => {
-    const vn = activeVerseRef.current;
-    if (vn == null) return;
     const now = performance.now();
     if (now - last < 300) return;
-    const ve = document.querySelector(`[data-audio-verse="${vn}"]`);
-    const scroller = ve && document.getElementById('kjb-scroll');
-    if (!ve || !scroller) return;
+    // Track the narrated word element when word-sync is on (so the view follows
+    // word-by-word progress, including within a long verse and across columns),
+    // otherwise the active verse element.
+    const wIdx = activeWordIdxRef.current;
+    const vn = activeVerseRef.current;
+    const el = (isWordSyncEnabled() && wIdx >= 0)
+      ? document.querySelector(`[data-audio-idx="${wIdx}"]`)
+      : (vn != null ? document.querySelector(`[data-audio-verse="${vn}"]`) : null);
+    const scroller = el && document.getElementById('kjb-scroll');
+    if (!el || !scroller) return;
     last = now;
     const sTop = scroller.getBoundingClientRect().top;
     const sticky = scroller.querySelector('.sticky.top-0');
     const topPad = sticky ? Math.max(12, sticky.getBoundingClientRect().bottom - sTop + 12) : 12;
-    const eTop = ve.getBoundingClientRect().top - sTop;
-    const eBottom = ve.getBoundingClientRect().bottom - sTop;
+    let bottomPad = 12;
+    const nav = document.querySelector('nav.fixed.bottom-0');
+    if (nav && nav.offsetHeight > 0) bottomPad = nav.offsetHeight + 12;
+    const eTop = el.getBoundingClientRect().top - sTop;
+    const eBottom = el.getBoundingClientRect().bottom - sTop;
+    const visibleBottom = scroller.clientHeight - bottomPad;
+    // Nudge up when clipped by the sticky toolbar at the top.
     if (eTop < topPad - 12 && eBottom > topPad) {
       scroller.scrollTo({ top: Math.max(0, scroller.scrollTop + eTop - topPad), behavior: 'auto' });
+      return;
+    }
+    // Scroll down (advance the page) when the narrated word/verse has dropped
+    // below the visible bottom — in 2-column mode verses flow across columns,
+    // so a verse near the bottom of the left column may be far down while the
+    // next (right column) is up high; following the element's real rect keeps
+    // the narration in view.
+    if (eTop > visibleBottom) {
+      scroller.scrollTo({ top: scroller.scrollTop + (eTop - topPad), behavior: 'auto' });
+    } else if (eBottom > visibleBottom && eTop > topPad) {
+      scroller.scrollTo({ top: scroller.scrollTop + (eBottom - visibleBottom), behavior: 'auto' });
     }
     }, 120);
     return () => clearInterval(id);
