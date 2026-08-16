@@ -1000,10 +1000,11 @@ export default function SettingsPage() {
                 <span className="text-foreground font-medium text-right flex items-center gap-1">
                   {(() => {
                     try {
+                      const dmFullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
                       const dmStandalone = window.matchMedia('(display-mode: standalone)').matches;
                       const dmMinimal = window.matchMedia('(display-mode: minimal-ui)').matches;
                       const dmOverlay = window.matchMedia('(display-mode: window-controls-overlay)').matches;
-                      if (dmStandalone || dmMinimal || dmOverlay || navigator.standalone === true) {
+                      if (dmFullscreen || dmStandalone || dmMinimal || dmOverlay || navigator.standalone === true) {
                         return <><CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Installed</>;
                       }
                     } catch {}

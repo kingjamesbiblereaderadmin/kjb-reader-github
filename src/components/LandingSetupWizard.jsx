@@ -61,6 +61,7 @@ const isBookmarkBrowser = () => {
 const isStandalonePWA = () => {
   if (typeof window === 'undefined') return false;
   try { if (window.self !== window.top) return false; } catch { return false; }
+  if (window.matchMedia('(display-mode: fullscreen)').matches) return true;
   if (window.matchMedia('(display-mode: standalone)').matches) return true;
   if (window.matchMedia('(display-mode: minimal-ui)').matches) return true;
   if (window.matchMedia('(display-mode: window-controls-overlay)').matches) return true;

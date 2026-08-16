@@ -132,11 +132,12 @@ const checkInstalled = () => {
   } catch {}
 
   // 1. PRIMARY: display-mode media queries (works inside PWA, synchronous, no flicker)
+  const dmFullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
   const dmStandalone = window.matchMedia('(display-mode: standalone)').matches;
   const dmMinimal = window.matchMedia('(display-mode: minimal-ui)').matches;
   const dmOverlay = window.matchMedia('(display-mode: window-controls-overlay)').matches;
   
-  if (dmStandalone || dmMinimal || dmOverlay) {
+  if (dmFullscreen || dmStandalone || dmMinimal || dmOverlay) {
     localStorage.setItem(INSTALLED_KEY, 'true');
     return true;
   }
@@ -177,7 +178,8 @@ const isPwaInstallable = () => {
   if (typeof window === 'undefined') return false;
   const hasManifest = !!document.querySelector('link[rel="manifest"]');
   const isSecure = location.protocol === 'https:' || location.hostname === 'localhost';
-  const notStandalone = !window.matchMedia('(display-mode: standalone)').matches && 
+  const notStandalone = !window.matchMedia('(display-mode: fullscreen)').matches &&
+                        !window.matchMedia('(display-mode: standalone)').matches && 
                         !window.matchMedia('(display-mode: minimal-ui)').matches &&
                         !window.matchMedia('(display-mode: window-controls-overlay)').matches &&
                         window.navigator.standalone !== true;
