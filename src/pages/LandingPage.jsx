@@ -36,33 +36,24 @@ export default function LandingPage() {
             />
           </Link>
           <h1 className="font-serif text-4xl font-bold text-foreground mb-2">Welcome to KJB Reader</h1>
-          <p className="font-sans text-sm text-muted-foreground">Read the King James Bible — anytime, anywhere, even offline.</p>
-          <div className="mt-4 w-16 h-px bg-accent mx-auto" />
-        </div>
-
-        {/* Scripture banner */}
-        <ScriptureBanner />
-
-        {/* CTA */}
-        <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-6 sm:p-7 mb-5 shadow-lg shadow-black/[0.03] text-center">
-          <p className="font-sans text-sm text-foreground/85 leading-relaxed mb-4">
+          <p className="font-sans text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed">
             KJB Reader is a free, installable Bible reading app featuring the King James Bible
             (Pure Cambridge Edition). Enjoy daily verses, offline reading, search, bookmarks,
             and customizable typography — all with privacy at the forefront.
           </p>
-          <div className="flex flex-col items-center gap-3">
-            <div className="flex items-center justify-center gap-3 flex-wrap">
-              <Link
-                to="/"
-                onClick={() => { try { localStorage.setItem('kjb-has-visited-app', 'true'); } catch {} }}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                Open KJB Reader
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
+          <div className="mt-4 w-16 h-px bg-accent mx-auto" />
+          <Link
+            to="/"
+            onClick={() => { try { localStorage.setItem('kjb-has-visited-app', 'true'); } catch {} }}
+            className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            Open KJB Reader
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
+
+        {/* Scripture banner */}
+        <ScriptureBanner />
 
         {/* Promo cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
