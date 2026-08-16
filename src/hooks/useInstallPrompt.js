@@ -51,10 +51,24 @@ const isAndroidUA = () => {
 // app also launches with ?from=native-app, which we persist to localStorage so
 // the signal survives SPA navigations away from the root URL.
 const NATIVE_FLAG_KEY = 'kjb-native-app';
+// Reliable marker for the Play Store Android TWA (PWABuilder shell). When
+// Digital Asset Links verification is pending/failing, neither
+// `display-mode: standalone` nor `navigator.getInstalledRelatedApps()` report
+// the app as installed — so install detection silently fails in the shipped
+// Play Store app. To get a signal that doesn't depend on verification, set the
+// TWA's start URL in PWABuilder to include `?from=twa` (e.g.
+// https://<app-domain>/?from=twa). Only TWA launches carry this param, so it
+// can't false-positive on regular browser visits; the flag is persisted so
+// detection survives SPA navigation and reloads.
+const TWA_FLAG_KEY = 'kjb-twa-app';
 if (typeof window !== 'undefined') {
   try {
     const p = new URLSearchParams(window.location.search).get('from');
     if (p === 'native-app') localStorage.setItem(NATIVE_FLAG_KEY, 'true');
+    if (p === 'twa' || p === 'play') {
+      localStorage.setItem(TWA_FLAG_KEY, 'true');
+      localStorage.setItem(INSTALLED_KEY, 'true');
+    }
   } catch {}
 }
 
@@ -87,6 +101,16 @@ const checkInstalled = () => {
     localStorage.setItem(INSTALLED_KEY, 'true');
     return true;
   }
+
+  // Play Store TWA — marked via `?from=twa` on the TWA's start URL. Reliable
+  // regardless of Digital Asset Links verification status, and separate from
+  // the native Capacitor flag so push routing isn't affected.
+  try {
+    if (localStorage.getItem(TWA_FLAG_KEY) === 'true') {
+      localStorage.setItem(INSTALLED_KEY, 'true');
+      return true;
+    }
+  } catch {}
 
   // 1. PRIMARY: display-mode media queries (works inside PWA, synchronous, no flicker)
   const dmStandalone = window.matchMedia('(display-mode: standalone)').matches;
