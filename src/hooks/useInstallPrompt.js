@@ -6,6 +6,38 @@ const INSTALLED_KEY = 'kjb-is-installed';
 // Google Play Store listing for the native Android app (package: kjbreader.app).
 export const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=kjbreader.app';
 
+// Android package id(s) this PWA is distributed as via PWABuilder / Play Store.
+// `navigator.getInstalledRelatedApps()` reports the installed package here for
+// a verified TWA, which is the only reliable "already installed" signal inside
+// a PWABuilder Android shell (the custom UA token / ?from flag were for the
+// abandoned Capacitor wrapper, and display-mode: standalone only matches when
+// asset-links verification succeeds).
+const TWA_PACKAGE_IDS = ['com.godisgracious1031m.kjbreader', 'kjbreader.app'];
+
+// Async TWA detection. Returns true if the device reports this app as an
+// installed related app (works inside a verified PWABuilder TWA on Android).
+const getTwaInstalled = async () => {
+  try {
+    if (typeof navigator === 'undefined' || typeof navigator.getInstalledRelatedApps !== 'function') {
+      return false;
+    }
+    const apps = await navigator.getInstalledRelatedApps();
+    if (!Array.isArray(apps) || apps.length === 0) return false;
+    return apps.some((a) => {
+      if (!a) return false;
+      const id = String(a.id || '').toLowerCase();
+      const platform = String(a.platform || '').toLowerCase();
+      // Match our Android package on the Play platform; fall back to a loose
+      // id match in case the platform field is absent.
+      if (platform === 'play' && TWA_PACKAGE_IDS.some((p) => id === p.toLowerCase())) return true;
+      if (TWA_PACKAGE_IDS.some((p) => id === p.toLowerCase())) return true;
+      return false;
+    });
+  } catch {
+    return false;
+  }
+};
+
 const isAndroidUA = () => {
   if (typeof navigator === 'undefined') return false;
   return /android/i.test(navigator.userAgent);
@@ -125,6 +157,19 @@ export function useInstallPrompt() {
     setIsInstalled(installed);
     setIsLoading(false);
     setIsSamsung(isSamsungInternet());
+
+    // Async TWA detection: the synchronous signals (UA token, display-mode)
+    // miss a verified PWABuilder Android TWA, so query the device's installed
+    // related apps. When the TWA is present, persist the flag so subsequent
+    // synchronous reads (checkInstalled) return true without another probe.
+    if (!installed) {
+      getTwaInstalled().then((twaInstalled) => {
+        if (twaInstalled) {
+          try { localStorage.setItem(INSTALLED_KEY, 'true'); } catch {}
+          setIsInstalled(true);
+        }
+      });
+    }
 
     const handleStorage = () => {
       setIsInstalled(checkInstalled());
