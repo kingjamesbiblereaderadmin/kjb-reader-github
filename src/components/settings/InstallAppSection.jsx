@@ -153,6 +153,7 @@ export default function InstallAppSection({ expanded, isIncognito }) {
                 localStorage.removeItem('kjb-is-installed');
                 localStorage.removeItem('kjb-install-dismissed');
                 localStorage.removeItem('kjb-prompt-dismissed');
+                setShowInstallHint(false);
                 window.dispatchEvent(new Event('storage'));
                 window.dispatchEvent(new Event('kjb-install-change'));
               }}
