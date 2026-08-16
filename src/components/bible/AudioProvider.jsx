@@ -54,6 +54,43 @@ function speakThenPlay(text, onDone) {
   } catch { finish(); }
 }
 
+// Scroll a verse element fully into the reader's visible area, clear of the
+// sticky toolbar (top) and the fixed bottom nav (mobile). `force` snaps the
+// verse to just below the toolbar (used on play/restart); otherwise it only
+// scrolls when the verse is out of view, positioning it to the nearest safe
+// edge. Replaces raw scrollIntoView(block: 'center'), which clipped the first
+// verses under the tall (toolbar + audio bar) sticky header and the last
+// verses behind the bottom nav.
+function scrollVerseIntoView(el, force) {
+  if (!el) return;
+  const scroller = document.getElementById('kjb-scroll');
+  if (!scroller) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  const sTop = scroller.getBoundingClientRect().top;
+  const sticky = scroller.querySelector('.sticky.top-0');
+  const topPad = sticky ? Math.max(12, sticky.getBoundingClientRect().bottom - sTop + 12) : 12;
+  let bottomPad = 12;
+  const nav = document.querySelector('nav.fixed.bottom-0');
+  if (nav && nav.offsetHeight > 0) bottomPad = nav.offsetHeight + 12;
+  const eRect = el.getBoundingClientRect();
+  const elTop = eRect.top - sTop;
+  const elBottom = eRect.bottom - sTop;
+  const visibleTop = topPad;
+  const visibleBottom = scroller.clientHeight - bottomPad;
+  const maxScroll = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+  let target;
+  if (force) {
+    target = scroller.scrollTop + elTop - visibleTop;
+  } else if (elTop >= visibleTop && elBottom <= visibleBottom) {
+    return; // already fully in view
+  } else if (elTop < visibleTop) {
+    target = scroller.scrollTop + elTop - visibleTop;
+  } else {
+    target = scroller.scrollTop + elBottom - visibleBottom;
+  }
+  target = Math.max(0, Math.min(target, maxScroll));
+  scroller.scrollTo({ top: target, behavior: 'smooth' });
+}
+
 // Provides chapter audio state to the Read page: fetches the ChapterAudio
 // record(s) + timing JSON, builds a chapter-wide word timeline, drives an
 // <audio> element, and exposes play/seek/speed/voice controls. The active-word
@@ -373,11 +410,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       matches.forEach((el) => el.classList.add('kjb-audio-verse-active'));
       const ne = matches[0];
       if (ne && scroll) {
-        const rect = ne.getBoundingClientRect();
-        const vh = window.innerHeight;
-        if (force || rect.top < 100 || rect.bottom > vh - 150) {
-          ne.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        scrollVerseIntoView(ne, force);
       }
     }
   }, []);
@@ -398,7 +431,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     if (idx < 0 && timeline.length) idx = 0;
     if (idx < 0) return;
     const ne = document.querySelector(`[data-audio-idx="${idx}"]`);
-    if (ne) ne.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (ne) scrollVerseIntoView(ne, true);
   }, [timeline]);
 
   // Begin (or restart) filtered-mode playback at the verse: seek to the range

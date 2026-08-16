@@ -199,8 +199,8 @@
      neighbours) gets partially clipped at the top or bottom. This reserves
      space so any programmatic scroll leaves the verse fully visible. */
   #kjb-scroll {
-    scroll-padding-top: 7.5rem;
-    scroll-padding-bottom: 5rem;
+    scroll-padding-top: 9rem;
+    scroll-padding-bottom: 6.5rem;
   }
 
   /* Hide scrollbar for horizontal scrolling nav */
