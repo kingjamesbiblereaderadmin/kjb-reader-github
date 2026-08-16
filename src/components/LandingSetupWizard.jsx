@@ -190,6 +190,7 @@ export default function LandingSetupWizard() {
   };
 
   const handleNotifToggle = async () => {
+    if (inIframe()) return;
     if (notifEnabled) {
       disableNotifications();
       setNotifEnabled(false);
@@ -373,12 +374,21 @@ export default function LandingSetupWizard() {
           <div className="text-center">
             <h3 className="font-serif text-lg font-bold text-foreground mb-1">Daily Verse Reminder</h3>
             <p className="font-sans text-xs text-muted-foreground mb-4">Get a notification each morning with the verse of the day</p>
-            <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-secondary/50 border border-border max-w-sm mx-auto">
+
+            {inIframe() && (
+              <div className="bg-secondary/40 border border-border rounded-xl p-3 mb-3 text-left max-w-sm mx-auto">
+                <p className="font-sans text-xs text-blue-600 dark:text-blue-400 font-medium">
+                  You're viewing this inside an embed preview. Open the app in a new tab to enable notifications.
+                </p>
+              </div>
+            )}
+
+            <div className={`flex items-center justify-between gap-3 p-3 rounded-xl bg-secondary/50 border border-border max-w-sm mx-auto ${inIframe() ? 'opacity-50 pointer-events-none' : ''}`}>
               <div className="flex items-center gap-2.5 text-left">
                 <Bell className="w-4 h-4 text-primary shrink-0" />
                 <p className="font-sans text-sm text-foreground font-medium">Daily verse reminder</p>
               </div>
-              <Switch checked={notifEnabled} onCheckedChange={handleNotifToggle} />
+              <Switch checked={notifEnabled} onCheckedChange={handleNotifToggle} disabled={inIframe()} />
             </div>
             {notifBlocked && (
               <p className="font-sans text-xs text-amber-600 dark:text-amber-400 flex items-start gap-1.5 leading-snug mt-3 max-w-sm mx-auto text-left">
