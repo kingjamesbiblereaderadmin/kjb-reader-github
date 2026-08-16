@@ -351,27 +351,61 @@ export function buildWordTimeline(verses, timing) {
 
   // Greedy windowed match: walk verse words and transcript words together,
   // assigning each verse word the timestamp of the next matching transcript
-  // word. A mis-hear (no match in the window) gets the current cursor's
-  // timestamp WITHOUT consuming a transcript word, so the error stays local
-  // to that one word and never cascades to later verses. This uses the
-  // transcript's real per-word timestamps directly — unlike global NW, where
-  // a single count mismatch (e.g. "Moab" spoken as "Mu"/"ab" = 2 transcript
-  // words) inserts a gap that shifts the alignment diagonal for the rest of
-  // the chapter, producing the perceived "highlight runs ahead/behind" offset.
+  // word. A mis-hear (no match in the window) is left unassigned in the first
+  // pass and gets its timestamp spread in a second pass, so consecutive
+  // misses don't collapse to a single instant (which made
+  // findActiveWordIndex skip them all). This uses the transcript's real
+  // per-word timestamps directly — unlike global NW, where a single count
+  // mismatch shifts the alignment diagonal for the rest of the chapter.
   const WINDOW = 14;
   let ti = 0;
+  // Pass 1: record the transcript index each verse word matched (or -1).
+  const matchIdx = new Array(aWords.length).fill(-1);
   for (let k = 0; k < aWords.length; k++) {
     let found = -1;
     for (let j = ti; j < Math.min(introTrimmed.length, ti + WINDOW); j++) {
       if (normWord(introTrimmed[j].text) === normWord(aWords[k].text)) { found = j; break; }
     }
-    if (found >= 0) {
-      out.push({ text: aWords[k].text, start: introTrimmed[found].start, end: introTrimmed[found].end, verse: aWords[k].verse, wordIndex: aWords[k].wordIndex });
-      ti = found + 1;
-    } else {
-      const ts = ti < introTrimmed.length ? introTrimmed[ti].start : (out.length ? out[out.length - 1].end : 0);
-      out.push({ text: aWords[k].text, start: ts, end: ts, verse: aWords[k].verse, wordIndex: aWords[k].wordIndex });
+    if (found >= 0) { matchIdx[k] = found; ti = found + 1; }
+  }
+  // Pass 2: emit each verse word. Matches use the matched transcript word's
+  // real start/end. A run of consecutive misses is spread evenly between the
+  // previous match's end and the next match's start, so each miss gets a
+  // distinct increasing timestamp instead of all sharing the cursor's start
+  // (which collapsed them into one instant and made the binary-search highlight
+  // skip every miss in the run).
+  for (let k = 0; k < aWords.length; k++) {
+    if (matchIdx[k] >= 0) {
+      const w = introTrimmed[matchIdx[k]];
+      out.push({ text: aWords[k].text, start: w.start, end: w.end, verse: aWords[k].verse, wordIndex: aWords[k].wordIndex });
+      continue;
     }
+    // find the run of misses starting at k
+    const runStart = k;
+    while (k < aWords.length && matchIdx[k] < 0) k++;
+    const runEnd = k; // exclusive
+    const runLen = runEnd - runStart;
+    // anchors: previous matched end, next matched start
+    let prevEnd = -1;
+    for (let p = runStart - 1; p >= 0; p--) {
+      if (matchIdx[p] >= 0) { prevEnd = introTrimmed[matchIdx[p]].end; break; }
+    }
+    let nextStart = -1;
+    for (let q = runEnd; q < aWords.length; q++) {
+      if (matchIdx[q] >= 0) { nextStart = introTrimmed[matchIdx[q]].start; break; }
+    }
+    if (prevEnd < 0 && nextStart < 0) {
+      for (let r = 0; r < runLen; r++) out.push({ text: aWords[runStart + r].text, start: 0, end: 0, verse: aWords[runStart + r].verse, wordIndex: aWords[runStart + r].wordIndex });
+    } else if (prevEnd < 0) {
+      for (let r = 0; r < runLen; r++) { const ts = Math.max(0, nextStart - (runLen - r) * 0.02); out.push({ text: aWords[runStart + r].text, start: ts, end: ts, verse: aWords[runStart + r].verse, wordIndex: aWords[runStart + r].wordIndex }); }
+    } else if (nextStart < 0) {
+      for (let r = 0; r < runLen; r++) { const ts = prevEnd + r * 0.02; out.push({ text: aWords[runStart + r].text, start: ts, end: ts, verse: aWords[runStart + r].verse, wordIndex: aWords[runStart + r].wordIndex }); }
+    } else {
+      const span = Math.max(0, nextStart - prevEnd);
+      const step = runLen > 0 ? span / runLen : 0;
+      for (let r = 0; r < runLen; r++) { const ts = prevEnd + step * r; out.push({ text: aWords[runStart + r].text, start: ts, end: ts, verse: aWords[runStart + r].verse, wordIndex: aWords[runStart + r].wordIndex }); }
+    }
+    k--; // the for loop's k++ will move past the run
   }
   return out;
 }
@@ -387,7 +421,14 @@ export function buildWordTimeline(verses, timing) {
 // The highlight is STICKY: once a word's start is reached it stays active until
 // the next word begins, instead of clearing during the inter-word gap. This
 // prevents flicker and makes it advance smoothly word-by-word with the narrator.
-const AUDIO_LEAD_S = 0.1;
+// The audible output can lag the <audio> element's reported currentTime by a
+// small, device-dependent amount (decoded samples buffered ahead of the
+// reported position). A fixed lead was tuned for one device and ran the
+// highlight AHEAD of the narrator on most others (reading as a "skip"). With a
+// precise per-word timeline (Whisper forced alignment), the highlight tracks
+// the narrator most accurately with NO lead — the rAF loop already samples at
+// ~60fps, so the word boundary lands within one frame (~16ms) of the narrator.
+const AUDIO_LEAD_S = 0;
 export function findActiveWordIndex(timeline, time) {
   if (!timeline.length) return -1;
   const t = time + AUDIO_LEAD_S;
