@@ -360,13 +360,16 @@ export default function HomePage() {
       alert('Notifications are not supported in this browser. Try installing the app or using a different browser.');
       return;
     }
-    localStorage.setItem('kjb-notifications-enabled', 'true');
-    setNotifEnabled(true);
-    window.dispatchEvent(new Event('storage'));
-
+    // Wait for the actual permission result before flipping the bell on —
+    // setting it optimistically here raced with the 'storage' sync listener,
+    // which immediately read the not-yet-granted permission and flipped it
+    // back off before the browser's permission prompt was even answered.
     try {
       const result = await requestNotificationPermission();
       if (result === 'granted') {
+        localStorage.setItem('kjb-notifications-enabled', 'true');
+        setNotifEnabled(true);
+        window.dispatchEvent(new Event('storage'));
         scheduleDailyNotification(verse);
         showLocalNotification(
           'Daily verse reminders on ✓',

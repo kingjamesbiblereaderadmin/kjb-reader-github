@@ -122,14 +122,15 @@ const checkInstalled = () => {
     return true;
   }
   
-  // 2. Check localStorage persistence (survives page reloads, no async flicker)
-  try {
-    if (localStorage.getItem(INSTALLED_KEY) === 'true') {
-      return true;
-    }
-  } catch {}
-  
-  // 3. iOS Safari standalone (older iOS versions)
+  // NOTE: we intentionally do NOT trust a persisted INSTALLED_KEY flag here for
+  // the generic web-install case — display-mode is already a live, instant,
+  // synchronous check, and localStorage is shared across every tab/context on
+  // this origin. Trusting a stale flag would make a plain browser tab report
+  // "installed" just because the PWA was installed once in the past. The flag
+  // is still written (above/below) for native-app and TWA detection, since
+  // those genuinely reflect a device-level install regardless of context.
+
+  // 2. iOS Safari standalone (older iOS versions)
   if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
     try {
       if (window.navigator.standalone === true) {
