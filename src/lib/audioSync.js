@@ -421,14 +421,16 @@ export function buildWordTimeline(verses, timing) {
 // The highlight is STICKY: once a word's start is reached it stays active until
 // the next word begins, instead of clearing during the inter-word gap. This
 // prevents flicker and makes it advance smoothly word-by-word with the narrator.
-// The audible output can lag the <audio> element's reported currentTime by a
-// small, device-dependent amount (decoded samples buffered ahead of the
-// reported position). A fixed lead was tuned for one device and ran the
-// highlight AHEAD of the narrator on most others (reading as a "skip"). With a
-// precise per-word timeline (Whisper forced alignment), the highlight tracks
-// the narrator most accurately with NO lead — the rAF loop already samples at
-// ~60fps, so the word boundary lands within one frame (~16ms) of the narrator.
-const AUDIO_LEAD_S = 0;
+// The audible output LEADS the <audio> element's reported currentTime by a
+// small, device-dependent amount (the audio pipeline decodes/buffers samples
+// ahead of the reported position). With NO lead the highlight sits behind the
+// narrator (the user hears a word before currentTime reaches its start); with
+// +0.1s it ran ahead ("skip") on most devices. 0.05s is the tuned midpoint:
+// it compensates the typical output lead without over-correcting, and the rAF
+// loop (~60fps) keeps the word boundary within one frame (~16ms) of the
+// narrator. There is no JS API to measure the exact output offset, so this is
+// a fixed compromise — bump it up if the highlight still lags on a device.
+const AUDIO_LEAD_S = 0.05;
 export function findActiveWordIndex(timeline, time) {
   if (!timeline.length) return -1;
   const t = time + AUDIO_LEAD_S;
