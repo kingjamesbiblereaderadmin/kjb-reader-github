@@ -52,7 +52,7 @@ export default function LandingPage() {
           {/* Gospel */}
           <Link
             to="/salvation"
-            className="flex items-center gap-3 p-5 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            className="flex items-center gap-3 p-5 rounded-2xl bg-card border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-rose-500 to-pink-600">
               <Heart className="w-5 h-5" />
@@ -69,7 +69,7 @@ export default function LandingPage() {
             href="https://kjbi.org"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 p-5 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            className="flex items-center gap-3 p-5 rounded-2xl bg-card border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-indigo-500 to-purple-600">
               <GraduationCap className="w-5 h-5" />
@@ -84,7 +84,7 @@ export default function LandingPage() {
           {/* KJB Reader Chrome Extension */}
           <Link
             to="/extension"
-            className="flex items-center gap-3 p-5 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            className="flex items-center gap-3 p-5 rounded-2xl bg-card border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-cyan-600">
               <Globe className="w-5 h-5" />
@@ -97,7 +97,7 @@ export default function LandingPage() {
           </Link>
 
           {/* KJB Discord Bot */}
-          <div className="p-5 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-sm flex flex-col">
+          <div className="p-5 rounded-2xl bg-card border border-border/60 shadow-sm flex flex-col">
             <div className="flex items-center gap-3 mb-3">
               <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-violet-500 to-purple-700">
                 <DiscordIcon className="w-5 h-5" />
@@ -134,7 +134,7 @@ export default function LandingPage() {
             href="https://discord.gg/HK9Kqmg7Jh"
             target="_blank"
             rel="noopener noreferrer"
-            className="sm:col-span-2 flex items-center gap-3 p-5 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            className="sm:col-span-2 flex items-center gap-3 p-5 rounded-2xl bg-card border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-violet-500 to-purple-700">
               <DiscordIcon className="w-5 h-5" />
@@ -156,7 +156,7 @@ export default function LandingPage() {
         <div className="grid sm:grid-cols-3 gap-4 mb-5">
           <Link
             to="/privacy"
-            className="flex items-center gap-3 p-5 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            className="flex items-center gap-3 p-5 rounded-2xl bg-card border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-violet-500 to-purple-600">
               <Shield className="w-5 h-5" />
@@ -170,7 +170,7 @@ export default function LandingPage() {
 
           <Link
             to="/terms"
-            className="flex items-center gap-3 p-5 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            className="flex items-center gap-3 p-5 rounded-2xl bg-card border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-emerald-500 to-teal-600">
               <FileText className="w-5 h-5" />
@@ -184,7 +184,7 @@ export default function LandingPage() {
 
           <Link
             to="/legacy"
-            className="flex items-center gap-3 p-5 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            className="flex items-center gap-3 p-5 rounded-2xl bg-card border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-slate-500 to-slate-700">
               <MonitorSmartphone className="w-5 h-5" />
@@ -198,7 +198,7 @@ export default function LandingPage() {
         </div>
 
         {/* Contact */}
-        <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-6 sm:p-7 shadow-lg shadow-black/[0.03]">
+        <div className="bg-card border border-border/60 rounded-2xl p-6 sm:p-7 shadow-lg shadow-black/[0.03]">
           <h2 className="font-serif text-xl font-semibold text-foreground mb-3">Contact</h2>
           <div className="space-y-3 font-sans text-sm text-foreground/85">
             <a href="mailto:kingjamesbiblereader@outlook.sg" className="flex items-center gap-2 hover:text-primary transition-colors">

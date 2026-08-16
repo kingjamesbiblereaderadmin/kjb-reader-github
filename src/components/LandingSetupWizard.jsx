@@ -230,7 +230,7 @@ export default function LandingSetupWizard() {
   };
 
   return (
-    <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl p-6 sm:p-7 shadow-lg shadow-black/[0.03]">
+    <div className="bg-card border border-border/60 rounded-2xl p-6 sm:p-7 shadow-lg shadow-black/[0.03]">
       {/* Step indicator — compact circles, tick only when actually completed */}
       <div className="flex items-center justify-center gap-1 mb-6">
         {STEPS.map((s, i) => {
