@@ -60,8 +60,8 @@ export default function AudioMiniPlayer({ loading, hasAudio, hasAnyAudio, playin
               />
               <span className="font-sans text-xs text-muted-foreground tabular-nums w-12">{fmt(duration)}</span>
             </div>
-            <div className="flex items-center justify-center gap-3 sm:gap-4">
-              <button onClick={onRestart} title="Restart" className="p-2 rounded-full hover:bg-secondary text-foreground transition-colors">
+            <div className="flex items-center justify-center gap-1 sm:gap-3 sm:gap-4 px-2">
+              <button onClick={onRestart} title="Restart" className="hidden sm:flex p-2 rounded-full hover:bg-secondary text-foreground transition-colors">
                 <RotateCcw className="w-5 h-5" />
               </button>
               <button onClick={() => onSkip(-15)} title="Back 15s" className="p-2 rounded-full hover:bg-secondary text-foreground transition-colors">
@@ -77,7 +77,7 @@ export default function AudioMiniPlayer({ loading, hasAudio, hasAnyAudio, playin
               <button onClick={() => onSkip(15)} title="Forward 15s" className="p-2 rounded-full hover:bg-secondary text-foreground transition-colors">
                 <SkipForward className="w-5 h-5" />
               </button>
-              <button onClick={onSpeed} title="Playback speed" className="flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-border bg-secondary text-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-colors">
+              <button onClick={onSpeed} title="Playback speed" className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-full border border-border bg-secondary text-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-colors">
                 <Gauge className="w-3.5 h-3.5" />
                 {speed}×
               </button>
@@ -85,7 +85,7 @@ export default function AudioMiniPlayer({ loading, hasAudio, hasAnyAudio, playin
                 <select
                   value={voice || ''}
                   onChange={(e) => onSelectVoice(e.target.value)}
-                  className="px-2 py-1.5 rounded-full border border-border bg-secondary text-foreground font-sans text-xs hover:bg-accent/20 transition-colors cursor-pointer max-w-[9rem]"
+                  className="px-1.5 sm:px-2 py-1.5 rounded-full border border-border bg-secondary text-foreground font-sans text-xs hover:bg-accent/20 transition-colors cursor-pointer max-w-[7rem] sm:max-w-[9rem] min-w-0"
                   title="Voice"
                   aria-label="Voice"
                 >
@@ -93,7 +93,7 @@ export default function AudioMiniPlayer({ loading, hasAudio, hasAnyAudio, playin
                 </select>
               )}
               {onClose && (
-                <button onClick={onClose} title="Close audio" className="p-2 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors ml-1">
+                <button onClick={onClose} title="Close audio" className="p-2 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors ml-0 sm:ml-1">
                   <X className="w-5 h-5" />
                 </button>
               )}
