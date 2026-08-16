@@ -361,7 +361,10 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     if (rs == null || !Number.isFinite(rs)) return;
     a.currentTime = rs;
     setCurrentTime(rs);
-    updateActive(findActiveWordIndex(timeline, rs), true, true);
+    // Don't pre-highlight the first word before the spoken reference finishes —
+    // doing so lights up the word while the announcement is still talking, which
+    // reads as the highlight "racing ahead". The rAF tick will highlight once the
+    // audio actually starts playing.
     syncIntro(rs);
     const play = () => { a.play().catch(() => {}); };
     if (announce && rangeAnnouncedRef.current === false && rangeRefText) {
@@ -370,7 +373,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     } else {
       play();
     }
-  }, [timeline, updateActive, syncIntro, rangeRefText]);
+  }, [timeline, syncIntro, rangeRefText]);
 
   // Foolproof filtered-mode playback. The verse range's start time can only be
   // computed once the timing JSON loads (timeline / verseTimings). If the user
