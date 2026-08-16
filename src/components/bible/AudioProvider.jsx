@@ -520,7 +520,17 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
         if (a.currentTime < rs - 0.05 || a.currentTime >= (re ?? Infinity)) {
           // Starting fresh at the verse — announce the reference first.
           suppressIntroRef.current = false;
-          startRangePlayback(true);
+          // Gate the seek+play on the <audio> element having loaded its
+          // metadata. Setting a.currentTime before metadata loads is silently
+          // ignored/reset by the browser, so a.play() would start from 0
+          // (the chapter intro) while the filtered view shows only the
+          // selected verses — the audio narrates the wrong passage. Queue
+          // the play; the range-start effect seeks + starts once ready.
+          if (!audioReady) {
+            pendingRangePlayRef.current = true;
+          } else {
+            startRangePlayback(true);
+          }
           return;
         }
         // Resuming within the range — no announcement.
@@ -543,7 +553,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       a.pause();
       try { window.speechSynthesis?.cancel?.(); } catch {}
     }
-  }, [record, range, timeline, updateActive, syncIntro, startRangePlayback]);
+  }, [record, range, timeline, updateActive, syncIntro, startRangePlayback, audioReady]);
 
   const restart = useCallback(() => {
     const a = audioRef.current; if (!a || !record) return;
@@ -555,6 +565,13 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       return;
     }
     if (range && rs != null) {
+      // Restart the filtered passage — re-announce the reference. Wait for
+      // the audio metadata to load before seeking (see togglePlay): a seek
+      // before HAVE_METADATA is reset to 0, so the chapter intro would play.
+      if (!audioReady) {
+        pendingRangePlayRef.current = true;
+        return;
+      }
       // Restart the filtered passage — re-announce the reference.
       suppressIntroRef.current = false;
       rangeAnnouncedRef.current = false;
@@ -568,7 +585,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     suppressIntroRef.current = false;
     updateActive(findActiveWordIndex(timeline, a.currentTime), true, true);
     syncIntro(a.currentTime);
-  }, [record, range, timeline, updateActive, syncIntro, startRangePlayback]);
+  }, [record, range, timeline, updateActive, syncIntro, startRangePlayback, audioReady]);
 
   const seek = useCallback((t) => {
     const a = audioRef.current; if (!a) return;
