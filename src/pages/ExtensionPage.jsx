@@ -7,11 +7,11 @@ import { Globe, ArrowLeft, Search, BookOpen, Sparkles, MousePointer2, Heart, Dow
 // (Dev Tools → Extension Links). Each field falls back here when blank.
 const DEFAULT_URLS = {
   chrome: 'https://chromewebstore.google.com/detail/kjb-reader-sidepanel/gbnipepkpenjgdpjfepgcgddmgbofmah',
-  firefox: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/580bbb860_kjb-reader-v04138-firefox.zip',
-  opera: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/0889d0997_kjb-reader-v04138-opera.zip',
+  firefox: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/b90e778d2_kjb-reader-v04139-firefox.zip',
+  opera: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/163b71cf4_kjb-reader-v04139-opera.zip',
   edge: 'https://microsoftedge.microsoft.com/addons/detail/kjb-reader-sidepanel/bphmmbiepbhfnfijaapbmpimkkjdceee',
 };
-const DEFAULT_VERSION = 'v0.4.138';
+const DEFAULT_VERSION = 'v0.4.139';
 
 const EXAMPLES = [
   {
@@ -89,6 +89,11 @@ const FEATURES = [
 ];
 
 const RELEASE_NOTES = [
+  {
+    version: 'v0.4.139',
+    title: 'Readable references on low-contrast pages',
+    body: 'v0.4.139 ensures detected Bible references are never invisible on low-contrast pages. References still inherit the host page text color by default, but now checks the WCAG contrast ratio between the inherited color and the page background. If contrast falls below 3:1, the reference and its dotted underline fall back to a visible color (dark text on light backgrounds, light text on dark backgrounds) so references remain readable on any page.',
+  },
   {
     version: 'v0.4.138',
     title: 'Side panel overlay fix',
