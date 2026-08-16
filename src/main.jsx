@@ -44,9 +44,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>
 )
 
-// Service worker registration for offline support and notifications
-window.addEventListener('load', async () => {
-  
+// Service worker registration for offline support and notifications.
+// Runs IMMEDIATELY (not deferred to the `load` event) so the SW begins
+// installing on the first JS tick and is already registered by the time
+// PWA scanners (PWABuilder, Lighthouse) evaluate the page within their
+// short scan window. The DEV guard below still skips/unregisters in dev.
+(async () => {
+
   // Skip service worker registration in development mode to prevent React hook errors
   if (import.meta.env.DEV) {
     console.log('[SW] Skipping registration in development mode');
@@ -231,4 +235,4 @@ window.addEventListener('load', async () => {
   } else {
     initNotifications(getDailyVerse());
   }
-});
+})();
