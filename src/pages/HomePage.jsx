@@ -6,6 +6,7 @@ import QuickLinkCard from '@/components/home/QuickLinkCard';
 import OfflineStatusBanner from '@/components/OfflineStatusBanner';
 import IncognitoWarning from '@/components/IncognitoWarning';
 import { getDailyVerse, getDailyVerseFromBible, getLastCachedDailyVerse } from '@/lib/dailyVerse';
+import { getNotificationsEnabled, requestNotificationPermission, disableNotifications, scheduleDailyNotification, showLocalNotification } from '@/lib/notifications';
 import { getTodayVerseBackground } from '@/lib/dailyVerseTheme';
 import { useTheme } from '@/lib/themeContext';
 import { BIBLE_BOOKS } from '@/lib/bibleData';
@@ -38,8 +39,20 @@ export default function HomePage() {
   });
   const [isOffline, setIsOffline] = useState(() => typeof navigator !== 'undefined' && navigator.onLine === false);
   const [bibleCached, setBibleCached] = useState(null);
+  const [notifEnabled, setNotifEnabled] = useState(getNotificationsEnabled);
   const touchStartY = useRef(0);
   const touchEndY = useRef(0);
+
+  // Keep the bell in sync if permission changes elsewhere (e.g. Settings)
+  useEffect(() => {
+    const syncNotif = () => setNotifEnabled(getNotificationsEnabled());
+    window.addEventListener('storage', syncNotif);
+    window.addEventListener('focus', syncNotif);
+    return () => {
+      window.removeEventListener('storage', syncNotif);
+      window.removeEventListener('focus', syncNotif);
+    };
+  }, []);
 
   // Track real network connectivity so the daily card's "Offline" label reflects
   // actual internet status — not merely whether the cached verse fetch succeeded.
@@ -336,6 +349,36 @@ export default function HomePage() {
     setTimeout(() => { try { window.dispatchEvent(new Event('kjb-navigate')); } catch {} }, 0);
   };
 
+  const handleToggleNotif = async () => {
+    if (notifEnabled) {
+      disableNotifications();
+      setNotifEnabled(false);
+      window.dispatchEvent(new Event('storage'));
+      return;
+    }
+    if (!('Notification' in window)) {
+      alert('Notifications are not supported in this browser. Try installing the app or using a different browser.');
+      return;
+    }
+    localStorage.setItem('kjb-notifications-enabled', 'true');
+    setNotifEnabled(true);
+    window.dispatchEvent(new Event('storage'));
+
+    try {
+      const result = await requestNotificationPermission();
+      if (result === 'granted') {
+        scheduleDailyNotification(verse);
+        showLocalNotification(
+          'Daily verse reminders on ✓',
+          `You'll get the daily verse each morning.`,
+          null
+        );
+      }
+    } catch (err) {
+      console.warn('[Home] notif setup failed (non-fatal):', err?.message);
+    }
+  };
+
   return (
     <div className="bg-gradient-to-br from-background via-accent/10 to-background"
       onTouchStart={handleTouchStart}
@@ -349,7 +392,7 @@ export default function HomePage() {
       {/* Daily verse card */}
       <div className="w-full mx-auto mb-8 relative">
         {verse ? (
-          <DailyVerseImage verse={verse} onClick={handleVerseCardClick} isOffline={isOffline} />
+          <DailyVerseImage verse={verse} onClick={handleVerseCardClick} onToggleNotif={handleToggleNotif} notifEnabled={notifEnabled} isOffline={isOffline} />
         ) : (
           <div className="w-full min-h-[300px] bg-secondary/50 animate-pulse border border-border rounded-2xl shadow-lg flex items-center justify-center">
             <span className="font-sans text-sm text-muted-foreground">Loading daily verse...</span>
