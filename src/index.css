@@ -193,6 +193,16 @@
     .kjb-mockup-light { display: none; }
   }
 
+  /* The reader's sticky toolbar (top) and the fixed bottom nav / audio bar
+     overlap the scroll container. Without scroll-padding, scrollIntoView /
+     anchor scrolls land verses UNDER those bars — so the verse (or its
+     neighbours) gets partially clipped at the top or bottom. This reserves
+     space so any programmatic scroll leaves the verse fully visible. */
+  #kjb-scroll {
+    scroll-padding-top: 7.5rem;
+    scroll-padding-bottom: 5rem;
+  }
+
   /* Hide scrollbar for horizontal scrolling nav */
   .scrollbar-hide {
     -ms-overflow-style: none;
