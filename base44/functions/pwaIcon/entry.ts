@@ -9,13 +9,18 @@
 // with immutable cache headers so the OS only fetches it once.
 
 const ICONS = {
-  // All sizes serve the same genuine 1024x1024 KJB icon. The manifest declares
-  // the actual dimensions (1024x1024) so PWABuilder's declared-vs-actual size
-  // check passes; browsers downscale for smaller contexts. (The previous
-  // source was a 141x141 image declared as 512x512, which PWABuilder flagged.)
+  // 512 / maskable / 192 serve the genuine 1024x1024 generated icon — this is
+  // the high-res image PWABuilder packages as the TWA launcher icon (Play
+  // Store requires ≥512x512). The manifest declares 1024x1024 so the
+  // declared-vs-actual size check passes.
   '192': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/bda6701ff_generated_image.png',
   '512': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/bda6701ff_generated_image.png',
   'maskable': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/bda6701ff_generated_image.png',
+  // Signature icons (141x141 hand-drawn KJB Reader logos). Declared honestly
+  // in the manifest as 141x141 — too small for the launcher, but included so
+  // the user's signature artwork is present in the PWA icon set.
+  'sig': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/be92aa50d_8e738d108_cfb4bf781_Untitled.png',
+  'sig2': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/c72c2e0d1_8e738d108_cfb4bf781_Untitled.png',
 };
 
 // Module-level byte cache so repeated requests don't re-fetch base44.app.

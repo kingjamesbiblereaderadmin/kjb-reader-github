@@ -10,6 +10,21 @@ import { createClient, createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 const SW_VERSION = 'v20260816_1925';
 
 const DEFAULT_ICONS = [
+  // User's hand-drawn "KJB Reader" signature logos (141x141). Declared at their
+  // true dimensions so PWABuilder's declared-vs-actual check passes. Kept as
+  // extra "any" entries; the 1024x1024 generated icon below remains the launcher.
+  {
+    src: "/functions/pwaIcon?size=sig",
+    sizes: "141x141",
+    type: "image/png",
+    purpose: "any"
+  },
+  {
+    src: "/functions/pwaIcon?size=sig2",
+    sizes: "141x141",
+    type: "image/png",
+    purpose: "any"
+  },
   {
     src: "/functions/pwaIcon?size=512",
     sizes: "1024x1024",
