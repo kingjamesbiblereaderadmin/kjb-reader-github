@@ -8,6 +8,7 @@ import OfflineHtmlSection from '@/components/bible/OfflineHtmlSection';
 import ThemeColorPicker from '@/components/bible/ThemeColorPicker';
 import { Switch } from '@/components/ui/switch';
 import InstallAppSection from '@/components/settings/InstallAppSection';
+import NotificationsSection from '@/components/settings/NotificationsSection';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { useTheme, COLOUR_PALETTES } from '@/lib/themeContext';
@@ -128,6 +129,7 @@ export default function SettingsPage() {
     shortcuts: true,
     appearance: true,
     install: true,
+    notifications: true,
     offline: true,
     downloadPdf: true,
     offlineHtml: true,
@@ -332,6 +334,7 @@ export default function SettingsPage() {
       shortcuts: newState,
       appearance: newState,
       install: newState,
+      notifications: newState,
       offline: newState,
       downloadPdf: newState,
       offlineHtml: newState,
@@ -724,6 +727,9 @@ export default function SettingsPage() {
 
       {/* Install App */}
       <InstallAppSection expanded={expandedSections.install} isIncognito={isIncognito} />
+
+      {/* Notifications */}
+      <NotificationsSection expanded={expandedSections.notifications} onToggleExpand={() => toggleSection('notifications')} />
 
       {/* Offline Library — shows disabled state in private/incognito windows and iframes */}
       <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
