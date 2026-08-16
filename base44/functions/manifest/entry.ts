@@ -12,13 +12,13 @@ const SW_VERSION = 'v20260816_1925';
 const DEFAULT_ICONS = [
   {
     src: "/functions/pwaIcon?size=512",
-    sizes: "512x512",
+    sizes: "1024x1024",
     type: "image/png",
     purpose: "any"
   },
   {
     src: "/functions/pwaIcon?size=maskable",
-    sizes: "512x512",
+    sizes: "1024x1024",
     type: "image/png",
     purpose: "maskable"
   }
@@ -138,25 +138,25 @@ Deno.serve(async (req) => {
         name: "Read the Bible",
         short_name: "Read",
         url: "/read",
-        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "512x512", type: "image/png" }]
+        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "1024x1024", type: "image/png" }]
       },
       {
         name: "Search the Bible",
         short_name: "Search",
         url: "/search",
-        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "512x512", type: "image/png" }]
+        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "1024x1024", type: "image/png" }]
       },
       {
         name: "Saved Verses",
         short_name: "Saved",
         url: "/saved",
-        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "512x512", type: "image/png" }]
+        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "1024x1024", type: "image/png" }]
       },
       {
         name: "The Gospel",
         short_name: "Gospel",
         url: "/gospel",
-        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "512x512", type: "image/png" }]
+        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "1024x1024", type: "image/png" }]
       }
     ],
     edge_side_panel: { preferred_width: 400 },
@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
       {
         action: "/read",
         accept: { "text/plain": [".txt"], "text/html": [".html", ".htm"] },
-        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "512x512", type: "image/png" }],
+        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "1024x1024", type: "image/png" }],
         launch_type: "single-client"
       }
     ],
@@ -190,7 +190,7 @@ Deno.serve(async (req) => {
         short_name: "KJB Verse",
         description: "Daily verse from the King James Bible",
         theme_color: "#0f1117",
-        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "512x512", type: "image/png" }],
+        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "1024x1024", type: "image/png" }],
         data: { type: "card", weight: 1 }
       }
     ],

@@ -9,14 +9,13 @@
 // with immutable cache headers so the OS only fetches it once.
 
 const ICONS = {
-  // All sizes serve the same genuine 512x512 KJB icon (the previous 141x141
-  // source made every declared manifest size — including "192x192" — resolve
-  // to a 141x141 image, which PWABuilder flags as a declared-vs-actual size
-  // mismatch). There is no separate 192x192 source, so the manifest declares
-  // only 512x512 entries; browsers downscale the 512 for smaller contexts.
-  '192': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/c72c2e0d1_8e738d108_cfb4bf781_Untitled.png',
-  '512': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/c72c2e0d1_8e738d108_cfb4bf781_Untitled.png',
-  'maskable': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/c72c2e0d1_8e738d108_cfb4bf781_Untitled.png',
+  // All sizes serve the same genuine 1024x1024 KJB icon. The manifest declares
+  // the actual dimensions (1024x1024) so PWABuilder's declared-vs-actual size
+  // check passes; browsers downscale for smaller contexts. (The previous
+  // source was a 141x141 image declared as 512x512, which PWABuilder flagged.)
+  '192': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/bda6701ff_generated_image.png',
+  '512': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/bda6701ff_generated_image.png',
+  'maskable': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/bda6701ff_generated_image.png',
 };
 
 // Module-level byte cache so repeated requests don't re-fetch base44.app.
