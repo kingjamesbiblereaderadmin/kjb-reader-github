@@ -461,6 +461,10 @@ export default function BibleReader() {
   const handleReadSelected = () => {
     setFilterMode(true);
     setSelectMode(false);
+    // Clear any stale "Read from here" start verse so the AudioProvider's
+    // startVerse effect doesn't auto-play immediately (which would overlap
+    // the spoken reference announcement for this selected range).
+    setReadFromVerse(null);
     if (selectedVerses.size > 0) {
       const first = Math.min(...selectedVerses);
       const last = Math.max(...selectedVerses);
