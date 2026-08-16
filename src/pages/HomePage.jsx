@@ -8,7 +8,7 @@ import IncognitoWarning from '@/components/IncognitoWarning';
 import { getDailyVerse, getDailyVerseFromBible, getLastCachedDailyVerse } from '@/lib/dailyVerse';
 import { getTodayVerseBackground } from '@/lib/dailyVerseTheme';
 import { useTheme } from '@/lib/themeContext';
-import { registerSW, scheduleDailyNotification, isNotifReallyOn, requestNotificationPermission, disableNotifications, showLocalNotification } from '@/lib/notifications';
+import { registerSW, scheduleDailyNotification, isNotifReallyOn, syncNotificationState, requestNotificationPermission, disableNotifications, showLocalNotification } from '@/lib/notifications';
 import { BIBLE_BOOKS } from '@/lib/bibleData';
 import { isBibleCached, CACHE_VERSION } from '@/lib/bibleCache';
 import { toast } from 'sonner';
@@ -228,16 +228,16 @@ export default function HomePage() {
   });
 
   useEffect(() => {
-    // Sync notification state on mount and whenever verse changes
-    setNotifEnabled(isNotifReallyOn());
+    // Sync notification state on mount — corrects the bell if the real
+    // permission (browser/OS) no longer matches the stored "enabled" flag.
+    syncNotificationState().then(setNotifEnabled);
     
     registerSW();
     // Notification init now runs app-wide in AppLayout, so we don't re-init here
     // (avoids clearing/re-arming the poll timer on every HomePage mount).
 
     const handleStorageChange = () => {
-      const enabled = isNotifReallyOn();
-      setNotifEnabled(enabled);
+      syncNotificationState().then(setNotifEnabled);
       if (!('serviceWorker' in navigator)) {
         setNotifPermission('unsupported');
       } else if (!('Notification' in window)) {
@@ -252,7 +252,7 @@ export default function HomePage() {
     
     // Also check on focus and online (when user returns to the app or internet is restored)
     const handleFocus = () => {
-      setNotifEnabled(isNotifReallyOn());
+      syncNotificationState().then(setNotifEnabled);
       // Check if it's a new day and update the verse if needed
       const lastCached = getLastCachedDailyVerse();
       // Only fetch if we don't have today's verse cached
