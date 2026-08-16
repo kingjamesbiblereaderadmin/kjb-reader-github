@@ -5,21 +5,17 @@ import React from 'react';
 // going black, we auto-reload ONCE to pull the fresh build. If a reload was
 // already attempted this session, we show a gentle recovery screen with a
 // manual retry so we never get stuck in a reload loop.
+//
+// In dev we still catch, but we surface the real error message in the fallback
+// so a broken chunk/transform error is diagnosable instead of a black screen.
 export default class ChunkErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { failed: false };
+    this.state = { failed: false, error: null };
   }
 
   static getDerivedStateFromError(error) {
-    // In dev, never swallow errors — let Vite's overlay show the real cause
-    // (transform/syntax errors also arrive as "Failed to fetch dynamically
-    // imported module", so the regex below would otherwise hide them).
-    if (import.meta.env.DEV) return null;
-    const msg = String(error?.message || error || '');
-    const isChunkError =
-      /Failed to fetch dynamically imported module|Importing a module script failed|ChunkLoadError|dynamically imported module/i.test(msg);
-    return isChunkError ? { failed: true } : null;
+    return { failed: true, error };
   }
 
   // Full clean-slate recovery: unregister the stale service worker AND wipe all
@@ -48,6 +44,9 @@ export default class ChunkErrorBoundary extends React.Component {
     const isChunkError =
       /Failed to fetch dynamically imported module|Importing a module script failed|ChunkLoadError|dynamically imported module/i.test(msg);
 
+    // Always log so the real cause is visible in the console / preview devtools.
+    console.error('[ChunkErrorBoundary] caught:', error);
+
     if (isChunkError) {
       // If the splash is mid-update, it will reload on its own once the new SW
       // activates — don't race it with a competing hardRecover here.
@@ -62,11 +61,23 @@ export default class ChunkErrorBoundary extends React.Component {
 
   render() {
     if (this.state.failed) {
+      const msg = String(this.state.error?.message || this.state.error || '');
+      const isChunkError =
+        /Failed to fetch dynamically imported module|Importing a module script failed|ChunkLoadError|dynamically imported module/i.test(msg);
+      // Always show the real error so a broken chunk/transform/runtime error is
+      // visible instead of a black screen. Genuine chunk failures auto-reload
+      // once (componentDidCatch); other errors just display so they're
+      // diagnosable.
       return (
         <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6 text-center">
-          <p className="font-sans text-sm text-muted-foreground">
-            Updating to the latest version…
+          <p className="font-sans text-sm font-semibold text-destructive">
+            {isChunkError ? 'Loading the latest version…' : 'Something went wrong'}
           </p>
+          {!isChunkError && (
+            <pre className="font-sans text-xs text-muted-foreground max-w-xl whitespace-pre-wrap break-words text-left">
+              {msg || 'Unknown error'}
+            </pre>
+          )}
           <button
             onClick={() => { try { sessionStorage.removeItem('kjb-chunk-reloaded'); } catch {} ChunkErrorBoundary.hardRecover(); }}
             className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium"
