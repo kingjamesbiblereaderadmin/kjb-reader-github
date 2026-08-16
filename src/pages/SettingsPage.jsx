@@ -17,7 +17,7 @@ import ContactLinks from '@/components/ContactLinks';
 import { useAuth } from '@/lib/AuthContext';
 import {
   getNotificationsEnabled, getNotificationTime, setNotificationTime,
-  requestNotificationPermission, disableNotifications, scheduleDailyNotification, showLocalNotification, cleanForNotification
+  requestNotificationPermission, disableNotifications, scheduleDailyNotification, showLocalNotification, cleanForNotification, isNotifReallyOn
 } from '@/lib/notifications';
 
 
@@ -231,8 +231,7 @@ export default function SettingsPage() {
   // The toggle is only truly "on" when BOTH the app flag is set AND the OS
   // permission is actually granted. Otherwise notifications silently fail
   // (the old behaviour that showed "Enabled" but never fired anything).
-  const isNotifReallyOn = () => getNotificationsEnabled() && ('Notification' in window) && Notification.permission === 'granted';
-  const [notifEnabled, setNotifEnabled] = useState(isNotifReallyOn);
+  const [notifEnabled, setNotifEnabled] = useState(() => isNotifReallyOn());
   const [notifTime, setNotifTimeState] = useState(getNotificationTime);
   const [cached, setCached] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -364,13 +363,14 @@ export default function SettingsPage() {
       alert('This browser/PWA does not support notifications.');
       return;
     }
-    if (Notification.permission !== 'granted') {
-      const result = await Notification.requestPermission();
-      setNotifPermission(result);
-      if (result !== 'granted') {
-        alert('Notifications are blocked. Please enable notifications for this app in your device settings, then try again.');
-        return;
-      }
+    // Only an explicit OS/browser 'denied' blocks the test. In the Android TWA
+    // the web Notification.permission can read as 'default' even after the user
+    // granted via the OS prompt — re-prompting there is what forced the extra
+    // "accept permission" step. showLocalNotification still fires via the TWA's
+    // notification delegation, so just attempt it.
+    if ('Notification' in window && Notification.permission === 'denied') {
+      alert('Notifications are blocked. Please enable notifications for this app in your device settings, then try again.');
+      return;
     }
 
     const v = getDailyVerse();
