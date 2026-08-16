@@ -62,23 +62,6 @@ export default function SettingsPage() {
   const [a11yFont, setA11yFont] = useState(getAccessibilityFont);
   const [bookmarkBrowser] = useState(isBookmarkBrowser);
   const [isIncognito, setIsIncognito] = useState(false);
-  // Diagnostic for the Edge-mobile "manual install prompt only" investigation:
-  // navigator.getInstalledRelatedApps() lets the page ask the browser directly
-  // whether it already considers a matching app "installed" for this origin
-  // (e.g. a stray/orphaned WebAPK from earlier testing). If the browser thinks
-  // an install already exists, per the documented Chrome/Edge criteria it will
-  // never fire the automatic beforeinstallprompt banner again for this origin
-  // — only the manual "Add to phone" path stays available. This surfaces that
-  // state in Settings > Advanced instead of requiring someone to dig through
-  // OS app-list settings by hand.
-  //   'unsupported' — API not available in this browser (e.g. desktop Firefox,
-  //                    iOS Safari, or a browser that hasn't shipped it)
-  //   'checking'    — request in flight
-  //   'none'        — supported, and no related app is currently registered
-  //   'installed'   — supported, and the browser reports at least one match
-  //   'error'       — the call itself threw
-  const [relatedAppsStatus, setRelatedAppsStatus] = useState('checking');
-  const [relatedAppsList, setRelatedAppsList] = useState([]);
   // The ACTUAL running service worker's version, read live from the SW itself.
   // Falls back to the hardcoded WORKER_VERSION constant only if the SW can't be
   // reached (dev, unsupported browser, or not yet controlling the page).
@@ -102,26 +85,6 @@ export default function SettingsPage() {
       clearInterval(poll);
     };
   }, [refreshVersions]);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (typeof navigator === 'undefined' || typeof navigator.getInstalledRelatedApps !== 'function') {
-        if (!cancelled) setRelatedAppsStatus('unsupported');
-        return;
-      }
-      try {
-        const apps = await navigator.getInstalledRelatedApps();
-        if (cancelled) return;
-        setRelatedAppsList(Array.isArray(apps) ? apps : []);
-        setRelatedAppsStatus(apps && apps.length > 0 ? 'installed' : 'none');
-      } catch (err) {
-        console.warn('[Settings] getInstalledRelatedApps failed:', err?.message);
-        if (!cancelled) setRelatedAppsStatus('error');
-      }
-    })();
-    return () => { cancelled = true; };
-  }, []);
 
   const [expandedSections, setExpandedSections] = useState({
     text: true,
@@ -1147,26 +1110,6 @@ export default function SettingsPage() {
                 <span className="text-muted-foreground shrink-0">Data Cache</span>
                 <span className="text-foreground font-medium text-right">{CACHE_VERSION}</span>
               </div>
-              <div className="flex justify-between items-center font-sans text-sm gap-4">
-                <span className="text-muted-foreground shrink-0">Browser Sees As Installed</span>
-                <span className={`font-medium text-right ${relatedAppsStatus === 'installed' ? 'text-amber-500' : 'text-foreground'}`}>
-                  {relatedAppsStatus === 'checking' && 'Checking…'}
-                  {relatedAppsStatus === 'unsupported' && 'Not supported here'}
-                  {relatedAppsStatus === 'error' && 'Check failed'}
-                  {relatedAppsStatus === 'none' && 'No'}
-                  {relatedAppsStatus === 'installed' && `Yes (${relatedAppsList.length})`}
-                </span>
-              </div>
-              {relatedAppsStatus === 'installed' && (
-                <p className="font-sans text-[11px] text-muted-foreground leading-relaxed">
-                  The browser already considers an app matching this site installed. That's why the
-                  automatic install banner won't appear — only the manual "Add to phone" option will.
-                  If this doesn't match a real install on your device, uninstall any stray KJB Reader
-                  entry from your phone's app list, then clear site data for this domain in the browser
-                  and revisit.
-                </p>
-              )}
-
             </div>
             <div className="flex gap-3 pt-2">
               <button

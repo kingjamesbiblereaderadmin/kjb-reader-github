@@ -121,17 +121,6 @@ Deno.serve(async (req) => {
     categories: ["books", "education", "lifestyle"],
     background_color: "#0f1117",
     theme_color: "#0f1117",
-    prefer_related_applications: false,
-    // Android TWA on Google Play. Points at the Play Store (cross-origin), so
-    // it does NOT suppress the web install prompt the way a same-origin entry
-    // would. prefer_related_applications=false keeps the web PWA installable.
-    related_applications: [
-      {
-        platform: "play",
-        url: "https://play.google.com/store/apps/details?id=kjbreader.app",
-        id: "kjbreader.app"
-      }
-    ],
     // Protocol handlers — register as handler for web+bible: and web+kjb: URIs.
     // Chrome's allowlist requires custom schemes to be web+-prefixed (bare
     // "bible"/"kjb" are rejected and the entries ignored). The reader strips

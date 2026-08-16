@@ -22,10 +22,6 @@ export function getNotificationsEnabled() {
 export async function requestNotificationPermission() {
   if (!('Notification' in window)) return 'unsupported';
   try {
-    // In the Android app shell, also request the native OS permission.
-    if (window.KJBNative?.requestNotificationPermission) {
-      try { await window.KJBNative.requestNotificationPermission(); } catch {}
-    }
     return await Notification.requestPermission();
   } catch {
     return Notification.permission;
