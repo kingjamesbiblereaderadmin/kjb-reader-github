@@ -149,6 +149,18 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   // chapter (a continuation). In that case the chapter-header highlight is
   // suppressed — the book name was already "said" on the first manual play.
   const suppressIntroRef = useRef(false);
+  // The book being left behind when auto-advancing (set in onEnd). Compared at
+  // the next chapter's onLoaded to tell same-book continuation from a new book:
+  // same book → skip the recorded book-name intro + announce just "Chapter N";
+  // new book → play the full recorded book-name + chapter intro.
+  const prevBookRef = useRef(null);
+  // Live book prop mirror so event-handler closures (onEnd/onLoaded) read the
+  // current book instead of a stale mount-time capture.
+  const bookRef = useRef(book);
+  useEffect(() => { bookRef.current = book; }, [book]);
+  // Set on a same-book auto-advance once metadata is ready; consumed by the
+  // seek-past-intro effect once verse 1's start time is known.
+  const autoAdvanceSameBookRef = useRef(false);
   const onChapterEndRef = useRef(onChapterEnd);
   useEffect(() => { onChapterEndRef.current = onChapterEnd; }, [onChapterEnd]);
 
@@ -621,7 +633,19 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       setAudioReady(true);
       if (autoPlayRef.current) {
         autoPlayRef.current = false;
-        a.play().catch(() => {});
+        const sameBook = !!(bookRef.current?.name && prevBookRef.current === bookRef.current.name);
+        if (sameBook) {
+          // Continuation within the same book: don't replay the recorded
+          // book-name intro. Flag for the seek-past-intro effect, which seeks
+          // to verse 1 (skipping the intro) and announces just "Chapter N"
+          // once verse 1's start time is known.
+          autoAdvanceSameBookRef.current = true;
+        } else {
+          // New book (or first auto-advance): play the full recorded intro so
+          // the new book name + chapter number are narrated.
+          suppressIntroRef.current = false;
+          a.play().catch(() => {});
+        }
       }
     };
     const onTime = () => setCurrentTime(a.currentTime);
@@ -630,6 +654,9 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       // In range mode the tick loop pauses at rangeEnd before the audio ends;
       // if onEnd still fires, don't auto-advance out of the selected passage.
       if (rangeStartRef.current != null) return;
+      // Remember the book we're leaving so the next chapter can tell same-book
+      // continuation from a new book (see onLoaded + the seek-past-intro effect).
+      prevBookRef.current = bookRef.current?.name || null;
       const advanced = onChapterEndRef.current?.();
       if (advanced) {
         autoPlayRef.current = true;
@@ -653,6 +680,35 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       a.removeEventListener('pause', onPause);
     };
   }, [clearActiveVerse]);
+
+  // Same-book auto-advance: once audio metadata AND verse 1's start time are
+  // ready, seek past the recorded book-name intro and announce just the chapter
+  // number ("Chapter 2") via speech synthesis, then begin playback at verse 1.
+  // The recorded audio re-narrates the book name every chapter; on a same-book
+  // continuation that's redundant, so we skip it. A 2.5s safety fallback plays
+  // from the start if verse 1's start never resolves (e.g. missing timing JSON).
+  useEffect(() => {
+    if (!autoAdvanceSameBookRef.current || !audioReady) return;
+    const a = audioRef.current;
+    if (!a) return;
+    if (verse1Start > 0) {
+      autoAdvanceSameBookRef.current = false;
+      suppressIntroRef.current = true;
+      a.currentTime = verse1Start;
+      setCurrentTime(verse1Start);
+      syncIntro(verse1Start);
+      jumpToNarrator(verse1Start);
+      speakThenPlay(`Chapter ${chapter}`, () => a.play().catch(() => {}));
+      return;
+    }
+    const fallback = setTimeout(() => {
+      if (!autoAdvanceSameBookRef.current) return;
+      autoAdvanceSameBookRef.current = false;
+      suppressIntroRef.current = false;
+      a.play().catch(() => {});
+    }, 2500);
+    return () => clearTimeout(fallback);
+  }, [audioReady, verse1Start, chapter, syncIntro, jumpToNarrator]);
 
   // Pause + clear when deactivated, or when timeline changes.
   useEffect(() => {
