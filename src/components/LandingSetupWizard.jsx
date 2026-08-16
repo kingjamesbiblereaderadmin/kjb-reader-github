@@ -322,11 +322,7 @@ export default function LandingSetupWizard() {
                     localStorage.removeItem('kjb-install-dismissed');
                     localStorage.removeItem('kjb-prompt-dismissed');
                   } catch {}
-                  setInstallDone(false);
-                  setPromptCancelled(false);
-                  setShowManualGuide(false);
-                  window.dispatchEvent(new Event('storage'));
-                  window.dispatchEvent(new Event('kjb-install-change'));
+                  window.location.reload();
                 }}
                 className="mt-2 w-full text-center font-sans text-[11px] text-muted-foreground hover:text-foreground underline transition-colors"
               >
