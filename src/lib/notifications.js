@@ -111,6 +111,13 @@ export async function requestNotificationPermission() {
       console.log('[Notif] Notification permission result:', result);
       if (result === 'granted') {
         hasPermission = true;
+        // Persist the app's own "enabled" flag here so every caller (the home
+        // bell, Settings, FirstLoadPrompt) stays in sync. Without this, the
+        // HomePage toggle optimistically flips ON then the storage-event
+        // handler re-reads isNotifReallyOn() (which checks this flag), finds
+        // it still 'false', and flips the toggle back OFF — the "turns off
+        // again" bug.
+        localStorage.setItem(NOTIF_KEY, 'true');
       }
     } catch (err) {
       console.warn('[Notif] Notification.requestPermission failed:', err.message);
