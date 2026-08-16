@@ -541,31 +541,26 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     const a = audioRef.current; if (!a) return;
     const rs = rangeStartRef.current;
     if (rs == null || !Number.isFinite(rs)) return;
-    // Let the recorded narrator announce the book name + chapter: play the
-    // recorded chapter intro (0 → verse 1 start) as a pre-roll, then seek to
-    // the filtered verse range once the intro ends. No browser TTS — the
-    // narrator is the only voice the listener hears.
-    suppressIntroRef.current = false;
-    const v1 = verse1StartRef.current;
-    if (Number.isFinite(v1) && v1 > 0.2 && rs > v1) {
-      pendingRangeSeekRef.current = rs;
-      a.currentTime = 0;
-      setCurrentTime(0);
-      syncIntro(0);
-      // Show the book title / chapter heading at the top during the intro.
-      const scroller = document.getElementById('kjb-scroll');
-      if (scroller) scroller.scrollTo({ top: 0, behavior: 'smooth' });
+    // Browser TTS announces the verse reference (e.g. "Genesis chapter 2,
+    // verse 2" / "...verses 2 to 5" / "Searching for grace"); the narrator
+    // then reads the verse text. No recorded chapter intro pre-roll — the
+    // browser TTS reference is the only announcement, so the listener is not
+    // made to wait through the full recorded book-name + chapter intro before
+    // the selected passage begins.
+    suppressIntroRef.current = true;
+    const begin = () => {
+      jumpToNarrator(rs);
+      a.currentTime = rs;
+      setCurrentTime(rs);
+      syncIntro(rs);
       setTimeout(() => a.play().catch(() => {}), 120);
-      return;
+    };
+    if (announce && rangeRefText) {
+      speakThenPlay(rangeRefText, begin);
+    } else {
+      begin();
     }
-    // No recorded intro (or the range starts at verse 1): play straight from
-    // the verse.
-    jumpToNarrator(rs);
-    a.currentTime = rs;
-    setCurrentTime(rs);
-    syncIntro(rs);
-    setTimeout(() => a.play().catch(() => {}), 120);
-  }, [syncIntro, jumpToNarrator]);
+  }, [syncIntro, jumpToNarrator, rangeRefText]);
 
   // Foolproof filtered-mode playback. The verse range's start time can only be
   // computed once the timing JSON loads (timeline / verseTimings). If the user
@@ -621,17 +616,6 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       updateActiveVerse(activeVn);
       if (isWordSyncEnabled()) updateActiveWord(idx);
       syncIntro(a.currentTime);
-      // Pre-roll: the recorded chapter intro (book name + chapter) was played
-      // from 0; once it ends (we reach verse 1's start), seek to the filtered
-      // verse range so the narrator continues there.
-      const prs = pendingRangeSeekRef.current;
-      if (prs != null && Number.isFinite(prs) && a.currentTime >= verse1StartRef.current - 0.05) {
-        pendingRangeSeekRef.current = null;
-        a.currentTime = prs;
-        setCurrentTime(prs);
-        jumpToNarrator(prs);
-        syncIntro(prs);
-      }
       const re = rangeEndRef.current;
       if (re != null && a.currentTime >= re) {
         a.pause();
@@ -684,12 +668,24 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       setAudioReady(true);
       if (autoPlayRef.current) {
         autoPlayRef.current = false;
-        // Always play the full recorded chapter intro (the narrator says the
-        // book name + chapter number in the selected voice) and highlight the
-        // book title / chapter heading during it. No browser TTS — the recorded
-        // intro already says it, and a second (browser) voice overlapping was
-        // jarring.
-        suppressIntroRef.current = false;
+        // New book → let the recorded narrator intro play (it says the book
+        // name + chapter), so the listener hears which book they're now in.
+        // Same book → skip the recorded intro (the listener just heard that
+        // book name on the previous chapter) and start at verse 1.
+        const sameBook = !!prevBookRef.current && prevBookRef.current === bookRef.current?.name;
+        if (sameBook) {
+          suppressIntroRef.current = true;
+          const v1 = verse1StartRef.current;
+          if (Number.isFinite(v1) && v1 > 0) {
+            a.currentTime = v1;
+            setCurrentTime(v1);
+          } else {
+            // Timeline not ready yet — seek once verse 1's start is known.
+            autoAdvanceSameBookRef.current = true;
+          }
+        } else {
+          suppressIntroRef.current = false;
+        }
         a.play().catch(() => {});
       }
     };
@@ -732,6 +728,22 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     if (!active && audioRef.current) audioRef.current.pause();
     if (!active) { clearActiveVerse(); clearIntro(); autoPlayRef.current = false; pendingRangeSeekRef.current = null; try { window.speechSynthesis?.cancel?.(); } catch {} }
   }, [active, clearActiveVerse, clearIntro]);
+  // Finish a same-book auto-advance that couldn't seek in onLoaded because the
+  // word timeline (and thus verse 1's start) wasn't ready when the audio
+  // metadata loaded. Once verse 1's start is known, jump there so the
+  // narrator starts at verse 1 instead of replaying the recorded book-name
+  // intro. Play is already in flight from onLoaded — a seek mid-play is fine.
+  useEffect(() => {
+    if (!autoAdvanceSameBookRef.current || !audioReady || !timeline.length) return;
+    const v1 = verse1StartRef.current;
+    if (!Number.isFinite(v1) || v1 <= 0) return;
+    autoAdvanceSameBookRef.current = false;
+    const a = audioRef.current;
+    if (!a) return;
+    a.currentTime = v1;
+    setCurrentTime(v1);
+    syncIntro(v1);
+  }, [timeline, audioReady, verse1Start, syncIntro]);
   useEffect(() => { timelineRef.current = timeline; clearActiveVerse(); }, [timeline, clearActiveVerse]);
 
   // Seek to a specific word after either a voice switch (pendingResumeRef) or a
