@@ -107,3 +107,23 @@ export async function getDailyVerse() {
   const ref = `${bookName} ${chapterNum}:${verseObj.verse}`;
   return { ref, text, dateStr: `${m}/${d}/${y}` };
 }
+
+// Default timezone fallback when a subscription record omits one.
+export const DEFAULT_TZ = 'Asia/Singapore';
+
+// Returns { hour, date } in the given IANA timezone for now: hour as 0-23,
+// date as YYYY-MM-DD (local). Shared by the web-push and native-push daily
+// verse functions so both compute "is it 8am here, and have we already sent
+// today?" identically.
+export function localHourAndDate(tz) {
+  const parts = {};
+  for (const p of new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, hour: '2-digit', hour12: false, year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(new Date())) {
+    parts[p.type] = p.value;
+  }
+  // hour '24' can appear for midnight in some environments; normalize to 0.
+  let hour = parseInt(parts.hour, 10);
+  if (hour === 24) hour = 0;
+  return { hour, date: `${parts.year}-${parts.month}-${parts.day}` };
+}

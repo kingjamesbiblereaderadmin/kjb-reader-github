@@ -8,27 +8,11 @@
 // src/lib/pushSub.js so browser subscriptions match this sender.
 import webpush from 'npm:web-push@3.6.7';
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
-import { getDailyVerse } from '../../shared/dailyVerse.ts';
+import { getDailyVerse, localHourAndDate, DEFAULT_TZ } from '../../shared/dailyVerse.ts';
 
 const VAPID_PUBLIC_KEY = 'BM1gPbiq0-DaYTv7qJe386uR3niuXmH5SQB_H51u9vp-8BQQupYxGqP2mwyj_e7kw2_lJI6NuE7zh8Zl_kYNHnY';
 const VAPID_PRIVATE_KEY = 'vXUdTzWD3Xi052f0XLYy6AqsJ4L50hF7yWxOOgfgyoI';
 const VAPID_SUBJECT = 'mailto:admin@kingjamesbiblereader.com';
-const DEFAULT_TZ = 'Asia/Singapore';
-
-// Returns { hour, date } in the given IANA timezone for now: hour as 0-23,
-// date as YYYY-MM-DD (local).
-function localHourAndDate(tz) {
-  const parts = {};
-  for (const p of new Intl.DateTimeFormat('en-US', {
-    timeZone: tz, hour: '2-digit', hour12: false, year: 'numeric', month: '2-digit', day: '2-digit'
-  }).formatToParts(new Date())) {
-    parts[p.type] = p.value;
-  }
-  // hour '24' can appear for midnight in some environments; normalize to 0.
-  let hour = parseInt(parts.hour, 10);
-  if (hour === 24) hour = 0;
-  return { hour, date: `${parts.year}-${parts.month}-${parts.day}` };
-}
 
 export default async function(req) {
   try {
