@@ -15,8 +15,21 @@ const isAndroidUA = () => {
 // MainActivity appends a " KJBReader" token to the user agent so the web side
 // can distinguish it from a plain Chrome-on-Android browser (the default
 // WebView UA lacks the "wv" marker). Fall back to the generic Android WebView
-// "wv" token for any build that doesn't carry the custom token.
+// "wv" token for any build that doesn't carry the custom token. The native
+// app also launches with ?from=native-app, which we persist to localStorage so
+// the signal survives SPA navigations away from the root URL.
+const NATIVE_FLAG_KEY = 'kjb-native-app';
+if (typeof window !== 'undefined') {
+  try {
+    const p = new URLSearchParams(window.location.search).get('from');
+    if (p === 'native-app') localStorage.setItem(NATIVE_FLAG_KEY, 'true');
+  } catch {}
+}
+
 export const isNativeAndroidApp = () => {
+  try {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem(NATIVE_FLAG_KEY) === 'true') return true;
+  } catch {}
   if (typeof navigator === 'undefined') return false;
   const ua = navigator.userAgent;
   if (/KJBReader/i.test(ua)) return true;

@@ -67,7 +67,11 @@ class MainActivity : AppCompatActivity() {
                     return true
                 }
             }
-            loadUrl("https://kingjamesbiblereader.com/")
+            // Launch with a ?from=native-app marker so the PWA can detect on first
+            // load that it's running inside the native app (the UA token is the
+            // primary signal; this is a redundant fallback that persists via
+            // localStorage once seen, surviving SPA navigations away from root).
+            loadUrl("https://kingjamesbiblereader.com/?from=native-app")
         }
         setContentView(webView)
     }
