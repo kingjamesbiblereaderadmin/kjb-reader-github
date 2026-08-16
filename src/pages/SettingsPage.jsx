@@ -827,7 +827,7 @@ export default function SettingsPage() {
                 <button
                   key={font.value}
                   onClick={() => pickVerseFont(font.value)}
-                  className={`kjb-font-preview px-2 py-3 rounded-xl text-sm font-medium border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+                  className={`kjb-font-preview px-2 py-3 rounded-xl text-xs font-medium border break-words leading-tight transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
                     (a11yFont === 'default' && verseFontFamily === font.value)
                       ? 'bg-primary text-primary-foreground border-primary'
                       : 'bg-secondary/50 backdrop-blur-sm text-foreground border-border hover:border-accent'
