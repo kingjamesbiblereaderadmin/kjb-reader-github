@@ -383,17 +383,11 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     if (rangeStart == null || !Number.isFinite(rangeStart) || !audioReady) return;
     const a = audioRef.current;
     if (!a) return;
-    if (a.currentTime < rangeStart - 0.1) {
-      a.currentTime = rangeStart;
-      setCurrentTime(rangeStart);
-      updateActive(findActiveWordIndex(timeline, rangeStart), false);
-      syncIntro(rangeStart);
-    }
     if (pendingRangePlayRef.current) {
       pendingRangePlayRef.current = false;
       startRangePlayback(true);
     }
-  }, [rangeStart, audioReady, timeline, updateActive, syncIntro, startRangePlayback]);
+  }, [rangeStart, audioReady, startRangePlayback]);
 
   // rAF loop while playing: update scrubber + active word.
   useEffect(() => {
