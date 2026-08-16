@@ -385,33 +385,28 @@ export default function HomePage() {
       alert('Notifications are not supported in this browser. Try installing the app or using a different browser.');
       return;
     }
-    // Enable: set the flag immediately — no prompt. The toggle is a preference,
-    // not a permission request. Permission is asked at most once (the first time
-    // the user enables, and only when still 'default'); we never re-prompt
-    // after a dismissal, because repeated requestPermission calls are what make
-    // Chrome auto-block the site. Matches the landing-page wizard.
+    // Enable: set the flag immediately — no prompt. requestNotificationPermission
+    // asks for the OS + web permission at most once (kjb-notif-asked) so repeated
+    // toggles never re-prompt and never trigger Chrome's auto-block. In the
+    // Android app shell it ALSO requests the OS POST_NOTIFICATIONS runtime
+    // permission — the web permission alone doesn't trigger it there.
     localStorage.setItem('kjb-notifications-enabled', 'true');
     setNotifEnabled(true);
     window.dispatchEvent(new Event('storage'));
 
-    let perm = Notification.permission;
-    if (perm === 'default' && localStorage.getItem('kjb-notif-asked') !== 'true') {
-      try {
-        localStorage.setItem('kjb-notif-asked', 'true');
-        perm = await Notification.requestPermission();
-        setNotifPermission(perm);
-      } catch {}
-    }
-    if (perm === 'granted') {
-      try { await requestNotificationPermission(); } catch (err) {
-        console.warn('Full notif setup failed (non-fatal):', err?.message);
+    try {
+      const result = await requestNotificationPermission();
+      setNotifPermission('Notification' in window ? Notification.permission : 'unsupported');
+      if (result === 'granted') {
+        scheduleDailyNotification(verse);
+        showLocalNotification(
+          'Daily verse reminders on ✓',
+          `You'll get the daily verse at ${(localStorage.getItem('kjb-notification-time') || '08:00')} each day.`,
+          null
+        );
       }
-      scheduleDailyNotification(verse);
-      showLocalNotification(
-        'Daily verse reminders on ✓',
-        `You'll get the daily verse at ${(localStorage.getItem('kjb-notification-time') || '08:00')} each day.`,
-        null
-      );
+    } catch (err) {
+      console.warn('[Home] notif setup failed (non-fatal):', err?.message);
     }
   };
 

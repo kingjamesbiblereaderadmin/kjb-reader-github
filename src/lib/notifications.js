@@ -170,31 +170,25 @@ export async function requestNotificationPermission() {
   // all (looks like notifications got "automatically blocked"). Requesting
   // permission immediately, synchronously-adjacent to the click, avoids that.
   if ('Notification' in window) {
-    try {
-      console.log('[Notif] Current Notification permission:', Notification.permission);
-      console.log('[Notif] Requesting Notification permission...');
-      const result = await Notification.requestPermission();
-      console.log('[Notif] Notification permission result:', result);
-      if (result === 'granted') {
-        hasPermission = true;
-        // Persist the app's own "enabled" flag here so every caller (the home
-        // bell, Settings, FirstLoadPrompt) stays in sync. Without this, the
-        // HomePage toggle optimistically flips ON then the storage-event
-        // handler re-reads isNotifReallyOn() (which checks this flag), finds
-        // it still 'false', and flips the toggle back OFF — the "turns off
-        // again" bug.
-        localStorage.setItem(NOTIF_KEY, 'true');
-        // Subscribe this device to web push so the hourly Daily Verse Push
-        // workflow can deliver the verse at the user's local 8am even when the
-        // app is closed. Non-fatal: persistSubscription silently no-ops for
-        // logged-out users (PushSubscription is user-scoped). The on-device
-        // new-day check below still covers logged-out / unsubscribed devices.
-        try {
-          backfillPushSubscription().catch((e) => console.warn('[Notif] push subscribe failed:', e?.message));
-        } catch (e) {}
+    if (Notification.permission === 'granted') {
+      hasPermission = true;
+    } else if (Notification.permission === 'default' && localStorage.getItem('kjb-notif-asked') !== 'true') {
+      try {
+        // Ask the browser at most once. Repeated requestPermission calls after
+        // a dismissal are what make Chrome auto-block the site, so we track
+        // that we've asked and never re-prompt the web permission.
+        localStorage.setItem('kjb-notif-asked', 'true');
+        const result = await Notification.requestPermission();
+        if (result === 'granted') hasPermission = true;
+      } catch (err) {
+        console.warn('[Notif] Notification.requestPermission failed:', err.message);
       }
-    } catch (err) {
-      console.warn('[Notif] Notification.requestPermission failed:', err.message);
+    }
+    if (hasPermission) {
+      localStorage.setItem(NOTIF_KEY, 'true');
+      try {
+        backfillPushSubscription().catch((e) => console.warn('[Notif] push subscribe failed:', e?.message));
+      } catch (e) {}
     }
   }
   

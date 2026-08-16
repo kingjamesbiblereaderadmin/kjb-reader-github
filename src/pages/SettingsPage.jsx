@@ -57,7 +57,7 @@ const isBookmarkBrowser = () => {
 };
 
 const LAST_REVISED = 'July 13th, 2026';
-const WORKER_VERSION = 'v20260816_2150';
+const WORKER_VERSION = 'v20260816_2125';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -304,30 +304,25 @@ export default function SettingsPage() {
       alert('Notifications are not supported in this browser. Try installing the app or using a different browser.');
       return;
     }
-    // Enable: set the flag immediately — no prompt. The toggle is a preference,
-    // not a permission request. Permission is asked at most once (the first
-    // time, and only when still 'default'); we never re-prompt after a
-    // dismissal, because repeated requestPermission calls are what make Chrome
-    // auto-block the site. Matches the home bell and the landing-page wizard.
+    // Enable: set the flag immediately — no prompt. requestNotificationPermission
+    // asks for the OS + web permission at most once (kjb-notif-asked) so repeated
+    // toggles never re-prompt and never trigger Chrome's auto-block. In the
+    // Android app shell it ALSO requests the OS POST_NOTIFICATIONS runtime
+    // permission.
     localStorage.setItem('kjb-notifications-enabled', 'true');
     setNotifEnabled(true);
     window.dispatchEvent(new Event('storage'));
 
-    let perm = Notification.permission;
-    if (perm === 'default' && localStorage.getItem('kjb-notif-asked') !== 'true') {
-      try {
-        localStorage.setItem('kjb-notif-asked', 'true');
-        perm = await Notification.requestPermission();
-        setNotifPermission(perm);
-      } catch {}
-    }
-    if (perm === 'granted') {
-      try { await requestNotificationPermission(); } catch (err) {
-        console.warn('[Settings] Full notif setup failed (non-fatal):', err?.message);
+    try {
+      const result = await requestNotificationPermission();
+      setNotifPermission('Notification' in window ? Notification.permission : 'unsupported');
+      if (result === 'granted') {
+        scheduleDailyNotification();
+        const v = getDailyVerse();
+        showLocalNotification('KJB — Reminders On', `"${cleanForNotification(v.text)}" — ${v.ref} (KJB)`, null, '/');
       }
-      scheduleDailyNotification();
-      const v = getDailyVerse();
-      showLocalNotification('KJB — Reminders On', `"${cleanForNotification(v.text)}" — ${v.ref} (KJB)`, null, '/');
+    } catch (err) {
+      console.warn('[Settings] notif setup failed (non-fatal):', err?.message);
     }
   };
 
