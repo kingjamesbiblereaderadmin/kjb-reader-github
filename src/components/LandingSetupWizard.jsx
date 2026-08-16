@@ -72,7 +72,15 @@ const inIframe = () => {
 };
 
 export default function LandingSetupWizard() {
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(() => {
+    try { return parseInt(sessionStorage.getItem('kjb-landing-wizard-step') || '0', 10) || 0; } catch { return 0; }
+  });
+
+  // Remember which step the user was on so navigating away (e.g. to Terms or
+  // Privacy) and back to the landing page doesn't reset the wizard to step 0.
+  useEffect(() => {
+    try { sessionStorage.setItem('kjb-landing-wizard-step', String(step)); } catch {}
+  }, [step]);
   const [isIncognito, setIsIncognito] = useState(false);
   const [incognitoChecked, setIncognitoChecked] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
@@ -285,7 +293,28 @@ export default function LandingSetupWizard() {
                   <p className="font-sans text-xs text-emerald-800 dark:text-emerald-300 font-bold">App installed!</p>
                 </div>
               </div>
-            ) : showInstall && isBookmarkBrowser() ? (
+            ) : null}
+            {!isStandalone && (installDone || promptCancelled) && (
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    localStorage.removeItem('kjb-is-installed');
+                    localStorage.removeItem('kjb-install-dismissed');
+                    localStorage.removeItem('kjb-prompt-dismissed');
+                  } catch {}
+                  setInstallDone(false);
+                  setPromptCancelled(false);
+                  setShowManualGuide(false);
+                  window.dispatchEvent(new Event('storage'));
+                  window.dispatchEvent(new Event('kjb-install-change'));
+                }}
+                className="mt-2 w-full text-center font-sans text-[11px] text-muted-foreground hover:text-foreground underline transition-colors"
+              >
+                Cancelled or something went wrong? Reset install status
+              </button>
+            )}
+            {!actuallyInstalled && showInstall && isBookmarkBrowser() ? (
               <button
                 type="button"
                 onClick={() => {
