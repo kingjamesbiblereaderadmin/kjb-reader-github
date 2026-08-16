@@ -20,20 +20,42 @@ const SPEEDS = [0.75, 1, 1.25, 1.5, 1.75, 2];
 // safety timeout so a missing `onend` (some Android WebView builds) never
 // blocks playback. Used to announce the verse reference before a filtered
 // passage begins — the pre-recorded chapter audio has no per-verse header.
+// Speak a short reference string (e.g. "Genesis chapter 2, verse 2") via the
+// browser's built-in speech synthesis, then call `onDone`. Used to announce
+// the verse reference before a filtered passage begins.
+//
+// Robustness notes:
+//  - On Chrome, calling speak() immediately after cancel() silently drops the
+//    utterance (the cancel is async). We wait a tick before speaking.
+//  - Voices load asynchronously (voiceschanged event). If none are ready we
+//    wait briefly, then fall back to an arbitrary voice — the engine still
+//    speaks the text even without an explicit voice on most platforms.
+//  - A safety timeout proceeds with playback if onend never fires (some
+//    Android WebView builds never fire it), so playback is never blocked.
 function speakThenPlay(text, onDone) {
   let done = false;
   const finish = () => { if (done) return; done = true; onDone(); };
   try {
     const synth = window.speechSynthesis;
     if (!synth || typeof window.SpeechSynthesisUtterance === 'undefined') { finish(); return; }
+    const speakNow = () => {
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 1; u.lang = 'en-US';
+      // Prefer an English voice so the reference is intelligible.
+      try {
+        const voices = synth.getVoices();
+        const en = voices.find(v => /^en(-|_|$)/i.test(v.lang));
+        if (en) u.voice = en;
+      } catch {}
+      u.onend = finish;
+      u.onerror = finish;
+      setTimeout(finish, Math.max(3000, text.length * 90));
+      synth.speak(u);
+    };
     synth.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = 1; u.lang = 'en-US';
-    u.onend = finish;
-    u.onerror = finish;
-    // Safety bound: if the engine never fires onend, proceed anyway.
-    setTimeout(finish, Math.max(2500, text.length * 85));
-    synth.speak(u);
+    // Let cancel() settle before queueing the utterance (Chrome race), and
+    // give voices a moment to load on first use.
+    setTimeout(speakNow, 120);
   } catch { finish(); }
 }
 
@@ -213,11 +235,11 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     if (!range) return null;
     if (verseTimings) {
       const vt = verseTimings.get(range.lastVerse);
-      if (vt && Number.isFinite(vt.end)) return vt.end;
+      if (vt && Number.isFinite(vt.end)) return vt.end + 0.35;
     }
     let end = null;
     for (const w of timeline) if (w.verse === range.lastVerse) end = Math.max(end ?? -1, w.end);
-    return end != null ? end : null;
+    return end != null ? end + 0.35 : null;
   }, [timeline, range, verseTimings]);
   useEffect(() => { rangeStartRef.current = rangeStart; }, [rangeStart]);
   useEffect(() => { rangeEndRef.current = rangeEnd; }, [rangeEnd]);
