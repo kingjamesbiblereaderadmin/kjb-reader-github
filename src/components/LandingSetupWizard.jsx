@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Bell, Share, MonitorSmartphone, Download, Accessibility, Palette,
   Type, Moon, Sun, Monitor, ChevronLeft, ChevronRight, Check, Star,
-  Image as ImageIcon, Upload, Trash2, Crop,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getAccessibilityFont, setAccessibilityFont } from '@/lib/accessibilityFont';
@@ -16,9 +14,7 @@ import {
 } from '@/lib/notifications';
 import { getDailyVerse } from '@/lib/dailyVerse';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
-import { shrinkImageUnderLimit } from '@/lib/imageCompress';
 import ThemeColorPicker from '@/components/bible/ThemeColorPicker';
-import ImageCropper from '@/components/bible/ImageCropper';
 
 const VERSE_FONTS = [
   { value: 'serif', label: 'Serif' },
@@ -89,12 +85,6 @@ export default function LandingSetupWizard() {
   const [verseFontFamily, setVerseFontFamily] = useState(() => {
     try { return localStorage.getItem('kjb-verse-font-family') || 'serif'; } catch { return 'serif'; }
   });
-  const [customBg, setCustomBg] = useState(() => {
-    try { return localStorage.getItem('kjb-daily-verse-bg') || ''; } catch { return ''; }
-  });
-  const [cropImage, setCropImage] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const bgFileInputRef = useRef(null);
   const { promptInstall } = useInstallPrompt();
 
   // Per-step completion — only true when the user actually interacted.
@@ -102,7 +92,6 @@ export default function LandingSetupWizard() {
     install: false,
     theme: false,
     fonts: false,
-    background: false,
     a11y: false,
     notif: false,
   });
@@ -146,19 +135,16 @@ export default function LandingSetupWizard() {
         const syncedReader = localStorage.getItem('kjb-reader-font-family');
         const syncedVerse = localStorage.getItem('kjb-verse-font-family');
         const syncedA11y = getAccessibilityFont();
-        const syncedBg = localStorage.getItem('kjb-daily-verse-bg') || '';
         const syncedNotif = localStorage.getItem('kjb-notifications-enabled') === 'true';
 
         if (syncedReader) setReaderFontFamily(syncedReader);
         if (syncedVerse) setVerseFontFamily(syncedVerse);
         setA11yFont(syncedA11y);
-        if (syncedBg) setCustomBg(syncedBg);
 
         // Mark steps done when synced values are present (non-default)
         if (syncedReader && syncedReader !== 'serif') markDone('fonts');
         if (syncedVerse && syncedVerse !== 'serif') markDone('fonts');
         if (syncedA11y !== 'default') markDone('a11y');
-        if (syncedBg) markDone('background');
         if (syncedNotif && 'Notification' in window && Notification.permission === 'granted') markDone('notif');
       } catch {}
     };
@@ -169,11 +155,6 @@ export default function LandingSetupWizard() {
       window.removeEventListener('storage', refreshFromSync);
     };
   }, []);
-
-  // If a custom background is already set (e.g. from cloud sync), mark it done.
-  useEffect(() => {
-    if (customBg) markDone('background');
-  }, [customBg]);
 
   const actuallyInstalled = isStandalone || installDone;
   const showInstall = incognitoChecked && !isIncognito && !actuallyInstalled;
@@ -231,26 +212,10 @@ export default function LandingSetupWizard() {
     }
   };
 
-  const handleBgUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      setUploading(true);
-      const base64 = await shrinkImageUnderLimit(file);
-      setCropImage(base64);
-    } catch (err) {
-      alert(err.message || 'Failed to process image');
-    } finally {
-      e.target.value = '';
-      setUploading(false);
-    }
-  };
-
   const STEPS = [
     { id: 'install', label: 'Install', icon: Download },
     { id: 'theme', label: 'Theme', icon: Palette },
     { id: 'fonts', label: 'Fonts', icon: Type },
-    { id: 'background', label: 'Background', icon: ImageIcon },
     { id: 'notif', label: 'Notifications', icon: Bell },
   ];
 
@@ -496,69 +461,8 @@ export default function LandingSetupWizard() {
           </div>
         )}
 
-        {/* Step 3: Custom Background */}
+        {/* Step 3: Notifications */}
         {step === 3 && (
-          <div className="text-center">
-            <h3 className="font-serif text-lg font-bold text-foreground mb-1">Daily Verse Background</h3>
-            <p className="font-sans text-xs text-muted-foreground mb-4">Upload a custom image for the daily verse card (optional)</p>
-
-            {customBg ? (
-              <div className="space-y-2">
-                <div className="w-full max-w-sm mx-auto rounded-xl bg-cover bg-center border border-border shadow-lg" style={{ backgroundImage: `url(${customBg})`, minHeight: '160px', backgroundSize: 'cover', backgroundPosition: 'center' }} />
-                <div className="flex gap-2 justify-center">
-                  <button
-                    type="button"
-                    onClick={() => bgFileInputRef.current?.click()}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-transparent border border-border text-foreground font-sans text-xs font-medium hover:border-accent transition-all"
-                  >
-                    <Crop className="w-3.5 h-3.5" /> Replace
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCustomBg('');
-                      localStorage.removeItem('kjb-daily-verse-bg');
-                      window.dispatchEvent(new Event('storage'));
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-transparent border border-destructive text-destructive font-sans text-xs font-medium hover:bg-destructive/10 transition-all"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" /> Remove
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <input
-                  ref={bgFileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleBgUpload}
-                  disabled={uploading}
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={() => bgFileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="mx-auto flex flex-col items-center justify-center w-full max-w-sm px-4 py-8 border-2 border-dashed border-border rounded-xl bg-secondary/50 hover:bg-secondary/70 transition-colors cursor-pointer"
-                >
-                  {uploading ? (
-                    <p className="font-sans text-xs text-muted-foreground">Processing...</p>
-                  ) : (
-                    <>
-                      <Upload className="w-6 h-6 text-muted-foreground mb-2" />
-                      <p className="font-sans text-xs text-muted-foreground">Click to upload image</p>
-                      <p className="font-sans text-xs text-muted-foreground mt-1">PNG, JPG up to 2MB</p>
-                    </>
-                  )}
-                </button>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Step 4: Notifications */}
-        {step === 4 && (
           <div className="text-center">
             <h3 className="font-serif text-lg font-bold text-foreground mb-1">Daily Verse Notifications</h3>
             <p className="font-sans text-xs text-muted-foreground mb-2">See the verse of the day when you open the app on a new day</p>
@@ -621,26 +525,6 @@ export default function LandingSetupWizard() {
         )}
       </div>
 
-      {/* Crop modal — portaled so it's not trapped in the card's stacking context */}
-      {cropImage && createPortal(
-        <ImageCropper
-          image={cropImage}
-          onCrop={(croppedDataUrl) => {
-            try {
-              localStorage.setItem('kjb-daily-verse-bg', croppedDataUrl);
-              setCustomBg(croppedDataUrl);
-              markDone('background');
-              window.dispatchEvent(new Event('storage'));
-            } catch (err) {
-              alert('Storage full! Please try a smaller image.');
-              console.error('localStorage quota exceeded:', err);
-            }
-            setCropImage(null);
-          }}
-          onCancel={() => { setCropImage(null); }}
-        />,
-        document.body
-      )}
     </div>
   );
 }
