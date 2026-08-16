@@ -83,26 +83,6 @@ export async function registerSW() {
   } catch { return null; }
 }
 
-// Wait up to maxMs for Notification.permission to reflect 'granted'. In an
-// Android TWA / WebView, Notification.requestPermission() can resolve with
-// 'granted' (the OS-level prompt was accepted) BEFORE the web
-// Notification.permission actually updates — so an immediate
-// reg.showNotification throws "No notification permission has been granted
-// for this origin". Polling briefly lets the grant propagate.
-export function waitForNotifGranted(maxMs = 2000) {
-  return new Promise((resolve) => {
-    if (!('Notification' in window)) return resolve(false);
-    if (Notification.permission === 'granted') return resolve(true);
-    const start = Date.now();
-    const tick = () => {
-      if (Notification.permission === 'granted') return resolve(true);
-      if (Date.now() - start >= maxMs) return resolve(false);
-      setTimeout(tick, 100);
-    };
-    tick();
-  });
-}
-
 export function todayString() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -151,74 +131,46 @@ function inNativeShell() {
   return typeof window !== 'undefined' && window.KJBNative && typeof window.KJBNative.requestNotificationPermission === 'function';
 }
 
+// Requests notification permission and returns the resulting state:
+// 'granted' | 'denied' | 'unsupported'.
+// - Native Android shell: the OS POST_NOTIFICATIONS permission (via
+//   window.KJBNative) is the only real gate — the web Notification API is
+//   not wired to the OS prompt there, so we never call it in that case.
+// - Regular browser: ask the browser directly. The browser itself only shows
+//   a prompt when permission is 'default' — it silently returns the existing
+//   answer once the user has explicitly allowed/blocked, so it's always safe
+//   to call and there's no need for our own "ask once" bookkeeping.
 export async function requestNotificationPermission() {
-  console.log('[Notif] requestNotificationPermission called');
-  console.log('[Notif] Service Worker supported:', 'serviceWorker' in navigator);
-  console.log('[Notif] Notification API supported:', 'Notification' in window);
-
-  // Native Android shell bridge: request the OS POST_NOTIFICATIONS runtime
-  // permission (Android 13+). In the WebView shell the web
-  // Notification.requestPermission() is NOT delegated to the OS, so this
-  // bridge is the ONLY way to trigger the OS prompt. The OS grant is the
-  // source of truth in the shell — we do NOT also call the web
-  // requestPermission() there, because that shows a second Chrome-style
-  // prompt that can disagree with the OS grant (the "two permissions" bug).
-  const native = inNativeShell();
-  const nativeGranted = await requestNativeNotifPermission();
-  if (nativeGranted === false) {
-    console.warn('[Notif] Native POST_NOTIFICATIONS permission denied');
+  if (inNativeShell()) {
+    const granted = await requestNativeNotifPermission();
+    if (granted) {
+      localStorage.setItem(NOTIF_KEY, 'true');
+      await registerSW();
+      return 'granted';
+    }
     return 'denied';
   }
 
-  let hasPermission = false;
-  if ('Notification' in window) {
-    if (Notification.permission === 'granted') {
-      hasPermission = true;
-    } else if (native && nativeGranted) {
-      // In the Android shell, trust the OS grant even if the web
-      // Notification.permission hasn't synced to 'granted' — the SW
-      // showNotification path checks the OS permission, not the web flag.
-      hasPermission = true;
-    } else if (!native && Notification.permission === 'default') {
-      // Browser (not Android shell): ask the web permission. The browser
-      // itself only ever shows the prompt UI when permission is 'default' —
-      // it silently resolves (no UI) once the user has explicitly
-      // allowed/blocked — so there's no need for our own "ask once" gate,
-      // and that gate was the bug: once set, it permanently blocked
-      // re-asking after a reset (e.g. uninstalling the PWA), leaving
-      // notifications broken forever with no way to recover.
-      try {
-        const result = await Notification.requestPermission();
-        if (result === 'granted') hasPermission = true;
-      } catch (err) {
-        console.warn('[Notif] Notification.requestPermission failed:', err.message);
-      }
-    }
-    if (hasPermission) {
-      localStorage.setItem(NOTIF_KEY, 'true');
-    }
-  }
-  
-  // Step 2: Register service worker (required for Android/Samsung to actually
-  // display notifications) AFTER permission has already been decided, so it
-  // can never eat into the user-gesture window the permission prompt needs.
-  if ('serviceWorker' in navigator) {
+  if (!('Notification' in window)) return 'unsupported';
+
+  let permission = Notification.permission;
+  if (permission === 'default') {
     try {
-      console.log('[Notif] Registering service worker...');
-      let reg = await navigator.serviceWorker.getRegistration('/');
-      if (!reg) {
-        reg = await navigator.serviceWorker.register('/sw.js');
-      }
-      console.log('[Notif] Service worker registered:', reg.scope);
+      permission = await Notification.requestPermission();
     } catch (err) {
-      console.error('[Notif] Service worker registration failed:', err.message);
+      console.warn('[Notif] Notification.requestPermission failed:', err.message);
     }
   }
 
-  console.log('[Notif] Final permission status:', hasPermission ? 'granted' : 'denied');
-  console.log('[Notif] Notifications enabled in localStorage:', getNotificationsEnabled());
-  
-  return hasPermission ? 'granted' : 'denied';
+  if (permission === 'granted') {
+    localStorage.setItem(NOTIF_KEY, 'true');
+  }
+
+  // Register the service worker — required for Android/Chrome to actually
+  // display notifications via reg.showNotification.
+  await registerSW();
+
+  return permission;
 }
 
 export function disableNotifications() {
@@ -254,13 +206,14 @@ export function cleanForNotification(text) {
 // silently — the previous version swallowed all errors and the user just saw
 // "nothing happened".
 export async function showLocalNotification(title, body, imageUrl = null, targetUrl = null) {
-  console.log('[Notif] showLocalNotification called:', title);
-  if ('Notification' in window) {
-    console.log('[Notif] Notification permission:', Notification.permission);
+  if (!('Notification' in window)) {
+    return { ok: false, error: 'Notification API not available' };
+  }
+  if (Notification.permission !== 'granted') {
+    return { ok: false, error: 'permission is ' + Notification.permission + ' (needs "granted")' };
   }
 
-  const url = targetUrl ? (window.location.origin ? (window.location.origin + targetUrl) : targetUrl) : (window.location.origin ? (window.location.origin + '/') : '/');
-  let swError = null;
+  const url = targetUrl ? (window.location.origin + targetUrl) : (window.location.origin + '/');
   const opts = {
     body,
     icon: APP_LOGO_URL,
@@ -268,109 +221,28 @@ export async function showLocalNotification(title, body, imageUrl = null, target
     tag: 'daily-verse',
     renotify: true,
     vibrate: [200, 100, 200],
-    silent: false,
-    requireInteraction: false,
-    color: '#8b5cf6',
-    colorized: true,
     data: { body, url }
   };
 
-  // Try service worker first (works on Android, PWA, all platforms). Wait up
-  // to 8s for the SW to activate — on a fresh install / after an update the
-  // worker can take a few seconds to become active, and the old 3s race was
-  // too short, leaving reg null so the notification never fired.
+  // Service worker path (required on Android/Chrome for notifications to show).
   if ('serviceWorker' in navigator) {
     try {
-      const reg = await Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise((resolve) => setTimeout(() => resolve(null), 8000)),
-      ]) || await navigator.serviceWorker.getRegistration();
-      if (reg && reg.active) {
-        console.log('[Notif] SW active, calling showNotification');
-        try {
-          await reg.showNotification(title, opts);
-          console.log('[Notif] ✅ Service worker notification sent successfully');
-          return { ok: true };
-        } catch (firstErr) {
-          // Android TWA / Chrome quirk: Notification.requestPermission() can
-          // resolve 'granted' (OS prompt accepted) while the SW layer hasn't
-          // been told yet, so reg.showNotification throws "No notification
-          // permission has been granted for this origin" — even when
-          // Notification.permission already reads 'granted'. Re-requesting
-          // permission when the JS API already says 'granted' is a no-op, so
-          // the only thing that helps is waiting for the grant to propagate
-          // and retrying. We retry a few times with increasing delays.
-          console.warn('[Notif] SW showNotification failed first attempt:', firstErr.message);
-          const isPermError = /notification permission/i.test(firstErr.message || '');
-
-          // If the JS API doesn't think we have permission, re-request once
-          // (this is a user-gesture-initiated call, so the prompt is allowed).
-          // Skip in the Android shell — the OS permission (via the native
-          // bridge) is the source of truth there, and calling the web
-          // requestPermission() would show a second Chrome-style prompt.
-          if ('Notification' in window && Notification.permission !== 'granted' && !inNativeShell()) {
-            try {
-              const r = await Notification.requestPermission();
-              console.log('[Notif] re-request result:', r);
-            } catch (retryErr) {
-              console.warn('[Notif] re-request failed:', retryErr.message);
-            }
-          }
-
-          // Whether or not we re-requested, retry showNotification a few
-          // times — the SW permission state can lag behind the JS API by a
-          // couple of seconds (TWA / Chrome after a fresh grant).
-          if (isPermError) {
-            const delays = [800, 1500, 3000];
-            for (let i = 0; i < delays.length; i++) {
-              try {
-                await new Promise((res) => setTimeout(res, delays[i]));
-                await waitForNotifGranted(1000);
-                await reg.showNotification(title, opts);
-                console.log(`[Notif] ✅ Service worker notification sent on retry ${i + 1}`);
-                return { ok: true };
-              } catch (retryErr) {
-                console.warn(`[Notif] retry ${i + 1} failed:`, retryErr.message);
-              }
-            }
-          }
-          throw firstErr;
-        }
-      } else {
-        console.log('[Notif] No active service worker found, falling back to standard API.');
-      }
-    } catch (err) {
-      console.error('[Notif] ❌ Service worker notification failed:', err.message);
-      // Fall through to the standard Notification API (desktop / iOS). If that
-      // also fails, report the SW error since it's the more useful diagnosis
-      // on Android/PWA/TWA where the standard constructor is unsupported.
-      swError = 'SW showNotification failed: ' + (err.message || err.name);
-    }
-  } else {
-    console.error('[Notif] Service Worker not available');
-  }
-
-  // Fallback to standard Notification API (iOS 16.4+, desktop)
-  if ('Notification' in window && Notification.permission === 'granted') {
-    try {
-      console.log('[Notif] Using standard Notification API');
-      // eslint-disable-next-line no-new
-      new Notification(title, opts);
-      console.log('[Notif] ✅ Standard notification sent');
+      const reg = await navigator.serviceWorker.ready;
+      await reg.showNotification(title, opts);
       return { ok: true };
     } catch (err) {
-      console.error('[Notif] ❌ Standard notification failed:', err.message);
-      return { ok: false, error: 'Notification() failed: ' + (err.message || err.name) };
+      console.warn('[Notif] SW showNotification failed, trying direct API:', err.message);
     }
   }
 
-  const reason = !('Notification' in window)
-    ? 'Notification API not available'
-    : Notification.permission !== 'granted'
-      ? 'permission is ' + Notification.permission + ' (needs "granted")'
-      : 'no active service worker';
-  console.warn('[Notif] No notification method available:', reason);
-  return { ok: false, error: swError || reason };
+  // Fallback: direct Notification API (desktop / iOS 16.4+).
+  try {
+    // eslint-disable-next-line no-new
+    new Notification(title, opts);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err.message || err.name || 'Notification failed' };
+  }
 }
 
 async function fireNotificationNow() {

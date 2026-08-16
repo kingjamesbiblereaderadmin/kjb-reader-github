@@ -17,7 +17,7 @@ import ContactLinks from '@/components/ContactLinks';
 import { useAuth } from '@/lib/AuthContext';
 import {
   getNotificationsEnabled, getNotificationTime, setNotificationTime,
-  requestNotificationPermission, disableNotifications, scheduleDailyNotification, showLocalNotification, cleanForNotification, isNotifReallyOn, waitForNotifGranted
+  requestNotificationPermission, disableNotifications, scheduleDailyNotification, showLocalNotification, cleanForNotification, isNotifReallyOn
 } from '@/lib/notifications';
 
 
@@ -327,52 +327,23 @@ export default function SettingsPage() {
   };
 
   const handleTestNotif = async () => {
-    console.log('[Settings] Test notification button clicked');
-    console.log('[Settings] Notifications enabled:', getNotificationsEnabled());
-    console.log('[Settings] Service Worker available:', 'serviceWorker' in navigator);
-    console.log('[Settings] Notification API available:', 'Notification' in window);
-    console.log('[Settings] Notification permission:', 'Notification' in window ? Notification.permission : 'N/A');
-    
-    // Check SW registration
-    if ('serviceWorker' in navigator) {
-      try {
-        const reg = await navigator.serviceWorker.getRegistration('/');
-        console.log('[Settings] SW registered:', !!reg);
-        console.log('[Settings] SW active:', reg?.active?.scriptURL);
-      } catch (err) {
-        console.error('[Settings] SW check failed:', err);
-      }
-    }
-    
     if (!('Notification' in window)) {
       alert('This browser/PWA does not support notifications.');
       return;
     }
-    // Ensure BOTH the web permission AND (in the Android TWA) the OS-level
-    // POST_NOTIFICATIONS runtime permission are granted before testing. The
-    // native bridge inside requestNotificationPermission() is a no-op when
-    // the OS permission is already granted and prompts once when it isn't —
-    // without it, reg.showNotification silently fails on Android 13+ even
-    // though Notification.permission reads 'granted'. This also (re)registers
-    // the service worker so showLocalNotification has an active SW to call.
-    try {
-      await requestNotificationPermission();
-    } catch (err) {
-      console.warn('[Settings] full perm setup failed:', err?.message);
-    }
-    if ('Notification' in window) setNotifPermission(Notification.permission);
-    await waitForNotifGranted(2500);
-    if ('Notification' in window && Notification.permission === 'denied') {
+
+    const permission = await requestNotificationPermission();
+    setNotifPermission('Notification' in window ? Notification.permission : permission);
+
+    if (permission !== 'granted') {
       alert('Notifications are blocked. Please enable notifications for this app in your device settings, then try again.');
       return;
     }
 
     const v = getDailyVerse();
-    console.log('[Settings] Showing test notification...');
     const result = await showLocalNotification('KJB — Daily Verse Test', `"${cleanForNotification(v.text)}" — ${v.ref} (KJB)`, null, `/?test=${Date.now()}`);
-    console.log('[Settings] Test notification result:', result);
     if (!result.ok) {
-      alert('Test notification could not be shown.\n\nReason: ' + (result.error || 'unknown') + '\n\nMake sure the app is installed and notifications are allowed in your device settings.');
+      alert('Test notification could not be shown.\n\nReason: ' + (result.error || 'unknown'));
     }
   };
 
