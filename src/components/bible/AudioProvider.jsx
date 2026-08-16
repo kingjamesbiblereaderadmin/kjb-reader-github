@@ -294,6 +294,14 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       };
       setAudioReady(false);
       a.src = record.audio_url;
+      // Force the browser to buffer the whole file up front. Without this the
+      // first play after a fresh mount (e.g. navigating away and back) is a
+      // "cold start" with extra buffering latency, so the audible output lags
+      // the reported currentTime by more than the warm-playback lead accounts
+      // for — and the karaoke highlight ends up visibly ahead of the narrator.
+      // Preloading makes cold-start latency match warm playback, so the fixed
+      // lead stays accurate across navigations.
+      try { a.load(); } catch {}
     }
   }, [record]);
   useEffect(() => { const a = audioRef.current; if (a) a.playbackRate = speed; }, [speed]);
@@ -593,7 +601,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     <AudioContext.Provider value={audioValue}>
       <CurrentTimeContext.Provider value={{ currentTime }}>
         {cachedChildren}
-        <audio ref={audioRef} preload="metadata" />
+        <audio ref={audioRef} preload="auto" />
       </CurrentTimeContext.Provider>
     </AudioContext.Provider>
   );
