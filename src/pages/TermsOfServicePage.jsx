@@ -150,15 +150,6 @@ export default function TermsOfServicePage() {
 
         <Section title="Third-Party Content & Licenses">
           <p>
-            This application uses <strong className="text-foreground">Kokoro-82M</strong>, an
-            open-source text-to-speech model licensed under the Apache License 2.0. The model
-            weights and training data are all permissively licensed for commercial use. For more
-            information, visit{' '}
-            <a href="https://huggingface.co/hexgrad/Kokoro-82M" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-              https://huggingface.co/hexgrad/Kokoro-82M
-            </a>.
-          </p>
-          <p>
             The Bible text used is the King James Bible (Pure Cambridge Edition), which is in the
             public domain.
           </p>

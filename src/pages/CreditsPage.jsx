@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, BookOpen, Volume2, Type, Server, Info, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Heart, BookOpen, Type, Server, Info, ArrowLeft, ExternalLink } from 'lucide-react';
 
 // A simple, static credits / acknowledgements page.
 // Linked from Settings (the "About & Credits" card).
@@ -48,38 +48,6 @@ export default function CreditsPage() {
             domain worldwide. In the United Kingdom, it is protected by a perpetual Crown Copyright administered by
             the King&apos;s Printer; this app is for personal, non-commercial use only. For commercial use within the UK,
             a licence from Cambridge University Press or the King&apos;s Printer may be required.
-          </p>
-        </section>
-
-        {/* Audio & Voice Credits */}
-        <section className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
-              <Volume2 className="w-5 h-5" />
-            </div>
-            <h2 className="font-serif text-xl font-semibold text-foreground">Audio &amp; Voice Credits</h2>
-          </div>
-          <p className="font-sans text-sm text-foreground/85 leading-relaxed">
-            Bible chapter audio narration is generated using <strong className="text-foreground">Kokoro-82M</strong>,
-            an open-source text-to-speech model licensed under the Apache License 2.0.
-          </p>
-          <ul className="space-y-1.5 font-sans text-sm text-foreground/85 mt-3">
-            <li><strong className="text-foreground/80">TTS Engine:</strong> Kokoro-82M</li>
-            <li><strong className="text-foreground/80">Voice:</strong> bm_george (British Male)</li>
-            <li><strong className="text-foreground/80">License:</strong> Apache 2.0</li>
-            <li><strong className="text-foreground/80">Source:</strong>{' '}
-              <a href="https://huggingface.co/hexgrad/Kokoro-82M" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://huggingface.co/hexgrad/Kokoro-82M</a>
-            </li>
-            <li><strong className="text-foreground/80">GitHub:</strong>{' '}
-              <a href="https://github.com/hexgrad/kokoro" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://github.com/hexgrad/kokoro</a>
-            </li>
-          </ul>
-          <p className="font-sans text-sm text-foreground/85 leading-relaxed mt-4">
-            <strong className="text-foreground/80">Bible text:</strong> King James Bible — Pure Cambridge Edition (Public Domain)
-          </p>
-          <p className="font-sans text-xs text-muted-foreground leading-relaxed">
-            Source:{' '}
-            <a href="https://www.bibleprotector.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://www.bibleprotector.com</a>
           </p>
         </section>
 
