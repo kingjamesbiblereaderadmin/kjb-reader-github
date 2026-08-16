@@ -7,11 +7,11 @@ import { Globe, ArrowLeft, Search, BookOpen, Sparkles, MousePointer2, Heart, Dow
 // (Dev Tools → Extension Links). Each field falls back here when blank.
 const DEFAULT_URLS = {
   chrome: 'https://chromewebstore.google.com/detail/kjb-reader-sidepanel/gbnipepkpenjgdpjfepgcgddmgbofmah',
-  firefox: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/a6eec4447_kjb-reader-v04137-firefox.zip',
-  opera: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/cfb05dfe2_kjb-reader-v04137-opera.zip',
+  firefox: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/580bbb860_kjb-reader-v04138-firefox.zip',
+  opera: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/0889d0997_kjb-reader-v04138-opera.zip',
   edge: 'https://microsoftedge.microsoft.com/addons/detail/kjb-reader-sidepanel/bphmmbiepbhfnfijaapbmpimkkjdceee',
 };
-const DEFAULT_VERSION = 'v0.4.137';
+const DEFAULT_VERSION = 'v0.4.138';
 
 const EXAMPLES = [
   {
@@ -88,6 +88,14 @@ const FEATURES = [
   },
 ];
 
+const RELEASE_NOTES = [
+  {
+    version: 'v0.4.138',
+    title: 'Side panel overlay fix',
+    body: 'v0.4.138 prevents the in-page overlay from appearing when the native side panel is already open. Previously, on some sites chrome.sidePanel.open() could reject even with the panel visible, erroneously triggering the overlay fallback and showing both surfaces at once. The side panel now registers its open/closed state with the background, which skips sidePanel.open() and pushes the verse directly when the panel is already visible.',
+  },
+];
+
 export default function ExtensionPage() {
   const [urls, setUrls] = useState(DEFAULT_URLS);
   const [version, setVersion] = useState(DEFAULT_VERSION);
@@ -101,8 +109,10 @@ export default function ExtensionPage() {
         const cfg = rows && rows[0];
         if (cancelled || !cfg) return;
         setUrls({
-          chrome: cfg.chrome || DEFAULT_URLS.chrome,
-          edge: cfg.edge || DEFAULT_URLS.edge,
+          // Chrome & Edge are permanently pinned to their official store listings
+          // and never replaced by a saved ZIP link.
+          chrome: DEFAULT_URLS.chrome,
+          edge: DEFAULT_URLS.edge,
           firefox: cfg.firefox || DEFAULT_URLS.firefox,
           opera: cfg.opera || DEFAULT_URLS.opera,
         });
@@ -283,6 +293,22 @@ export default function ExtensionPage() {
                 </div>
               );
             })}
+          </div>
+        </div>
+
+        {/* What's New / Release notes */}
+        <div className="mb-12">
+          <h2 className="font-serif text-2xl font-bold text-foreground mb-6 text-center">What's New</h2>
+          <div className="max-w-3xl mx-auto space-y-4">
+            {RELEASE_NOTES.map((n) => (
+              <div key={n.version} className="rounded-2xl border border-border bg-card shadow-sm p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/15 border border-primary/40 font-sans text-xs font-semibold text-primary">{n.version}</span>
+                  <span className="font-sans font-semibold text-sm text-foreground">{n.title}</span>
+                </div>
+                <p className="font-sans text-sm leading-relaxed text-muted-foreground">{n.body}</p>
+              </div>
+            ))}
           </div>
         </div>
 
