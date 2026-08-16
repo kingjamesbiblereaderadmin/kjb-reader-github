@@ -47,7 +47,7 @@ const loaders = {
   Contact: () => import('@/pages/ContactPage').catch((err) => { console.error('Failed to load ContactPage:', err); throw err; }),
   Register: () => import('@/pages/Register.jsx').catch((err) => { console.error('Failed to load Register:', err); throw err; }),
   OAuthConsent: () => import('@/pages/OAuthConsent.jsx').catch((err) => { console.error('Failed to load OAuthConsent:', err); throw err; }),
-  TabbedUiTest: () => import('@/pages/TabbedUiTestPage.jsx').catch((err) => { console.error('Failed to load TabbedUiTestPage:', err); throw err; }),
+
   Credits: () => import('@/pages/CreditsPage').catch((err) => { console.error('Failed to load CreditsPage:', err); throw err; }),
   Changelog: () => import('@/pages/ChangelogPage').catch((err) => { console.error('Failed to load ChangelogPage:', err); throw err; }),
 
@@ -84,7 +84,6 @@ const ResetPasswordPage = lazy(loaders.ResetPassword);
 const ContactPage = lazy(loaders.Contact);
 const RegisterPage = lazy(loaders.Register);
 const OAuthConsentPage = lazy(loaders.OAuthConsent);
-const TabbedUiTestPage = lazy(loaders.TabbedUiTest);
 const CreditsPage = lazy(loaders.Credits);
 const ChangelogPage = lazy(loaders.Changelog);
 
@@ -100,7 +99,6 @@ const getLoaderForPath = (pathname) => {
   if (pathname === '/search') return loaders.Search;
   if (pathname === '/saved') return loaders.Saved;
   if (pathname === '/refresh-cache') return loaders.RefreshCache;
-  if (pathname === '/tab-ui-test') return loaders.TabbedUiTest;
   return null;
 };
 
@@ -280,7 +278,6 @@ const AuthenticatedApp = () => {
             <Route path="/reset-password" element={<Suspense fallback={<RouteLoader />}><ResetPasswordPage /></Suspense>} />
             <Route path="/register" element={<Suspense fallback={<RouteLoader />}><RegisterPage /></Suspense>} />
             <Route path="/oauth/consent" element={<Suspense fallback={<RouteLoader />}><OAuthConsentPage /></Suspense>} />
-            <Route path="/tab-ui-test" element={<Suspense fallback={<RouteLoader />}><TabbedUiTestPage /></Suspense>} />
             <Route path="/credits" element={<Suspense fallback={<RouteLoader />}><CreditsPage /></Suspense>} />
             <Route path="/extension/change-log" element={<Suspense fallback={<RouteLoader />}><ChangelogPage /></Suspense>} />
             <Route path="/terms" element={<Suspense fallback={<RouteLoader />}><TermsOfServicePage /></Suspense>} />
