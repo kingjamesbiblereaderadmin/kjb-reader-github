@@ -174,96 +174,80 @@ export function cleanForNotification(text) {
 // Reminders are handled entirely on-device via the in-app timer + service
 // worker (showLocalNotification). No server push / VAPID is used.
 
-// Show a notification via SW (required on Android PWA)
+// Show a notification via SW (required on Android PWA).
+// Returns { ok: true } on success, or { ok: false, error: '<reason>' } so the
+// caller (Test button) can surface a concrete failure instead of failing
+// silently — the previous version swallowed all errors and the user just saw
+// "nothing happened".
 export async function showLocalNotification(title, body, imageUrl = null, targetUrl = null) {
   console.log('[Notif] showLocalNotification called:', title);
-  console.log('[Notif] Body:', body);
-  console.log('[Notif] Service Worker available:', 'serviceWorker' in navigator);
-  console.log('[Notif] Notification API available:', 'Notification' in window);
   if ('Notification' in window) {
     console.log('[Notif] Notification permission:', Notification.permission);
   }
-  
-  // Try service worker first (works on Android, PWA, all platforms)
+
+  const url = targetUrl ? (window.location.origin ? (window.location.origin + targetUrl) : targetUrl) : (window.location.origin ? (window.location.origin + '/') : '/');
+  const opts = {
+    body,
+    icon: APP_LOGO_URL,
+    badge: APP_LOGO_URL,
+    tag: 'daily-verse',
+    renotify: true,
+    vibrate: [200, 100, 200],
+    silent: false,
+    requireInteraction: false,
+    color: '#8b5cf6',
+    colorized: true,
+    data: { body, url }
+  };
+
+  // Try service worker first (works on Android, PWA, all platforms). Wait up
+  // to 8s for the SW to activate — on a fresh install / after an update the
+  // worker can take a few seconds to become active, and the old 3s race was
+  // too short, leaving reg null so the notification never fired.
   if ('serviceWorker' in navigator) {
     try {
-      console.log('[Notif] Waiting for active service worker...');
-      // Await serviceWorker.ready so the immediate "Reminders On"/test notification
-      // doesn't fail when the SW is still installing. Race a timeout so we never hang
-      // if registration failed entirely, then fall through to the standard API.
       const reg = await Promise.race([
         navigator.serviceWorker.ready,
-        new Promise((resolve) => setTimeout(() => resolve(null), 3000)),
+        new Promise((resolve) => setTimeout(() => resolve(null), 8000)),
       ]) || await navigator.serviceWorker.getRegistration();
       if (reg && reg.active) {
-        console.log('[Notif] Service worker ready:', reg);
-        console.log('[Notif] SW registration scope:', reg.scope);
-        console.log('[Notif] SW active:', reg.active ? 'yes' : 'no');
-        console.log('[Notif] showNotification method exists:', typeof reg.showNotification);
-        
-        // Show notification using service worker with app logo.
-        // Android shows white silhouette in status bar (standard OS behavior for all apps).
-        // Full-color logo appears when notification is expanded/tapped.
-        // requireInteraction keeps the notification on screen so the user can
-        // expand it and read the full verse text (some OSes collapse the body
-        // to one line until the notification is expanded/tapped).
-        await reg.showNotification(title, {
-          body: body,
-          icon: APP_LOGO_URL,
-          badge: APP_LOGO_URL,
-          tag: 'daily-verse',
-          renotify: true,
-          vibrate: [200, 100, 200],
-          silent: false,
-          requireInteraction: false,
-          color: '#8b5cf6',
-          colorized: true,
-          data: {
-            body,
-            url: targetUrl ? (window.location.origin ? (window.location.origin + targetUrl) : targetUrl) : (window.location.origin ? (window.location.origin + '/') : '/')
-          }
-        });
+        console.log('[Notif] SW active, calling showNotification');
+        await reg.showNotification(title, opts);
         console.log('[Notif] ✅ Service worker notification sent successfully');
-        return;
+        return { ok: true };
       } else {
         console.log('[Notif] No active service worker found, falling back to standard API.');
       }
     } catch (err) {
       console.error('[Notif] ❌ Service worker notification failed:', err.message);
-      console.error('[Notif] Error stack:', err.stack);
+      // Fall through to standard API; if that also fails we report this error.
+      return { ok: false, error: 'SW showNotification failed: ' + (err.message || err.name) };
     }
   } else {
     console.error('[Notif] Service Worker not available');
   }
-  
+
   // Fallback to standard Notification API (iOS 16.4+, desktop)
   if ('Notification' in window && Notification.permission === 'granted') {
     try {
       console.log('[Notif] Using standard Notification API');
-      const notif = new Notification(title, { 
-        body: body,
-        icon: APP_LOGO_URL,
-        badge: APP_LOGO_URL,
-        tag: 'daily-verse',
-        renotify: true,
-        vibrate: [200, 100, 200],
-        silent: false,
-        requireInteraction: false,
-        color: '#8b5cf6',
-        colorized: true,
-        data: {
-          body,
-          url: targetUrl ? (window.location.origin ? (window.location.origin + targetUrl) : targetUrl) : (window.location.origin ? (window.location.origin + '/') : '/')
-        }
-      });
-      
+      // eslint-disable-next-line no-new
+      new Notification(title, opts);
       console.log('[Notif] ✅ Standard notification sent');
+      return { ok: true };
     } catch (err) {
       console.error('[Notif] ❌ Standard notification failed:', err.message);
+      return { ok: false, error: 'Notification() failed: ' + (err.message || err.name) };
     }
-  } else {
-    console.warn('[Notif] No notification method available - permission:', 'Notification' in window ? Notification.permission : 'API not available');
   }
+
+  const reason = !('Notification' in window)
+    ? 'Notification API not available'
+    : Notification.permission !== 'granted'
+      ? 'permission is ' + Notification.permission + ' (needs "granted")'
+      : 'no active service worker';
+  console.warn('[Notif] No notification method available:', reason);
+  return { ok: false, error: reason };
 }
 
 async function fireNotificationNow() {

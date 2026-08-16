@@ -57,7 +57,7 @@ const isBookmarkBrowser = () => {
 };
 
 const LAST_REVISED = 'July 13th, 2026';
-const WORKER_VERSION = 'v20260816_1854';
+const WORKER_VERSION = 'v20260816_1905';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -376,13 +376,10 @@ export default function SettingsPage() {
 
     const v = getDailyVerse();
     console.log('[Settings] Showing test notification...');
-    try {
-      // Use timestamp string to prevent notification caching/overwriting the real one
-      await showLocalNotification('KJB — Daily Verse Test', `"${cleanForNotification(v.text)}" — ${v.ref} (KJB)`, null, `/?test=${Date.now()}`);
-      console.log('[Settings] Test notification completed');
-    } catch (err) {
-      console.error('[Settings] Test notification failed:', err);
-      alert('Test failed: ' + err.message);
+    const result = await showLocalNotification('KJB — Daily Verse Test', `"${cleanForNotification(v.text)}" — ${v.ref} (KJB)`, null, `/?test=${Date.now()}`);
+    console.log('[Settings] Test notification result:', result);
+    if (!result.ok) {
+      alert('Test notification could not be shown.\n\nReason: ' + (result.error || 'unknown') + '\n\nMake sure the app is installed and notifications are allowed in your device settings.');
     }
   };
 
