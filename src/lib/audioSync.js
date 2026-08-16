@@ -341,14 +341,22 @@ export function buildWordTimeline(verses, timing) {
 // — the voice "speeds ahead" of the highlight. Advancing the effective time
 // by this lead makes the highlight anticipate the audio output so it lines up
 // with what the listener actually hears.
-const AUDIO_LEAD_S = 0.2;
-
 // Find the index of the active word for a given playback time (seconds).
+//
+// The highlight is driven directly off the <audio> element's currentTime.
+// Previously a +0.2s "lead" was applied to anticipate the audible output, but
+// the audible sound actually LAGS currentTime (decoded samples sit in the
+// output buffer before reaching the speakers), so advancing the effective time
+// made the highlight run AHEAD of the narrator — the "speeding" desync. Using
+// currentTime with no lead keeps the highlight aligned with what's being read.
+//
+// The highlight is also STICKY: once a word's start is reached it stays active
+// until the next word begins, instead of clearing during the inter-word gap.
+// This prevents the highlight from flickering off and jumping ahead between
+// words, so it advances smoothly word-by-word with the narrator.
 export function findActiveWordIndex(timeline, time) {
   if (!timeline.length) return -1;
-  // Advance the effective time by the audio-output lead so the highlight
-  // tracks the heard audio, not the (lagging) reported currentTime.
-  const t = time + AUDIO_LEAD_S;
+  const t = time;
   // Binary search for the last word whose start <= t.
   let lo = 0, hi = timeline.length - 1, ans = -1;
   while (lo <= hi) {
@@ -356,18 +364,5 @@ export function findActiveWordIndex(timeline, time) {
     if (timeline[mid].start <= t) { ans = mid; lo = mid + 1; }
     else hi = mid - 1;
   }
-  if (ans < 0) return -1;
-  const w = timeline[ans];
-  const next = timeline[ans + 1];
-  // A word is active only during its actual spoken window [start, end], so the
-  // highlight tracks the narrator precisely and clears during inter-word pauses
-  // instead of lingering on the previous word through silence. Whisper
-  // sometimes emits zero-duration tokens (start === end); for those, keep the
-  // word lit until the next word's onset so the highlight is still visible.
-  if (w.end > w.start) {
-    const ceiling = next ? next.start : Infinity;
-    // 40ms tolerance absorbs Whisper boundary jitter without bridging the gap.
-    return t <= Math.min(w.end, ceiling) + 0.04 ? ans : -1;
-  }
-  return next ? (t < next.start ? ans : -1) : ans;
+  return ans;
 }

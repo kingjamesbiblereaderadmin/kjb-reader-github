@@ -1980,12 +1980,10 @@ export default function BibleReader() {
       {!isViewingTitlePage && (
         <div className={`text-center mb-6 pt-8 ${(!columnMode || pos.chapter === 1) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
           {filterMode && selectedVerses.size > 0 ? (
-            // Verses-only (filtered) view: the full book title stacked over a
-            // lone chapter number reads as orphaned when only 1-3 short verses
-            // follow it. A single compact "Book Chapter" line matches the scale
-            // of the content actually shown.
+            // Verses-only (filtered) view: show the actual reference (e.g.
+            // "John 3:16-18") of the passage being read, not just "John 3".
             <h1 className={`kjb-book-title ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} text-2xl md:text-3xl font-bold text-foreground mb-2 leading-tight`} style={{ fontStyle: 'normal', fontWeight: '900' }}>
-              {book.shortName} {pos.chapter}
+              {book.shortName} {pos.chapter}:{formatVerseRange([...selectedVerses].sort((a, b) => a - b))}
             </h1>
           ) : (
             <>
