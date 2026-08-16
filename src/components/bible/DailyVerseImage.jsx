@@ -2,15 +2,13 @@ import React, { useRef, useState, useEffect, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { base44 } from '@/api/base44Client';
 import { renderVerseText } from '@/lib/bibleApi';
-import { Download, Share2, Upload, Palette, Type, Eye, Smartphone, Bell, BellOff, Maximize2, ChevronsDown, MoreVertical, Trash2, Image, Copy, Crop, RotateCcw, X, Printer } from 'lucide-react';
+import { Download, Share2, Palette, Type, Eye, Smartphone, Bell, BellOff, Maximize2, ChevronsDown, MoreVertical, Copy, RotateCcw, X, Printer } from 'lucide-react';
 import { getNotificationsEnabled, requestNotificationPermission, disableNotifications, scheduleDailyNotification } from '@/lib/notifications';
 
-const ImageCropper = React.lazy(() => import('./ImageCropper'));
 const ShareCard = React.lazy(() => import('./ShareCard.jsx'));
 import { formatDailyVerseForCopy, cleanVerseText } from '@/lib/formatDailyVerse';
 import { getAccessibilityFont, setAccessibilityFont } from '@/lib/accessibilityFont';
 import { VERSE_BACKGROUNDS } from '@/lib/dailyVerseTheme';
-import { shrinkImageUnderLimit } from '@/lib/imageCompress';
 import DailyVerseAudio from './DailyVerseAudio';
 
 // Map a font choice to an actual CSS font-family. When an app-wide
@@ -48,29 +46,6 @@ function resolveVerseFontFamily(choice, a11yFont) {
 export default function DailyVerseImage({ verse, onClick, onToggleNotif, notifEnabled, isOffline }) {
   const dow = new Date().getDay();
   const defaultBg = VERSE_BACKGROUNDS[dow];
-  const [customBg, setCustomBg] = useState(() => {
-    try { return localStorage.getItem('kjb-daily-verse-bg') || ''; } catch { return ''; }
-  });
-  const [originalBg, setOriginalBg] = useState(() => {
-    try { return localStorage.getItem('kjb-daily-verse-bg-original') || ''; } catch { return ''; }
-  });
-  const [uploading, setUploading] = useState(false);
-  const [cropImage, setCropImage] = useState(null);
-  const [cropImageForNotif, setCropImageForNotif] = useState(false);
-  const [pendingBg, setPendingBg] = useState(null);
-  // Remembers the last crop/zoom/aspect used, so re-opening the cropper on
-  // an already-cropped image starts from where the user left it instead of
-  // resetting to centered/100%/square every time.
-  const [lastCropSettings, setLastCropSettings] = useState(() => {
-    try {
-      const raw = localStorage.getItem('kjb-daily-verse-crop-settings');
-      return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
-  });
-  const fileInputRef = useRef(null);
-  const [notifImage, setNotifImage] = useState(() => {
-    try { return localStorage.getItem('kjb-notif-image') || ''; } catch { return ''; }
-  });
   const [showStyleEditor, setShowStyleEditor] = useState(false);
   const [showLightbox, setShowLightbox] = useState(false);
   const [showVersePanel, setShowVersePanel] = useState(() => localStorage.getItem('kjb-verse-panel-visible') !== 'false');
@@ -126,14 +101,11 @@ export default function DailyVerseImage({ verse, onClick, onToggleNotif, notifEn
 
   useEffect(() => {
     const handleStorage = () => {
-      try { setCustomBg(localStorage.getItem('kjb-daily-verse-bg') || ''); } catch {}
       try { setTextColor(localStorage.getItem('kjb-verse-text-color') || '#ffffff'); } catch {}
       try { setTextOpacity(parseFloat(localStorage.getItem('kjb-verse-text-opacity') || '1')); } catch {}
       try { setFontFamily(localStorage.getItem('kjb-verse-font-family') || 'serif'); } catch {}
       try { setA11yFont(getAccessibilityFont()); } catch {}
-      try { setNotifImage(localStorage.getItem('kjb-notif-image') || ''); } catch {}
       try { setShowVersePanel(localStorage.getItem('kjb-verse-panel-visible') !== 'false'); } catch {}
-      setPendingBg(null);
     };
     window.addEventListener('storage', handleStorage);
     window.addEventListener('focus', handleStorage);
@@ -173,50 +145,6 @@ export default function DailyVerseImage({ verse, onClick, onToggleNotif, notifEn
     };
   }, [showMenu]);
   
-  const handleUpload = async (e) => {
-    e.stopPropagation();
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const base64 = await shrinkImageUnderLimit(file);
-      // Store original for future re-cropping
-      try { localStorage.setItem('kjb-daily-verse-bg-original', base64); } catch {}
-      setOriginalBg(base64);
-      setCropImage(base64); // Open cropper instead of saving directly
-    } catch (err) {
-      alert(err.message || 'Failed to process image');
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-  
-  const handleCropComplete = async (croppedDataUrl, forNotification = false) => {
-    try {
-      if (forNotification) {
-        // Save to localStorage for main thread access
-        localStorage.setItem('kjb-notif-image', croppedDataUrl);
-        setNotifImage(croppedDataUrl);
-        
-        // Also save to cache for service worker access
-        try {
-          const cache = await caches.open('kjb-notif-images');
-          const response = new Response(croppedDataUrl, {
-            headers: { 'Content-Type': 'image/png' }
-          });
-          await cache.put('/notif-image', response);
-          console.log('[Notif] Custom image saved to SW cache');
-        } catch (cacheErr) {
-          console.warn('[Notif] Failed to save image to cache:', cacheErr.message);
-        }
-      } else {
-        // Just set pending state - don't save to localStorage yet
-        setPendingBg(croppedDataUrl);
-      }
-      setCropImage(null);
-    } catch (err) {
-      console.error('Unexpected error:', err);
-    }
-  };
-
   const handleTextColorChange = (color) => {
     setTextColor(color);
     try { localStorage.setItem('kjb-verse-text-color', color); } catch {}
@@ -333,12 +261,9 @@ export default function DailyVerseImage({ verse, onClick, onToggleNotif, notifEn
   // renders the correct daily colour — the same authoritative colour the theme
   // accent and the shared image use — rather than relying on generated
   // gradient stop classes.
-  const bgStyle = (pendingBg || customBg)
-    ? { backgroundImage: `url(${pendingBg || customBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-    : { backgroundImage: `linear-gradient(to bottom right, ${defaultBg.hex[0]}, ${defaultBg.hex[1]})` };
+  const bgStyle = { backgroundImage: `linear-gradient(to bottom right, ${defaultBg.hex[0]}, ${defaultBg.hex[1]})` };
   const gradientClass = '';
-  const accentClass = (pendingBg || customBg) ? 'text-white' : defaultBg.accent;
-  const hasCustomBg = !!(pendingBg || customBg);
+  const accentClass = defaultBg.accent;
 
   const handleDownload = async (e) => {
     e.stopPropagation();
@@ -402,68 +327,6 @@ export default function DailyVerseImage({ verse, onClick, onToggleNotif, notifEn
       console.error('Failed to print image:', err);
       printWindow.close();
     }
-  };
-
-  const handleSetWallpaper = async (e) => {
-    e.stopPropagation();
-    setCapturing(true);
-    setShowButtons(false);
-    try {
-      // If custom background image exists, use it directly for wallpaper
-      if (customBg) {
-        const link = document.createElement('a');
-        link.download = `wallpaper-${new Date().toISOString().slice(0, 10)}.png`;
-        link.href = customBg;
-        link.click();
-        
-        // Show platform-specific instructions
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const isAndroid = /Android/.test(navigator.userAgent);
-        
-        setTimeout(() => {
-          if (isIOS) {
-            alert('📱 iPhone:\n1. Open Photos app\n2. Tap the downloaded image\n3. Tap Share → "Use as Wallpaper"');
-          } else if (isAndroid) {
-            alert('📱 Android:\n1. Open Gallery/Photos\n2. Long-press the image\n3. Tap "Set as" → "Wallpaper"');
-          } else {
-            alert('💻 Desktop:\n1. Right-click the downloaded image\n2. Choose "Set as desktop background"\n   (or right-click desktop → Personalize)');
-          }
-        }, 500);
-        setShowButtons(true);
-      } else {
-        // No custom image, capture verse card as before
-        await new Promise(resolve => setTimeout(resolve, 100));
-        const html2canvas = (await import('html2canvas')).default;
-        const canvas = await html2canvas(verseRef.current, {
-          backgroundColor: null,
-          scale: 2,
-          useCORS: true,
-        });
-        const link = document.createElement('a');
-        link.download = `daily-verse-${new Date().toISOString().slice(0, 10)}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-        setShowButtons(true);
-        
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const isAndroid = /Android/.test(navigator.userAgent);
-        
-        setTimeout(() => {
-          if (isIOS) {
-            alert('📱 iPhone:\n1. Open Photos app\n2. Tap the downloaded image\n3. Tap Share → "Use as Wallpaper"');
-          } else if (isAndroid) {
-            alert('📱 Android:\n1. Open Gallery/Photos\n2. Long-press the image\n3. Tap "Set as" → "Wallpaper"');
-          } else {
-            alert('💻 Desktop:\n1. Right-click the downloaded image\n2. Choose "Set as desktop background"');
-          }
-        }, 500);
-      }
-    } catch (err) {
-      console.error('Failed to set wallpaper:', err);
-      alert('Failed to generate image. Please try again.');
-      setShowButtons(true);
-    }
-    setCapturing(false);
   };
 
   const handleShare = async (e) => {
@@ -619,22 +482,6 @@ export default function DailyVerseImage({ verse, onClick, onToggleNotif, notifEn
                     <Copy className="w-4 h-4 pointer-events-none" />
                     Copy Verse
                   </button>
-                  {hasCustomBg && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const newValue = !showVersePanel;
-                        setShowVersePanel(newValue);
-                        localStorage.setItem('kjb-verse-panel-visible', String(newValue));
-                        window.dispatchEvent(new Event('storage'));
-                        setShowMenu(false);
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 transition-colors touch-manipulation"
-                    >
-                      <Eye className="w-4 h-4 pointer-events-none" />
-                      {showVersePanel ? 'Hide Panel' : 'Show Panel'}
-                    </button>
-                  )}
                   {!showStyleEditor && (
                     <button
                       onClick={(e) => {
@@ -646,62 +493,6 @@ export default function DailyVerseImage({ verse, onClick, onToggleNotif, notifEn
                     >
                       <Palette className="w-4 h-4 pointer-events-none" />
                       Text Style
-                    </button>
-                  )}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCropImageForNotif(false);
-                      setShowMenu(false);
-                      // Trigger file input immediately
-                      if (fileInputRef.current) {
-                        fileInputRef.current.click();
-                      }
-                    }}
-                    disabled={uploading}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-50 touch-manipulation"
-                  >
-                    <Image className="w-4 h-4 pointer-events-none" />
-                    {uploading ? 'Uploading...' : 'Change Background'}
-                  </button>
-                  {(originalBg || customBg || pendingBg) && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setCropImageForNotif(false);
-                        // Prefer original (uncropped) image when re-cropping
-                        setCropImage(originalBg || pendingBg || customBg);
-                        setShowMenu(false);
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 transition-colors touch-manipulation"
-                    >
-                      <Crop className="w-4 h-4 pointer-events-none" />
-                      Crop Background
-                    </button>
-                  )}
-                  {(customBg || pendingBg) && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (pendingBg) {
-                          setPendingBg(null);
-                        } else {
-                          setCustomBg('');
-                          setOriginalBg('');
-                          localStorage.removeItem('kjb-daily-verse-bg');
-                          localStorage.removeItem('kjb-daily-verse-bg-original');
-                          // Reset text color and opacity to defaults
-                          handleTextColorChange('#ffffff');
-                          handleTextOpacityChange(1);
-                          handleFontFamilyChange('serif');
-                          window.dispatchEvent(new Event('storage'));
-                        }
-                        setShowMenu(false);
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors touch-manipulation"
-                    >
-                      <Trash2 className="w-4 h-4 pointer-events-none" />
-                      Remove Custom Background
                     </button>
                   )}
                   <button
@@ -964,35 +755,6 @@ export default function DailyVerseImage({ verse, onClick, onToggleNotif, notifEn
         </div>
       )}
       
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={(e) => {
-          e.stopPropagation();
-          e.nativeEvent.stopImmediatePropagation();
-          handleUpload(e);
-        }}
-        onClick={(e) => {
-          e.stopPropagation();
-          e.nativeEvent.stopImmediatePropagation();
-        }}
-        onMouseDown={(e) => {
-          e.stopPropagation();
-          e.nativeEvent.stopImmediatePropagation();
-        }}
-        onTouchStart={(e) => {
-          e.stopPropagation();
-          e.nativeEvent.stopImmediatePropagation();
-        }}
-        onTouchEnd={(e) => {
-          e.stopPropagation();
-          e.nativeEvent.stopImmediatePropagation();
-        }}
-        className="hidden"
-      />
-      
       {/* Capture-only logo (top-left) — shown only in the downloaded/copied/shared image */}
       {capturing && (
         <img
@@ -1008,7 +770,7 @@ export default function DailyVerseImage({ verse, onClick, onToggleNotif, notifEn
           background) — the verse text, reference, and date always stay
           visible either way. */}
       <div className="px-1 pt-2 pb-2 text-center flex-1 flex flex-col w-full max-w-full">
-        <div className={`flex-1 flex flex-col justify-center min-h-0 ${showVersePanel && hasCustomBg ? 'rounded-2xl bg-black/25 backdrop-blur-[2px] mx-1 xs:mx-3 px-2 xs:px-4 py-3' : ''}`}>
+        <div className="flex-1 flex flex-col justify-center min-h-0">
           <div className={`flex self-stretch items-center justify-center gap-3 xs:gap-6 mb-4 w-full px-2 xs:px-4 py-1.5 ${showButtons && !capturing ? 'mt-10' : 'mt-4'}`}>
             <span className="h-px flex-1 bg-current opacity-50" style={{ color: textColor }} />
             <p 
@@ -1059,7 +821,7 @@ export default function DailyVerseImage({ verse, onClick, onToggleNotif, notifEn
             <span
               className="whitespace-nowrap inline-block"
               style={{
-                backgroundColor: hasCustomBg ? 'rgba(0, 0, 0, 0.55)' : `rgba(${defaultBg.pill}, 0.65)`,
+                backgroundColor: `rgba(${defaultBg.pill}, 0.65)`,
                 border: '1px solid rgba(255,255,255,0.18)',
                 borderRadius: '11px',
                 color: 'rgba(255,255,255,0.98)',
@@ -1086,173 +848,6 @@ export default function DailyVerseImage({ verse, onClick, onToggleNotif, notifEn
           </div>
         </div>
       </div>
-
-      {/* Crop Modal — rendered via a portal to document.body so the full-screen
-          overlay isn't trapped inside the verse card's transform/stacking
-          context (which caused it to overlap the home page quick-links and made
-          the Save button unreachable). */}
-      {cropImage && createPortal(
-        <div 
-          onClick={(e) => e.stopPropagation()} 
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchEnd={(e) => e.stopPropagation()} 
-          onMouseDown={(e) => e.stopPropagation()}
-          onMouseUp={(e) => e.stopPropagation()}
-        >
-        <Suspense fallback={null}>
-          <ImageCropper
-          image={cropImage}
-          initialCrop={lastCropSettings?.crop}
-          initialZoom={lastCropSettings?.zoom}
-          initialAspect={lastCropSettings?.aspect}
-          onCrop={(cropped, settings) => {
-            setCropImage(null);
-            if (settings) {
-              setLastCropSettings(settings);
-              try { localStorage.setItem('kjb-daily-verse-crop-settings', JSON.stringify(settings)); } catch {}
-            }
-            if (cropImageForNotif) {
-              handleCropComplete(cropped, true);
-            } else {
-              // Save the actual cropped image as the background
-              try {
-                localStorage.setItem('kjb-daily-verse-bg', cropped);
-                setCustomBg(cropped);
-                setPendingBg(null);
-                window.dispatchEvent(new Event('storage'));
-              } catch (err) {
-                if (err.name === 'QuotaExceededError') {
-                  alert('Storage full! Please clear browser data or try a smaller image.');
-                } else {
-                  console.error('Failed to save cropped background:', err);
-                }
-              }
-            }
-          }}
-          onCancel={() => {
-            setCropImage(null);
-            setCropImageForNotif(false);
-            setPendingBg(null);
-          }}
-        />
-        </Suspense>
-        </div>,
-        document.body
-      )}
-
-      {/* Save/Cancel buttons for pending background (only for crop-to-background flow) */}
-      {pendingBg && !cropImage && !cropImageForNotif && (
-        <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-30 flex gap-2">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              e.nativeEvent.stopImmediatePropagation();
-              setPendingBg(null);
-            }}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              e.nativeEvent.stopImmediatePropagation();
-            }}
-            onTouchStart={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              e.nativeEvent.stopImmediatePropagation();
-            }}
-            onTouchEnd={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              e.nativeEvent.stopImmediatePropagation();
-              setPendingBg(null);
-            }}
-            className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-colors shadow-lg"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={async (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              e.nativeEvent.stopImmediatePropagation();
-              try {
-                // Clear any existing images first to free up space
-                try {
-                  localStorage.removeItem('kjb-daily-verse-bg');
-                  localStorage.removeItem('kjb-notif-image');
-                } catch {}
-                try {
-                  const cache = await caches.open('kjb-notif-images');
-                  await cache.delete('/notif-image');
-                } catch {}
-                
-                // Save new background
-                try {
-                  localStorage.setItem('kjb-daily-verse-bg', pendingBg);
-                } catch (storageErr) {
-                  if (storageErr.name === 'QuotaExceededError') {
-                    alert('Storage full! Please clear browser data or try a smaller image.');
-                    console.error('localStorage quota exceeded:', storageErr);
-                    return;
-                  }
-                  throw storageErr;
-                }
-                
-                setCustomBg(pendingBg);
-                setPendingBg(null);
-                setUploadingComplete(true);
-                
-                // Auto-detect if background is light or dark and adjust text color
-                const img = new Image();
-                img.onload = () => {
-                  const canvas = document.createElement('canvas');
-                  canvas.width = img.width;
-                  canvas.height = img.height;
-                  const ctx = canvas.getContext('2d');
-                  ctx.drawImage(img, 0, 0);
-                  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                  const data = imageData.data;
-                  let r = 0, g = 0, b = 0;
-                  for (let i = 0; i < data.length; i += 4) {
-                    r += data[i];
-                    g += data[i + 1];
-                    b += data[i + 2];
-                  }
-                  const avg = (r + g + b) / (3 * (data.length / 4));
-                  if (avg > 128) {
-                    handleTextColorChange('#1a1a1a');
-                  } else {
-                    handleTextColorChange('#ffffff');
-                  }
-                };
-                img.src = pendingBg;
-                
-                window.dispatchEvent(new Event('storage'));
-              } catch (err) {
-                console.error('Failed to save background:', err);
-              }
-            }}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              e.nativeEvent.stopImmediatePropagation();
-            }}
-            onTouchStart={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              e.nativeEvent.stopImmediatePropagation();
-            }}
-            onTouchEnd={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              e.nativeEvent.stopImmediatePropagation();
-            }}
-            className="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-opacity shadow-lg"
-          >
-            Save Image
-          </button>
-        </div>
-      )}
 
       {/* Lightbox Modal */}
       {showLightbox && createPortal(
@@ -1360,7 +955,7 @@ export default function DailyVerseImage({ verse, onClick, onToggleNotif, notifEn
 
       {/* Off-screen fixed-size card used for the shared/downloaded image */}
       <Suspense fallback={null}>
-        <ShareCard ref={shareCardRef} verse={verse} logoSrc={logoDataUrl} fontFamily={resolvedFont} uiFont={uiFont} textColor={textColor} textOpacity={textOpacity} gradient={hasCustomBg ? null : defaultBg.hex} isOffline={isOffline} backgroundImageUrl={hasCustomBg ? (pendingBg || customBg) : null} showTextPanel={hasCustomBg && showVersePanel} />
+        <ShareCard ref={shareCardRef} verse={verse} logoSrc={logoDataUrl} fontFamily={resolvedFont} uiFont={uiFont} textColor={textColor} textOpacity={textOpacity} gradient={defaultBg.hex} isOffline={isOffline} />
       </Suspense>
     </div>
   );

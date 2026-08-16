@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
+
 import { Settings, Bell, BellOff, Download, CheckCircle2, AlertCircle, Loader2, Trash2, Smartphone, MonitorSmartphone, Eye, EyeOff, ZoomIn, ZoomOut, Palette, Upload, Crop, Type, ChevronDown, CheckCircle, ExternalLink, Shield, MessageCircle, Youtube, RotateCcw, Accessibility, Keyboard, Star, Server, Globe, Mail, PlayCircle, Link2, FileText, Lock, Wrench } from 'lucide-react';
 import ShortcutsList from '@/components/ShortcutsList';
-import ImageCropper from '@/components/bible/ImageCropper';
+
 import DownloadBibleSection from '@/components/bible/DownloadBibleSection';
 import OfflineHtmlSection from '@/components/bible/OfflineHtmlSection';
 import ThemeColorPicker from '@/components/bible/ThemeColorPicker';
@@ -19,7 +19,7 @@ import {
   getNotificationsEnabled, getNotificationTime, setNotificationTime,
   requestNotificationPermission, disableNotifications, scheduleDailyNotification, showLocalNotification, cleanForNotification
 } from '@/lib/notifications';
-import { shrinkImageUnderLimit } from '@/lib/imageCompress';
+
 
 import { getDailyVerse } from '@/lib/dailyVerse';
 import { downloadBibleForOffline, downloadBibleForOfflineWithRetry, clearBibleCache, isBibleCached, CACHE_VERSION } from '@/lib/bibleCache';
@@ -57,7 +57,7 @@ const isBookmarkBrowser = () => {
 };
 
 const LAST_REVISED = 'July 13th, 2026';
-const WORKER_VERSION = 'v20260816_1504';
+const WORKER_VERSION = 'v20260816_1510';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -147,26 +147,6 @@ export default function SettingsPage() {
     danger: false,
   });
   const { isDark, mode, setMode, colourId, setColourId } = useTheme();
-  const [customBg, setCustomBg] = useState(() => {
-    try { return localStorage.getItem('kjb-daily-verse-bg') || ''; } catch { return ''; }
-  });
-  const [uploading, setUploading] = useState(false);
-  const [cropImage, setCropImage] = useState(null);
-  const [cropImageForNotif, setCropImageForNotif] = useState(false);
-  const [pendingBg, setPendingBg] = useState(null);
-  const bgFileInputRef = useRef(null);
-
-  // Clear pending image when storage changes (sync across tabs)
-  useEffect(() => {
-    const handleStorage = () => {
-      try { setCustomBg(localStorage.getItem('kjb-daily-verse-bg') || ''); } catch {}
-      setPendingBg(null);
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, []);
-
-  
   const [verseTextColor, setVerseTextColor] = useState(() => {
     try { return localStorage.getItem('kjb-verse-text-color') || '#ffffff'; } catch { return '#ffffff'; }
   });
@@ -753,133 +733,6 @@ export default function SettingsPage() {
           <ThemeColorPicker />
         </div>
 
-        {/* Custom Daily Verse Background */}
-        <div className="pt-4 border-t border-border space-y-3">
-          <h3 className="font-serif text-base font-semibold text-foreground">Daily Verse Background</h3>
-          <p className="font-sans text-xs text-muted-foreground">Upload a custom image for the daily verse card</p>
-          
-          {pendingBg || customBg ? (
-            <div className="space-y-2">
-              <div className="w-full max-w-2xl mx-auto rounded-xl bg-cover bg-center border border-border shadow-lg" style={{ backgroundImage: `url(${pendingBg || customBg})`, minHeight: '400px', backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }} />
-              {pendingBg && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      setPendingBg(null);
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-transparent border border-border text-foreground font-sans text-xs font-medium hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <Upload className="w-3.5 h-3.5 rotate-180" />
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => {
-                      try {
-                        localStorage.setItem('kjb-daily-verse-bg', pendingBg);
-                        setCustomBg(pendingBg);
-                        setPendingBg(null);
-                        window.dispatchEvent(new Event('storage'));
-                      } catch (err) {
-                        alert('Storage full! Please clear browser data or try a smaller image.');
-                        console.error('localStorage quota exceeded:', err);
-                      }
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary border border-primary text-primary-foreground font-sans text-xs font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <CheckCircle className="w-3.5 h-3.5" />
-                    Save Image
-                  </button>
-                </div>
-              )}
-              {!pendingBg && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      setCustomBg('');
-                      localStorage.removeItem('kjb-daily-verse-bg');
-                      window.dispatchEvent(new Event('storage'));
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-transparent border border-destructive text-destructive font-sans text-xs font-medium hover:bg-destructive/10 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    Remove Image
-                  </button>
-                  <button
-                    onClick={() => {
-                      const current = localStorage.getItem('kjb-daily-verse-bg');
-                      if (current) setCropImage(current);
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-transparent border border-border text-foreground font-sans text-xs font-medium hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <Crop className="w-3.5 h-3.5" />
-                    Re-crop
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <>
-              <input
-                ref={bgFileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  try {
-                    const base64 = await shrinkImageUnderLimit(file);
-                    setCropImage(base64);
-                  } catch (err) {
-                    alert(err.message || 'Failed to process image');
-                  } finally {
-                    // Reset so picking the same file again still fires onChange
-                    e.target.value = '';
-                  }
-                }}
-                disabled={uploading}
-                className="hidden"
-              />
-              <button
-                type="button"
-                onClick={() => bgFileInputRef.current?.click()}
-                disabled={uploading}
-                className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-border rounded-xl bg-secondary/50 hover:bg-secondary/70 transition-colors cursor-pointer"
-              >
-                {uploading ? (
-                  <div className="text-center">
-                    <Loader2 className="w-6 h-6 animate-spin text-accent mx-auto mb-2" />
-                    <p className="font-sans text-xs text-muted-foreground">Processing...</p>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <Upload className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
-                    <p className="font-sans text-xs text-muted-foreground">Click to upload image</p>
-                    <p className="font-sans text-xs text-muted-foreground mt-1">PNG, JPG up to 2MB</p>
-                  </div>
-                )}
-              </button>
-            </>
-          )}
-        </div>
-        
-        {/* Crop Modal — portaled to document.body so the full-screen overlay
-            isn't trapped inside the settings card's transform/stacking context. */}
-        {cropImage && createPortal(
-          <ImageCropper
-            image={cropImage}
-            onCrop={(croppedDataUrl) => {
-              setPendingBg(croppedDataUrl);
-              setCropImage(null);
-            }}
-            onCancel={() => {
-              setCropImage(null);
-              setCropImageForNotif(false);
-              setPendingBg(null);
-            }}
-          />,
-          document.body
-        )}
-
         {/* Daily Verse Text Style */}
         <div className="pt-4 border-t border-border space-y-4">
         <div className="flex items-center justify-between">
@@ -905,25 +758,6 @@ export default function SettingsPage() {
             Reset
           </button>
         </div>
-          
-          {/* Hide Panel Toggle — only relevant when a custom background is set */}
-          {(customBg || pendingBg) && (
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1">
-                <p className="font-sans text-sm text-foreground font-medium">Show Verse Panel</p>
-                <p className="font-sans text-xs text-muted-foreground">Display the "Verse of the Day" panel background</p>
-              </div>
-              <Switch
-                checked={showVersePanel}
-                onCheckedChange={(checked) => {
-                  setShowVersePanel(checked);
-                  localStorage.setItem('kjb-verse-panel-visible', String(checked));
-                  window.dispatchEvent(new Event('storage'));
-                }}
-                className="shrink-0"
-              />
-            </div>
-          )}
           
           {/* Text Color */}
           <div className="space-y-2">
