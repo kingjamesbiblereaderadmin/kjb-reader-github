@@ -2,7 +2,6 @@
 // Strategy: store next-fire timestamp, check on page load/focus + SW periodic sync
 
 import { getDailyVerse, getDailyVerseFromBible } from './dailyVerse';
-import { backfillPushSubscription, unsubscribePush } from './pushSub';
 
 const NOTIF_KEY = 'kjb-notifications-enabled';
 const NOTIF_TIME_KEY = 'kjb-notification-time'; // HH:MM
@@ -186,9 +185,6 @@ export async function requestNotificationPermission() {
     }
     if (hasPermission) {
       localStorage.setItem(NOTIF_KEY, 'true');
-      try {
-        backfillPushSubscription().catch((e) => console.warn('[Notif] push subscribe failed:', e?.message));
-      } catch (e) {}
     }
   }
   
@@ -217,10 +213,6 @@ export async function requestNotificationPermission() {
 export function disableNotifications() {
   localStorage.setItem(NOTIF_KEY, 'false');
   localStorage.removeItem(NOTIF_NEXT_KEY);
-  // Drop the server-side push subscription so the daily-verse workflow stops
-  // reaching this device. Fire-and-forget; failures (logged out, no SW) are
-  // harmless — the server also prunes 404/410 endpoints on send.
-  try { unsubscribePush().catch(() => {}); } catch {}
 }
 
 
@@ -425,11 +417,6 @@ export function initNotifications() {
   _notificationsInitialized = true;
 
   console.log('[Notif] Last notified:', localStorage.getItem(NOTIF_LAST_KEY));
-
-  // Re-subscribe returning visitors silently (permission already granted) so
-  // the daily-verse server push keeps reaching them without re-toggling the
-  // bell. This also repairs a subscription bound to a stale VAPID key.
-  try { backfillPushSubscription().catch(() => {}); } catch {}
 
   // Fire today's verse if the app is opened on a new day
   checkNewDayNotification();
