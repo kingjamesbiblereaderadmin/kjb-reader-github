@@ -14,7 +14,7 @@ function fmt(t) {
 // itself (not a separate route). Re-renders with currentTime for the scrubber.
 export default function AudioMiniPlayer({ loading, hasAudio, hasAnyAudio, playing, currentTime, duration, speed, voices, voice, onToggle, onSeek, onSkip, onSpeed, onSelectVoice, onRestart, onClose }) {
   return (
-    <div className="border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 py-2.5 print:hidden">
+    <div className="mt-2 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 py-2.5 print:hidden">
       <div className="max-w-3xl mx-auto">
         {loading ? (
           <div className="flex items-center justify-center gap-2 py-1.5 text-muted-foreground">
