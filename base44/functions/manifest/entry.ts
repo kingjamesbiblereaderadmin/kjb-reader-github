@@ -7,15 +7,9 @@ import { createClient, createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 // serve a stale sw.js for hours after a deploy, which prevented the update
 // prompt from ever firing). This endpoint is always served no-store, so the
 // version string here is the reliable source of truth for "what's deployed".
-const SW_VERSION = 'v20260816_1510';
+const SW_VERSION = 'v20260816_1532';
 
 const DEFAULT_ICONS = [
-  {
-    src: "/functions/pwaIcon?size=192",
-    sizes: "192x192",
-    type: "image/png",
-    purpose: "any"
-  },
   {
     src: "/functions/pwaIcon?size=512",
     sizes: "512x512",
@@ -144,25 +138,25 @@ Deno.serve(async (req) => {
         name: "Read the Bible",
         short_name: "Read",
         url: "/read",
-        icons: [{ src: "/functions/pwaIcon?size=192", sizes: "192x192", type: "image/png" }]
+        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "512x512", type: "image/png" }]
       },
       {
         name: "Search the Bible",
         short_name: "Search",
         url: "/search",
-        icons: [{ src: "/functions/pwaIcon?size=192", sizes: "192x192", type: "image/png" }]
+        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "512x512", type: "image/png" }]
       },
       {
         name: "Saved Verses",
         short_name: "Saved",
         url: "/saved",
-        icons: [{ src: "/functions/pwaIcon?size=192", sizes: "192x192", type: "image/png" }]
+        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "512x512", type: "image/png" }]
       },
       {
         name: "The Gospel",
         short_name: "Gospel",
         url: "/gospel",
-        icons: [{ src: "/functions/pwaIcon?size=192", sizes: "192x192", type: "image/png" }]
+        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "512x512", type: "image/png" }]
       }
     ],
     edge_side_panel: { preferred_width: 400 },
@@ -185,7 +179,7 @@ Deno.serve(async (req) => {
       {
         action: "/read",
         accept: { "text/plain": [".txt"], "text/html": [".html", ".htm"] },
-        icons: [{ src: "/functions/pwaIcon?size=192", sizes: "192x192", type: "image/png" }],
+        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "512x512", type: "image/png" }],
         launch_type: "single-client"
       }
     ],
@@ -196,7 +190,7 @@ Deno.serve(async (req) => {
         short_name: "KJB Verse",
         description: "Daily verse from the King James Bible",
         theme_color: "#0f1117",
-        icons: [{ src: "/functions/pwaIcon?size=192", sizes: "192x192", type: "image/png" }],
+        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "512x512", type: "image/png" }],
         data: { type: "card", weight: 1 }
       }
     ],
