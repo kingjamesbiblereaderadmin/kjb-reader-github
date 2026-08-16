@@ -6,6 +6,7 @@ import {
   requestNotificationPermission,
   disableNotifications,
   scheduleDailyNotification,
+  showLocalNotification,
 } from '@/lib/notifications';
 import { getDailyVerse } from '@/lib/dailyVerse';
 
@@ -41,6 +42,11 @@ export default function NotificationsSection({ expanded, onToggleExpand }) {
       setEnabled(true);
       window.dispatchEvent(new Event('storage'));
       scheduleDailyNotification(getDailyVerse());
+      showLocalNotification(
+        'Daily verse reminders on ✓',
+        `You'll get the daily verse each morning.`,
+        null
+      );
     }
     setBlocked(result === 'denied');
   };
