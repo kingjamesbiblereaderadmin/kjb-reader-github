@@ -282,7 +282,7 @@ const AuthenticatedApp = () => {
             <Route path="/oauth/consent" element={<Suspense fallback={<RouteLoader />}><OAuthConsentPage /></Suspense>} />
             <Route path="/tab-ui-test" element={<Suspense fallback={<RouteLoader />}><TabbedUiTestPage /></Suspense>} />
             <Route path="/credits" element={<Suspense fallback={<RouteLoader />}><CreditsPage /></Suspense>} />
-            <Route path="/changelog" element={<Suspense fallback={<RouteLoader />}><ChangelogPage /></Suspense>} />
+            <Route path="/extension/change-log" element={<Suspense fallback={<RouteLoader />}><ChangelogPage /></Suspense>} />
             <Route path="/terms" element={<Suspense fallback={<RouteLoader />}><TermsOfServicePage /></Suspense>} />
             <Route path="/privacy" element={<Suspense fallback={<RouteLoader />}><PrivacyPolicyPage /></Suspense>} />
             <Route path="/contact" element={<Suspense fallback={<RouteLoader />}><ContactPage /></Suspense>} />
