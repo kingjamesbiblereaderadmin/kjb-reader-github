@@ -88,15 +88,56 @@ function alignWords(aTexts, bWords) {
     else if (i > 0 && (j === 0 || tr[i * W + j] === 1)) { i--; }
     else { j--; }
   }
-  return aTexts.map((_, k) => {
+  // First pass: assign matched verse words their transcript timestamps.
+  const result = new Array(n);
+  for (let k = 0; k < n; k++) {
     const b = alignB[k];
-    if (b >= 0) return { start: bWords[b].start, end: bWords[b].end };
-    let ts = -1;
-    for (let p = k - 1; p >= 0; p--) { if (alignB[p] >= 0) { ts = bWords[alignB[p]].end; break; } }
-    if (ts < 0) { for (let q = k + 1; q < n; q++) { if (alignB[q] >= 0) { ts = bWords[alignB[q]].start; break; } } }
-    if (ts < 0) ts = 0;
-    return { start: ts, end: ts };
-  });
+    if (b >= 0) result[k] = { start: bWords[b].start, end: bWords[b].end };
+  }
+  // Second pass: spread each run of consecutive gap (unmatched) verse words
+  // evenly between the previous matched word's end and the next matched
+  // word's start. Without this, every gap word in a run collapses to the
+  // SAME timestamp (the previous matched end), so the binary search in
+  // findActiveWordIndex returns only the last of them — the karaoke
+  // highlight skips over the collapsed gaps, producing the jumpy/erratic
+  // "highlight jumps words" effect. Giving each gap a distinct, increasing
+  // timestamp makes the highlight flow through every word smoothly.
+  let k = 0;
+  while (k < n) {
+    if (alignB[k] >= 0) { k++; continue; }
+    const runStart = k;
+    while (k < n && alignB[k] < 0) k++;
+    const runEnd = k; // exclusive
+    const runLen = runEnd - runStart;
+    let prevEnd = -1;
+    for (let p = runStart - 1; p >= 0; p--) { if (alignB[p] >= 0) { prevEnd = bWords[alignB[p]].end; break; } }
+    let nextStart = -1;
+    for (let q = runEnd; q < n; q++) { if (alignB[q] >= 0) { nextStart = bWords[alignB[q]].start; break; } }
+    if (prevEnd < 0 && nextStart < 0) {
+      for (let r = runStart; r < runEnd; r++) result[r] = { start: 0, end: 0 };
+    } else if (prevEnd < 0) {
+      // Only a forward anchor: stagger the gaps just before it so they still
+      // advance (distinct timestamps) instead of all sharing one instant.
+      for (let r = 0; r < runLen; r++) {
+        const ts = Math.max(0, nextStart - (runLen - r) * 0.02);
+        result[runStart + r] = { start: ts, end: ts };
+      }
+    } else if (nextStart < 0) {
+      // Only a backward anchor: stagger the gaps just after it.
+      for (let r = 0; r < runLen; r++) {
+        const ts = prevEnd + r * 0.02;
+        result[runStart + r] = { start: ts, end: ts };
+      }
+    } else {
+      const span = Math.max(0, nextStart - prevEnd);
+      const step = runLen > 0 ? span / runLen : 0;
+      for (let r = 0; r < runLen; r++) {
+        const ts = prevEnd + step * r;
+        result[runStart + r] = { start: ts, end: ts };
+      }
+    }
+  }
+  return result;
 }
 
 // Evenly distribute n words across [start, end]. Used as a fallback when a
