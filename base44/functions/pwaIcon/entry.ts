@@ -23,7 +23,7 @@ import UPNG from 'npm:upng-js@2.1.0';
 import jpegjs from 'npm:jpeg-js@0.4.4';
 
 // The user's hand-drawn signature logo (also served raw at 141×141 via ?size=sig).
-const SIGNATURE_URL = 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/be92aa50d_8e738d108_cfb4bf781_Untitled.png';
+const SIGNATURE_URL = 'https://media.base44.com/images/public/6a05d76723afe58d80c589e8/2279e016e_8e738d108_cfb4bf781_Untitled.png';
 
 const ICONS = {
   // Launcher sizes — the signature, upscaled to 512×512 in-function.
