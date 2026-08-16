@@ -322,9 +322,16 @@ export default function SettingsPage() {
       setNotifPermission(permission);
 
       if (permission === 'granted') {
-        await requestNotificationPermission();
+        // Persist the flag immediately so the toggle doesn't flip back off on
+        // the next isNotifReallyOn() re-check, then run the full SW/native
+        // setup (non-fatal — permission is already granted at this point).
         localStorage.setItem('kjb-notifications-enabled', 'true');
         setNotifEnabled(true);
+        try {
+          await requestNotificationPermission();
+        } catch (err) {
+          console.warn('[Settings] Full notif setup failed (non-fatal):', err?.message);
+        }
         scheduleDailyNotification();
         const v = getDailyVerse();
         showLocalNotification('KJB — Reminders On', `"${cleanForNotification(v.text)}" — ${v.ref} (KJB)`, null, '/');
