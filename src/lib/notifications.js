@@ -209,9 +209,10 @@ export async function showLocalNotification(title, body, imageUrl = null, target
   if (!('Notification' in window)) {
     return { ok: false, error: 'Notification API not available' };
   }
-  if (Notification.permission !== 'granted') {
-    return { ok: false, error: 'permission is ' + Notification.permission + ' (needs "granted")' };
-  }
+  // Don't pre-check Notification.permission here — in the Android native
+  // shell the OS-level permission (granted via the native bridge) doesn't
+  // always sync to this web flag, even though showNotification() itself
+  // still succeeds. Let the actual call below be the source of truth.
 
   const url = targetUrl ? (window.location.origin + targetUrl) : (window.location.origin + '/');
   const opts = {
