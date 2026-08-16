@@ -528,29 +528,39 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       setCurrentTime(a.currentTime);
       // Highlight both the whole verse and the individual word being narrated.
       const idx = findActiveWordIndex(timeline, a.currentTime);
-      const wordVerse = idx >= 0 ? timeline[idx].verse : null;
-      // Prefer verse-narration windows for the active verse so the highlight
-      // advances to the next verse as soon as its window opens, not when its
-      // first word's `start` is reached (which lags during the inter-verse gap).
-      let tVerse = null;
-      const vs = verseStartsRef.current;
-      if (vs && vs.length) {
-        let lo = 0, hi = vs.length - 1, ans = -1;
-        while (lo <= hi) {
-          const mid = (lo + hi) >> 1;
-          if (vs[mid].start <= a.currentTime) { ans = mid; lo = mid + 1; }
-          else hi = mid - 1;
+      const curWord = idx >= 0 ? timeline[idx] : null;
+      const wordVerse = curWord ? curWord.verse : null;
+      // During speech the spoken word is the accurate active verse. Only when
+      // we're in a gap PAST the current word's end (the narrator has finished
+      // it but the next word's timestamp hasn't been reached — e.g. an
+      // inter-verse pause, or a timing file whose next-verse first word `start`
+      // lags the actual narration) do we consult the verse-narration windows to
+      // advance the highlight. This avoids both sticking on the previous verse
+      // AND jumping ahead of the narrator when a verse window opens during the
+      // prior verse's trailing silence.
+      let activeVn = wordVerse;
+      if (curWord && a.currentTime > curWord.end + 0.25) {
+        const vs = verseStartsRef.current;
+        if (vs && vs.length) {
+          let lo = 0, hi = vs.length - 1, ans = -1;
+          while (lo <= hi) {
+            const mid = (lo + hi) >> 1;
+            if (vs[mid].start <= a.currentTime) { ans = mid; lo = mid + 1; }
+            else hi = mid - 1;
+          }
+          if (ans >= 0) {
+            const winVerse = vs[ans].verse;
+            if (wordVerse == null || winVerse > wordVerse) activeVn = winVerse;
+          }
         }
-        if (ans >= 0) tVerse = vs[ans].verse;
       }
-      updateActiveVerse(tVerse != null ? tVerse : wordVerse);
+      updateActiveVerse(activeVn);
       updateActiveWord(idx);
       // Keep the narrated verse clear of the sticky toolbar (which can clip its
       // top edge after a manual scroll or two-column reflow). Only nudge when
       // the verse is partially clipped at the top edge — never yank when the
       // user has scrolled past it. Instant (not smooth) to avoid janky per-frame
       // scroll queues.
-      const activeVn = tVerse != null ? tVerse : wordVerse;
       if (activeVn != null) {
         const vn = activeVn;
         const ve = vn != null ? document.querySelector(`[data-audio-verse="${vn}"]`) : null;
