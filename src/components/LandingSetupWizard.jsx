@@ -374,6 +374,9 @@ export default function LandingSetupWizard() {
                         <>If an <strong>Install</strong> icon appears in your address bar, click it. Otherwise check your browser menu.</>
                       )}
                     </p>
+                    <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-2">
+                      <strong className="text-foreground">Already installed?</strong> {isMobile() ? 'Check your home screen or app drawer' : 'Check your Applications folder, Start menu, or taskbar'} for "KJB Reader".
+                    </p>
                   </div>
                 )}
               </div>
