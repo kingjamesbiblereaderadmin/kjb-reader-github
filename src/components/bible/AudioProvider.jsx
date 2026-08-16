@@ -180,29 +180,6 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   useEffect(() => { rangeEndRef.current = rangeEnd; }, [rangeEnd]);
   useEffect(() => { if (!range) pendingRangePlayRef.current = false; }, [range]);
 
-  // Foolproof filtered-mode playback. The verse range's start time can only be
-  // computed once the timing JSON loads (timeline / verseTimings). If the user
-  // presses play before that — or activates Listen right as the chapter loads —
-  // the audio would otherwise start from the beginning of the chapter,
-  // narrating the chapter intro / earlier verses. Once the range start becomes
-  // available, jump the audio to it (if it's still sitting before the verse),
-  // and start any play that was queued while the timing was still loading.
-  useEffect(() => {
-    if (rangeStart == null || !Number.isFinite(rangeStart) || !audioReady) return;
-    const a = audioRef.current;
-    if (!a) return;
-    if (a.currentTime < rangeStart - 0.1) {
-      a.currentTime = rangeStart;
-      setCurrentTime(rangeStart);
-      updateActive(findActiveWordIndex(timeline, rangeStart), false);
-      syncIntro(rangeStart);
-    }
-    if (pendingRangePlayRef.current) {
-      pendingRangePlayRef.current = false;
-      a.play().catch(() => {});
-    }
-  }, [rangeStart, audioReady, timeline, updateActive, syncIntro]);
-
   // Per-verse word slices with global timeline indices, for VerseText.
   const wordsByVerse = useMemo(() => {
     const m = new Map();
@@ -302,6 +279,29 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       }
     }
   }, []);
+
+  // Foolproof filtered-mode playback. The verse range's start time can only be
+  // computed once the timing JSON loads (timeline / verseTimings). If the user
+  // presses play before that — or activates Listen right as the chapter loads —
+  // the audio would otherwise start from the beginning of the chapter,
+  // narrating the chapter intro / earlier verses. Once the range start becomes
+  // available, jump the audio to it (if it's still sitting before the verse),
+  // and start any play that was queued while the timing was still loading.
+  useEffect(() => {
+    if (rangeStart == null || !Number.isFinite(rangeStart) || !audioReady) return;
+    const a = audioRef.current;
+    if (!a) return;
+    if (a.currentTime < rangeStart - 0.1) {
+      a.currentTime = rangeStart;
+      setCurrentTime(rangeStart);
+      updateActive(findActiveWordIndex(timeline, rangeStart), false);
+      syncIntro(rangeStart);
+    }
+    if (pendingRangePlayRef.current) {
+      pendingRangePlayRef.current = false;
+      a.play().catch(() => {});
+    }
+  }, [rangeStart, audioReady, timeline, updateActive, syncIntro]);
 
   // rAF loop while playing: update scrubber + active word.
   useEffect(() => {
