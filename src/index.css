@@ -447,6 +447,18 @@
        from the yellow <mark> highlights on the search term words. */
     box-shadow: 0 0 0 1.5px hsl(var(--accent) / 0.65);
   }
+  /* The floated drop-cap letter sits outside the .kjb-verse-text inline box,
+     so the verse-level audio highlight needs its own tint on the letter —
+     otherwise verse 1's big first letter reads as un-highlighted while the
+     rest of the verse is tinted. The verse-number cell stays clear. */
+  .kjb-audio-verse-active .kjb-dropcap-letter {
+    background-color: hsl(var(--accent) / 0.22);
+    border-radius: 0.1em;
+  }
+  .kjb-audio-filtered .kjb-audio-verse-active .kjb-dropcap-letter {
+    background-color: hsl(var(--accent) / 0.32);
+    box-shadow: 0 0 0 1.5px hsl(var(--accent) / 0.65);
+  }
   .kjb-audio-word { border-radius: 2px; }
   .kjb-audio-active {
     background-color: hsl(var(--accent) / 0.4);
