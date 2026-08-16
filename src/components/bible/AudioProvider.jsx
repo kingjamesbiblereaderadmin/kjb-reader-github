@@ -326,12 +326,19 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   // to the word timeline.
   const rangeStart = useMemo(() => {
     if (!range) return null;
+    // Prefer the first WORD's precise start (from the word timeline) over the
+    // verse-boundary `start`. The verse boundary can open at the previous
+    // verse's tail (its trailing audio/silence), so seeking to it plays the
+    // end of the prior verse before the selected range begins. The first
+    // word's timestamp is exactly where the narrator begins the selected
+    // verse.
+    const w = timeline.find((x) => x.verse === range.firstVerse);
+    if (w && Number.isFinite(w.start)) return w.start;
     if (verseTimings) {
       const vt = verseTimings.get(range.firstVerse);
       if (vt && Number.isFinite(vt.start)) return vt.start;
     }
-    const w = timeline.find((w) => w.verse === range.firstVerse);
-    return w ? w.start : null;
+    return null;
   }, [timeline, range, verseTimings]);
   const rangeEnd = useMemo(() => {
     if (!range) return null;
