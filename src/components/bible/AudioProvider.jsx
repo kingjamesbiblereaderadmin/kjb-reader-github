@@ -759,14 +759,22 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     if (isWordSyncEnabled()) updateActiveWord(idx);
     syncIntro(ts);
     if (target.play) {
-      // "Read from here" (startVerse set): announce the single-verse reference
-      // via speech synthesis before starting, so the listener hears
-      // "Genesis chapter 49, verse 16" before the verse is read. Voice-switch
-      // resumes (pendingResumeRef) play immediately with no announcement.
+      // "Read from here" (startVerse set): when audio is already playing, just
+      // seek (done above) and continue — NO spoken reference. The announcement
+      // would overlap the playing audio, and ~2s of audio would advance during
+      // it so by the time the announcement ends the narrator has moved past the
+      // clicked verse ("reads the wrong verse"). Only when starting fresh
+      // (paused) do we announce the reference, then play.
+      // Voice-switch resumes (pendingResumeRef) play immediately with no announcement.
       if (startVerse != null) {
-        const name = book?.shortName || book?.name || '';
-        const refText = `${name} chapter ${chapter}, verse ${startVerse}`;
-        speakThenPlay(refText, () => a.play().catch(() => {}));
+        const wasPlaying = !a.paused;
+        if (wasPlaying) {
+          a.play().catch(() => {});
+        } else {
+          const name = book?.shortName || book?.name || '';
+          const refText = `${name} chapter ${chapter}, verse ${startVerse}`;
+          speakThenPlay(refText, () => a.play().catch(() => {}));
+        }
       } else {
         a.play().catch(() => {});
       }
