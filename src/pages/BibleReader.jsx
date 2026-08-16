@@ -461,6 +461,10 @@ export default function BibleReader() {
   const handleReadSelected = () => {
     setFilterMode(true);
     setSelectMode(false);
+    // Activate Listen mode so the AudioProvider mounts and the mini-player
+    // appears. Without this, "Read Selected" only filters the view and the
+    // audio bar never shows.
+    setListenMode(true);
     // Clear any stale "Read from here" start verse so the AudioProvider's
     // startVerse effect doesn't auto-play immediately (which would overlap
     // the spoken reference announcement for this selected range).
