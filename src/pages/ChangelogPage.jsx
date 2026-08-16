@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, History } from 'lucide-react';
+import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
   { version: 'v0.4.141', date: 'August 16, 2026', items: ['Fixed copy buttons (Read chapter, Results cards, Gospel, Resources) that silently failed when the side panel lost focus — now uses a fallback clipboard method'] },
@@ -16,7 +16,7 @@ const CHANGELOG = [
   { version: 'v0.4.131', date: 'August 15, 2026', items: ['Preserved host page styling for detected references \u2014 the extension no longer overrides existing link colors or styles'] },
   { version: 'v0.4.130', date: 'August 15, 2026', items: ['Stale content is now hidden while loading new verses to prevent flashing of previous chapter text'] },
   { version: 'v0.4.129', date: 'August 15, 2026', items: ['Fixed Gospel reference navigation and cross-chapter range highlights; highlights now persist correctly across chapters and books'] },
-  { version: 'v0.4.128', date: 'August 15, 2026', items: ['Migrated to a self-hosted KJB Reader API endpoint for improved reliability'] },
+  { version: 'v0.4.128', date: 'August 14, 2026', items: ['Migrated to a self-hosted KJB Reader API endpoint for improved reliability'] },
   { version: 'v0.4.127', date: 'August 14, 2026', items: ['Added Opera legacy action API callback compatibility', 'Edge mobile users can now open the extension from the browser menu without selecting a verse first'] },
   { version: 'v0.4.126', date: 'August 14, 2026', items: ['Added Firefox Android support via an adaptive Manifest V2 event-page model \u2014 desktop uses native sidebar, Android uses a full-screen overlay'] },
   { version: 'v0.4.125', date: 'August 14, 2026', items: ['Added resizable panel width (280\u2013800px) with a drag grip supporting mouse, touch, and keyboard', 'Added persistent A-/100%/A+ interface scaling controls for text, icons, and spacing'] },
@@ -49,7 +49,7 @@ const CHANGELOG = [
   { version: 'v0.4.98', date: 'August 13, 2026', items: ['Removed the Highlighting tool from the extension interface'] },
   { version: 'v0.4.97', date: 'August 13, 2026', items: ['Added Gospel tab with salvation resources and Resources tab with preacher links and ministry info'] },
   { version: 'v0.4.96', date: 'August 13, 2026', items: ['Added \u201CView in Sidebar\u201D button to the popup for transitioning to the full side panel'] },
-  { version: 'v0.4.95', date: 'August 13, 2026', items: ['Implemented manifest-based side panel activation for manual browsing with popup windows for automated lookups'] },
+  { version: 'v0.4.95', date: 'August 14, 2026', items: ['Implemented manifest-based side panel activation for manual browsing with popup windows for automated lookups'] },
   { version: 'v0.4.94', date: 'August 13, 2026', items: ['Added right-click context menu for verse lookups on selected text'] },
   { version: 'v0.4.93', date: 'August 13, 2026', items: ['Added advanced search with wildcard support (? and *), whole-word match, case-sensitive toggle, and Old/New Testament filtering'] },
   { version: 'v0.4.92', date: 'August 13, 2026', items: ['Added epistle subscriptions as centered, bold, bracket-italicized text and Psalm superscriptions with leading pilcrow'] },
@@ -80,6 +80,54 @@ const CHANGELOG = [
   { version: 'v0.4.65', date: 'August 9, 2026', items: ['Initial Opera build with sidebar, verse lookup, search, and reference detection'] },
 ];
 
+// Category styles: each maps to a label, chip classes, badge classes, and a
+// left-border accent color. Categories are detected from the first verb of
+// each changelog item.
+const CATEGORIES = {
+  new: {
+    label: 'New',
+    chip: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border border-blue-300/60 dark:border-blue-500/30',
+    badge: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-600/40',
+    accent: 'border-l-blue-500',
+  },
+  fix: {
+    label: 'Fix',
+    chip: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-300/60 dark:border-emerald-500/30',
+    badge: 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white border-emerald-600/40',
+    accent: 'border-l-emerald-500',
+  },
+  improved: {
+    label: 'Improved',
+    chip: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 border border-amber-300/60 dark:border-amber-500/30',
+    badge: 'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-amber-600/40',
+    accent: 'border-l-amber-500',
+  },
+  ui: {
+    label: 'UI',
+    chip: 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 border border-purple-300/60 dark:border-purple-500/30',
+    badge: 'bg-gradient-to-r from-purple-500 to-fuchsia-600 text-white border-purple-600/40',
+    accent: 'border-l-purple-500',
+  },
+};
+
+function classifyItem(item) {
+  const t = item.toLowerCase();
+  if (t.startsWith('fixed') || t.startsWith('fix ')) return 'fix';
+  if (t.startsWith('added') || t.startsWith('created') || t.startsWith('built') || t.startsWith('implemented') || t.startsWith('connected') || t.startsWith('included')) return 'new';
+  if (t.startsWith('improved') || t.startsWith('increased') || t.startsWith('restored') || t.startsWith('normalized') || t.startsWith('audited') || t.startsWith('updated') || t.startsWith('migrated') || t.startsWith('replaced') || t.startsWith('switched') || t.startsWith('streamlined') || t.startsWith('redirected') || t.startsWith('removed') || t.startsWith('excluded')) return 'improved';
+  return 'ui';
+}
+
+function dominantCategory(items) {
+  const counts = { new: 0, fix: 0, improved: 0, ui: 0 };
+  items.forEach((it) => { counts[classifyItem(it)]++; });
+  let best = 'ui', max = -1;
+  for (const k of Object.keys(counts)) {
+    if (counts[k] > max) { max = counts[k]; best = k; }
+  }
+  return best;
+}
+
 export default function ChangelogPage() {
   useEffect(() => {
     document.title = 'KJB Reader — Extension Changelog';
@@ -95,7 +143,7 @@ export default function ChangelogPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-slate-900 dark:to-purple-950 text-foreground">
       <div className="w-full max-w-[900px] mx-auto px-5 sm:px-8 lg:px-12 py-10 pb-24">
         <div className="mb-8">
           <Link
@@ -107,11 +155,11 @@ export default function ChangelogPage() {
           </Link>
         </div>
 
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 border border-primary/30 mb-5">
-            <History className="w-7 h-7 text-primary" />
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 mb-5 shadow-lg shadow-purple-500/20">
+            <History className="w-7 h-7 text-white" />
           </div>
-          <h1 className="font-serif text-3xl sm:text-4xl font-bold text-foreground mb-4">
+          <h1 className="font-serif text-3xl sm:text-4xl font-bold text-foreground mb-4 bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent">
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
@@ -119,25 +167,53 @@ export default function ChangelogPage() {
           </p>
         </div>
 
-        <div className="space-y-4">
-          {CHANGELOG.map((entry) => (
-            <div key={entry.version} className="rounded-2xl border border-border bg-card shadow-sm p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-4">
-                <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/15 border border-primary/40 font-sans text-xs font-semibold text-primary">
-                  {entry.version}
-                </span>
-                <span className="font-sans text-sm text-muted-foreground">{entry.date}</span>
-              </div>
-              <ul className="space-y-2">
-                {entry.items.map((item, i) => (
-                  <li key={i} className="flex items-start gap-2.5 font-sans text-sm leading-relaxed text-foreground/90">
-                    <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-accent mt-[0.55em]" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
+        {/* AI-generated disclaimer banner */}
+        <div className="mb-8 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 p-[1.5px] shadow-lg shadow-purple-500/20">
+          <div className="rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 px-5 py-4 sm:px-6 sm:py-4">
+            <div className="flex items-center gap-3">
+              <span className="flex-shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white/20 backdrop-blur-sm">
+                <Sparkles className="w-5 h-5 text-white" />
+              </span>
+              <p className="font-sans text-sm sm:text-base font-medium text-white">
+                These release notes are generated by AI after each build.
+              </p>
             </div>
-          ))}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {CHANGELOG.map((entry) => {
+            const cat = dominantCategory(entry.items);
+            const style = CATEGORIES[cat];
+            return (
+              <div
+                key={entry.version}
+                className={`rounded-2xl border border-border bg-white/80 dark:bg-card/80 backdrop-blur-sm shadow-sm p-6 border-l-4 ${style.accent}`}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-4">
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full border font-sans text-xs font-semibold ${style.badge}`}>
+                    {entry.version}
+                  </span>
+                  <span className="font-sans text-sm text-muted-foreground">{entry.date}</span>
+                </div>
+                <ul className="space-y-2.5">
+                  {entry.items.map((item, i) => {
+                    const itemCat = classifyItem(item);
+                    const itemStyle = CATEGORIES[itemCat];
+                    return (
+                      <li key={i} className="flex items-start gap-2.5 font-sans text-sm leading-relaxed text-foreground/90">
+                        <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-accent mt-[0.55em]" />
+                        <span className="flex-1">{item}</span>
+                        <span className={`flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-md font-sans text-[10px] font-semibold uppercase tracking-wide ${itemStyle.chip}`}>
+                          {itemStyle.label}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
