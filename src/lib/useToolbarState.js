@@ -136,8 +136,22 @@ export function useToolbarState(pos, loading, verses, filterMode, selectedVerses
     };
     restoreToolbarState();
     const timer = setTimeout(restoreToolbarState, 100);
+    // Re-apply persisted search/gospel/filter state when the page becomes
+    // visible again. Switching browser tabs OR backgrounding/foregrounding a
+    // mobile app fires `visibilitychange` but NOT always `focus` (especially
+    // on Android/PWA), so listening to focus alone left the reader without its
+    // restored search/gospel/filter context after returning from another tab
+    // or app.
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') restoreToolbarState();
+    };
     window.addEventListener('focus', restoreToolbarState);
-    return () => { clearTimeout(timer); window.removeEventListener('focus', restoreToolbarState); };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('focus', restoreToolbarState);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, pos.abbr, pos.chapter, verses.length]);
 }
