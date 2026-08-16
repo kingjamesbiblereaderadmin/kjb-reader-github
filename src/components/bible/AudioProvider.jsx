@@ -242,11 +242,14 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   }, []);
 
   // Apply the active-word highlight DOM-direct + auto-scroll into view.
-  const updateActive = useCallback((idx, scroll = true) => {
-    if (idx === activeIdxRef.current) return;
+  // `force` (used on play/restart) re-scrolls even when the active word is
+  // unchanged — e.g. resuming from a pause at the same spot — so pressing play
+  // always snaps the view to where the narrator is.
+  const updateActive = useCallback((idx, scroll = true, force = false) => {
+    if (idx === activeIdxRef.current && !force) return;
     const old = activeIdxRef.current;
     activeIdxRef.current = idx;
-    if (old >= 0) {
+    if (old >= 0 && old !== idx) {
       document.querySelectorAll(`[data-audio-idx="${old}"]`).forEach((el) => el.classList.remove('kjb-audio-active'));
     }
     if (idx >= 0) {
@@ -256,7 +259,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       if (ne && scroll) {
         const rect = ne.getBoundingClientRect();
         const vh = window.innerHeight;
-        if (rect.top < 100 || rect.bottom > vh - 150) {
+        if (force || rect.top < 100 || rect.bottom > vh - 150) {
           ne.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       }
@@ -349,8 +352,9 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       a.play().catch(() => {});
       // Manual play (first time) — show the book name header highlight.
       suppressIntroRef.current = false;
-      // On play, jump to (scroll) the verse currently being read.
-      updateActive(findActiveWordIndex(timeline, a.currentTime), true);
+      // On play, force-jump (scroll) to the verse currently being read, even
+      // if the active word hasn't changed since pausing.
+      updateActive(findActiveWordIndex(timeline, a.currentTime), true, true);
       syncIntro(a.currentTime);
     } else {
       a.pause();
@@ -364,7 +368,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     a.play().catch(() => {});
     // Manual restart — show the book name header highlight again.
     suppressIntroRef.current = false;
-    updateActive(findActiveWordIndex(timeline, a.currentTime), true);
+    updateActive(findActiveWordIndex(timeline, a.currentTime), true, true);
     syncIntro(a.currentTime);
   }, [record, timeline, updateActive, syncIntro]);
 
