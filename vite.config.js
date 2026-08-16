@@ -5,6 +5,15 @@ import { defineConfig } from 'vite'
 // https://vite.dev/config/
 export default defineConfig({
   logLevel: 'error', // Suppress warnings, only show errors
+  // Force a single copy of React/ReactDOM so `react-dom/client`'s createRoot
+  // always returns a root with a real `.render` (a duplicate/corrupt
+  // pre-bundle is what makes createRoot(...).render(...) === undefined).
+  resolve: {
+    dedupe: ['react', 'react-dom'],
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-dom/client'],
+  },
   plugins: [
     base44({
       // Support for legacy code that imports the base44 SDK with @/integrations, @/entities, etc.
