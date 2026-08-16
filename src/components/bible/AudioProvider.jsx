@@ -359,19 +359,22 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     const a = audioRef.current; if (!a) return;
     const rs = rangeStartRef.current;
     if (rs == null || !Number.isFinite(rs)) return;
-    a.currentTime = rs;
-    setCurrentTime(rs);
-    // Don't pre-highlight the first word before the spoken reference finishes —
-    // doing so lights up the word while the announcement is still talking, which
-    // reads as the highlight "racing ahead". The rAF tick will highlight once the
-    // audio actually starts playing.
-    syncIntro(rs);
-    const play = () => { a.play().catch(() => {}); };
+    // Seek to the verse start ONLY right before play (after the spoken reference),
+    // not before the announcement. Seeking earlier lets the paused position
+    // drift during the ~2s announcement, so playback would miss the verse's
+    // first words. A fresh seek here guarantees the narrator starts exactly at
+    // the verse beginning.
+    const start = () => {
+      a.currentTime = rs;
+      setCurrentTime(rs);
+      syncIntro(rs);
+      a.play().catch(() => {});
+    };
     if (announce && rangeAnnouncedRef.current === false && rangeRefText) {
       rangeAnnouncedRef.current = true;
-      speakThenPlay(rangeRefText, play);
+      speakThenPlay(rangeRefText, start);
     } else {
-      play();
+      start();
     }
   }, [timeline, syncIntro, rangeRefText]);
 
