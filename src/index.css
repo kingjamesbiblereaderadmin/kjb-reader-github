@@ -432,6 +432,9 @@
    layer prevents this. */
 .backdrop-blur-xl, .backdrop-blur-md, .backdrop-blur-sm {
   transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
   /* Audio (Listen mode) verse-level highlight. Applied DOM-direct by
