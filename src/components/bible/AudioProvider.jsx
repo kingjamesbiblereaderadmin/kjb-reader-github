@@ -359,6 +359,21 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     }
   }, []);
 
+  // Scroll the view to the word the narrator is at — or, for a fresh start
+  // whose seek position is before the first scripture word (e.g. t=0 while the
+  // spoken chapter header plays), the first word at/after that position.
+  // findActiveWordIndex returns -1 in that "before first word" case, so a bare
+  // updateActive(-1) scrolls nothing and the view stays put when the user
+  // presses play/restart. This always lands the reader on the narration.
+  const jumpToNarrator = useCallback((t) => {
+    let idx = findActiveWordIndex(timeline, t);
+    if (idx < 0) idx = timeline.findIndex((w) => w.start >= (Number.isFinite(t) ? t : 0) - 0.01);
+    if (idx < 0 && timeline.length) idx = 0;
+    if (idx < 0) return;
+    const ne = document.querySelector(`[data-audio-idx="${idx}"]`);
+    if (ne) ne.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [timeline]);
+
   // Begin (or restart) filtered-mode playback at the verse: seek to the range
   // start, then — the first time for this passage — announce the reference via
   // speech synthesis before starting the audio, so the listener hears
@@ -367,6 +382,10 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     const a = audioRef.current; if (!a) return;
     const rs = rangeStartRef.current;
     if (rs == null || !Number.isFinite(rs)) return;
+    // Jump the view to the range's first word immediately — before the spoken
+    // reference announcement — so the reader sees where narration will begin
+    // the instant they press play/restart, not 2s later after the reference.
+    jumpToNarrator(rs);
     // Seek to the verse start ONLY right before play (after the spoken reference),
     // not before the announcement. Seeking earlier lets the paused position
     // drift during the ~2s announcement, so playback would miss the verse's
@@ -384,7 +403,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     } else {
       start();
     }
-  }, [timeline, syncIntro, rangeRefText]);
+  }, [timeline, syncIntro, rangeRefText, jumpToNarrator]);
 
   // Foolproof filtered-mode playback. The verse range's start time can only be
   // computed once the timing JSON loads (timeline / verseTimings). If the user
@@ -546,14 +565,18 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       // Manual play (first time) — show the book name header highlight.
       suppressIntroRef.current = false;
       // On play, force-jump (scroll) to the verse currently being read, even
-      // if the active word hasn't changed since pausing.
+      // if the active word hasn't changed since pausing. updateActive can't
+      // scroll when the position is before the first scripture word (idx=-1,
+      // e.g. a fresh start at t=0 during the spoken chapter header), so jump
+      // explicitly too.
       updateActive(findActiveWordIndex(timeline, a.currentTime), true, true);
+      jumpToNarrator(a.currentTime);
       syncIntro(a.currentTime);
     } else {
       a.pause();
       try { window.speechSynthesis?.cancel?.(); } catch {}
     }
-  }, [record, range, timeline, updateActive, syncIntro, startRangePlayback, audioReady]);
+  }, [record, range, timeline, updateActive, syncIntro, startRangePlayback, audioReady, jumpToNarrator]);
 
   const restart = useCallback(() => {
     const a = audioRef.current; if (!a || !record) return;
@@ -584,8 +607,12 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     // Manual restart — show the book name header highlight again.
     suppressIntroRef.current = false;
     updateActive(findActiveWordIndex(timeline, a.currentTime), true, true);
+    // Jump the view to where narration restarts. updateActive can't scroll
+    // when the seek position is before the first scripture word (idx=-1, e.g.
+    // t=0 during the spoken chapter header), so always jump explicitly.
+    jumpToNarrator(a.currentTime);
     syncIntro(a.currentTime);
-  }, [record, range, timeline, updateActive, syncIntro, startRangePlayback, audioReady]);
+  }, [record, range, timeline, updateActive, syncIntro, startRangePlayback, audioReady, jumpToNarrator]);
 
   const seek = useCallback((t) => {
     const a = audioRef.current; if (!a) return;
