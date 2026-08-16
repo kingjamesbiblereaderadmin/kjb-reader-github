@@ -128,8 +128,8 @@ Deno.serve(async (req) => {
     related_applications: [
       {
         platform: "play",
-        url: "https://play.google.com/store/apps/details?id=com.godisgracious1031m.kjbreader",
-        id: "com.godisgracious1031m.kjbreader"
+        url: "https://play.google.com/store/apps/details?id=kjbreader.app",
+        id: "kjbreader.app"
       }
     ],
     // Protocol handlers — register as handler for web+bible: and web+kjb: URIs.
