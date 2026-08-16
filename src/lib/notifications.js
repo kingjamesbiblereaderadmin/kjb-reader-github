@@ -108,11 +108,55 @@ export function todayString() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
+// Ask the native Android shell (if present) to request the OS-level
+// POST_NOTIFICATIONS runtime permission. Per the official Android + PWABuilder
+// notification documentation, Android 13+ requires this to be granted before
+// any notification can be shown; our WebView shell exposes window.KJBNative
+// for exactly this. Returns true if granted (or not needed), false if
+// denied/unsupported. The native side calls back a temp global with a boolean.
+function requestNativeNotifPermission() {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || !window.KJBNative || typeof window.KJBNative.requestNotificationPermission !== 'function') {
+      return resolve(null); // not in native shell
+    }
+    const cbName = '__kjbNotifCb_' + Date.now();
+    window[cbName] = (granted) => {
+      try { delete window[cbName]; } catch { window[cbName] = undefined; }
+      resolve(!!granted);
+    };
+    try {
+      window.KJBNative.requestNotificationPermission(cbName);
+    } catch (err) {
+      try { delete window[cbName]; } catch { window[cbName] = undefined; }
+      console.warn('[Notif] native bridge call failed:', err?.message);
+      resolve(null);
+    }
+    // Safety timeout: if the native side never calls back, resolve so the
+    // caller isn't blocked forever.
+    setTimeout(() => {
+      if (window[cbName]) {
+        try { delete window[cbName]; } catch { window[cbName] = undefined; }
+        resolve(false);
+      }
+    }, 30000);
+  });
+}
+
 export async function requestNotificationPermission() {
   console.log('[Notif] requestNotificationPermission called');
   console.log('[Notif] Service Worker supported:', 'serviceWorker' in navigator);
   console.log('[Notif] Notification API supported:', 'Notification' in window);
-  
+
+  // Native Android shell bridge: request the OS POST_NOTIFICATIONS runtime
+  // permission first (Android 13+). This is the documented requirement for
+  // notifications in a TWA/WebView, and without it the web permission can
+  // resolve 'granted' while the OS still blocks the actual notification.
+  const nativeGranted = await requestNativeNotifPermission();
+  if (nativeGranted === false) {
+    console.warn('[Notif] Native POST_NOTIFICATIONS permission denied');
+    return 'denied';
+  }
+
   let hasPermission = false;
   
   // IMPORTANT: Request the Notification permission FIRST, before any other
