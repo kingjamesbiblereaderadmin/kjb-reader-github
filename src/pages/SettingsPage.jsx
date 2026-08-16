@@ -57,7 +57,7 @@ const isBookmarkBrowser = () => {
 };
 
 const LAST_REVISED = 'July 13th, 2026';
-const WORKER_VERSION = 'v20260816_2130';
+const WORKER_VERSION = 'v20260816_2135';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -367,27 +367,23 @@ export default function SettingsPage() {
       alert('This browser/PWA does not support notifications.');
       return;
     }
-    // A notification can only be shown when the OS/browser permission is
-    // 'granted'. In the Android TWA the web Notification.permission can read
-    // as 'default' even after the user enabled reminders via the home bell, so
-    // request it here (one prompt) and then fire the test. If it's already
-    // 'granted' this is a no-op and the notification fires immediately.
-    if (Notification.permission !== 'granted') {
-      const result = await Notification.requestPermission();
-      setNotifPermission(result);
-      if (result !== 'granted') {
-        alert('Notifications are blocked. Please enable notifications for this app in your device settings, then try again.');
-        return;
-      }
-      // In an Android TWA / WebView, requestPermission can resolve 'granted'
-      // (OS prompt accepted) but the web Notification.permission can lag behind
-      // or never reflect it. Rather than blocking the test, wait briefly for
-      // propagation and then ATTEMPT the notification regardless — the SW's
-      // showNotification uses the Android-side permission, not the web one, so
-      // it can still succeed in a TWA even when Notification.permission is
-      // 'default'. If it throws, showLocalNotification returns the real error.
-      await waitForNotifGranted(2500);
-      setNotifPermission(Notification.permission);
+    // Ensure BOTH the web permission AND (in the Android TWA) the OS-level
+    // POST_NOTIFICATIONS runtime permission are granted before testing. The
+    // native bridge inside requestNotificationPermission() is a no-op when
+    // the OS permission is already granted and prompts once when it isn't —
+    // without it, reg.showNotification silently fails on Android 13+ even
+    // though Notification.permission reads 'granted'. This also (re)registers
+    // the service worker so showLocalNotification has an active SW to call.
+    try {
+      await requestNotificationPermission();
+    } catch (err) {
+      console.warn('[Settings] full perm setup failed:', err?.message);
+    }
+    if ('Notification' in window) setNotifPermission(Notification.permission);
+    await waitForNotifGranted(2500);
+    if ('Notification' in window && Notification.permission === 'denied') {
+      alert('Notifications are blocked. Please enable notifications for this app in your device settings, then try again.');
+      return;
     }
 
     const v = getDailyVerse();
