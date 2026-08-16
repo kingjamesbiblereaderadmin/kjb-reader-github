@@ -113,11 +113,28 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
         setLoading(false);
       }
       try {
-        const recs = await base44.entities.ChapterAudio.filter({ book: book.name, chapter });
+        // Records are stored under either the full canonical book name
+        // (book.name, e.g. "The First Book of Moses, called Genesis") or the
+        // short name (book.shortName, e.g. "Genesis"). Query both and merge
+        // so audio loads regardless of which naming convention the record
+        // used — otherwise filtering by only one returns 0 records for most
+        // chapters and the player shows "Audio coming soon".
+        const [byFull, byShort] = await Promise.all([
+          base44.entities.ChapterAudio.filter({ book: book.name, chapter }),
+          book.shortName && book.shortName !== book.name
+            ? base44.entities.ChapterAudio.filter({ book: book.shortName, chapter })
+            : Promise.resolve([]),
+        ]);
         if (cancelled) return;
-        if (recs && recs.length) {
-          setRecords(recs);
-          saveRecords(book.name, chapter, recs);
+        const merged = [];
+        const seen = new Set();
+        for (const r of [...(byFull || []), ...(byShort || [])]) {
+          const key = `${r.voice || 'default'}|${r.audio_url}`;
+          if (r && r.audio_url && !seen.has(key)) { seen.add(key); merged.push(r); }
+        }
+        if (merged.length) {
+          setRecords(merged);
+          saveRecords(book.name, chapter, merged);
         }
       } catch {
         // Offline / API failed — cached records (if any) remain active above.
