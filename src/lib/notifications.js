@@ -14,17 +14,18 @@ export function getNotificationsEnabled() {
   return localStorage.getItem(NOTIF_KEY) === 'true';
 }
 
-// True only when BOTH the app's own "enabled" flag is set AND the browser
-// still actually has permission granted. Relying on the flag alone can get
-// stuck out of sync with reality — e.g. if permission is later revoked or
-// auto-blocked at the browser/OS level, the flag can be left at 'true' while
-// notifications are, in fact, off. Toggle UIs should use this (not
-// getNotificationsEnabled alone) so a stale flag doesn't make the button
-// silently do nothing instead of re-prompting for permission.
+// True only when the app's own "enabled" flag is set AND the browser hasn't
+// explicitly denied permission. We intentionally do NOT require
+// Notification.permission === 'granted' here: in an Android TWA (Play Store
+// build) the web Notification.permission can read as 'default' even after the
+// user grants via the Android OS prompt, which would flip the bell back off
+// on the next re-check. Treating only 'denied' as "off" keeps the toggle on
+// after a grant (in TWA and browser) while still turning off if the user
+// later explicitly blocks notifications.
 export function isNotifReallyOn() {
   if (!getNotificationsEnabled()) return false;
   if (!('Notification' in window)) return false;
-  return Notification.permission === 'granted';
+  return Notification.permission !== 'denied';
 }
 
 export function getNotificationTime() {
