@@ -374,67 +374,44 @@ export default function HomePage() {
   };
 
   const handleToggleNotif = async () => {
-    console.log('handleToggleNotif called on HomePage');
-    
     if (notifEnabled) {
-      console.log('Notifications already enabled, disabling...');
       disableNotifications();
       setNotifEnabled(false);
       setNotifPermission('Notification' in window ? Notification.permission : 'unsupported');
       window.dispatchEvent(new Event('storage'));
       return;
     }
-    
-    console.log('Enabling notifications...');
-    
     if (!('Notification' in window)) {
-      console.log('Notification API not available');
       alert('Notifications are not supported in this browser. Try installing the app or using a different browser.');
       return;
     }
-    
-    try {
-      // Request permission DIRECTLY first (synchronously-adjacent to the tap)
-      // so the browser ties the prompt to the user gesture. Awaiting the
-      // native bridge / SW before this can exhaust the transient-activation
-      // window and cause the browser to auto-deny the prompt — the same fix
-      // the landing-page wizard uses.
-      let permission;
-      try {
-        permission = await Notification.requestPermission();
-      } catch (err) {
-        console.warn('Direct requestPermission failed:', err?.message);
-        permission = Notification.permission;
-      }
-      console.log('Direct notification permission result:', permission);
-      setNotifPermission(permission);
+    // Enable: set the flag immediately — no prompt. The toggle is a preference,
+    // not a permission request. Permission is asked at most once (the first time
+    // the user enables, and only when still 'default'); we never re-prompt
+    // after a dismissal, because repeated requestPermission calls are what make
+    // Chrome auto-block the site. Matches the landing-page wizard.
+    localStorage.setItem('kjb-notifications-enabled', 'true');
+    setNotifEnabled(true);
+    window.dispatchEvent(new Event('storage'));
 
-      if (permission === 'granted') {
-        // Persist the flag immediately (same as the wizard) so the toggle
-        // doesn't flip back off on the next isNotifReallyOn() re-check.
-        localStorage.setItem('kjb-notifications-enabled', 'true');
-        // Run the full setup (native bridge, SW registration) now that
-        // permission is already granted — these steps can safely await.
-        try {
-          await requestNotificationPermission();
-        } catch (err) {
-          console.warn('Full notif setup failed (non-fatal):', err?.message);
-        }
-        setNotifEnabled(true);
-        scheduleDailyNotification(verse);
-        window.dispatchEvent(new Event('storage'));
-        showLocalNotification(
-          'Daily verse reminders on ✓',
-          `You'll get the daily verse at ${(localStorage.getItem('kjb-notification-time') || '08:00')} each day.`,
-          null
-        );
-      } else if (permission === 'denied') {
-        console.log('Permission denied');
-        alert('Notifications are blocked. Please allow notifications in your browser settings for this site.');
+    let perm = Notification.permission;
+    if (perm === 'default' && localStorage.getItem('kjb-notif-asked') !== 'true') {
+      try {
+        localStorage.setItem('kjb-notif-asked', 'true');
+        perm = await Notification.requestPermission();
+        setNotifPermission(perm);
+      } catch {}
+    }
+    if (perm === 'granted') {
+      try { await requestNotificationPermission(); } catch (err) {
+        console.warn('Full notif setup failed (non-fatal):', err?.message);
       }
-    } catch (err) {
-      console.error('Notification permission error:', err);
-      alert('Failed to request notification permission. Please try again.');
+      scheduleDailyNotification(verse);
+      showLocalNotification(
+        'Daily verse reminders on ✓',
+        `You'll get the daily verse at ${(localStorage.getItem('kjb-notification-time') || '08:00')} each day.`,
+        null
+      );
     }
   };
 

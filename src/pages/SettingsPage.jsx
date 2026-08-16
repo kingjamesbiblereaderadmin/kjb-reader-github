@@ -57,7 +57,7 @@ const isBookmarkBrowser = () => {
 };
 
 const LAST_REVISED = 'July 13th, 2026';
-const WORKER_VERSION = 'v20260816_2135';
+const WORKER_VERSION = 'v20260816_2150';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -300,48 +300,34 @@ export default function SettingsPage() {
       window.dispatchEvent(new Event('storage'));
       return;
     }
-    
     if (!('Notification' in window)) {
       alert('Notifications are not supported in this browser. Try installing the app or using a different browser.');
       return;
     }
+    // Enable: set the flag immediately — no prompt. The toggle is a preference,
+    // not a permission request. Permission is asked at most once (the first
+    // time, and only when still 'default'); we never re-prompt after a
+    // dismissal, because repeated requestPermission calls are what make Chrome
+    // auto-block the site. Matches the home bell and the landing-page wizard.
+    localStorage.setItem('kjb-notifications-enabled', 'true');
+    setNotifEnabled(true);
+    window.dispatchEvent(new Event('storage'));
 
-    // Check current permission status first
-    const currentPermission = Notification.permission;
-    console.log('[Settings] Current notification permission:', currentPermission);
-    
-    if (currentPermission === 'denied') {
-      // Permission was previously denied - Chrome won't show prompt again
-      // Clearing cache doesn't reset permissions - must reset site data completely
-      alert('Notifications are blocked in Chrome.\n\nTo reset:\n1. Tap the lock icon (🔒) in the address bar\n2. Tap "Site settings" or "Permissions"\n3. Tap "Clear data" or "Reset permissions"\n4. Refresh the page\n5. Toggle the notifications switch again\n\nOr go to: Chrome Settings → Site settings → Notifications → Find this site → Remove');
-      return;
+    let perm = Notification.permission;
+    if (perm === 'default' && localStorage.getItem('kjb-notif-asked') !== 'true') {
+      try {
+        localStorage.setItem('kjb-notif-asked', 'true');
+        perm = await Notification.requestPermission();
+        setNotifPermission(perm);
+      } catch {}
     }
-
-    try {
-      const permission = await Notification.requestPermission();
-      setNotifPermission(permission);
-
-      if (permission === 'granted') {
-        // Persist the flag immediately so the toggle doesn't flip back off on
-        // the next isNotifReallyOn() re-check, then run the full SW/native
-        // setup (non-fatal — permission is already granted at this point).
-        localStorage.setItem('kjb-notifications-enabled', 'true');
-        setNotifEnabled(true);
-        try {
-          await requestNotificationPermission();
-        } catch (err) {
-          console.warn('[Settings] Full notif setup failed (non-fatal):', err?.message);
-        }
-        scheduleDailyNotification();
-        const v = getDailyVerse();
-        showLocalNotification('KJB — Reminders On', `"${cleanForNotification(v.text)}" — ${v.ref} (KJB)`, null, '/');
-        window.dispatchEvent(new Event('storage'));
-      } else if (permission === 'denied') {
-        alert('Notifications blocked. To enable:\n1. Tap the lock icon (🔒) in the address bar\n2. Select "Site settings" or "Permissions"\n3. Find "Notifications" and change to "Allow"');
+    if (perm === 'granted') {
+      try { await requestNotificationPermission(); } catch (err) {
+        console.warn('[Settings] Full notif setup failed (non-fatal):', err?.message);
       }
-    } catch (err) {
-      console.error('Notification permission error:', err);
-      alert('Failed to request notification permission. Please try again.');
+      scheduleDailyNotification();
+      const v = getDailyVerse();
+      showLocalNotification('KJB — Reminders On', `"${cleanForNotification(v.text)}" — ${v.ref} (KJB)`, null, '/');
     }
   };
 
