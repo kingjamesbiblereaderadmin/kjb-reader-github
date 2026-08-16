@@ -425,9 +425,13 @@
   }
 }
 
-  /* Audio (Listen mode) word-by-word karaoke highlight. Applied DOM-direct by
-     AudioProvider via the .kjb-audio-active class so verse text never
-     re-renders on each animation frame. */
+  /* Audio (Listen mode) verse-level highlight. Applied DOM-direct by
+     AudioProvider via the .kjb-audio-verse-active class on the verse container
+     (data-audio-verse) so verse text never re-renders on each animation frame. */
+  .kjb-audio-verse-active {
+    background-color: hsl(var(--accent) / 0.22);
+    border-radius: 0.25rem;
+  }
   .kjb-audio-word { border-radius: 2px; }
   .kjb-audio-active {
     background-color: hsl(var(--accent) / 0.4);

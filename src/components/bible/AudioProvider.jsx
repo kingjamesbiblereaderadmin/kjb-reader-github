@@ -85,6 +85,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   const audioRef = useRef(null);
   const rafRef = useRef(null);
   const activeIdxRef = useRef(-1);
+  const activeVerseRef = useRef(null);
   const timelineRef = useRef([]);
   // When the chapter's audio ends, auto-advance to the next chapter and keep
   // playing. autoPlayRef is set on end and consumed when the next chapter's
@@ -306,11 +307,6 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   }, [record]);
   useEffect(() => { const a = audioRef.current; if (a) a.playbackRate = speed; }, [speed]);
 
-  const clearHighlight = useCallback(() => {
-    document.querySelectorAll('.kjb-audio-active').forEach(el => el.classList.remove('kjb-audio-active'));
-    activeIdxRef.current = -1;
-  }, []);
-
   // verse 1's start time = where the actual scripture narration begins.
   // Before it, the audio is narrating the chapter title / book name header.
   const verse1Start = useMemo(() => {
@@ -334,20 +330,24 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     audioRef.current?.closest?.('.kjb-audio-listening')?.classList.remove('kjb-audio-intro');
   }, []);
 
-  // Apply the active-word highlight DOM-direct + auto-scroll into view.
-  // `force` (used on play/restart) re-scrolls even when the active word is
-  // unchanged — e.g. resuming from a pause at the same spot — so pressing play
-  // always snaps the view to where the narrator is.
-  const updateActive = useCallback((idx, scroll = true, force = false) => {
-    if (idx === activeIdxRef.current && !force) return;
-    const old = activeIdxRef.current;
-    activeIdxRef.current = idx;
-    if (old >= 0 && old !== idx) {
-      document.querySelectorAll(`[data-audio-idx="${old}"]`).forEach((el) => el.classList.remove('kjb-audio-active'));
+  // Apply the active-VERSE highlight DOM-direct + auto-scroll into view.
+  // We highlight the whole verse currently being narrated (not individual
+  // words), via the `data-audio-verse` attribute VerseText puts on each verse
+  // container. `force` (used on play/restart) re-scrolls even when the active
+  // verse is unchanged — e.g. resuming from a pause at the same spot — so
+  // pressing play always snaps the view to where the narrator is. A null
+  // verse (during the spoken chapter header, before verse 1) clears the
+  // highlight.
+  const updateActiveVerse = useCallback((verseNum, scroll = true, force = false) => {
+    if (verseNum === activeVerseRef.current && !force) return;
+    const old = activeVerseRef.current;
+    activeVerseRef.current = verseNum;
+    if (old != null) {
+      document.querySelectorAll(`[data-audio-verse="${old}"]`).forEach((el) => el.classList.remove('kjb-audio-verse-active'));
     }
-    if (idx >= 0) {
-      const matches = document.querySelectorAll(`[data-audio-idx="${idx}"]`);
-      matches.forEach((el) => el.classList.add('kjb-audio-active'));
+    if (verseNum != null) {
+      const matches = document.querySelectorAll(`[data-audio-verse="${verseNum}"]`);
+      matches.forEach((el) => el.classList.add('kjb-audio-verse-active'));
       const ne = matches[0];
       if (ne && scroll) {
         const rect = ne.getBoundingClientRect();
@@ -358,12 +358,16 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       }
     }
   }, []);
+  const clearActiveVerse = useCallback(() => {
+    document.querySelectorAll('.kjb-audio-verse-active').forEach((el) => el.classList.remove('kjb-audio-verse-active'));
+    activeVerseRef.current = null;
+  }, []);
 
   // Scroll the view to the word the narrator is at — or, for a fresh start
   // whose seek position is before the first scripture word (e.g. t=0 while the
   // spoken chapter header plays), the first word at/after that position.
   // findActiveWordIndex returns -1 in that "before first word" case, so a bare
-  // updateActive(-1) scrolls nothing and the view stays put when the user
+  // updateActiveVerse(null) scrolls nothing and the view stays put when the user
   // presses play/restart. This always lands the reader on the narration.
   const jumpToNarrator = useCallback((t) => {
     let idx = findActiveWordIndex(timeline, t);
@@ -428,14 +432,16 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     if (!a || !playing) return;
     const tick = () => {
       setCurrentTime(a.currentTime);
-      updateActive(findActiveWordIndex(timeline, a.currentTime));
+      // Highlight the whole verse being narrated (not individual words).
+      const idx = findActiveWordIndex(timeline, a.currentTime);
+      updateActiveVerse(idx >= 0 ? timeline[idx].verse : null);
       syncIntro(a.currentTime);
       const re = rangeEndRef.current;
       if (re != null && a.currentTime >= re) {
         a.pause();
         a.currentTime = rangeStartRef.current ?? 0;
         setPlaying(false);
-        clearHighlight();
+        clearActiveVerse();
         clearIntro();
         return;
       }
@@ -443,7 +449,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, [playing, timeline, updateActive, syncIntro, clearIntro]);
+  }, [playing, timeline, updateActiveVerse, syncIntro, clearIntro]);
 
   // Wire <audio> element events.
   useEffect(() => {
@@ -458,7 +464,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     };
     const onTime = () => setCurrentTime(a.currentTime);
     const onEnd = () => {
-      setPlaying(false); setCurrentTime(0); a.currentTime = 0; clearHighlight(); clearIntro();
+      setPlaying(false); setCurrentTime(0); a.currentTime = 0; clearActiveVerse(); clearIntro();
       // In range mode the tick loop pauses at rangeEnd before the audio ends;
       // if onEnd still fires, don't auto-advance out of the selected passage.
       if (rangeStartRef.current != null) return;
@@ -484,14 +490,14 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       a.removeEventListener('play', onPlay);
       a.removeEventListener('pause', onPause);
     };
-  }, [clearHighlight]);
+  }, [clearActiveVerse]);
 
   // Pause + clear when deactivated, or when timeline changes.
   useEffect(() => {
     if (!active && audioRef.current) audioRef.current.pause();
-    if (!active) { clearHighlight(); clearIntro(); autoPlayRef.current = false; try { window.speechSynthesis?.cancel?.(); } catch {} }
-  }, [active, clearHighlight, clearIntro]);
-  useEffect(() => { timelineRef.current = timeline; clearHighlight(); }, [timeline, clearHighlight]);
+    if (!active) { clearActiveVerse(); clearIntro(); autoPlayRef.current = false; try { window.speechSynthesis?.cancel?.(); } catch {} }
+  }, [active, clearActiveVerse, clearIntro]);
+  useEffect(() => { timelineRef.current = timeline; clearActiveVerse(); }, [timeline, clearActiveVerse]);
 
   // Seek to a specific word after either a voice switch (pendingResumeRef) or a
   // "Read from here" action (startVerse) — once the audio is loaded AND its word
@@ -511,7 +517,8 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     }
     a.currentTime = ts;
     setCurrentTime(ts);
-    updateActive(findActiveWordIndex(timeline, ts), false);
+    const idx = findActiveWordIndex(timeline, ts);
+    updateActiveVerse(idx >= 0 ? timeline[idx].verse : null, false);
     syncIntro(ts);
     if (target.play) {
       // "Read from here" (startVerse set): announce the single-verse reference
@@ -528,7 +535,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     }
     if (pendingResumeRef.current) pendingResumeRef.current = null;
     if (startVerse != null) onStartVerseConsumed?.();
-  }, [timeline, audioReady, startVerse, book, chapter, updateActive, syncIntro, onStartVerseConsumed]);
+  }, [timeline, audioReady, startVerse, book, chapter, updateActiveVerse, syncIntro, onStartVerseConsumed]);
 
   const togglePlay = useCallback(() => {
     const a = audioRef.current; if (!a || !record) return;
@@ -565,18 +572,19 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       // Manual play (first time) — show the book name header highlight.
       suppressIntroRef.current = false;
       // On play, force-jump (scroll) to the verse currently being read, even
-      // if the active word hasn't changed since pausing. updateActive can't
-      // scroll when the position is before the first scripture word (idx=-1,
-      // e.g. a fresh start at t=0 during the spoken chapter header), so jump
-      // explicitly too.
-      updateActive(findActiveWordIndex(timeline, a.currentTime), true, true);
+      // if the active verse hasn't changed since pausing. jumpToNarrator lands
+      // the view on the narration even when the position is before the first
+      // scripture word (idx=-1, e.g. a fresh start at t=0 during the spoken
+      // chapter header).
+      const idx = findActiveWordIndex(timeline, a.currentTime);
+      updateActiveVerse(idx >= 0 ? timeline[idx].verse : null, true, true);
       jumpToNarrator(a.currentTime);
       syncIntro(a.currentTime);
     } else {
       a.pause();
       try { window.speechSynthesis?.cancel?.(); } catch {}
     }
-  }, [record, range, timeline, updateActive, syncIntro, startRangePlayback, audioReady, jumpToNarrator]);
+  }, [record, range, timeline, updateActiveVerse, syncIntro, startRangePlayback, audioReady, jumpToNarrator]);
 
   const restart = useCallback(() => {
     const a = audioRef.current; if (!a || !record) return;
@@ -606,21 +614,23 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     a.play().catch(() => {});
     // Manual restart — show the book name header highlight again.
     suppressIntroRef.current = false;
-    updateActive(findActiveWordIndex(timeline, a.currentTime), true, true);
-    // Jump the view to where narration restarts. updateActive can't scroll
+    const idx = findActiveWordIndex(timeline, a.currentTime);
+    updateActiveVerse(idx >= 0 ? timeline[idx].verse : null, true, true);
+    // Jump the view to where narration restarts. updateActiveVerse can't scroll
     // when the seek position is before the first scripture word (idx=-1, e.g.
     // t=0 during the spoken chapter header), so always jump explicitly.
     jumpToNarrator(a.currentTime);
     syncIntro(a.currentTime);
-  }, [record, range, timeline, updateActive, syncIntro, startRangePlayback, audioReady, jumpToNarrator]);
+  }, [record, range, timeline, updateActiveVerse, syncIntro, startRangePlayback, audioReady, jumpToNarrator]);
 
   const seek = useCallback((t) => {
     const a = audioRef.current; if (!a) return;
     a.currentTime = Math.max(0, Math.min(t, a.duration || t));
     setCurrentTime(a.currentTime);
-    updateActive(findActiveWordIndex(timeline, a.currentTime), false);
+    const idx = findActiveWordIndex(timeline, a.currentTime);
+    updateActiveVerse(idx >= 0 ? timeline[idx].verse : null, false);
     syncIntro(a.currentTime);
-  }, [timeline, updateActive, syncIntro]);
+  }, [timeline, updateActiveVerse, syncIntro]);
 
   const seekToWord = useCallback((w) => {
     if (w && Number.isFinite(w.start)) seek(w.start);
