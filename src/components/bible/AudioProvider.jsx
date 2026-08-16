@@ -93,6 +93,15 @@ function scrollVerseIntoView(el, force) {
   scroller.scrollTo({ top: target, behavior: 'smooth' });
 }
 
+// Word-by-word ("karaoke") highlight is off by default — the reader highlights
+// the whole verse being narrated. Flip it back on for testing by setting
+// localStorage 'kjb-word-sync' = 'true' (e.g. in the browser console:
+// localStorage.setItem('kjb-word-sync','true')). This keeps the word-sync code
+// path available without a separate git branch.
+function isWordSyncEnabled() {
+  try { return localStorage.getItem('kjb-word-sync') === 'true'; } catch { return false; }
+}
+
 // Provides chapter audio state to the Read page: fetches the ChapterAudio
 // record(s) + timing JSON, builds a chapter-wide word timeline, drives an
 // <audio> element, and exposes play/seek/speed/voice controls. The active-word
@@ -579,7 +588,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
         }
       }
       updateActiveVerse(activeVn);
-      updateActiveWord(idx);
+      if (isWordSyncEnabled()) updateActiveWord(idx);
       syncIntro(a.currentTime);
       const re = rangeEndRef.current;
       if (re != null && a.currentTime >= re) {
@@ -737,7 +746,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     setCurrentTime(ts);
     const idx = findActiveWordIndex(timeline, ts);
     updateActiveVerse(idx >= 0 ? timeline[idx].verse : null, false);
-    updateActiveWord(idx);
+    if (isWordSyncEnabled()) updateActiveWord(idx);
     syncIntro(ts);
     if (target.play) {
       // "Read from here" (startVerse set): announce the single-verse reference
@@ -797,7 +806,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       // chapter header).
       const idx = findActiveWordIndex(timeline, a.currentTime);
       updateActiveVerse(idx >= 0 ? timeline[idx].verse : null, true, true);
-      updateActiveWord(idx);
+      if (isWordSyncEnabled()) updateActiveWord(idx);
       jumpToNarrator(a.currentTime);
       syncIntro(a.currentTime);
     } else {
@@ -836,7 +845,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     suppressIntroRef.current = false;
     const idx = findActiveWordIndex(timeline, a.currentTime);
     updateActiveVerse(idx >= 0 ? timeline[idx].verse : null, true, true);
-    updateActiveWord(idx);
+    if (isWordSyncEnabled()) updateActiveWord(idx);
     // Jump the view to where narration restarts. updateActiveVerse can't scroll
     // when the seek position is before the first scripture word (idx=-1, e.g.
     // t=0 during the spoken chapter header), so always jump explicitly.
@@ -850,7 +859,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     setCurrentTime(a.currentTime);
     const idx = findActiveWordIndex(timeline, a.currentTime);
     updateActiveVerse(idx >= 0 ? timeline[idx].verse : null, false);
-    updateActiveWord(idx);
+    if (isWordSyncEnabled()) updateActiveWord(idx);
     syncIntro(a.currentTime);
   }, [timeline, updateActiveVerse, syncIntro]);
 
