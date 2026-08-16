@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { buildWordTimeline, findActiveWordIndex } from '@/lib/audioSync';
 import { getCachedRecords, saveRecords, getCachedTiming, saveTiming } from '@/lib/audioCache';
 import { VOICE_OPTIONS, DEFAULT_VOICE } from '@/lib/voices';
+import { BIBLE_BOOKS } from '@/lib/bibleData';
 
 const AudioContext = createContext(null);
 export const useAudio = () => useContext(AudioContext);
@@ -170,13 +171,16 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
         setLoading(false);
       }
       try {
-        // Records are stored under either the full canonical book name
-        // (book.name, e.g. "The First Book of Moses, called Genesis") or the
-        // short name (book.shortName, e.g. "Genesis"). Query both and merge
-        // so audio loads regardless of which naming convention the record
-        // used — otherwise filtering by only one returns 0 records for most
-        // chapters and the player shows "Audio coming soon".
-        const [byFull, byShort] = await Promise.all([
+        // Records are keyed by canonical book_order (1–66) + chapter, which is
+        // immune to PCE title-string variants ("St." vs "Saint", "the Prophet"
+        // prefixes, capitalisation). Query by book_order first; also query by
+        // the full + short name as a fallback for any record lacking book_order,
+        // and merge + dedup so audio loads regardless of naming convention.
+        const bookOrder = BIBLE_BOOKS.findIndex((b) => b.abbr === book.abbr) + 1;
+        const [byOrder, byFull, byShort] = await Promise.all([
+          bookOrder > 0
+            ? base44.entities.ChapterAudio.filter({ book_order: bookOrder, chapter })
+            : Promise.resolve([]),
           base44.entities.ChapterAudio.filter({ book: book.name, chapter }),
           book.shortName && book.shortName !== book.name
             ? base44.entities.ChapterAudio.filter({ book: book.shortName, chapter })
@@ -185,7 +189,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
         if (cancelled) return;
         const merged = [];
         const seen = new Set();
-        for (const r of [...(byFull || []), ...(byShort || [])]) {
+        for (const r of [...(byOrder || []), ...(byFull || []), ...(byShort || [])]) {
           const key = `${r.voice || 'default'}|${r.audio_url}`;
           if (r && r.audio_url && !seen.has(key)) { seen.add(key); merged.push(r); }
         }
