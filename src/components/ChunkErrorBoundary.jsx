@@ -49,6 +49,9 @@ export default class ChunkErrorBoundary extends React.Component {
       /Failed to fetch dynamically imported module|Importing a module script failed|ChunkLoadError|dynamically imported module/i.test(msg);
 
     if (isChunkError) {
+      // If the splash is mid-update, it will reload on its own once the new SW
+      // activates — don't race it with a competing hardRecover here.
+      if (window._kjbSplashApplyingUpdate) return;
       const alreadyReloaded = sessionStorage.getItem('kjb-chunk-reloaded') === 'true';
       if (!alreadyReloaded && navigator.onLine !== false) {
         try { sessionStorage.setItem('kjb-chunk-reloaded', 'true'); } catch {}

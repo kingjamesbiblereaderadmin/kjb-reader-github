@@ -121,6 +121,16 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
     if ('serviceWorker' in navigator) {
       try { window._kjbSplashApplyingUpdate = true; } catch {}
     }
+    // Snapshot the live SW version BEFORE applying. If activating the new
+    // worker wipes the old chunk cache while the current HTML still references
+    // the old chunk hashes, every lazy import 404s → the chunk-error screen.
+    // We detect the version change and reload so fresh HTML + matching chunks
+    // load together.
+    let beforeVersion = null;
+    try {
+      const { getLiveWorkerVersion } = await import('@/lib/liveWorkerVersion');
+      beforeVersion = await getLiveWorkerVersion(2000).catch(() => null);
+    } catch {}
     // Force-fetch + activate the deployed service worker and confirm it really
     // takes over. Mobile Chrome throttles background SW checks (~24h), so
     // reg.waiting can be absent right after a deploy — without an explicit
@@ -137,6 +147,26 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
     // Start the cooldown so the immediate next "CHECKING" step ignores the
     // worker we just activated (prevents the double FOUND loop).
     justAppliedAt.current = Date.now();
+    // If the SW actually updated, reload NOW. The new SW's activate handler
+    // deleted the old chunk cache, but the running HTML still points at the
+    // old chunk hashes — without a reload, the HomePage lazy import 404s and
+    // the app falls into the "Updating to the latest version…" recovery loop.
+    try {
+      const { getLiveWorkerVersion } = await import('@/lib/liveWorkerVersion');
+      const afterVersion = await getLiveWorkerVersion(2000).catch(() => null);
+      if (beforeVersion && afterVersion && beforeVersion !== afterVersion) {
+        try { window._kjbSplashApplyingUpdate = false; } catch {}
+        try {
+          sessionStorage.setItem('kjb_sw_reloaded', '1');
+          // Clear the home-update flag so the post-reload splash runs the fast
+          // "subsequent" flow (no forced Bible re-download) — the SW is already
+          // the new version, so checkRealUpdates() finds nothing to apply.
+          sessionStorage.removeItem('kjb-splash-home-update');
+          sessionStorage.removeItem('kjb_sw_updated');
+        } catch {}
+        window.location.reload();
+      }
+    } catch {}
   };
 
   useEffect(() => {
