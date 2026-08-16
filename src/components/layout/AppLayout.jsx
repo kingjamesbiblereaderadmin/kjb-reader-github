@@ -501,6 +501,8 @@ function DesktopFooter({ navigate, setMenuOpen }) {
             {' · '}
             <Link to="/terms" className="hover:text-foreground hover:underline transition-colors">Terms</Link>
             {' · '}
+            <Link to="/changelog" className="hover:text-foreground hover:underline transition-colors">Changelog</Link>
+            {' · '}
             <Link to="/contact" className="hover:text-foreground hover:underline transition-colors">Contact</Link>
           </p>
           </>
