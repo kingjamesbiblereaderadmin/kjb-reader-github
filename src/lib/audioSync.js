@@ -346,7 +346,7 @@ export function buildWordTimeline(verses, timing) {
 // The highlight is STICKY: once a word's start is reached it stays active until
 // the next word begins, instead of clearing during the inter-word gap. This
 // prevents flicker and makes it advance smoothly word-by-word with the narrator.
-const AUDIO_LEAD_S = 0.15;
+const AUDIO_LEAD_S = 0.1;
 export function findActiveWordIndex(timeline, time) {
   if (!timeline.length) return -1;
   const t = time + AUDIO_LEAD_S;
