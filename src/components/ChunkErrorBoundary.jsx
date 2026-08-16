@@ -11,8 +11,15 @@ export default class ChunkErrorBoundary extends React.Component {
     this.state = { failed: false };
   }
 
-  static getDerivedStateFromError() {
-    return { failed: true };
+  static getDerivedStateFromError(error) {
+    // In dev, never swallow errors — let Vite's overlay show the real cause
+    // (transform/syntax errors also arrive as "Failed to fetch dynamically
+    // imported module", so the regex below would otherwise hide them).
+    if (import.meta.env.DEV) return null;
+    const msg = String(error?.message || error || '');
+    const isChunkError =
+      /Failed to fetch dynamically imported module|Importing a module script failed|ChunkLoadError|dynamically imported module/i.test(msg);
+    return isChunkError ? { failed: true } : null;
   }
 
   // Full clean-slate recovery: unregister the stale service worker AND wipe all
