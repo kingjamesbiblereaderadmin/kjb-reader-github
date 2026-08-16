@@ -425,6 +425,15 @@
   }
 }
 
+/* Elements using backdrop-blur can lose their content (card shape stays but
+   icon/text vanish) after a global style recalc — e.g. the html font-size
+   changing when the Legible accessibility font is toggled — due to a
+   Chrome/Safari backdrop-filter repaint bug. Promoting them to their own GPU
+   layer prevents this. */
+.backdrop-blur-xl, .backdrop-blur-md, .backdrop-blur-sm {
+  transform: translateZ(0);
+}
+
   /* Audio (Listen mode) verse-level highlight. Applied DOM-direct by
      AudioProvider via the .kjb-audio-verse-active class on the verse container
      (data-audio-verse) so verse text never re-renders on each animation frame. */
