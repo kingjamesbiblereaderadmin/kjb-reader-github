@@ -141,14 +141,6 @@ const checkInstalled = () => {
     return true;
   }
   
-  // NOTE: we intentionally do NOT trust a persisted INSTALLED_KEY flag here for
-  // the generic web-install case — display-mode is already a live, instant,
-  // synchronous check, and localStorage is shared across every tab/context on
-  // this origin. Trusting a stale flag would make a plain browser tab report
-  // "installed" just because the PWA was installed once in the past. The flag
-  // is still written (above/below) for native-app and TWA detection, since
-  // those genuinely reflect a device-level install regardless of context.
-
   // 2. iOS Safari standalone (older iOS versions)
   if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
     try {
@@ -158,7 +150,18 @@ const checkInstalled = () => {
       }
     } catch {}
   }
-  
+
+  // 3. Persisted flag — set only by one of the authoritative signals above (or
+  // the 'appinstalled' event / getInstalledRelatedApps checks below), never
+  // guessed. localStorage is shared across every tab on this origin, so once
+  // any tab confirms a real install, every other tab (including plain browser
+  // tabs that can't see display-mode: standalone) picks it up on next check —
+  // and the "Reset install status" button removes it, which fires a 'storage'
+  // event that syncs the "not installed" state back out to every other tab too.
+  try {
+    if (localStorage.getItem(INSTALLED_KEY) === 'true') return true;
+  } catch {}
+
   // Not installed - do NOT clear localStorage (prevents flicker on unreliable APIs)
   return false;
 };
