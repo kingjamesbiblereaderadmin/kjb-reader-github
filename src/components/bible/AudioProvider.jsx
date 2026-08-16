@@ -123,6 +123,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   const rafRef = useRef(null);
   const activeIdxRef = useRef(-1);
   const activeVerseRef = useRef(null);
+  const activeWordIdxRef = useRef(-1);
   const timelineRef = useRef([]);
   // When the chapter's audio ends, auto-advance to the next chapter and keep
   // playing. autoPlayRef is set on end and consumed when the next chapter's
@@ -414,9 +415,22 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       }
     }
   }, []);
+  const updateActiveWord = useCallback((idx) => {
+    if (idx === activeWordIdxRef.current) return;
+    const old = activeWordIdxRef.current;
+    activeWordIdxRef.current = idx;
+    if (old >= 0) {
+      document.querySelectorAll(`[data-audio-idx="${old}"]`).forEach((el) => el.classList.remove('kjb-audio-active'));
+    }
+    if (idx >= 0) {
+      document.querySelectorAll(`[data-audio-idx="${idx}"]`).forEach((el) => el.classList.add('kjb-audio-active'));
+    }
+  }, []);
   const clearActiveVerse = useCallback(() => {
     document.querySelectorAll('.kjb-audio-verse-active').forEach((el) => el.classList.remove('kjb-audio-verse-active'));
+    document.querySelectorAll('.kjb-audio-active').forEach((el) => el.classList.remove('kjb-audio-active'));
     activeVerseRef.current = null;
+    activeWordIdxRef.current = -1;
   }, []);
 
   // Scroll the view to the word the narrator is at — or, for a fresh start
@@ -494,9 +508,10 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     if (!a || !playing) return;
     const tick = () => {
       setCurrentTime(a.currentTime);
-      // Highlight the whole verse being narrated (not individual words).
+      // Highlight both the whole verse and the individual word being narrated.
       const idx = findActiveWordIndex(timeline, a.currentTime);
       updateActiveVerse(idx >= 0 ? timeline[idx].verse : null);
+      updateActiveWord(idx);
       syncIntro(a.currentTime);
       const re = rangeEndRef.current;
       if (re != null && a.currentTime >= re) {
@@ -581,6 +596,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     setCurrentTime(ts);
     const idx = findActiveWordIndex(timeline, ts);
     updateActiveVerse(idx >= 0 ? timeline[idx].verse : null, false);
+    updateActiveWord(idx);
     syncIntro(ts);
     if (target.play) {
       // "Read from here" (startVerse set): announce the single-verse reference
@@ -640,6 +656,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       // chapter header).
       const idx = findActiveWordIndex(timeline, a.currentTime);
       updateActiveVerse(idx >= 0 ? timeline[idx].verse : null, true, true);
+      updateActiveWord(idx);
       jumpToNarrator(a.currentTime);
       syncIntro(a.currentTime);
     } else {
@@ -678,6 +695,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     suppressIntroRef.current = false;
     const idx = findActiveWordIndex(timeline, a.currentTime);
     updateActiveVerse(idx >= 0 ? timeline[idx].verse : null, true, true);
+    updateActiveWord(idx);
     // Jump the view to where narration restarts. updateActiveVerse can't scroll
     // when the seek position is before the first scripture word (idx=-1, e.g.
     // t=0 during the spoken chapter header), so always jump explicitly.
@@ -691,6 +709,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     setCurrentTime(a.currentTime);
     const idx = findActiveWordIndex(timeline, a.currentTime);
     updateActiveVerse(idx >= 0 ? timeline[idx].verse : null, false);
+    updateActiveWord(idx);
     syncIntro(a.currentTime);
   }, [timeline, updateActiveVerse, syncIntro]);
 
