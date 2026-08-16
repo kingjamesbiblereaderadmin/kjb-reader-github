@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.godisgracious1031m.kjbreader",
+      "sha256_cert_fingerprints": [
+        "0B:66:D6:5E:9F:BC:32:0B:D3:08:1A:69:58:CB:A4:DD:E4:B6:00:29:CF:76:09:1D:9C:78:AA:76:BC:A4:7A:3C"
+      ]
+    }
+  }
+]
