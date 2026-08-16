@@ -38,24 +38,19 @@ function speakThenPlay(text, onDone) {
   try {
     const synth = window.speechSynthesis;
     if (!synth || typeof window.SpeechSynthesisUtterance === 'undefined') { finish(); return; }
-    const speakNow = () => {
-      const u = new SpeechSynthesisUtterance(text);
-      u.rate = 1; u.lang = 'en-US';
-      // Prefer an English voice so the reference is intelligible.
-      try {
-        const voices = synth.getVoices();
-        const en = voices.find(v => /^en(-|_|$)/i.test(v.lang));
-        if (en) u.voice = en;
-      } catch {}
-      u.onend = finish;
-      u.onerror = finish;
-      setTimeout(finish, Math.max(3000, text.length * 90));
-      synth.speak(u);
-    };
-    synth.cancel();
-    // Let cancel() settle before queueing the utterance (Chrome race), and
-    // give voices a moment to load on first use.
-    setTimeout(speakNow, 120);
+    // Chrome can leave the synth in a paused state after cancel(), in which
+    // case subsequent speak() calls enqueue silently with no audio. resume()
+    // un-sticks it. Speak immediately (no setTimeout) so the call stays in
+    // the user-gesture stack where possible.
+    try { synth.cancel(); } catch {}
+    try { synth.resume(); } catch {}
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 1; u.lang = 'en-US';
+    u.onend = finish;
+    u.onerror = finish;
+    synth.speak(u);
+    // Safety bound: if the engine never fires onend, proceed anyway.
+    setTimeout(finish, Math.max(3000, text.length * 90));
   } catch { finish(); }
 }
 
