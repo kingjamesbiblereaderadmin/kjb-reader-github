@@ -672,19 +672,13 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       setAudioReady(true);
       if (autoPlayRef.current) {
         autoPlayRef.current = false;
-        const sameBook = !!(bookRef.current?.name && prevBookRef.current === bookRef.current.name);
-        if (sameBook) {
-          // Continuation within the same book: don't replay the recorded
-          // book-name intro. Flag for the seek-past-intro effect, which seeks
-          // to verse 1 (skipping the intro) and announces just "Chapter N"
-          // once verse 1's start time is known.
-          autoAdvanceSameBookRef.current = true;
-        } else {
-          // New book (or first auto-advance): play the full recorded intro so
-          // the new book name + chapter number are narrated.
-          suppressIntroRef.current = false;
-          a.play().catch(() => {});
-        }
+        // Always play the full recorded chapter intro (the narrator says the
+        // book name + chapter number in the selected voice) and highlight the
+        // book title / chapter heading during it. No browser TTS — the recorded
+        // intro already says it, and a second (browser) voice overlapping was
+        // jarring.
+        suppressIntroRef.current = false;
+        a.play().catch(() => {});
       }
     };
     const onTime = () => setCurrentTime(a.currentTime);
@@ -720,34 +714,6 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     };
   }, [clearActiveVerse]);
 
-  // Same-book auto-advance: once audio metadata AND verse 1's start time are
-  // ready, seek past the recorded book-name intro and announce just the chapter
-  // number ("Chapter 2") via speech synthesis, then begin playback at verse 1.
-  // The recorded audio re-narrates the book name every chapter; on a same-book
-  // continuation that's redundant, so we skip it. A 2.5s safety fallback plays
-  // from the start if verse 1's start never resolves (e.g. missing timing JSON).
-  useEffect(() => {
-    if (!autoAdvanceSameBookRef.current || !audioReady) return;
-    const a = audioRef.current;
-    if (!a) return;
-    if (verse1Start > 0) {
-      autoAdvanceSameBookRef.current = false;
-      suppressIntroRef.current = true;
-      a.currentTime = verse1Start;
-      setCurrentTime(verse1Start);
-      syncIntro(verse1Start);
-      jumpToNarrator(verse1Start);
-      speakThenPlay(`Chapter ${chapter}`, () => a.play().catch(() => {}));
-      return;
-    }
-    const fallback = setTimeout(() => {
-      if (!autoAdvanceSameBookRef.current) return;
-      autoAdvanceSameBookRef.current = false;
-      suppressIntroRef.current = false;
-      a.play().catch(() => {});
-    }, 2500);
-    return () => clearTimeout(fallback);
-  }, [audioReady, verse1Start, chapter, syncIntro, jumpToNarrator]);
 
   // Pause + clear when deactivated, or when timeline changes.
   useEffect(() => {
