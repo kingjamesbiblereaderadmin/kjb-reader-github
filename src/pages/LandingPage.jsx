@@ -42,14 +42,6 @@ export default function LandingPage() {
             and customizable typography — all with privacy at the forefront.
           </p>
           <div className="mt-4 w-16 h-px bg-accent mx-auto" />
-          <Link
-            to="/"
-            onClick={() => { try { localStorage.setItem('kjb-has-visited-app', 'true'); } catch {} }}
-            className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-          >
-            Open KJB Reader
-            <ArrowRight className="w-4 h-4" />
-          </Link>
         </div>
 
         {/* Scripture banner */}
@@ -99,7 +91,7 @@ export default function LandingPage() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">KJB Reader - SidePanel <span className="text-accent font-semibold">— Available Now!</span></p>
-              <p className="font-sans text-xs text-muted-foreground">Read, search, and look up Bible verses from any web page. Desktop browsers only.</p>
+              <p className="font-sans text-xs text-muted-foreground">Read, search, and look up Bible verses from any web page. Mobile support is limited.</p>
             </div>
             <ArrowRight className="w-4 h-4 text-muted-foreground" />
           </Link>
