@@ -537,34 +537,20 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     const a = audioRef.current; if (!a) return;
     const rs = rangeStartRef.current;
     if (rs == null || !Number.isFinite(rs)) return;
-    // Jump the view to the range's first word immediately — before the spoken
-    // reference announcement — so the reader sees where narration will begin
-    // the instant they press play/restart, not 2s later after the reference.
+    // Jump the view to the range's first word so the reader sees where the
+    // narrator will begin.
     jumpToNarrator(rs);
-    // Seek to the verse start ONLY right before play (after the spoken reference),
-    // not before the announcement. Seeking earlier lets the paused position
-    // drift during the ~2s announcement, so playback would miss the verse's
-    // first words. A fresh seek here guarantees the narrator starts exactly at
-    // the verse beginning.
-    const start = () => {
-      a.currentTime = rs;
-      setCurrentTime(rs);
-      syncIntro(rs);
-      // A short delay after seeking lets the audio decoder settle at the new
-      // position before playback begins. Without it, on some browsers the
-      // first frames after a mid-file seek play a stale tail buffer from the
-      // previous verse, audible as a faint leading "eh" right after the spoken
-      // reference. 120ms reliably flushes the stale buffer while remaining
-      // imperceptible after the spoken reference.
-      setTimeout(() => a.play().catch(() => {}), 120);
-    };
-    if (announce && rangeAnnouncedRef.current === false && rangeRefText) {
-      rangeAnnouncedRef.current = true;
-      speakThenPlay(rangeRefText, start);
-    } else {
-      start();
-    }
-  }, [timeline, syncIntro, rangeRefText, jumpToNarrator]);
+    // Seek straight to the verse and let the narrator (recorded voice) read it.
+    // No browser TTS reference announcement — the recorded narrator is the
+    // only voice the listener should hear.
+    a.currentTime = rs;
+    setCurrentTime(rs);
+    syncIntro(rs);
+    // A short delay after seeking lets the audio decoder settle at the new
+    // position before playback begins, so the first frames don't play a stale
+    // tail buffer from the previous verse (a faint leading "eh").
+    setTimeout(() => a.play().catch(() => {}), 120);
+  }, [timeline, syncIntro, jumpToNarrator]);
 
   // Foolproof filtered-mode playback. The verse range's start time can only be
   // computed once the timing JSON loads (timeline / verseTimings). If the user
@@ -745,25 +731,11 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     if (isWordSyncEnabled()) updateActiveWord(idx);
     syncIntro(ts);
     if (target.play) {
-      // "Read from here" (startVerse set): when audio is already playing, just
-      // seek (done above) and continue — NO spoken reference. The announcement
-      // would overlap the playing audio, and ~2s of audio would advance during
-      // it so by the time the announcement ends the narrator has moved past the
-      // clicked verse ("reads the wrong verse"). Only when starting fresh
-      // (paused) do we announce the reference, then play.
-      // Voice-switch resumes (pendingResumeRef) play immediately with no announcement.
-      if (startVerse != null) {
-        const wasPlaying = !a.paused;
-        if (wasPlaying) {
-          a.play().catch(() => {});
-        } else {
-          const name = book?.shortName || book?.name || '';
-          const refText = `${name} chapter ${chapter}, verse ${startVerse}`;
-          speakThenPlay(refText, () => a.play().catch(() => {}));
-        }
-      } else {
-        a.play().catch(() => {});
-      }
+      // "Read from here" (startVerse set) and voice-switch resumes: just play
+      // the narrator from the seek position. No browser TTS reference
+      // announcement — the recorded narrator is the only voice the listener
+      // should hear.
+      a.play().catch(() => {});
     }
     if (pendingResumeRef.current) pendingResumeRef.current = null;
     if (startVerse != null) onStartVerseConsumed?.();
