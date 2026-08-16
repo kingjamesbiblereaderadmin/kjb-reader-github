@@ -57,7 +57,7 @@ const isBookmarkBrowser = () => {
 };
 
 const LAST_REVISED = 'July 13th, 2026';
-const WORKER_VERSION = 'v20260816_1915';
+const WORKER_VERSION = 'v20260816_1920';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -373,16 +373,14 @@ export default function SettingsPage() {
         return;
       }
       // In an Android TWA / WebView, requestPermission can resolve 'granted'
-      // before the web Notification.permission actually reflects it, which
-      // otherwise makes the SW's showNotification throw "No notification
-      // permission has been granted for this origin". Wait briefly for the
-      // grant to propagate before attempting to show.
-      const propagated = await waitForNotifGranted(2500);
+      // (OS prompt accepted) but the web Notification.permission can lag behind
+      // or never reflect it. Rather than blocking the test, wait briefly for
+      // propagation and then ATTEMPT the notification regardless — the SW's
+      // showNotification uses the Android-side permission, not the web one, so
+      // it can still succeed in a TWA even when Notification.permission is
+      // 'default'. If it throws, showLocalNotification returns the real error.
+      await waitForNotifGranted(2500);
       setNotifPermission(Notification.permission);
-      if (!propagated) {
-        alert('The permission prompt was accepted, but this app shell hasn\'t applied notification permission to the web origin yet.\n\nClose the app fully and reopen it, then tap Test again. If it still fails, enable notifications for this app in your device\'s Settings → Apps → KJB Reader → Notifications.');
-        return;
-      }
     }
 
     const v = getDailyVerse();
