@@ -1,5 +1,5 @@
 import React from 'react'
-import ReactDOM from 'react-dom/client'
+import { createRoot } from 'react-dom/client'
 import App from '@/App.jsx'
 import '@/index.css'
 import { initNotifications } from '@/lib/notifications'
@@ -38,11 +38,16 @@ window.addEventListener('error', (event) => {
   }
 });
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-)
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  console.error('[KJB] #root element not found — cannot mount app.');
+} else {
+  createRoot(rootElement).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+}
 
 // Service worker registration for offline support and notifications.
 // Runs IMMEDIATELY (not deferred to the `load` event) so the SW begins

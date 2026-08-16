@@ -11,8 +11,10 @@ export default defineConfig({
   resolve: {
     dedupe: ['react', 'react-dom'],
   },
+  // Force a clean re-bundle of deps on restart — clears a stale/corrupt
+  // pre-bundle that makes createRoot(...).render(...) === undefined.
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-dom/client'],
+    force: true,
   },
   plugins: [
     base44({
