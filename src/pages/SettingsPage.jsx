@@ -57,7 +57,7 @@ const isBookmarkBrowser = () => {
 };
 
 const LAST_REVISED = 'July 13th, 2026';
-const WORKER_VERSION = 'v20260816_1845';
+const WORKER_VERSION = 'v20260816_1854';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -356,13 +356,6 @@ export default function SettingsPage() {
       }
     }
     
-    // Ensure OS-level permission is actually granted before testing.
-    // The toggle only flips localStorage; the real Notification permission
-    // may still be 'default' or 'denied', which makes showNotification fail silently.
-    if (!('Notification' in window)) {
-      alert('This browser/PWA does not support notifications.');
-      return;
-    }
     if (!('Notification' in window)) {
       alert('This browser/PWA does not support notifications.');
       return;
