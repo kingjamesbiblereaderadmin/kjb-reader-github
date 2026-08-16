@@ -539,7 +539,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       // AND jumping ahead of the narrator when a verse window opens during the
       // prior verse's trailing silence.
       let activeVn = wordVerse;
-      if (curWord && a.currentTime > curWord.end + 0.25) {
+      if (curWord && a.currentTime > curWord.end + 0.8) {
         const vs = verseStartsRef.current;
         if (vs && vs.length) {
           let lo = 0, hi = vs.length - 1, ans = -1;
@@ -556,26 +556,6 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       }
       updateActiveVerse(activeVn);
       updateActiveWord(idx);
-      // Keep the narrated verse clear of the sticky toolbar (which can clip its
-      // top edge after a manual scroll or two-column reflow). Only nudge when
-      // the verse is partially clipped at the top edge — never yank when the
-      // user has scrolled past it. Instant (not smooth) to avoid janky per-frame
-      // scroll queues.
-      if (activeVn != null) {
-        const vn = activeVn;
-        const ve = vn != null ? document.querySelector(`[data-audio-verse="${vn}"]`) : null;
-        const scroller = ve && document.getElementById('kjb-scroll');
-        if (ve && scroller) {
-          const sTop = scroller.getBoundingClientRect().top;
-          const sticky = scroller.querySelector('.sticky.top-0');
-          const topPad = sticky ? Math.max(12, sticky.getBoundingClientRect().bottom - sTop + 12) : 12;
-          const eTop = ve.getBoundingClientRect().top - sTop;
-          const eBottom = ve.getBoundingClientRect().bottom - sTop;
-          if (eTop < topPad - 8 && eBottom > topPad) {
-            scroller.scrollTo({ top: Math.max(0, scroller.scrollTop + eTop - topPad), behavior: 'auto' });
-          }
-        }
-      }
       syncIntro(a.currentTime);
       const re = rangeEndRef.current;
       if (re != null && a.currentTime >= re) {
@@ -590,7 +570,36 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, [playing, timeline, updateActiveVerse, syncIntro, clearIntro]);
+    }, [playing, timeline, updateActiveVerse, syncIntro, clearIntro]);
+
+    // Throttled clip-correction: while playing, check a few times per second
+    // whether the narrated verse is clipped by the sticky toolbar and nudge it
+    // back into view. Doing this on an interval (instead of every animation
+    // frame) avoids the 60×/sec forced reflows + instant scrolls that produced
+    // visible jank/stutter in the highlight during playback.
+    useEffect(() => {
+    if (!playing) return;
+    let last = 0;
+    const id = setInterval(() => {
+    const vn = activeVerseRef.current;
+    if (vn == null) return;
+    const now = performance.now();
+    if (now - last < 300) return;
+    const ve = document.querySelector(`[data-audio-verse="${vn}"]`);
+    const scroller = ve && document.getElementById('kjb-scroll');
+    if (!ve || !scroller) return;
+    last = now;
+    const sTop = scroller.getBoundingClientRect().top;
+    const sticky = scroller.querySelector('.sticky.top-0');
+    const topPad = sticky ? Math.max(12, sticky.getBoundingClientRect().bottom - sTop + 12) : 12;
+    const eTop = ve.getBoundingClientRect().top - sTop;
+    const eBottom = ve.getBoundingClientRect().bottom - sTop;
+    if (eTop < topPad - 12 && eBottom > topPad) {
+      scroller.scrollTo({ top: Math.max(0, scroller.scrollTop + eTop - topPad), behavior: 'auto' });
+    }
+    }, 120);
+    return () => clearInterval(id);
+    }, [playing]);
 
   // Wire <audio> element events.
   useEffect(() => {
