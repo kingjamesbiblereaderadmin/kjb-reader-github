@@ -543,7 +543,7 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       // AND jumping ahead of the narrator when a verse window opens during the
       // prior verse's trailing silence.
       let activeVn = wordVerse;
-      if (curWord && a.currentTime > curWord.end + 0.8) {
+      if (curWord && a.currentTime > curWord.end + 0.3) {
         const vs = verseStartsRef.current;
         if (vs && vs.length) {
           let lo = 0, hi = vs.length - 1, ans = -1;
