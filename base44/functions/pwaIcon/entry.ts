@@ -1,5 +1,5 @@
 // Same-origin PWA icon proxy.
-// The published app lives on kingjamesbiblereader.com, but the icon PNGs are
+// The published app lives on kingjamesbiblereader.com, but the icon images are
 // stored on base44.app (cross-origin). When a user adds the PWA to their home
 // screen, the mobile OS fetches the manifest icon DIRECTLY — not through the
 // service worker. Cross-origin icon fetches can time out or fail on flaky
@@ -8,64 +8,114 @@
 // (/functions/pwaIcon?size=192|512|maskable|sig|sig2) so the icon is always
 // reachable, with immutable cache headers so the OS only fetches it once.
 //
-// CRITICAL: App stores / PWABuilder sniff the file's actual magic bytes, not
-// the Content-Type header. The upstream "generated_image.png" is actually a
-// JPEG (despite its .png extension), so declaring it as image/png fails the
-// manifest validation ("declared type must match actual type"). We therefore
-// decode the upstream bytes and re-encode to a genuine PNG here so what we
-// serve really is image/png regardless of the source format.
+// The launcher icons (192/512/maskable) use the user's HAND-DRAWN "KJB Reader"
+// signature logo. The source is only 141×141 — too small for the Play Store's
+// ≥512 requirement — so the function decodes it and bilinear-upscales it to a
+// genuine 512×512 PNG. App stores / PWABuilder sniff the file's actual magic
+// bytes (not the Content-Type header), so we always re-encode to real PNG
+// regardless of the upstream format (the source can be PNG or JPEG).
+//
+// PNG decode/encode uses UPNG.js (pure JS via pako) because pngjs's zlib
+// Inflate cannot be instantiated under Deno's Node-zlib interop.
 
 import { Buffer } from 'node:buffer';
-import { PNG } from 'npm:pngjs@7.0.0';
+import UPNG from 'npm:upng-js@2.1.0';
 import jpegjs from 'npm:jpeg-js@0.4.4';
 
+// The user's hand-drawn signature logo (also served raw at 141×141 via ?size=sig).
+const SIGNATURE_URL = 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/be92aa50d_8e738d108_cfb4bf781_Untitled.png';
+
 const ICONS = {
-  // 512 / maskable / 192 serve the genuine 1024x1024 generated icon — this is
-  // the high-res image PWABuilder packages as the TWA launcher icon (Play
-  // Store requires ≥512x512). The manifest declares 1024x1024 so the
-  // declared-vs-actual size check passes.
-  '192': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/bda6701ff_generated_image.png',
-  '512': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/bda6701ff_generated_image.png',
-  'maskable': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/bda6701ff_generated_image.png',
-  // Signature icons (141x141 hand-drawn KJB Reader logos). Declared honestly
-  // in the manifest as 141x141 — too small for the launcher, but included so
-  // the user's signature artwork is present in the PWA icon set.
-  'sig': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/be92aa50d_8e738d108_cfb4bf781_Untitled.png',
+  // Launcher sizes — the signature, upscaled to 512×512 in-function.
+  '192': SIGNATURE_URL,
+  '512': SIGNATURE_URL,
+  'maskable': SIGNATURE_URL,
+  // Signature logos served at their true 141×141 size (extra "any" entries so
+  // the user's signature artwork is present in the PWA icon set).
+  'sig': SIGNATURE_URL,
   'sig2': 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/c72c2e0d1_8e738d108_cfb4bf781_Untitled.png',
 };
+
+const LAUNCHER_SIZE = 512;          // target square edge for 192/512/maskable
+const LAUNCHER_SIZES = new Set(['192', '512', 'maskable']);
 
 // Module-level byte cache so repeated requests don't re-fetch + re-encode.
 const pngCache = new Map();
 
-// Re-encode arbitrary upstream image bytes into a genuine PNG.
-// - Already PNG → pass through verbatim.
-// - JPEG → decode with jpeg-js, encode with pngjs.
-// PNG magic: 89 50 4E 47 0D 0A 1A 0A ; JPEG magic: FF D8 FF
-function toPng(inputBuf: ArrayBuffer): Uint8Array {
-  const bytes = new Uint8Array(inputBuf);
-  if (bytes.length >= 4 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
-    return bytes; // already PNG
+// PNG magic: 89 50 4E 47 ; JPEG magic: FF D8 FF
+function isPng(b: Uint8Array): boolean {
+  return b.length >= 8 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47;
+}
+function isJpeg(b: Uint8Array): boolean {
+  return b.length >= 3 && b[0] === 0xFF && b[1] === 0xD8 && b[2] === 0xFF;
+}
+
+// Decode arbitrary upstream image bytes into RGBA { width, height, data }.
+function decodeToRgba(bytes: Uint8Array): { width: number; height: number; data: Uint8Array } {
+  if (isPng(bytes)) {
+    const img = UPNG.decode(bytes);
+    const frames = UPNG.toRGBA8(img);      // array of Uint8Array (one per frame)
+    const rgba = frames[0];
+    if (!rgba) throw new Error('png decode produced no frame');
+    return { width: img.width, height: img.height, data: new Uint8Array(rgba) };
   }
-  if (bytes.length >= 2 && bytes[0] === 0xFF && bytes[1] === 0xD8) {
-    // formatAsRGBA so the decoded data is 4-channel RGBA, matching pngjs's PNG.data layout.
-    const raw = jpegjs.decode(Buffer.from(bytes), { useTArray: false, formatAsRGBA: true });
+  if (isJpeg(bytes)) {
+    const raw = jpegjs.decode(Buffer.from(bytes), { useTArray: true, formatAsRGBA: true });
     if (!raw || !raw.width || !raw.height) throw new Error('jpeg decode failed');
-    const png = new PNG({ width: raw.width, height: raw.height });
-    png.data = Buffer.from(raw.data);
-    return new Uint8Array(PNG.sync.write(png));
+    return { width: raw.width, height: raw.height, data: new Uint8Array(raw.data) };
   }
   throw new Error('unsupported image format (not PNG or JPEG)');
 }
 
-async function getPngBytes(size) {
+// Bilinear-upscale an RGBA buffer to dstW×dstH. Keeps the user's artwork
+// (no AI substitution) while meeting the store's ≥512 size rule.
+function upscaleBilinear(src: Uint8Array, srcW: number, srcH: number, dstW: number, dstH: number): Uint8Array {
+  const dst = new Uint8Array(dstW * dstH * 4);
+  const xRatio = (srcW - 1) / Math.max(1, dstW - 1);
+  const yRatio = (srcH - 1) / Math.max(1, dstH - 1);
+  for (let y = 0; y < dstH; y++) {
+    const sy = y * yRatio;
+    const y0 = Math.floor(sy);
+    const y1 = Math.min(y0 + 1, srcH - 1);
+    const fy = sy - y0;
+    for (let x = 0; x < dstW; x++) {
+      const sx = x * xRatio;
+      const x0 = Math.floor(sx);
+      const x1 = Math.min(x0 + 1, srcW - 1);
+      const fx = sx - x0;
+      const i00 = (y0 * srcW + x0) * 4;
+      const i01 = (y0 * srcW + x1) * 4;
+      const i10 = (y1 * srcW + x0) * 4;
+      const i11 = (y1 * srcW + x1) * 4;
+      const di = (y * dstW + x) * 4;
+      for (let c = 0; c < 4; c++) {
+        const top = src[i00 + c] * (1 - fx) + src[i01 + c] * fx;
+        const bot = src[i10 + c] * (1 - fx) + src[i11 + c] * fx;
+        dst[di + c] = Math.round(top * (1 - fy) + bot * fy);
+      }
+    }
+  }
+  return dst;
+}
+
+async function getPngBytes(size: string): Promise<Uint8Array> {
   if (pngCache.has(size)) return pngCache.get(size);
   const target = ICONS[size] || ICONS['512'];
   const res = await fetch(target);
   if (!res.ok) throw new Error('upstream status ' + res.status);
   const buf = await res.arrayBuffer();
-  const png = toPng(buf);
-  pngCache.set(size, png);
-  return png;
+  const { width, height, data } = decodeToRgba(new Uint8Array(buf));
+
+  let outW = width, outH = height, outData = data;
+  if (LAUNCHER_SIZES.has(size)) {
+    outW = LAUNCHER_SIZE; outH = LAUNCHER_SIZE;
+    outData = upscaleBilinear(data, width, height, outW, outH);
+  }
+
+  // UPNG.encode(frames, w, h, cpc): frames = array of RGBA ArrayBuffers, cpc 0 = RGBA.
+  const pngBytes = new Uint8Array(UPNG.encode([outData.buffer], outW, outH, 0));
+  pngCache.set(size, pngBytes);
+  return pngBytes;
 }
 
 Deno.serve(async (req) => {
@@ -82,6 +132,7 @@ Deno.serve(async (req) => {
       },
     });
   } catch (e) {
+    console.error('[pwaIcon]', e?.message, e?.stack);
     return new Response('icon unavailable', { status: 502 });
   }
 });
