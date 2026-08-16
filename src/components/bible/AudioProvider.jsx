@@ -78,11 +78,22 @@ function scrollVerseIntoView(el, force) {
   const visibleTop = topPad;
   const visibleBottom = scroller.clientHeight - bottomPad;
   const maxScroll = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+  // In two-column mode the narration flows down the left column then continues
+  // at the TOP of the right column (which sits at the top of the scroll content,
+  // i.e. above the current scroll position once the reader has scrolled down).
+  // The single-column "don't yank back" guard below would refuse to scroll up
+  // to it, leaving the view stuck at the bottom of the left column while the
+  // narrator moves on. In two-column mode, page-flip instead: whenever the
+  // active verse isn't fully visible, snap it to the top of the viewport so the
+  // listener follows the narration across columns.
+  const twoCol = !!el.closest?.('.kjb-two-col');
   let target;
   if (force) {
     target = scroller.scrollTop + elTop - visibleTop;
   } else if (elTop >= visibleTop && elBottom <= visibleBottom) {
     return; // already fully in view
+  } else if (twoCol) {
+    target = scroller.scrollTop + elTop - visibleTop;
   } else if (elTop < visibleTop) {
     if (elBottom <= visibleTop) return; // user scrolled past — don't yank back
     target = scroller.scrollTop + elTop - visibleTop;
@@ -409,6 +420,15 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
       };
       setAudioReady(false);
       a.src = record.audio_url;
+      // Clear any stale same-book auto-advance flag from a previous chapter so
+      // it doesn't bleed into a fresh chapter (e.g. a Random Chapter opened
+      // right after a same-book auto-advance). Without this, the seek-past-intro
+      // effect would fire on the new chapter's metadata, seek past the recorded
+      // book-name intro, and announce only "Chapter N" — so a random chapter
+      // (or any fresh chapter after a same-book auto-advance) would never say
+      // the book name.
+      autoAdvanceSameBookRef.current = false;
+      suppressIntroRef.current = false;
       // Force the browser to buffer the whole file up front. Without this the
       // first play after a fresh mount (e.g. navigating away and back) is a
       // "cold start" with extra buffering latency, so the audible output lags
