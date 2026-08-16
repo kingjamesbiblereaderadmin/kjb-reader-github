@@ -590,8 +590,9 @@ export default function AudioProvider({ book, chapter, verses, active, onClose, 
   const audioValue = useMemo(() => ({
     active: !!active, ready: !loading, record, hasAnyAudio, timeline, wordsByVerse,
     playing, duration, speed, voices, voice, selectVoice,
+    rangeStart, rangeEnd,
     togglePlay, seek, skip, seekToWord, cycleSpeed, restart, onClose,
-  }), [active, loading, record, hasAnyAudio, timeline, wordsByVerse, playing, duration, speed, voices, voice, selectVoice, togglePlay, seek, skip, seekToWord, cycleSpeed, restart, onClose]);
+  }), [active, loading, record, hasAnyAudio, timeline, wordsByVerse, playing, duration, speed, voices, voice, selectVoice, rangeStart, rangeEnd, togglePlay, seek, skip, seekToWord, cycleSpeed, restart, onClose]);
 
   // Memoize children so per-frame currentTime re-renders don't re-render
   // the verse text (which only needs the stable audioValue).
