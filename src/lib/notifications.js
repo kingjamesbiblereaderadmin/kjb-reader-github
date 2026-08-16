@@ -179,13 +179,15 @@ export async function requestNotificationPermission() {
       // Notification.permission hasn't synced to 'granted' — the SW
       // showNotification path checks the OS permission, not the web flag.
       hasPermission = true;
-    } else if (!native && Notification.permission === 'default' && localStorage.getItem('kjb-notif-asked') !== 'true') {
-      // Browser (not Android shell): ask the web permission at most once,
-      // synchronously-adjacent to the tap so the browser ties the prompt to
-      // the user gesture. Repeated requestPermission calls after a dismissal
-      // are what make Chrome auto-block the site.
+    } else if (!native && Notification.permission === 'default') {
+      // Browser (not Android shell): ask the web permission. The browser
+      // itself only ever shows the prompt UI when permission is 'default' —
+      // it silently resolves (no UI) once the user has explicitly
+      // allowed/blocked — so there's no need for our own "ask once" gate,
+      // and that gate was the bug: once set, it permanently blocked
+      // re-asking after a reset (e.g. uninstalling the PWA), leaving
+      // notifications broken forever with no way to recover.
       try {
-        localStorage.setItem('kjb-notif-asked', 'true');
         const result = await Notification.requestPermission();
         if (result === 'granted') hasPermission = true;
       } catch (err) {
