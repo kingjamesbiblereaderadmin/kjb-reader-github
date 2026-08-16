@@ -93,13 +93,12 @@ function scrollVerseIntoView(el, force) {
   scroller.scrollTo({ top: target, behavior: 'smooth' });
 }
 
-// Word-by-word ("karaoke") highlight is off by default — the reader highlights
-// the whole verse being narrated. Flip it back on for testing by setting
-// localStorage 'kjb-word-sync' = 'true' (e.g. in the browser console:
-// localStorage.setItem('kjb-word-sync','true')). This keeps the word-sync code
-// path available without a separate git branch.
+// This branch (word-sync-test) enables word-by-word ("karaoke") highlighting by
+// default so it can be tested and tuned. The main branch highlights the whole
+// verse. To force verse-level highlighting here while testing, set
+// localStorage 'kjb-word-sync' = 'false' in the browser console.
 function isWordSyncEnabled() {
-  try { return localStorage.getItem('kjb-word-sync') === 'true'; } catch { return false; }
+  try { return localStorage.getItem('kjb-word-sync') !== 'false'; } catch { return false; }
 }
 
 // Provides chapter audio state to the Read page: fetches the ChapterAudio
