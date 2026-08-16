@@ -335,14 +335,25 @@ export function buildWordTimeline(verses, timing) {
   return out;
 }
 
+// The browser's reported audio `currentTime` trails the actual sound coming
+// out of the speakers by the audio-output buffer (~150–250 ms on most
+// devices), so a highlight driven directly off `currentTime` lags the narrator
+// — the voice "speeds ahead" of the highlight. Advancing the effective time
+// by this lead makes the highlight anticipate the audio output so it lines up
+// with what the listener actually hears.
+const AUDIO_LEAD_S = 0.2;
+
 // Find the index of the active word for a given playback time (seconds).
 export function findActiveWordIndex(timeline, time) {
   if (!timeline.length) return -1;
-  // Binary search for the last word whose start <= time.
+  // Advance the effective time by the audio-output lead so the highlight
+  // tracks the heard audio, not the (lagging) reported currentTime.
+  const t = time + AUDIO_LEAD_S;
+  // Binary search for the last word whose start <= t.
   let lo = 0, hi = timeline.length - 1, ans = -1;
   while (lo <= hi) {
     const mid = (lo + hi) >> 1;
-    if (timeline[mid].start <= time) { ans = mid; lo = mid + 1; }
+    if (timeline[mid].start <= t) { ans = mid; lo = mid + 1; }
     else hi = mid - 1;
   }
   if (ans < 0) return -1;
@@ -350,14 +361,13 @@ export function findActiveWordIndex(timeline, time) {
   const next = timeline[ans + 1];
   // A word is active only during its actual spoken window [start, end], so the
   // highlight tracks the narrator precisely and clears during inter-word pauses
-  // instead of lingering on the previous word through silence (which reads as
-  // "the highlight is behind the voice"). Whisper sometimes emits zero-duration
-  // tokens (start === end); for those, keep the word lit until the next word's
-  // onset so the highlight is still visible.
+  // instead of lingering on the previous word through silence. Whisper
+  // sometimes emits zero-duration tokens (start === end); for those, keep the
+  // word lit until the next word's onset so the highlight is still visible.
   if (w.end > w.start) {
     const ceiling = next ? next.start : Infinity;
     // 40ms tolerance absorbs Whisper boundary jitter without bridging the gap.
-    return time <= Math.min(w.end, ceiling) + 0.04 ? ans : -1;
+    return t <= Math.min(w.end, ceiling) + 0.04 ? ans : -1;
   }
-  return next ? (time < next.start ? ans : -1) : ans;
+  return next ? (t < next.start ? ans : -1) : ans;
 }
