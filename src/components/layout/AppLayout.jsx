@@ -492,6 +492,12 @@ function DesktopFooter({ navigate, setMenuOpen }) {
             {' · '}
             <Link to="/contact" className="hover:text-foreground hover:underline transition-colors">Contact</Link>
           </p>
+          <p className="text-center font-sans text-xs text-muted-foreground mt-1">
+            Made with{' '}
+            <a href="https://app.base44.com/superagent/6a713d810d97fdb5921ed14e" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">
+              Base44 Superagent
+            </a>
+          </p>
           </>
           )}
         </div>
