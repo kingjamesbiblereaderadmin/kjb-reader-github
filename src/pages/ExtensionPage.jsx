@@ -214,13 +214,14 @@ export default function ExtensionPage() {
               target="_blank"
               rel="noopener noreferrer"
               title="Get for Microsoft Edge — Edge Add-ons"
-              className="inline-flex items-center justify-center self-center transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className="inline-flex flex-col items-center justify-center self-center transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
               <img
                 src="https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/add-ons-badge-images/microsoft-edge-add-ons-badge.png"
                 alt="Get it from Microsoft Edge"
                 className="h-[58px] w-auto rounded-lg shadow-lg"
               />
+              <span className="font-sans text-[11px] font-medium text-muted-foreground mt-1">Works on mobile</span>
             </a>
             <a
               href={urls.firefox}
