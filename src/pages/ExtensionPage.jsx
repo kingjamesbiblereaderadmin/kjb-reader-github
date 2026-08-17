@@ -411,7 +411,7 @@ export default function ExtensionPage() {
         </div>
 
         {/* Credit line */}
-        <p className="mt-10 text-center font-sans text-xs text-muted-foreground">
+        <p className="font-sans" style={{ textAlign: 'center', fontSize: '12px', color: '#888', marginTop: '24px' }}>
           Made with{' '}
           <a
             href="https://app.base44.com/superagent/6a713d810d97fdb5921ed14e"
