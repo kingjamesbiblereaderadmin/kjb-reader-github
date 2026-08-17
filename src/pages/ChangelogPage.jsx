@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.145', date: 'August 17, 2026', items: ['Fixed print not working when the extension is opened from the browser menu on mobile by adding a three-tier fallback (new window \u2192 off-screen iframe \u2192 background tab creation)', 'Added a \u2018from=extension\u2019 URL parameter to Open Chapter links to prevent stale search results from flashing on the website'] },
+  { version: 'v0.4.144', date: 'August 16, 2026', items: ['Fixed horizontal overflow and content clipping during zoom by applying zoom to the root <html> element instead of the inner #app container', 'Added flex-wrap to the Read navigation bar for narrow viewport widths'] },
+  { version: 'v0.4.143', date: 'August 16, 2026', items: ['Added state persistence for book and chapter selection using chrome.storage.local for seamless transitions between popup and side panel', 'Added an iframe fallback for the print function on mobile devices'] },
+  { version: 'v0.4.142', date: 'August 16, 2026', items: ['Internal version bump for store resubmission'] },
   { version: 'v0.4.141', date: 'August 16, 2026', items: ['Fixed copy buttons (Read chapter, Results cards, Gospel, Resources) that silently failed when the side panel lost focus — now uses a fallback clipboard method'] },
   { version: 'v0.4.140', date: 'August 16, 2026', items: ['Added a scroll-to-top button in the Read and Results tabs that appears when scrolling past 200px'] },
   { version: 'v0.4.139', date: 'August 16, 2026', items: ['Added WCAG 3:1 contrast safeguard: detected Bible references now fall back to a high-contrast color when the host page\u2019s inherited text color is too low contrast'] },
