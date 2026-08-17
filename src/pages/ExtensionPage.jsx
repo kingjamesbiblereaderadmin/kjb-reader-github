@@ -409,6 +409,19 @@ export default function ExtensionPage() {
             <ArrowLeft className="w-4 h-4 text-muted-foreground rotate-180 group-hover:text-accent transition-colors" />
           </Link>
         </div>
+
+        {/* Credit line */}
+        <p className="mt-10 text-center font-sans text-xs text-muted-foreground">
+          Made with{' '}
+          <a
+            href="https://app.base44.com/superagent/6a713d810d97fdb5921ed14e"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-foreground transition-colors"
+          >
+            Base44 Superagent
+          </a>
+        </p>
       </div>
     </div>
   );
