@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.147', date: 'August 17, 2026', items: ['Fixed UI clipping when zooming in (above 100%) by narrowing the root element width proportionally so content always fills 100% of the panel at any zoom level', 'Fixed blank space on the right when zooming out (below 100%) by widening the root element width to compensate for the scale reduction'] },
+  { version: 'v0.4.146', date: 'August 17, 2026', items: ['Fixed zoom-out blank space by compensating root width proportional to scale (e.g., width set to 125% when zoom is 0.8)'] },
   { version: 'v0.4.145', date: 'August 17, 2026', items: ['Fixed print not working when the extension is opened from the browser menu on mobile by adding a three-tier fallback (new window \u2192 off-screen iframe \u2192 background tab creation)', 'Added a \u2018from=extension\u2019 URL parameter to Open Chapter links to prevent stale search results from flashing on the website'] },
   { version: 'v0.4.144', date: 'August 16, 2026', items: ['Fixed horizontal overflow and content clipping during zoom by applying zoom to the root <html> element instead of the inner #app container', 'Added flex-wrap to the Read navigation bar for narrow viewport widths'] },
   { version: 'v0.4.143', date: 'August 16, 2026', items: ['Added state persistence for book and chapter selection using chrome.storage.local for seamless transitions between popup and side panel', 'Added an iframe fallback for the print function on mobile devices'] },
