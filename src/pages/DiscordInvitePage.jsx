@@ -26,6 +26,25 @@ const cardClass = "flex items-center gap-3 p-5 rounded-2xl bg-card/70 backdrop-b
 export default function DiscordInvitePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
+      {/* Credit banner */}
+      <div className="w-full bg-muted/40 border-b border-border py-2 flex items-center justify-center gap-1.5">
+        <img
+          src="https://base44.com/favicon.ico"
+          alt="Base44"
+          className="w-4 h-4 rounded-sm"
+        />
+        <p className="font-sans" style={{ fontSize: '12px', color: '#888' }}>
+          Made with{' '}
+          <a
+            href="https://base44.com/superagents"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-foreground transition-colors"
+          >
+            Base44 Superagent
+          </a>
+        </p>
+      </div>
       <div className="w-full max-w-3xl mx-auto px-5 sm:px-8 lg:px-12 py-10 pb-24">
         {/* Back link */}
         <Link
