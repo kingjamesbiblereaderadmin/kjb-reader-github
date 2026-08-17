@@ -414,7 +414,7 @@ export default function ExtensionPage() {
         <p className="font-sans" style={{ textAlign: 'center', fontSize: '12px', color: '#888', marginTop: '24px' }}>
           Made with{' '}
           <a
-            href="https://app.base44.com/superagent/6a713d810d97fdb5921ed14e"
+            href="https://base44.com/superagents"
             target="_blank"
             rel="noopener noreferrer"
             className="underline hover:text-foreground transition-colors"
