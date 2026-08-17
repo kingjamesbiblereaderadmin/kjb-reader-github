@@ -135,6 +135,20 @@ export default function ExtensionPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      {/* Credit banner */}
+      <div className="w-full bg-muted/40 border-b border-border py-2">
+        <p className="font-sans" style={{ textAlign: 'center', fontSize: '12px', color: '#888' }}>
+          Made with{' '}
+          <a
+            href="https://base44.com/superagents"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-foreground transition-colors"
+          >
+            Base44 Superagent
+          </a>
+        </p>
+      </div>
       <div className="w-full max-w-[1200px] mx-auto px-5 sm:px-8 lg:px-12 py-10 pb-24">
         {/* Back button */}
         <div className="mb-8">
@@ -409,19 +423,6 @@ export default function ExtensionPage() {
             <ArrowLeft className="w-4 h-4 text-muted-foreground rotate-180 group-hover:text-accent transition-colors" />
           </Link>
         </div>
-
-        {/* Credit line */}
-        <p className="font-sans" style={{ textAlign: 'center', fontSize: '12px', color: '#888', marginTop: '24px' }}>
-          Made with{' '}
-          <a
-            href="https://base44.com/superagents"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-foreground transition-colors"
-          >
-            Base44 Superagent
-          </a>
-        </p>
       </div>
     </div>
   );
