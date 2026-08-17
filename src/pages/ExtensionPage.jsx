@@ -138,7 +138,7 @@ export default function ExtensionPage() {
       {/* Credit banner */}
       <div className="w-full bg-muted/40 border-b border-border py-2 flex items-center justify-center gap-1.5">
         <img
-          src="https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/474befab6_generated_image.png"
+          src="https://base44.com/favicon.ico"
           alt="Base44"
           className="w-4 h-4 rounded-sm"
         />
