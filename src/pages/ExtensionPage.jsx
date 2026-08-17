@@ -136,8 +136,13 @@ export default function ExtensionPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Credit banner */}
-      <div className="w-full bg-muted/40 border-b border-border py-2">
-        <p className="font-sans" style={{ textAlign: 'center', fontSize: '12px', color: '#888' }}>
+      <div className="w-full bg-muted/40 border-b border-border py-2 flex items-center justify-center gap-1.5">
+        <img
+          src="https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/474befab6_generated_image.png"
+          alt="Base44"
+          className="w-4 h-4 rounded-sm"
+        />
+        <p className="font-sans" style={{ fontSize: '12px', color: '#888' }}>
           Made with{' '}
           <a
             href="https://base44.com/superagents"
