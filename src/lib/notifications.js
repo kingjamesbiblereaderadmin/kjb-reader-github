@@ -76,13 +76,13 @@ export function scheduleDailyNotification(verse) {
   if (!getNotificationsEnabled()) return;
 
   const timeStr = (() => {
-    try { return localStorage.getItem(TIME_KEY) || '08:00'; } catch { return '08:00'; }
+    try { return localStorage.getItem(TIME_KEY) || '00:00'; } catch { return '00:00'; }
   })();
   const [hh, mm] = timeStr.split(':').map(Number);
 
   const now = new Date();
   const next = new Date();
-  next.setHours(hh || 8, mm || 0, 0, 0);
+  next.setHours(hh || 0, mm || 0, 0, 0);
   if (next <= now) next.setDate(next.getDate() + 1);
 
   const delay = next.getTime() - now.getTime();
@@ -112,12 +112,12 @@ export async function initNotifications(verse) {
   if (!getNotificationsEnabled()) return;
 
   const timeStr = (() => {
-    try { return localStorage.getItem(TIME_KEY) || '08:00'; } catch { return '08:00'; }
+    try { return localStorage.getItem(TIME_KEY) || '00:00'; } catch { return '00:00'; }
   })();
   const [hh, mm] = timeStr.split(':').map(Number);
   const now = new Date();
   const scheduled = new Date();
-  scheduled.setHours(hh || 8, mm || 0, 0, 0);
+  scheduled.setHours(hh || 0, mm || 0, 0, 0);
 
   const lastShown = (() => {
     try { return localStorage.getItem(LAST_SHOWN_KEY); } catch { return null; }
