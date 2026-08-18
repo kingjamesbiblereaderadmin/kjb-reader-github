@@ -20,7 +20,6 @@ import {
   showLocalNotification,
 } from '@/lib/notifications';
 import { getDailyVerse } from '@/lib/dailyVerse';
-import { subscribePush } from '@/lib/pushSub';
 
 const VERSE_FONTS = [
   { value: 'serif', label: 'Serif' },
@@ -226,11 +225,6 @@ export default function LandingSetupWizard() {
       window.dispatchEvent(new Event('storage'));
       scheduleDailyNotification(getDailyVerse());
       showLocalNotification('Daily verse reminders on ✓', `You'll get the daily verse each morning.`, null);
-      // Register with the server-side push system too, so the daily verse
-      // still arrives even when the app/tab isn't open at 8am.
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then(subscribePush).catch(() => {});
-      }
       markDone('notifications');
     }
     setNotifBlocked(result === 'denied');

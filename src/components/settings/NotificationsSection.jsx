@@ -10,7 +10,6 @@ import {
   cleanForNotification,
 } from '@/lib/notifications';
 import { getDailyVerse } from '@/lib/dailyVerse';
-import { subscribePush } from '@/lib/pushSub';
 
 export default function NotificationsSection({ expanded, onToggleExpand }) {
   const [enabled, setEnabled] = useState(getNotificationsEnabled);
@@ -44,11 +43,6 @@ export default function NotificationsSection({ expanded, onToggleExpand }) {
       setEnabled(true);
       window.dispatchEvent(new Event('storage'));
       scheduleDailyNotification(getDailyVerse());
-      // Register with the server-side push system too, so the daily verse
-      // still arrives even when the app/tab isn't open at 8am.
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then(subscribePush).catch(() => {});
-      }
       showLocalNotification(
         'Daily verse reminders on ✓',
         `You'll get the daily verse each morning.`,
