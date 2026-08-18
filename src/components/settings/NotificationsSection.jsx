@@ -9,7 +9,7 @@ import {
   showLocalNotification,
   cleanForNotification,
 } from '@/lib/notifications';
-import { getDailyVerse } from '@/lib/dailyVerse';
+import { getDailyVerseFromBible } from '@/lib/dailyVerse';
 
 export default function NotificationsSection({ expanded, onToggleExpand }) {
   const [enabled, setEnabled] = useState(getNotificationsEnabled);
@@ -42,7 +42,7 @@ export default function NotificationsSection({ expanded, onToggleExpand }) {
       localStorage.setItem('kjb-notifications-enabled', 'true');
       setEnabled(true);
       window.dispatchEvent(new Event('storage'));
-      scheduleDailyNotification(getDailyVerse());
+      scheduleDailyNotification();
       showLocalNotification(
         'Daily verse reminders on ✓',
         `You'll get the daily verse each morning.`,
@@ -52,8 +52,8 @@ export default function NotificationsSection({ expanded, onToggleExpand }) {
     setBlocked(result === 'denied');
   };
 
-  const handleTestNotification = () => {
-    const v = getDailyVerse();
+  const handleTestNotification = async () => {
+    const v = await getDailyVerseFromBible();
     showLocalNotification(`Daily Verse — ${v.ref}`, cleanForNotification(v.text), null);
   };
 

@@ -88,8 +88,8 @@ export function scheduleDailyNotification(verse) {
   const delay = next.getTime() - now.getTime();
   dailyTimeoutId = setTimeout(async () => {
     try {
-      const { getDailyVerse } = await import('@/lib/dailyVerse');
-      const v = verse || getDailyVerse();
+      const { getDailyVerseFromBible } = await import('@/lib/dailyVerse');
+      const v = verse || await getDailyVerseFromBible();
       showLocalNotification(
         `Daily Verse — ${v.ref}`,
         cleanForNotification(v.text),
@@ -125,8 +125,8 @@ export async function initNotifications(verse) {
 
   if (now >= scheduled && lastShown !== todayStr()) {
     try {
-      const { getDailyVerse } = await import('@/lib/dailyVerse');
-      const v = verse || getDailyVerse();
+      const { getDailyVerseFromBible } = await import('@/lib/dailyVerse');
+      const v = verse || await getDailyVerseFromBible();
       await showLocalNotification(
         `Daily Verse — ${v.ref}`,
         cleanForNotification(v.text),
