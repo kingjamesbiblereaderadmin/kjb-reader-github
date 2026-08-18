@@ -15,6 +15,7 @@ import { getBibleData, isBibleCached, initPeriodicCacheRefresh, downloadBibleFor
 import { toast } from 'sonner';
 import { useSoftReload } from '@/lib/SoftReloadContext';
 import { getAccessibilityFont, applyAccessibilityFont } from '@/lib/accessibilityFont';
+import { backfillPushSubscription } from '@/lib/pushSub';
 
 const scrollMainToTop = () => {
   const el = document.getElementById('kjb-scroll');
@@ -274,6 +275,11 @@ export default function AppLayout() {
 
     // Initialize periodic cache refresh (checks every 24 hours when user opens app)
     initPeriodicCacheRefresh();
+
+    // Self-heal the server-side push subscription for returning users who
+    // already granted notification permission — this is what actually
+    // delivers the daily verse when the app/tab is closed overnight.
+    backfillPushSubscription();
   }, [isPWAInstalled]);
 
   // Legacy reader gets no layout chrome - just render the outlet
