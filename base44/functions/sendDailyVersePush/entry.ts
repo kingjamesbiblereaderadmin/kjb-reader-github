@@ -19,6 +19,11 @@ export default async function(req) {
     const base44 = createClientFromRequest(req);
     webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 
+    // Optional one-time backfill override: when force=true, skip the local-8am
+    // and once-per-day gating and push to every subscription immediately.
+    let force = false;
+    try { force = (await req.json())?.force === true; } catch {}
+
     // Service-role read reaches across all users' subscriptions.
     const subs = await base44.asServiceRole.entities.PushSubscription.list('-updated_date', 1000);
 
@@ -46,9 +51,12 @@ export default async function(req) {
       try { ({ hour, date } = localHourAndDate(tz)); }
       catch { skipped++; continue; }
 
-      // Only deliver at the subscriber's local 8am, once per local day.
-      if (hour !== 8) { skipped++; continue; }
-      if (s.last_push_date === date) { skipped++; continue; }
+      // Only deliver at the subscriber's local 8am, once per local day —
+      // unless this is a forced one-time backfill send.
+      if (!force) {
+        if (hour !== 8) { skipped++; continue; }
+        if (s.last_push_date === date) { skipped++; continue; }
+      }
 
       const sub = { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } };
       try {
