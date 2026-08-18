@@ -279,8 +279,12 @@ export default function AppLayout() {
     // Resume the local daily verse reminder on every app open — this also
     // catches up on today's notification if the app was closed when it was
     // due (the in-page timer can't fire while the tab is closed).
+    // Runs once on mount only — NOT tied to isPWAInstalled, which flips from
+    // false to true right after mount and would otherwise re-run this and
+    // fire the catch-up notification twice.
     initNotifications();
-  }, [isPWAInstalled]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Legacy reader gets no layout chrome - just render the outlet
   if (isLegacy) {
