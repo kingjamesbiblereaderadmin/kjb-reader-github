@@ -88,17 +88,17 @@ export default function DailyVerseImage({ verse, onClick, onToggleNotif, notifEn
   // Scale text by verse length. The smallest size is the narrow-phone base
   // (default Tailwind), bumping up at the `xs` (420px) and `md` breakpoints so
   // long verses never overflow on small screens.
-  let panelTextClass = fontFamily === 'cursive' ? 'text-4xl xs:text-5xl md:text-6xl' : 'text-3xl xs:text-4xl md:text-5xl';
-  let lightboxTextClass = fontFamily === 'cursive' ? 'text-4xl md:text-6xl' : 'text-4xl md:text-6xl';
+  let panelTextClass = fontFamily === 'cursive' ? 'text-5xl xs:text-6xl md:text-7xl' : 'text-4xl xs:text-5xl md:text-6xl';
+  let lightboxTextClass = fontFamily === 'cursive' ? 'text-5xl md:text-7xl' : 'text-5xl md:text-7xl';
   if (textLen > 400) {
-    panelTextClass = fontFamily === 'cursive' ? 'text-xl xs:text-2xl md:text-3xl' : 'text-lg xs:text-xl md:text-2xl';
-    lightboxTextClass = fontFamily === 'cursive' ? 'text-3xl md:text-4xl' : 'text-2xl md:text-3xl';
-  } else if (textLen > 250) {
     panelTextClass = fontFamily === 'cursive' ? 'text-2xl xs:text-3xl md:text-4xl' : 'text-xl xs:text-2xl md:text-3xl';
     lightboxTextClass = fontFamily === 'cursive' ? 'text-4xl md:text-5xl' : 'text-3xl md:text-4xl';
-  } else if (textLen > 150) {
+  } else if (textLen > 250) {
     panelTextClass = fontFamily === 'cursive' ? 'text-3xl xs:text-4xl md:text-5xl' : 'text-2xl xs:text-3xl md:text-4xl';
     lightboxTextClass = fontFamily === 'cursive' ? 'text-5xl md:text-6xl' : 'text-4xl md:text-5xl';
+  } else if (textLen > 150) {
+    panelTextClass = fontFamily === 'cursive' ? 'text-4xl xs:text-5xl md:text-6xl' : 'text-3xl xs:text-4xl md:text-5xl';
+    lightboxTextClass = fontFamily === 'cursive' ? 'text-6xl md:text-7xl' : 'text-5xl md:text-6xl';
   }
 
   useEffect(() => {
@@ -797,8 +797,8 @@ export default function DailyVerseImage({ verse, onClick, onToggleNotif, notifEn
               // Dynamic font sizing: scales with container width AND verse length
               // Short verses get larger text, long verses scale down to fit
               fontSize: fontFamily === 'cursive' 
-                ? `clamp(1rem, ${textLen > 400 ? '2.5vw' : textLen > 250 ? '3.5vw' : '4.5vw'}, ${textLen > 400 ? '1.4rem' : textLen > 250 ? '2rem' : '2.8rem'})`
-                : `clamp(0.9rem, ${textLen > 400 ? '2.5vw' : textLen > 250 ? '3.5vw' : '4.5vw'}, ${textLen > 400 ? '1.3rem' : textLen > 250 ? '1.8rem' : '2.4rem'})`
+                ? `clamp(1.4rem, ${textLen > 400 ? '4vw' : textLen > 250 ? '5.5vw' : '7vw'}, ${textLen > 400 ? '2.2rem' : textLen > 250 ? '3rem' : '4.2rem'})`
+                : `clamp(1.2rem, ${textLen > 400 ? '4vw' : textLen > 250 ? '5.5vw' : '7vw'}, ${textLen > 400 ? '1.9rem' : textLen > 250 ? '2.6rem' : '3.6rem'})`
             }}
           >
             "<span dangerouslySetInnerHTML={{ __html: renderVerseText(cleanVerseText(verse.text)).replace(/<span class="pilcrow">¶<\/span>/g, `<span class="pilcrow" style="color: ${textColor}; opacity: ${textOpacity}; font-family: ${resolvedFont};">¶</span>`) }} />"
