@@ -22,6 +22,22 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
     if (el) requestAnimationFrame(() => { el.style.display = 'none'; });
   }, []);
 
+  // Lock page scroll while the splash is up. The overlay is position:fixed
+  // and covers the viewport, but the page underneath is still scrollable —
+  // dragging it moves the real content while the fixed splash stays in
+  // place, revealing a glimpse of the app through any edge/overscroll gap.
+  useEffect(() => {
+    if (!isVisible) return;
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+    };
+  }, [isVisible]);
+
 
 
   const setStep = (message) => {
