@@ -25,7 +25,7 @@ export const SHARECARD_DEFAULTS = {
   panelPad: 40,           // readability panel inner padding
   panelRadius: 24,        // readability panel corner radius
   panelBorderWidth: 0,    // readability panel border thickness
-  maxFontSize: 108,
+  maxFontSize: 160,
   minFontSize: 15,
   heightSafety: 1.0,      // fit inflation factor (was 1.1 — too conservative for short verses)
 };

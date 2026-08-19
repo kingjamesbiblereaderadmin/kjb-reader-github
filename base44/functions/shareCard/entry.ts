@@ -220,7 +220,7 @@ function wrapText(text, fontSize, maxWidth) {
 
 // Binary search for largest font size that fits (matching ShareCard.computeFit)
 function computeFitSize(text, maxWidth, maxHeight) {
-  const maxSize = 108;
+  const maxSize = 160;
   const minSize = 15;
   const lineHeightMult = 1.6;
 
