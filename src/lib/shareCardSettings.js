@@ -16,11 +16,11 @@ const PER_DAY_KEY = 'kjb-sharecard-settings-perday-v1';
 // Defaults mirror the original hardcoded ShareCard constants so behaviour is
 // unchanged until the admin adjusts something.
 export const SHARECARD_DEFAULTS = {
-  outerPadTop: 32,
+  outerPadTop: 64,        // extra top margin so the logo isn't flush against the edge (avoids clipping by TikTok/IG story UI)
   outerPadBottom: 40,
   outerPadX: 40,
   headerDividerGap: 36,   // margin below the header divider
-  footerGapTop: 16,       // margin above the footer curve
+  footerGapTop: 40,       // margin above the footer curve (avoids clipping by TikTok/IG story UI)
   footerGapBottom: 26,    // margin below the footer curve
   panelPad: 40,           // readability panel inner padding
   panelRadius: 24,        // readability panel corner radius
