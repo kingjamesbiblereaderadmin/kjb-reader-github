@@ -90,6 +90,13 @@ const ShareCard = React.forwardRef(function ShareCard(
   const verseFont = fontFamily || "'Merriweather', 'Cormorant Garamond', Georgia, serif";
   const isCursive = /dancing script/i.test(verseFont);
   const isDyslexic = /opendyslexic/i.test(verseFont);
+  // Atkinson Hyperlegible's glyphs are visibly taller/wider than serif/sans at
+  // the same nominal font-size (that's the point of the font — legibility) —
+  // it needs the same extra line-height allowance cursive gets, or the fit
+  // calculation underestimates its real height and the real-DOM safety pass
+  // shrinks it down further than needed, leaving the card under-filled.
+  const isHyperlegible = /atkinson hyperlegible/i.test(verseFont);
+  const lineHeightMult = isCursive ? 1.85 : isHyperlegible ? 1.75 : 1.6;
   const verseColor = textColor || '#ffffff';
   const verseOpacity = textOpacity != null ? textOpacity : 1;
 
@@ -162,7 +169,6 @@ const ShareCard = React.forwardRef(function ShareCard(
       // nominal font-size, or ascenders/descenders get clipped between
       // lines. Applied identically here and in the actual rendered style
       // below so the estimate never disagrees with the real layout.
-      const lineHeightMult = isCursive ? 1.85 : 1.6;
       const verseBlockHeight = lines * size * lineHeightMult;
       const refBlockHeight = size * 0.95 + size * 0.52 * 1.2; // margin-top + line height
       // Date badge: margin-top (0.25) + badge line height (0.42*1.15) + vertical
@@ -420,7 +426,7 @@ const ShareCard = React.forwardRef(function ShareCard(
               fontFamily: verseFont,
               fontWeight: 700,
               fontSize: `${fitSize}px`,
-              lineHeight: isCursive ? 1.85 : 1.6,
+              lineHeight: lineHeightMult,
               color: verseColor,
               opacity: verseOpacity,
               textShadow: '0 3px 10px rgba(0,0,0,0.4)',
