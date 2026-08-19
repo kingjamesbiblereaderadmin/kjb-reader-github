@@ -88,24 +88,6 @@ const FEATURES = [
   },
 ];
 
-const RELEASE_NOTES = [
-  {
-    version: 'v0.4.140',
-    title: 'Scroll-to-top button',
-    body: 'v0.4.140 adds a tiny scroll-to-top button in the Read and Results tabs. The button appears as a small circular arrow in the bottom-right corner when the user scrolls down past 200px, and smoothly scrolls back to the top when clicked.',
-  },
-  {
-    version: 'v0.4.139',
-    title: 'Readable references on low-contrast pages',
-    body: 'v0.4.139 ensures detected Bible references are never invisible on low-contrast pages. References still inherit the host page text color by default, but now checks the WCAG contrast ratio between the inherited color and the page background. If contrast falls below 3:1, the reference and its dotted underline fall back to a visible color (dark text on light backgrounds, light text on dark backgrounds) so references remain readable on any page.',
-  },
-  {
-    version: 'v0.4.138',
-    title: 'Side panel overlay fix',
-    body: 'v0.4.138 prevents the in-page overlay from appearing when the native side panel is already open. Previously, on some sites chrome.sidePanel.open() could reject even with the panel visible, erroneously triggering the overlay fallback and showing both surfaces at once. The side panel now registers its open/closed state with the background, which skips sidePanel.open() and pushes the verse directly when the panel is already visible.',
-  },
-];
-
 export default function ExtensionPage() {
   const [urls, setUrls] = useState(DEFAULT_URLS);
   const [version, setVersion] = useState(DEFAULT_VERSION);
@@ -331,22 +313,6 @@ export default function ExtensionPage() {
           </div>
         </div>
 
-        {/* What's New / Release notes */}
-        <div className="mb-12">
-          <h2 className="font-serif text-2xl font-bold text-foreground mb-6 text-center">What's New</h2>
-          <div className="max-w-3xl mx-auto space-y-4">
-            {RELEASE_NOTES.map((n) => (
-              <div key={n.version} className="rounded-2xl border border-border bg-card shadow-sm p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/15 border border-primary/40 font-sans text-xs font-semibold text-primary">{n.version}</span>
-                  <span className="font-sans font-semibold text-sm text-foreground">{n.title}</span>
-                </div>
-                <p className="font-sans text-sm leading-relaxed text-muted-foreground">{n.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Installation Instructions */}
         {showInstructions && (
         <div className="rounded-2xl p-6 sm:p-7 mb-8 shadow-lg bg-card border border-border">
@@ -382,23 +348,6 @@ export default function ExtensionPage() {
 
         {/* Legal documents — Privacy Policy, Terms of Service, License, Changelog */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link
-            to="/extension/change-log"
-            className="flex items-center gap-3 px-5 py-4 rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
-          >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
-              <History className="w-5 h-5" />
-            </div>
-            <div className="text-left flex-1 min-w-0">
-              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">
-                Changelog
-              </p>
-              <p className="font-sans text-xs text-muted-foreground">
-                Full version history
-              </p>
-            </div>
-            <ArrowLeft className="w-4 h-4 text-muted-foreground rotate-180 group-hover:text-accent transition-colors" />
-          </Link>
           <Link
             to="/extension-privacy"
             className="flex items-center gap-3 px-5 py-4 rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
@@ -446,6 +395,23 @@ export default function ExtensionPage() {
               </p>
               <p className="font-sans text-xs text-muted-foreground">
                 Open-source license terms
+              </p>
+            </div>
+            <ArrowLeft className="w-4 h-4 text-muted-foreground rotate-180 group-hover:text-accent transition-colors" />
+          </Link>
+          <Link
+            to="/extension/change-log"
+            className="flex items-center gap-3 px-5 py-4 rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+          >
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
+              <History className="w-5 h-5" />
+            </div>
+            <div className="text-left flex-1 min-w-0">
+              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">
+                Changelog
+              </p>
+              <p className="font-sans text-xs text-muted-foreground">
+                Full version history
               </p>
             </div>
             <ArrowLeft className="w-4 h-4 text-muted-foreground rotate-180 group-hover:text-accent transition-colors" />
