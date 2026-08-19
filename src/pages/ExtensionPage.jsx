@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Globe, ArrowLeft, Search, BookOpen, Sparkles, MousePointer2, Heart, Download, Chrome, Link2, Shield, Puzzle, FileText, Scale } from 'lucide-react';
+import { Globe, ArrowLeft, Search, BookOpen, Sparkles, MousePointer2, Heart, Download, Chrome, Link2, Shield, Puzzle, FileText, Scale, History } from 'lucide-react';
 
 // Built-in defaults — overridden by the admin-editable ExtensionConfig entity
 // (Dev Tools → Extension Links). Each field falls back here when blank.
@@ -195,26 +195,27 @@ export default function ExtensionPage() {
           </p>
 
           {/* Download buttons */}
-          <div className="flex flex-col sm:flex-row sm:items-stretch sm:justify-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-center gap-3 w-full sm:w-auto">
             <a
               href={urls.chrome}
               target="_blank"
               rel="noopener noreferrer"
               title="Get for Chrome/Brave — Chrome Web Store"
-              className="inline-flex items-center justify-center self-center transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className="inline-flex flex-col items-center justify-start self-start transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
               <img
                 src="https://developer.chrome.com/static/docs/webstore/branding/image/HRs9MPufa1J1h5glNhut.png"
                 alt="Available in the Chrome Web Store"
                 className="h-[58px] w-auto rounded-lg shadow-lg"
               />
+              <span className="font-sans text-[11px] font-medium text-transparent mt-1" aria-hidden="true">&nbsp;</span>
             </a>
             <a
               href={urls.edge}
               target="_blank"
               rel="noopener noreferrer"
               title="Get for Microsoft Edge — Edge Add-ons"
-              className="inline-flex flex-col items-center justify-center self-center transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className="inline-flex flex-col items-center justify-start self-start transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
               <img
                 src="https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/add-ons-badge-images/microsoft-edge-add-ons-badge.png"
@@ -227,19 +228,23 @@ export default function ExtensionPage() {
               href={urls.firefox}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-sans text-base font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg bg-green-500 hover:bg-green-600"
+              className="inline-flex flex-col items-center justify-center self-start gap-2 px-8 py-4 rounded-xl font-sans text-base font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg bg-green-500 hover:bg-green-600"
             >
-              <Puzzle className="w-5 h-5" />
-              Get for Firefox
+              <span className="inline-flex items-center gap-2">
+                <Puzzle className="w-5 h-5" />
+                Get for Firefox
+              </span>
             </a>
             <a
               href={urls.opera}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-sans text-base font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg bg-green-500 hover:bg-green-600"
+              className="inline-flex flex-col items-center justify-center self-start gap-2 px-8 py-4 rounded-xl font-sans text-base font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg bg-green-500 hover:bg-green-600"
             >
-              <Puzzle className="w-5 h-5" />
-              Get for Opera
+              <span className="inline-flex items-center gap-2">
+                <Puzzle className="w-5 h-5" />
+                Get for Opera
+              </span>
             </a>
           </div>
         </div>
@@ -375,8 +380,25 @@ export default function ExtensionPage() {
         </div>
         )}
 
-        {/* Legal documents — Privacy Policy, Terms of Service, License */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Legal documents — Privacy Policy, Terms of Service, License, Changelog */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Link
+            to="/extension/change-log"
+            className="flex items-center gap-3 px-5 py-4 rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+          >
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
+              <History className="w-5 h-5" />
+            </div>
+            <div className="text-left flex-1 min-w-0">
+              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">
+                Changelog
+              </p>
+              <p className="font-sans text-xs text-muted-foreground">
+                Full version history
+              </p>
+            </div>
+            <ArrowLeft className="w-4 h-4 text-muted-foreground rotate-180 group-hover:text-accent transition-colors" />
+          </Link>
           <Link
             to="/extension-privacy"
             className="flex items-center gap-3 px-5 py-4 rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
