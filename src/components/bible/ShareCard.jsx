@@ -240,11 +240,29 @@ const ShareCard = React.forwardRef(function ShareCard(
     let lo = settings.minFontSize;
     let hi = settings.maxFontSize;
     let iterations = 0;
+    // Tracks the largest size seen that does NOT overflow the container.
+    // The target fill window (92%-100%) can straddle a word-wrap line-count
+    // boundary — a size just below the boundary may only fill e.g. 70% of
+    // the available height, while the very next size wraps an extra line
+    // and overflows. No integer size can land inside the window in that
+    // case, so the bisection below never satisfies its stopping condition
+    // and just runs out of iterations wherever it last landed — which can
+    // undershoot badly, leaving a large empty gap. Falling back to the best
+    // non-overflowing size found guarantees the text always uses as much of
+    // the available space as that line-count allows.
+    let bestSize = lo;
+
+    const finish = () => {
+      if (!cancelled && bestSize !== fitSizeRef.current) {
+        fitSizeRef.current = bestSize;
+        setFitSize(bestSize);
+      }
+    };
 
     const step = () => {
       if (cancelled) return;
       iterations += 1;
-      if (iterations > 24) return;
+      if (iterations > 24) { finish(); return; }
 
       const block = blockRef.current;
       const container = fitContainerRef.current;
@@ -261,6 +279,11 @@ const ShareCard = React.forwardRef(function ShareCard(
       const contentH = block.scrollHeight;
 
       const current = fitSizeRef.current;
+
+      if (contentH <= availH - 6 && current > bestSize) {
+        bestSize = current;
+      }
+
       let next = current;
 
       if (contentH > availH - 6) {
@@ -270,10 +293,11 @@ const ShareCard = React.forwardRef(function ShareCard(
         lo = current;
         next = Math.min(hi, current + Math.max(1, Math.floor((hi - current) / 2)));
       } else {
+        finish();
         return;
       }
 
-      if (next === current) return;
+      if (next === current) { finish(); return; }
       fitSizeRef.current = next;
       setFitSize(next);
       raf = requestAnimationFrame(step);
