@@ -1,12 +1,14 @@
 import {
   ABBR_TO_NAME,
-  loadPceBible as loadBible,
+  loadPceBible,
   processVerse,
 } from "../../shared/biblePceData.ts";
 
 // Public, no-auth verse/chapter/range lookup endpoint for the KJB Reader
 // browser extension. Loads the KJB (Pure Cambridge Edition) via the shared
-// bibleData module and returns processed verse text (keeps [italics] + ¶).
+// biblePceData module (same source as bibleApi) and returns processed verse
+// text (keeps [italics], ¶, and original PCE casing incl. paragraph-opening
+// capitalization like "JOHN" in Revelation 1:4).
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -44,7 +46,7 @@ export default async function (req) {
     // Accept either a full name ("John") or an abbreviation ("Joh").
     const bookName = ABBR_TO_NAME[rawBook] || rawBook;
 
-    const bible = await loadBible();
+    const bible = await loadPceBible();
     const rawVerses = bible[bookName]?.[String(chapter)];
     if (!rawVerses || rawVerses.length === 0) {
       return json({ error: `No verses found for ${bookName} ${chapter}` }, 404);
