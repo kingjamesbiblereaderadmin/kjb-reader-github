@@ -286,18 +286,23 @@ const ShareCard = React.forwardRef(function ShareCard(
 
       let next = current;
 
+      // Sub-pixel steps (instead of integer px) so the search can land closer
+      // to the true fit boundary — a taller line-height (e.g. Hyperlegible's
+      // 1.75x) makes each px step change the block height by more, so
+      // integer-only steps were more likely to jump straight over the
+      // "fits well" window and settle for an undersized fallback.
       if (contentH > availH - 6) {
         hi = current;
-        next = Math.max(lo, current - Math.max(1, Math.floor((current - lo) / 3)));
+        next = Math.max(lo, current - Math.max(0.25, (current - lo) / 3));
       } else if (contentH < availH * 0.92) {
         lo = current;
-        next = Math.min(hi, current + Math.max(1, Math.floor((hi - current) / 2)));
+        next = Math.min(hi, current + Math.max(0.25, (hi - current) / 2));
       } else {
         finish();
         return;
       }
 
-      if (next === current) { finish(); return; }
+      if (Math.abs(next - current) < 0.1) { finish(); return; }
       fitSizeRef.current = next;
       setFitSize(next);
       raf = requestAnimationFrame(step);
