@@ -358,6 +358,30 @@ export function normalizePilcrows(text: string): string {
     .replace(/\uFFFD/g, '¶');
 }
 
+// Chapter openings are traditionally set with the whole first word in caps
+// (and the second word too, if the first word is only one letter, e.g.
+// "I SAY" or "O ISRAEL") to fill the visual space of a printed drop cap.
+// The Wharton PCE source used here is plain sentence case, so we re-apply
+// that convention to verse 1 of every chapter.
+export function capitalizeChapterOpening(text: string): string {
+  const wordRe = /[A-Za-z']+/;
+  const m = text.match(wordRe);
+  if (!m) return text;
+  const firstWord = m[0];
+  const endIdx = m.index! + firstWord.length;
+  let result = text.slice(0, m.index) + firstWord.toUpperCase() + text.slice(endIdx);
+  if (firstWord.length === 1) {
+    const rest = result.slice(endIdx);
+    const m2 = rest.match(wordRe);
+    if (m2) {
+      const idx2 = endIdx + m2.index!;
+      const endIdx2 = idx2 + m2[0].length;
+      result = result.slice(0, idx2) + m2[0].toUpperCase() + result.slice(endIdx2);
+    }
+  }
+  return result;
+}
+
 // Extract a superscription (Psalm title) from <<text>> markers at the start
 // of a verse. Returns the cleaned text and the superscription separately.
 export function extractSuperscription(rawText: string): { text: string; superscription?: string } {
@@ -376,7 +400,8 @@ export function extractSuperscription(rawText: string): { text: string; superscr
 export function processVerse(vo: { verse: number; text: string; heading?: string }, context?: { book: string; chapter: number }):
   { verse: number; text: string; heading?: string; superscription?: string } {
   const { text: textNoSup, superscription } = extractSuperscription(vo.text);
-  const text = normalizePilcrows(textNoSup);
+  let text = normalizePilcrows(textNoSup);
+  if (vo.verse === 1) text = capitalizeChapterOpening(text);
   const result: { verse: number; text: string; heading?: string; superscription?: string } =
     { verse: vo.verse, text };
   if (vo.heading) result.heading = vo.heading;
@@ -404,7 +429,8 @@ export function verseFromRef(bible, ref) {
   const vo = verses.find(v => v.verse === verseNum);
   if (!vo) return null;
   const { text: textNoSup, superscription } = extractSuperscription(vo.text);
-  const text = normalizePilcrows(textNoSup);
+  let text = normalizePilcrows(textNoSup);
+  if (verseNum === 1) text = capitalizeChapterOpening(text);
   const abbrEntry = Object.entries(ABBR_TO_NAME).find(([k, v]) => v === bookName);
   const abbr = abbrEntry ? abbrEntry[0] : bookName.slice(0, 3).toUpperCase();
   const result: any = { abbr, book: bookName, bookFullName: NAME_TO_FULL[bookName] || bookName, chapter: parseInt(chapterNum), verse: verseNum, text, ref };
