@@ -1,8 +1,8 @@
 import {
   ABBR_TO_NAME,
-  loadBible,
+  loadPceBible as loadBible,
   processVerse,
-} from "../../shared/bibleData.ts";
+} from "../../shared/biblePceData.ts";
 
 // Public, no-auth verse/chapter/range lookup endpoint for the KJB Reader
 // browser extension. Loads the KJB (Pure Cambridge Edition) via the shared
