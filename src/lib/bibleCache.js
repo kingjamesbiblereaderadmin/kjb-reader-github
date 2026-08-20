@@ -20,7 +20,7 @@ const CACHE_KEY = 'bible_data_pce_v100_SINGLE_FILE';
 // format: book titles, CHAPTER headings, [bracketed] italics, double-space
 // pilcrow markers). Bumping CACHE_VERSION forces every device to invalidate
 // stale IndexedDB/localStorage Bible data and re-fetch from this source.
-const PCE_TEXT_FILE_URL = 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/d40e0d37f_recovered-pce-bible.txt';
+const PCE_TEXT_FILE_URL = 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/dabab1ba3_recovered-pce-bible.txt';
 
 const EXPECTED_BOOK_COUNT = 66;
 

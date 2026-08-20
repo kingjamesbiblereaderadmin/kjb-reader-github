@@ -1,4 +1,4 @@
-import { ABBR_TO_NAME, BOOK_ORDER, NAME_TO_FULL, loadBible, buildFlatList, verseFromRef, normalizeDateKey, normalizePilcrows, extractSuperscription, processVerse } from "../../shared/bibleData.ts";
+import { ABBR_TO_NAME, BOOK_ORDER, NAME_TO_FULL, loadPceBible, buildFlatList, verseFromRef, normalizeDateKey, processVerse } from "../../shared/biblePceData.ts";
 
 // NOTE: chapter-level caching was removed — it served stale responses
 // (without superscriptions/colophons) from warm isolates after code updates.
@@ -26,7 +26,7 @@ async function loadControls(b44) {
   return result;
 }
 
-// buildFlatList, verseFromRef, normalizeDateKey — imported from shared/bibleData.ts
+// buildFlatList, verseFromRef, normalizeDateKey — imported from shared/biblePceData.ts
 
 // Pick a verse for a date seed. Seeds against the full stable list, then if the
 // landed verse is excluded (DB exclusion), deterministically steps forward to
@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { action, book, chapter, verse, endVerse } = body;
 
-    const bible = await loadBible();
+    const bible = await loadPceBible();
 
     if (action === 'getChapter') {
       if (!book || !chapter) {
@@ -78,8 +78,7 @@ Deno.serve(async (req) => {
       }
 
       const verses = rawVerses.map(v => processVerse(v, { book, chapter: parseInt(chapter) }));
-      const rawColophon = bible.__colophons?.[`${book}:${chapter}`];
-      const colophon = rawColophon ? normalizePilcrows(rawColophon) : undefined;
+      const colophon = bible.__colophons?.[`${book}:${chapter}`];
       const result = { verses, colophon };
       return json(result);
     }
@@ -93,23 +92,15 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'getAllColophons') {
-      const colophons = {};
-      for (const [k, v] of Object.entries(bible.__colophons || {})) {
-        colophons[k] = normalizePilcrows(v as string);
-      }
-      return json({ colophons });
+      return json({ colophons: bible.__colophons || {} });
     }
-
-
-
-
 
     if (action === 'random_verse') {
       const controls = await loadControls(b44);
       // Use biblical book order for consistency
       let currentSeed = Math.floor(Math.random() * 10000000);
       let bookName, chapterNum, verseObj;
-      
+
       while (true) {
         bookName = BOOK_ORDER[currentSeed % BOOK_ORDER.length];
         if (!bible[bookName]) {
@@ -128,16 +119,15 @@ Deno.serve(async (req) => {
           continue;
         }
         verseObj = verses[currentSeed % verses.length];
-        
+
         const ref = `${bookName} ${chapterNum}:${verseObj.verse}`;
         const isExcludedChapter = bookName === 'Romans' && parseInt(chapterNum) === 10;
         const hasExcludedText = EXCLUDED_REFS.has(ref) || controls.extraExcluded.has(ref);
-        
+
         if (!hasExcludedText && !isExcludedChapter) break;
         currentSeed++;
       }
 
-      // Process: extract superscription, normalize pilcrows (¶), keep [brackets]
       const processed = processVerse(verseObj, { book: bookName, chapter: parseInt(chapterNum) });
 
       const abbrMatches = Object.entries(ABBR_TO_NAME).find(([k, v]) => v === bookName);
@@ -155,7 +145,7 @@ Deno.serve(async (req) => {
       };
       if (processed.heading) verseResult.heading = processed.heading;
       if (processed.superscription) verseResult.superscription = processed.superscription;
-      if (rawColophon) verseResult.colophon = normalizePilcrows(rawColophon);
+      if (rawColophon) verseResult.colophon = rawColophon;
 
       return json({ verse: verseResult });
     }
@@ -191,7 +181,7 @@ Deno.serve(async (req) => {
       // Build a flat list of every eligible (book, chapter, verse) reference,
       // then pick one deterministically by the date seed. Indexing into a
       // single flat list guarantees consecutive days land on different verses.
-      const flat = buildFlatList(bible, controls.extraExcluded);
+      const flat = buildFlatList(bible);
       if (!flat.length) {
         return json({ error: 'No eligible verses' }, { status: 500 });
       }
@@ -200,10 +190,10 @@ Deno.serve(async (req) => {
       // seed by a large prime (coprime to the list length) makes each day jump
       // far from the previous one instead of landing on the next verse.
       const picked = pickForSeed(flat, seed, controls.extraExcluded);
-      const verse = verseFromRef(bible, `${picked.bookName} ${picked.chapterNum}:${picked.verseObj.verse}`);
+      const verseData = verseFromRef(bible, `${picked.bookName} ${picked.chapterNum}:${picked.verseObj.verse}`);
 
       return json({
-        verse,
+        verse: verseData,
         _debug: { seed, totalVerses: flat.length, modResult: seed % flat.length }
       });
     }
@@ -216,7 +206,7 @@ Deno.serve(async (req) => {
       if (!dates.length) return json({ error: 'dates[] required' }, { status: 400 });
 
       const controls = await loadControls(b44);
-      const flat = buildFlatList(bible, controls.extraExcluded);
+      const flat = buildFlatList(bible);
       if (!flat.length) return json({ error: 'No eligible verses' }, { status: 500 });
 
       const out = dates.map((rawKey) => {
@@ -224,17 +214,17 @@ Deno.serve(async (req) => {
         const [y, m, d] = String(dateKey).split('-').map(Number);
         const seed = y * 10000 + m * 100 + d;
         const pinnedRef = controls.pins[dateKey];
-        let verse;
+        let verseData;
         let pinned = false;
         if (pinnedRef) {
-          verse = verseFromRef(bible, pinnedRef);
-          pinned = !!verse;
+          verseData = verseFromRef(bible, pinnedRef);
+          pinned = !!verseData;
         }
-        if (!verse) {
+        if (!verseData) {
           const picked = pickForSeed(flat, seed, controls.extraExcluded);
-          verse = verseFromRef(bible, `${picked.bookName} ${picked.chapterNum}:${picked.verseObj.verse}`);
+          verseData = verseFromRef(bible, `${picked.bookName} ${picked.chapterNum}:${picked.verseObj.verse}`);
         }
-        return { date: dateKey, verse, pinned, pinId: pinned ? controls.pinIds[dateKey] : null };
+        return { date: dateKey, verse: verseData, pinned, pinId: pinned ? controls.pinIds[dateKey] : null };
       });
 
       return json({ schedule: out, totalVerses: flat.length });
@@ -255,7 +245,7 @@ Deno.serve(async (req) => {
     // verse text ONLY (brackets/pilcrows stripped, superscription markers removed).
     if (action === 'find_by_length') {
       const controls = await loadControls(b44);
-      const flat = buildFlatList(bible, controls.extraExcluded);
+      const flat = buildFlatList(bible);
 
       const minChars = Number.isFinite(body.minChars) ? body.minChars : 0;
       const maxChars = Number.isFinite(body.maxChars) ? body.maxChars : Infinity;
@@ -266,22 +256,23 @@ Deno.serve(async (req) => {
       const limit = Number.isFinite(body.limit) ? Math.min(body.limit, 500) : 100;
 
       const cleanOf = (t) => t
-        .replace(/^<<[^>]*>>\s*/, '')   // strip superscription markers
         .replace(/[[\]]/g, '')          // strip italics brackets
         .replace(/¶/g, '')              // strip pilcrows
         .trim();
 
       const matches = [];
       for (const item of flat) {
+        const ref = `${item.bookName} ${item.chapterNum}:${item.verseObj.verse}`;
+        if (controls.extraExcluded.has(ref)) continue;
         const text = cleanOf(item.verseObj.text);
         const chars = text.length;
         const words = text.split(/\s+/).filter(Boolean).length;
         if (chars < minChars || chars > maxChars) continue;
         if (words < minWords || words > maxWords) continue;
         matches.push({
-          ref: `${item.bookName} ${item.chapterNum}:${item.verseObj.verse}`,
+          ref,
           book: item.bookName,
-          chapter: parseInt(item.chapterNum),
+          chapter: item.chapterNum,
           verse: item.verseObj.verse,
           chars,
           words,
@@ -298,10 +289,10 @@ Deno.serve(async (req) => {
     }
 
     // Full-text keyword search across every verse in the Bible.
-    // Searching is done on the "visible" text (brackets/pilcrows/superscriptions
-    // stripped) so results match what a reader sees, but the returned `text`
-    // keeps [brackets] and ¶ for full context. Each result includes a
-    // `description` field (verse text + ref combined) for Discord embeds.
+    // Searching is done on the "visible" text (brackets/pilcrows stripped) so
+    // results match what a reader sees, but the returned `text` keeps
+    // [brackets] and ¶ for full context. Each result includes a `description`
+    // field (verse text + ref combined) for Discord embeds.
     if (action === 'search') {
       const query = String(body.query || '').trim();
       if (!query) {
@@ -367,14 +358,8 @@ Deno.serve(async (req) => {
             // ordinary word/phrase queries match what a reader sees and span
             // italic-supplied words ("only [son]" → "only son"). But when the query
             // itself contains a literal bracket or pilcrow, search the RAW text so
-            // "[son]" and "¶" match as literal characters. (escapeRegex already
-            // escapes [ ] * ? etc., and ?/* are only wildcards when wildcard=true.)
-            // normalizePilcrows converts the raw \uFFFD marker to ¶ (U+00B6) at
-            // verse starts / standalone positions and to an apostrophe after a
-            // letter — matching what the reader sees, so "¶" is searchable.
-            const rawText = normalizePilcrows(
-              String(vo.text).replace(/^<<[^>]*>>\s*/, '')
-            );
+            // "[son]" and "¶" match as literal characters.
+            const rawText = String(vo.text);
             const queryHasBracketsOrPilcrow = /[\[\]¶]/.test(query);
             const visibleText = queryHasBracketsOrPilcrow
               ? rawText
@@ -459,7 +444,7 @@ Deno.serve(async (req) => {
           verses: out,
         };
         const rawColophon = bible.__colophons?.[`${fullName}:${chapterNum}`];
-        if (rawColophon) resp.colophon = normalizePilcrows(rawColophon);
+        if (rawColophon) resp.colophon = rawColophon;
         return json(resp);
       }
 
@@ -492,7 +477,7 @@ Deno.serve(async (req) => {
           verses: out,
         };
         const rawColophon = bible.__colophons?.[`${fullName}:${chapterNum}`];
-        if (rawColophon) rangeResp.colophon = normalizePilcrows(rawColophon);
+        if (rawColophon) rangeResp.colophon = rawColophon;
         return json(rangeResp);
       }
 
@@ -515,7 +500,7 @@ Deno.serve(async (req) => {
         if (p.heading) singleResp.heading = p.heading;
         if (p.superscription) singleResp.superscription = p.superscription;
         const rawColophon = bible.__colophons?.[`${fullName}:${chapterNum}`];
-        if (rawColophon) singleResp.colophon = normalizePilcrows(rawColophon);
+        if (rawColophon) singleResp.colophon = rawColophon;
         return json(singleResp);
       }
 
@@ -560,7 +545,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      const flat = buildFlatList(bible, controls.extraExcluded);
+      const flat = buildFlatList(bible);
       if (!flat.length) return json({ error: 'No eligible verses' }, { status: 500 });
 
       const picked = pickForSeed(flat, seed, controls.extraExcluded);
