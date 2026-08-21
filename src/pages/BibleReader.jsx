@@ -252,16 +252,6 @@ export default function BibleReader() {
     };
   }, [routerLocation.pathname]);
 
-  // Clear the saved search/gospel filter toolbar-state when the reader page
-  // itself is left (e.g. navigating to Home) — as opposed to just switching
-  // browser tabs/apps and coming back, which should NOT clear it. Unmount-only
-  // (empty deps) so this fires exactly when the user leaves /read, not on
-  // every in-reader chapter/verse change.
-  useEffect(() => {
-    return () => {
-      try { localStorage.removeItem('kjb-reader-toolbar-state'); } catch {}
-    };
-  }, []);
 
   const toggleFlow = () => {
     const next = flowMode === 'line' ? 'paragraph' : 'line';
