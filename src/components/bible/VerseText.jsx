@@ -462,7 +462,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
         >
           {/* Spacer matching the verse-number column so verse 1's text column
               lines up with verses 2+. The actual number lives in the drop-cap. */}
-          <sup className="text-accent font-sans font-bold text-[0.6em] shrink-0 select-none mt-[0.2em] mr-[0.3em]">{verse.verse}</sup>
+          <sup className="text-accent font-sans font-bold text-[0.6em] shrink-0 select-none mt-[0.2em] mr-[0.3em] inline-block text-right w-[1.6em]">{verse.verse}</sup>
           <span className="flex-1 min-w-0 leading-relaxed break-words text-left">
             <span
               className={`kjb-verse-text inline [&_em]:italic [&_em]:text-foreground/75 box-decoration-clone rounded transition-colors duration-200 px-[0.3em] py-[0.1em] ${isCursive ? 'cursive-em-style' : ''} ${isHighlighted ? highlightBg : 'hover:bg-secondary/60'}`}
@@ -482,7 +482,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
         onClick={handleVerseClick}
         className="flex items-start leading-relaxed rounded cursor-pointer px-[0.4em] py-[0.15em] gap-[0.6em] w-full"
       >
-        <sup className="text-accent font-sans font-bold text-[0.6em] shrink-0 select-none mt-[0.2em] mr-[0.3em]">{verse.verse}</sup>
+        <sup className="text-accent font-sans font-bold text-[0.6em] shrink-0 select-none mt-[0.2em] mr-[0.3em] inline-block text-right w-[1.6em]">{verse.verse}</sup>
         <span className={`flex-1 min-w-0 flex items-start gap-[0.6em] ${selectMode && isSelected ? 'bg-primary/10 border border-primary/30 rounded-[0.5em] px-[0.3em] py-[0.1em]' : ''}`}>
           {selectMode && (
             <span className="shrink-0 mt-[0.2em] text-primary">
