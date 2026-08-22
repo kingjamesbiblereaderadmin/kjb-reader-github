@@ -77,15 +77,6 @@ export default function CurrentlyReadingIndicator({
     typeLabel = 'Reading';
     reference = `${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}`;
     clearLabel = 'Show Full Chapter';
-  } else if (isDaily) {
-    const v = (lastReadingPos && lastReadingPos.verse) || verseNum || '1';
-    typeLabel = 'Daily Verse';
-    reference = `${book.shortName} ${pos.chapter}:${v}`;
-    clearLabel = 'Clear';
-  } else if (isRandom) {
-    typeLabel = 'Random Chapter';
-    reference = `${book.shortName} ${pos.chapter}${verseNum ? `:${verseNum}` : ''}`;
-    clearLabel = 'Clear';
   } else if (verseNum) {
     reference = `${book.shortName} ${pos.chapter}:${verseNum}`;
   } else {
@@ -94,7 +85,7 @@ export default function CurrentlyReadingIndicator({
 
   if (!reference) return null;
 
-  const showNavigation = !isDaily && !isRandom && (effectiveSearchTerm || gospelMode) && totalResults > 1 && onPrevResult && onNextResult;
+  const showNavigation = (effectiveSearchTerm || gospelMode) && totalResults > 1 && onPrevResult && onNextResult;
 
   return (
     <div className="flex items-stretch gap-2 px-3 py-2 rounded-lg bg-yellow-500 text-black font-sans text-xs font-medium min-w-0 flex-shrink-0">
