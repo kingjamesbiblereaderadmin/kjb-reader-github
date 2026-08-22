@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.199', date: 'August 22, 2026', items: ['Fixed race condition where first verse click opened the side panel but search results were immediately overwritten by the last-viewed chapter — the panel now correctly displays the clicked verse on the first click', 'Added delayed retry for verse lookup delivery after side panel opens, ensuring reliable first-click search on Chrome and Edge', 'Reduced duplicate-click detection window from 800ms to 500ms for more responsive retry'] },
+  { version: 'v0.4.195', date: 'August 22, 2026', items: ['Fixed verse click dead zones with forgiving hit detection — 6px horizontal and 4px vertical padding around painted text ranges, with bounding-box fallback for multi-line references', 'Resolved side panel not opening after service worker restarts by switching from stale storage flags to live port and heartbeat signals', 'Restored direct verse lookup for detected references inside hyperlinks (no choice menu)'] },
+  { version: 'v0.4.194', date: 'August 22, 2026', items: ['Reverted hyperlink choice menu — verse references inside links now trigger lookups directly', 'Restored static 2 Timothy 2:15 sidebar banner with normal font-style', 'Fixed side panel activation flash by switching to promise-based sidePanel.open flow with fallback only on rejection'] },
   { version: 'v0.4.193', date: 'August 22, 2026', items: ['Re-enabled Bible reference detection inside existing hyperlinks — clicking a detected verse reference in a link now opens the KJB Reader side panel directly (restores pre-choice-menu behavior)', 'Fixed side panel not opening after service worker restart — stale panel-open flag from storage caused the background to skip opening the panel on verse clicks'] },
   { version: 'v0.4.192', date: 'August 22, 2026', items: ['Replaced dynamic daily verse with a static 2 Timothy 2:15 banner in the sidebar — no API call required, consistent display', 'Removed hyperlink choice menu for a cleaner click experience', 'Switched to promise-based side panel activation to eliminate the "page captured" flash during panel initialization', 'Fixed JavaScript syntax error that broke sidebar parsing on some browsers'] },
   { version: 'v0.4.184', date: 'August 19, 2026', items: ['Fixed the legal footer sitting behind the browser address bar on mobile. The panel is now sized to the visible viewport rather than the full-screen height, so nothing is laid out underneath the browser toolbars — this matters most in Edge and Opera on Android, which place the address bar at the bottom of the screen.', 'The footer is now compact and stays on screen in landscape instead of being reachable only after scrolling to the end of a chapter.', 'The footer now also clears the home indicator and rounded display corners on modern phones.', 'The in-page overlay is sized the same way, so its lower edge is no longer covered by browser chrome.'] },
@@ -197,7 +200,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.193
+            Current Version: v0.4.199
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
