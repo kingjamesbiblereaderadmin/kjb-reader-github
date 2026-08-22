@@ -5,7 +5,9 @@
       "namespace": "android_app",
       "package_name": "com.kingjamesbiblereader.twa",
       "sha256_cert_fingerprints": [
-        "BA:CF:7A:61:9A:B3:09:24:30:CA:0A:77:D5:B3:2E:0D:03:C0:3E:F9:9A:41:82:1C:48:3A:14:9C:A3:87:9E:20"
+        "BA:CF:7A:61:9A:B3:09:24:30:CA:0A:77:D5:B3:2E:0D:03:C0:3E:F9:9A:41:82:1C:48:3A:14:9C:A3:87:9E:20",
+        "4B:C1:D7:C7:8D:74:21:56:8C:E0:13:00:12:35:19:94:4B:33:1E:3C:2B:E5:7A:04:04:FE:F9:3E:58:30:B0:F4",
+        "11:5B:40:33:09:AE:BE:91:88:4D:05:EA:06:85:CA:BB:1F:D3:F2:94:ED:58:78:85:6B:F0:E8:9D:CE:3E:60:87"
       ]
     }
   }
