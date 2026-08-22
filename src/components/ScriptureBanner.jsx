@@ -14,7 +14,7 @@ export default function ScriptureBanner() {
           className={`font-sans text-xs xs:text-base font-black tracking-[0.12em] xs:tracking-[0.22em] uppercase flex-shrink-0 ${bg.accent}`}
           style={{ textShadow: '0 2px 10px rgba(0,0,0,0.55), 0 1px 3px rgba(0,0,0,0.45)' }}
         >
-          Scripture
+          2 Timothy 2:15
         </p>
         <span className="h-px flex-1 bg-current opacity-50" />
       </div>
@@ -24,24 +24,6 @@ export default function ScriptureBanner() {
       >
         "Study to shew thyself approved unto God, a workman that needeth not to be ashamed, rightly dividing the word of truth."
       </blockquote>
-      <div className="flex justify-center mt-5">
-        <span
-          className="whitespace-nowrap inline-block font-sans"
-          style={{
-            backgroundColor: `rgba(${bg.pill}, 0.65)`,
-            border: '1px solid rgba(255,255,255,0.18)',
-            borderRadius: '11px',
-            color: 'rgba(255,255,255,0.98)',
-            fontSize: '13px',
-            fontWeight: 700,
-            letterSpacing: '0.03em',
-            padding: '8px 18px',
-            boxShadow: '0 3px 9px rgba(0,0,0,0.3)',
-          }}
-        >
-          — 2 Timothy 2:15
-        </span>
-      </div>
     </div>
   );
 }
