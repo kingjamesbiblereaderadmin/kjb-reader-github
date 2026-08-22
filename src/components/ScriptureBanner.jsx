@@ -19,7 +19,7 @@ export default function ScriptureBanner() {
         <span className="h-px flex-1 bg-current opacity-50" />
       </div>
       <blockquote
-        className="font-serif text-base sm:text-lg leading-relaxed max-w-xl mx-auto font-semibold"
+        className="font-serif text-base sm:text-lg leading-relaxed max-w-3xl mx-auto font-semibold"
         style={{ textShadow: '0 2px 8px rgba(0,0,0,0.35)' }}
       >
         "Study to shew thyself approved unto God, a workman that needeth not to be ashamed, rightly dividing the word of truth."
