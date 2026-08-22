@@ -1,0 +1,44 @@
+{
+  "name": "PushSubscription",
+  "type": "object",
+  "properties": {
+    "endpoint": {
+      "type": "string",
+      "description": "Push subscription endpoint URL from the browser PushSubscription"
+    },
+    "p256dh": {
+      "type": "string",
+      "description": "User's public key (base64url) for encrypting push payloads"
+    },
+    "auth": {
+      "type": "string",
+      "description": "Auth secret (base64url) for push payload encryption"
+    },
+    "expiration_time": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Subscription expiration time (ms epoch) or null"
+    },
+    "timezone": {
+      "type": "string",
+      "description": "Subscriber's IANA timezone (e.g. 'Asia/Singapore') captured from Intl on subscribe, used to deliver the daily push at their local 8am"
+    },
+    "last_push_date": {
+      "type": "string",
+      "description": "Last date (YYYY-MM-DD, subscriber-local) the daily verse push was sent, to avoid duplicates"
+    }
+  },
+  "required": [
+    "endpoint",
+    "p256dh",
+    "auth"
+  ],
+  "rls": {
+    "read": {},
+    "create": {},
+    "update": {},
+    "delete": {}
+  }
+}

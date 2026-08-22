@@ -15,7 +15,6 @@ import { getBibleData, isBibleCached, initPeriodicCacheRefresh, downloadBibleFor
 import { toast } from 'sonner';
 import { useSoftReload } from '@/lib/SoftReloadContext';
 import { getAccessibilityFont, applyAccessibilityFont } from '@/lib/accessibilityFont';
-import { initNotifications } from '@/lib/notifications';
 
 const scrollMainToTop = () => {
   const el = document.getElementById('kjb-scroll');
@@ -275,23 +274,6 @@ export default function AppLayout() {
 
     // Initialize periodic cache refresh (checks every 24 hours when user opens app)
     initPeriodicCacheRefresh();
-
-    // Resume the local daily verse reminder on every app open — this also
-    // catches up on today's notification if the app was closed when it was
-    // due (the in-page timer can't fire while the tab is closed).
-    // Runs once on mount only — NOT tied to isPWAInstalled, which flips from
-    // false to true right after mount and would otherwise re-run this and
-    // fire the catch-up notification twice.
-    // Wait until the app has fully finished loading (splash done) before
-    // fetching/showing the verse — firing during initial load risked the
-    // network/auth not being ready yet, falling back to a stale cached verse.
-    if (window.kjbSplashDone) {
-      initNotifications();
-    } else {
-      const onSplashDone = () => initNotifications();
-      window.addEventListener('kjb-splash-done', onSplashDone, { once: true });
-      return () => window.removeEventListener('kjb-splash-done', onSplashDone);
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

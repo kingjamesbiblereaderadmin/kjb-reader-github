@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-import { Wrench, BookOpen, Tag, Smartphone, LogOut, Loader2, Puzzle } from 'lucide-react';
+import { Wrench, BookOpen, Smartphone, LogOut, Loader2, Puzzle } from 'lucide-react';
 import BibleTextEditor from '@/components/dev/BibleTextEditor';
-import VersionInfo from '@/components/dev/VersionInfo';
 import ManifestEditor from '@/components/dev/ManifestEditor';
 import ExtensionLinksEditor from '@/components/dev/ExtensionLinksEditor';
 import DevToolErrorBoundary from '@/components/dev/DevToolErrorBoundary';
@@ -15,7 +14,6 @@ const TABS = [
   { id: 'text', label: 'Edit Bible Text', icon: BookOpen },
   { id: 'manifest', label: 'Manifest & Icons', icon: Smartphone },
   { id: 'links', label: 'Extension Links', icon: Puzzle },
-  { id: 'version', label: 'Version', icon: Tag },
 ];
 
 export default function DevToolsPage() {
@@ -78,7 +76,6 @@ export default function DevToolsPage() {
         {tab === 'text' && <BibleTextEditor />}
         {tab === 'manifest' && <ManifestEditor />}
         {tab === 'links' && <ExtensionLinksEditor />}
-        {tab === 'version' && <VersionInfo />}
       </DevToolErrorBoundary>
     </div>
   );
