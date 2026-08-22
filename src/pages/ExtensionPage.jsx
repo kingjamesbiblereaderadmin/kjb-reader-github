@@ -248,13 +248,13 @@ export default function ExtensionPage() {
                     src={m.light}
                     alt={m.label}
                     loading="lazy"
-                    className="kjb-mockup-light w-full h-auto block"
+                    className="kjb-mockup-light w-full h-auto"
                   />
                   <img
                     src={m.dark}
                     alt={m.label}
                     loading="lazy"
-                    className="kjb-mockup-dark w-full h-auto block"
+                    className="kjb-mockup-dark w-full h-auto"
                   />
                 </div>
                 <p className="font-sans text-xs text-center mt-3 leading-relaxed text-muted-foreground">
