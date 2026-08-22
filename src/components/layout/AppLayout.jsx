@@ -426,7 +426,11 @@ export default function AppLayout() {
         )}
       </header>
 
-      <main id="kjb-scroll" className="flex-1 overflow-y-auto pb-[calc(7rem+env(safe-area-inset-bottom))] sm:!pb-0 relative">
+      <main
+        id="kjb-scroll"
+        className="flex-1 overflow-y-auto sm:!pb-0 relative"
+        style={{ paddingBottom: `calc(${footerMode === 'bar' ? '2.5rem' : footerMode === 'two' ? '7rem' : '4rem'} + env(safe-area-inset-bottom))` }}
+      >
         <div key={reloadKey} className={isReloading ? 'opacity-50 pointer-events-none' : ''}>
           <Outlet />
         </div>
