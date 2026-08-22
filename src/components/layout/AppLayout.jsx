@@ -180,6 +180,27 @@ export default function AppLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Track visited in-app routes ourselves rather than relying on raw browser
+  // history (window.history.length / navigate(-1) is unreliable after a hard
+  // redirect — e.g. from /login?returnTo=... — leaving the header Back button
+  // and Alt+← unable to go anywhere). Back always pops to the last DIFFERENT
+  // route this app session actually visited, falling back to Home.
+  const routeStackRef = useRef([pathname]);
+  useEffect(() => {
+    const stack = routeStackRef.current;
+    if (stack[stack.length - 1] !== pathname) stack.push(pathname);
+  }, [pathname]);
+
+  const goBack = React.useCallback(() => {
+    const stack = routeStackRef.current;
+    if (stack.length > 1) {
+      stack.pop();
+      navigate(stack[stack.length - 1]);
+    } else {
+      navigate('/');
+    }
+  }, [navigate]);
+
   // Keyboard shortcuts: Alt+← (Back) and Alt+H (Home).
   // Ignored while typing in an input/textarea so they don't hijack text editing.
   useEffect(() => {
@@ -189,7 +210,7 @@ export default function AppLayout() {
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        navigate(-1);
+        goBack();
       } else if (e.key === 'h' || e.key === 'H') {
         e.preventDefault();
         navigate('/');
@@ -197,7 +218,7 @@ export default function AppLayout() {
     };
     window.addEventListener('keydown', handleNavKeys);
     return () => window.removeEventListener('keydown', handleNavKeys);
-  }, [navigate]);
+  }, [navigate, goBack]);
 
   // "?" opens the keyboard shortcuts overlay (ignored while typing).
   // Also opened from Settings via the "kjb-open-shortcuts" event.
@@ -308,11 +329,7 @@ export default function AppLayout() {
                 onClick={(e) => {
                   e.stopPropagation();
                   setMenuOpen(false);
-                  if (window.history.length > 1) {
-                    navigate(-1);
-                  } else {
-                    navigate('/');
-                  }
+                  goBack();
                 }}
                 className="flex items-center gap-1 pl-2 pr-2 sm:pr-3 h-12 rounded-xl hover:bg-secondary/50 active:bg-secondary transition-colors text-foreground touch-manipulation cursor-pointer"
                 title="Back"
