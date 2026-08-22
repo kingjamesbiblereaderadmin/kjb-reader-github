@@ -7,7 +7,7 @@ import IncognitoWarning from '@/components/IncognitoWarning';
 import ScriptureBanner from '@/components/ScriptureBanner';
 
 const QUICK_LINKS = [
-  { path: '/read', icon: BookOpen, label: 'Read the Bible', desc: 'KJB Pure Cambridge Edition', iconGradient: 'from-emerald-500 to-teal-600', fullSpan: true },
+  { path: '/read', icon: BookOpen, label: 'Read the Bible', desc: 'KJB Pure Cambridge Edition', iconGradient: 'from-emerald-500 to-teal-600' },
   { path: '/contents', icon: List, label: 'Table of Contents', desc: 'Browse all 66 books', iconGradient: 'from-amber-500 to-orange-600' },
   { path: '/saved', icon: Bookmark, label: 'Saved Verses', desc: 'Your bookmarked verses', iconGradient: 'from-fuchsia-500 to-pink-600' },
   { path: '/advanced-search', icon: FlaskConical, label: 'Advanced Search', desc: 'Research verses by properties', iconGradient: 'from-indigo-500 to-purple-600' },
@@ -114,7 +114,6 @@ export default function HomePage() {
             label={link.label}
             desc={link.desc}
             iconGradient={link.iconGradient}
-            className={link.fullSpan ? 'sm:col-span-2' : ''}
           />
         ))}
       </div>

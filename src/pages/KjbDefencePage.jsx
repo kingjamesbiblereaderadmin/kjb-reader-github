@@ -9,6 +9,7 @@ import DefenceItemForm from '@/components/defence/DefenceItemForm';
 import DefenceWarningBanner from '@/components/defence/DefenceWarningBanner';
 import DefenceCategoryList from '@/components/defence/DefenceCategoryList';
 import CopyButton from '@/components/defence/CopyButton';
+import { Copy } from 'lucide-react';
 import { toast } from 'sonner';
 
 const CATEGORY_STYLES = {
@@ -208,6 +209,16 @@ export default function KjbDefencePage() {
             className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           >
             {allExpanded ? 'Collapse All' : 'Expand All'}
+          </button>
+          <button
+            onClick={() => {
+              const text = `KJB Defence\n\n${categories.map((cat) => `${cat.name}\n\n${cat.items.map((i) => `${i.title}\n${i.desc}\n${i.url}`).join('\n\n')}`).join('\n\n')}`;
+              navigator.clipboard.writeText(text);
+              toast.success('Copied all resources to clipboard.');
+            }}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-secondary text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <Copy className="w-4 h-4" /> Copy All
           </button>
           <button
             onClick={handlePrint}
