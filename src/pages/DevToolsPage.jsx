@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-import { Wrench, Image, CalendarDays, BookOpen, Tag, Smartphone, LogOut, Loader2, Puzzle } from 'lucide-react';
-import VerseImageTester from '@/components/dev/VerseImageTester';
-import DailyVerseSchedule from '@/components/dev/DailyVerseSchedule';
+import { Wrench, BookOpen, Tag, Smartphone, LogOut, Loader2, Puzzle } from 'lucide-react';
 import BibleTextEditor from '@/components/dev/BibleTextEditor';
 import VersionInfo from '@/components/dev/VersionInfo';
 import ManifestEditor from '@/components/dev/ManifestEditor';
@@ -14,8 +12,6 @@ import DevToolsSignIn from '@/components/dev/DevToolsSignIn';
 // NOTE: The page is protected by admin authentication (base44.auth.me() +
 // role === 'admin'). Backend saves also require a real admin session.
 const TABS = [
-  { id: 'image', label: 'Verse Image', icon: Image },
-  { id: 'schedule', label: 'Daily Verses', icon: CalendarDays },
   { id: 'text', label: 'Edit Bible Text', icon: BookOpen },
   { id: 'manifest', label: 'Manifest & Icons', icon: Smartphone },
   { id: 'links', label: 'Extension Links', icon: Puzzle },
@@ -23,7 +19,7 @@ const TABS = [
 ];
 
 export default function DevToolsPage() {
-  const [tab, setTab] = useState('image');
+  const [tab, setTab] = useState('text');
   const { user, isLoadingAuth } = useAuth();
 
   // Checking auth session.
@@ -79,8 +75,6 @@ export default function DevToolsPage() {
       </div>
 
       <DevToolErrorBoundary resetKey={tab}>
-        {tab === 'image' && <VerseImageTester />}
-        {tab === 'schedule' && <DailyVerseSchedule />}
         {tab === 'text' && <BibleTextEditor />}
         {tab === 'manifest' && <ManifestEditor />}
         {tab === 'links' && <ExtensionLinksEditor />}
