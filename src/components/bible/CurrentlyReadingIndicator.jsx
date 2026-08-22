@@ -35,30 +35,11 @@ export default function CurrentlyReadingIndicator({
   occurrenceLabel,
 }) {
   const isFilterMode = filterMode && selectedVerses.size > 0;
-  // isRandom now defined above with isDaily
-  // Check URL params first to determine the navigation source
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-  const isFromDaily = urlParams?.get('from') === 'daily';
-  const isFromRandom = urlParams?.get('from') === 'random';
   const isFromSearch = urlParams?.get('from') === 'search';
-  
-  // Use lastReadingPos if available, but also check the URL for 'from=daily' 
-  // to handle cases where the user clicked a notification or opened a shared link.
-  // An active search or gospel context always wins over a stale lastReadingPos
-  // daily/random flag — otherwise typing a search reference while viewing the
-  // Daily Verse (or a previous search result) leaves the indicator stuck
-  // showing "Daily Verse" against the new reference instead of updating to
-  // reflect the search.
-  const hasActiveSearchOrGospel = !!searchTerm || isFromSearch || gospelMode;
-  const isDaily = !hasActiveSearchOrGospel && (isFromDaily || (lastReadingPos && (lastReadingPos.fromDailyVerse || lastReadingPos.fromDaily)));
-  const isRandom = !hasActiveSearchOrGospel && (isFromRandom || (lastReadingPos && (lastReadingPos.fromRandom || lastReadingPos.fromRandomChapter)));
-  
-  // Only use search term if we're actually in search mode (not daily/random)
+
   let effectiveSearchTerm = searchTerm;
-  if (isDaily || isRandom) {
-    // Force clear search term for daily/random - don't show search toolbar
-    effectiveSearchTerm = null;
-  } else if (!effectiveSearchTerm && !gospelMode && urlParams) {
+  if (!effectiveSearchTerm && !gospelMode && urlParams) {
     if (isFromSearch) {
       effectiveSearchTerm = urlParams.get('q') || localStorage.getItem('kjb-search-term') || null;
     }
