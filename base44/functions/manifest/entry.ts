@@ -210,7 +210,10 @@ Deno.serve(async (req) => {
     // Chrome/Edge only. See useInstallPrompt.js's getWebAppInstalled().
     related_applications: [
       { platform: "webapp", url: `${origin}/functions/manifest`, id: `${origin}/` }
-    ]
+    ],
+    // Tells supporting browsers (Chrome on Android) to suggest installing the
+    // native Android app (once published) instead of this PWA.
+    prefer_related_applications: true
   };
 
   // Add timestamp to force fresh loading on mobile browsers
