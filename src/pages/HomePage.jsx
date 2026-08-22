@@ -4,7 +4,6 @@ import { BookOpen, Heart, Library, Info, List, Settings, Bookmark, FlaskConical 
 import QuickLinkCard from '@/components/home/QuickLinkCard';
 import OfflineStatusBanner from '@/components/OfflineStatusBanner';
 import IncognitoWarning from '@/components/IncognitoWarning';
-import ScriptureBanner from '@/components/ScriptureBanner';
 
 const QUICK_LINKS = [
   { path: '/read', icon: BookOpen, label: 'Read the Bible', desc: 'KJB Pure Cambridge Edition', iconGradient: 'from-emerald-500 to-teal-600' },
@@ -102,7 +101,6 @@ export default function HomePage() {
       <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-6">
       <OfflineStatusBanner />
       <IncognitoWarning />
-      <ScriptureBanner />
 
       {/* Quick links */}
       <div className="print:hidden grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 auto-rows-fr mt-2">
