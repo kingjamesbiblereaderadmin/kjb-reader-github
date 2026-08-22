@@ -92,6 +92,8 @@ export default function ExtensionPage() {
   const [urls, setUrls] = useState(DEFAULT_URLS);
   const [version, setVersion] = useState(DEFAULT_VERSION);
   const [showInstructions, setShowInstructions] = useState(true);
+  const [heroIcon, setHeroIcon] = useState('https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/679d87279_icon128.png');
+  const [mockups, setMockups] = useState(MOCKUPS);
 
   useEffect(() => {
     let cancelled = false;
@@ -110,6 +112,10 @@ export default function ExtensionPage() {
         });
         if (cfg.version) setVersion(cfg.version);
         setShowInstructions(cfg.show_instructions !== false);
+        if (cfg.hero_icon) setHeroIcon(cfg.hero_icon);
+        if (cfg.mockups?.length) {
+          setMockups(cfg.mockups.map((m) => ({ light: m.src, dark: m.src, label: m.label })));
+        }
       } catch {}
     })();
     return () => { cancelled = true; };
@@ -151,7 +157,7 @@ export default function ExtensionPage() {
         {/* Hero */}
         <div className="text-center mb-12">
           <img
-            src="https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/679d87279_icon128.png"
+            src={heroIcon}
             alt="KJB Reader SidePanel"
             className="block mx-auto w-16 h-16 rounded-2xl shadow-lg mb-5"
           />
@@ -235,7 +241,7 @@ export default function ExtensionPage() {
         <div className="mb-12">
           <h2 className="font-serif text-2xl font-bold text-foreground mb-6 text-center">See It In Action</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {MOCKUPS.map((m) => (
+            {mockups.map((m) => (
               <div key={m.label} className="flex flex-col items-center">
                 <img
                   src={m.light}

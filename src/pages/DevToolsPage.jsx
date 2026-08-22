@@ -5,6 +5,7 @@ import { Wrench, BookOpen, Smartphone, LogOut, Loader2, Puzzle } from 'lucide-re
 import BibleTextEditor from '@/components/dev/BibleTextEditor';
 import ManifestEditor from '@/components/dev/ManifestEditor';
 import ExtensionLinksEditor from '@/components/dev/ExtensionLinksEditor';
+import ExtensionImagesEditor from '@/components/dev/ExtensionImagesEditor';
 import DevToolErrorBoundary from '@/components/dev/DevToolErrorBoundary';
 import DevToolsSignIn from '@/components/dev/DevToolsSignIn';
 
@@ -14,6 +15,7 @@ const TABS = [
   { id: 'text', label: 'Edit Bible Text', icon: BookOpen },
   { id: 'manifest', label: 'Manifest & Icons', icon: Smartphone },
   { id: 'links', label: 'Extension Links', icon: Puzzle },
+  { id: 'images', label: 'Extension Images', icon: Puzzle },
 ];
 
 export default function DevToolsPage() {
@@ -76,6 +78,7 @@ export default function DevToolsPage() {
         {tab === 'text' && <BibleTextEditor />}
         {tab === 'manifest' && <ManifestEditor />}
         {tab === 'links' && <ExtensionLinksEditor />}
+        {tab === 'images' && <ExtensionImagesEditor />}
       </DevToolErrorBoundary>
     </div>
   );

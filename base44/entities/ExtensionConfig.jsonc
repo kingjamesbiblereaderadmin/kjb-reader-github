@@ -26,6 +26,25 @@
       "type": "boolean",
       "default": true,
       "description": "Whether to show the Installation Instructions section on /extension"
+    },
+    "hero_icon": {
+      "type": "string",
+      "description": "Hero icon image URL shown at the top of /extension"
+    },
+    "mockups": {
+      "type": "array",
+      "description": "Sidebar preview mockup images shown in the 'See It In Action' section on /extension",
+      "items": {
+        "type": "object",
+        "properties": {
+          "src": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "required": [],

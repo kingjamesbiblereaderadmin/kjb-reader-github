@@ -8,7 +8,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json();
-    const { chrome, edge, firefox, opera, version, show_instructions, revert } = body;
+    const { chrome, edge, firefox, opera, version, show_instructions, hero_icon, mockups, revert } = body;
 
     // Require a logged-in admin session. No bypass key.
     const user = await base44.auth.me().catch(() => null);
@@ -32,6 +32,8 @@ Deno.serve(async (req) => {
       opera: typeof opera === 'string' ? opera : (current?.opera || ''),
       version: typeof version === 'string' ? version : (current?.version || ''),
       show_instructions: typeof show_instructions === 'boolean' ? show_instructions : (typeof current?.show_instructions === 'boolean' ? current.show_instructions : true),
+      hero_icon: typeof hero_icon === 'string' ? hero_icon : (current?.hero_icon || ''),
+      mockups: Array.isArray(mockups) ? mockups : (current?.mockups || []),
     };
 
     let saved;
