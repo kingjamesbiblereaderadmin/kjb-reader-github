@@ -131,7 +131,7 @@ export default function DiscordInvitePage() {
             </li>
             <li className="flex flex-wrap items-baseline gap-x-1.5">
               <a href="https://kingjamesbiblereader.com" target="_blank" rel="noopener noreferrer" className="font-sans font-medium text-accent hover:underline transition-colors">KJB Reader Bible API (kingjamesbiblereader.com)</a>
-              <span className="text-muted-foreground/70">— the API powering verse lookup, search, and daily verse delivery.</span>
+              <span className="text-muted-foreground/70">— the API powering verse lookup and search.</span>
             </li>
             <li className="flex flex-wrap items-baseline gap-x-1.5">
               <a href="https://github.com/node-cron/node-cron" target="_blank" rel="noopener noreferrer" className="font-sans font-medium text-accent hover:underline transition-colors">node-cron</a>
