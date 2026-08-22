@@ -3,7 +3,7 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "kjbreader.app",
+      "package_name": "com.kingjamesbiblereader.twa",
       "sha256_cert_fingerprints": [
         "11:5B:40:33:09:AE:BE:91:88:4D:05:EA:06:85:CA:BB:1F:D3:F2:94:ED:58:78:85:6B:F0:E8:9D:CE:3E:60:87"
       ]
