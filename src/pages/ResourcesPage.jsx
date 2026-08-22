@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ExternalLink, FileText, BookOpen, ShieldAlert, Globe, CheckCircle, Users, ChevronDown, Youtube, Facebook, Instagram, Link as LinkIcon, Copy, Printer, Mail, PlayCircle, Link2 } from 'lucide-react';
 import { printHtml } from '@/lib/printHelpers';
-import ScriptureBanner from '@/components/ScriptureBanner';
 
 function CopyButton({ text, className }) {
   const [copied, setCopied] = useState(false);
@@ -324,9 +323,6 @@ export default function ResourcesPage() {
           </button>
         </div>
       </div>
-
-      {/* Scripture banner */}
-      <ScriptureBanner />
 
       {/* KJBI — Free Online Bible College */}
       <div className="bg-card border border-border rounded-2xl mb-6 p-5">
