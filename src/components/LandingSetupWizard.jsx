@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Share, MonitorSmartphone, Download, Palette,
-  Type, Moon, Sun, Monitor, ChevronLeft, ChevronRight, Check, Star, Bell, AlertCircle,
+  Type, Moon, Sun, Monitor, ChevronLeft, ChevronRight, Check, Star,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getAccessibilityFont, setAccessibilityFont } from '@/lib/accessibilityFont';
@@ -11,15 +11,6 @@ import { detectIncognito } from '@/lib/incognito';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import ThemeColorPicker from '@/components/bible/ThemeColorPicker';
 import AlreadyInstalledHelp from '@/components/AlreadyInstalledHelp';
-import { Switch } from '@/components/ui/switch';
-import {
-  getNotificationsEnabled,
-  requestNotificationPermission,
-  disableNotifications,
-  scheduleDailyNotification,
-  showLocalNotification,
-} from '@/lib/notifications';
-import { getDailyVerse } from '@/lib/dailyVerse';
 
 const VERSE_FONTS = [
   { value: 'serif', label: 'Serif' },
@@ -120,15 +111,11 @@ export default function LandingSetupWizard() {
     a11y = getAccessibilityFont() !== 'default';
     return {
       install: false,
-      notifications: getNotificationsEnabled(),
       theme: !!theme,
       fonts: !!fonts,
       a11y,
     };
   });
-
-  const [notifEnabled, setNotifEnabled] = useState(getNotificationsEnabled);
-  const [notifBlocked, setNotifBlocked] = useState(false);
 
   const markDone = (id) => setCompleted(prev => prev[id] ? prev : { ...prev, [id]: true });
 
@@ -209,30 +196,8 @@ export default function LandingSetupWizard() {
     }
   };
 
-  const handleNotifToggle = async () => {
-    if (inIframe()) return;
-    if (notifEnabled) {
-      disableNotifications();
-      setNotifEnabled(false);
-      window.dispatchEvent(new Event('storage'));
-      return;
-    }
-    if (!('Notification' in window)) return;
-    const result = await requestNotificationPermission();
-    if (result === 'granted') {
-      try { localStorage.setItem('kjb-notifications-enabled', 'true'); } catch {}
-      setNotifEnabled(true);
-      window.dispatchEvent(new Event('storage'));
-      scheduleDailyNotification(getDailyVerse());
-      showLocalNotification('Daily verse reminders on ✓', `You'll get the daily verse each morning.`, null);
-      markDone('notifications');
-    }
-    setNotifBlocked(result === 'denied');
-  };
-
   const STEPS = [
     { id: 'install', label: 'Install', icon: Download },
-    { id: 'notifications', label: 'Notify', icon: Bell },
     { id: 'theme', label: 'Theme', icon: Palette },
     { id: 'fonts', label: 'Fonts', icon: Type },
   ];
@@ -391,38 +356,8 @@ export default function LandingSetupWizard() {
           </div>
         )}
 
-        {/* Step 1: Notifications */}
+        {/* Step 1: Theme (mode + color) */}
         {step === 1 && (
-          <div className="text-center">
-            <h3 className="font-serif text-lg font-bold text-foreground mb-1">Daily Verse Reminder</h3>
-            <p className="font-sans text-xs text-muted-foreground mb-4">Get a notification each morning with the verse of the day</p>
-
-            {inIframe() && (
-              <div className="bg-secondary/40 border border-border rounded-xl p-3 mb-3 text-left max-w-sm mx-auto">
-                <p className="font-sans text-xs text-blue-600 dark:text-blue-400 font-medium">
-                  You're viewing this inside an embed preview. Open the app in a new tab to enable notifications.
-                </p>
-              </div>
-            )}
-
-            <div className={`flex items-center justify-between gap-3 p-3 rounded-xl bg-secondary/50 border border-border max-w-sm mx-auto ${inIframe() ? 'opacity-50 pointer-events-none' : ''}`}>
-              <div className="flex items-center gap-2.5 text-left">
-                <Bell className="w-4 h-4 text-primary shrink-0" />
-                <p className="font-sans text-sm text-foreground font-medium">Daily verse reminder</p>
-              </div>
-              <Switch checked={notifEnabled} onCheckedChange={handleNotifToggle} disabled={inIframe()} />
-            </div>
-            {notifBlocked && (
-              <p className="font-sans text-xs text-amber-600 dark:text-amber-400 flex items-start gap-1.5 leading-snug mt-3 max-w-sm mx-auto text-left">
-                <AlertCircle className="w-4 h-4 shrink-0 -mt-0.5" />
-                <span>Notifications are blocked for this site in your browser. Allow them in your browser's site settings, then try again.</span>
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Step 2: Theme (mode + color) */}
-        {step === 2 && (
           <div className="text-center">
             <h3 className="font-serif text-lg font-bold text-foreground mb-1">Theme & Color</h3>
             <p className="font-sans text-xs text-muted-foreground mb-4">Choose light/dark and your accent color</p>
@@ -455,8 +390,8 @@ export default function LandingSetupWizard() {
           </div>
         )}
 
-        {/* Step 3: Fonts (reading + daily verse) */}
-        {step === 3 && (
+        {/* Step 2: Fonts (reading + daily verse) */}
+        {step === 2 && (
           <div className="text-center">
             <h3 className="font-serif text-lg font-bold text-foreground mb-1">Fonts</h3>
             <p className="font-sans text-xs text-muted-foreground mb-4">Pick fonts for reading and the daily verse</p>
