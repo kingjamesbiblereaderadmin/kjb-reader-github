@@ -243,18 +243,18 @@ export default function ExtensionPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {mockups.map((m) => (
               <div key={m.label} className="flex flex-col items-center">
-                <div className="w-full aspect-[9/16] rounded-xl border border-border bg-card shadow-lg overflow-hidden transition-transform duration-200 hover:scale-[1.02]">
+                <div className="w-full rounded-xl border border-border bg-card shadow-lg overflow-hidden transition-transform duration-200 hover:scale-[1.02]">
                   <img
                     src={m.light}
                     alt={m.label}
                     loading="lazy"
-                    className="kjb-mockup-light w-full h-full object-contain"
+                    className="kjb-mockup-light w-full h-auto block"
                   />
                   <img
                     src={m.dark}
                     alt={m.label}
                     loading="lazy"
-                    className="kjb-mockup-dark w-full h-full object-contain"
+                    className="kjb-mockup-dark w-full h-auto block"
                   />
                 </div>
                 <p className="font-sans text-xs text-center mt-3 leading-relaxed text-muted-foreground">
