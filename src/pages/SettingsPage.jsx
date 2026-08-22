@@ -8,7 +8,6 @@ import OfflineHtmlSection from '@/components/bible/OfflineHtmlSection';
 import ThemeColorPicker from '@/components/bible/ThemeColorPicker';
 import { Switch } from '@/components/ui/switch';
 import InstallAppSection from '@/components/settings/InstallAppSection';
-import NotificationsSection from '@/components/settings/NotificationsSection';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { useTheme, COLOUR_PALETTES } from '@/lib/themeContext';
@@ -92,7 +91,6 @@ export default function SettingsPage() {
     shortcuts: true,
     appearance: true,
     install: true,
-    notifications: true,
     offline: true,
     downloadPdf: true,
     offlineHtml: true,
@@ -104,36 +102,13 @@ export default function SettingsPage() {
     danger: false,
   });
   const { isDark, mode, setMode, colourId, setColourId } = useTheme();
-  const [verseTextColor, setVerseTextColor] = useState(() => {
-    try { return localStorage.getItem('kjb-verse-text-color') || '#ffffff'; } catch { return '#ffffff'; }
-  });
-  const [verseTextOpacity, setVerseTextOpacity] = useState(() => {
-    try { return parseFloat(localStorage.getItem('kjb-verse-text-opacity') || '1'); } catch { return 1; }
-  });
   const [readerFontFamily, setReaderFontFamily] = useState(() => {
     try { return localStorage.getItem('kjb-reader-font-family') || 'serif'; } catch { return 'serif'; }
-  });
-  const [verseFontFamily, setVerseFontFamily] = useState(() => {
-    try { return localStorage.getItem('kjb-verse-font-family') || 'serif'; } catch { return 'serif'; }
-  });
-  const [showVersePanel, setShowVersePanel] = useState(() => {
-    try { return localStorage.getItem('kjb-verse-panel-visible') !== 'false'; } catch { return true; }
   });
 
   const [zoomLevel, setZoomLevel] = useState(() => {
     try { return parseInt(localStorage.getItem('kjb-zoom') || '100'); } catch { return 100; }
   });
-
-  const VERSE_COLORS = [
-    '#000000', '#1a1a1a', '#ffffff', '#f8f8f8',
-    '#fef3c7', '#fde68a', '#fbbf24', '#f59e0b',
-    '#dbeafe', '#93c5fd', '#3b82f6', '#1e40af',
-    '#fecaca', '#fca5a5', '#ef4444', '#b91c1c',
-    '#ddd6fe', '#a78bfa', '#8b5cf6', '#5b21b6',
-    '#bbf7d0', '#6ee7b7', '#10b981', '#047857',
-    '#ffe4e6', '#fda4af', '#ec4899', '#9d174d',
-    '#e0f2fe', '#7dd3fc', '#0ea5e9', '#0369a1'
-  ];
 
   const VERSE_FONTS = [
     { value: 'serif', label: 'Serif (Merriweather)' },
@@ -142,14 +117,6 @@ export default function SettingsPage() {
     { value: 'cursive', label: 'Cursive' },
     { value: 'comic-sans', label: 'Comic Sans', cssFamily: "'Comic Sans MS', 'Comic Sans', 'Chalkboard SE', 'Comic Neue', system-ui, sans-serif" },
     { value: 'times', label: 'Times New Roman', cssFamily: "'Times New Roman', Times, serif" },
-  ];
-
-  // Accessibility fonts that also appear in every font picker (reader, daily
-  // card, settings). Choosing one applies it app-wide via setAccessibilityFont,
-  // so all pickers stay in sync. Picking a normal font turns it back off.
-  const A11Y_FONT_OPTIONS = [
-    { value: 'dyslexic', label: 'Dyslexic' },
-    { value: 'hyperlegible', label: 'Legible' },
   ];
 
   // Unified font-pick handler for the reader font: normal fonts write
@@ -165,20 +132,6 @@ export default function SettingsPage() {
     // stale value and reverting the chosen font.
     try { localStorage.setItem('kjb-reader-font-family', value); } catch {}
     setReaderFontFamily(value);
-    if (a11yFont !== 'default') { setA11yFont('default'); setAccessibilityFont('default'); }
-    window.dispatchEvent(new Event('storage'));
-    window.dispatchEvent(new Event('kjb-fonts-changed'));
-  };
-
-  // Same for the daily-verse font picker.
-  const pickVerseFont = (value) => {
-    if (value === 'dyslexic' || value === 'hyperlegible') {
-      setA11yFont(value);
-      setAccessibilityFont(value);
-      return;
-    }
-    try { localStorage.setItem('kjb-verse-font-family', value); } catch {}
-    setVerseFontFamily(value);
     if (a11yFont !== 'default') { setA11yFont('default'); setAccessibilityFont('default'); }
     window.dispatchEvent(new Event('storage'));
     window.dispatchEvent(new Event('kjb-fonts-changed'));
@@ -207,7 +160,6 @@ export default function SettingsPage() {
     const handleStorage = () => {
       isBibleCached().then(setCached);
       try { setReaderFontFamily(localStorage.getItem('kjb-reader-font-family') || 'serif'); } catch {}
-      try { setVerseFontFamily(localStorage.getItem('kjb-verse-font-family') || 'serif'); } catch {}
       try { setZoomLevel(parseInt(localStorage.getItem('kjb-zoom') || '100')); } catch {}
       try { setA11yFont(getAccessibilityFont()); } catch {}
     };
@@ -297,7 +249,6 @@ export default function SettingsPage() {
       shortcuts: newState,
       appearance: newState,
       install: newState,
-      notifications: newState,
       offline: newState,
       downloadPdf: newState,
       offlineHtml: newState,
@@ -567,132 +518,12 @@ export default function SettingsPage() {
           <ThemeColorPicker />
         </div>
 
-        {/* Daily Verse Text Style */}
-        <div className="pt-4 border-t border-border space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="font-serif text-base font-semibold text-foreground flex items-center gap-2">
-            <Palette className="w-4 h-4" />
-            Daily Verse Style
-          </h3>
-          <button
-            onClick={() => {
-              setVerseTextColor('#ffffff');
-              setVerseTextOpacity(1);
-              setVerseFontFamily('serif');
-              setShowVersePanel(true);
-              localStorage.setItem('kjb-verse-text-color', '#ffffff');
-              localStorage.setItem('kjb-verse-text-opacity', '1');
-              localStorage.setItem('kjb-verse-font-family', 'serif');
-              localStorage.setItem('kjb-verse-panel-visible', 'true');
-              window.dispatchEvent(new Event('storage'));
-            }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Reset
-          </button>
-        </div>
-          
-          {/* Text Color */}
-          <div className="space-y-2">
-            <p className="font-sans text-sm text-foreground font-medium">Text Color</p>
-            <div className="flex flex-wrap gap-2">
-              {VERSE_COLORS.map(color => (
-                <button
-                  key={color}
-                  onClick={() => {
-                    setVerseTextColor(color);
-                    localStorage.setItem('kjb-verse-text-color', color);
-                    window.dispatchEvent(new Event('storage'));
-                  }}
-                  className={`w-8 h-8 rounded-lg border-2 transition-all duration-200 hover:scale-110 active:scale-95 ${
-                    verseTextColor === color ? 'border-foreground scale-110' : 'border-slate-300 hover:border-slate-500'
-                  }`}
-                  style={{ backgroundColor: color }}
-                  title={color}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Text Opacity */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <p className="font-sans text-sm text-foreground font-medium">Opacity</p>
-              <span className="font-sans text-xs text-muted-foreground">{Math.round(verseTextOpacity * 100)}%</span>
-            </div>
-            <input
-              type="range"
-              min="0.3"
-              max="1"
-              step="0.05"
-              value={verseTextOpacity}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                setVerseTextOpacity(val);
-                localStorage.setItem('kjb-verse-text-opacity', String(val));
-                window.dispatchEvent(new Event('storage'));
-              }}
-              className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
-            />
-          </div>
-
-          {/* Font Family */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Type className="w-4 h-4 text-muted-foreground" />
-              <p className="font-sans text-sm text-foreground font-medium">Font Family</p>
-            </div>
-            {a11yFont !== 'default' && (
-              <p className="font-sans text-xs text-muted-foreground leading-snug">
-                An accessibility font is on and overrides reading fonts. Pick another accessibility font, or disable it in the Accessibility section.
-              </p>
-            )}
-            <p className="font-sans text-xs text-muted-foreground">Standard</p>
-            <div className="grid grid-cols-3 gap-2">
-              {VERSE_FONTS.filter(f => f.value !== 'comic-sans' || (typeof window !== 'undefined' && window.innerWidth >= 640)).map(font => (
-                <button
-                  key={font.value}
-                  onClick={() => pickVerseFont(font.value)}
-                  className={`kjb-font-preview px-2 py-3 rounded-xl text-xs font-medium border break-words leading-tight transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
-                    (a11yFont === 'default' && verseFontFamily === font.value)
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-secondary/50 backdrop-blur-sm text-foreground border-border hover:border-accent'
-                  } ${a11yFont !== 'default' ? 'opacity-40 pointer-events-none' : ''}`}
-                  style={{ fontFamily: font.cssFamily || font.value }}
-                >
-                  {font.label}
-                </button>
-              ))}
-            </div>
-            <p className="font-sans text-xs text-muted-foreground">Accessibility</p>
-            <div className="grid grid-cols-2 gap-2">
-              {A11Y_FONT_OPTIONS.map(font => (
-                <button
-                  key={font.value}
-                  onClick={() => pickVerseFont(font.value)}
-                  className={`kjb-font-preview px-4 py-3 rounded-xl text-sm font-medium border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
-                    a11yFont === font.value
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-secondary/50 backdrop-blur-sm text-foreground border-border hover:border-accent'
-                  }`}
-                  style={{ fontFamily: font.value === 'dyslexic' ? "'OpenDyslexic', 'Comic Sans MS', sans-serif" : "'Atkinson Hyperlegible', system-ui, sans-serif" }}
-                >
-                  {font.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
         </div>
         )}
       </div>
 
       {/* Install App */}
       <InstallAppSection expanded={expandedSections.install} isIncognito={isIncognito} />
-
-      {/* Notifications */}
-      <NotificationsSection expanded={expandedSections.notifications} onToggleExpand={() => toggleSection('notifications')} />
 
       {/* Offline Library — shows disabled state in private/incognito windows and iframes */}
       <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
