@@ -4,7 +4,6 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { printHtml } from '@/lib/printHelpers';
-import ScriptureBanner from '@/components/ScriptureBanner';
 import DefenceItemForm from '@/components/defence/DefenceItemForm';
 import DefenceWarningBanner from '@/components/defence/DefenceWarningBanner';
 import DefenceCategoryList from '@/components/defence/DefenceCategoryList';
@@ -229,7 +228,6 @@ export default function KjbDefencePage() {
         </div>
       </div>
 
-      <ScriptureBanner />
       <DefenceWarningBanner />
 
       {/* Search */}

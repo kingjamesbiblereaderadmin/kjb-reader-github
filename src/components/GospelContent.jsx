@@ -8,7 +8,6 @@ import { BIBLE_BOOKS } from '@/lib/bibleData';
 import { setGospelNav } from '@/lib/searchNav';
 import { getGospelResults } from '@/lib/gospelVerses';
 import PreachersSection from '@/components/PreachersSection';
-import ScriptureBanner from '@/components/ScriptureBanner';
 
 function CopyButton({ text, className }) {
   const [copied, setCopied] = useState(false);
@@ -384,9 +383,6 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
           <GospelActions />
         </div>
       </div>
-
-      {/* Scripture banner */}
-      <ScriptureBanner />
 
       {/* Gospel Steps */}
       {collapsible && (
