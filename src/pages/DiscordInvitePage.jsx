@@ -83,7 +83,7 @@ export default function DiscordInvitePage() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-sans font-semibold text-base text-foreground group-hover:text-accent transition-colors mb-1">🏠 Server Install</p>
-              <p className="font-sans text-xs text-muted-foreground leading-relaxed">Bot joins a server for daily verse delivery and /setup.</p>
+              <p className="font-sans text-xs text-muted-foreground leading-relaxed">Install for looking up verses, chapters, and the gospel on your servers.</p>
             </div>
           </a>
         </div>
