@@ -1214,6 +1214,32 @@ export default function BibleReader() {
     };
   }, [loading, isViewingTitlePage, pos.abbr, pos.chapter]);
 
+  // A plain "Read Selected" passage filter (no active search/gospel context)
+  // pushes ?verse=&verseEnd= into the actual browser URL for shareability.
+  // Unlike kjb-position (which intentionally never persists verseEnd), that URL
+  // sticks around until another navigation replaces it — so closing/backgrounding
+  // the tab or app while viewing a filtered passage, then reopening, re-parses
+  // the same URL and jumps right back into the filtered view. Strip it the
+  // moment the page is hidden so a reopen lands on the full chapter instead.
+  useEffect(() => {
+    const cleanupFilteredUrlOnHide = () => {
+      if (filterMode && selectedVerses.size > 0 && !searchTerm && !gospelMode) {
+        try {
+          const url = pos.chapter === 0 ? window.location.pathname : `/read?book=${pos.abbr}&chapter=${pos.chapter}`;
+          window.history.replaceState({}, '', url);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ abbr: pos.abbr, chapter: pos.chapter, verse: null, verseEnd: null }));
+        } catch {}
+      }
+    };
+    const onVisHidden = () => { if (document.visibilityState === 'hidden') cleanupFilteredUrlOnHide(); };
+    window.addEventListener('pagehide', cleanupFilteredUrlOnHide);
+    document.addEventListener('visibilitychange', onVisHidden);
+    return () => {
+      window.removeEventListener('pagehide', cleanupFilteredUrlOnHide);
+      document.removeEventListener('visibilitychange', onVisHidden);
+    };
+  }, [filterMode, selectedVerses, searchTerm, gospelMode, pos.abbr, pos.chapter]);
+
   useEffect(() => {
     const sync = () => {
       try { setZoomLevel(parseInt(localStorage.getItem('kjb-zoom') || '100')); } catch {}
