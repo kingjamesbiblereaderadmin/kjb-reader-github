@@ -18,6 +18,19 @@ export function useToolbarState(pos, loading, verses, filterMode, selectedVerses
   // over a daily/random chapter. Pinning it per-mount keeps that from happening.
   const navFromRef = useRef(null);
 
+  // Tracks whether we've already applied the saved filter/search/gospel state
+  // for the CURRENT chapter. The focus/visibilitychange listeners re-run
+  // restoreToolbarState() every time the tab/app regains visibility so a
+  // background app switch is never missed - but re-applying the saved
+  // filterMode/search/gospel context on every one of those return trips means
+  // any change the user made after the initial restore (toggling off the
+  // filter, clearing a search, just reading normally) gets silently
+  // overwritten the next time they switch away and back. Restoration should
+  // only happen once per chapter (on first load / navigation into it) - after
+  // that, returning to the app should leave the toolbar state exactly as the
+  // user left it.
+  const appliedRestoreForChapterRef = useRef(false);
+
   // Persist toolbar state with chapter + search/gospel context
   useEffect(() => {
     if (loading || !hasRestoredRef.current) return;
@@ -56,7 +69,12 @@ export function useToolbarState(pos, loading, verses, filterMode, selectedVerses
   useEffect(() => {
     if (loading || verses.length === 0) return;
 
-    const restoreToolbarState = () => {
+    const restoreToolbarState = (isRevisit = false) => {
+      // On a revisit (tab/app regained focus/visibility), only skip re-applying
+      // saved filter/search/gospel state if we already did so once for this
+      // chapter - the user may have changed things since. A non-revisit call
+      // (initial mount / chapter change) always runs.
+      if (isRevisit && appliedRestoreForChapterRef.current) return;
       // Mark as restored so the save effect can start persisting again.
       hasRestoredRef.current = true;
       try {
@@ -69,6 +87,7 @@ export function useToolbarState(pos, loading, verses, filterMode, selectedVerses
         }
         const navFrom = navFromRef.current;
         if (navFrom === 'daily' || navFrom === 'random') {
+          appliedRestoreForChapterRef.current = true;
           setRestoreTick(t => t + 1);
           return;
         }
@@ -77,6 +96,7 @@ export function useToolbarState(pos, loading, verses, filterMode, selectedVerses
         if (!saved) {
           // Nothing to restore — still force a save so the current state
           // (e.g. filterMode set by stepToResult) gets persisted.
+          appliedRestoreForChapterRef.current = true;
           setRestoreTick(t => t + 1);
           return;
         }
@@ -141,9 +161,11 @@ export function useToolbarState(pos, loading, verses, filterMode, selectedVerses
       } catch (err) {
         console.error('[ToolbarState] Restore error:', err);
       }
+      appliedRestoreForChapterRef.current = true;
       // Force the save effect to fire with the (possibly) restored state.
       setRestoreTick(t => t + 1);
     };
+    appliedRestoreForChapterRef.current = false;
     restoreToolbarState();
     const timer = setTimeout(restoreToolbarState, 100);
     // Re-apply persisted search/gospel/filter state when the page becomes
@@ -153,13 +175,14 @@ export function useToolbarState(pos, loading, verses, filterMode, selectedVerses
     // restored search/gospel/filter context after returning from another tab
     // or app.
     const onVisibility = () => {
-      if (document.visibilityState === 'visible') restoreToolbarState();
+      if (document.visibilityState === 'visible') restoreToolbarState(true);
     };
-    window.addEventListener('focus', restoreToolbarState);
+    const onFocus = () => restoreToolbarState(true);
+    window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
       clearTimeout(timer);
-      window.removeEventListener('focus', restoreToolbarState);
+      window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
