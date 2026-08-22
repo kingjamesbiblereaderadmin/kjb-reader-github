@@ -240,28 +240,13 @@ export default function ExtensionPage() {
         {/* Sidebar preview mockups */}
         <div className="mb-12">
           <h2 className="font-serif text-2xl font-bold text-foreground mb-6 text-center">See It In Action</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {mockups.map((m) => (
-              <div key={m.label} className="flex flex-col items-center">
-                <div className="w-full rounded-xl border border-border bg-card shadow-lg overflow-hidden transition-transform duration-200 hover:scale-[1.02]">
-                  <img
-                    src={m.light}
-                    alt={m.label}
-                    loading="lazy"
-                    className="kjb-mockup-light w-full h-auto"
-                  />
-                  <img
-                    src={m.dark}
-                    alt={m.label}
-                    loading="lazy"
-                    className="kjb-mockup-dark w-full h-auto"
-                  />
-                </div>
-                <p className="font-sans text-xs text-center mt-3 leading-relaxed text-muted-foreground">
-                  {m.label}
-                </p>
-              </div>
-            ))}
+          <div className="w-full rounded-xl border border-border bg-card shadow-lg overflow-hidden">
+            <img
+              src="https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/b0851cb9e_c58c759cb_unified-all-browsers.png"
+              alt="KJB Reader Extension preview"
+              loading="lazy"
+              className="w-full h-auto"
+            />
           </div>
         </div>
 
