@@ -60,6 +60,61 @@ async function loadModel(device, dtype) {
   }
 }
 
+// Kokoro's English text-to-phoneme rules routinely misread many Biblical
+// proper names (it doesn't know Hebrew/Greek-derived spelling conventions).
+// This maps commonly mispronounced names to a simple respelling that nudges
+// Kokoro's own English pronunciation rules toward the traditional/correct
+// reading — the on-screen text is never touched, only what's sent to the model.
+const NAME_PRONUNCIATIONS = {
+  'Nebuchadnezzar': 'Nebyoocadnezzer',
+  'Belshazzar': 'Belshazzer',
+  'Melchizedek': 'Melkizzedek',
+  'Melchisedec': 'Melkizzedek',
+  'Zerubbabel': 'Zeroobabbel',
+  'Methuselah': 'Methoozeluh',
+  'Sennacherib': 'Sinackerib',
+  'Habakkuk': 'Huhbackuck',
+  'Nahum': 'Nayhum',
+  'Haggai': 'Hagueye',
+  'Malachi': 'Maluhky',
+  'Jehoshaphat': 'Jehoshuhfat',
+  'Hephzibah': 'Hefzibuh',
+  'Ichabod': 'Ickabod',
+  'Mephibosheth': 'Mefibbosheth',
+  'Ahasuerus': 'Uhhazyeweeruhs',
+  'Chedorlaomer': 'Kedorlaymer',
+  'Zacchaeus': 'Zackeeuhs',
+  'Boanerges': 'Bohanerjeez',
+  'Gethsemane': 'Gethsemmuhnee',
+  'Thaddaeus': 'Thaddeeuhs',
+  'Cleophas': 'Kleeofuhs',
+  'Aceldama': 'Uhselduhmuh',
+  'Sapphira': 'Suhfeyeruh',
+  'Ananias': 'Anuhnyeuhs',
+  'Onesimus': 'Ohnessimuhs',
+  'Epaphroditus': 'Ehpafrodyetuhs',
+  'Areopagus': 'Airyopaguhs',
+  'Cenchrea': 'Senkreeuh',
+  'Phygellus': 'Fyjelluhs',
+  'Hermogenes': 'Hermahjeneez',
+  'Diotrephes': 'Dyeotrefeez',
+  'Nympha': 'Nimfuh',
+  'Archippus': 'Arkippuhs',
+  'Bartimaeus': 'Bartimeeuhs',
+  'Cananaean': 'Kuhnayneeuhn',
+  'Sosthenes': 'Sosthuhneez',
+  'Tychicus': 'Tickikuhs',
+  'Trophimus': 'Trofimuhs',
+  'Onesiphorus': 'Ohnesifuhruhs',
+  'Philemon': 'Fylleemuhn',
+  'Eutychus': 'Yootikuhs',
+  'Elymas': 'Elimuhs',
+};
+const NAME_PATTERN = new RegExp(`\\b(${Object.keys(NAME_PRONUNCIATIONS).join('|')})\\b`, 'gi');
+function normalizeBiblicalNames(text) {
+  return text.replace(NAME_PATTERN, (match) => NAME_PRONUNCIATIONS[match] || match);
+}
+
 // Trim leading/trailing near-silence from generated audio so segments join
 // tightly without dead air between verses.
 function trimSilence(samples, threshold = 0.008) {
@@ -77,7 +132,7 @@ async function generateSegments(segments, voice, speed) {
     if (cancelled) return;
     const seg = segments[i];
     try {
-      const result = await ttsInstance.generate(seg.text, { voice, speed: speed || 1 });
+      const result = await ttsInstance.generate(normalizeBiblicalNames(seg.text), { voice, speed: speed || 1 });
       if (cancelled) return;
       const raw = result.audio instanceof Float32Array ? result.audio : new Float32Array(result.audio);
       const trimmed = trimSilence(raw);
