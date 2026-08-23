@@ -109,6 +109,15 @@ export default function SettingsPage() {
   const [zoomLevel, setZoomLevel] = useState(() => {
     try { return parseInt(localStorage.getItem('kjb-zoom') || '100'); } catch { return 100; }
   });
+  const [appZoom, setAppZoom] = useState(() => {
+    try { return parseInt(localStorage.getItem('kjb-layout-zoom') || '100'); } catch { return 100; }
+  });
+  const setAppZoomPersist = (next) => {
+    const clamped = Math.max(75, Math.min(150, next));
+    setAppZoom(clamped);
+    try { localStorage.setItem('kjb-layout-zoom', String(clamped)); } catch {}
+    window.dispatchEvent(new Event('kjb-layout-zoom-changed'));
+  };
 
   const VERSE_FONTS = [
     { value: 'serif', label: 'Serif (Merriweather)' },
@@ -336,6 +345,40 @@ export default function SettingsPage() {
                     try { localStorage.setItem('kjb-zoom', '100'); } catch {}
                     window.dispatchEvent(new Event('storage'));
                   }}
+                  className="px-3 py-2 rounded-xl bg-primary border border-primary text-primary-foreground font-sans text-xs font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* App Zoom — scales the entire app layout (buttons, spacing, text) on every page */}
+        <div className="pt-4 border-t border-border space-y-3">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="font-sans text-sm text-foreground font-medium">App Zoom: {appZoom}%</p>
+              <p className="font-sans text-xs text-muted-foreground mt-0.5">
+                Scales the whole app's layout on every page &mdash; not just the reader
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setAppZoomPersist(appZoom - 25)}
+                className="p-2 rounded-xl bg-transparent border border-border text-foreground hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <ZoomOut className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setAppZoomPersist(appZoom + 25)}
+                className="p-2 rounded-xl bg-transparent border border-border text-foreground hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <ZoomIn className="w-4 h-4" />
+              </button>
+              {appZoom !== 100 && (
+                <button
+                  onClick={() => setAppZoomPersist(100)}
                   className="px-3 py-2 rounded-xl bg-primary border border-primary text-primary-foreground font-sans text-xs font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Reset
