@@ -161,11 +161,31 @@ function buildNamePattern(map) {
   return new RegExp(`\\b(${escaped.join('|')})\\b`, 'gi');
 }
 
+// The source pronunciation data was OCR-scanned from an old printed book and
+// many entries are corrupted — garbled letters (e.g. "Je-reV-sa-lem" for
+// Jerusalem), or the full dictionary definition tacked on after the
+// respelling (e.g. "Zef-a-thah.— The valley in which Asa..."). Feeding those
+// straight to the TTS makes pronunciation WORSE, not better, so only clean,
+// short, letters/hyphens/apostrophes-only respellings are used — anything
+// else is skipped and the name falls back to Kokoro's normal pronunciation.
+function isCleanRespelling(resp) {
+  if (!resp || resp.length > 40) return false;
+  if (!/^[A-Za-z][A-Za-z'’\-\s]*$/.test(resp)) return false;
+  // Capital letters are only valid at the very start of the string or right
+  // after a hyphen/space (the start of a new syllable/word) — a capital
+  // letter buried mid-syllable is the OCR-corruption signature seen above.
+  for (let i = 1; i < resp.length; i++) {
+    if (/[A-Z]/.test(resp[i]) && !/[-\s]/.test(resp[i - 1])) return false;
+  }
+  return true;
+}
+
 function setPronunciations(fetchedMap) {
   const converted = {};
   if (fetchedMap && typeof fetchedMap === 'object') {
     Object.keys(fetchedMap).forEach((k) => {
-      converted[k.toUpperCase()] = respellToSpeakable(fetchedMap[k]);
+      const raw = fetchedMap[k];
+      if (isCleanRespelling(raw)) converted[k.toUpperCase()] = respellToSpeakable(raw);
     });
   }
   // Local hand-tuned overrides win over the generic fetched respellings.
