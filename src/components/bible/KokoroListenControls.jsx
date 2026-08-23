@@ -12,7 +12,7 @@ export default function KokoroListenControls({ status, progress, error, voice, o
 
   const label = status === 'loading' ? `Loading voice… ${progress}%`
     : status === 'generating' ? `Preparing narration… ${progress}%`
-    : isPlaying ? 'Listening…'
+    : isPlaying ? 'Playing…'
     : isPaused ? 'Paused'
     : error ? `Listen failed: ${error}`
     : null;
