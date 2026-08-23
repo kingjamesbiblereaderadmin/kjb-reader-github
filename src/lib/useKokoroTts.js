@@ -39,6 +39,16 @@ export function useKokoroTts() {
   // leaving the UI spinning forever.
   const pendingRejectRef = useRef(null);
 
+  // Second, independent worker used ONLY to pregenerate (cache) the next
+  // chapter/book's audio in the background while the current one is still
+  // playing — so advancing to it plays instantly instead of pausing to
+  // generate. Kept separate from the playback worker so a prefetch in
+  // flight is never killed by stop()/cancel on the active chapter.
+  const prefetchWorkerRef = useRef(null);
+  const prefetchLoadedRef = useRef(false);
+  const prefetchLoadPromiseRef = useRef(null);
+  const activePrefetchKeyRef = useRef(null);
+
   const getWorker = useCallback(() => {
     if (!workerRef.current) {
       const worker = new Worker(new URL('./tts/kokoroWorker.js', import.meta.url), { type: 'module' });
@@ -68,6 +78,7 @@ export function useKokoroTts() {
   useEffect(() => {
     return () => {
       workerRef.current?.terminate();
+      prefetchWorkerRef.current?.terminate();
       ctxRef.current?.close?.();
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
@@ -433,6 +444,74 @@ export function useKokoroTts() {
     });
   }, [getWorker, getCtx, runHighlightLoop]);
 
+  const getPrefetchWorker = useCallback(() => {
+    if (!prefetchWorkerRef.current) {
+      prefetchWorkerRef.current = new Worker(new URL('./tts/kokoroWorker.js', import.meta.url), { type: 'module' });
+    }
+    return prefetchWorkerRef.current;
+  }, []);
+
+  const ensurePrefetchLoaded = useCallback(() => {
+    if (prefetchLoadedRef.current) return Promise.resolve();
+    if (prefetchLoadPromiseRef.current) return prefetchLoadPromiseRef.current;
+    const worker = getPrefetchWorker();
+    const promise = new Promise((resolve, reject) => {
+      const onMessage = (e) => {
+        const msg = e.data;
+        if (msg.type === 'loaded') { prefetchLoadedRef.current = true; worker.removeEventListener('message', onMessage); resolve(); }
+        else if (msg.type === 'error') { worker.removeEventListener('message', onMessage); reject(new Error(msg.error)); }
+      };
+      worker.addEventListener('message', onMessage);
+      const useWebGPU = hasWebGPU;
+      worker.postMessage({ type: 'load', device: useWebGPU ? 'webgpu' : 'wasm', dtype: useWebGPU ? 'fp32' : 'q8' });
+    });
+    prefetchLoadPromiseRef.current = promise.catch((err) => { prefetchLoadPromiseRef.current = null; throw err; });
+    return prefetchLoadPromiseRef.current;
+  }, [getPrefetchWorker]);
+
+  // Silently generates a chapter/title-page's audio in the background and
+  // stores it in the shared cache — reusing the SAME cache listen() checks,
+  // so once this resolves, the next listen(key, ...) for that key plays
+  // immediately instead of generating from scratch. Best-effort: any failure
+  // is swallowed, since listen() will simply generate normally as a fallback.
+  const prefetch = useCallback(async (key, segments, voice = 'af_heart', speed = 1) => {
+    if (!segments || !segments.length) return;
+    const cached = cacheRef.current.get(key);
+    if (cached && cached.voice === voice) return;
+    if (activePrefetchKeyRef.current === key) return;
+    activePrefetchKeyRef.current = key;
+    try {
+      await ensurePrefetchLoaded();
+      const ctx = getCtx();
+      const worker = getPrefetchWorker();
+      const results = new Array(segments.length);
+      await new Promise((resolve, reject) => {
+        const onMessage = (e) => {
+          const msg = e.data;
+          if (msg.type === 'segment') {
+            const buffer = ctx.createBuffer(1, msg.samples.byteLength / 4, msg.sampleRate);
+            buffer.copyToChannel(new Float32Array(msg.samples), 0);
+            const seg = segments.find((s) => s.index === msg.index);
+            results[segments.indexOf(seg)] = { buffer, kind: seg.kind, verse: seg.verse, index: seg.index };
+          } else if (msg.type === 'done') {
+            worker.removeEventListener('message', onMessage);
+            resolve();
+          } else if (msg.type === 'error') {
+            worker.removeEventListener('message', onMessage);
+            reject(new Error(msg.error));
+          }
+        };
+        worker.addEventListener('message', onMessage);
+        worker.postMessage({ type: 'generate', segments, voice, speed });
+      });
+      cacheRef.current.set(key, { voice, buffers: results });
+    } catch {
+      // Best-effort — listen() falls back to generating this chapter normally.
+    } finally {
+      if (activePrefetchKeyRef.current === key) activePrefetchKeyRef.current = null;
+    }
+  }, [ensurePrefetchLoaded, getPrefetchWorker, getCtx]);
+
   const listen = useCallback(async (chapterKey, segments, { voice = 'af_heart', speed = 1, onEnded = null } = {}) => {
     setError(null);
     onEndedRef.current = onEnded;
@@ -478,6 +557,6 @@ export function useKokoroTts() {
   return {
     status, progress, currentVerse, currentWord, currentKind, error,
     isPlaying: status === 'playing',
-    listen, pause, resume, stop, forget, skipForward, skipBack,
+    listen, pause, resume, stop, forget, skipForward, skipBack, prefetch,
   };
 }

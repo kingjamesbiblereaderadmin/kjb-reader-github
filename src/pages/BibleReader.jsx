@@ -49,6 +49,44 @@ const TTS_VOICES = [
 const isMobile = () => window.innerWidth < 640;
 const STORAGE_KEY = 'kjb-position';
 
+// Pure TTS segment builders — extracted so they can build segments for the
+// NEXT chapter/book (background pregeneration) as well as the current one.
+function getEndMarkerTextFor(abbr, apiName, chapter) {
+  if (abbr === 'MAL' && chapter === 4) return resolveEndMarker(apiName, chapter) || 'The End of the Prophets.';
+  if (abbr === 'REV' && chapter === 22) return resolveEndMarker(apiName, chapter) || 'The End.';
+  return null;
+}
+
+function buildChapterSegments(book, chapter, verses, chapterSubscript, colophon, endMarkerText) {
+  const segs = [];
+  let idx = 0;
+  segs.push({ kind: 'intro', verse: null, text: `${book.name}. Chapter ${chapter}.`, index: idx++ });
+  if (chapterSubscript) segs.push({ kind: 'subscript', verse: null, text: cleanVerseText(chapterSubscript).replace(/^[\u00B6\uFFFD\u00B6]\s*/, ''), index: idx++ });
+  (verses || []).forEach((v) => {
+    // Psalm 119 acrostic: speak the Hebrew stanza heading (ALEPH, BETH, …)
+    // before the verse it precedes, matching what's shown on screen.
+    if (v.heading) segs.push({ kind: 'heading', verse: null, text: v.heading, index: idx++ });
+    segs.push({ kind: 'verse', verse: parseInt(v.verse, 10), text: cleanVerseText(v.text).replace(/^\u00B6\s*/, ''), index: idx++ });
+  });
+  if (colophon) segs.push({ kind: 'colophon', verse: null, text: cleanVerseText(colophon).replace(/^[\u00B6\uFFFD\u00B6]\s*/, ''), index: idx++ });
+  if (endMarkerText) segs.push({ kind: 'end', verse: null, text: endMarkerText, index: idx++ });
+  return segs;
+}
+
+function buildTitleSegments(abbr, book) {
+  let text;
+  if (abbr === 'GEN') {
+    text = "The Holy Bible, containing the Old and New Testaments. Translated out of the original tongues, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches. Authorised King James Bible.";
+  } else if (abbr === 'MAT') {
+    text = "The New Testament of our Lord and Saviour Jesus Christ. Translated out of the original Greek, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches.";
+  } else {
+    const testamentLabel = book.testament === 'new' ? 'New Testament' : 'Old Testament';
+    const chapterWord = book.chapters === 1 ? 'chapter' : 'chapters';
+    text = `${testamentLabel}. ${book.name}.${book.chapters > 0 ? ` ${book.chapters} ${chapterWord}.` : ''}`;
+  }
+  return [{ kind: 'intro', verse: null, text, index: 0 }];
+}
+
 function loadPosition() {
   try {
     const p = JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -536,46 +574,15 @@ export default function BibleReader() {
   // see src/lib/useKokoroTts.js / src/lib/tts/kokoroWorker.js).
   const tts = useKokoroTts();
   const [ttsVoiceId, setTtsVoiceId] = useState(TTS_VOICES[0].id);
-  // "The End" / "The End of the Prophets" markers, narrated as the final
-  // segment of Malachi 4 / Revelation 22 so listening naturally concludes there.
-  const getEndMarkerText = () => {
-    if (pos.abbr === 'MAL' && pos.chapter === 4) return resolveEndMarker(book.apiName, pos.chapter) || 'The End of the Prophets.';
-    if (pos.abbr === 'REV' && pos.chapter === 22) return resolveEndMarker(book.apiName, pos.chapter) || 'The End.';
-    return null;
-  };
 
-  const ttsSegments = useMemo(() => {
-    const segs = [];
-    let idx = 0;
-    segs.push({ kind: 'intro', verse: null, text: `${book.name}. Chapter ${pos.chapter}.`, index: idx++ });
-    if (chapterSubscript) segs.push({ kind: 'subscript', verse: null, text: cleanVerseText(chapterSubscript).replace(/^[\u00B6\uFFFD\u00B6]\s*/, ''), index: idx++ });
-    verses.forEach((v) => {
-      // Psalm 119 acrostic: speak the Hebrew stanza heading (ALEPH, BETH, …)
-      // before the verse it precedes, matching what's shown on screen.
-      if (v.heading) segs.push({ kind: 'heading', verse: null, text: v.heading, index: idx++ });
-      segs.push({ kind: 'verse', verse: parseInt(v.verse, 10), text: cleanVerseText(v.text).replace(/^\u00B6\s*/, ''), index: idx++ });
-    });
-    if (colophon) segs.push({ kind: 'colophon', verse: null, text: cleanVerseText(colophon).replace(/^[\u00B6\uFFFD\u00B6]\s*/, ''), index: idx++ });
-    const endMarker = getEndMarkerText();
-    if (endMarker) segs.push({ kind: 'end', verse: null, text: endMarker, index: idx++ });
-    return segs;
-  }, [verses, chapterSubscript, colophon, book.name, pos.chapter, pos.abbr]);
+  const ttsSegments = useMemo(
+    () => buildChapterSegments(book, pos.chapter, verses, chapterSubscript, colophon, getEndMarkerTextFor(pos.abbr, book.apiName, pos.chapter)),
+    [verses, chapterSubscript, colophon, book.name, book.apiName, pos.chapter, pos.abbr]
+  );
 
   // Title pages (chapter 0) get their own segment list so Listen mode reads
   // the full printed title-page text, not just a short announcement.
-  const ttsTitleSegments = useMemo(() => {
-    let text;
-    if (pos.abbr === 'GEN') {
-      text = "The Holy Bible, containing the Old and New Testaments. Translated out of the original tongues, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches. Authorised King James Bible.";
-    } else if (pos.abbr === 'MAT') {
-      text = "The New Testament of our Lord and Saviour Jesus Christ. Translated out of the original Greek, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches.";
-    } else {
-      const testamentLabel = book.testament === 'new' ? 'New Testament' : 'Old Testament';
-      const chapterWord = book.chapters === 1 ? 'chapter' : 'chapters';
-      text = `${testamentLabel}. ${book.name}.${book.chapters > 0 ? ` ${book.chapters} ${chapterWord}.` : ''}`;
-    }
-    return [{ kind: 'intro', verse: null, text, index: 0 }];
-  }, [pos.abbr, book.name, book.testament, book.chapters]);
+  const ttsTitleSegments = useMemo(() => buildTitleSegments(pos.abbr, book), [pos.abbr, book.name, book.testament, book.chapters]);
 
   // Ref flag: set right before navigating to the next chapter/book/title page
   // so narration is automatically (re)started there once it finishes loading.
@@ -610,6 +617,48 @@ export default function BibleReader() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, pos.abbr, pos.chapter]);
+
+  // While narration is actively playing the current chapter/title page,
+  // pregenerate the NEXT chapter/book's audio in the background (via a
+  // separate worker — see useKokoroTts.prefetch) so that when playback
+  // naturally advances there, it starts instantly instead of pausing to
+  // generate from scratch.
+  const prefetchedKeyRef = useRef(null);
+  useEffect(() => {
+    if (tts.status !== 'playing') return;
+    let cancelled = false;
+    (async () => {
+      try {
+        let nextAbbr, nextChapter, isTitle = false;
+        if (isViewingTitlePage) { nextAbbr = pos.abbr; nextChapter = 1; }
+        else if (pos.chapter < book.chapters) { nextAbbr = pos.abbr; nextChapter = pos.chapter + 1; }
+        else {
+          const nb = getNextBook(pos.abbr);
+          if (!nb) return;
+          nextAbbr = nb.abbr; isTitle = true;
+        }
+        const nextBook = BIBLE_BOOKS.find(b => b.abbr === nextAbbr);
+        if (!nextBook) return;
+        const key = isTitle ? `${nextAbbr}-title` : `${nextAbbr}-${nextChapter}`;
+        if (prefetchedKeyRef.current === key) return;
+        prefetchedKeyRef.current = key;
+        let segments;
+        if (isTitle) {
+          segments = buildTitleSegments(nextAbbr, nextBook);
+        } else {
+          const data = await fetchChapter(nextBook.apiName, nextChapter);
+          if (cancelled) return;
+          const sub = resolveSubscript(nextBook.apiName, nextChapter);
+          const endMarker = getEndMarkerTextFor(nextAbbr, nextBook.apiName, nextChapter);
+          segments = buildChapterSegments(nextBook, nextChapter, data.verses, sub, data.colophon || null, endMarker);
+        }
+        if (cancelled) return;
+        tts.prefetch(key, segments, ttsVoiceId, 0.85);
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tts.status, pos.abbr, pos.chapter, ttsVoiceId]);
 
   // Finds the verse currently at/just below the top of the visible scroll
   // area, so pressing Play while scrolled down starts narration from there
