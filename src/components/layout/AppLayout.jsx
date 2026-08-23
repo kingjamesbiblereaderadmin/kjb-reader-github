@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, BookOpen, Heart, Library, Info, Moon, Sun, SunMoon, Settings, Menu, X, Bookmark, ChevronLeft, ChevronDown, ChevronRight, RotateCw, BookMarked, List, Maximize2, Minimize2 } from 'lucide-react';
+import { Home, BookOpen, Heart, Library, Info, Moon, Sun, SunMoon, Settings, Menu, X, Bookmark, ChevronLeft, ChevronDown, ChevronRight, RotateCw, BookMarked, List, Maximize2, Minimize2, ZoomIn, ZoomOut } from 'lucide-react';
 import { useTheme } from '@/lib/themeContext';
 import { useHeaderHide } from '@/lib/HeaderHideContext';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
@@ -264,6 +264,26 @@ export default function AppLayout() {
       document.removeEventListener('touchstart', handleOutside);
     };
   }, [menuOpen]);
+  const [appZoom, setAppZoom] = useState(() => {
+    try { return parseInt(localStorage.getItem('kjb-layout-zoom') || '100'); } catch { return 100; }
+  });
+  useEffect(() => {
+    const sync = () => {
+      try { setAppZoom(parseInt(localStorage.getItem('kjb-layout-zoom') || '100')); } catch {}
+    };
+    window.addEventListener('storage', sync);
+    window.addEventListener('kjb-layout-zoom-changed', sync);
+    return () => {
+      window.removeEventListener('storage', sync);
+      window.removeEventListener('kjb-layout-zoom-changed', sync);
+    };
+  }, []);
+  const setAppZoomPersist = (next) => {
+    const clamped = Math.max(75, Math.min(150, next));
+    setAppZoom(clamped);
+    try { localStorage.setItem('kjb-layout-zoom', String(clamped)); } catch {}
+    window.dispatchEvent(new Event('kjb-layout-zoom-changed'));
+  };
   const [footerMode, setFooterMode] = useState(() => {
     try {
       const saved = localStorage.getItem('kjb-footer-mode');
@@ -392,7 +412,35 @@ export default function AppLayout() {
               onClick={() => setMenuOpen(false)}
             />
             <div data-kjb-menu className="absolute top-full right-0 left-0 z-50 bg-card backdrop-blur-xl border-b border-border/60 shadow-lg shadow-black/[0.05]">
-              <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 pt-3 pb-1 flex items-center justify-between gap-3 border-b border-border/50">
+                <span className="font-sans text-xs font-medium text-muted-foreground">App Zoom: {appZoom}%</span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setAppZoomPersist(appZoom - 25); }}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-foreground hover:border-accent transition-all duration-200 active:scale-95"
+                  >
+                    <ZoomOut className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setAppZoomPersist(appZoom + 25); }}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-foreground hover:border-accent transition-all duration-200 active:scale-95"
+                  >
+                    <ZoomIn className="w-3.5 h-3.5" />
+                  </button>
+                  {appZoom !== 100 && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setAppZoomPersist(100); }}
+                      className="px-2.5 h-8 flex items-center justify-center rounded-lg bg-primary border border-primary text-primary-foreground font-sans text-xs font-medium active:scale-95 transition-all duration-200"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {NAV_ITEMS.map(item => {
                   const Icon = item.icon;
                   const active = item.path === '/' ? pathname === '/' : pathname === item.path;
@@ -406,7 +454,7 @@ export default function AppLayout() {
                         scrollMainToTop();
                         navigate(item.path);
                       }}
-                      className={`relative flex items-center gap-2.5 px-3 py-2.5 rounded-lg border font-sans text-sm font-medium transition-all duration-200 hover:z-10 hover:shadow-md active:scale-95 ${
+                      className={`relative flex items-center gap-2.5 px-3.5 py-3 rounded-lg border font-sans text-sm font-medium leading-snug transition-all duration-200 hover:z-10 hover:shadow-md active:scale-95 ${
                         active
                           ? 'bg-gradient-to-br from-primary to-accent text-primary-foreground border-transparent shadow-md shadow-primary/20'
                           : 'bg-card/60 text-foreground border-border hover:bg-secondary hover:border-accent/40'
@@ -415,7 +463,7 @@ export default function AppLayout() {
                       <span className={`flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-white shadow-sm bg-gradient-to-br ${colors.gradient}`}>
                         <Icon className="w-4 h-4 transition-transform duration-200" />
                       </span>
-                      {item.label}
+                      <span className="min-w-0">{item.label}</span>
                     </Link>
                   );
                 })}
