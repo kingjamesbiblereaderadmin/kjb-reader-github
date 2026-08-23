@@ -108,10 +108,11 @@ export function useKokoroTts() {
       worker.postMessage({
         type: 'load',
         device: useWebGPU ? 'webgpu' : 'wasm',
-        // q4 (4-bit) is the fastest WASM option but noticeably degrades voice
-        // quality — that's the "robotic/glitchy" sound. q8 sounds much closer
-        // to full precision while still being smaller/faster than fp32.
-        dtype: useWebGPU ? 'fp16' : 'q8',
+        // fp16 isn't reliably supported by the WebGPU execution provider for
+        // this model (caused silent failures) — fp32 is the recommended/safe
+        // dtype for WebGPU. q8 is the recommended dtype for WASM — much
+        // better quality than q4 while still small/fast.
+        dtype: useWebGPU ? 'fp32' : 'q8',
       });
     });
   }, [getWorker]);
