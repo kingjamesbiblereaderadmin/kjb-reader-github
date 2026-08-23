@@ -522,6 +522,8 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
         <img
           src={logoSrc}
           alt="KJB Reader Logo"
+          width={176}
+          height={176}
           className="w-44 h-44 object-contain rounded-2xl p-3"
           style={{ background: splashBg }}
         />
