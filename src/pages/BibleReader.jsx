@@ -1100,6 +1100,14 @@ export default function BibleReader() {
     }
   }, []);
 
+  // While TTS narration is playing, scroll the currently-spoken verse into
+  // view so the page follows along instead of staying put.
+  useEffect(() => {
+    if (tts.status === 'playing' && tts.currentKind === 'verse' && tts.currentVerse != null) {
+      scrollToVerseEl(tts.currentVerse);
+    }
+  }, [tts.currentVerse, tts.currentKind, tts.status, scrollToVerseEl]);
+
   useEffect(() => {
     if (loading) return;
     if (highlightVerse) {
