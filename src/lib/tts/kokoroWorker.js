@@ -134,9 +134,48 @@ const NAME_PRONUNCIATIONS = {
   'Schin': 'Sheen',
   'Tau': 'Tahv',
 };
-const NAME_PATTERN = new RegExp(`\\b(${Object.keys(NAME_PRONUNCIATIONS).join('|')})\\b`, 'gi');
+// Hand-tuned overrides (Hebrew acrostic letter names, etc.) always take
+// priority over the fetched Farrar-derived map below.
+const LOCAL_OVERRIDES = {};
+Object.keys(NAME_PRONUNCIATIONS).forEach((k) => { LOCAL_OVERRIDES[k.toUpperCase()] = NAME_PRONUNCIATIONS[k]; });
+
+// Converts a Farrar-style phonetic respelling (e.g. "Neb-u-kad-nez'-zar") into
+// plain letters Kokoro's English text-to-phoneme rules can read correctly —
+// stripping the syllable hyphens and stress marks yields a simplified,
+// English-friendly spelling (e.g. "Nebukadnezzar") that fixes common
+// mispronunciations (like "ch" being read where it should sound like "k").
+function respellToSpeakable(resp) {
+  return String(resp).replace(/['’]/g, '').replace(/-/g, '');
+}
+
+// Combined name -> speakable-respelling map + the regex built from its keys.
+// Starts with just the local overrides; replaced once the fetched
+// Pronunciation entity data arrives via the 'load' message.
+let PRONUNCIATION_MAP = { ...LOCAL_OVERRIDES };
+let NAME_PATTERN = buildNamePattern(PRONUNCIATION_MAP);
+
+function buildNamePattern(map) {
+  const keys = Object.keys(map);
+  if (!keys.length) return null;
+  const escaped = keys.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  return new RegExp(`\\b(${escaped.join('|')})\\b`, 'gi');
+}
+
+function setPronunciations(fetchedMap) {
+  const converted = {};
+  if (fetchedMap && typeof fetchedMap === 'object') {
+    Object.keys(fetchedMap).forEach((k) => {
+      converted[k.toUpperCase()] = respellToSpeakable(fetchedMap[k]);
+    });
+  }
+  // Local hand-tuned overrides win over the generic fetched respellings.
+  PRONUNCIATION_MAP = { ...converted, ...LOCAL_OVERRIDES };
+  NAME_PATTERN = buildNamePattern(PRONUNCIATION_MAP);
+}
+
 function normalizeBiblicalNames(text) {
-  return text.replace(NAME_PATTERN, (match) => NAME_PRONUNCIATIONS[match] || match);
+  if (!NAME_PATTERN) return text;
+  return text.replace(NAME_PATTERN, (match) => PRONUNCIATION_MAP[match.toUpperCase()] || match);
 }
 
 // Trim leading/trailing near-silence from generated audio so segments join
@@ -179,10 +218,11 @@ async function generateSegments(segments, voice, speed) {
 }
 
 self.onmessage = async (e) => {
-  const { type, device, dtype, segments, voice, speed } = e.data || {};
+  const { type, device, dtype, segments, voice, speed, pronunciations } = e.data || {};
 
   if (type === 'load') {
     try {
+      if (pronunciations) setPronunciations(pronunciations);
       await loadModel(device, dtype);
       self.postMessage({ type: 'loaded' });
     } catch (err) {

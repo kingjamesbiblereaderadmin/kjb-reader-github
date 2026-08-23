@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { base44 } from '@/api/base44Client';
 
 // React hook wrapping the Kokoro TTS Web Worker + Web Audio playback.
 // Owns: the worker, one AudioContext (created inside a user gesture), a
@@ -6,6 +7,24 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 // loop that maps playback time to the currently-speaking verse for highlighting.
 
 const hasWebGPU = typeof navigator !== 'undefined' && !!navigator.gpu;
+
+// Bible proper-name pronunciation overrides (from the Pronunciation entity,
+// sourced from "The Proper Names of the Bible" by John Farrar) — fetched once
+// per app session and handed to each TTS worker on 'load' so it can respell
+// names before generating speech. Best-effort: an empty map just means no
+// overrides are applied.
+let pronunciationMapPromise = null;
+function fetchPronunciationMap() {
+  if (pronunciationMapPromise) return pronunciationMapPromise;
+  pronunciationMapPromise = base44.entities.Pronunciation.list(null, 3000)
+    .then((rows) => {
+      const map = {};
+      (rows || []).forEach((r) => { if (r.name && r.pronunciation) map[r.name] = r.pronunciation; });
+      return map;
+    })
+    .catch(() => ({}));
+  return pronunciationMapPromise;
+}
 // Silent gap inserted between spoken segments (verses/subscript/colophon) so
 // each verse gets a clear breath/pause before the next one starts, instead of
 // running straight into it.
@@ -84,7 +103,8 @@ export function useKokoroTts() {
     };
   }, []);
 
-  const loadModel = useCallback(() => {
+  const loadModel = useCallback(async () => {
+    const pronunciations = await fetchPronunciationMap();
     return new Promise((resolve, reject) => {
       const worker = getWorker();
       setStatus('loading');
@@ -125,6 +145,7 @@ export function useKokoroTts() {
         // dtype for WebGPU. q8 is the recommended dtype for WASM — much
         // better quality than q4 while still small/fast.
         dtype: useWebGPU ? 'fp32' : 'q8',
+        pronunciations,
       });
     });
   }, [getWorker]);
@@ -141,6 +162,7 @@ export function useKokoroTts() {
           workerRef.current = null;
           loadedRef.current = false;
           const worker = getWorker();
+          const pronunciations = await fetchPronunciationMap();
           await new Promise((resolve, reject) => {
             const onMessage = (e) => {
               const msg = e.data;
@@ -149,7 +171,7 @@ export function useKokoroTts() {
               else if (msg.type === 'error') { worker.removeEventListener('message', onMessage); reject(new Error(msg.error)); }
             };
             worker.addEventListener('message', onMessage);
-            worker.postMessage({ type: 'load', device: 'wasm', dtype: 'q4' });
+            worker.postMessage({ type: 'load', device: 'wasm', dtype: 'q4', pronunciations });
           });
           return;
         } catch (err2) {
@@ -455,16 +477,19 @@ export function useKokoroTts() {
     if (prefetchLoadedRef.current) return Promise.resolve();
     if (prefetchLoadPromiseRef.current) return prefetchLoadPromiseRef.current;
     const worker = getPrefetchWorker();
-    const promise = new Promise((resolve, reject) => {
-      const onMessage = (e) => {
-        const msg = e.data;
-        if (msg.type === 'loaded') { prefetchLoadedRef.current = true; worker.removeEventListener('message', onMessage); resolve(); }
-        else if (msg.type === 'error') { worker.removeEventListener('message', onMessage); reject(new Error(msg.error)); }
-      };
-      worker.addEventListener('message', onMessage);
-      const useWebGPU = hasWebGPU;
-      worker.postMessage({ type: 'load', device: useWebGPU ? 'webgpu' : 'wasm', dtype: useWebGPU ? 'fp32' : 'q8' });
-    });
+    const promise = (async () => {
+      const pronunciations = await fetchPronunciationMap();
+      return new Promise((resolve, reject) => {
+        const onMessage = (e) => {
+          const msg = e.data;
+          if (msg.type === 'loaded') { prefetchLoadedRef.current = true; worker.removeEventListener('message', onMessage); resolve(); }
+          else if (msg.type === 'error') { worker.removeEventListener('message', onMessage); reject(new Error(msg.error)); }
+        };
+        worker.addEventListener('message', onMessage);
+        const useWebGPU = hasWebGPU;
+        worker.postMessage({ type: 'load', device: useWebGPU ? 'webgpu' : 'wasm', dtype: useWebGPU ? 'fp32' : 'q8', pronunciations });
+      });
+    })();
     prefetchLoadPromiseRef.current = promise.catch((err) => { prefetchLoadPromiseRef.current = null; throw err; });
     return prefetchLoadPromiseRef.current;
   }, [getPrefetchWorker]);
