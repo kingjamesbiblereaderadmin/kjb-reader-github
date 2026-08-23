@@ -108,7 +108,9 @@ export function useKokoroTts() {
       worker.postMessage({
         type: 'load',
         device: useWebGPU ? 'webgpu' : 'wasm',
-        dtype: useWebGPU ? 'fp32' : 'q4',
+        // fp16 is a much smaller/faster load than fp32 on WebGPU while still
+        // running on the GPU at full speed; q4 remains the fastest WASM option.
+        dtype: useWebGPU ? 'fp16' : 'q4',
       });
     });
   }, [getWorker]);
@@ -302,13 +304,10 @@ export function useKokoroTts() {
       const results = new Array(segments.length);
       let received = 0;
       let nextStartTime = null; // ctx time when the next segment should start
-      // Buffer a couple of segments ahead before starting playback. The intro
-      // ("Book. Chapter N.") generates almost instantly, but a real verse can
-      // take noticeably longer — starting audio on the intro alone leaves a
-      // dead silent gap while verse 1 is still generating. Holding back the
-      // first few segments absorbs that lag into the "Preparing narration…"
-      // wait instead of an audible mid-playback stall.
-      const BUFFER_AHEAD = Math.min(2, segments.length);
+      // Buffer just 1 segment ahead before starting playback — enough so the
+      // intro ("Book. Chapter N.") and verse 1 aren't scheduled back-to-back
+      // before verse 1 even exists, without adding a long upfront wait.
+      const BUFFER_AHEAD = Math.min(1, segments.length);
       const pendingBuffers = [];
       let startedScheduling = false;
       cancelledRef.current = false;
