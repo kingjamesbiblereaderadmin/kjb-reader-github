@@ -152,10 +152,40 @@ export function useKokoroTts() {
     }
   }, [loadModel, getWorker]);
 
+  // Timers that switch on the verse highlight, scheduled slightly BEFORE that
+  // verse's audio becomes audible — so a verse is always highlighted first,
+  // and narration is never heard starting on a verse before it lights up.
+  const highlightTimersRef = useRef([]);
+  const HIGHLIGHT_LEAD = 0.06;
+  const clearHighlightTimers = () => {
+    highlightTimersRef.current.forEach(clearTimeout);
+    highlightTimersRef.current = [];
+  };
+  const scheduleHighlightAt = (ctx, absStartTime, kind, verse) => {
+    const delayMs = Math.max(0, (absStartTime - HIGHLIGHT_LEAD - ctx.currentTime) * 1000);
+    const id = setTimeout(() => { setCurrentVerse(verse); setCurrentKind(kind); }, delayMs);
+    highlightTimersRef.current.push(id);
+  };
+  // Highlight timers run on the wall clock, but the AudioContext's clock
+  // freezes while suspended (pause) — so on resume they must be recomputed
+  // from the still-valid ctx-time schedule, not just left to fire late.
+  const rescheduleHighlights = () => {
+    clearHighlightTimers();
+    const ctx = ctxRef.current;
+    if (!ctx) return;
+    const elapsed = ctx.state === 'running' ? ctx.currentTime - playStartCtxTimeRef.current : pausedAtRef.current;
+    scheduleRef.current.forEach((seg) => {
+      if (seg.startTime > elapsed) {
+        scheduleHighlightAt(ctx, playStartCtxTimeRef.current + seg.startTime, seg.kind, seg.verse);
+      }
+    });
+  };
+
   const stopSources = () => {
     sourcesRef.current.forEach((s) => { try { s.stop(); } catch {} });
     sourcesRef.current = [];
     if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+    clearHighlightTimers();
   };
 
   const stop = useCallback(() => {
@@ -178,16 +208,15 @@ export function useKokoroTts() {
     const ctx = ctxRef.current;
     if (!ctx) return;
     const tick = () => {
+      // Verse highlighting is driven by scheduleHighlightAt timers (fired
+      // slightly ahead of each segment's audio), not by polling here — this
+      // loop now only watches for the end of the whole chapter's playback.
       const elapsed = ctx.currentTime - playStartCtxTimeRef.current;
-      const seg = scheduleRef.current.find((s) => elapsed >= s.startTime && elapsed < s.endTime);
-      if (seg) {
-        setCurrentVerse(seg.verse);
-        setCurrentKind(seg.kind);
-      }
       const last = scheduleRef.current[scheduleRef.current.length - 1];
       if (last && elapsed >= last.endTime && doneGeneratingRef.current) {
         setStatus('ready');
         setCurrentVerse(null); setCurrentKind(null);
+        clearHighlightTimers();
         rafRef.current = null;
         return;
       }
@@ -240,6 +269,7 @@ export function useKokoroTts() {
       const segStart = t - startAt;
       const segEnd = segStart + (segDuration - offsetInSeg);
       schedule.push({ startTime: segStart, endTime: segEnd, kind: b.kind, verse: b.verse });
+      scheduleHighlightAt(ctx, t, b.kind, b.verse);
       t += segDuration - offsetInSeg + VERSE_GAP;
     });
     scheduleRef.current = schedule;
@@ -255,6 +285,9 @@ export function useKokoroTts() {
     pausedAtRef.current = ctx.currentTime - playStartCtxTimeRef.current;
     ctx.suspend();
     if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+    // Pending highlight timers are wall-clock based and would otherwise keep
+    // firing during the pause even though the audio itself is frozen.
+    clearHighlightTimers();
     setStatus('paused');
   }, []);
 
@@ -262,6 +295,7 @@ export function useKokoroTts() {
     const ctx = ctxRef.current;
     if (!ctx) return;
     ctx.resume();
+    rescheduleHighlights();
     setStatus('playing');
     runHighlightLoop();
   }, [runHighlightLoop]);
@@ -352,6 +386,7 @@ export function useKokoroTts() {
         const segStart = nextStartTime - playStartCtxTimeRef.current;
         const segEnd = segStart + bufObj.buffer.duration;
         scheduleRef.current = [...scheduleRef.current, { startTime: segStart, endTime: segEnd, kind: bufObj.kind, verse: bufObj.verse }];
+        scheduleHighlightAt(ctx, nextStartTime, bufObj.kind, bufObj.verse);
         nextStartTime += bufObj.buffer.duration + VERSE_GAP;
       };
 
