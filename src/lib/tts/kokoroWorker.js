@@ -109,6 +109,9 @@ const NAME_PRONUNCIATIONS = {
   'Philemon': 'Fylleemuhn',
   'Eutychus': 'Yootikuhs',
   'Elymas': 'Elimuhs',
+  'Egypt': 'Eejipt',
+  'Egyptian': 'Eejipshun',
+  'Egyptians': 'Eejipshuns',
 };
 
 // Psalm 119 acrostic — Hebrew alphabet letter names (traditional KJB
