@@ -115,7 +115,7 @@ const NAME_PRONUNCIATIONS = {
   'Egyptian': 'Eejipshun',
   'Egyptians': 'Eejipshuns',
   'Moses': 'Mohziz',
-  'Genesis': 'Jenuhsis',
+  'Genesis': 'Jennuhsiss',
   'Abraham': 'Aybruhham',
 };
 
