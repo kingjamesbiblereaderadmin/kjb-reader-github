@@ -13,7 +13,7 @@ export default function KokoroListenControls({ status, progress, error, voices, 
   const currentVoice = voices.find((v) => v.id === voiceId) || voices[0];
 
   const label = status === 'loading' ? `Loading voice… ${progress}%`
-    : status === 'generating' ? 'Preparing narration…'
+    : status === 'generating' ? `Preparing narration… ${progress}%`
     : isPlaying ? 'Playing…'
     : isPaused ? 'Paused'
     : error ? `Listen failed: ${error}`
@@ -77,6 +77,14 @@ export default function KokoroListenControls({ status, progress, error, voices, 
           <Square className="w-4 h-4" />
         </button>
       </div>
+      {isBusy && (
+        <div className="w-full bg-secondary/70 rounded-full h-1.5 overflow-hidden">
+          <div
+            className="bg-accent h-1.5 rounded-full transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      )}
       {label && (
         <div className="flex items-center justify-center">
           <span className={`font-sans text-xs text-center truncate max-w-full ${error && !isBusy && !isActive ? 'text-destructive' : 'text-muted-foreground'}`}>{label}</span>
