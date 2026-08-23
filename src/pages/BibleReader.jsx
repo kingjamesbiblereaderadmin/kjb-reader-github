@@ -561,12 +561,21 @@ export default function BibleReader() {
     return segs;
   }, [verses, chapterSubscript, colophon, book.name, pos.chapter, pos.abbr]);
 
-  // Title pages (chapter 0) get their own tiny segment list so Listen mode
-  // works there too — announcing the testament/book name before continuing on.
+  // Title pages (chapter 0) get their own segment list so Listen mode reads
+  // the full printed title-page text, not just a short announcement.
   const ttsTitleSegments = useMemo(() => {
-    const text = pos.abbr === 'GEN' ? 'The Old Testament.' : pos.abbr === 'MAT' ? 'The New Testament.' : `${book.name}.`;
+    let text;
+    if (pos.abbr === 'GEN') {
+      text = "The Holy Bible, containing the Old and New Testaments. Translated out of the original tongues, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches. Authorised King James Bible.";
+    } else if (pos.abbr === 'MAT') {
+      text = "The New Testament of our Lord and Saviour Jesus Christ. Translated out of the original Greek, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches.";
+    } else {
+      const testamentLabel = book.testament === 'new' ? 'New Testament' : 'Old Testament';
+      const chapterWord = book.chapters === 1 ? 'chapter' : 'chapters';
+      text = `${testamentLabel}. ${book.name}.${book.chapters > 0 ? ` ${book.chapters} ${chapterWord}.` : ''}`;
+    }
     return [{ kind: 'intro', verse: null, text, index: 0 }];
-  }, [pos.abbr, book.name]);
+  }, [pos.abbr, book.name, book.testament, book.chapters]);
 
   // Ref flag: set right before navigating to the next chapter/book/title page
   // so narration is automatically (re)started there once it finishes loading.
