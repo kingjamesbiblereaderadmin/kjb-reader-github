@@ -536,13 +536,14 @@ export default function BibleReader() {
   const ttsSegments = useMemo(() => {
     const segs = [];
     let idx = 0;
+    segs.push({ kind: 'intro', verse: null, text: `${book.name}. Chapter ${pos.chapter}.`, index: idx++ });
     if (chapterSubscript) segs.push({ kind: 'subscript', verse: null, text: cleanVerseText(chapterSubscript).replace(/^[\u00B6\uFFFD\u00B6]\s*/, ''), index: idx++ });
     verses.forEach((v) => {
       segs.push({ kind: 'verse', verse: parseInt(v.verse, 10), text: cleanVerseText(v.text).replace(/^\u00B6\s*/, ''), index: idx++ });
     });
     if (colophon) segs.push({ kind: 'colophon', verse: null, text: cleanVerseText(colophon).replace(/^[\u00B6\uFFFD\u00B6]\s*/, ''), index: idx++ });
     return segs;
-  }, [verses, chapterSubscript, colophon]);
+  }, [verses, chapterSubscript, colophon, book.name, pos.chapter]);
 
   const handleListenTts = () => {
     tts.listen(`${pos.abbr}-${pos.chapter}`, ttsSegments, { voice: TTS_VOICE_MAP[ttsVoiceGender] });
