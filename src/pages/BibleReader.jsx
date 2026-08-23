@@ -1336,14 +1336,28 @@ export default function BibleReader() {
     const scroller = document.getElementById('kjb-scroll');
     const toolbarH = topRef.current ? topRef.current.getBoundingClientRect().height : 0;
     const stickyOffset = toolbarH + 48;
+    // The mobile fixed bottom nav overlaps the last stretch of the scrollable
+    // area — a long verse's final lines can land underneath it and stay
+    // hidden even though top-aligning made the verse start visible.
+    const bottomNavEl = document.querySelector('nav.fixed.bottom-0');
+    const footerH = bottomNavEl ? bottomNavEl.getBoundingClientRect().height : 0;
     const numEl = verseEl.querySelector('sup, .kjb-dropcap-num');
     let topRect = numEl ? numEl.getBoundingClientRect().top : verseEl.getBoundingClientRect().top;
     const heading = verseEl.querySelector('.font-bold.text-center');
     if (heading && heading.getBoundingClientRect().top < topRect) topRect = heading.getBoundingClientRect().top;
+    const containerTop = scroller ? scroller.getBoundingClientRect().top : 0;
+    const containerBottom = scroller ? scroller.getBoundingClientRect().bottom : window.innerHeight;
+    const visibleBottom = containerBottom - footerH;
+    const verseRect = verseEl.getBoundingClientRect();
+    const availableHeight = visibleBottom - containerTop - stickyOffset;
+    // Only nudge further down (beyond top-alignment) when the whole verse can
+    // actually fit in the visible area once the footer is cleared — otherwise
+    // top-aligning to show the verse's start remains the best option.
+    const overflow = verseRect.height <= availableHeight ? Math.max(0, verseRect.bottom - visibleBottom) : 0;
     if (scroller) {
-      scroller.scrollTo({ top: Math.max(0, topRect - scroller.getBoundingClientRect().top + scroller.scrollTop - stickyOffset), behavior: 'smooth' });
+      scroller.scrollTo({ top: Math.max(0, topRect - containerTop + scroller.scrollTop - stickyOffset + overflow), behavior: 'smooth' });
     } else {
-      window.scrollTo({ top: Math.max(0, topRect + window.scrollY - stickyOffset), behavior: 'smooth' });
+      window.scrollTo({ top: Math.max(0, topRect + window.scrollY - stickyOffset + overflow), behavior: 'smooth' });
     }
   }, []);
 
