@@ -401,13 +401,11 @@ export function useKokoroTts() {
       const results = new Array(segments.length);
       let received = 0;
       let nextStartTime = null; // ctx time when the next segment should start
-      // Start playback after a buffer of segments is ready, then keep
+      // Start playback after a small buffer of segments is ready, then keep
       // generating the rest in the background while it plays ("rolling"),
       // instead of waiting for the entire chapter to finish generating first.
-      // A bigger buffer means a bit more wait before audio starts, but gives
-      // generation more of a head start over playback so occasional slow
-      // segments don't cause an audible pause waiting for the next one.
-      const BUFFER_AHEAD = Math.min(6, segments.length);
+      // Kept small so audio starts quickly, especially on slower mobile devices.
+      const BUFFER_AHEAD = Math.min(2, segments.length);
       const pendingBuffers = [];
       let startedScheduling = false;
       cancelledRef.current = false;
