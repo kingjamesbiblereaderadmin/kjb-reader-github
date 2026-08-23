@@ -17,6 +17,7 @@ import ContactLinks from '@/components/ContactLinks';
 import { useAuth } from '@/lib/AuthContext';
 import { downloadBibleForOffline, downloadBibleForOfflineWithRetry, clearBibleCache, isBibleCached, CACHE_VERSION } from '@/lib/bibleCache';
 import { getAccessibilityFont, setAccessibilityFont } from '@/lib/accessibilityFont';
+import { getAutoRotate, setAutoRotate as persistAutoRotate } from '@/lib/autoRotate';
 import { detectIncognito } from '@/lib/incognito';
 import { getLiveWorkerVersion, getDeployedWorkerVersion } from '@/lib/liveWorkerVersion';
 
@@ -117,6 +118,11 @@ export default function SettingsPage() {
     setAppZoom(clamped);
     try { localStorage.setItem('kjb-layout-zoom', String(clamped)); } catch {}
     window.dispatchEvent(new Event('kjb-layout-zoom-changed'));
+  };
+  const [autoRotate, setAutoRotateState] = useState(getAutoRotate);
+  const toggleAutoRotate = (checked) => {
+    setAutoRotateState(checked);
+    persistAutoRotate(checked);
   };
 
   const VERSE_FONTS = [
@@ -559,6 +565,20 @@ export default function SettingsPage() {
         {/* Theme Color */}
         <div className="pt-4 border-t border-border">
           <ThemeColorPicker />
+        </div>
+
+        {/* Auto Rotate */}
+        <div className="pt-4 border-t border-border">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <RotateCcw className="w-4 h-4 text-muted-foreground" />
+              <div>
+                <p className="font-sans text-sm text-foreground font-medium">Auto Rotate</p>
+                <p className="font-sans text-xs text-muted-foreground mt-0.5">Allow the screen to rotate with your device</p>
+              </div>
+            </div>
+            <Switch checked={autoRotate} onCheckedChange={toggleAutoRotate} />
+          </div>
         </div>
 
         </div>

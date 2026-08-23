@@ -5,6 +5,8 @@ import { useTheme } from '@/lib/themeContext';
 import { useHeaderHide } from '@/lib/HeaderHideContext';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import { useBrowserZoom } from '@/hooks/useBrowserZoom';
+import { Switch } from '@/components/ui/switch';
+import { getAutoRotate, setAutoRotate as persistAutoRotate, applyAutoRotate } from '@/lib/autoRotate';
 import BibleSearchBar from '@/components/bible/BibleSearchBar';
 import ShortcutsModal from '@/components/ShortcutsModal';
 import ScrollToTop from '@/components/ScrollToTop';
@@ -264,6 +266,21 @@ export default function AppLayout() {
       document.removeEventListener('touchstart', handleOutside);
     };
   }, [menuOpen]);
+  const [autoRotate, setAutoRotateState] = useState(getAutoRotate);
+  useEffect(() => {
+    applyAutoRotate(getAutoRotate());
+    const sync = () => setAutoRotateState(getAutoRotate());
+    window.addEventListener('storage', sync);
+    window.addEventListener('kjb-auto-rotate-changed', sync);
+    return () => {
+      window.removeEventListener('storage', sync);
+      window.removeEventListener('kjb-auto-rotate-changed', sync);
+    };
+  }, []);
+  const toggleAutoRotate = (checked) => {
+    setAutoRotateState(checked);
+    persistAutoRotate(checked);
+  };
   const [appZoom, setAppZoom] = useState(() => {
     try { return parseInt(localStorage.getItem('kjb-layout-zoom') || '100'); } catch { return 100; }
   });
@@ -439,6 +456,13 @@ export default function AppLayout() {
                     </button>
                   )}
                 </div>
+              </div>
+              <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-2.5 flex items-center justify-between gap-3 border-b border-border/50">
+                <span className="flex items-center gap-1.5 font-sans text-xs font-medium text-muted-foreground">
+                  <RotateCw className="w-3.5 h-3.5" />
+                  Auto Rotate
+                </span>
+                <Switch checked={autoRotate} onCheckedChange={toggleAutoRotate} />
               </div>
               <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {NAV_ITEMS.map(item => {
