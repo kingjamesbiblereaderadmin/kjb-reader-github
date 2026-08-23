@@ -191,7 +191,7 @@ export function useKokoroTts() {
   // start/end of each generated clip doesn't cut off mid-waveform — which is
   // what causes the audible "click"/pop between segments (e.g. right after
   // the book/chapter name finishes).
-  const FADE = 0.012;
+  const FADE = 0.035;
   const playBufferWithFade = (ctx, buffer, startTime, offset = 0) => {
     const source = ctx.createBufferSource();
     source.buffer = buffer;
