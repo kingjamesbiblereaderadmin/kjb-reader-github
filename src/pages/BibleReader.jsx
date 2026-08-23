@@ -546,7 +546,10 @@ export default function BibleReader() {
   }, [verses, chapterSubscript, colophon, book.name, pos.chapter]);
 
   const handleListenTts = () => {
-    tts.listen(`${pos.abbr}-${pos.chapter}`, ttsSegments, { voice: TTS_VOICE_MAP[ttsVoiceGender] });
+    // Slightly under 1x — full speed reads verses faster than the highlight
+    // can visibly keep pace with, so the highlight looks like it's lagging
+    // behind by the time a verse ends.
+    tts.listen(`${pos.abbr}-${pos.chapter}`, ttsSegments, { voice: TTS_VOICE_MAP[ttsVoiceGender], speed: 0.85 });
   };
   const handleCycleTtsVoice = () => {
     tts.forget(`${pos.abbr}-${pos.chapter}`);
