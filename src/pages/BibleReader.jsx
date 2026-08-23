@@ -40,7 +40,11 @@ import { useReadingProgressTracker } from '@/hooks/useReadingProgressTracker';
 import { useKokoroTts } from '@/lib/useKokoroTts';
 import KokoroListenControls from '@/components/bible/KokoroListenControls';
 
-const TTS_VOICE_MAP = { female: 'af_heart', male: 'am_michael' };
+// Kokoro-82M British voice IDs: bf = British female, bm = British male.
+const TTS_VOICES = [
+  { id: 'bf_emma', label: 'British Female' },
+  { id: 'bm_george', label: 'British Male' },
+];
 
 const isMobile = () => window.innerWidth < 640;
 const STORAGE_KEY = 'kjb-position';
@@ -532,7 +536,7 @@ export default function BibleReader() {
   // Client-side Kokoro TTS narration (no backend, no bundled ONNX runtime —
   // see src/lib/useKokoroTts.js / src/lib/tts/kokoroWorker.js).
   const tts = useKokoroTts();
-  const [ttsVoiceGender, setTtsVoiceGender] = useState('female');
+  const [ttsVoiceId, setTtsVoiceId] = useState(TTS_VOICES[0].id);
   const ttsSegments = useMemo(() => {
     const segs = [];
     let idx = 0;
@@ -549,11 +553,33 @@ export default function BibleReader() {
     // Slightly under 1x — full speed reads verses faster than the highlight
     // can visibly keep pace with, so the highlight looks like it's lagging
     // behind by the time a verse ends.
-    tts.listen(`${pos.abbr}-${pos.chapter}`, ttsSegments, { voice: TTS_VOICE_MAP[ttsVoiceGender], speed: 0.85 });
+    tts.listen(`${pos.abbr}-${pos.chapter}`, ttsSegments, { voice: ttsVoiceId, speed: 0.85 });
   };
-  const handleCycleTtsVoice = () => {
+
+  // Switching voice while narration is playing/paused: stop the current audio,
+  // then re-generate from the segment that was currently speaking (not the
+  // start of the chapter) using the new voice, so narration picks up roughly
+  // where it left off instead of restarting the whole chapter.
+  const handleSelectTtsVoice = (voiceId) => {
+    if (voiceId === ttsVoiceId) return;
+    const wasActive = tts.status === 'playing' || tts.status === 'paused';
+    const resumeVerse = tts.currentVerse;
+    const resumeKind = tts.currentKind;
     tts.forget(`${pos.abbr}-${pos.chapter}`);
-    setTtsVoiceGender((g) => (g === 'female' ? 'male' : 'female'));
+    setTtsVoiceId(voiceId);
+    if (wasActive) {
+      tts.stop();
+      let startIdx = 0;
+      if (resumeKind === 'verse' && resumeVerse != null) {
+        const idx = ttsSegments.findIndex((s) => s.kind === 'verse' && s.verse === resumeVerse);
+        if (idx >= 0) startIdx = idx;
+      } else if (resumeKind) {
+        const idx = ttsSegments.findIndex((s) => s.kind === resumeKind);
+        if (idx >= 0) startIdx = idx;
+      }
+      const remaining = ttsSegments.slice(startIdx);
+      tts.listen(`${pos.abbr}-${pos.chapter}-resume-${voiceId}`, remaining, { voice: voiceId, speed: 0.85 });
+    }
   };
 
   // Stop narration on chapter change / unmount so it never plays over a
@@ -1968,12 +1994,13 @@ export default function BibleReader() {
               status={tts.status}
               progress={tts.progress}
               error={tts.error}
-              voice={ttsVoiceGender}
+              voices={TTS_VOICES}
+              voiceId={ttsVoiceId}
               onListen={handleListenTts}
               onPause={tts.pause}
               onResume={tts.resume}
               onStop={tts.stop}
-              onCycleVoice={handleCycleTtsVoice}
+              onSelectVoice={handleSelectTtsVoice}
               onSkipBack={tts.skipBack}
               onSkipForward={tts.skipForward}
             />

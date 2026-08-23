@@ -1,14 +1,16 @@
 import React from 'react';
-import { Pause, Play, Square, Loader2, User, UserRound, SkipBack, SkipForward } from 'lucide-react';
+import { Pause, Play, Square, Loader2, UserRound, SkipBack, SkipForward, ChevronDown, Check } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
-// Full-width Kokoro TTS narration bar, styled like a media player. All
-// controls are always visible (not just after tapping "Listen") — skip/stop
-// are simply disabled until there's something to skip/stop.
-export default function KokoroListenControls({ status, progress, error, voice, onListen, onPause, onResume, onStop, onCycleVoice, onSkipBack, onSkipForward }) {
+// Full-width Kokoro TTS narration bar, styled like a media player. Voice is
+// chosen from a full-width dropdown (not a small icon toggle) and can be
+// switched at any time — including while narration is playing or paused.
+export default function KokoroListenControls({ status, progress, error, voices, voiceId, onListen, onPause, onResume, onStop, onSelectVoice, onSkipBack, onSkipForward }) {
   const isBusy = status === 'loading' || status === 'generating';
   const isPlaying = status === 'playing';
   const isPaused = status === 'paused';
   const isActive = isPlaying || isPaused;
+  const currentVoice = voices.find((v) => v.id === voiceId) || voices[0];
 
   const label = status === 'loading' ? `Loading voice… ${progress}%`
     : status === 'generating' ? `Preparing narration… ${progress}%`
@@ -18,16 +20,30 @@ export default function KokoroListenControls({ status, progress, error, voice, o
     : null;
 
   return (
-    <div className="w-full mt-3 pt-3 border-t border-border">
+    <div className="w-full mt-3 pt-3 border-t border-border space-y-3">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            disabled={isBusy}
+            title="Choose narration voice"
+            className="flex items-center justify-center gap-2 w-full h-10 px-3 rounded-lg bg-secondary border border-border text-foreground font-sans text-sm font-medium hover:bg-accent/20 disabled:opacity-40 transition-all duration-200 touch-manipulation"
+          >
+            <UserRound className="w-4 h-4 flex-shrink-0" />
+            <span className="truncate">Voice: {currentVoice?.label}</span>
+            <ChevronDown className="w-3.5 h-3.5 opacity-70 flex-shrink-0" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="center" className="w-56">
+          {voices.map((v) => (
+            <DropdownMenuItem key={v.id} onClick={() => onSelectVoice(v.id)} className="cursor-pointer justify-between">
+              <span>{v.label}</span>
+              {v.id === voiceId && <Check className="w-3.5 h-3.5 text-accent" />}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
       <div className="flex items-center justify-center gap-3">
-        <button
-          onClick={onCycleVoice}
-          disabled={isBusy}
-          title={voice === 'female' ? 'Voice: Female (tap for male)' : 'Voice: Male (tap for female)'}
-          className="flex items-center justify-center w-9 h-9 rounded-full bg-secondary border border-border hover:bg-accent/20 text-foreground disabled:opacity-40 transition-all duration-200 touch-manipulation"
-        >
-          {voice === 'female' ? <UserRound className="w-4 h-4" /> : <User className="w-4 h-4" />}
-        </button>
         <button
           onClick={onSkipBack}
           disabled={!isActive}
@@ -62,7 +78,7 @@ export default function KokoroListenControls({ status, progress, error, voice, o
         </button>
       </div>
       {label && (
-        <div className="flex items-center justify-center mt-2">
+        <div className="flex items-center justify-center">
           <span className={`font-sans text-xs text-center truncate max-w-full ${error && !isBusy && !isActive ? 'text-destructive' : 'text-muted-foreground'}`}>{label}</span>
         </div>
       )}
