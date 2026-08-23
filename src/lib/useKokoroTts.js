@@ -139,16 +139,17 @@ export function useKokoroTts() {
       };
       worker.addEventListener('message', onMessage);
       const useWebGPU = hasWebGPU && !forceWasmRef.current;
-      // q4 (vs q8) is a smaller download and faster to run on WASM — a real
-      // win for "loading"/"preparing" speed, at a small quality cost.
+      // q4 is a smaller download AND meaningfully faster to run on WASM than
+      // q8 — most devices (especially phones) have no WebGPU, so WASM/CPU
+      // inference speed is the real bottleneck for how fast narration starts.
       worker.postMessage({
         type: 'load',
         device: useWebGPU ? 'webgpu' : 'wasm',
         // fp16 isn't reliably supported by the WebGPU execution provider for
         // this model (caused silent failures) — fp32 is the recommended/safe
-        // dtype for WebGPU. q8 is the recommended dtype for WASM — much
-        // better quality than q4 while still small/fast.
-        dtype: useWebGPU ? 'fp32' : 'q8',
+        // dtype for WebGPU. q4 trades a little voice quality for noticeably
+        // faster CPU inference on WASM.
+        dtype: useWebGPU ? 'fp32' : 'q4',
         pronunciations,
       });
     });
@@ -511,7 +512,7 @@ export function useKokoroTts() {
         };
         worker.addEventListener('message', onMessage);
         const useWebGPU = hasWebGPU && !forceWasmRef.current;
-        worker.postMessage({ type: 'load', device: useWebGPU ? 'webgpu' : 'wasm', dtype: useWebGPU ? 'fp32' : 'q8', pronunciations });
+        worker.postMessage({ type: 'load', device: useWebGPU ? 'webgpu' : 'wasm', dtype: useWebGPU ? 'fp32' : 'q4', pronunciations });
       });
     })();
     prefetchLoadPromiseRef.current = promise.catch((err) => { prefetchLoadPromiseRef.current = null; throw err; });
