@@ -1835,18 +1835,6 @@ export default function BibleReader() {
                 <span className="hidden lg:inline">Print</span>
               </button>
 
-              <KokoroListenControls
-                status={tts.status}
-                progress={tts.progress}
-                error={tts.error}
-                voice={ttsVoiceGender}
-                onListen={handleListenTts}
-                onPause={tts.pause}
-                onResume={tts.resume}
-                onStop={tts.stop}
-                onCycleVoice={handleCycleTtsVoice}
-              />
-
               <div className="flex gap-2 flex-shrink-0">
                 <button onClick={goPrev} disabled={isFirstChapterFirstBook} className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"><ChevronLeft className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Prev</span></button>
                 <button onClick={() => goNext()} disabled={isLastChapterLastBook} className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"><span className="hidden lg:inline">Next</span><ChevronRight className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /></button>
@@ -1962,6 +1950,20 @@ export default function BibleReader() {
               </>
             )}
           </div>
+
+          {!isViewingTitlePage && (
+            <KokoroListenControls
+              status={tts.status}
+              progress={tts.progress}
+              error={tts.error}
+              voice={ttsVoiceGender}
+              onListen={handleListenTts}
+              onPause={tts.pause}
+              onResume={tts.resume}
+              onStop={tts.stop}
+              onCycleVoice={handleCycleTtsVoice}
+            />
+          )}
 
           {/* Single unified toolbar - SelectActionBar for multi-select mode, ReadingRangeBar for search/gospel/daily/navigation */}
           {selectMode && (
