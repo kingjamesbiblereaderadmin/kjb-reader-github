@@ -285,7 +285,7 @@
            aware: dark bg in dark mode, light bg in light mode. The inline theme
            script above adds the `dark` class before this renders, so we read it
            and set the splash colors here before paint. -->
-      <div id="kjb-boot-splash" style="position:fixed;inset:0;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0f1117;">
+      <div id="kjb-boot-splash" style="position:fixed;inset:0;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0f1117;opacity:0;transition:opacity .2s ease;">
         <div style="display:flex;flex-direction:column;align-items:center;margin-top:-4rem;gap:48px;">
           <img
             id="kjb-boot-logo"
@@ -315,7 +315,29 @@
               document.getElementById('kjb-boot-track').style.background = 'rgba(0,0,0,0.08)';
               document.getElementById('kjb-boot-text').style.color = '#5a6472';
             }
-          } catch (e) {}
+            // Installed desktop PWAs open at a temporary default window size
+            // that Chrome/Edge resizes to the remembered size almost immediately
+            // after launch. If the splash paints before that resize settles, the
+            // logo/progress bar appear to "shrink" as the window snaps to size —
+            // that's the browser's window, not this content, changing. Hide the
+            // splash for a beat in standalone mode so it only becomes visible
+            // once the window has settled, and reveal instantly everywhere else
+            // (plain browser tabs aren't affected and shouldn't see extra delay).
+            var boot = document.getElementById('kjb-boot-splash');
+            var isStandalone = (window.matchMedia && (
+              window.matchMedia('(display-mode: standalone)').matches ||
+              window.matchMedia('(display-mode: window-controls-overlay)').matches ||
+              window.matchMedia('(display-mode: minimal-ui)').matches
+            )) || navigator.standalone === true;
+            if (isStandalone) {
+              setTimeout(function () { boot.style.opacity = '1'; }, 150);
+            } else {
+              boot.style.opacity = '1';
+            }
+          } catch (e) {
+            var fallback = document.getElementById('kjb-boot-splash');
+            if (fallback) fallback.style.opacity = '1';
+          }
         })();
       </script>
       <style>
