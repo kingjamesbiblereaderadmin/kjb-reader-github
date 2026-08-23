@@ -6,7 +6,7 @@ import { BIBLE_BOOKS, getNextBook, getPrevBook } from '@/lib/bibleData';
 import { fetchChapter, fetchVerseCount, renderVerseText, renderColophonText, renderSubscriptText, resolveSubscript, resolveEndMarker } from '@/lib/bibleApi';
 import SubscriptContent from '@/components/bible/SubscriptContent';
 import { getBibleData } from '@/lib/bibleCache';
-import { SUBSCRIPTS, COLOPHONS } from '@/lib/bibleSubscripts';
+import { SUBSCRIPTS, COLOPHONS, PSALM_119_SECTIONS } from '@/lib/bibleSubscripts';
 import BookSelector from '@/components/bible/BookSelector';
 import ChapterSelector from '@/components/bible/ChapterSelector';
 import VerseGrid from '@/components/bible/VerseGrid';
@@ -37,57 +37,9 @@ import { printChapterContents } from '@/lib/printHelpers';
 import { saveVerse } from '@/lib/savedVerses';
 import { usePinchZoom } from '@/hooks/usePinchZoom';
 import { useReadingProgressTracker } from '@/hooks/useReadingProgressTracker';
-import { useKokoroTts } from '@/lib/useKokoroTts';
-import { usePrerecordedAudio } from '@/lib/usePrerecordedAudio';
-import KokoroListenControls from '@/components/bible/KokoroListenControls';
-
-// Kokoro-82M British voice IDs: bf = British female, bm = British male.
-const TTS_VOICES = [
-  { id: 'bf_emma', label: 'British Female' },
-  { id: 'bm_george', label: 'British Male' },
-];
 
 const isMobile = () => window.innerWidth < 640;
 const STORAGE_KEY = 'kjb-position';
-
-// Pure TTS segment builders — extracted so they can build segments for the
-// NEXT chapter/book (background pregeneration) as well as the current one.
-function getEndMarkerTextFor(abbr, apiName, chapter) {
-  if (abbr === 'MAL' && chapter === 4) return resolveEndMarker(apiName, chapter) || 'The End of the Prophets.';
-  if (abbr === 'REV' && chapter === 22) return resolveEndMarker(apiName, chapter) || 'The End.';
-  return null;
-}
-
-function buildChapterSegments(book, chapter, verses, chapterSubscript, colophon, endMarkerText, announceBook = true, customIntroText = null) {
-  const segs = [];
-  let idx = 0;
-  const introText = customIntroText || (announceBook ? `${book.name}. Chapter ${chapter}.` : `Chapter ${chapter}.`);
-  segs.push({ kind: 'intro', verse: null, text: introText, index: idx++ });
-  if (chapterSubscript) segs.push({ kind: 'subscript', verse: null, text: cleanVerseText(chapterSubscript).replace(/^[\u00B6\uFFFD\u00B6]\s*/, ''), index: idx++ });
-  (verses || []).forEach((v) => {
-    // Psalm 119 acrostic: speak the Hebrew stanza heading (ALEPH, BETH, …)
-    // before the verse it precedes, matching what's shown on screen.
-    if (v.heading) segs.push({ kind: 'heading', verse: null, text: v.heading, index: idx++ });
-    segs.push({ kind: 'verse', verse: parseInt(v.verse, 10), text: cleanVerseText(v.text).replace(/^\u00B6\s*/, ''), index: idx++ });
-  });
-  if (colophon) segs.push({ kind: 'colophon', verse: null, text: cleanVerseText(colophon).replace(/^[\u00B6\uFFFD\u00B6]\s*/, ''), index: idx++ });
-  if (endMarkerText) segs.push({ kind: 'end', verse: null, text: endMarkerText, index: idx++ });
-  return segs;
-}
-
-function buildTitleSegments(abbr, book) {
-  let text;
-  if (abbr === 'GEN') {
-    text = "The Holy Bible, containing the Old and New Testaments. Translated out of the original tongues, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches. Authorised King James Bible.";
-  } else if (abbr === 'MAT') {
-    text = "The New Testament of our Lord and Saviour Jesus Christ. Translated out of the original Greek, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches.";
-  } else {
-    const testamentLabel = book.testament === 'new' ? 'New Testament' : 'Old Testament';
-    const chapterWord = book.chapters === 1 ? 'chapter' : 'chapters';
-    text = `${testamentLabel}. ${book.name}.${book.chapters > 0 ? ` ${book.chapters} ${chapterWord}.` : ''}`;
-  }
-  return [{ kind: 'intro', verse: null, text, index: 0 }];
-}
 
 function loadPosition() {
   try {
@@ -571,259 +523,7 @@ export default function BibleReader() {
   // Subscript for the current chapter, honouring any admin override. Recomputed
   // when verses reload (loadOverrides populates the cache by then).
   const chapterSubscript = resolveSubscript(book.apiName, pos.chapter);
-
-  // Client-side Kokoro TTS narration (no backend, no bundled ONNX runtime —
-  // see src/lib/useKokoroTts.js / src/lib/tts/kokoroWorker.js).
-  const tts = useKokoroTts();
-  const [ttsVoiceId, setTtsVoiceId] = useState(TTS_VOICES[0].id);
-
-  // Pre-recorded chapter narration (restored audio files) — used instead of
-  // live Kokoro generation whenever a ChapterAudio record exists for this
-  // chapter, with verse-level highlighting driven from its timing file.
-  const preAudio = usePrerecordedAudio();
-  const [chapterAudioRecord, setChapterAudioRecord] = useState(null);
-  const [chapterAudioChecked, setChapterAudioChecked] = useState(false);
-  const hasPrerecorded = !!chapterAudioRecord;
-  const activePlayer = hasPrerecorded ? preAudio : tts;
-  // Clean voice label for the recorded narration, e.g. "kokoro-bm_george" -> "George".
-  const recordedVoiceLabel = (() => {
-    const raw = (chapterAudioRecord?.voice || '').replace(/^kokoro-/, '');
-    const name = raw.replace(/^b[fm]_/, '').split('_').pop() || 'Recorded';
-    return name.charAt(0).toUpperCase() + name.slice(1);
-  })();
-
-  // When a search/filter passage is active (only some verses shown), Listen
-  // mode should narrate just those verses — matching what's on screen —
-  // instead of always reading the whole chapter. Subscript/colophon/end-marker
-  // are included only when their anchor verse (1 / the chapter's last verse)
-  // is among the shown verses, mirroring the on-screen render logic above.
-  const ttsActiveFilter = filterMode && selectedVerses.size > 0;
-  const lastChapterVerseNum = verses.length ? parseInt(verses[verses.length - 1].verse, 10) : null;
-  const ttsSpokenVerses = useMemo(() => {
-    if (!ttsActiveFilter) return verses;
-    return verses.filter((v) => selectedVerses.has(parseInt(v.verse, 10)) || selectedVerses.has(String(v.verse)));
-  }, [verses, ttsActiveFilter, selectedVerses]);
-  const ttsHasVerse1 = ttsSpokenVerses.some((v) => parseInt(v.verse, 10) === 1);
-  const ttsHasLastVerse = lastChapterVerseNum != null && ttsSpokenVerses.some((v) => parseInt(v.verse, 10) === lastChapterVerseNum);
-  const ttsSubscript = !ttsActiveFilter || ttsHasVerse1 ? chapterSubscript : null;
-  const ttsColophon = !ttsActiveFilter || ttsHasLastVerse ? colophon : null;
-  const ttsEndMarker = !ttsActiveFilter || ttsHasLastVerse ? getEndMarkerTextFor(pos.abbr, book.apiName, pos.chapter) : null;
-
-  // While a search/filter passage is being narrated, announce the reference
-  // (and search term, if this is a keyword search) instead of the plain
-  // book/chapter intro, so Listen mode says what's actually being read.
-  const ttsIntroOverride = ttsActiveFilter
-    ? (searchTerm
-        ? `Search results for "${searchTerm}". ${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}.`
-        : `${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}.`)
-    : null;
-
-  const ttsSegments = useMemo(
-    () => buildChapterSegments(book, pos.chapter, ttsSpokenVerses, ttsSubscript, ttsColophon, ttsEndMarker, true, ttsIntroOverride),
-    [ttsSpokenVerses, ttsSubscript, ttsColophon, ttsEndMarker, ttsIntroOverride, book.name, book.apiName, pos.chapter, pos.abbr]
-  );
-
-  // Title pages (chapter 0) get their own segment list so Listen mode reads
-  // the full printed title-page text, not just a short announcement.
-  const ttsTitleSegments = useMemo(() => buildTitleSegments(pos.abbr, book), [pos.abbr, book.name, book.testament, book.chapters]);
-
-  // Ref flag: set right before navigating to the next chapter/book/title page
-  // so narration is automatically (re)started there once it finishes loading.
-  const ttsAutoContinueRef = useRef(false);
-
-  // Called when narration reaches the natural end of the current chapter/title
-  // page — advances to the next one (chapter -> next chapter -> next book's
-  // title page -> its chapter 1, mirroring the Next button) and flags it to
-  // keep listening once that page has loaded.
-  const advanceToNextAndListen = () => {
-    if (isViewingTitlePage) {
-      navigate(pos.abbr, 1, null, false, false, true);
-    } else if (pos.chapter < book.chapters) {
-      navigate(pos.abbr, pos.chapter + 1, null, false, false, true);
-    } else {
-      const next = getNextBook(pos.abbr);
-      if (!next) return; // reached the end of the Bible
-      navigate(next.abbr, 0, null, false, false, true);
-    }
-    ttsAutoContinueRef.current = true;
-  };
-
-  // Once an auto-advance navigation finishes loading the next chapter/title
-  // page, resume narration there automatically. Advancing to a NEW book always
-  // lands on its title page first (which announces the book name in full), so
-  // any chapter reached via auto-advance is always a same-book continuation —
-  // the book name is skipped and only "Chapter N." is announced.
-  useEffect(() => {
-    if (loading || !chapterAudioChecked || !ttsAutoContinueRef.current) return;
-    ttsAutoContinueRef.current = false;
-    if (hasPrerecorded) {
-      preAudio.listen(chapterAudioRecord, { onEnded: advanceToNextAndListen });
-    } else if (isViewingTitlePage) {
-      tts.listen(`${pos.abbr}-title`, ttsTitleSegments, { voice: ttsVoiceId, speed: 0.85, onEnded: advanceToNextAndListen });
-    } else {
-      const segs = buildChapterSegments(book, pos.chapter, verses, chapterSubscript, colophon, getEndMarkerTextFor(pos.abbr, book.apiName, pos.chapter), false);
-      tts.listen(`${pos.abbr}-${pos.chapter}-cont`, segs, { voice: ttsVoiceId, speed: 0.85, onEnded: advanceToNextAndListen });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, chapterAudioChecked, pos.abbr, pos.chapter]);
-
-  // As soon as a chapter/title page finishes loading, pregenerate the NEXT
-  // chapter/book's audio in the background (via a separate worker — see
-  // useKokoroTts.prefetch) so that whenever Listen is pressed there, it
-  // starts instantly instead of pausing to generate from scratch.
-  const prefetchedKeyRef = useRef(null);
-  useEffect(() => {
-    if (loading) return;
-    tts.warmPrefetch();
-    let cancelled = false;
-    (async () => {
-      try {
-        let nextAbbr, nextChapter, isTitle = false;
-        if (isViewingTitlePage) { nextAbbr = pos.abbr; nextChapter = 1; }
-        else if (pos.chapter < book.chapters) { nextAbbr = pos.abbr; nextChapter = pos.chapter + 1; }
-        else {
-          const nb = getNextBook(pos.abbr);
-          if (!nb) return;
-          nextAbbr = nb.abbr; isTitle = true;
-        }
-        const nextBook = BIBLE_BOOKS.find(b => b.abbr === nextAbbr);
-        if (!nextBook) return;
-        // Chapters reached automatically are always same-book continuations
-        // (see the auto-continue effect above) — the cached audio must match
-        // the "-cont" (no book name) version that will actually be played.
-        const key = isTitle ? `${nextAbbr}-title` : `${nextAbbr}-${nextChapter}-cont`;
-        if (prefetchedKeyRef.current === key) return;
-        prefetchedKeyRef.current = key;
-        let segments;
-        if (isTitle) {
-          segments = buildTitleSegments(nextAbbr, nextBook);
-        } else {
-          const data = await fetchChapter(nextBook.apiName, nextChapter);
-          if (cancelled) return;
-          const sub = resolveSubscript(nextBook.apiName, nextChapter);
-          const endMarker = getEndMarkerTextFor(nextAbbr, nextBook.apiName, nextChapter);
-          segments = buildChapterSegments(nextBook, nextChapter, data.verses, sub, data.colophon || null, endMarker, false);
-        }
-        if (cancelled) return;
-        tts.prefetch(key, segments, ttsVoiceId, 0.85);
-      } catch {}
-    })();
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, pos.abbr, pos.chapter, ttsVoiceId]);
-
-  // Finds the verse currently at/just below the top of the visible scroll
-  // area, so pressing Play while scrolled down starts narration from there
-  // instead of always from verse 1.
-  const getVisibleVerseNumber = () => {
-    const scroller = document.getElementById('kjb-scroll');
-    const toolbarH = topRef.current ? topRef.current.getBoundingClientRect().height : 0;
-    const containerTop = scroller ? scroller.getBoundingClientRect().top : 0;
-    const threshold = containerTop + toolbarH + 10;
-    for (const v of verses) {
-      const el = document.getElementById(`v${v.verse}`);
-      if (!el) continue;
-      if (el.getBoundingClientRect().bottom > threshold) return parseInt(v.verse, 10);
-    }
-    return null;
-  };
-
-  const handleListenTts = () => {
-    if (hasPrerecorded) {
-      const visibleVerse = getVisibleVerseNumber();
-      preAudio.listen(chapterAudioRecord, { onEnded: advanceToNextAndListen, startVerse: visibleVerse != null && visibleVerse > 1 ? visibleVerse : null });
-      return;
-    }
-    // Warm the background prefetch worker's model as early as possible — by
-    // the time this (first) chapter finishes, the next chapter's audio can be
-    // generated without also paying the model-load cost.
-    tts.warmPrefetch();
-    if (isViewingTitlePage) {
-      tts.listen(`${pos.abbr}-title`, ttsTitleSegments, { voice: ttsVoiceId, speed: 0.85, onEnded: advanceToNextAndListen });
-      return;
-    }
-    // Only skip ahead to the visible verse when the reader has actually
-    // scrolled PAST verse 1 — otherwise a freshly-loaded chapter (verse 1
-    // visible at the top) was incorrectly treated as "scrolled to verse 1"
-    // and cut the book/chapter intro (and subscript, if any) entirely.
-    const visibleVerse = getVisibleVerseNumber();
-    let segments = ttsSegments;
-    let key = `${pos.abbr}-${pos.chapter}`;
-    if (visibleVerse != null && visibleVerse > 1) {
-      const idx = ttsSegments.findIndex((s) => s.kind === 'verse' && s.verse === visibleVerse);
-      if (idx > 0) {
-        segments = ttsSegments.slice(idx);
-        key = `${pos.abbr}-${pos.chapter}-from-${visibleVerse}`;
-      }
-    }
-    // Slightly under 1x — full speed reads verses faster than the highlight
-    // can visibly keep pace with, so the highlight looks like it's lagging
-    // behind by the time a verse ends.
-    tts.listen(key, segments, { voice: ttsVoiceId, speed: 0.85, onEnded: advanceToNextAndListen });
-  };
-
-  // Switching voice while narration is playing/paused: stop the current audio,
-  // then re-generate from the segment that was currently speaking (not the
-  // start of the chapter) using the new voice, so narration picks up roughly
-  // where it left off instead of restarting the whole chapter.
-  const handleSelectTtsVoice = (voiceId) => {
-    if (voiceId === ttsVoiceId) return;
-    const wasActive = tts.status === 'playing' || tts.status === 'paused';
-    const resumeVerse = tts.currentVerse;
-    const resumeKind = tts.currentKind;
-    tts.forget(`${pos.abbr}-${pos.chapter}`);
-    setTtsVoiceId(voiceId);
-    if (wasActive) {
-      tts.stop();
-      let startIdx = 0;
-      if (resumeKind === 'verse' && resumeVerse != null) {
-        const idx = ttsSegments.findIndex((s) => s.kind === 'verse' && s.verse === resumeVerse);
-        if (idx >= 0) startIdx = idx;
-      } else if (resumeKind) {
-        const idx = ttsSegments.findIndex((s) => s.kind === resumeKind);
-        if (idx >= 0) startIdx = idx;
-      }
-      const remaining = ttsSegments.slice(startIdx);
-      tts.listen(`${pos.abbr}-${pos.chapter}-resume-${voiceId}`, remaining, { voice: voiceId, speed: 0.85, onEnded: advanceToNextAndListen });
-    }
-  };
-
-  // Stop narration on chapter change / unmount so it never plays over a
-  // chapter the reader has already navigated away from.
-  useEffect(() => {
-    return () => { tts.stop(); preAudio.stop(); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pos.abbr, pos.chapter]);
-
-  // Look up a pre-recorded narration file for this chapter, if one exists.
-  useEffect(() => {
-    setChapterAudioRecord(null);
-    setChapterAudioChecked(false);
-    if (isViewingTitlePage) { setChapterAudioChecked(true); return; }
-    let cancelled = false;
-    base44.entities.ChapterAudio.filter({ book: book.name, chapter: pos.chapter }).then((rows) => {
-      if (cancelled) return;
-      if (rows && rows[0]) setChapterAudioRecord(rows[0]);
-      setChapterAudioChecked(true);
-    }).catch(() => { if (!cancelled) setChapterAudioChecked(true); });
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pos.abbr, pos.chapter]);
-
-  // Verse-level highlighting: mirror the currently-speaking segment onto the
-  // matching verse element using the existing .kjb-audio-* CSS hooks.
-  useEffect(() => {
-    const container = readerContentRef.current;
-    if (!container) return;
-    container.querySelectorAll('.kjb-audio-verse-active').forEach((el) => el.classList.remove('kjb-audio-verse-active'));
-    if ((activePlayer.status === 'playing') && activePlayer.currentKind === 'verse' && activePlayer.currentVerse != null) {
-      const el = document.getElementById(`v${activePlayer.currentVerse}`);
-      if (el) el.classList.add('kjb-audio-verse-active');
-    }
-    const listening = activePlayer.status === 'playing' || activePlayer.status === 'paused';
-    container.classList.toggle('kjb-audio-listening', listening);
-    container.classList.toggle('kjb-audio-intro', listening && activePlayer.currentKind !== 'verse');
-  }, [activePlayer.currentVerse, activePlayer.currentKind, activePlayer.status]);
+  const isPsalm119 = book.abbr === 'PSA' && pos.chapter === 119;
 
   useReaderUrlSync(pos, loading, a11yFont, routerNavigate, searchTerm, gospelMode);
   const isViewingTitlePage = pos.chapter === 0;
@@ -1336,38 +1036,16 @@ export default function BibleReader() {
     const scroller = document.getElementById('kjb-scroll');
     const toolbarH = topRef.current ? topRef.current.getBoundingClientRect().height : 0;
     const stickyOffset = toolbarH + 48;
-    // The mobile fixed bottom nav overlaps the last stretch of the scrollable
-    // area — a long verse's final lines can land underneath it and stay
-    // hidden even though top-aligning made the verse start visible.
-    const bottomNavEl = document.querySelector('nav.fixed.bottom-0');
-    const footerH = bottomNavEl ? bottomNavEl.getBoundingClientRect().height : 0;
     const numEl = verseEl.querySelector('sup, .kjb-dropcap-num');
     let topRect = numEl ? numEl.getBoundingClientRect().top : verseEl.getBoundingClientRect().top;
     const heading = verseEl.querySelector('.font-bold.text-center');
     if (heading && heading.getBoundingClientRect().top < topRect) topRect = heading.getBoundingClientRect().top;
-    const containerTop = scroller ? scroller.getBoundingClientRect().top : 0;
-    const containerBottom = scroller ? scroller.getBoundingClientRect().bottom : window.innerHeight;
-    const visibleBottom = containerBottom - footerH;
-    const verseRect = verseEl.getBoundingClientRect();
-    const availableHeight = visibleBottom - containerTop - stickyOffset;
-    // Only nudge further down (beyond top-alignment) when the whole verse can
-    // actually fit in the visible area once the footer is cleared — otherwise
-    // top-aligning to show the verse's start remains the best option.
-    const overflow = verseRect.height <= availableHeight ? Math.max(0, verseRect.bottom - visibleBottom) : 0;
     if (scroller) {
-      scroller.scrollTo({ top: Math.max(0, topRect - containerTop + scroller.scrollTop - stickyOffset + overflow), behavior: 'smooth' });
+      scroller.scrollTo({ top: Math.max(0, topRect - scroller.getBoundingClientRect().top + scroller.scrollTop - stickyOffset), behavior: 'smooth' });
     } else {
-      window.scrollTo({ top: Math.max(0, topRect + window.scrollY - stickyOffset + overflow), behavior: 'smooth' });
+      window.scrollTo({ top: Math.max(0, topRect + window.scrollY - stickyOffset), behavior: 'smooth' });
     }
   }, []);
-
-  // While TTS narration is playing, scroll the currently-spoken verse into
-  // view so the page follows along instead of staying put.
-  useEffect(() => {
-    if (activePlayer.status === 'playing' && activePlayer.currentKind === 'verse' && activePlayer.currentVerse != null) {
-      scrollToVerseEl(activePlayer.currentVerse);
-    }
-  }, [activePlayer.currentVerse, activePlayer.currentKind, activePlayer.status, scrollToVerseEl]);
 
   useEffect(() => {
     if (loading) return;
@@ -2224,22 +1902,6 @@ export default function BibleReader() {
             )}
           </div>
 
-          <KokoroListenControls
-            status={activePlayer.status}
-            progress={activePlayer.progress}
-            error={activePlayer.error}
-            voices={hasPrerecorded ? [{ id: 'recorded', label: recordedVoiceLabel }] : TTS_VOICES}
-            voiceId={hasPrerecorded ? 'recorded' : ttsVoiceId}
-            voiceLocked={hasPrerecorded}
-            onListen={handleListenTts}
-            onPause={activePlayer.pause}
-            onResume={activePlayer.resume}
-            onStop={activePlayer.stop}
-            onSelectVoice={hasPrerecorded ? () => {} : handleSelectTtsVoice}
-            onSkipBack={activePlayer.skipBack}
-            onSkipForward={activePlayer.skipForward}
-          />
-
           {/* Single unified toolbar - SelectActionBar for multi-select mode, ReadingRangeBar for search/gospel/daily/navigation */}
           {selectMode && (
             <SelectActionBar
@@ -2365,8 +2027,14 @@ export default function BibleReader() {
               <p onClick={() => handleSectionClick('subscript')} id="kjb-subscript-anchor" className={`kjb-subscript text-center text-muted-foreground mb-4 leading-relaxed transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}><SubscriptContent text={chapterSubscript} searchTerm={sectionActive('subscript') ? searchTerm : null} /></p>
             )}
             {verses.filter(v => !activeFilter || verseInSelection(v)).map((v, idx) => {
+              const sectionLetter = isPsalm119 ? PSALM_119_SECTIONS[parseInt(v.verse, 10)] : null;
               return (
               <React.Fragment key={`${pos.abbr}-${pos.chapter}-${v.verse}`}>
+                {sectionLetter && (
+                  <div className="kjb-psalm119-heading text-center my-3" style={{ breakInside: 'avoid' }}>
+                    <span className={`font-serif uppercase text-muted-foreground ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, letterSpacing: '0.25em' }}>{sectionLetter}</span>
+                  </div>
+                )}
                 <VerseText
                   verse={v} highlight={parseInt(highlightVerse, 10) === parseInt(v.verse, 10) || highlightedVerses.has(parseInt(v.verse, 10))}
                   id={`v${v.verse}`} bookName={book.name} abbr={pos.abbr} chapter={pos.chapter} isFirstVerse={idx === 0} paragraphMode={paragraphMode} selectMode={selectMode}
