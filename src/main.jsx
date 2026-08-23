@@ -88,49 +88,11 @@ if (!rootElement) {
       const registration = await navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none', scope: '/' });
       console.log('[SW] Registered:', registration.scope);
 
-      // Reload when a new SW takes over in the BACKGROUND (after splash is done).
-      // If the splash itself applied the update (_kjbSplashApplyingUpdate), skip
-      // the reload entirely — the new SW is already active, no reload needed.
-      // Only reload on controllerchange if it's a background update (not triggered by splash).
-      // Splash sets window._kjbSplashApplyingUpdate before calling SKIP_WAITING so we skip reload.
-      let refreshing = false;
-      let hasExistingController = !!navigator.serviceWorker.controller;
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        const wasExisting = hasExistingController;
-        hasExistingController = true;
-        // If the splash is applying the update itself, never reload here — the
-        // splash plays "Found updates → Installing → Applying" then finishes in
-        // place. Reloading would interrupt it and consume the flag prematurely.
-        if (window._kjbSplashApplyingUpdate) return;
-        // Also never reload while a home-update splash is still pending/in-flight.
-        // Its mode flag is only cleared once the splash completes, so reloading
-        // now would drop us into the "subsequent" flow (LOADING → CHECKING →
-        // FOUND) instead of starting with FOUND UPDATES.
-        if (sessionStorage.getItem('kjb-splash-home-update') === 'true') return;
-        // In-app updates only reload when the user is on the HOME screen. On any
-        // other page (e.g. reading), do nothing — the update applies silently and
-        // will be picked up next time they land on home / reopen the app, so we
-        // never interrupt reading.
-        if (window.location.pathname !== '/') return;
-        // Only reload ONCE per session for a background SW takeover, and set the
-        // HOME-update flag BEFORE reloading so the splash starts with
-        // "FOUND UPDATES" first (home flow), not "LOADING → CHECKING".
-        if (wasExisting && !refreshing && !sessionStorage.getItem('kjb_sw_reloaded')) {
-          refreshing = true;
-          console.log('[SW] Background controller change on home — reloading once.');
-          try {
-            sessionStorage.setItem('kjb_sw_updated', 'app');
-            sessionStorage.setItem('kjb_sw_reloaded', '1');
-            sessionStorage.setItem('kjb-splash-home-update', 'true');
-          } catch {}
-          const sep = window.location.search ? '&' : '?';
-          window.location.href = window.location.pathname + window.location.search + sep + 'updated=true';
-        }
-      });
-
-      // NOTE: SKIP_WAITING and update activation are handled by SplashScreen.
-      // main.jsx must NOT auto-activate waiting workers on load, or the page
-      // reloads before SplashScreen can show the update flow to the user.
+      // A new service worker installs and activates itself silently in the
+      // background (it calls self.skipWaiting() on install) — we deliberately
+      // do NOT reload the current tab when that happens. Reloading mid-session
+      // is what caused the disruptive "checking for updates" wait. Instead the
+      // new version simply takes over for the NEXT app open, with no wait at all.
 
       // Periodic background update check — starts after SplashScreen is done.
 

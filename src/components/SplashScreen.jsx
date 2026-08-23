@@ -5,7 +5,7 @@ import { getSplashLogo } from '@/lib/splashLogo';
 
 const STEP_PAUSE_MS = 1500;
 
-// mode: 'first_load' | 'subsequent' | 'home_update'
+// mode: 'first_load' | 'subsequent'
 export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load', isVisible = true, skipMarkVisited = false }) {
   const [currentMessage, setCurrentMessage] = useState('LOADING KJB READER...');
   const [isIncognito, setIsIncognito] = useState(false);
@@ -94,109 +94,9 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
     return ok;
   };
 
-  // Tracks when we last applied an update in this flow. Re-checks within a short
-  // cooldown after applying must IGNORE the just-activated service worker, which
-  // otherwise lingers as waiting/installing for a moment and gets re-counted as a
-  // "new" update — causing the endless FOUND → INSTALLING → CHECKING → FOUND loop.
-  const justAppliedAt = useRef(0);
-  const APPLY_COOLDOWN_MS = 12000;
-
-  // Real update detection: SW registration, SW version, then Bible cache version.
-  const checkRealUpdates = async (swUpdatedAtMount) => {
-    let hasUpdates = !!swUpdatedAtMount;
-    // Within the cooldown after applying, skip SW-registration detection so the
-    // worker we just activated isn't mistaken for a brand-new update.
-    const inCooldown = Date.now() - justAppliedAt.current < APPLY_COOLDOWN_MS;
-    if (!hasUpdates && !inCooldown && navigator.onLine) {
-      try {
-        if ('serviceWorker' in navigator) {
-          const reg = await navigator.serviceWorker.getRegistration().catch(() => null);
-          if (reg) {
-            await reg.update().catch(() => {});
-            hasUpdates = !!(reg.waiting || reg.installing);
-          }
-        }
-        if (!hasUpdates) {
-          const { isSwUpdateAvailable } = await import('@/lib/swVersionCheck');
-          hasUpdates = await isSwUpdateAvailable().catch(() => false);
-        }
-        if (!hasUpdates) {
-          const { checkForUpdates } = await import('@/lib/bibleCache');
-          hasUpdates = await checkForUpdates().catch(() => false);
-        }
-      } catch {}
-    }
-    return hasUpdates;
-  };
-
-  // Real SW activation. Also marks the deployed SW version as applied so the
-  // NEXT "CHECKING FOR UPDATES" step in the loop doesn't re-detect the same
-  // update we just installed (which caused an endless FOUND → INSTALLING →
-  // CHECKING → FOUND loop until the guard cap).
-  const applyServiceWorker = async () => {
-    if ('serviceWorker' in navigator) {
-      try { window._kjbSplashApplyingUpdate = true; } catch {}
-    }
-    // Snapshot the live SW version BEFORE applying. If activating the new
-    // worker wipes the old chunk cache while the current HTML still references
-    // the old chunk hashes, every lazy import 404s → the chunk-error screen.
-    // We detect the version change and reload so fresh HTML + matching chunks
-    // load together.
-    let beforeVersion = null;
-    try {
-      const { getLiveWorkerVersion } = await import('@/lib/liveWorkerVersion');
-      beforeVersion = await getLiveWorkerVersion(2000).catch(() => null);
-    } catch {}
-    // Force-fetch + activate the deployed service worker and confirm it really
-    // takes over. Mobile Chrome throttles background SW checks (~24h), so
-    // reg.waiting can be absent right after a deploy — without an explicit
-    // reg.update() + wait here, SKIP_WAITING would no-op and the old worker
-    // would keep running while we marked the new one "applied" (stuck forever).
-    try {
-      const { activateDeployedServiceWorker, fetchDeployedSwVersion, markSwVersionApplied } = await import('@/lib/swVersionCheck');
-      const deployed = await fetchDeployedSwVersion().catch(() => null);
-      await activateDeployedServiceWorker(deployed);
-      await markSwVersionApplied();
-    } catch {}
-    // Mark Bible data version applied too so checkForUpdates() won't re-fire.
-    try { localStorage.setItem('bible_last_refresh', String(Date.now())); } catch {}
-    // Start the cooldown so the immediate next "CHECKING" step ignores the
-    // worker we just activated (prevents the double FOUND loop).
-    justAppliedAt.current = Date.now();
-    // If the SW actually updated, reload NOW. The new SW's activate handler
-    // deleted the old chunk cache, but the running HTML still points at the
-    // old chunk hashes — without a reload, the HomePage lazy import 404s and
-    // the app falls into the "Updating to the latest version…" recovery loop.
-    try {
-      const { getLiveWorkerVersion } = await import('@/lib/liveWorkerVersion');
-      const afterVersion = await getLiveWorkerVersion(2000).catch(() => null);
-      if (beforeVersion && afterVersion && beforeVersion !== afterVersion) {
-        try { window._kjbSplashApplyingUpdate = false; } catch {}
-        try {
-          sessionStorage.setItem('kjb_sw_reloaded', '1');
-          // Clear the home-update flag so the post-reload splash runs the fast
-          // "subsequent" flow (no forced Bible re-download) — the SW is already
-          // the new version, so checkRealUpdates() finds nothing to apply.
-          sessionStorage.removeItem('kjb-splash-home-update');
-          sessionStorage.removeItem('kjb_sw_updated');
-        } catch {}
-        window.location.reload();
-      }
-    } catch {}
-  };
-
   useEffect(() => {
     if (!isVisible || doneRef.current) return;
     doneRef.current = true;
-
-    // Capture the SW-update flag IMMEDIATELY on mount, before any async pause —
-    // otherwise a background controllerchange/reload in main.jsx could consume
-    // or clear it before the splash reaches its "checking" step. Stash it so the
-    // flows below can use it without racing.
-    const swUpdatedAtMount = sessionStorage.getItem('kjb_sw_updated');
-    if (swUpdatedAtMount) sessionStorage.removeItem('kjb_sw_updated');
-    // Prevent main.jsx from reloading while the splash is running this flow.
-    window._kjbSplashApplyingUpdate = true;
 
     // Safety net: no matter what happens inside the flow (a thrown error, a
     // hung import, etc.), the splash MUST hand off to the app. Without this,
@@ -218,8 +118,7 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
       setIsIncognito(detectedIncognito);
       
       let isFirstVisit = mode === 'first_load';
-      let isHomeUpdate = mode === 'home_update';
-      
+
       console.log('[KJB Splash] Mode:', mode, 'Incognito:', detectedIncognito);
 
       // Helper: mark the app as visited so the NEXT visit is "subsequent".
@@ -296,7 +195,7 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
       }
 
       // === SUBSEQUENT VISIT FLOW ===
-      if (!isHomeUpdate) {
+      {
         // 1. Loading
         setStep('LOADING KJB READER...');
         await pause(STEP_PAUSE_MS);
@@ -316,119 +215,6 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
         stepsLog.current.forEach((msg, i) => console.log(`${i + 1}. ${msg}`));
         console.groupEnd();
         try { const { markSwVersionApplied } = await import('@/lib/swVersionCheck'); await markSwVersionApplied(); } catch {}
-        markVisited();
-        finishOnce();
-        return;
-      }
-
-      // === HOME UPDATE FLOW ===
-      if (isHomeUpdate) {
-        // 1. Found updates (skip loading/checking)
-        setStep('FOUND UPDATES.');
-        await pause(STEP_PAUSE_MS);
-
-        // 2. Installing updates
-        setStep('INSTALLING UPDATES...');
-        let homeDownloadOk = true;
-        try {
-          const { downloadBibleForOffline } = await import('@/lib/bibleCache');
-          await downloadBibleForOffline();
-        } catch (err) {
-          console.error('[Splash] Data install failed:', err.message);
-          homeDownloadOk = false;
-        }
-        await pause(STEP_PAUSE_MS);
-
-        if (!homeDownloadOk) {
-          // Connection dropped mid-update. downloadBibleForOffline() no longer
-          // wipes the old cache before fetching, so whatever was already on the
-          // device is still there — say so plainly and skip straight to Welcome
-          // instead of pretending the update applied and re-checking online.
-          setStep('CONNECTION LOST — USING SAVED DATA.');
-          await pause(STEP_PAUSE_MS);
-        } else {
-          // 3. Applying updates
-          setStep('APPLYING UPDATES...');
-          await pause(STEP_PAUSE_MS);
-
-          // Activate service worker (flag so main.jsx skips its reload).
-          // Force-fetch + confirm so mobile (throttled SW updates) actually
-          // activates the new worker instead of silently no-op'ing SKIP_WAITING.
-          try {
-            window._kjbSplashApplyingUpdate = true;
-            const { activateDeployedServiceWorker, fetchDeployedSwVersion } = await import('@/lib/swVersionCheck');
-            const deployed = await fetchDeployedSwVersion().catch(() => null);
-            await activateDeployedServiceWorker(deployed);
-          } catch {}
-
-          // 4. Checking for updates (repeat if found)
-          setStep('CHECKING FOR UPDATES...');
-          await pause(STEP_PAUSE_MS);
-
-          let hasMoreUpdates = false;
-          if (navigator.onLine) {
-            try {
-              const { checkForUpdates } = await import('@/lib/bibleCache');
-              hasMoreUpdates = await checkForUpdates().catch(() => false);
-            } catch {}
-          }
-
-          if (hasMoreUpdates) {
-            // Loop: Found → Installing → Applying → Checking
-            setStep('FOUND UPDATES.');
-            await pause(STEP_PAUSE_MS);
-            setStep('INSTALLING UPDATES...');
-            let ok2 = true;
-            try {
-              const { downloadBibleForOffline } = await import('@/lib/bibleCache');
-              await downloadBibleForOffline();
-            } catch (err) {
-              console.error('[Splash] Data install failed:', err.message);
-              ok2 = false;
-            }
-            await pause(STEP_PAUSE_MS);
-            if (!ok2) {
-              setStep('CONNECTION LOST — USING SAVED DATA.');
-              await pause(STEP_PAUSE_MS);
-            } else {
-              setStep('APPLYING UPDATES...');
-              await pause(STEP_PAUSE_MS);
-              try {
-                window._kjbSplashApplyingUpdate = true;
-                const { activateDeployedServiceWorker, fetchDeployedSwVersion } = await import('@/lib/swVersionCheck');
-                const deployed = await fetchDeployedSwVersion().catch(() => null);
-                await activateDeployedServiceWorker(deployed);
-              } catch {}
-              setStep('CHECKING FOR UPDATES...');
-              await pause(STEP_PAUSE_MS);
-            }
-          }
-
-          // Confirm nothing more to apply before welcoming back.
-          setStep('NO UPDATES FOUND.');
-          await pause(STEP_PAUSE_MS);
-        }
-
-        // 5. Welcome back
-        setStep('WELCOME BACK TO KJB READER.');
-        window.dispatchEvent(new CustomEvent('kjb-progress', { detail: { message: 'WELCOME BACK TO KJB READER.', status: 'success' } }));
-        await pause(STEP_PAUSE_MS);
-        window.dispatchEvent(new Event('kjb-progress-clear'));
-
-        // Record the version the running service worker ACTUALLY reports — not
-        // the deployed/pending version. On mobile the new worker may not have
-        // activated (throttled update), so recording the deployed version here
-        // would falsely mark it applied and never re-trigger. Recording the
-        // live version means applied only advances when the worker really
-        // updated; otherwise the next visit re-triggers the update.
-        try {
-          const { markSwVersionApplied } = await import('@/lib/swVersionCheck');
-          await markSwVersionApplied();
-        } catch {}
-
-        console.group('[Splash] Summary');
-        stepsLog.current.forEach((msg, i) => console.log(`${i + 1}. ${msg}`));
-        console.groupEnd();
         markVisited();
         finishOnce();
         return;
