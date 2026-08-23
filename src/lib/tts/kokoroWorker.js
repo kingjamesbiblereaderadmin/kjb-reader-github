@@ -109,33 +109,43 @@ const NAME_PRONUNCIATIONS = {
   'Philemon': 'Fylleemuhn',
   'Eutychus': 'Yootikuhs',
   'Elymas': 'Elimuhs',
-  // Psalm 119 acrostic — Hebrew alphabet letter names (traditional KJB
-  // spelling), respelled for correct English pronunciation.
-  'Aleph': 'Ah-lef',
-  'Beth': 'Bayth',
-  'Gimel': 'Ghim-el',
-  'Daleth': 'Dah-leth',
-  'He': 'Hay',
-  'Vau': 'Vahv',
-  'Zain': 'Zah-in',
-  'Cheth': 'Kheth',
-  'Teth': 'Tayth',
-  'Jod': 'Yohd',
-  'Caph': 'Kaf',
-  'Lamed': 'Lah-med',
-  'Mem': 'Mem',
-  'Nun': 'Noon',
-  'Samech': 'Sah-mekh',
-  'Ain': 'Ah-yin',
-  'Pe': 'Pay',
-  'Tzaddi': 'Tsah-dee',
-  'Koph': 'Kohf',
-  'Resh': 'Raysh',
-  'Schin': 'Sheen',
-  'Tau': 'Tahv',
 };
-// Hand-tuned overrides (Hebrew acrostic letter names, etc.) always take
-// priority over the fetched Farrar-derived map below.
+
+// Psalm 119 acrostic — Hebrew alphabet letter names (traditional KJB
+// spelling), respelled for correct English pronunciation. Kept SEPARATE from
+// NAME_PRONUNCIATIONS above and only ever applied to the acrostic heading
+// segment itself ('heading' kind) — several of these words (He, Ain, Pe, Nun,
+// Mem...) are common English words / place names, so matching them globally
+// across ordinary verse text (e.g. every "he") would mispronounce the Bible's
+// most common pronoun.
+const ACROSTIC_LETTERS = {
+  'ALEPH': 'Ah-lef',
+  'BETH': 'Bayth',
+  'GIMEL': 'Ghim-el',
+  'DALETH': 'Dah-leth',
+  'HE': 'Hay',
+  'VAU': 'Vahv',
+  'ZAIN': 'Zah-in',
+  'CHETH': 'Kheth',
+  'TETH': 'Tayth',
+  'JOD': 'Yohd',
+  'CAPH': 'Kaf',
+  'LAMED': 'Lah-med',
+  'MEM': 'Mem',
+  'NUN': 'Noon',
+  'SAMECH': 'Sah-mekh',
+  'AIN': 'Ah-yin',
+  'PE': 'Pay',
+  'TZADDI': 'Tsah-dee',
+  'KOPH': 'Kohf',
+  'RESH': 'Raysh',
+  'SCHIN': 'Sheen',
+  'TAU': 'Tahv',
+};
+const ACROSTIC_PATTERN = buildNamePattern(ACROSTIC_LETTERS);
+
+// Hand-tuned overrides (proper names) always take priority over the fetched
+// Farrar-derived map below.
 const LOCAL_OVERRIDES = {};
 Object.keys(NAME_PRONUNCIATIONS).forEach((k) => { LOCAL_OVERRIDES[k.toUpperCase()] = NAME_PRONUNCIATIONS[k]; });
 
@@ -198,6 +208,13 @@ function normalizeBiblicalNames(text) {
   return text.replace(NAME_PATTERN, (match) => PRONUNCIATION_MAP[match.toUpperCase()] || match);
 }
 
+// Applies the acrostic-letter respellings — ONLY safe to use on a Psalm 119
+// heading segment's own text (e.g. "ALEPH."), never on general verse text.
+function normalizeAcrosticHeading(text) {
+  if (!ACROSTIC_PATTERN) return text;
+  return text.replace(ACROSTIC_PATTERN, (match) => ACROSTIC_LETTERS[match.toUpperCase()] || match);
+}
+
 // Trim leading/trailing near-silence from generated audio so segments join
 // tightly without dead air between verses.
 function trimSilence(samples, threshold = 0.008) {
@@ -215,7 +232,8 @@ async function generateSegments(segments, voice, speed) {
     if (cancelled) return;
     const seg = segments[i];
     try {
-      const result = await ttsInstance.generate(normalizeBiblicalNames(seg.text), { voice, speed: speed || 1 });
+      const spokenText = seg.kind === 'heading' ? normalizeAcrosticHeading(seg.text) : normalizeBiblicalNames(seg.text);
+      const result = await ttsInstance.generate(spokenText, { voice, speed: speed || 1 });
       if (cancelled) return;
       const raw = result.audio instanceof Float32Array ? result.audio : new Float32Array(result.audio);
       const trimmed = trimSilence(raw);
