@@ -81,7 +81,7 @@ export function usePrerecordedAudio() {
     if (current) { setCurrentVerse(current.verse); setCurrentKind(current.kind); }
   };
 
-  const listen = useCallback(async (record, { onEnded = null } = {}) => {
+  const listen = useCallback(async (record, { onEnded = null, startVerse = null } = {}) => {
     setError(null);
     onEndedRef.current = onEnded;
     const audio = getAudio();
@@ -103,6 +103,12 @@ export function usePrerecordedAudio() {
     return new Promise((resolve, reject) => {
       const onCanPlay = () => {
         audio.removeEventListener('canplay', onCanPlay);
+        // Resuming where the reader has scrolled to (e.g. pressing Play after
+        // scrolling past verse 1) — jump the audio to that verse's segment.
+        if (startVerse != null) {
+          const seg = segmentsRef.current.find((s) => s.kind === 'verse' && s.verse === startVerse);
+          if (seg) audio.currentTime = seg.start;
+        }
         audio.play().then(() => { setStatus('playing'); scheduleHighlights(audio.currentTime); resolve(); }).catch((err) => {
           setStatus('error'); setError(err?.message || 'Failed to play audio'); reject(err);
         });

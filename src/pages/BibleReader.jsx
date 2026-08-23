@@ -730,7 +730,8 @@ export default function BibleReader() {
 
   const handleListenTts = () => {
     if (hasPrerecorded) {
-      preAudio.listen(chapterAudioRecord, { onEnded: advanceToNextAndListen });
+      const visibleVerse = getVisibleVerseNumber();
+      preAudio.listen(chapterAudioRecord, { onEnded: advanceToNextAndListen, startVerse: visibleVerse != null && visibleVerse > 1 ? visibleVerse : null });
       return;
     }
     // Warm the background prefetch worker's model as early as possible — by
