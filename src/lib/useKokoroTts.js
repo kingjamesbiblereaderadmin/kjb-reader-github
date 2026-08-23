@@ -396,11 +396,10 @@ export function useKokoroTts() {
       const results = new Array(segments.length);
       let received = 0;
       let nextStartTime = null; // ctx time when the next segment should start
-      // Wait for the ENTIRE chapter to finish generating before starting
-      // playback. Buffering only a few segments ahead let playback catch up
-      // to (slower) generation mid-chapter, causing audible pauses/stalls —
-      // generating everything first guarantees smooth, gap-free narration.
-      const BUFFER_AHEAD = segments.length;
+      // Start playback after a small buffer of segments is ready, then keep
+      // generating the rest in the background while it plays ("rolling"),
+      // instead of waiting for the entire chapter to finish generating first.
+      const BUFFER_AHEAD = Math.min(3, segments.length);
       const pendingBuffers = [];
       let startedScheduling = false;
       cancelledRef.current = false;
