@@ -597,11 +597,13 @@ export function useKokoroTts() {
       await generateForKey(chapterKey, segments, voice, speed);
     } catch (err) {
       if (err?.message === 'cancelled') return;
-      // A generation stall is most often an unreliable WebGPU execution
-      // provider on this device — the model loads fine but inference never
-      // completes. Fall back to WASM once and retry before giving up.
-      if (hasWebGPU && !forceWasmRef.current && /Timed out generating speech/.test(err?.message || '')) {
-        forceWasmRef.current = true;
+      // A generation timeout means the worker got wedged inside a hung
+      // inference call — reusing the SAME worker for a retry would just queue
+      // behind that same stuck call forever, so terminate it and load a fresh
+      // one. If WebGPU was in use, also force WASM going forward since an
+      // unreliable WebGPU execution provider is a common cause of the hang.
+      if (/Timed out generating speech/.test(err?.message || '')) {
+        if (hasWebGPU && !forceWasmRef.current) forceWasmRef.current = true;
         try {
           workerRef.current?.terminate();
           workerRef.current = null;
