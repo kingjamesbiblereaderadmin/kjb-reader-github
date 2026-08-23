@@ -1962,6 +1962,8 @@ export default function BibleReader() {
               onResume={tts.resume}
               onStop={tts.stop}
               onCycleVoice={handleCycleTtsVoice}
+              onSkipBack={tts.skipBack}
+              onSkipForward={tts.skipForward}
             />
           )}
 

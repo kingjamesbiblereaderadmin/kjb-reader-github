@@ -26,6 +26,7 @@ export function useKokoroTts() {
   const pausedAtRef = useRef(0);
   const activeKeyRef = useRef(null);
   const cancelledRef = useRef(false);
+  const currentBuffersRef = useRef([]); // the buffers array currently loaded for playback (for skip forward/back)
   // Whichever load/generate promise is currently in flight — a worker-level
   // script error (e.g. the CDN import failing, or a CSP block) never reaches
   // our postMessage-based error handling, so it's surfaced here instead of
@@ -97,10 +98,12 @@ export function useKokoroTts() {
       };
       worker.addEventListener('message', onMessage);
       const useWebGPU = hasWebGPU;
+      // q4 (vs q8) is a smaller download and faster to run on WASM — a real
+      // win for "loading"/"preparing" speed, at a small quality cost.
       worker.postMessage({
         type: 'load',
         device: useWebGPU ? 'webgpu' : 'wasm',
-        dtype: useWebGPU ? 'fp32' : 'q8',
+        dtype: useWebGPU ? 'fp32' : 'q4',
       });
     });
   }, [getWorker]);
@@ -125,7 +128,7 @@ export function useKokoroTts() {
               else if (msg.type === 'error') { worker.removeEventListener('message', onMessage); reject(new Error(msg.error)); }
             };
             worker.addEventListener('message', onMessage);
-            worker.postMessage({ type: 'load', device: 'wasm', dtype: 'q8' });
+            worker.postMessage({ type: 'load', device: 'wasm', dtype: 'q4' });
           });
           return;
         } catch (err2) {
@@ -179,6 +182,7 @@ export function useKokoroTts() {
 
   const scheduleAndPlay = useCallback((buffers, fromOffset = 0) => {
     const ctx = getCtx();
+    currentBuffersRef.current = buffers;
     stopSources();
     let t = ctx.currentTime + 0.05;
     const schedule = [];
@@ -230,6 +234,37 @@ export function useKokoroTts() {
   const forget = useCallback((key) => {
     cacheRef.current.delete(key);
   }, []);
+
+  const getElapsed = () => {
+    const ctx = ctxRef.current;
+    if (!ctx) return 0;
+    return ctx.state === 'running' ? ctx.currentTime - playStartCtxTimeRef.current : pausedAtRef.current;
+  };
+
+  // Jump to the next/previous verse (or subscript/colophon segment) within
+  // the already-generated audio, media-player style.
+  const skipForward = useCallback(() => {
+    const buffers = currentBuffersRef.current;
+    if (!buffers || !buffers.length) return;
+    const elapsed = getElapsed();
+    const schedule = scheduleRef.current;
+    const idx = schedule.findIndex((s) => elapsed >= s.startTime && elapsed < s.endTime);
+    const next = idx >= 0 ? schedule[idx + 1] : schedule[0];
+    if (next) scheduleAndPlay(buffers, next.startTime);
+  }, [scheduleAndPlay]);
+
+  const skipBack = useCallback(() => {
+    const buffers = currentBuffersRef.current;
+    if (!buffers || !buffers.length) return;
+    const elapsed = getElapsed();
+    const schedule = scheduleRef.current;
+    const idx = schedule.findIndex((s) => elapsed >= s.startTime && elapsed < s.endTime);
+    if (idx <= 0) { scheduleAndPlay(buffers, 0); return; }
+    const cur = schedule[idx];
+    // More than 1.5s into the current verse — restart it; otherwise go to the previous one.
+    if (elapsed - cur.startTime > 1.5) scheduleAndPlay(buffers, cur.startTime);
+    else scheduleAndPlay(buffers, schedule[idx - 1].startTime);
+  }, [scheduleAndPlay]);
 
   const generateForKey = useCallback((key, segments, voice, speed) => {
     return new Promise((resolve, reject) => {
@@ -305,6 +340,6 @@ export function useKokoroTts() {
   return {
     status, progress, currentVerse, currentWord, currentKind, error,
     isPlaying: status === 'playing',
-    listen, pause, resume, stop, forget,
+    listen, pause, resume, stop, forget, skipForward, skipBack,
   };
 }
