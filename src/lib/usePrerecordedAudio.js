@@ -48,11 +48,17 @@ export function usePrerecordedAudio() {
     return segs;
   };
 
+  // The timing file's word timestamps consistently lag a touch behind the
+  // actual recorded audio, so the highlight was switching to the next verse
+  // late (audio "racing" ahead of it). Looking slightly ahead of the audio's
+  // current position when picking the active segment keeps the highlight in
+  // step with what's actually being heard.
+  const HIGHLIGHT_LOOKAHEAD = 0.25;
   const runLoop = useCallback(() => {
     const tick = () => {
       const audio = audioRef.current;
       if (!audio) return;
-      const t = audio.currentTime;
+      const t = audio.currentTime + HIGHLIGHT_LOOKAHEAD;
       const segs = segmentsRef.current;
       const seg = [...segs].reverse().find((s) => t >= s.start);
       if (seg) { setCurrentVerse(seg.verse); setCurrentKind(seg.kind); }
