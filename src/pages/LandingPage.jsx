@@ -38,7 +38,7 @@ export default function LandingPage() {
           <h1 className="font-serif text-4xl font-bold text-foreground mb-2">Welcome to KJB Reader</h1>
           <p className="font-sans text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed">
             KJB Reader is a free, installable Bible reading app featuring the King James Bible
-            (Pure Cambridge Edition). Enjoy daily verses, offline reading, search, bookmarks,
+            (Pure Cambridge Edition). Enjoy offline reading, search, bookmarks,
             and customizable typography — all with privacy at the forefront.
           </p>
           <div className="mt-4 w-16 h-px bg-accent mx-auto" />

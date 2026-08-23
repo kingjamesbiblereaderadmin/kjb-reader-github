@@ -86,9 +86,6 @@ export default function LandingSetupWizard() {
   const [readerFontFamily, setReaderFontFamily] = useState(() => {
     try { return localStorage.getItem('kjb-reader-font-family') || 'serif'; } catch { return 'serif'; }
   });
-  const [verseFontFamily, setVerseFontFamily] = useState(() => {
-    try { return localStorage.getItem('kjb-verse-font-family') || 'serif'; } catch { return 'serif'; }
-  });
   const { promptInstall } = useInstallPrompt();
 
   // Per-step completion. Initialized from actual persisted settings (not just
@@ -105,8 +102,7 @@ export default function LandingSetupWizard() {
     } catch {}
     try {
       const rf = localStorage.getItem('kjb-reader-font-family');
-      const vf = localStorage.getItem('kjb-verse-font-family');
-      fonts = (rf && rf !== 'serif') || (vf && vf !== 'serif') || getAccessibilityFont() !== 'default';
+      fonts = (rf && rf !== 'serif') || getAccessibilityFont() !== 'default';
     } catch {}
     a11y = getAccessibilityFont() !== 'default';
     return {
@@ -141,16 +137,13 @@ export default function LandingSetupWizard() {
     const refreshFromSync = () => {
       try {
         const syncedReader = localStorage.getItem('kjb-reader-font-family');
-        const syncedVerse = localStorage.getItem('kjb-verse-font-family');
         const syncedA11y = getAccessibilityFont();
 
         if (syncedReader) setReaderFontFamily(syncedReader);
-        if (syncedVerse) setVerseFontFamily(syncedVerse);
         setA11yFont(syncedA11y);
 
         // Mark steps done when synced values are present (non-default)
         if (syncedReader && syncedReader !== 'serif') markDone('fonts');
-        if (syncedVerse && syncedVerse !== 'serif') markDone('fonts');
         if (syncedA11y !== 'default') markDone('a11y');
       } catch {}
     };
@@ -168,15 +161,6 @@ export default function LandingSetupWizard() {
   const pickReaderFont = (value) => {
     try { localStorage.setItem('kjb-reader-font-family', value); } catch {}
     setReaderFontFamily(value);
-    if (a11yFont !== 'default') { setA11yFont('default'); setAccessibilityFont('default'); }
-    window.dispatchEvent(new Event('storage'));
-    window.dispatchEvent(new Event('kjb-fonts-changed'));
-    markDone('fonts');
-  };
-
-  const pickVerseFont = (value) => {
-    try { localStorage.setItem('kjb-verse-font-family', value); } catch {}
-    setVerseFontFamily(value);
     if (a11yFont !== 'default') { setA11yFont('default'); setAccessibilityFont('default'); }
     window.dispatchEvent(new Event('storage'));
     window.dispatchEvent(new Event('kjb-fonts-changed'));
@@ -394,7 +378,7 @@ export default function LandingSetupWizard() {
         {step === 2 && (
           <div className="text-center">
             <h3 className="font-serif text-lg font-bold text-foreground mb-1">Fonts</h3>
-            <p className="font-sans text-xs text-muted-foreground mb-4">Pick fonts for reading and the daily verse</p>
+            <p className="font-sans text-xs text-muted-foreground mb-4">Pick a font for reading</p>
 
             <p className="font-sans text-xs font-medium text-foreground mb-2">Accessibility Font</p>
             <div className="grid grid-cols-3 gap-2 max-w-sm mx-auto mb-5">
@@ -427,29 +411,6 @@ export default function LandingSetupWizard() {
                     disabled={isDisabled}
                     type="button"
                     onClick={() => pickReaderFont(font.value)}
-                    className={`px-2 py-3 rounded-xl border-2 font-sans text-xs font-medium transition-all ${
-                      isActive ? 'bg-primary text-primary-foreground border-primary shadow-md scale-[1.02]'
-                      : 'bg-card text-foreground border-border hover:border-accent'
-                    } ${isDisabled ? 'opacity-40 pointer-events-none' : ''}`}
-                    style={{ fontFamily: font.value }}
-                  >
-                    {font.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <p className="font-sans text-xs font-medium text-foreground mb-2">Daily Verse Font</p>
-            <div className="grid grid-cols-4 gap-2 max-w-sm mx-auto">
-              {VERSE_FONTS.map(font => {
-                const isActive = a11yFont !== 'default' ? false : verseFontFamily === font.value;
-                const isDisabled = a11yFont !== 'default';
-                return (
-                  <button
-                    key={font.value}
-                    disabled={isDisabled}
-                    type="button"
-                    onClick={() => pickVerseFont(font.value)}
                     className={`px-2 py-3 rounded-xl border-2 font-sans text-xs font-medium transition-all ${
                       isActive ? 'bg-primary text-primary-foreground border-primary shadow-md scale-[1.02]'
                       : 'bg-card text-foreground border-border hover:border-accent'
