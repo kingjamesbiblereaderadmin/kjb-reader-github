@@ -428,6 +428,13 @@ export function useKokoroTts() {
           pausedAtRef.current = 0;
           setStatus('playing');
           runHighlightLoop();
+        } else {
+          // Generation fell behind real-time playback — the "ideal" next
+          // start time (computed from prior segment durations) has already
+          // passed. Scheduling audio in the past causes it to slam into
+          // whatever's currently playing (an audible glitch/skip), so push
+          // it forward to just after now instead.
+          nextStartTime = Math.max(nextStartTime, ctx.currentTime + 0.05);
         }
         const source = playBufferWithFade(ctx, bufObj.buffer, nextStartTime);
         sourcesRef.current.push(source);
