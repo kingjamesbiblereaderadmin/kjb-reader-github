@@ -67,6 +67,10 @@ export function useKokoroTts() {
   const prefetchLoadedRef = useRef(false);
   const prefetchLoadPromiseRef = useRef(null);
   const activePrefetchKeyRef = useRef(null);
+  // Once true, every (re)load uses WASM instead of WebGPU — set after a
+  // WebGPU load OR generation failure, since some devices report
+  // navigator.gpu but hang/fail on actual inference.
+  const forceWasmRef = useRef(false);
 
   const getWorker = useCallback(() => {
     if (!workerRef.current) {
@@ -134,7 +138,7 @@ export function useKokoroTts() {
         }
       };
       worker.addEventListener('message', onMessage);
-      const useWebGPU = hasWebGPU;
+      const useWebGPU = hasWebGPU && !forceWasmRef.current;
       // q4 (vs q8) is a smaller download and faster to run on WASM — a real
       // win for "loading"/"preparing" speed, at a small quality cost.
       worker.postMessage({
@@ -156,8 +160,9 @@ export function useKokoroTts() {
       await loadModel();
     } catch (err) {
       // WebGPU load failed — fall back to WASM once.
-      if (hasWebGPU) {
+      if (hasWebGPU && !forceWasmRef.current) {
         try {
+          forceWasmRef.current = true;
           workerRef.current?.terminate();
           workerRef.current = null;
           loadedRef.current = false;
@@ -504,7 +509,7 @@ export function useKokoroTts() {
           else if (msg.type === 'error') { worker.removeEventListener('message', onMessage); reject(new Error(msg.error)); }
         };
         worker.addEventListener('message', onMessage);
-        const useWebGPU = hasWebGPU;
+        const useWebGPU = hasWebGPU && !forceWasmRef.current;
         worker.postMessage({ type: 'load', device: useWebGPU ? 'webgpu' : 'wasm', dtype: useWebGPU ? 'fp32' : 'q8', pronunciations });
       });
     })();
@@ -592,6 +597,27 @@ export function useKokoroTts() {
       await generateForKey(chapterKey, segments, voice, speed);
     } catch (err) {
       if (err?.message === 'cancelled') return;
+      // A generation stall is most often an unreliable WebGPU execution
+      // provider on this device — the model loads fine but inference never
+      // completes. Fall back to WASM once and retry before giving up.
+      if (hasWebGPU && !forceWasmRef.current && /Timed out generating speech/.test(err?.message || '')) {
+        forceWasmRef.current = true;
+        try {
+          workerRef.current?.terminate();
+          workerRef.current = null;
+          loadedRef.current = false;
+          await ensureLoaded();
+          setStatus('generating');
+          setProgress(0);
+          await generateForKey(chapterKey, segments, voice, speed);
+          return;
+        } catch (err2) {
+          if (err2?.message === 'cancelled') return;
+          setStatus('error');
+          setError(err2?.message || 'Failed to generate speech');
+          return;
+        }
+      }
       setStatus('error');
       setError(err?.message || 'Failed to generate speech');
     }
