@@ -109,6 +109,8 @@ const NAME_PRONUNCIATIONS = {
   'Philemon': 'Fihleemuhn',
   'Eutychus': 'Yootikuhs',
   'Elymas': 'Elimahs',
+  'Esau': 'Eesaw',
+  'Leah': 'Leeuh',
   'Egypt': 'Eejipt',
   'Egyptian': 'Eejipshun',
   'Egyptians': 'Eejipshuns',
