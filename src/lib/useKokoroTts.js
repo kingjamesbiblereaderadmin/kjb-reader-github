@@ -27,6 +27,7 @@ export function useKokoroTts() {
   const activeKeyRef = useRef(null);
   const cancelledRef = useRef(false);
   const currentBuffersRef = useRef([]); // the buffers array currently loaded for playback (for skip forward/back)
+  const doneGeneratingRef = useRef(false); // true once every segment for the current chapter has arrived
   // Whichever load/generate promise is currently in flight — a worker-level
   // script error (e.g. the CDN import failing, or a CSP block) never reaches
   // our postMessage-based error handling, so it's surfaced here instead of
@@ -169,7 +170,7 @@ export function useKokoroTts() {
         setCurrentKind(seg.kind);
       }
       const last = scheduleRef.current[scheduleRef.current.length - 1];
-      if (last && elapsed >= last.endTime) {
+      if (last && elapsed >= last.endTime && doneGeneratingRef.current) {
         setStatus('ready');
         setCurrentVerse(null); setCurrentKind(null);
         rafRef.current = null;
@@ -244,8 +245,8 @@ export function useKokoroTts() {
   // Jump to the next/previous verse (or subscript/colophon segment) within
   // the already-generated audio, media-player style.
   const skipForward = useCallback(() => {
-    const buffers = currentBuffersRef.current;
-    if (!buffers || !buffers.length) return;
+    const buffers = (currentBuffersRef.current || []).filter(Boolean);
+    if (!buffers.length) return;
     const elapsed = getElapsed();
     const schedule = scheduleRef.current;
     const idx = schedule.findIndex((s) => elapsed >= s.startTime && elapsed < s.endTime);
@@ -254,8 +255,8 @@ export function useKokoroTts() {
   }, [scheduleAndPlay]);
 
   const skipBack = useCallback(() => {
-    const buffers = currentBuffersRef.current;
-    if (!buffers || !buffers.length) return;
+    const buffers = (currentBuffersRef.current || []).filter(Boolean);
+    if (!buffers.length) return;
     const elapsed = getElapsed();
     const schedule = scheduleRef.current;
     const idx = schedule.findIndex((s) => elapsed >= s.startTime && elapsed < s.endTime);
@@ -266,13 +267,24 @@ export function useKokoroTts() {
     else scheduleAndPlay(buffers, schedule[idx - 1].startTime);
   }, [scheduleAndPlay]);
 
+  // Generates a chapter's audio segment-by-segment, and — unlike a plain
+  // "generate everything, then play" flow — starts PLAYING the first segment
+  // the moment it's ready instead of waiting for the whole chapter to finish
+  // generating. Remaining segments keep generating in the background and are
+  // appended to the schedule as they arrive, so "preparing narration" turns
+  // into "start listening almost immediately" for the common case.
   const generateForKey = useCallback((key, segments, voice, speed) => {
     return new Promise((resolve, reject) => {
       const worker = getWorker();
       const ctx = getCtx();
       const results = new Array(segments.length);
       let received = 0;
+      let nextStartTime = null; // ctx time when the next segment should start
       cancelledRef.current = false;
+      doneGeneratingRef.current = false;
+      stopSources();
+      scheduleRef.current = [];
+      currentBuffersRef.current = results;
 
       // Generation is per-segment (each verse is its own inference call), so
       // reset the stall timeout on every segment received rather than once
@@ -286,6 +298,25 @@ export function useKokoroTts() {
       };
       pendingRejectRef.current = (err) => finish(() => reject(err));
 
+      const scheduleSegment = (bufObj) => {
+        if (nextStartTime === null) {
+          nextStartTime = ctx.currentTime + 0.05;
+          playStartCtxTimeRef.current = nextStartTime;
+          pausedAtRef.current = 0;
+          setStatus('playing');
+          runHighlightLoop();
+        }
+        const source = ctx.createBufferSource();
+        source.buffer = bufObj.buffer;
+        source.connect(ctx.destination);
+        source.start(nextStartTime);
+        sourcesRef.current.push(source);
+        const segStart = nextStartTime - playStartCtxTimeRef.current;
+        const segEnd = segStart + bufObj.buffer.duration;
+        scheduleRef.current = [...scheduleRef.current, { startTime: segStart, endTime: segEnd, kind: bufObj.kind, verse: bufObj.verse }];
+        nextStartTime += bufObj.buffer.duration;
+      };
+
       const onMessage = (e) => {
         const msg = e.data;
         if (msg.type === 'segment') {
@@ -295,12 +326,15 @@ export function useKokoroTts() {
           const buffer = ctx.createBuffer(1, msg.samples.byteLength / 4, msg.sampleRate);
           buffer.copyToChannel(new Float32Array(msg.samples), 0);
           const seg = segments.find((s) => s.index === msg.index);
-          results[segments.indexOf(seg)] = { buffer, kind: seg.kind, verse: seg.verse, index: seg.index };
+          const bufObj = { buffer, kind: seg.kind, verse: seg.verse, index: seg.index };
+          results[segments.indexOf(seg)] = bufObj;
           received++;
           setProgress(Math.round((received / segments.length) * 100));
+          scheduleSegment(bufObj);
         } else if (msg.type === 'done') {
           if (cancelledRef.current) { finish(() => reject(new Error('cancelled'))); return; }
           cacheRef.current.set(key, { voice, buffers: results });
+          doneGeneratingRef.current = true;
           finish(() => resolve(results));
         } else if (msg.type === 'error') {
           finish(() => reject(new Error(msg.error)));
@@ -309,7 +343,7 @@ export function useKokoroTts() {
       worker.addEventListener('message', onMessage);
       worker.postMessage({ type: 'generate', segments, voice, speed });
     });
-  }, [getWorker, getCtx]);
+  }, [getWorker, getCtx, runHighlightLoop]);
 
   const listen = useCallback(async (chapterKey, segments, { voice = 'af_heart', speed = 1 } = {}) => {
     setError(null);
@@ -318,6 +352,7 @@ export function useKokoroTts() {
     const cached = cacheRef.current.get(chapterKey);
     if (cached && cached.voice === voice) {
       activeKeyRef.current = chapterKey;
+      doneGeneratingRef.current = true;
       scheduleAndPlay(cached.buffers);
       return;
     }
@@ -327,9 +362,9 @@ export function useKokoroTts() {
       await ensureLoaded();
       setStatus('generating');
       setProgress(0);
-      const buffers = await generateForKey(chapterKey, segments, voice, speed);
-      if (activeKeyRef.current !== chapterKey) return; // superseded by a newer request
-      scheduleAndPlay(buffers);
+      // Playback starts as soon as the first segment is ready (inside
+      // generateForKey) — nothing left to do here once it resolves.
+      await generateForKey(chapterKey, segments, voice, speed);
     } catch (err) {
       if (err?.message === 'cancelled') return;
       setStatus('error');
