@@ -395,17 +395,20 @@ export function useKokoroTts() {
 
   const listen = useCallback(async (chapterKey, segments, { voice = 'af_heart', speed = 1 } = {}) => {
     setError(null);
-    // Cancel any generation/playback already in flight first — otherwise a
-    // stale worker message listener from the previous call keeps scheduling
-    // its own audio in the background, which is heard as two overlapping voices.
-    cancelledRef.current = true;
-    try { workerRef.current?.postMessage({ type: 'cancel' }); } catch {}
-    if (pendingRejectRef.current) {
-      const reject = pendingRejectRef.current;
-      pendingRejectRef.current = null;
-      reject(new Error('cancelled'));
+    // Only cancel if a previous generation/playback is actually still active
+    // — otherwise a stale worker listener from that call keeps scheduling
+    // audio in the background alongside the new chapter (two overlapping
+    // voices). Guarded so a fresh first-time listen() never touches this.
+    if (pendingRejectRef.current || sourcesRef.current.length > 0) {
+      cancelledRef.current = true;
+      try { workerRef.current?.postMessage({ type: 'cancel' }); } catch {}
+      if (pendingRejectRef.current) {
+        const reject = pendingRejectRef.current;
+        pendingRejectRef.current = null;
+        reject(new Error('cancelled'));
+      }
+      stopSources();
     }
-    stopSources();
     getCtx(); // create/resume inside this user gesture
 
     const cached = cacheRef.current.get(chapterKey);
