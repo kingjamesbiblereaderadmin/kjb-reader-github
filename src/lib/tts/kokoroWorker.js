@@ -118,6 +118,7 @@ const NAME_PRONUNCIATIONS = {
   'Genesis': 'Jennuhsiss',
   'Abraham': 'Aybruhham',
   'Isaac': 'Eyezik',
+  'Levi': 'Leevye',
 };
 const LOCAL_NAME_PATTERN = buildNamePattern(
   Object.keys(NAME_PRONUNCIATIONS).reduce((m, k) => { m[k.toUpperCase()] = NAME_PRONUNCIATIONS[k]; return m; }, {})
