@@ -112,6 +112,8 @@ const NAME_PRONUNCIATIONS = {
   'Egypt': 'Eejipt',
   'Egyptian': 'Eejipshun',
   'Egyptians': 'Eejipshuns',
+  'Moses': 'Mohziz',
+  'Genesis': 'Jenuhsis',
 };
 
 // Psalm 119 acrostic — Hebrew alphabet letter names (traditional KJB
