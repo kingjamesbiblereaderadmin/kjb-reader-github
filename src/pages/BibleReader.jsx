@@ -582,8 +582,15 @@ export default function BibleReader() {
   // chapter, with verse-level highlighting driven from its timing file.
   const preAudio = usePrerecordedAudio();
   const [chapterAudioRecord, setChapterAudioRecord] = useState(null);
+  const [chapterAudioChecked, setChapterAudioChecked] = useState(false);
   const hasPrerecorded = !!chapterAudioRecord;
   const activePlayer = hasPrerecorded ? preAudio : tts;
+  // Clean voice label for the recorded narration, e.g. "kokoro-bm_george" -> "George".
+  const recordedVoiceLabel = (() => {
+    const raw = (chapterAudioRecord?.voice || '').replace(/^kokoro-/, '');
+    const name = raw.replace(/^b[fm]_/, '').split('_').pop() || 'Recorded';
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  })();
 
   // When a search/filter passage is active (only some verses shown), Listen
   // mode should narrate just those verses — matching what's on screen —
@@ -647,16 +654,18 @@ export default function BibleReader() {
   // any chapter reached via auto-advance is always a same-book continuation —
   // the book name is skipped and only "Chapter N." is announced.
   useEffect(() => {
-    if (loading || !ttsAutoContinueRef.current) return;
+    if (loading || !chapterAudioChecked || !ttsAutoContinueRef.current) return;
     ttsAutoContinueRef.current = false;
-    if (isViewingTitlePage) {
+    if (hasPrerecorded) {
+      preAudio.listen(chapterAudioRecord, { onEnded: advanceToNextAndListen });
+    } else if (isViewingTitlePage) {
       tts.listen(`${pos.abbr}-title`, ttsTitleSegments, { voice: ttsVoiceId, speed: 0.85, onEnded: advanceToNextAndListen });
     } else {
       const segs = buildChapterSegments(book, pos.chapter, verses, chapterSubscript, colophon, getEndMarkerTextFor(pos.abbr, book.apiName, pos.chapter), false);
       tts.listen(`${pos.abbr}-${pos.chapter}-cont`, segs, { voice: ttsVoiceId, speed: 0.85, onEnded: advanceToNextAndListen });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, pos.abbr, pos.chapter]);
+  }, [loading, chapterAudioChecked, pos.abbr, pos.chapter]);
 
   // As soon as a chapter/title page finishes loading, pregenerate the NEXT
   // chapter/book's audio in the background (via a separate worker — see
@@ -721,7 +730,7 @@ export default function BibleReader() {
 
   const handleListenTts = () => {
     if (hasPrerecorded) {
-      preAudio.listen(chapterAudioRecord, { onEnded: () => preAudio.stop() });
+      preAudio.listen(chapterAudioRecord, { onEnded: advanceToNextAndListen });
       return;
     }
     // Warm the background prefetch worker's model as early as possible — by
@@ -788,11 +797,14 @@ export default function BibleReader() {
   // Look up a pre-recorded narration file for this chapter, if one exists.
   useEffect(() => {
     setChapterAudioRecord(null);
-    if (isViewingTitlePage) return;
+    setChapterAudioChecked(false);
+    if (isViewingTitlePage) { setChapterAudioChecked(true); return; }
     let cancelled = false;
     base44.entities.ChapterAudio.filter({ book: book.name, chapter: pos.chapter }).then((rows) => {
-      if (!cancelled && rows && rows[0]) setChapterAudioRecord(rows[0]);
-    }).catch(() => {});
+      if (cancelled) return;
+      if (rows && rows[0]) setChapterAudioRecord(rows[0]);
+      setChapterAudioChecked(true);
+    }).catch(() => { if (!cancelled) setChapterAudioChecked(true); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pos.abbr, pos.chapter]);
@@ -2201,7 +2213,7 @@ export default function BibleReader() {
             status={activePlayer.status}
             progress={activePlayer.progress}
             error={activePlayer.error}
-            voices={hasPrerecorded ? [{ id: 'recorded', label: (chapterAudioRecord?.voice || '').replace(/^kokoro-/, '').replace(/_/g, ' ') || 'Recorded' }] : TTS_VOICES}
+            voices={hasPrerecorded ? [{ id: 'recorded', label: recordedVoiceLabel }] : TTS_VOICES}
             voiceId={hasPrerecorded ? 'recorded' : ttsVoiceId}
             voiceLocked={hasPrerecorded}
             onListen={handleListenTts}
