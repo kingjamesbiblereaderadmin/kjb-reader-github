@@ -576,9 +576,26 @@ export default function BibleReader() {
   const tts = useKokoroTts();
   const [ttsVoiceId, setTtsVoiceId] = useState(TTS_VOICES[0].id);
 
+  // When a search/filter passage is active (only some verses shown), Listen
+  // mode should narrate just those verses — matching what's on screen —
+  // instead of always reading the whole chapter. Subscript/colophon/end-marker
+  // are included only when their anchor verse (1 / the chapter's last verse)
+  // is among the shown verses, mirroring the on-screen render logic above.
+  const ttsActiveFilter = filterMode && selectedVerses.size > 0;
+  const lastChapterVerseNum = verses.length ? parseInt(verses[verses.length - 1].verse, 10) : null;
+  const ttsSpokenVerses = useMemo(() => {
+    if (!ttsActiveFilter) return verses;
+    return verses.filter((v) => selectedVerses.has(parseInt(v.verse, 10)) || selectedVerses.has(String(v.verse)));
+  }, [verses, ttsActiveFilter, selectedVerses]);
+  const ttsHasVerse1 = ttsSpokenVerses.some((v) => parseInt(v.verse, 10) === 1);
+  const ttsHasLastVerse = lastChapterVerseNum != null && ttsSpokenVerses.some((v) => parseInt(v.verse, 10) === lastChapterVerseNum);
+  const ttsSubscript = !ttsActiveFilter || ttsHasVerse1 ? chapterSubscript : null;
+  const ttsColophon = !ttsActiveFilter || ttsHasLastVerse ? colophon : null;
+  const ttsEndMarker = !ttsActiveFilter || ttsHasLastVerse ? getEndMarkerTextFor(pos.abbr, book.apiName, pos.chapter) : null;
+
   const ttsSegments = useMemo(
-    () => buildChapterSegments(book, pos.chapter, verses, chapterSubscript, colophon, getEndMarkerTextFor(pos.abbr, book.apiName, pos.chapter)),
-    [verses, chapterSubscript, colophon, book.name, book.apiName, pos.chapter, pos.abbr]
+    () => buildChapterSegments(book, pos.chapter, ttsSpokenVerses, ttsSubscript, ttsColophon, ttsEndMarker),
+    [ttsSpokenVerses, ttsSubscript, ttsColophon, ttsEndMarker, book.name, book.apiName, pos.chapter, pos.abbr]
   );
 
   // Title pages (chapter 0) get their own segment list so Listen mode reads
