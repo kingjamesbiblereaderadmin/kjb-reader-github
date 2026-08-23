@@ -37,6 +37,10 @@ import { printChapterContents } from '@/lib/printHelpers';
 import { saveVerse } from '@/lib/savedVerses';
 import { usePinchZoom } from '@/hooks/usePinchZoom';
 import { useReadingProgressTracker } from '@/hooks/useReadingProgressTracker';
+import { useKokoroTts } from '@/lib/useKokoroTts';
+import KokoroListenControls from '@/components/bible/KokoroListenControls';
+
+const TTS_VOICE_MAP = { female: 'af_heart', male: 'am_michael' };
 
 const isMobile = () => window.innerWidth < 640;
 const STORAGE_KEY = 'kjb-position';
@@ -217,6 +221,52 @@ export default function BibleReader() {
   });
 
   useReadingProgressTracker(pos, loading);
+
+  // Client-side Kokoro TTS narration (no backend, no bundled ONNX runtime —
+  // see src/lib/useKokoroTts.js / src/lib/tts/kokoroWorker.js).
+  const tts = useKokoroTts();
+  const [ttsVoiceGender, setTtsVoiceGender] = useState('female');
+  const chapterSubscriptForTts = resolveSubscript(book.apiName, pos.chapter);
+  const ttsSegments = useMemo(() => {
+    const segs = [];
+    let idx = 0;
+    if (chapterSubscriptForTts) segs.push({ kind: 'subscript', verse: null, text: cleanVerseText(chapterSubscriptForTts).replace(/^[\u00B6\uFFFD\u00B6]\s*/, ''), index: idx++ });
+    verses.forEach((v) => {
+      segs.push({ kind: 'verse', verse: parseInt(v.verse, 10), text: cleanVerseText(v.text).replace(/^\u00B6\s*/, ''), index: idx++ });
+    });
+    if (colophon) segs.push({ kind: 'colophon', verse: null, text: cleanVerseText(colophon).replace(/^[\u00B6\uFFFD\u00B6]\s*/, ''), index: idx++ });
+    return segs;
+  }, [verses, chapterSubscriptForTts, colophon]);
+
+  const handleListenTts = () => {
+    tts.listen(`${pos.abbr}-${pos.chapter}`, ttsSegments, { voice: TTS_VOICE_MAP[ttsVoiceGender] });
+  };
+  const handleCycleTtsVoice = () => {
+    tts.forget(`${pos.abbr}-${pos.chapter}`);
+    setTtsVoiceGender((g) => (g === 'female' ? 'male' : 'female'));
+  };
+
+  // Stop narration on chapter change / unmount so it never plays over a
+  // chapter the reader has already navigated away from.
+  useEffect(() => {
+    return () => { tts.stop(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pos.abbr, pos.chapter]);
+
+  // Verse-level highlighting: mirror the currently-speaking segment onto the
+  // matching verse element using the existing .kjb-audio-* CSS hooks.
+  useEffect(() => {
+    const container = readerContentRef.current;
+    if (!container) return;
+    container.querySelectorAll('.kjb-audio-verse-active').forEach((el) => el.classList.remove('kjb-audio-verse-active'));
+    if ((tts.status === 'playing') && tts.currentKind === 'verse' && tts.currentVerse != null) {
+      const el = document.getElementById(`v${tts.currentVerse}`);
+      if (el) el.classList.add('kjb-audio-verse-active');
+    }
+    const listening = tts.status === 'playing' || tts.status === 'paused';
+    container.classList.toggle('kjb-audio-listening', listening);
+    container.classList.toggle('kjb-audio-intro', listening && tts.currentKind !== 'verse');
+  }, [tts.currentVerse, tts.currentKind, tts.status]);
 
   const toggleFullscreen = async () => {
     try {
@@ -1785,6 +1835,18 @@ export default function BibleReader() {
                 <Printer className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />
                 <span className="hidden lg:inline">Print</span>
               </button>
+
+              <KokoroListenControls
+                status={tts.status}
+                progress={tts.progress}
+                error={tts.error}
+                voice={ttsVoiceGender}
+                onListen={handleListenTts}
+                onPause={tts.pause}
+                onResume={tts.resume}
+                onStop={tts.stop}
+                onCycleVoice={handleCycleTtsVoice}
+              />
 
               <div className="flex gap-2 flex-shrink-0">
                 <button onClick={goPrev} disabled={isFirstChapterFirstBook} className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"><ChevronLeft className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Prev</span></button>
