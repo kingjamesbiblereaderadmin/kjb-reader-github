@@ -185,6 +185,27 @@ export function useKokoroTts() {
     rafRef.current = requestAnimationFrame(tick);
   }, []);
 
+  // Plays a buffer with a very short fade-in/out (in a GainNode) so the
+  // start/end of each generated clip doesn't cut off mid-waveform — which is
+  // what causes the audible "click"/pop between segments (e.g. right after
+  // the book/chapter name finishes).
+  const FADE = 0.012;
+  const playBufferWithFade = (ctx, buffer, startTime, offset = 0) => {
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    const gain = ctx.createGain();
+    source.connect(gain);
+    gain.connect(ctx.destination);
+    const remaining = buffer.duration - offset;
+    const fade = Math.min(FADE, remaining / 2);
+    gain.gain.setValueAtTime(0, startTime);
+    gain.gain.linearRampToValueAtTime(1, startTime + fade);
+    gain.gain.setValueAtTime(1, startTime + remaining - fade);
+    gain.gain.linearRampToValueAtTime(0, startTime + remaining);
+    source.start(startTime, offset);
+    return source;
+  };
+
   const scheduleAndPlay = useCallback((buffers, fromOffset = 0) => {
     const ctx = getCtx();
     currentBuffersRef.current = buffers;
@@ -202,10 +223,7 @@ export function useKokoroTts() {
       }
       const offsetInSeg = Math.min(elapsedSkip, Math.max(0, segDuration - 0.01));
       elapsedSkip = 0;
-      const source = ctx.createBufferSource();
-      source.buffer = b.buffer;
-      source.connect(ctx.destination);
-      source.start(t, offsetInSeg);
+      const source = playBufferWithFade(ctx, b.buffer, t, offsetInSeg);
       sourcesRef.current.push(source);
       const segStart = t - startAt;
       const segEnd = segStart + (segDuration - offsetInSeg);
@@ -319,10 +337,7 @@ export function useKokoroTts() {
           setStatus('playing');
           runHighlightLoop();
         }
-        const source = ctx.createBufferSource();
-        source.buffer = bufObj.buffer;
-        source.connect(ctx.destination);
-        source.start(nextStartTime);
+        const source = playBufferWithFade(ctx, bufObj.buffer, nextStartTime);
         sourcesRef.current.push(source);
         const segStart = nextStartTime - playStartCtxTimeRef.current;
         const segEnd = segStart + bufObj.buffer.duration;
