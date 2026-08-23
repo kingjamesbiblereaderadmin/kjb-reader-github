@@ -117,7 +117,18 @@ const NAME_PRONUNCIATIONS = {
   'Moses': 'Mohziz',
   'Genesis': 'Jennuhsiss',
   'Abraham': 'Aybruhham',
+  'Isaac': 'Eyezik',
 };
+const LOCAL_NAME_PATTERN = buildNamePattern(
+  Object.keys(NAME_PRONUNCIATIONS).reduce((m, k) => { m[k.toUpperCase()] = NAME_PRONUNCIATIONS[k]; return m; }, {})
+);
+function normalizeLocalNames(text) {
+  if (!LOCAL_NAME_PATTERN) return text;
+  return text.replace(LOCAL_NAME_PATTERN, (match) => {
+    const key = Object.keys(NAME_PRONUNCIATIONS).find((k) => k.toUpperCase() === match.toUpperCase());
+    return key ? NAME_PRONUNCIATIONS[key] : match;
+  });
+}
 
 // Psalm 119 acrostic — Hebrew alphabet letter names (traditional KJB
 // spelling), respelled for correct English pronunciation. Kept SEPARATE from
@@ -240,8 +251,10 @@ async function generateSegments(segments, voice, speed) {
     if (cancelled) return;
     const seg = segments[i];
     try {
-      // Name pronunciation overrides disabled — default TTS pronunciation is used.
-      const spokenText = seg.kind === 'heading' ? normalizeAcrosticHeading(seg.text) : seg.text;
+      // Only a small hand-picked set of names (Abraham, Isaac, etc. — see
+      // NAME_PRONUNCIATIONS) get a pronunciation override; everything else
+      // uses Kokoro's default pronunciation.
+      const spokenText = seg.kind === 'heading' ? normalizeAcrosticHeading(seg.text) : normalizeLocalNames(seg.text);
       const result = await ttsInstance.generate(spokenText, { voice, speed: speed || 1 });
       if (cancelled) return;
       const raw = result.audio instanceof Float32Array ? result.audio : new Float32Array(result.audio);
