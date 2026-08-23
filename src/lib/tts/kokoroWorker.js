@@ -240,7 +240,8 @@ async function generateSegments(segments, voice, speed) {
     if (cancelled) return;
     const seg = segments[i];
     try {
-      const spokenText = seg.kind === 'heading' ? normalizeAcrosticHeading(seg.text) : normalizeBiblicalNames(seg.text);
+      // Name pronunciation overrides disabled — default TTS pronunciation is used.
+      const spokenText = seg.kind === 'heading' ? normalizeAcrosticHeading(seg.text) : seg.text;
       const result = await ttsInstance.generate(spokenText, { voice, speed: speed || 1 });
       if (cancelled) return;
       const raw = result.audio instanceof Float32Array ? result.audio : new Float32Array(result.audio);
