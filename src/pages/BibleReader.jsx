@@ -38,6 +38,7 @@ import { saveVerse } from '@/lib/savedVerses';
 import { usePinchZoom } from '@/hooks/usePinchZoom';
 import { useReadingProgressTracker } from '@/hooks/useReadingProgressTracker';
 import { useKokoroTts } from '@/lib/useKokoroTts';
+import { usePrerecordedAudio } from '@/lib/usePrerecordedAudio';
 import KokoroListenControls from '@/components/bible/KokoroListenControls';
 
 // Kokoro-82M British voice IDs: bf = British female, bm = British male.
@@ -576,6 +577,14 @@ export default function BibleReader() {
   const tts = useKokoroTts();
   const [ttsVoiceId, setTtsVoiceId] = useState(TTS_VOICES[0].id);
 
+  // Pre-recorded chapter narration (restored audio files) — used instead of
+  // live Kokoro generation whenever a ChapterAudio record exists for this
+  // chapter, with verse-level highlighting driven from its timing file.
+  const preAudio = usePrerecordedAudio();
+  const [chapterAudioRecord, setChapterAudioRecord] = useState(null);
+  const hasPrerecorded = !!chapterAudioRecord;
+  const activePlayer = hasPrerecorded ? preAudio : tts;
+
   // When a search/filter passage is active (only some verses shown), Listen
   // mode should narrate just those verses — matching what's on screen —
   // instead of always reading the whole chapter. Subscript/colophon/end-marker
@@ -711,6 +720,10 @@ export default function BibleReader() {
   };
 
   const handleListenTts = () => {
+    if (hasPrerecorded) {
+      preAudio.listen(chapterAudioRecord, { onEnded: () => preAudio.stop() });
+      return;
+    }
     // Warm the background prefetch worker's model as early as possible — by
     // the time this (first) chapter finishes, the next chapter's audio can be
     // generated without also paying the model-load cost.
@@ -768,7 +781,19 @@ export default function BibleReader() {
   // Stop narration on chapter change / unmount so it never plays over a
   // chapter the reader has already navigated away from.
   useEffect(() => {
-    return () => { tts.stop(); };
+    return () => { tts.stop(); preAudio.stop(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pos.abbr, pos.chapter]);
+
+  // Look up a pre-recorded narration file for this chapter, if one exists.
+  useEffect(() => {
+    setChapterAudioRecord(null);
+    if (isViewingTitlePage) return;
+    let cancelled = false;
+    base44.entities.ChapterAudio.filter({ book: book.name, chapter: pos.chapter }).then((rows) => {
+      if (!cancelled && rows && rows[0]) setChapterAudioRecord(rows[0]);
+    }).catch(() => {});
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pos.abbr, pos.chapter]);
 
@@ -778,14 +803,14 @@ export default function BibleReader() {
     const container = readerContentRef.current;
     if (!container) return;
     container.querySelectorAll('.kjb-audio-verse-active').forEach((el) => el.classList.remove('kjb-audio-verse-active'));
-    if ((tts.status === 'playing') && tts.currentKind === 'verse' && tts.currentVerse != null) {
-      const el = document.getElementById(`v${tts.currentVerse}`);
+    if ((activePlayer.status === 'playing') && activePlayer.currentKind === 'verse' && activePlayer.currentVerse != null) {
+      const el = document.getElementById(`v${activePlayer.currentVerse}`);
       if (el) el.classList.add('kjb-audio-verse-active');
     }
-    const listening = tts.status === 'playing' || tts.status === 'paused';
+    const listening = activePlayer.status === 'playing' || activePlayer.status === 'paused';
     container.classList.toggle('kjb-audio-listening', listening);
-    container.classList.toggle('kjb-audio-intro', listening && tts.currentKind !== 'verse');
-  }, [tts.currentVerse, tts.currentKind, tts.status]);
+    container.classList.toggle('kjb-audio-intro', listening && activePlayer.currentKind !== 'verse');
+  }, [activePlayer.currentVerse, activePlayer.currentKind, activePlayer.status]);
 
   useReaderUrlSync(pos, loading, a11yFont, routerNavigate, searchTerm, gospelMode);
   const isViewingTitlePage = pos.chapter === 0;
@@ -1312,10 +1337,10 @@ export default function BibleReader() {
   // While TTS narration is playing, scroll the currently-spoken verse into
   // view so the page follows along instead of staying put.
   useEffect(() => {
-    if (tts.status === 'playing' && tts.currentKind === 'verse' && tts.currentVerse != null) {
-      scrollToVerseEl(tts.currentVerse);
+    if (activePlayer.status === 'playing' && activePlayer.currentKind === 'verse' && activePlayer.currentVerse != null) {
+      scrollToVerseEl(activePlayer.currentVerse);
     }
-  }, [tts.currentVerse, tts.currentKind, tts.status, scrollToVerseEl]);
+  }, [activePlayer.currentVerse, activePlayer.currentKind, activePlayer.status, scrollToVerseEl]);
 
   useEffect(() => {
     if (loading) return;
@@ -2173,18 +2198,19 @@ export default function BibleReader() {
           </div>
 
           <KokoroListenControls
-            status={tts.status}
-            progress={tts.progress}
-            error={tts.error}
-            voices={TTS_VOICES}
-            voiceId={ttsVoiceId}
+            status={activePlayer.status}
+            progress={activePlayer.progress}
+            error={activePlayer.error}
+            voices={hasPrerecorded ? [{ id: 'recorded', label: (chapterAudioRecord?.voice || '').replace(/^kokoro-/, '').replace(/_/g, ' ') || 'Recorded' }] : TTS_VOICES}
+            voiceId={hasPrerecorded ? 'recorded' : ttsVoiceId}
+            voiceLocked={hasPrerecorded}
             onListen={handleListenTts}
-            onPause={tts.pause}
-            onResume={tts.resume}
-            onStop={tts.stop}
-            onSelectVoice={handleSelectTtsVoice}
-            onSkipBack={tts.skipBack}
-            onSkipForward={tts.skipForward}
+            onPause={activePlayer.pause}
+            onResume={activePlayer.resume}
+            onStop={activePlayer.stop}
+            onSelectVoice={hasPrerecorded ? () => {} : handleSelectTtsVoice}
+            onSkipBack={activePlayer.skipBack}
+            onSkipForward={activePlayer.skipForward}
           />
 
           {/* Single unified toolbar - SelectActionBar for multi-select mode, ReadingRangeBar for search/gospel/daily/navigation */}

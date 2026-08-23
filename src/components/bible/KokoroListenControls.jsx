@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 // Full-width Kokoro TTS narration bar, styled like a media player. Voice is
 // chosen from a full-width dropdown (not a small icon toggle) and can be
 // switched at any time — including while narration is playing or paused.
-export default function KokoroListenControls({ status, progress, error, voices, voiceId, onListen, onPause, onResume, onStop, onSelectVoice, onSkipBack, onSkipForward }) {
+export default function KokoroListenControls({ status, progress, error, voices, voiceId, onListen, onPause, onResume, onStop, onSelectVoice, onSkipBack, onSkipForward, voiceLocked = false }) {
   const isBusy = status === 'loading' || status === 'generating';
   const isPlaying = status === 'playing';
   const isPaused = status === 'paused';
@@ -24,8 +24,8 @@ export default function KokoroListenControls({ status, progress, error, voices, 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
-            disabled={isBusy}
-            title="Choose narration voice"
+            disabled={isBusy || voiceLocked}
+            title={voiceLocked ? 'Recorded narration' : 'Choose narration voice'}
             className="flex items-center justify-center gap-2 w-full h-10 px-3 rounded-lg bg-secondary border border-border text-foreground font-sans text-sm font-medium hover:bg-accent/20 disabled:opacity-40 transition-all duration-200 touch-manipulation"
           >
             <UserRound className="w-4 h-4 flex-shrink-0" />
