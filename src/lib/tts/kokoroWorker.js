@@ -109,6 +109,30 @@ const NAME_PRONUNCIATIONS = {
   'Philemon': 'Fylleemuhn',
   'Eutychus': 'Yootikuhs',
   'Elymas': 'Elimuhs',
+  // Psalm 119 acrostic — Hebrew alphabet letter names (traditional KJB
+  // spelling), respelled for correct English pronunciation.
+  'Aleph': 'Ah-lef',
+  'Beth': 'Bayth',
+  'Gimel': 'Ghim-el',
+  'Daleth': 'Dah-leth',
+  'He': 'Hay',
+  'Vau': 'Vahv',
+  'Zain': 'Zah-in',
+  'Cheth': 'Kheth',
+  'Teth': 'Tayth',
+  'Jod': 'Yohd',
+  'Caph': 'Kaf',
+  'Lamed': 'Lah-med',
+  'Mem': 'Mem',
+  'Nun': 'Noon',
+  'Samech': 'Sah-mekh',
+  'Ain': 'Ah-yin',
+  'Pe': 'Pay',
+  'Tzaddi': 'Tsah-dee',
+  'Koph': 'Kohf',
+  'Resh': 'Raysh',
+  'Schin': 'Sheen',
+  'Tau': 'Tahv',
 };
 const NAME_PATTERN = new RegExp(`\\b(${Object.keys(NAME_PRONUNCIATIONS).join('|')})\\b`, 'gi');
 function normalizeBiblicalNames(text) {

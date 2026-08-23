@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, BookOpen, Type, Server, Info, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Heart, BookOpen, Type, Server, Info, ArrowLeft, ExternalLink, Volume2 } from 'lucide-react';
 
 // A simple, static credits / acknowledgements page.
 // Linked from Settings (the "About & Credits" card).
@@ -64,6 +64,20 @@ export default function CreditsPage() {
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Times New Roman &amp; Comic Sans MS</strong> — system fonts bundled with Windows/macOS; no attribution required.</span></li>
           </ul>
           <p className="font-sans text-[11px] text-muted-foreground leading-relaxed mt-3">All fonts are open source and freely available under the SIL Open Font License.</p>
+        </section>
+
+        {/* Text-to-Speech */}
+        <section className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
+              <Volume2 className="w-5 h-5" />
+            </div>
+            <h2 className="font-serif text-xl font-semibold text-foreground">Text-to-Speech (Listen Mode)</h2>
+          </div>
+          <ul className="space-y-1.5 font-sans text-sm text-foreground/85">
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Kokoro-82M</strong> — an open-weight, on-device text-to-speech model (runs locally in your browser, no audio sent to a server).</span></li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Pronunciation reference:</strong> proper-name and Hebrew acrostic pronunciations were informed by <em>The Proper Names of the Bible</em> by John Farrar (1855, public domain), via the <a href="https://archive.org/details/propernamesbibl00farrgoog" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-0.5">Internet Archive<ExternalLink className="w-3 h-3" /></a>.</span></li>
+          </ul>
         </section>
 
         {/* App Platform & Thanks */}
