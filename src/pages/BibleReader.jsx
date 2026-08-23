@@ -697,10 +697,14 @@ export default function BibleReader() {
       tts.listen(`${pos.abbr}-title`, ttsTitleSegments, { voice: ttsVoiceId, speed: 0.85, onEnded: advanceToNextAndListen });
       return;
     }
+    // Only skip ahead to the visible verse when the reader has actually
+    // scrolled PAST verse 1 — otherwise a freshly-loaded chapter (verse 1
+    // visible at the top) was incorrectly treated as "scrolled to verse 1"
+    // and cut the book/chapter intro (and subscript, if any) entirely.
     const visibleVerse = getVisibleVerseNumber();
     let segments = ttsSegments;
     let key = `${pos.abbr}-${pos.chapter}`;
-    if (visibleVerse != null) {
+    if (visibleVerse != null && visibleVerse > 1) {
       const idx = ttsSegments.findIndex((s) => s.kind === 'verse' && s.verse === visibleVerse);
       if (idx > 0) {
         segments = ttsSegments.slice(idx);
