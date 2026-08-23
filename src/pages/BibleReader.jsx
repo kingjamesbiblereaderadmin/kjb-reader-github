@@ -649,18 +649,14 @@ export default function BibleReader() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, pos.abbr, pos.chapter]);
 
-  // While narration is actively playing the current chapter/title page,
-  // pregenerate the NEXT chapter/book's audio in the background (via a
-  // separate worker — see useKokoroTts.prefetch) so that when playback
-  // naturally advances there, it starts instantly instead of pausing to
-  // generate from scratch.
+  // As soon as a chapter/title page finishes loading, pregenerate the NEXT
+  // chapter/book's audio in the background (via a separate worker — see
+  // useKokoroTts.prefetch) so that whenever Listen is pressed there, it
+  // starts instantly instead of pausing to generate from scratch.
   const prefetchedKeyRef = useRef(null);
   useEffect(() => {
-    // Start as soon as generation of the current chapter begins (not just once
-    // it's audibly playing) — this gives the background worker the maximum
-    // possible lead time to load its model and generate the next chapter's
-    // audio before narration reaches the end of the current one.
-    if (tts.status !== 'playing' && tts.status !== 'generating') return;
+    if (loading) return;
+    tts.warmPrefetch();
     let cancelled = false;
     (async () => {
       try {
@@ -696,7 +692,7 @@ export default function BibleReader() {
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tts.status, pos.abbr, pos.chapter, ttsVoiceId]);
+  }, [loading, pos.abbr, pos.chapter, ttsVoiceId]);
 
   // Finds the verse currently at/just below the top of the visible scroll
   // area, so pressing Play while scrolled down starts narration from there
