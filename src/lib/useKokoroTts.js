@@ -410,8 +410,10 @@ export function useKokoroTts() {
 
       // Generation is per-segment (each verse is its own inference call), so
       // reset the stall timeout on every segment received rather than once
-      // for the whole chapter.
-      let timeoutId = setTimeout(() => finish(() => reject(new Error('Timed out generating speech — please try again'))), 30000);
+      // for the whole chapter. The FIRST segment gets a longer allowance since
+      // it includes the model's cold-start/warmup inference, which can take
+      // noticeably longer than subsequent segments (especially on WASM/CPU).
+      let timeoutId = setTimeout(() => finish(() => reject(new Error('Timed out generating speech — please try again'))), 60000);
       const finish = (fn) => {
         clearTimeout(timeoutId);
         pendingRejectRef.current = null;
@@ -449,7 +451,7 @@ export function useKokoroTts() {
         if (msg.type === 'segment') {
           if (cancelledRef.current) return;
           clearTimeout(timeoutId);
-          timeoutId = setTimeout(() => finish(() => reject(new Error('Timed out generating speech — please try again'))), 30000);
+          timeoutId = setTimeout(() => finish(() => reject(new Error('Timed out generating speech — please try again'))), 30000 + 15000);
           const buffer = ctx.createBuffer(1, msg.samples.byteLength / 4, msg.sampleRate);
           buffer.copyToChannel(new Float32Array(msg.samples), 0);
           const seg = segments.find((s) => s.index === msg.index);
