@@ -284,6 +284,15 @@ export function useKokoroTts() {
       const results = new Array(segments.length);
       let received = 0;
       let nextStartTime = null; // ctx time when the next segment should start
+      // Buffer a couple of segments ahead before starting playback. The intro
+      // ("Book. Chapter N.") generates almost instantly, but a real verse can
+      // take noticeably longer — starting audio on the intro alone leaves a
+      // dead silent gap while verse 1 is still generating. Holding back the
+      // first few segments absorbs that lag into the "Preparing narration…"
+      // wait instead of an audible mid-playback stall.
+      const BUFFER_AHEAD = Math.min(2, segments.length);
+      const pendingBuffers = [];
+      let startedScheduling = false;
       cancelledRef.current = false;
       doneGeneratingRef.current = false;
       stopSources();
@@ -334,9 +343,19 @@ export function useKokoroTts() {
           results[segments.indexOf(seg)] = bufObj;
           received++;
           setProgress(Math.round((received / segments.length) * 100));
-          scheduleSegment(bufObj);
+          if (!startedScheduling) {
+            pendingBuffers.push(bufObj);
+            if (pendingBuffers.length >= BUFFER_AHEAD) {
+              startedScheduling = true;
+              pendingBuffers.forEach(scheduleSegment);
+              pendingBuffers.length = 0;
+            }
+          } else {
+            scheduleSegment(bufObj);
+          }
         } else if (msg.type === 'done') {
           if (cancelledRef.current) { finish(() => reject(new Error('cancelled'))); return; }
+          if (pendingBuffers.length) { pendingBuffers.forEach(scheduleSegment); pendingBuffers.length = 0; }
           cacheRef.current.set(key, { voice, buffers: results });
           doneGeneratingRef.current = true;
           finish(() => resolve(results));
