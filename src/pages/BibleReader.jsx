@@ -57,10 +57,10 @@ function getEndMarkerTextFor(abbr, apiName, chapter) {
   return null;
 }
 
-function buildChapterSegments(book, chapter, verses, chapterSubscript, colophon, endMarkerText, announceBook = true) {
+function buildChapterSegments(book, chapter, verses, chapterSubscript, colophon, endMarkerText, announceBook = true, customIntroText = null) {
   const segs = [];
   let idx = 0;
-  const introText = announceBook ? `${book.name}. Chapter ${chapter}.` : `Chapter ${chapter}.`;
+  const introText = customIntroText || (announceBook ? `${book.name}. Chapter ${chapter}.` : `Chapter ${chapter}.`);
   segs.push({ kind: 'intro', verse: null, text: introText, index: idx++ });
   if (chapterSubscript) segs.push({ kind: 'subscript', verse: null, text: cleanVerseText(chapterSubscript).replace(/^[\u00B6\uFFFD\u00B6]\s*/, ''), index: idx++ });
   (verses || []).forEach((v) => {
@@ -593,9 +593,18 @@ export default function BibleReader() {
   const ttsColophon = !ttsActiveFilter || ttsHasLastVerse ? colophon : null;
   const ttsEndMarker = !ttsActiveFilter || ttsHasLastVerse ? getEndMarkerTextFor(pos.abbr, book.apiName, pos.chapter) : null;
 
+  // While a search/filter passage is being narrated, announce the reference
+  // (and search term, if this is a keyword search) instead of the plain
+  // book/chapter intro, so Listen mode says what's actually being read.
+  const ttsIntroOverride = ttsActiveFilter
+    ? (searchTerm
+        ? `Search results for "${searchTerm}". ${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}.`
+        : `${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}.`)
+    : null;
+
   const ttsSegments = useMemo(
-    () => buildChapterSegments(book, pos.chapter, ttsSpokenVerses, ttsSubscript, ttsColophon, ttsEndMarker),
-    [ttsSpokenVerses, ttsSubscript, ttsColophon, ttsEndMarker, book.name, book.apiName, pos.chapter, pos.abbr]
+    () => buildChapterSegments(book, pos.chapter, ttsSpokenVerses, ttsSubscript, ttsColophon, ttsEndMarker, true, ttsIntroOverride),
+    [ttsSpokenVerses, ttsSubscript, ttsColophon, ttsEndMarker, ttsIntroOverride, book.name, book.apiName, pos.chapter, pos.abbr]
   );
 
   // Title pages (chapter 0) get their own segment list so Listen mode reads
