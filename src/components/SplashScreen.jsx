@@ -257,41 +257,10 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
           console.log('[Splash] Incognito mode detected — skipping offline download');
         }
 
-        // 3. Checking for updates (real check)
-        const hasUpdates = await runStep('CHECKING FOR UPDATES...', () => checkRealUpdates(swUpdatedAtMount));
-
-        if (hasUpdates) {
-          // Loop: Found → Installing → Applying → Checking, until no more updates.
-          let more = true;
-          let guard = 0;
-          let downloadFailed = false;
-          while (more && guard < 5) {
-            guard++;
-            setStep('FOUND UPDATES.');
-            await pause(STEP_PAUSE_MS);
-            const downloaded = await downloadWithProgress('INSTALLING UPDATES...');
-            if (!downloaded) {
-              // Connection dropped mid-update. The old cached data is untouched
-              // (downloadBibleForOffline no longer wipes it before fetching), so
-              // say so plainly and fall back to what's already on the device
-              // rather than pretending the update succeeded.
-              downloadFailed = true;
-              setStep('CONNECTION LOST — USING SAVED DATA.');
-              await pause(STEP_PAUSE_MS);
-              break;
-            }
-            await runStep('APPLYING UPDATES...', applyServiceWorker);
-            more = await runStep('CHECKING FOR UPDATES...', () => checkRealUpdates(false));
-          }
-          if (!downloadFailed) {
-            setStep('NO UPDATES FOUND.');
-            await pause(STEP_PAUSE_MS);
-          }
-        } else {
-          // No updates
-          setStep('NO UPDATES FOUND.');
-          await pause(STEP_PAUSE_MS);
-        }
+        // Updates are no longer checked/installed here — that would block the
+        // user for 20-30s on every open. Instead, a new app version installs
+        // silently in the background (main.jsx polls periodically) and simply
+        // takes effect the NEXT time the app is opened, with no wait at all.
 
         // 7b. Give the browser's install prompt a brief moment to fire so the
         // Install button is ready immediately (Edge fires beforeinstallprompt
@@ -332,39 +301,10 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
         setStep('LOADING KJB READER...');
         await pause(STEP_PAUSE_MS);
 
-        // 2. Checking for updates — real detection
-        const hasUpdates = await runStep('CHECKING FOR UPDATES...', () => checkRealUpdates(swUpdatedAtMount));
-
-        if (hasUpdates) {
-          // Loop: Found → Installing → Applying → Checking, until no more updates.
-          let more = true;
-          let guard = 0;
-          let downloadFailed = false;
-          while (more && guard < 5) {
-            guard++;
-            setStep('FOUND UPDATES.');
-            await pause(STEP_PAUSE_MS);
-            const downloaded = await downloadWithProgress('INSTALLING UPDATES...');
-            if (!downloaded) {
-              // Connection dropped mid-update — old cached data is untouched, so
-              // say so plainly and fall back to it instead of claiming success.
-              downloadFailed = true;
-              setStep('CONNECTION LOST — USING SAVED DATA.');
-              await pause(STEP_PAUSE_MS);
-              break;
-            }
-            await runStep('APPLYING UPDATES...', applyServiceWorker);
-            more = await runStep('CHECKING FOR UPDATES...', () => checkRealUpdates(false));
-          }
-          if (!downloadFailed) {
-            setStep('NO UPDATES FOUND.');
-            await pause(STEP_PAUSE_MS);
-          }
-        } else {
-          // No updates
-          setStep('NO UPDATES FOUND.');
-          await pause(STEP_PAUSE_MS);
-        }
+        // Updates are no longer checked/installed here — that would block the
+        // user for 20-30s on every open. Instead, a new app version installs
+        // silently in the background (main.jsx polls periodically) and simply
+        // takes effect the NEXT time the app is opened, with no wait at all.
 
         // 7. Welcome back
         setStep('WELCOME BACK TO KJB READER.');
