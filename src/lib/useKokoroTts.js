@@ -32,6 +32,7 @@ export function useKokoroTts() {
   const cancelledRef = useRef(false);
   const currentBuffersRef = useRef([]); // the buffers array currently loaded for playback (for skip forward/back)
   const doneGeneratingRef = useRef(false); // true once every segment for the current chapter has arrived
+  const onEndedRef = useRef(null); // callback fired once narration reaches its natural end (never on manual stop)
   // Whichever load/generate promise is currently in flight — a worker-level
   // script error (e.g. the CDN import failing, or a CSP block) never reaches
   // our postMessage-based error handling, so it's surfaced here instead of
@@ -190,6 +191,7 @@ export function useKokoroTts() {
 
   const stop = useCallback(() => {
     cancelledRef.current = true;
+    onEndedRef.current = null;
     try { workerRef.current?.postMessage({ type: 'cancel' }); } catch {}
     // Also tear down any in-flight load/generate listener so it can't keep
     // scheduling audio in the background after stop() is called.
@@ -218,6 +220,9 @@ export function useKokoroTts() {
         setCurrentVerse(null); setCurrentKind(null);
         clearHighlightTimers();
         rafRef.current = null;
+        const cb = onEndedRef.current;
+        onEndedRef.current = null;
+        if (cb) cb();
         return;
       }
       rafRef.current = requestAnimationFrame(tick);
@@ -428,8 +433,9 @@ export function useKokoroTts() {
     });
   }, [getWorker, getCtx, runHighlightLoop]);
 
-  const listen = useCallback(async (chapterKey, segments, { voice = 'af_heart', speed = 1 } = {}) => {
+  const listen = useCallback(async (chapterKey, segments, { voice = 'af_heart', speed = 1, onEnded = null } = {}) => {
     setError(null);
+    onEndedRef.current = onEnded;
     // Only cancel if a previous generation/playback is actually still active
     // — otherwise a stale worker listener from that call keeps scheduling
     // audio in the background alongside the new chapter (two overlapping

@@ -537,6 +537,14 @@ export default function BibleReader() {
   // see src/lib/useKokoroTts.js / src/lib/tts/kokoroWorker.js).
   const tts = useKokoroTts();
   const [ttsVoiceId, setTtsVoiceId] = useState(TTS_VOICES[0].id);
+  // "The End" / "The End of the Prophets" markers, narrated as the final
+  // segment of Malachi 4 / Revelation 22 so listening naturally concludes there.
+  const getEndMarkerText = () => {
+    if (pos.abbr === 'MAL' && pos.chapter === 4) return resolveEndMarker(book.apiName, pos.chapter) || 'The End of the Prophets.';
+    if (pos.abbr === 'REV' && pos.chapter === 22) return resolveEndMarker(book.apiName, pos.chapter) || 'The End.';
+    return null;
+  };
+
   const ttsSegments = useMemo(() => {
     const segs = [];
     let idx = 0;
@@ -546,8 +554,51 @@ export default function BibleReader() {
       segs.push({ kind: 'verse', verse: parseInt(v.verse, 10), text: cleanVerseText(v.text).replace(/^\u00B6\s*/, ''), index: idx++ });
     });
     if (colophon) segs.push({ kind: 'colophon', verse: null, text: cleanVerseText(colophon).replace(/^[\u00B6\uFFFD\u00B6]\s*/, ''), index: idx++ });
+    const endMarker = getEndMarkerText();
+    if (endMarker) segs.push({ kind: 'end', verse: null, text: endMarker, index: idx++ });
     return segs;
-  }, [verses, chapterSubscript, colophon, book.name, pos.chapter]);
+  }, [verses, chapterSubscript, colophon, book.name, pos.chapter, pos.abbr]);
+
+  // Title pages (chapter 0) get their own tiny segment list so Listen mode
+  // works there too — announcing the testament/book name before continuing on.
+  const ttsTitleSegments = useMemo(() => {
+    const text = pos.abbr === 'GEN' ? 'The Old Testament.' : pos.abbr === 'MAT' ? 'The New Testament.' : `${book.name}.`;
+    return [{ kind: 'intro', verse: null, text, index: 0 }];
+  }, [pos.abbr, book.name]);
+
+  // Ref flag: set right before navigating to the next chapter/book/title page
+  // so narration is automatically (re)started there once it finishes loading.
+  const ttsAutoContinueRef = useRef(false);
+
+  // Called when narration reaches the natural end of the current chapter/title
+  // page — advances to the next one (chapter -> next chapter -> next book's
+  // title page -> its chapter 1, mirroring the Next button) and flags it to
+  // keep listening once that page has loaded.
+  const advanceToNextAndListen = () => {
+    if (isViewingTitlePage) {
+      navigate(pos.abbr, 1, null, false, false, true);
+    } else if (pos.chapter < book.chapters) {
+      navigate(pos.abbr, pos.chapter + 1, null, false, false, true);
+    } else {
+      const next = getNextBook(pos.abbr);
+      if (!next) return; // reached the end of the Bible
+      navigate(next.abbr, 0, null, false, false, true);
+    }
+    ttsAutoContinueRef.current = true;
+  };
+
+  // Once an auto-advance navigation finishes loading the next chapter/title
+  // page, resume narration there automatically.
+  useEffect(() => {
+    if (loading || !ttsAutoContinueRef.current) return;
+    ttsAutoContinueRef.current = false;
+    if (isViewingTitlePage) {
+      tts.listen(`${pos.abbr}-title`, ttsTitleSegments, { voice: ttsVoiceId, speed: 0.85, onEnded: advanceToNextAndListen });
+    } else {
+      tts.listen(`${pos.abbr}-${pos.chapter}`, ttsSegments, { voice: ttsVoiceId, speed: 0.85, onEnded: advanceToNextAndListen });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, pos.abbr, pos.chapter]);
 
   // Finds the verse currently at/just below the top of the visible scroll
   // area, so pressing Play while scrolled down starts narration from there
@@ -566,6 +617,10 @@ export default function BibleReader() {
   };
 
   const handleListenTts = () => {
+    if (isViewingTitlePage) {
+      tts.listen(`${pos.abbr}-title`, ttsTitleSegments, { voice: ttsVoiceId, speed: 0.85, onEnded: advanceToNextAndListen });
+      return;
+    }
     const visibleVerse = getVisibleVerseNumber();
     let segments = ttsSegments;
     let key = `${pos.abbr}-${pos.chapter}`;
@@ -579,7 +634,7 @@ export default function BibleReader() {
     // Slightly under 1x — full speed reads verses faster than the highlight
     // can visibly keep pace with, so the highlight looks like it's lagging
     // behind by the time a verse ends.
-    tts.listen(key, segments, { voice: ttsVoiceId, speed: 0.85 });
+    tts.listen(key, segments, { voice: ttsVoiceId, speed: 0.85, onEnded: advanceToNextAndListen });
   };
 
   // Switching voice while narration is playing/paused: stop the current audio,
@@ -604,7 +659,7 @@ export default function BibleReader() {
         if (idx >= 0) startIdx = idx;
       }
       const remaining = ttsSegments.slice(startIdx);
-      tts.listen(`${pos.abbr}-${pos.chapter}-resume-${voiceId}`, remaining, { voice: voiceId, speed: 0.85 });
+      tts.listen(`${pos.abbr}-${pos.chapter}-resume-${voiceId}`, remaining, { voice: voiceId, speed: 0.85, onEnded: advanceToNextAndListen });
     }
   };
 
@@ -2015,22 +2070,20 @@ export default function BibleReader() {
             )}
           </div>
 
-          {!isViewingTitlePage && (
-            <KokoroListenControls
-              status={tts.status}
-              progress={tts.progress}
-              error={tts.error}
-              voices={TTS_VOICES}
-              voiceId={ttsVoiceId}
-              onListen={handleListenTts}
-              onPause={tts.pause}
-              onResume={tts.resume}
-              onStop={tts.stop}
-              onSelectVoice={handleSelectTtsVoice}
-              onSkipBack={tts.skipBack}
-              onSkipForward={tts.skipForward}
-            />
-          )}
+          <KokoroListenControls
+            status={tts.status}
+            progress={tts.progress}
+            error={tts.error}
+            voices={TTS_VOICES}
+            voiceId={ttsVoiceId}
+            onListen={handleListenTts}
+            onPause={tts.pause}
+            onResume={tts.resume}
+            onStop={tts.stop}
+            onSelectVoice={handleSelectTtsVoice}
+            onSkipBack={tts.skipBack}
+            onSkipForward={tts.skipForward}
+          />
 
           {/* Single unified toolbar - SelectActionBar for multi-select mode, ReadingRangeBar for search/gospel/daily/navigation */}
           {selectMode && (
