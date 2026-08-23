@@ -356,7 +356,11 @@ export function useKokoroTts() {
     const elapsed = getElapsed();
     const schedule = scheduleRef.current;
     const idx = schedule.findIndex((s) => elapsed >= s.startTime && elapsed < s.endTime);
-    const next = idx >= 0 ? schedule[idx + 1] : schedule[0];
+    // idx is -1 during the silent VERSE_GAP between segments (elapsed falls
+    // between one segment's endTime and the next's startTime) — falling back
+    // to schedule[0] there restarted the whole chapter instead of advancing.
+    // The correct "next" during that gap is simply the upcoming segment.
+    const next = idx >= 0 ? schedule[idx + 1] : schedule.find((s) => s.startTime > elapsed);
     if (next) scheduleAndPlay(buffers, next.startTime);
   }, [scheduleAndPlay]);
 
@@ -365,11 +369,17 @@ export function useKokoroTts() {
     if (!buffers.length) return;
     const elapsed = getElapsed();
     const schedule = scheduleRef.current;
-    const idx = schedule.findIndex((s) => elapsed >= s.startTime && elapsed < s.endTime);
+    let idx = schedule.findIndex((s) => elapsed >= s.startTime && elapsed < s.endTime);
+    // Same VERSE_GAP case as skipForward — treat the upcoming (not-yet-started)
+    // segment as "current" so Back correctly steps to the one before it.
+    if (idx === -1) {
+      idx = schedule.findIndex((s) => s.startTime > elapsed);
+      if (idx === -1) idx = schedule.length;
+    }
     if (idx <= 0) { scheduleAndPlay(buffers, 0); return; }
     const cur = schedule[idx];
     // More than 1.5s into the current verse — restart it; otherwise go to the previous one.
-    if (elapsed - cur.startTime > 1.5) scheduleAndPlay(buffers, cur.startTime);
+    if (cur && elapsed - cur.startTime > 1.5) scheduleAndPlay(buffers, cur.startTime);
     else scheduleAndPlay(buffers, schedule[idx - 1].startTime);
   }, [scheduleAndPlay]);
 
