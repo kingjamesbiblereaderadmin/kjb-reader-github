@@ -549,11 +549,37 @@ export default function BibleReader() {
     return segs;
   }, [verses, chapterSubscript, colophon, book.name, pos.chapter]);
 
+  // Finds the verse currently at/just below the top of the visible scroll
+  // area, so pressing Play while scrolled down starts narration from there
+  // instead of always from verse 1.
+  const getVisibleVerseNumber = () => {
+    const scroller = document.getElementById('kjb-scroll');
+    const toolbarH = topRef.current ? topRef.current.getBoundingClientRect().height : 0;
+    const containerTop = scroller ? scroller.getBoundingClientRect().top : 0;
+    const threshold = containerTop + toolbarH + 10;
+    for (const v of verses) {
+      const el = document.getElementById(`v${v.verse}`);
+      if (!el) continue;
+      if (el.getBoundingClientRect().bottom > threshold) return parseInt(v.verse, 10);
+    }
+    return null;
+  };
+
   const handleListenTts = () => {
+    const visibleVerse = getVisibleVerseNumber();
+    let segments = ttsSegments;
+    let key = `${pos.abbr}-${pos.chapter}`;
+    if (visibleVerse != null) {
+      const idx = ttsSegments.findIndex((s) => s.kind === 'verse' && s.verse === visibleVerse);
+      if (idx > 0) {
+        segments = ttsSegments.slice(idx);
+        key = `${pos.abbr}-${pos.chapter}-from-${visibleVerse}`;
+      }
+    }
     // Slightly under 1x — full speed reads verses faster than the highlight
     // can visibly keep pace with, so the highlight looks like it's lagging
     // behind by the time a verse ends.
-    tts.listen(`${pos.abbr}-${pos.chapter}`, ttsSegments, { voice: ttsVoiceId, speed: 0.85 });
+    tts.listen(key, segments, { voice: ttsVoiceId, speed: 0.85 });
   };
 
   // Switching voice while narration is playing/paused: stop the current audio,
