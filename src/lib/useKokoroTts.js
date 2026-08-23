@@ -6,6 +6,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 // loop that maps playback time to the currently-speaking verse for highlighting.
 
 const hasWebGPU = typeof navigator !== 'undefined' && !!navigator.gpu;
+// Silent gap inserted between spoken segments (verses/subscript/colophon) so
+// each verse gets a clear breath/pause before the next one starts, instead of
+// running straight into it.
+const VERSE_GAP = 0.45;
 
 export function useKokoroTts() {
   const [status, setStatus] = useState('idle'); // idle | loading | ready | generating | playing | paused | error
@@ -191,12 +195,12 @@ export function useKokoroTts() {
     let startAt = t;
     buffers.forEach((b) => {
       const segDuration = b.buffer.duration;
-      if (elapsedSkip >= segDuration) {
-        elapsedSkip -= segDuration;
+      if (elapsedSkip >= segDuration + VERSE_GAP) {
+        elapsedSkip -= segDuration + VERSE_GAP;
         schedule.push({ startTime: t - startAt - fromOffset, endTime: t - startAt - fromOffset, kind: b.kind, verse: b.verse });
         return;
       }
-      const offsetInSeg = elapsedSkip;
+      const offsetInSeg = Math.min(elapsedSkip, Math.max(0, segDuration - 0.01));
       elapsedSkip = 0;
       const source = ctx.createBufferSource();
       source.buffer = b.buffer;
@@ -206,7 +210,7 @@ export function useKokoroTts() {
       const segStart = t - startAt;
       const segEnd = segStart + (segDuration - offsetInSeg);
       schedule.push({ startTime: segStart, endTime: segEnd, kind: b.kind, verse: b.verse });
-      t += segDuration - offsetInSeg;
+      t += segDuration - offsetInSeg + VERSE_GAP;
     });
     scheduleRef.current = schedule;
     playStartCtxTimeRef.current = startAt;
@@ -314,7 +318,7 @@ export function useKokoroTts() {
         const segStart = nextStartTime - playStartCtxTimeRef.current;
         const segEnd = segStart + bufObj.buffer.duration;
         scheduleRef.current = [...scheduleRef.current, { startTime: segStart, endTime: segEnd, kind: bufObj.kind, verse: bufObj.verse }];
-        nextStartTime += bufObj.buffer.duration;
+        nextStartTime += bufObj.buffer.duration + VERSE_GAP;
       };
 
       const onMessage = (e) => {
