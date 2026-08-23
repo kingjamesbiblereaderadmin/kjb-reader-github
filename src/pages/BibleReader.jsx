@@ -57,10 +57,11 @@ function getEndMarkerTextFor(abbr, apiName, chapter) {
   return null;
 }
 
-function buildChapterSegments(book, chapter, verses, chapterSubscript, colophon, endMarkerText) {
+function buildChapterSegments(book, chapter, verses, chapterSubscript, colophon, endMarkerText, announceBook = true) {
   const segs = [];
   let idx = 0;
-  segs.push({ kind: 'intro', verse: null, text: `${book.name}. Chapter ${chapter}.`, index: idx++ });
+  const introText = announceBook ? `${book.name}. Chapter ${chapter}.` : `Chapter ${chapter}.`;
+  segs.push({ kind: 'intro', verse: null, text: introText, index: idx++ });
   if (chapterSubscript) segs.push({ kind: 'subscript', verse: null, text: cleanVerseText(chapterSubscript).replace(/^[\u00B6\uFFFD\u00B6]\s*/, ''), index: idx++ });
   (verses || []).forEach((v) => {
     // Psalm 119 acrostic: speak the Hebrew stanza heading (ALEPH, BETH, …)
@@ -606,14 +607,18 @@ export default function BibleReader() {
   };
 
   // Once an auto-advance navigation finishes loading the next chapter/title
-  // page, resume narration there automatically.
+  // page, resume narration there automatically. Advancing to a NEW book always
+  // lands on its title page first (which announces the book name in full), so
+  // any chapter reached via auto-advance is always a same-book continuation —
+  // the book name is skipped and only "Chapter N." is announced.
   useEffect(() => {
     if (loading || !ttsAutoContinueRef.current) return;
     ttsAutoContinueRef.current = false;
     if (isViewingTitlePage) {
       tts.listen(`${pos.abbr}-title`, ttsTitleSegments, { voice: ttsVoiceId, speed: 0.85, onEnded: advanceToNextAndListen });
     } else {
-      tts.listen(`${pos.abbr}-${pos.chapter}`, ttsSegments, { voice: ttsVoiceId, speed: 0.85, onEnded: advanceToNextAndListen });
+      const segs = buildChapterSegments(book, pos.chapter, verses, chapterSubscript, colophon, getEndMarkerTextFor(pos.abbr, book.apiName, pos.chapter), false);
+      tts.listen(`${pos.abbr}-${pos.chapter}-cont`, segs, { voice: ttsVoiceId, speed: 0.85, onEnded: advanceToNextAndListen });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, pos.abbr, pos.chapter]);
@@ -625,7 +630,11 @@ export default function BibleReader() {
   // generate from scratch.
   const prefetchedKeyRef = useRef(null);
   useEffect(() => {
-    if (tts.status !== 'playing') return;
+    // Start as soon as generation of the current chapter begins (not just once
+    // it's audibly playing) — this gives the background worker the maximum
+    // possible lead time to load its model and generate the next chapter's
+    // audio before narration reaches the end of the current one.
+    if (tts.status !== 'playing' && tts.status !== 'generating') return;
     let cancelled = false;
     (async () => {
       try {
@@ -639,7 +648,10 @@ export default function BibleReader() {
         }
         const nextBook = BIBLE_BOOKS.find(b => b.abbr === nextAbbr);
         if (!nextBook) return;
-        const key = isTitle ? `${nextAbbr}-title` : `${nextAbbr}-${nextChapter}`;
+        // Chapters reached automatically are always same-book continuations
+        // (see the auto-continue effect above) — the cached audio must match
+        // the "-cont" (no book name) version that will actually be played.
+        const key = isTitle ? `${nextAbbr}-title` : `${nextAbbr}-${nextChapter}-cont`;
         if (prefetchedKeyRef.current === key) return;
         prefetchedKeyRef.current = key;
         let segments;
@@ -650,7 +662,7 @@ export default function BibleReader() {
           if (cancelled) return;
           const sub = resolveSubscript(nextBook.apiName, nextChapter);
           const endMarker = getEndMarkerTextFor(nextAbbr, nextBook.apiName, nextChapter);
-          segments = buildChapterSegments(nextBook, nextChapter, data.verses, sub, data.colophon || null, endMarker);
+          segments = buildChapterSegments(nextBook, nextChapter, data.verses, sub, data.colophon || null, endMarker, false);
         }
         if (cancelled) return;
         tts.prefetch(key, segments, ttsVoiceId, 0.85);
@@ -677,6 +689,10 @@ export default function BibleReader() {
   };
 
   const handleListenTts = () => {
+    // Warm the background prefetch worker's model as early as possible — by
+    // the time this (first) chapter finishes, the next chapter's audio can be
+    // generated without also paying the model-load cost.
+    tts.warmPrefetch();
     if (isViewingTitlePage) {
       tts.listen(`${pos.abbr}-title`, ttsTitleSegments, { voice: ttsVoiceId, speed: 0.85, onEnded: advanceToNextAndListen });
       return;

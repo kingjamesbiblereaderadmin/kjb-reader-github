@@ -554,9 +554,17 @@ export function useKokoroTts() {
     }
   }, [ensureLoaded, generateForKey, scheduleAndPlay, getCtx]);
 
+  // Warms up the second (prefetch) worker's model ahead of time, so the first
+  // background prefetch() call — triggered once the current chapter starts
+  // playing — doesn't have to pay the full model-load cost on top of
+  // generation time. Best-effort; safe to call multiple times.
+  const warmPrefetch = useCallback(() => {
+    ensurePrefetchLoaded().catch(() => {});
+  }, [ensurePrefetchLoaded]);
+
   return {
     status, progress, currentVerse, currentWord, currentKind, error,
     isPlaying: status === 'playing',
-    listen, pause, resume, stop, forget, skipForward, skipBack, prefetch,
+    listen, pause, resume, stop, forget, skipForward, skipBack, prefetch, warmPrefetch,
   };
 }
