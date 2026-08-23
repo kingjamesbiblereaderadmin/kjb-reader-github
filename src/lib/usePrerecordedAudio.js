@@ -14,17 +14,22 @@ export function usePrerecordedAudio() {
   const audioRef = useRef(null);
   const segmentsRef = useRef([]); // [{kind:'intro'|'verse', verse, start, end}]
   const onEndedRef = useRef(null);
-  const rafRef = useRef(null);
+  const highlightTimersRef = useRef([]);
 
   const getAudio = useCallback(() => {
     if (!audioRef.current) audioRef.current = new Audio();
     return audioRef.current;
   }, []);
 
+  const clearHighlightTimers = () => {
+    highlightTimersRef.current.forEach(clearTimeout);
+    highlightTimersRef.current = [];
+  };
+
   useEffect(() => {
     return () => {
       if (audioRef.current) { try { audioRef.current.pause(); } catch {} audioRef.current.src = ''; }
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      clearHighlightTimers();
     };
   }, []);
 
@@ -50,29 +55,38 @@ export function usePrerecordedAudio() {
 
   // The timing file's word timestamps consistently lag a touch behind the
   // actual recorded audio, so the highlight was switching to the next verse
-  // late (audio "racing" ahead of it). Looking slightly ahead of the audio's
-  // current position when picking the active segment keeps the highlight in
-  // step with what's actually being heard.
-  const HIGHLIGHT_LOOKAHEAD = 0.25;
-  const runLoop = useCallback(() => {
-    const tick = () => {
-      const audio = audioRef.current;
-      if (!audio) return;
-      const t = audio.currentTime + HIGHLIGHT_LOOKAHEAD;
-      const segs = segmentsRef.current;
-      const seg = [...segs].reverse().find((s) => t >= s.start);
-      if (seg) { setCurrentVerse(seg.verse); setCurrentKind(seg.kind); }
-      if (!audio.paused && !audio.ended) rafRef.current = requestAnimationFrame(tick);
-    };
-    rafRef.current = requestAnimationFrame(tick);
-  }, []);
+  // late (audio "racing" ahead of it). Rather than polling audio.currentTime
+  // every frame (subject to rAF/tab-throttling jitter, which let the race
+  // resurface), highlight switches are pre-scheduled with setTimeout — each
+  // one guaranteed to fire LEAD seconds before its segment's logged start,
+  // so the highlight always changes ahead of the audio reaching that point.
+  const LEAD = 0.4;
+
+  const scheduleHighlights = (fromTime) => {
+    clearHighlightTimers();
+    const segs = segmentsRef.current;
+    // The segment that should be showing right now (its lead-adjusted start
+    // already passed) is set immediately; every later one gets a timer.
+    let current = null;
+    segs.forEach((seg) => {
+      const target = Math.max(0, seg.start - LEAD);
+      if (target <= fromTime) {
+        current = seg;
+      } else {
+        const delay = (target - fromTime) * 1000;
+        const id = setTimeout(() => { setCurrentVerse(seg.verse); setCurrentKind(seg.kind); }, delay);
+        highlightTimersRef.current.push(id);
+      }
+    });
+    if (current) { setCurrentVerse(current.verse); setCurrentKind(current.kind); }
+  };
 
   const listen = useCallback(async (record, { onEnded = null } = {}) => {
     setError(null);
     onEndedRef.current = onEnded;
     const audio = getAudio();
     try { audio.pause(); } catch {}
-    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+    clearHighlightTimers();
     setStatus('loading');
     setProgress(0);
     setCurrentVerse(null);
@@ -89,7 +103,7 @@ export function usePrerecordedAudio() {
     return new Promise((resolve, reject) => {
       const onCanPlay = () => {
         audio.removeEventListener('canplay', onCanPlay);
-        audio.play().then(() => { setStatus('playing'); runLoop(); resolve(); }).catch((err) => {
+        audio.play().then(() => { setStatus('playing'); scheduleHighlights(audio.currentTime); resolve(); }).catch((err) => {
           setStatus('error'); setError(err?.message || 'Failed to play audio'); reject(err);
         });
       };
@@ -97,6 +111,7 @@ export function usePrerecordedAudio() {
         setStatus('error'); setError('Failed to load audio'); reject(new Error('Failed to load audio'));
       };
       const onEnd = () => {
+        clearHighlightTimers();
         setStatus('idle'); setCurrentVerse(null); setCurrentKind(null);
         const cb = onEndedRef.current; onEndedRef.current = null;
         if (cb) cb();
@@ -108,27 +123,27 @@ export function usePrerecordedAudio() {
       audio.currentTime = 0;
       audio.load();
     });
-  }, [getAudio, runLoop]);
+  }, [getAudio]);
 
   const pause = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
     audio.pause();
-    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+    clearHighlightTimers();
     setStatus('paused');
   }, []);
 
   const resume = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    audio.play().then(() => { setStatus('playing'); runLoop(); }).catch(() => {});
-  }, [runLoop]);
+    audio.play().then(() => { setStatus('playing'); scheduleHighlights(audio.currentTime); }).catch(() => {});
+  }, []);
 
   const stop = useCallback(() => {
     const audio = audioRef.current;
     onEndedRef.current = null;
     if (audio) { try { audio.pause(); } catch {} }
-    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+    clearHighlightTimers();
     setStatus('idle');
     setCurrentVerse(null); setCurrentKind(null);
   }, []);
@@ -138,7 +153,10 @@ export function usePrerecordedAudio() {
     if (!audio) return;
     const t = audio.currentTime;
     const next = segmentsRef.current.find((s) => s.start > t + 0.2);
-    if (next) audio.currentTime = next.start;
+    if (next) {
+      audio.currentTime = next.start;
+      if (!audio.paused) scheduleHighlights(next.start);
+    }
   }, []);
 
   const skipBack = useCallback(() => {
@@ -148,10 +166,16 @@ export function usePrerecordedAudio() {
     const segs = segmentsRef.current;
     let idx = segs.findIndex((s, i) => t >= s.start && (i === segs.length - 1 || t < segs[i + 1].start));
     if (idx === -1) idx = segs.length;
-    if (idx <= 0) { audio.currentTime = 0; return; }
-    const cur = segs[idx];
-    if (cur && t - cur.start > 1.5) audio.currentTime = cur.start;
-    else audio.currentTime = segs[idx - 1].start;
+    let targetTime;
+    if (idx <= 0) {
+      targetTime = 0;
+    } else {
+      const cur = segs[idx];
+      // More than 1.5s into the current verse — restart it; otherwise go to the previous one.
+      targetTime = (cur && t - cur.start > 1.5) ? cur.start : segs[idx - 1].start;
+    }
+    audio.currentTime = targetTime;
+    if (!audio.paused) scheduleHighlights(targetTime);
   }, []);
 
   return {
