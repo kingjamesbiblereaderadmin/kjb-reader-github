@@ -26,10 +26,26 @@ export function useKokoroTts() {
   const pausedAtRef = useRef(0);
   const activeKeyRef = useRef(null);
   const cancelledRef = useRef(false);
+  // Whichever load/generate promise is currently in flight — a worker-level
+  // script error (e.g. the CDN import failing, or a CSP block) never reaches
+  // our postMessage-based error handling, so it's surfaced here instead of
+  // leaving the UI spinning forever.
+  const pendingRejectRef = useRef(null);
 
   const getWorker = useCallback(() => {
     if (!workerRef.current) {
-      workerRef.current = new Worker(new URL('./tts/kokoroWorker.js', import.meta.url), { type: 'module' });
+      const worker = new Worker(new URL('./tts/kokoroWorker.js', import.meta.url), { type: 'module' });
+      worker.addEventListener('error', (e) => {
+        const reject = pendingRejectRef.current;
+        pendingRejectRef.current = null;
+        if (reject) reject(new Error(e?.message || 'The speech engine failed to load'));
+      });
+      worker.addEventListener('messageerror', () => {
+        const reject = pendingRejectRef.current;
+        pendingRejectRef.current = null;
+        if (reject) reject(new Error('The speech engine sent an unreadable response'));
+      });
+      workerRef.current = worker;
     }
     return workerRef.current;
   }, []);
@@ -55,16 +71,28 @@ export function useKokoroTts() {
       const worker = getWorker();
       setStatus('loading');
       setError(null);
+      // Stalls (dead network, blocked request) never post a message at all —
+      // without a timeout the UI would spin forever. Reset on every real
+      // download-progress tick so a slow-but-moving download isn't killed.
+      let timeoutId = setTimeout(() => finish(() => reject(new Error('Timed out loading the speech model — check your connection and try again'))), 30000);
+      const finish = (fn) => {
+        clearTimeout(timeoutId);
+        pendingRejectRef.current = null;
+        worker.removeEventListener('message', onMessage);
+        fn();
+      };
+      pendingRejectRef.current = (err) => finish(() => reject(err));
       const onMessage = (e) => {
         const msg = e.data;
-        if (msg.type === 'progress') setProgress(msg.progress);
-        else if (msg.type === 'loaded') {
+        if (msg.type === 'progress') {
+          setProgress(msg.progress);
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => finish(() => reject(new Error('Timed out loading the speech model — check your connection and try again'))), 30000);
+        } else if (msg.type === 'loaded') {
           loadedRef.current = true;
-          worker.removeEventListener('message', onMessage);
-          resolve();
+          finish(resolve);
         } else if (msg.type === 'error') {
-          worker.removeEventListener('message', onMessage);
-          reject(new Error(msg.error));
+          finish(() => reject(new Error(msg.error)));
         }
       };
       worker.addEventListener('message', onMessage);
@@ -211,10 +239,24 @@ export function useKokoroTts() {
       let received = 0;
       cancelledRef.current = false;
 
-      const onMessage = async (e) => {
+      // Generation is per-segment (each verse is its own inference call), so
+      // reset the stall timeout on every segment received rather than once
+      // for the whole chapter.
+      let timeoutId = setTimeout(() => finish(() => reject(new Error('Timed out generating speech — please try again'))), 30000);
+      const finish = (fn) => {
+        clearTimeout(timeoutId);
+        pendingRejectRef.current = null;
+        worker.removeEventListener('message', onMessage);
+        fn();
+      };
+      pendingRejectRef.current = (err) => finish(() => reject(err));
+
+      const onMessage = (e) => {
         const msg = e.data;
         if (msg.type === 'segment') {
           if (cancelledRef.current) return;
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => finish(() => reject(new Error('Timed out generating speech — please try again'))), 30000);
           const buffer = ctx.createBuffer(1, msg.samples.byteLength / 4, msg.sampleRate);
           buffer.copyToChannel(new Float32Array(msg.samples), 0);
           const seg = segments.find((s) => s.index === msg.index);
@@ -222,13 +264,11 @@ export function useKokoroTts() {
           received++;
           setProgress(Math.round((received / segments.length) * 100));
         } else if (msg.type === 'done') {
-          worker.removeEventListener('message', onMessage);
-          if (cancelledRef.current) { reject(new Error('cancelled')); return; }
+          if (cancelledRef.current) { finish(() => reject(new Error('cancelled'))); return; }
           cacheRef.current.set(key, { voice, buffers: results });
-          resolve(results);
+          finish(() => resolve(results));
         } else if (msg.type === 'error') {
-          worker.removeEventListener('message', onMessage);
-          reject(new Error(msg.error));
+          finish(() => reject(new Error(msg.error)));
         }
       };
       worker.addEventListener('message', onMessage);
