@@ -216,6 +216,7 @@ export function useKokoroTts() {
     stopSources();
     let t = ctx.currentTime + 0.05;
     const schedule = [];
+    fromOffset = Math.max(0, fromOffset);
     let elapsedSkip = fromOffset;
     let startAt = t;
     buffers.forEach((b) => {
@@ -225,7 +226,7 @@ export function useKokoroTts() {
         schedule.push({ startTime: t - startAt - fromOffset, endTime: t - startAt - fromOffset, kind: b.kind, verse: b.verse });
         return;
       }
-      const offsetInSeg = Math.min(elapsedSkip, Math.max(0, segDuration - 0.01));
+      const offsetInSeg = Math.max(0, Math.min(elapsedSkip, Math.max(0, segDuration - 0.01)));
       elapsedSkip = 0;
       const source = playBufferWithFade(ctx, b.buffer, t, offsetInSeg);
       sourcesRef.current.push(source);
