@@ -255,17 +255,12 @@ export default function LandingSetupWizard() {
             )}
 
             {actuallyInstalled ? (
-              <div className="space-y-2">
-                <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-900/40 p-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center">
-                      <Check className="w-4 h-4 text-white" />
-                    </div>
-                    <p className="font-sans text-xs text-emerald-800 dark:text-emerald-300 font-bold">App installed!</p>
+              <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-900/40 p-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center">
+                    <Check className="w-4 h-4 text-white" />
                   </div>
-                </div>
-                <div className="bg-secondary/40 border border-border rounded-xl p-3 text-left">
-                  <AlreadyInstalledHelp />
+                  <p className="font-sans text-xs text-emerald-800 dark:text-emerald-300 font-bold">App installed!</p>
                 </div>
               </div>
             ) : null}
