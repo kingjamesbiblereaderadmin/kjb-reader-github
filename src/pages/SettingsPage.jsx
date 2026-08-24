@@ -304,8 +304,8 @@ export default function SettingsPage() {
           className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
-            <h2 className="font-serif text-lg font-semibold text-foreground">Text</h2>
-            <p className="font-sans text-xs text-muted-foreground">Customize text size and font</p>
+            <h2 className="font-serif text-lg font-semibold text-foreground">Display</h2>
+            <p className="font-sans text-xs text-muted-foreground">Customize text size, zoom, font and rotation</p>
           </div>
           <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${expandedSections.text ? 'rotate-180' : ''}`} />
         </button>
@@ -391,6 +391,20 @@ export default function SettingsPage() {
                 </button>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Auto Rotate */}
+        <div className="pt-4 border-t border-border">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <RotateCcw className="w-4 h-4 text-muted-foreground" />
+              <div>
+                <p className="font-sans text-sm text-foreground font-medium">Auto Rotate</p>
+                <p className="font-sans text-xs text-muted-foreground mt-0.5">Allow the screen to rotate with your device</p>
+              </div>
+            </div>
+            <Switch checked={autoRotate} onCheckedChange={toggleAutoRotate} />
           </div>
         </div>
 
@@ -565,20 +579,6 @@ export default function SettingsPage() {
         {/* Theme Color */}
         <div className="pt-4 border-t border-border">
           <ThemeColorPicker />
-        </div>
-
-        {/* Auto Rotate */}
-        <div className="pt-4 border-t border-border">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <RotateCcw className="w-4 h-4 text-muted-foreground" />
-              <div>
-                <p className="font-sans text-sm text-foreground font-medium">Auto Rotate</p>
-                <p className="font-sans text-xs text-muted-foreground mt-0.5">Allow the screen to rotate with your device</p>
-              </div>
-            </div>
-            <Switch checked={autoRotate} onCheckedChange={toggleAutoRotate} />
-          </div>
         </div>
 
         </div>
