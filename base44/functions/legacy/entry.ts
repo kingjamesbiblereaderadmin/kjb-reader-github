@@ -357,7 +357,7 @@ Deno.serve(async (req) => {
       const fullName = FULL_BOOK_NAMES[bName] || bName;
       const maxCh = CHAPTER_COUNTS[bName] || 1;
       let out = '<div class="fb-book"><a name="b' + bi + '" id="b' + bi + '"></a>' +
-        '<h2 class="fb-bookname">' + esc(fullName) + '</h2>' +
+        '<h2 class="fb-bookname notranslate" translate="no">' + esc(fullName) + '</h2>' +
         '<p class="fb-top"><a href="#top">&uarr; Back to top</a></p>';
       if (maxCh > 1) {
         let chapLinks = '<p class="fb-chaplinks"><span class="fb-chaplinks-label">Chapters:</span> ';
@@ -369,16 +369,16 @@ Deno.serve(async (req) => {
       }
       for (let ch = 1; ch <= maxCh; ch++) {
         const verses = bData[ch] || [];
-        out += '<h3 class="fb-chap"><a name="b' + bi + 'c' + ch + '" id="b' + bi + 'c' + ch + '"></a>Chapter ' + ch + ' <a href="#b' + bi + '" class="fb-chaptop">&uarr; book top</a></h3>';
+        out += '<h3 class="fb-chap"><a name="b' + bi + 'c' + ch + '" id="b' + bi + 'c' + ch + '"></a><span class="notranslate" translate="no">Chapter ' + ch + '</span> <a href="#b' + bi + '" class="fb-chaptop">&uarr; book top</a></h3>';
         const sub = SUBSCRIPTS[bName + ':' + ch];
-        if (sub) out += '<div class="subscript"><span class="pil">&para; </span>' + renderMeta(sub) + '</div>';
+        if (sub) out += '<div class="subscript notranslate" translate="no"><span class="pil">&para; </span>' + renderMeta(sub) + '</div>';
         for (let vi = 0; vi < verses.length; vi++) {
           const r = renderVerse(verses[vi].text);
           const pil = r.leadingPilcrow ? '<span class="pil">&para; </span>' : '';
-          out += '<div class="verse"><span class="vn">' + verses[vi].verse + '</span>' + pil + r.html + '</div>';
+          out += '<div class="verse notranslate" translate="no"><span class="vn">' + verses[vi].verse + '</span>' + pil + r.html + '</div>';
         }
         const col = COLOPHONS[bName + ':' + ch];
-        if (col) out += '<div class="colophon"><span class="pil">&para; </span>' + renderMeta(col) + '</div>';
+        if (col) out += '<div class="colophon notranslate" translate="no"><span class="pil">&para; </span>' + renderMeta(col) + '</div>';
       }
       out += '</div>';
       return out;
@@ -916,7 +916,7 @@ Deno.serve(async (req) => {
         '<p>A believer who has trusted the gospel cannot lose salvation, no matter what happens in their life. God\'s gift of eternal life is just that &mdash; eternal.</p>' +
         '<blockquote>"In whom ye also trusted, after that ye heard the word of truth, the gospel of your salvation: in whom also after that ye believed, ye were sealed with that holy Spirit of promise." &mdash; Ephesians 1:13</blockquote>' +
         '<h2>Watch the Gospel</h2>' +
-        '<p><a href="https://www.youtube.com/watch?v=znP9Dr6tOzU" target="_blank">"THE GOSPEL THAT SAVES" by Robert Breaker</a></p>' +
+        '<p><a href="https://www.youtube.com/watch?v=znP9Dr6tOzU" target="_blank">"THE GOSPEL THAT SAVES" by <span class="notranslate" translate="no">Robert Breaker</span></a></p>' +
         '<p><a href="https://www.youtube.com/playlist?list=PLNGhZnJavRf3f2_NI79j5GigC6xK5_YYq" target="_blank">Full Gospel Playlist on YouTube</a></p>' +
         '</div>';
     const resourcesHtml = '<div class="doc">' +
@@ -924,7 +924,7 @@ Deno.serve(async (req) => {
         '<p class="lead">KJB defence materials, studies on modern version corruption, and links to free Bible study resources.</p>' +
 
         '<h2>KJBI.org &mdash; Free Online Bible College</h2>' +
-        '<p>King James Bible Institute &mdash; a free online Bible college for those who want to go deeper in God\'s Word.</p>' +
+        '<p>King James Bible Institute by <span class="notranslate" translate="no">Robert Breaker</span> &amp; <span class="notranslate" translate="no">Robert Potthoff</span> &mdash; a free online Bible college for those who want to go deeper in God\'s Word.</p>' +
         lnk('https://kjbi.org', 'Visit KJBI.org', '') +
 
         '<h2>Why the KJB is God\'s Word</h2>' +
@@ -935,8 +935,8 @@ Deno.serve(async (req) => {
 
         '<h2>Verified KJB Preachers</h2>' +
         '<p>KJB-believing, soul-winning preachers.</p>' +
-        lnk('https://www.youtube.com/@Robertbreaker3', 'Robert Breaker', 'KJB missionary evangelist. YouTube, TikTok (@robertbreaker), thecloudchurch.org') +
-        lnk('https://www.instagram.com/robert.potthoff/', 'Robert Potthoff', 'Big Red Preacher &mdash; KJB soul winner. Instagram, Facebook, mission1611.com') +
+        lnk('https://www.youtube.com/@Robertbreaker3', '<span class="notranslate" translate="no">Robert Breaker</span>', 'KJB missionary evangelist. YouTube, TikTok (@robertbreaker), thecloudchurch.org') +
+        lnk('https://www.instagram.com/robert.potthoff/', '<span class="notranslate" translate="no">Robert Potthoff</span>', 'Big Red Preacher &mdash; KJB soul winner. Instagram, Facebook, mission1611.com') +
         lnk('https://youtube.com/@josephgonzalez3', 'Joseph Gonzalez', 'KJB Elites &mdash; faithful preacher. YouTube, TikTok (@joyfullychurch), Joyfully Church') +
         lnk('https://www.seedofhopechurch.org/', 'Ryan Poff', 'Seed of Hope Church &mdash; KJB pastor. seedofhopechurch.org, YouTube (@ryan_poff)') +
         lnk('https://youtube.com/@av1611ministries', 'Skyler (AV1611 Ministry)', 'AV1611 Ministry &mdash; KJB defence and preaching. YouTube, TikTok') +
@@ -1069,7 +1069,7 @@ Deno.serve(async (req) => {
         '</div>' +
         '<div style="margin-bottom:32px;">' +
         '<h2 style="margin-bottom:12px;">Why I Am Not... Series</h2>' +
-        '<p style="margin-bottom:12px;">I reject Catholicism, Calvinism, Pentecostalism, Church of God, Mormonism, Jehovah\'s Witnesses, etc. This video series by Robert Breaker examines why various religious movements depart from the truth of scripture.</p>' +
+        '<p style="margin-bottom:12px;">I reject Catholicism, Calvinism, Pentecostalism, Church of God, Mormonism, Jehovah\'s Witnesses, etc. This video series by <span class="notranslate" translate="no">Robert Breaker</span> examines why various religious movements depart from the truth of scripture.</p>' +
         '<p style="margin-top:12px;"><a href="https://youtube.com/playlist?list=PLNGhZnJavRf293XCMldBgwRpQ4U1o8uEf" target="_blank">Why I Am Not... Series on YouTube</a></p>' +
         '</div>' +
         '<div style="margin-bottom:32px;">' +
@@ -1100,11 +1100,11 @@ Deno.serve(async (req) => {
       dlIndex += '<p class="fb-testament">Old Testament</p><p class="fb-books">';
       const dlOtEnd = BOOK_ORDER.indexOf('Malachi');
       for (let i = 0; i <= dlOtEnd; i++) {
-        dlIndex += '<a href="#b' + i + '">' + esc(BOOK_ORDER[i]) + '</a> ';
+        dlIndex += '<a href="#b' + i + '" class="notranslate" translate="no">' + esc(BOOK_ORDER[i]) + '</a> ';
       }
       dlIndex += '</p><p class="fb-testament">New Testament</p><p class="fb-books">';
       for (let i = dlOtEnd + 1; i < BOOK_ORDER.length; i++) {
-        dlIndex += '<a href="#b' + i + '">' + esc(BOOK_ORDER[i]) + '</a> ';
+        dlIndex += '<a href="#b' + i + '" class="notranslate" translate="no">' + esc(BOOK_ORDER[i]) + '</a> ';
       }
       dlIndex += '</p><p class="fb-testament">More</p><p class="fb-books">' +
         '<a href="#gospel">Gospel</a> <a href="#resources">Resources</a> <a href="#about">About</a>' +
@@ -1134,7 +1134,7 @@ Deno.serve(async (req) => {
 
       const dlStyle = '*{margin:0;padding:0;box-sizing:border-box;}body{background:#f5f5f7;color:#1a1a1a;font-family:Georgia,serif;font-size:16px;line-height:1.6;}.hdr{background:#2d2a6e;color:#fff;padding:16px;text-align:center;}.hdr h1{font-size:22px;}.hdr p{font-size:12px;color:#cfcfe8;}.wrap{max-width:760px;margin:0 auto;padding:16px;}.verse{display:block;margin:20px 0 10px 0;line-height:1.5;}.vn{font-weight:bold;color:#2d2a6e;font-size:11px;margin-right:4px;}.subscript{text-align:center;color:#555;font-size:14px;margin:0 0 16px;}.colophon{text-align:center;color:#555;font-size:14px;margin:18px 0 0;padding-top:12px;border-top:1px solid #e0e0ec;}.pil{color:#888;display:inline;white-space:nowrap;}em{font-style:italic;}.doc{max-width:760px;margin:0 auto;}.doc h1{font-size:26px;color:#2d2a6e;margin:12px 0 24px;text-align:center;}.doc h2{font-size:19px;color:#2d2a6e;margin:44px 0 18px;padding-bottom:8px;border-bottom:1px solid #e0e0ec;}.doc h3{font-size:16px;color:#444;margin:30px 0 14px;}.doc p{margin:0 0 22px;line-height:1.85;}.doc p.lead{color:#555;font-size:17px;margin-bottom:36px;}.doc p.note{color:#777;font-size:13px;margin:32px 0;}.doc ul{margin:0 0 28px 28px;list-style-type:disc;}.doc li{margin-bottom:16px;line-height:1.75;padding-left:6px;}.doc blockquote{margin:0 0 22px;padding-left:18px;border-left:3px solid #c9c7e0;color:#444;font-style:italic;line-height:1.85;}.doc a{color:#2d2a6e;}.doc p.rlnk{margin:0 0 16px;}.doc p.rlnk span{color:#666;font-style:normal;}.banner{background:linear-gradient(135deg,#2d2a6e 0%,#3d3a8e 100%);color:#fff;padding:28px 20px;font-family:Arial,sans-serif;}.banner-icon{font-size:36px;text-align:center;margin-bottom:8px;}.banner-body{max-width:640px;margin:0 auto;}.banner-title{font-size:20px;font-weight:bold;text-align:center;margin-bottom:10px;letter-spacing:1px;text-transform:uppercase;}.banner-desc{font-size:14px;line-height:1.6;text-align:center;margin-bottom:18px;opacity:0.92;}.banner-tips{margin:0;padding:0;list-style:none;}.banner-tips li{font-size:13px;line-height:1.6;margin-bottom:10px;padding-left:22px;position:relative;}.banner-tips li:before{content:"\\25B8";position:absolute;left:0;color:#a8a4d8;font-weight:bold;}.banner-tips li b{font-weight:bold;}.banner a{color:#c8c4f0;font-weight:bold;text-decoration:underline;}.fb-intro{font-size:15px;color:#555;margin-bottom:16px;line-height:1.6;}.fb-index{background:#fff;border:1px solid #e0e0ec;padding:14px 16px;margin-bottom:24px;}.fb-index-title{font-size:13px;font-weight:bold;color:#333;font-family:Arial,sans-serif;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;}.fb-testament{font-size:15px;font-weight:bold;color:#2d2a6e;margin:12px 0 6px;}.fb-books{line-height:2.2;}.fb-books a{display:inline-block;padding:3px 9px;margin:2px;background:#f7f7fb;border:1px solid #e0e0ec;color:#2d2a6e;text-decoration:none;font-size:13px;font-family:Arial,sans-serif;}.fb-book{margin-bottom:32px;border-top:2px solid #e0e0ec;padding-top:8px;}.fb-bookname{font-size:21px;color:#2d2a6e;text-align:center;margin:16px 0 4px;}.fb-top{text-align:center;margin-bottom:12px;}.fb-top a{font-size:12px;color:#888;text-decoration:none;font-family:Arial,sans-serif;}.fb-chap{font-size:15px;color:#666;font-weight:bold;margin:20px 0 8px;font-family:Arial,sans-serif;border-bottom:1px solid #eee;padding-bottom:4px;}.fb-chaplinks{margin:0 0 16px;line-height:2.2;}.fb-chaplinks-label{font-size:13px;font-weight:bold;color:#333;font-family:Arial,sans-serif;margin-right:6px;}.fb-chaplinks a{display:inline-block;min-width:24px;text-align:center;padding:3px 7px;margin:2px;background:#f7f7fb;border:1px solid #e0e0ec;color:#2d2a6e;text-decoration:none;font-size:13px;font-family:Arial,sans-serif;}.fb-chaptop{font-size:11px;font-weight:normal;color:#888;text-decoration:none;font-family:Arial,sans-serif;margin-left:8px;}';
 
-      const dlHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KJB Reader (HTML Bible)</title><style>' + dlStyle + '</style></head><body><div class="hdr"><h1>KJB Reader</h1><p>King James Bible &mdash; Pure Cambridge Edition</p></div>' + dlBanner + '<div class="wrap" id="wrap">' + dlBody + '</div></body></html>';
+      const dlHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KJB Reader (HTML Bible)</title><style>' + dlStyle + '</style></head><body><div class="hdr"><h1 class="notranslate" translate="no">KJB Reader</h1><p class="notranslate" translate="no">King James Bible &mdash; Pure Cambridge Edition</p></div>' + dlBanner + '<div class="wrap" id="wrap">' + dlBody + '</div></body></html>';
 
       return new Response(dlHtml, { headers: {
         'Content-Type': 'text/html;charset=UTF-8',
@@ -1160,11 +1160,11 @@ Deno.serve(async (req) => {
       index += '<p class="fb-testament">Old Testament</p><p class="fb-books">';
       const otEnd = BOOK_ORDER.indexOf('Malachi');
       for (let i = 0; i <= otEnd; i++) {
-        index += '<a href="' + fbBase + '#b' + i + '">' + esc(BOOK_ORDER[i]) + '</a> ';
+        index += '<a href="' + fbBase + '#b' + i + '" class="notranslate" translate="no">' + esc(BOOK_ORDER[i]) + '</a> ';
       }
       index += '</p><p class="fb-testament">New Testament</p><p class="fb-books">';
       for (let i = otEnd + 1; i < BOOK_ORDER.length; i++) {
-        index += '<a href="' + fbBase + '#b' + i + '">' + esc(BOOK_ORDER[i]) + '</a> ';
+        index += '<a href="' + fbBase + '#b' + i + '" class="notranslate" translate="no">' + esc(BOOK_ORDER[i]) + '</a> ';
       }
       index += '</p><p class="fb-testament">More</p><p class="fb-books">' +
         '<a href="' + fbBase + '#gospel">Gospel</a> <a href="' + fbBase + '#resources">Resources</a> <a href="' + fbBase + '#about">About</a>' +
@@ -1218,7 +1218,7 @@ Deno.serve(async (req) => {
       '<li>Found a bug? Email <a href="mailto:kingjamesbiblereader@outlook.sg">kingjamesbiblereader@outlook.sg</a>.</li>' +
       '</ul></div>';
 
-    const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KJB Reader (Legacy)</title><style>' + STYLE + (isDark ? DARK_STYLE : '') + '</style></head><body><div class="hdr"><h1>KJB Reader (Legacy)</h1><p>King James Bible &mdash; Pure Cambridge Edition</p></div>' + banner + '<div class="wrap" id="wrap">' + bodyInner + '</div></body></html>';
+    const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KJB Reader (Legacy)</title><style>' + STYLE + (isDark ? DARK_STYLE : '') + '</style></head><body><div class="hdr"><h1 class="notranslate" translate="no">KJB Reader (Legacy)</h1><p class="notranslate" translate="no">King James Bible &mdash; Pure Cambridge Edition</p></div>' + banner + '<div class="wrap" id="wrap">' + bodyInner + '</div></body></html>';
 
     return new Response(html, { headers: {
       'Content-Type': 'text/html;charset=UTF-8',
