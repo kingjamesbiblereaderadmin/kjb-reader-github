@@ -34,7 +34,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
         <div className="min-w-0">
           <span
             ref={leftRef}
-            className="inline-block max-w-full whitespace-nowrap font-semibold tracking-wide text-foreground"
+            className="notranslate inline-block max-w-full whitespace-nowrap font-semibold tracking-wide text-foreground"
             style={{ fontSize, fontStyle: 'normal' }}
           >
             {bookName}

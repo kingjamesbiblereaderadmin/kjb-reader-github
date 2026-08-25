@@ -134,7 +134,7 @@ export default function TitlePage({ type, book }) {
           <p className="font-serif text-sm tracking-[0.3em] uppercase text-muted-foreground">
             {testamentLabel}
           </p>
-          <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-snug">
+          <h1 className="notranslate font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-snug">
             {book.name}
           </h1>
           {book.chapters > 0 && (
