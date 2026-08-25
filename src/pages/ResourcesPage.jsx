@@ -331,7 +331,7 @@ export default function ResourcesPage() {
           <div>
             <h2 className="notranslate font-serif text-lg font-bold text-foreground mb-1">KJBI.org — Free Online Bible College</h2>
             <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-              King James Bible Institute by Robert Breaker &amp; Robert Potthoff — a free online Bible college for those who want to go deeper in God's Word.
+              King James Bible Institute by <span className="notranslate">Robert Breaker</span> &amp; <span className="notranslate">Robert Potthoff</span> — a free online Bible college for those who want to go deeper in God's Word.
             </p>
             <div className="flex items-center gap-3 flex-wrap">
               <a
@@ -490,7 +490,7 @@ export default function ResourcesPage() {
               <Globe className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">God is Gracious 1031 Ministries</p>
+              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">God is Gracious 1031 Ministries</p>
               <p className="font-sans text-xs text-muted-foreground">Ministry Website</p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
