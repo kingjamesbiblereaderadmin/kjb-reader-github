@@ -1220,7 +1220,8 @@ export default function SearchPage() {
             </div>
             <div className="flex-1 overflow-y-auto px-3 sm:px-4 pb-2" style={{ minHeight: '200px' }}>
               <div className="space-y-4">
-                {/* Old Testament section */}
+                {/* Old Testament section — hidden entirely if the search has no OT matches at all */}
+                {(!searched || !allBooksWithResults || [...allBooksWithResults].some(abbr => OLD_TESTAMENT.some(b => b.abbr === abbr))) && (
                 <div>
                   <p className="font-sans text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2 sticky top-0 bg-card py-1">
                     Old Testament {searched && searchStats.ot?.books > 0 && <span className="font-normal normal-case text-muted-foreground/60">({searchStats.ot.books} book{searchStats.ot.books !== 1 ? 's' : ''}, {searchStats.ot.verses} verse{searchStats.ot.verses !== 1 ? 's' : ''}, {searchStats.ot.occ} occ)</span>}
@@ -1261,7 +1262,9 @@ export default function SearchPage() {
                       })}
                   </div>
                 </div>
-                {/* New Testament section */}
+                )}
+                {/* New Testament section — hidden entirely if the search has no NT matches at all */}
+                {(!searched || !allBooksWithResults || [...allBooksWithResults].some(abbr => NEW_TESTAMENT.some(b => b.abbr === abbr))) && (
                 <div>
                   <p className="font-sans text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2 sticky top-0 bg-card py-1">
                     New Testament {searched && searchStats.nt?.books > 0 && <span className="font-normal normal-case text-muted-foreground/60">({searchStats.nt.books} book{searchStats.nt.books !== 1 ? 's' : ''}, {searchStats.nt.verses} verse{searchStats.nt.verses !== 1 ? 's' : ''}, {searchStats.nt.occ} occ)</span>}
@@ -1302,6 +1305,7 @@ export default function SearchPage() {
                       })}
                   </div>
                 </div>
+                )}
               </div>
             </div>
             <div className="p-3 sm:p-4 border-t border-border flex-shrink-0">
