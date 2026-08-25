@@ -1533,7 +1533,7 @@ export default function BibleReader() {
                 onClick={() => { setShowBookPicker(p => !p); setShowChapterPicker(false); setShowVersePicker(false); setShowZoomPopover(false); setShowFontPopover(false); }}
                 className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 touch-manipulation h-10 w-full"
               >
-                <span className="truncate text-center">{isViewingTitlePage ? 'Title Page' : book.shortName}</span>
+                <span className="notranslate truncate text-center">{isViewingTitlePage ? 'Title Page' : book.shortName}</span>
                 <ChevronRight className={`w-3 h-3 opacity-70 transition-transform duration-200 flex-shrink-0 ${showBookPicker ? 'rotate-90' : ''}`} />
               </button>
               {showBookPicker && !isMobile() && (
@@ -1581,7 +1581,7 @@ export default function BibleReader() {
                   }}
                   className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 w-full"
                 >
-                  <span>Ch.{pos.chapter}</span>
+                  <span className="notranslate">Ch.{pos.chapter}</span>
                   <ChevronRight className={`w-3 h-3 opacity-70 transition-transform duration-200 flex-shrink-0 ${showChapterPicker ? 'rotate-90' : ''}`} />
                 </button>
                 {showChapterPicker && !isMobile() && (

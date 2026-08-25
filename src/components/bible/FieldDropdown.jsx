@@ -20,7 +20,7 @@ export function FieldDropdownList({ options, value, onSelect, small }) {
           data-vaul-no-drag
           onPointerDown={(e) => e.stopPropagation()}
           onClick={() => onSelect(o.value)}
-          className={`w-full text-left px-3 py-2 ${small ? 'text-xs leading-snug' : 'text-sm'} border-b border-border/60 last:border-b-0 transition-colors ${
+          className={`notranslate w-full text-left px-3 py-2 ${small ? 'text-xs leading-snug' : 'text-sm'} border-b border-border/60 last:border-b-0 transition-colors ${
             String(o.value) === String(value) ? 'bg-secondary font-medium' : 'hover:bg-accent/10'
           }`}
         >
@@ -50,7 +50,7 @@ export default function FieldDropdown({ label, value, options, onSelect, disable
           disabled={disabled}
           className={`w-full px-3 ${small ? 'py-3' : 'h-12'} rounded-xl bg-secondary text-secondary-foreground border border-border ${small ? 'text-sm' : 'text-base'} font-medium text-left flex items-center justify-between gap-2 disabled:opacity-50`}
         >
-          <span className={`text-left leading-snug ${small ? '' : 'whitespace-nowrap'}`}>{current ? current.label : '—'}</span>
+          <span className={`notranslate text-left leading-snug ${small ? '' : 'whitespace-nowrap'}`}>{current ? current.label : '—'}</span>
           <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
         </button>
         {open && !disabled && (
