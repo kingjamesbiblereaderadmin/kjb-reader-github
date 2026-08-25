@@ -407,7 +407,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
                 </span>
               )}
               <span
-                className={`kjb-verse-text leading-relaxed [&_em]:italic [&_em]:text-foreground/75 break-words text-left inline transition-colors duration-200 rounded box-decoration-clone pr-[0.3em] py-[0.1em] ${isCursive ? 'cursive-em-style' : ''} ${isHighlighted ? highlightBg : (!selectMode ? 'hover:bg-secondary/60' : '')}`}
+                className={`kjb-verse-text notranslate leading-relaxed [&_em]:italic [&_em]:text-foreground/75 break-words text-left inline transition-colors duration-200 rounded box-decoration-clone pr-[0.3em] py-[0.1em] ${isCursive ? 'cursive-em-style' : ''} ${isHighlighted ? highlightBg : (!selectMode ? 'hover:bg-secondary/60' : '')}`}
                 style={isCursive ? { fontSize: `${zoomLevel / 100 * 1.125}rem` } : textStyle}
                 dangerouslySetInnerHTML={{ __html: html }}
               />
@@ -435,7 +435,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
               </span>
             )}
             <span
-              className={`kjb-verse-text leading-loose [&_em]:italic [&_em]:text-foreground/75 break-words text-left transition-colors duration-200 rounded box-decoration-clone pr-[0.3em] py-[0.1em] ${isCursive ? 'cursive-em-style' : ''} ${isHighlighted ? highlightBg : (!selectMode ? 'hover:bg-secondary/60' : '')}`}
+              className={`kjb-verse-text notranslate leading-loose [&_em]:italic [&_em]:text-foreground/75 break-words text-left transition-colors duration-200 rounded box-decoration-clone pr-[0.3em] py-[0.1em] ${isCursive ? 'cursive-em-style' : ''} ${isHighlighted ? highlightBg : (!selectMode ? 'hover:bg-secondary/60' : '')}`}
               style={isCursive ? { fontSize: `${zoomLevel / 100 * 1.125}rem` } : textStyle}
               dangerouslySetInnerHTML={{ __html: html }}
             />
@@ -465,7 +465,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
           <sup className="text-accent font-sans font-bold text-[0.6em] shrink-0 select-none mt-[0.2em] mr-[0.3em] inline-block text-right w-[1.6em]">{verse.verse}</sup>
           <span className="flex-1 min-w-0 leading-relaxed break-words text-left">
             <span
-              className={`kjb-verse-text inline [&_em]:italic [&_em]:text-foreground/75 box-decoration-clone rounded transition-colors duration-200 px-[0.3em] py-[0.1em] ${isCursive ? 'cursive-em-style' : ''} ${isHighlighted ? highlightBg : 'hover:bg-secondary/60'}`}
+              className={`kjb-verse-text notranslate inline [&_em]:italic [&_em]:text-foreground/75 box-decoration-clone rounded transition-colors duration-200 px-[0.3em] py-[0.1em] ${isCursive ? 'cursive-em-style' : ''} ${isHighlighted ? highlightBg : 'hover:bg-secondary/60'}`}
               style={{ display: 'inline', ...(isCursive ? { fontSize: `${zoomLevel / 100 * 1.125}rem` } : textStyle) }}
               dangerouslySetInnerHTML={{ __html: html }}
             />
@@ -495,7 +495,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
             // the tint consistent across wrapped lines.
             <span className="flex-1 min-w-0 leading-relaxed break-words text-left">
               <span
-                className={`kjb-verse-text inline [&_em]:italic [&_em]:text-foreground/75 ${isCursive ? 'cursive-em-style' : ''} ${highlightBg} box-decoration-clone rounded px-[0.3em] py-[0.1em]`}
+                className={`kjb-verse-text notranslate inline [&_em]:italic [&_em]:text-foreground/75 ${isCursive ? 'cursive-em-style' : ''} ${highlightBg} box-decoration-clone rounded px-[0.3em] py-[0.1em]`}
                 style={{ display: 'inline', ...(isCursive ? { fontSize: `${zoomLevel / 100 * 1.125}rem` } : textStyle) }}
                 dangerouslySetInnerHTML={{ __html: html }}
               />
@@ -503,7 +503,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
           ) : (
             <span className="flex-1 min-w-0 leading-relaxed break-words text-left">
               <span
-                className={`kjb-verse-text inline [&_em]:italic [&_em]:text-foreground/75 transition-colors duration-200 rounded box-decoration-clone px-[0.3em] py-[0.1em] ${isCursive ? 'cursive-em-style' : ''} ${!selectMode ? 'hover:bg-secondary/60' : ''}`}
+                className={`kjb-verse-text notranslate inline [&_em]:italic [&_em]:text-foreground/75 transition-colors duration-200 rounded box-decoration-clone px-[0.3em] py-[0.1em] ${isCursive ? 'cursive-em-style' : ''} ${!selectMode ? 'hover:bg-secondary/60' : ''}`}
                 style={{ display: 'inline', ...(isCursive ? { fontSize: `${zoomLevel / 100 * 1.125}rem` } : textStyle) }}
                 dangerouslySetInnerHTML={{ __html: html }}
               />
