@@ -376,7 +376,7 @@ export default function ResourcesPage() {
                 className="flex flex-col items-center text-center gap-1.5 p-4 rounded-xl bg-secondary/50 border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
               >
                 <span className="font-sans font-semibold text-sm text-foreground group-hover:text-accent transition-colors">🏠 Server Install</span>
-                <span className="font-sans text-xs text-muted-foreground leading-relaxed">Bot joins a server for daily verse delivery and /setup.</span>
+                <span className="font-sans text-xs text-muted-foreground leading-relaxed">Bot joins a server for daily verse delivery and searching up verses and keywords.</span>
               </a>
             </div>
           </div>
