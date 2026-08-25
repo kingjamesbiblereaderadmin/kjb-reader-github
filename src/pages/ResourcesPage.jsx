@@ -177,7 +177,7 @@ function PreachersSection({ openPreachers, togglePreacher }) {
                 
                 <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="font-sans text-sm font-semibold text-foreground">{preacher.name}</p>
+                  <p className="notranslate font-sans text-sm font-semibold text-foreground">{preacher.name}</p>
                   {!isOpen &&
                   <p className="font-sans text-xs text-muted-foreground truncate">{preacher.desc}</p>
                   }
@@ -329,7 +329,7 @@ export default function ResourcesPage() {
         <div className="flex items-start gap-3">
           <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
           <div>
-            <h2 className="font-serif text-lg font-bold text-foreground mb-1">KJBI.org — Free Online Bible College</h2>
+            <h2 className="notranslate font-serif text-lg font-bold text-foreground mb-1">KJBI.org — Free Online Bible College</h2>
             <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
               King James Bible Institute by Robert Breaker &amp; Robert Potthoff — a free online Bible college for those who want to go deeper in God's Word.
             </p>
@@ -355,9 +355,9 @@ export default function ResourcesPage() {
             <DiscordIcon className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="font-serif text-lg font-bold text-foreground mb-1">KJB Discord Bot</h2>
+            <h2 className="notranslate font-serif text-lg font-bold text-foreground mb-1">KJB Discord Bot</h2>
             <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-              Use the KJB Reader bot in your own Discord account or add it to a server for daily verses and verse search directly in Discord.
+              Use the <span className="notranslate">KJB Reader</span> bot in your own Discord account or add it to a server for daily verses and verse search directly in Discord.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <a
@@ -390,7 +390,7 @@ export default function ResourcesPage() {
             <DiscordIcon className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="font-serif text-lg font-bold text-foreground mb-1">KJB Knights Server</h2>
+            <h2 className="notranslate font-serif text-lg font-bold text-foreground mb-1">KJB Knights Server</h2>
             <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
               My and my friends' Discord server — feel free to join.
             </p>
@@ -415,9 +415,9 @@ export default function ResourcesPage() {
             <Globe className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="font-serif text-lg font-bold text-foreground mb-1">KJB SidePanel</h2>
+            <h2 className="notranslate font-serif text-lg font-bold text-foreground mb-1">KJB SidePanel</h2>
             <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-              Read, search, and look up Bible verses from any web page with the KJB Reader sidebar extension — now available on the Chrome Web Store.
+              Read, search, and look up Bible verses from any web page with the <span className="notranslate">KJB Reader</span> sidebar extension — now available on the Chrome Web Store.
             </p>
             <div className="flex items-center gap-3 flex-wrap">
               <Link
@@ -438,7 +438,7 @@ export default function ResourcesPage() {
             <ShieldAlert className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="font-serif text-lg font-bold text-foreground mb-1">KJB Defence</h2>
+            <h2 className="notranslate font-serif text-lg font-bold text-foreground mb-1">KJB Defence</h2>
             <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
               A dedicated collection of resources defending the King James Bible and exposing the corruption of modern versions.
             </p>
@@ -607,7 +607,7 @@ export default function ResourcesPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-serif text-lg font-semibold text-foreground group-hover:text-accent transition-colors">
+                            <h3 className="notranslate font-serif text-lg font-semibold text-foreground group-hover:text-accent transition-colors">
                               {item.title}
                             </h3>
                             {item.verified &&

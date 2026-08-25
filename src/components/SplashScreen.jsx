@@ -259,7 +259,7 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
             )}
           </div>
           <span
-            className="font-sans text-sm font-light tracking-[0.25em] uppercase transition-all duration-300 text-center"
+            className="notranslate font-sans text-sm font-light tracking-[0.25em] uppercase transition-all duration-300 text-center"
             style={{ color: textColor }}
           >
             {currentMessage}
