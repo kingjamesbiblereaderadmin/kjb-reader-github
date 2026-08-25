@@ -1974,13 +1974,13 @@ export default function BibleReader() {
           {filterMode && selectedVerses.size > 0 ? (
             // Verses-only (filtered) view: show the actual reference (e.g.
             // "John 3:16-18") of the passage being read, not just "John 3".
-            <h1 className={`kjb-book-title ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} text-2xl md:text-3xl font-bold text-foreground mb-2 leading-tight`} style={{ fontStyle: 'normal', fontWeight: '900' }}>
+            <h1 className={`notranslate kjb-book-title ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} text-2xl md:text-3xl font-bold text-foreground mb-2 leading-tight`} style={{ fontStyle: 'normal', fontWeight: '900' }}>
               {book.shortName} {pos.chapter}:{formatVerseRange([...selectedVerses].sort((a, b) => a - b))}
             </h1>
           ) : (
             <>
-              <h1 className={`kjb-book-title ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} text-3xl md:text-4xl font-bold text-foreground mb-2 leading-tight`} style={{ fontStyle: 'normal', fontWeight: '900' }}>{book.name}</h1>
-              <p className={`kjb-chapter-heading font-sans text-muted-foreground tracking-widest uppercase mt-5 ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100 * 0.875}rem`, fontWeight: fontFamily === 'cursive' ? '400' : undefined }}>
+              <h1 className={`notranslate kjb-book-title ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} text-3xl md:text-4xl font-bold text-foreground mb-2 leading-tight`} style={{ fontStyle: 'normal', fontWeight: '900' }}>{book.name}</h1>
+              <p className={`notranslate kjb-chapter-heading font-sans text-muted-foreground tracking-widest uppercase mt-5 ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100 * 0.875}rem`, fontWeight: fontFamily === 'cursive' ? '400' : undefined }}>
                 Chapter {pos.chapter}
               </p>
             </>
