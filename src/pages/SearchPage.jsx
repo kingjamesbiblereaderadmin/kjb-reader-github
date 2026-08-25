@@ -1255,7 +1255,7 @@ export default function SearchPage() {
                             aria-pressed={isSelected}
                             title={book.shortName}
                           >
-                            {book.shortName}
+                            <span className="notranslate">{book.shortName}</span>
                           </button>
                         );
                       })}
@@ -1296,7 +1296,7 @@ export default function SearchPage() {
                             aria-pressed={isSelected}
                             title={book.shortName}
                           >
-                            {book.shortName}
+                            <span className="notranslate">{book.shortName}</span>
                           </button>
                         );
                       })}
@@ -1485,7 +1485,7 @@ export default function SearchPage() {
                 className="w-full flex items-center justify-center gap-2 p-3 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
               >
                 <BookOpen className="w-4 h-4" />
-                Go to {showBookResult.bookName}
+                Go to <span className="notranslate">{showBookResult.bookName}</span>
               </button>
             </div>
           )}

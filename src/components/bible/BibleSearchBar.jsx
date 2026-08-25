@@ -509,7 +509,7 @@ export default function BibleSearchBar({ onClose }) {
             >
               <Search className={`w-3.5 h-3.5 flex-shrink-0 ${i === selectedIndex ? 'text-accent' : 'text-muted-foreground'}`} />
               <div className="flex-1 min-w-0">
-                <p className="font-sans text-sm font-medium text-foreground truncate">{s.label}</p>
+                <p className="notranslate font-sans text-sm font-medium text-foreground truncate">{s.label}</p>
                 <p className="font-sans text-xs text-muted-foreground truncate">{s.sub}</p>
               </div>
             </button>
