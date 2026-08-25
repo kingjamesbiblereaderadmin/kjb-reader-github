@@ -7,7 +7,7 @@ const STEP_PAUSE_MS = 1500;
 
 // mode: 'first_load' | 'subsequent'
 export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load', isVisible = true, skipMarkVisited = false }) {
-  const [currentMessage, setCurrentMessage] = useState('LOADING KJB READER...');
+  const [currentMessage, setCurrentMessage] = useState('WELCOME TO KJB READER.');
   const [isIncognito, setIsIncognito] = useState(false);
   // progress: 0-100 for a determinate bar (during downloads); null = indeterminate
   const [progress, setProgress] = useState(null);
@@ -139,10 +139,6 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
 
       // === FIRST LOAD FLOW ===
       if (isFirstVisit) {
-        // 1. Loading
-        setStep('LOADING KJB READER...');
-        await pause(STEP_PAUSE_MS);
-
         // 2. Skip offline download in incognito (cache won't persist)
         if (!detectedIncognito) {
           // 2. Downloading offline data (real-time % progress)
@@ -196,16 +192,7 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
 
       // === SUBSEQUENT VISIT FLOW ===
       {
-        // 1. Loading
-        setStep('LOADING KJB READER...');
-        await pause(STEP_PAUSE_MS);
-
-        // Updates are no longer checked/installed here — that would block the
-        // user for 20-30s on every open. Instead, a new app version installs
-        // silently in the background (main.jsx polls periodically) and simply
-        // takes effect the NEXT time the app is opened, with no wait at all.
-
-        // 7. Welcome back
+        // Welcome back — shown immediately, no loading/update-check steps.
         setStep('WELCOME BACK TO KJB READER.');
         window.dispatchEvent(new CustomEvent('kjb-progress', { detail: { message: 'WELCOME BACK TO KJB READER.', status: 'success' } }));
         await pause(STEP_PAUSE_MS);
