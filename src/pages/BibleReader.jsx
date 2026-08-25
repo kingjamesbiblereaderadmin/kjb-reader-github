@@ -1988,7 +1988,7 @@ export default function BibleReader() {
           {chapterSubscript && (
             <p
               onClick={() => handleSectionClick('subscript')} id="kjb-subscript-anchor"
-              className={`kjb-subscript text-sm text-muted-foreground mt-2 mb-4 max-w-lg mx-auto leading-relaxed text-center transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`}
+              className={`notranslate kjb-subscript text-sm text-muted-foreground mt-2 mb-4 max-w-lg mx-auto leading-relaxed text-center transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`}
               style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem` }}
             >
               <SubscriptContent text={chapterSubscript} searchTerm={sectionActive('subscript') ? searchTerm : null} />
@@ -2024,7 +2024,7 @@ export default function BibleReader() {
           return (
           <div className={`${useColumns ? 'kjb-two-col text-left hyphens-auto' : 'text-left'} ${paragraphMode ? 'text-left px-2 sm:px-4' : ''}`} style={useColumns ? { fontSize: 'inherit', columnCount: 2, columnGap: '1.5rem', columnRule: '1px solid hsl(var(--border))' } : { fontSize: 'inherit' }}>
             {columnMode && !isViewingTitlePage && chapterSubscript && (
-              <p onClick={() => handleSectionClick('subscript')} id="kjb-subscript-anchor" className={`kjb-subscript text-center text-muted-foreground mb-4 leading-relaxed transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}><SubscriptContent text={chapterSubscript} searchTerm={sectionActive('subscript') ? searchTerm : null} /></p>
+              <p onClick={() => handleSectionClick('subscript')} id="kjb-subscript-anchor" className={`notranslate kjb-subscript text-center text-muted-foreground mb-4 leading-relaxed transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}><SubscriptContent text={chapterSubscript} searchTerm={sectionActive('subscript') ? searchTerm : null} /></p>
             )}
             {verses.filter(v => !activeFilter || verseInSelection(v)).map((v, idx) => {
               const sectionLetter = isPsalm119 ? PSALM_119_SECTIONS[parseInt(v.verse, 10)] : null;
@@ -2032,7 +2032,7 @@ export default function BibleReader() {
               <React.Fragment key={`${pos.abbr}-${pos.chapter}-${v.verse}`}>
                 {sectionLetter && (
                   <div className="kjb-psalm119-heading text-center my-3" style={{ breakInside: 'avoid' }}>
-                    <span className={`font-serif uppercase text-muted-foreground ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, letterSpacing: '0.25em' }}>{sectionLetter}</span>
+                    <span className={`notranslate font-serif uppercase text-muted-foreground ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, letterSpacing: '0.25em' }}>{sectionLetter}</span>
                   </div>
                 )}
                 <VerseText
@@ -2052,7 +2052,7 @@ export default function BibleReader() {
         })()}
         {!loading && !error && colophon && (
           <div onClick={() => handleSectionClick('colophon')} id="kjb-colophon-anchor" className={`${columnMode ? 'mt-6 mb-4' : 'mt-12 mb-4 border-t border-border pt-6'} text-center transition-colors duration-500 rounded-lg cursor-pointer ${sectionActive('colophon') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`}>
-            <p className={`kjb-colophon text-sm text-muted-foreground leading-relaxed ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}><SubscriptContent text={colophon} searchTerm={sectionActive('colophon') ? searchTerm : null} /></p>
+            <p className={`notranslate kjb-colophon text-sm text-muted-foreground leading-relaxed ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}><SubscriptContent text={colophon} searchTerm={sectionActive('colophon') ? searchTerm : null} /></p>
           </div>
         )}
       </div>
@@ -2064,7 +2064,7 @@ export default function BibleReader() {
             <span className="block w-1.5 h-1.5 rotate-45 bg-muted-foreground/50" />
             <span className="block h-px w-16 sm:w-24 bg-border" />
           </div>
-          <p className={`text-foreground tracking-[0.35em] uppercase font-semibold kjb-end-marker ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'}`} style={{ fontSize: `${zoomLevel / 100 * 1.15}rem`, fontStyle: 'normal' }}>{resolveEndMarker(book.apiName, pos.chapter) || (pos.abbr === 'MAL' ? 'The End of the Prophets' : 'The End')}</p>
+          <p className={`notranslate text-foreground tracking-[0.35em] uppercase font-semibold kjb-end-marker ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'}`} style={{ fontSize: `${zoomLevel / 100 * 1.15}rem`, fontStyle: 'normal' }}>{resolveEndMarker(book.apiName, pos.chapter) || (pos.abbr === 'MAL' ? 'The End of the Prophets' : 'The End')}</p>
           <div className="flex items-center justify-center gap-4 mt-4">
             <span className="block h-px w-16 sm:w-24 bg-border" />
             <span className="block w-1.5 h-1.5 rotate-45 bg-muted-foreground/50" />

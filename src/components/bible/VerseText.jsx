@@ -144,7 +144,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
       <span className="flex items-start mt-6 mb-4 px-[0.4em] gap-[0.6em] w-full">
         <span className="text-[0.6em] shrink-0 invisible mr-[0.3em]">{verse.verse}</span>
         <span
-          className={`flex-1 text-center font-bold text-foreground select-none not-italic tracking-wide ${isCursive ? 'cursive-em-style' : 'font-serif'}`}
+          className={`notranslate flex-1 text-center font-bold text-foreground select-none not-italic tracking-wide ${isCursive ? 'cursive-em-style' : 'font-serif'}`}
           style={{ fontSize: `${zoomLevel / 100 * 1.2}rem` }}
         >
           {renderHeadingLabel()}
@@ -152,7 +152,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
       </span>
     ) : (
       <span
-        className={`block text-center font-bold text-foreground select-none mt-6 mb-4 not-italic tracking-wide ${isCursive ? 'cursive-em-style' : 'font-serif'}`}
+        className={`notranslate block text-center font-bold text-foreground select-none mt-6 mb-4 not-italic tracking-wide ${isCursive ? 'cursive-em-style' : 'font-serif'}`}
         style={{ fontSize: `${zoomLevel / 100 * 1.2}rem` }}
       >
         {renderHeadingLabel()}
