@@ -37,8 +37,8 @@ export default function LandingPage() {
           </Link>
           <h1 className="font-serif text-4xl font-bold text-foreground mb-2">Welcome to <span className="notranslate">KJB Reader</span></h1>
           <p className="font-sans text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed">
-            <span className="notranslate">KJB Reader</span> is a free, installable Bible reading app featuring the King James Bible
-            (<span className="notranslate">Pure Cambridge Edition</span>). Enjoy offline reading, search, bookmarks,
+            <span className="notranslate" translate="no">KJB Reader</span> is a free, installable Bible reading app featuring the <span className="notranslate" translate="no">King James Bible</span>
+            (<span className="notranslate" translate="no">Pure Cambridge Edition</span>). Enjoy offline reading, search, bookmarks,
             and customizable typography — all with privacy at the forefront.
           </p>
           <div className="mt-4 w-16 h-px bg-accent mx-auto" />
