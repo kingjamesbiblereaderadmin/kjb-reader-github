@@ -1439,7 +1439,7 @@ export default function SearchPage() {
                       <span className="text-accent font-serif text-lg leading-none">&bull;</span>
                       <span className="notranslate">{BIBLE_BOOKS.find(b => b.apiName === results[i].book)?.name || results[i].book}</span>: {results[i].chapter}:{results[i].verse}
                     </span>
-                    <span className="font-serif text-foreground leading-relaxed">{results[i].text}</span>
+                    <span className="notranslate font-serif text-foreground leading-relaxed">{results[i].text}</span>
                   </div>
                 ))}
               </div>

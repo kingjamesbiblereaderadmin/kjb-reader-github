@@ -115,7 +115,7 @@ function SearchResultRow({ r, i, thisIndex, isFocused, isSelected, selectMode, h
           <span className="print:hidden">:</span> <span className="hidden print:inline"> </span>{r.chapter}
           {isSubscript ? ' (Superscription)' : isColophon ? ' (Colophon)' : isHeading ? `:${r.verse} (Stanza)` : `:${r.verse}`}
         </p>
-        <p className="text-base text-foreground leading-relaxed print:text-black" style={fontStyle}>
+        <p className="notranslate text-base text-foreground leading-relaxed print:text-black" style={fontStyle}>
           {isHeading ? (
             <span className="font-bold tracking-wide">{renderWithItalics(r.text, highlightTerm, highlightCaseSensitive, highlightWholeWord)}</span>
           ) : (isColophon || isSubscript) ? (
