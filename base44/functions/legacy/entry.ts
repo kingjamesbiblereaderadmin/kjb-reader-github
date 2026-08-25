@@ -937,16 +937,16 @@ Deno.serve(async (req) => {
         '<p>KJB-believing, soul-winning preachers.</p>' +
         lnk('https://www.youtube.com/@Robertbreaker3', '<span class="notranslate" translate="no">Robert Breaker</span>', 'KJB missionary evangelist. YouTube, TikTok (@robertbreaker), thecloudchurch.org') +
         lnk('https://www.instagram.com/robert.potthoff/', '<span class="notranslate" translate="no">Robert Potthoff</span>', 'Big Red Preacher &mdash; KJB soul winner. Instagram, Facebook, mission1611.com') +
-        lnk('https://youtube.com/@josephgonzalez3', 'Joseph Gonzalez', 'KJB Elites &mdash; faithful preacher. YouTube, TikTok (@joyfullychurch), Joyfully Church') +
-        lnk('https://www.seedofhopechurch.org/', 'Ryan Poff', 'Seed of Hope Church &mdash; KJB pastor. seedofhopechurch.org, YouTube (@ryan_poff)') +
-        lnk('https://youtube.com/@av1611ministries', 'Skyler (AV1611 Ministry)', 'AV1611 Ministry &mdash; KJB defence and preaching. YouTube, TikTok') +
-        lnk('https://www.youtube.com/@CrownOfThorns', 'Crown of Thorns', 'KJB preaching ministry on YouTube.') +
-        lnk('https://youtube.com/@biblicalsalvation', 'Paul Johnson', 'Biblical Salvation &mdash; KJB preaching and Bible teaching. YouTube, TikTok') +
-        lnk('https://www.youtube.com/channel/UCWBR5DmAi2XPMFRtb-wqHwg', 'CPR Missions', 'Church Planting and Revival Missions. YouTube, TikTok, Facebook, Instagram') +
-        lnk('https://youtube.com/@jamesbrayall3?si=nXkuHAhyVvC_0KVg', 'James Bray', 'KJB preacher and Bible teacher on YouTube.') +
+        lnk('https://youtube.com/@josephgonzalez3', '<span class="notranslate" translate="no">Joseph Gonzalez</span>', 'KJB Elites &mdash; faithful preacher. YouTube, TikTok (@joyfullychurch), Joyfully Church') +
+        lnk('https://www.seedofhopechurch.org/', '<span class="notranslate" translate="no">Ryan Poff</span>', 'Seed of Hope Church &mdash; KJB pastor. seedofhopechurch.org, YouTube (@ryan_poff)') +
+        lnk('https://youtube.com/@av1611ministries', '<span class="notranslate" translate="no">Skyler (AV1611 Ministry)</span>', 'AV1611 Ministry &mdash; KJB defence and preaching. YouTube, TikTok') +
+        lnk('https://www.youtube.com/@CrownOfThorns', '<span class="notranslate" translate="no">Crown of Thorns</span>', 'KJB preaching ministry on YouTube.') +
+        lnk('https://youtube.com/@biblicalsalvation', '<span class="notranslate" translate="no">Paul Johnson</span>', 'Biblical Salvation &mdash; KJB preaching and Bible teaching. YouTube, TikTok') +
+        lnk('https://www.youtube.com/channel/UCWBR5DmAi2XPMFRtb-wqHwg', '<span class="notranslate" translate="no">CPR Missions</span>', 'Church Planting and Revival Missions. YouTube, TikTok, Facebook, Instagram') +
+        lnk('https://youtube.com/@jamesbrayall3?si=nXkuHAhyVvC_0KVg', '<span class="notranslate" translate="no">James Bray</span>', 'KJB preacher and Bible teacher on YouTube.') +
 
         '<h2>Personal Ministry Links</h2>' +
-        lnk('https://godisgracious1031ministriescom.odoo.com/', 'God is Gracious 1031 Ministries', 'Ministry website') +
+        lnk('https://godisgracious1031ministriescom.odoo.com/', '<span class="notranslate" translate="no">God is Gracious 1031 Ministries</span>', 'Ministry website') +
         lnk('https://youtube.com/@shawnr325av', 'YouTube', '@shawnr325av') +
         lnk('https://rumble.com/user/Godisgracious1031', 'Rumble', 'Godisgracious1031') +
         lnk('https://linktr.ee/shawnr325av', 'Linktree', 'linktr.ee/shawnr325av') +
