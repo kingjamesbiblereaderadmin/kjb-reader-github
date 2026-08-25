@@ -368,7 +368,7 @@ export default function AdvancedSearchPage() {
                           className="w-full flex items-center justify-between gap-2 sticky top-0 bg-background/90 backdrop-blur-sm py-1 z-10 text-left"
                         >
                           <h3 className="font-serif text-lg font-semibold text-primary">
-                            {b.label} <span className="font-sans text-xs font-normal text-muted-foreground">({b.rows.length})</span>
+                            <span className="notranslate">{b.label}</span> <span className="font-sans text-xs font-normal text-muted-foreground">({b.rows.length})</span>
                           </h3>
                           <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${bCollapsed ? '-rotate-90' : ''}`} />
                         </button>

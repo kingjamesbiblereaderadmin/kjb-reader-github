@@ -285,7 +285,7 @@ export default function AdvancedResultRow({ record, sortKey, sortLabel, filters 
     >
       <div className="flex items-center justify-between gap-3 mb-1.5">
         <span className="font-sans text-sm font-semibold text-accent flex items-center gap-1.5">
-          {record.ref}
+          <span className="notranslate">{record.ref}</span>
           {m.hasPilcrow && <Pilcrow className="w-3.5 h-3.5 text-muted-foreground" />}
         </span>
         <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-accent transition-colors shrink-0" />

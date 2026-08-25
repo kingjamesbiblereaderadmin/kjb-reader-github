@@ -1345,7 +1345,7 @@ export default function SearchPage() {
               {numberedBookFilter && (
                 <p className="font-sans text-xs text-primary font-semibold mt-0.5 flex items-center gap-1">
                   <BookOpen className="w-3 h-3" />
-                  Showing only {BIBLE_BOOKS.find(b => b.abbr === numberedBookFilter)?.shortName}
+                  Showing only <span className="notranslate">{BIBLE_BOOKS.find(b => b.abbr === numberedBookFilter)?.shortName}</span>
                 </p>
               )}
             </div>
@@ -1437,7 +1437,7 @@ export default function SearchPage() {
                   <div key={i} className="text-sm">
                     <span className="font-sans text-xs text-accent font-semibold mr-2 flex items-center gap-1">
                       <span className="text-accent font-serif text-lg leading-none">&bull;</span>
-                      {BIBLE_BOOKS.find(b => b.apiName === results[i].book)?.name || results[i].book}: {results[i].chapter}:{results[i].verse}
+                      <span className="notranslate">{BIBLE_BOOKS.find(b => b.apiName === results[i].book)?.name || results[i].book}</span>: {results[i].chapter}:{results[i].verse}
                     </span>
                     <span className="font-serif text-foreground leading-relaxed">{results[i].text}</span>
                   </div>
@@ -1475,7 +1475,7 @@ export default function SearchPage() {
           {showBookResult && (
             <div className="max-w-md mx-auto p-4 rounded-xl bg-primary/5 border border-primary/20 print:hidden">
               <p className="font-sans text-xs text-muted-foreground mb-3 text-center">
-                Did you mean the book of <span className="font-semibold text-foreground">{showBookResult.bookName}</span>?
+                Did you mean the book of <span className="notranslate font-semibold text-foreground">{showBookResult.bookName}</span>?
               </p>
               <button
                 onClick={() => {
@@ -1517,7 +1517,7 @@ export default function SearchPage() {
                     >
                       <BookOpen className="w-5 h-5 flex-shrink-0" />
                       <div className="text-left">
-                        <p className="font-serif text-sm font-bold">{book.shortName}</p>
+                        <p className="notranslate font-serif text-sm font-bold">{book.shortName}</p>
                         <p className="text-xs opacity-75">{book.chapters} {book.chapters === 1 ? 'chapter' : 'chapters'} • {book.testament === 'old' ? 'Old' : 'New'} Testament</p>
                       </div>
                     </button>
@@ -1549,7 +1549,7 @@ export default function SearchPage() {
                   >
                     <BookOpen className="w-5 h-5 flex-shrink-0" />
                     <div className="text-left">
-                      <p className="font-serif text-sm font-bold">Go to {showBookResult.bookName}</p>
+                      <p className="font-serif text-sm font-bold">Go to <span className="notranslate">{showBookResult.bookName}</span></p>
                       <p className="text-xs opacity-75">{showBookResult.chapters} {showBookResult.chapters === 1 ? 'chapter' : 'chapters'} • {showBookResult.testament === 'old' ? 'Old' : 'New'} Testament</p>
                     </div>
                   </button>
