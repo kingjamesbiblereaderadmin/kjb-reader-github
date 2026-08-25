@@ -501,7 +501,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
         <div className="p-3 bg-card flex items-center justify-between gap-3">
           <div>
             <p className="font-sans font-medium text-sm text-foreground">THE GOSPEL THAT SAVES</p>
-            <p className="font-sans text-xs text-muted-foreground">Robert Breaker</p>
+            <p className="notranslate font-sans text-xs text-muted-foreground" translate="no">Robert Breaker</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <CopyButton text="<https://www.youtube.com/watch?v=znP9Dr6tOzU>" className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors" />
@@ -546,7 +546,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
           <div className="flex-1">
             <h3 className="font-serif text-xl font-semibold text-foreground mb-1">KJBI.org — Free Online Bible College</h3>
             <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-              King James Bible Institute by Robert Breaker &amp; Robert Potthoff — a free online Bible college for those who want to go deeper in God's Word.
+              King James Bible Institute by <span className="notranslate" translate="no">Robert Breaker</span> &amp; <span className="notranslate" translate="no">Robert Potthoff</span> — a free online Bible college for those who want to go deeper in God's Word.
             </p>
             <a
               href="https://kjbi.org"

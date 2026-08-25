@@ -159,7 +159,7 @@ export default function PreachersSection({ openPreachers: externalOpen, togglePr
                 className="w-full flex items-center gap-3 p-4 hover:bg-accent/5 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left">
                 <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="notranslate font-sans text-sm font-semibold text-foreground">{preacher.name}</p>
+                  <p className="notranslate font-sans text-sm font-semibold text-foreground" translate="no">{preacher.name}</p>
                   {!isOpen &&
                     <p className="font-sans text-xs text-muted-foreground truncate">{preacher.desc}</p>
                   }

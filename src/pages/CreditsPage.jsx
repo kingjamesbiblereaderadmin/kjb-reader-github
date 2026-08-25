@@ -76,7 +76,7 @@ export default function CreditsPage() {
           </div>
           <ul className="space-y-1.5 font-sans text-sm text-foreground/85">
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">App Platform:</strong> Built with <a href="https://base44.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-0.5">Base44<ExternalLink className="w-3 h-3" /></a></span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Special Thanks:</strong> Elvish Ishaan for fixing bugs and issues.</span></li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Special Thanks:</strong> <span className="notranslate" translate="no">Elvish Ishaan</span> for fixing bugs and issues.</span></li>
           </ul>
         </section>
 
