@@ -76,7 +76,7 @@ export default function LandingPage() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">KJBI.org — Free Online Bible College</p>
-              <p className="font-sans text-xs text-muted-foreground">King James Bible Institute by <span className="notranslate">Robert Breaker</span> &amp; <span className="notranslate">Robert Potthoff</span> — go deeper in God's Word, for free.</p>
+              <p className="font-sans text-xs text-muted-foreground">King James Bible Institute by <span className="notranslate" translate="no">Robert Breaker</span> &amp; <span className="notranslate" translate="no">Robert Potthoff</span> — go deeper in God's Word, for free.</p>
             </div>
             <ArrowRight className="w-4 h-4 text-muted-foreground" />
           </a>
