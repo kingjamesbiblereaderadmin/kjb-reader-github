@@ -3,7 +3,7 @@ import React from 'react';
 export default function TitlePage({ type, book }) {
   if (type === 'testament-old') {
     return (
-      <div className="flex flex-col items-center px-4 pt-8 pb-12">
+      <div className="notranslate flex flex-col items-center px-4 pt-8 pb-12">
         <div className="max-w-2xl text-center space-y-6">
           <p className="font-serif text-base tracking-[0.2em] text-foreground font-normal">
             THE
@@ -47,7 +47,7 @@ export default function TitlePage({ type, book }) {
 
   if (type === 'testament-new') {
     return (
-      <div className="flex flex-col items-center px-4 pt-8 pb-8">
+      <div className="notranslate flex flex-col items-center px-4 pt-8 pb-8">
         <div className="max-w-xl text-center space-y-4">
           <p className="font-serif text-base tracking-[0.3em] text-foreground font-normal">
             THE
@@ -83,7 +83,7 @@ export default function TitlePage({ type, book }) {
 
   if (type === 'main') {
     return (
-      <div className="flex flex-col items-center px-4 pt-8 pb-12">
+      <div className="notranslate flex flex-col items-center px-4 pt-8 pb-12">
         <div className="max-w-2xl text-center space-y-6">
           <p className="font-serif text-base tracking-[0.2em] text-foreground font-normal">
             THE
@@ -129,7 +129,7 @@ export default function TitlePage({ type, book }) {
     const testamentLabel = book.testament === 'new' ? 'New Testament' : 'Old Testament';
     const chapterWord = book.chapters === 1 ? 'Chapter' : 'Chapters';
     return (
-      <div className="flex flex-col items-center justify-center px-4 pt-16 pb-16">
+      <div className="notranslate flex flex-col items-center justify-center px-4 pt-16 pb-16">
         <div className="max-w-2xl text-center space-y-6">
           <p className="font-serif text-sm tracking-[0.3em] uppercase text-muted-foreground">
             {testamentLabel}
