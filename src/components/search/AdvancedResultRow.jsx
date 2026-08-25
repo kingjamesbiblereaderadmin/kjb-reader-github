@@ -290,7 +290,7 @@ export default function AdvancedResultRow({ record, sortKey, sortLabel, filters 
         </span>
         <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-accent transition-colors shrink-0" />
       </div>
-      <p className="font-serif text-[15px] leading-relaxed text-foreground">
+      <p className="notranslate font-serif text-[15px] leading-relaxed text-foreground">
         {renderText(record.rawText, terms, filters)}
       </p>
       <div className="flex flex-wrap gap-1.5 mt-2.5">
