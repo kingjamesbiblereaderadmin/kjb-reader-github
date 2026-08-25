@@ -124,7 +124,7 @@ export default function LandingPage() {
                 className="flex flex-col items-center text-center justify-center gap-1 p-3 rounded-xl bg-background/40 border border-border/60 hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
               >
                 <p className="font-sans font-semibold text-xs text-foreground group-hover:text-accent transition-colors">🏠 Server Install</p>
-                <p className="font-sans text-[11px] text-muted-foreground leading-relaxed">Bot joins a server for verse lookups and /setup.</p>
+                <p className="font-sans text-[11px] text-muted-foreground leading-relaxed">Bot joins a server for searching up verses and keywords.</p>
               </a>
             </div>
           </div>
