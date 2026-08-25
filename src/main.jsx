@@ -36,6 +36,30 @@ window.addEventListener('error', (event) => {
   }
 });
 
+// Guard against the classic "Failed to execute 'insertBefore'/'removeChild' on
+// 'Node'" crash caused by browser translation tools (Google Translate, Edge
+// Translate, etc.) rewriting text nodes behind React's back. When a node has
+// already been moved/removed by the translator, React's next DOM patch throws
+// a hard DOMException and can crash the whole app. These patches make the
+// native calls no-ops in that specific case instead of throwing.
+if (typeof Node === 'function' && Node.prototype) {
+  const origInsertBefore = Node.prototype.insertBefore;
+  Node.prototype.insertBefore = function (newNode, referenceNode) {
+    if (referenceNode && referenceNode.parentNode !== this) {
+      return newNode;
+    }
+    return origInsertBefore.call(this, newNode, referenceNode);
+  };
+
+  const origRemoveChild = Node.prototype.removeChild;
+  Node.prototype.removeChild = function (child) {
+    if (child && child.parentNode !== this) {
+      return child;
+    }
+    return origRemoveChild.call(this, child);
+  };
+}
+
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   console.error('[KJB] #root element not found — cannot mount app.');
