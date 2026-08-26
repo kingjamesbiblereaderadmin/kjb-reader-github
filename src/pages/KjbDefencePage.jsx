@@ -163,7 +163,7 @@ export default function KjbDefencePage() {
 
   const handlePrint = () => {
     const esc = (s) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    let html = `<h1 style="font-family:Georgia,serif;font-size:22pt;text-align:center;margin-bottom:6pt;">KJB Defence</h1><p style="text-align:center;font-size:11pt;color:#555;margin-bottom:24pt;">Resources defending the King James Bible.</p>`;
+    let html = `<h1 translate="no" style="font-family:Georgia,serif;font-size:22pt;text-align:center;margin-bottom:6pt;">KJB Defence</h1><p style="text-align:center;font-size:11pt;color:#555;margin-bottom:24pt;">Resources defending the <span translate="no">King James Bible</span>.</p>`;
     categories.forEach((cat) => {
       html += `<h2 style="font-size:15pt;margin:24pt 0 8pt 0;border-bottom:1px solid #ccc;padding-bottom:4pt;">${esc(cat.name)}</h2>`;
       cat.items.forEach((it) => {
@@ -182,8 +182,8 @@ export default function KjbDefencePage() {
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-secondary mb-4">
           <ShieldAlert className="w-7 h-7 text-blue-500" />
         </div>
-        <h1 className="font-serif text-4xl font-bold text-foreground mb-3">KJB Defence</h1>
-        <p className="font-sans text-muted-foreground max-w-lg mx-auto">Resources defending the King James Bible as the preserved, infallible Word of God — and exposing the corruption of modern versions.</p>
+        <h1 className="notranslate font-serif text-4xl font-bold text-foreground mb-3" translate="no">KJB Defence</h1>
+        <p className="font-sans text-muted-foreground max-w-lg mx-auto">Resources defending the <span className="notranslate" translate="no">King James Bible</span> as the preserved, infallible Word of God — and exposing the corruption of modern versions.</p>
         <div className="mt-4 w-16 h-px bg-accent mx-auto" />
         <div className="mt-4 flex items-center justify-center gap-2 flex-wrap">
           {isAdmin && (
@@ -265,7 +265,7 @@ export default function KjbDefencePage() {
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <ShieldAlert className={`w-5 h-5 ${cat.style.color}`} />
-                      <h2 className={`font-sans font-semibold ${cat.style.color}`}>{cat.name}</h2>
+                      <h2 className={`notranslate font-sans font-semibold ${cat.style.color}`} translate="no">{cat.name}</h2>
                       <span className="font-sans text-xs text-muted-foreground">({cat.items.length})</span>
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
