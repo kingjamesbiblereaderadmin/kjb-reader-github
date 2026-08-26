@@ -79,7 +79,7 @@ const FEATURES = [
   {
     icon: Heart,
     title: 'Gospel Tab',
-    desc: 'Built-in salvation guide with 1 Corinthians 15:1-4, Romans 3:25, and verified KJB preachers.',
+    desc: <>Built-in salvation guide with <span className="notranslate" translate="no">1 Corinthians 15:1-4, Romans 3:25</span>, and verified KJB preachers.</>,
   },
   {
     icon: Link2,
@@ -267,7 +267,8 @@ export default function ExtensionPage() {
                   {col.items.map((ref) => (
                     <p
                       key={ref}
-                      className="font-sans text-foreground"
+                      className="notranslate font-sans text-foreground"
+                      translate="no"
                       style={{ fontSize: '18px', lineHeight: '1.4' }}
                     >
                       {ref}

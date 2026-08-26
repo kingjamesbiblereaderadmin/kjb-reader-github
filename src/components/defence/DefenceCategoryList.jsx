@@ -25,8 +25,8 @@ export default function DefenceCategoryList({ cat, isAdmin, adminMode, onReorder
           <div className="flex items-center gap-2 mb-1">
             <h3 className="notranslate font-serif text-lg font-semibold text-foreground" translate="no">{item.title}</h3>
           </div>
-          <p className="font-sans text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
-          <a href={item.url} target={item.url.startsWith('mailto') ? '_self' : '_blank'} rel="noopener noreferrer" className="inline-block mt-3 text-xs font-sans font-medium text-accent underline underline-offset-2">
+          <p className="notranslate font-sans text-sm text-muted-foreground leading-relaxed" translate="no">{item.desc}</p>
+          <a href={item.url} target={item.url.startsWith('mailto') ? '_self' : '_blank'} rel="noopener noreferrer" className="notranslate inline-block mt-3 text-xs font-sans font-medium text-accent underline underline-offset-2" translate="no">
             {item.label || item.url} →
           </a>
         </div>
