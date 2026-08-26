@@ -120,7 +120,6 @@ Deno.serve(async (req) => {
     display: "standalone",
     display_override: ["standalone", "minimal-ui", "window-controls-overlay", "tabbed"],
     launch_handler: { client_mode: "navigate-existing" },
-    orientation: "any",
     lang: "en",
     dir: "ltr",
     categories: ["books", "education", "lifestyle"],
