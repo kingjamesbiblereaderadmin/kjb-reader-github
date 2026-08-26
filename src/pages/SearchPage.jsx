@@ -1124,8 +1124,8 @@ export default function SearchPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all" className="font-sans text-xs">All</SelectItem>
-            <SelectItem value="old" className="font-sans text-xs">Old Testament</SelectItem>
-            <SelectItem value="new" className="font-sans text-xs">New Testament</SelectItem>
+            <SelectItem value="old" className="font-sans text-xs" disabled={searched && !searchStats.ot?.books}>Old Testament</SelectItem>
+            <SelectItem value="new" className="font-sans text-xs" disabled={searched && !searchStats.nt?.books}>New Testament</SelectItem>
           </SelectContent>
         </Select>
         <button
