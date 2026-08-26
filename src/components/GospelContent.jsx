@@ -547,7 +547,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
           <div className="flex-1">
             <h3 className="font-serif text-xl font-semibold text-foreground mb-1">KJBI.org — Free Online Bible College</h3>
             <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-              <span className="notranslate" translate="no">King James Bible Institute</span> by <span className="notranslate" translate="no">Robert Breaker</span> &amp; <span className="notranslate" translate="no">Robert Potthoff</span> — a free online Bible college for those who want to go deeper in God's Word.
+              <span className="notranslate" translate="no">King James Bible Institute</span> by <span className="notranslate" translate="no">Robert Breaker</span> & <span className="notranslate" translate="no">Robert Potthoff</span> — a free online Bible college for those who want to go deeper in God's Word.
             </p>
             <a
               href="https://kjbi.org"
