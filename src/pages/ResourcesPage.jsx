@@ -75,7 +75,7 @@ function getLinkLabel(url) {
 const PREACHERS = [
 {
   name: 'Robert Breaker',
-  desc: 'KJB missionary evangelist, rightly dividing the word of truth.',
+  desc: <><span className="notranslate" translate="no">KJB</span> missionary evangelist, rightly dividing the word of truth.</>,
   links: [
   'https://www.youtube.com/@Robertbreaker3',
   'https://www.tiktok.com/@robertbreaker',
@@ -84,7 +84,7 @@ const PREACHERS = [
 },
 {
   name: 'Robert Potthoff',
-  desc: 'Big Red Preacher — KJB soul winner.',
+  desc: <><span className="notranslate" translate="no">Big Red Preacher</span> — <span className="notranslate" translate="no">KJB</span> soul winner.</>,
   links: [
   'https://www.instagram.com/robert.potthoff/',
   'https://www.facebook.com/potthoff87',
@@ -94,7 +94,7 @@ const PREACHERS = [
 },
 {
   name: 'Ryan Poff',
-  desc: 'Seed of Hope Church — KJB pastor and preacher.',
+  desc: <><span className="notranslate" translate="no">Seed of Hope Church</span> — <span className="notranslate" translate="no">KJB</span> pastor and preacher.</>,
   links: [
   'https://www.seedofhopechurch.org/',
   'https://youtube.com/@ryan_poff',
@@ -103,7 +103,7 @@ const PREACHERS = [
 },
 {
   name: 'Skyler (AV1611 Ministry)',
-  desc: 'AV1611 Ministry — KJB defence and preaching.',
+  desc: <><span className="notranslate" translate="no">AV1611 Ministry</span> — <span className="notranslate" translate="no">KJB</span> defence and preaching.</>,
   links: [
   'https://www.tiktok.com/@av1611ministries',
   'https://youtube.com/@av1611ministries']
@@ -111,14 +111,14 @@ const PREACHERS = [
 },
 {
   name: 'Crown of Thorns',
-  desc: 'KJB preaching ministry on YouTube.',
+  desc: <><span className="notranslate" translate="no">KJB</span> preaching ministry on <span className="notranslate" translate="no">YouTube</span>.</>,
   links: [
   'https://www.youtube.com/@CrownOfThorns']
 
 },
 {
   name: 'Paul Johnson',
-  desc: 'Biblical Salvation — KJB preaching and Bible teaching.',
+  desc: <><span className="notranslate" translate="no">Biblical Salvation</span> — <span className="notranslate" translate="no">KJB</span> preaching and Bible teaching.</>,
   links: [
   'https://www.tiktok.com/@pauljohnson9632',
   'https://youtube.com/@biblicalsalvation']
@@ -126,7 +126,7 @@ const PREACHERS = [
 },
 {
   name: 'CPR Missions',
-  desc: 'Church Planting and Revival Missions — soul winning and church planting.',
+  desc: <><span className="notranslate" translate="no">Church Planting and Revival Missions</span> — soul winning and church planting.</>,
   links: [
   'https://www.youtube.com/channel/UCWBR5DmAi2XPMFRtb-wqHwg',
   'https://www.tiktok.com/@cprmissions',
@@ -135,7 +135,7 @@ const PREACHERS = [
 },
 {
   name: 'James Bray',
-  desc: 'KJB preacher and Bible teacher on YouTube.',
+  desc: <><span className="notranslate" translate="no">KJB</span> preacher and Bible teacher on <span className="notranslate" translate="no">YouTube</span>.</>,
   links: [
   'https://youtube.com/@jamesbrayall3?si=nXkuHAhyVvC_0KVg']
 }];
@@ -306,7 +306,7 @@ export default function ResourcesPage() {
           <FileText className="w-7 h-7 text-accent" />
         </div>
         <h1 className="font-serif text-4xl font-bold text-foreground mb-3">Resources</h1>
-        <p className="font-sans text-muted-foreground max-w-lg mx-auto">KJB defence materials, studies on modern version corruption, and links to free Bible study resources.</p>
+        <p className="font-sans text-muted-foreground max-w-lg mx-auto"><span className="notranslate" translate="no">KJB</span> defence materials, studies on modern version corruption, and links to free Bible study resources.</p>
         <div className="mt-4 w-16 h-px bg-accent mx-auto" />
         <div className="mt-4 flex items-center justify-center gap-2">
           <button
@@ -357,7 +357,7 @@ export default function ResourcesPage() {
           <div>
             <h2 className="notranslate font-serif text-lg font-bold text-foreground mb-1">KJB Discord Bot</h2>
             <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-              Use the <span className="notranslate">KJB Reader</span> bot in your own Discord account or add it to a server for daily verses and verse search directly in Discord.
+              Use the <span className="notranslate">KJB Reader</span> bot in your own <span className="notranslate" translate="no">Discord</span> account or add it to a server for daily verses and verse search directly in <span className="notranslate" translate="no">Discord</span>.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <a
@@ -392,7 +392,7 @@ export default function ResourcesPage() {
           <div className="flex-1 min-w-0">
             <h2 className="notranslate font-serif text-lg font-bold text-foreground mb-1">KJB Knights Server</h2>
             <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-              My and my friends' Discord server — feel free to join.
+              My and my friends' <span className="notranslate" translate="no">Discord</span> server — feel free to join.
             </p>
             <div className="flex items-center gap-3 flex-wrap">
               <a
@@ -417,7 +417,7 @@ export default function ResourcesPage() {
           <div>
             <h2 className="notranslate font-serif text-lg font-bold text-foreground mb-1">KJB SidePanel</h2>
             <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-              Read, search, and look up Bible verses from any web page with the <span className="notranslate">KJB Reader</span> sidebar extension — now available on the Chrome Web Store.
+              Read, search, and look up Bible verses from any web page with the <span className="notranslate">KJB Reader</span> sidebar extension — now available on the <span className="notranslate" translate="no">Chrome Web Store</span>.
             </p>
             <div className="flex items-center gap-3 flex-wrap">
               <Link
@@ -440,7 +440,7 @@ export default function ResourcesPage() {
           <div className="flex-1 min-w-0">
             <h2 className="notranslate font-serif text-lg font-bold text-foreground mb-1">KJB Defence</h2>
             <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-              A dedicated collection of resources defending the King James Bible and exposing the corruption of modern versions.
+              A dedicated collection of resources defending the <span className="notranslate" translate="no">King James Bible</span> and exposing the corruption of modern versions.
             </p>
             <Link
               to="/kjb-defence"
