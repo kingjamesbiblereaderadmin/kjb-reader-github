@@ -41,7 +41,9 @@ export default function CreditsPage() {
             <h2 className="font-serif text-xl font-semibold text-foreground">Bible Text</h2>
           </div>
           <p className="font-sans text-sm text-foreground/85 leading-relaxed">
-            King James Bible (KJB) — public domain text, sourced via Project Gutenberg.
+            King James Bible (KJB) — public domain text, sourced from{' '}
+            <a href="https://bibleprotector.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">bibleprotector.com</a>,
+            the authoritative electronic text of the Pure Cambridge Edition, which offers free PDF, ePub, and TXT downloads.
           </p>
           <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-3">
             This app uses the King James Bible: Pure Cambridge Edition (Wharton Text Format). The KJB text is public
