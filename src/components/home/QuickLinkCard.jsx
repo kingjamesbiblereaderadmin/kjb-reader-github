@@ -16,8 +16,8 @@ export default function QuickLinkCard({ to, onClick, icon: Icon, label, desc, ic
         <Icon className="w-6 h-6" />
       </div>
       <div className="relative min-w-0 flex-1">
-        <p className="font-serif font-bold text-base sm:text-lg leading-tight text-foreground truncate">{label}</p>
-        <p className="font-sans text-xs text-muted-foreground mt-0.5 truncate">{desc}</p>
+        <p className="font-serif font-bold text-base sm:text-lg leading-tight text-foreground break-words">{label}</p>
+        <p className="font-sans text-xs text-muted-foreground mt-0.5 break-words">{desc}</p>
       </div>
       <ChevronRight className="relative w-4 h-4 text-muted-foreground/60 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
     </>
