@@ -223,7 +223,7 @@ export default function LandingPage() {
             </a>
             <a href="https://rumble.com/user/Godisgracious1031" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-primary transition-colors">
               <PlayCircle className="w-4 h-4 text-muted-foreground" />
-              Rumble · Godisgracious1031
+              <span className="notranslate" translate="no">Rumble · Godisgracious1031</span>
             </a>
             <a href="https://discord.com/users/shawn_faithinhisbloodr325av" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-primary transition-colors">
               <DiscordIcon className="w-4 h-4 text-muted-foreground" />
