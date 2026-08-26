@@ -957,11 +957,7 @@ export default function SettingsPage() {
                 <p className="font-sans text-sm text-foreground font-medium flex items-center gap-1.5">
                   <Lock className="w-4 h-4 text-primary shrink-0" /> Admin Access
                 </p>
-                <p className="font-sans text-xs text-muted-foreground mt-0.5">
-                  {user?.role === 'admin'
-                    ? `Signed in as admin${user.email ? ` · ${user.email}` : ''}.`
-                    : 'Sign in with an admin account to edit the KJB Defence resources.'}
-                </p>
+                <p className="font-sans text-xs text-muted-foreground mt-0.5">Admin access</p>
               </div>
               {user?.role === 'admin' ? (
                 <div className="shrink-0 flex flex-col gap-2">
