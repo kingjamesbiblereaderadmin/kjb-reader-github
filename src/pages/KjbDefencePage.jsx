@@ -21,6 +21,29 @@ const CATEGORY_STYLES = {
   'ESV & NIV Exposed': { color: 'text-cyan-600', bg: 'bg-cyan-50 dark:bg-cyan-900/20' },
 };
 const DEFAULT_STYLE = { color: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-900/20' };
+// Only the proper noun / acronym / reference inside a category name needs
+// protection from browser translation — the surrounding plain English words
+// (e.g. "Why Modern Versions Are Corrupt") should stay translatable.
+const PROTECTED_TERM_BY_CATEGORY = {
+  'KJB Defence': 'KJB',
+  '1 John 5:7 Defence': '1 John 5:7',
+  'Westcott & Hort Heresies': 'Westcott & Hort',
+  'NKJV Exposed': 'NKJV',
+  'Living Bible Exposed': 'Living Bible',
+  'ESV & NIV Exposed': 'ESV & NIV',
+};
+function renderCategoryName(name) {
+  const term = PROTECTED_TERM_BY_CATEGORY[name];
+  const idx = term ? name.indexOf(term) : -1;
+  if (idx === -1) return name;
+  return (
+    <>
+      {name.slice(0, idx)}
+      <span className="notranslate" translate="no">{term}</span>
+      {name.slice(idx + term.length)}
+    </>
+  );
+}
 // Preserve a stable display order for known categories; unknown ones append.
 const CATEGORY_ORDER = [
   'KJB Defence',
@@ -265,7 +288,7 @@ export default function KjbDefencePage() {
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <ShieldAlert className={`w-5 h-5 ${cat.style.color}`} />
-                      <h2 className={`notranslate font-sans font-semibold ${cat.style.color}`} translate="no">{cat.name}</h2>
+                      <h2 className={`font-sans font-semibold ${cat.style.color}`}>{renderCategoryName(cat.name)}</h2>
                       <span className="font-sans text-xs text-muted-foreground">({cat.items.length})</span>
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
