@@ -2,6 +2,7 @@ import React from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { ExternalLink, Pencil, Trash2, Plus, GripVertical } from 'lucide-react';
 import CopyButton from './CopyButton';
+import { renderProtectedText } from '@/lib/protectDefenceTerms';
 
 // Renders the list of resource cards for one category. In admin mode the
 // cards become drag-and-drop reorderable; the new order is persisted by the
@@ -25,7 +26,7 @@ export default function DefenceCategoryList({ cat, isAdmin, adminMode, onReorder
           <div className="flex items-center gap-2 mb-1">
             <h3 className="notranslate font-serif text-lg font-semibold text-foreground" translate="no">{item.title}</h3>
           </div>
-          <p className="font-sans text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+          <p className="font-sans text-sm text-muted-foreground leading-relaxed">{renderProtectedText(item.desc)}</p>
           <a href={item.url} target={item.url.startsWith('mailto') ? '_self' : '_blank'} rel="noopener noreferrer" className="inline-block mt-3 text-xs font-sans font-medium text-accent underline underline-offset-2">
             {item.label || item.url} →
           </a>
