@@ -273,11 +273,10 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setShowColorPicker(!showColorPicker); }}
             onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setShowColorPicker(!showColorPicker); }}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-accent/20 text-foreground font-sans text-xs font-medium transition-colors"
+            className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-secondary hover:bg-accent/20 text-foreground font-sans text-xs font-medium transition-colors"
             title="Highlight color"
           >
             <Highlighter className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{highlightColors.find(c => c.name === highlightColor)?.label}</span>
             <ChevronDown className="w-2.5 h-2.5" />
           </button>
           {showColorPicker && (
