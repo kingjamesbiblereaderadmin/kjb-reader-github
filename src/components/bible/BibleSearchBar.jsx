@@ -92,17 +92,30 @@ export default function BibleSearchBar({ onClose }) {
   const containerRef = useRef(null);
   const navigate = useNavigate();
 
-  // The search box's own width (not the viewport's) determines whether the
-  // "Search..." placeholder fits — the header can be cramped even on a wide
-  // screen (Back/Home + 3 action buttons all share the row). Measure the
-  // actual box via ResizeObserver so it never renders a truncated "Se...".
+  // Whether the "Search..." placeholder actually fits is measured directly —
+  // not guessed via a fixed pixel breakpoint — by comparing the real rendered
+  // width of that text (canvas measureText, using the input's own font) against
+  // the input's real available inner width (its width minus its own padding).
+  // This stays correct regardless of header layout changes on any screen size.
   const [hasRoomForPlaceholder, setHasRoomForPlaceholder] = useState(true);
+  const measureCanvasRef = useRef(null);
   useEffect(() => {
     const el = containerRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(([entry]) => {
-      setHasRoomForPlaceholder(entry.contentRect.width >= 110);
-    });
+    if (!el) return;
+    const measure = () => {
+      const inputEl = el.querySelector('input');
+      if (!inputEl) return;
+      const canvas = measureCanvasRef.current || (measureCanvasRef.current = document.createElement('canvas'));
+      const ctx = canvas.getContext('2d');
+      const style = window.getComputedStyle(inputEl);
+      ctx.font = `${style.fontSize} ${style.fontFamily}`;
+      const textWidth = ctx.measureText('Search...').width;
+      const availableWidth = inputEl.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      setHasRoomForPlaceholder(availableWidth >= textWidth);
+    };
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
