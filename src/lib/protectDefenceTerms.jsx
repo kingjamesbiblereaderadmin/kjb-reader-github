@@ -4,7 +4,7 @@ import React from 'react';
 // KJB Defence resource descriptions. Longest terms first so the regex prefers
 // the fuller phrase over a shorter substring (e.g. "Westcott and Hort" over "Hort").
 const TERMS = [
-  'King James Bible', 'King James Version', 'Textus Receptus', 'Received Text', 'Critical Text',
+  'King James Bible', 'King James Version', 'Pure Cambridge Edition', 'Textus Receptus', 'Received Text', 'Critical Text',
   'Westcott and Hort', 'Westcott-Hort', 'Westcott & Hort', 'Johannine Comma', '1 John 5:7',
   'Free Presbyterian Global Ministries', 'The Bible For Today', 'Bible For Today',
   'A Lamp in the Dark', 'Jesus is Savior', 'Jesus is Precious', 'Scion of Zion', 'Brandplucked',
