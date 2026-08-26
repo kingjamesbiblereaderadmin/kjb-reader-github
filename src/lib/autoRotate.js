@@ -78,18 +78,32 @@ export const applyAutoRotate = async (enabled) => {
     if (typeof screen !== 'undefined' && screen.orientation?.unlock) {
       try { screen.orientation.unlock(); } catch {}
     }
+    if (document.fullscreenElement) {
+      try { await document.exitFullscreen(); } catch {}
+    }
     return;
   }
   let isLandscape = false;
   try { isLandscape = window.matchMedia('(orientation: landscape)').matches; } catch {}
+  // Always apply the CSS fallback immediately — it works in a plain tab too.
   applyCssLock(isLandscape);
   if (typeof screen === 'undefined' || !screen.orientation) return;
+  const current = screen.orientation.type || (isLandscape ? 'landscape-primary' : 'portrait-primary');
   try {
-    const current = screen.orientation.type || (isLandscape ? 'landscape-primary' : 'portrait-primary');
+    // The real Lock API only succeeds in fullscreen / standalone display —
+    // in a plain browser tab it throws, so we request fullscreen first (this
+    // call must stay directly in the user-gesture call chain, not delayed by
+    // a preceding await, so the browser still counts it as user-activated).
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen?.();
+    }
     await screen.orientation.lock(current);
+    // A true lock is now active — the CSS fallback is no longer needed and
+    // would otherwise double up with the real (already-correct) orientation.
+    removeCssLock();
   } catch {
-    // Locking commonly requires fullscreen or isn't supported — the CSS
-    // fallback above covers this case.
+    // Fullscreen was refused/unsupported (e.g. not from a direct user
+    // gesture) — the CSS fallback applied above remains in effect.
   }
 };
 
