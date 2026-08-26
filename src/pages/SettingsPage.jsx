@@ -992,23 +992,6 @@ export default function SettingsPage() {
                 <span className="text-muted-foreground shrink-0">Last Updated</span>
                 <span className="text-foreground font-medium text-right">{LAST_REVISED}</span>
               </div>
-              <div className="flex justify-between items-center font-sans text-sm gap-4">
-                <span className="text-muted-foreground shrink-0">Worker Version</span>
-                <span className="text-foreground font-medium text-right flex items-center gap-1.5">
-                  {liveWorkerVersion ? (
-                    <>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
-                      {liveWorkerVersion}
-                    </>
-                  ) : (
-                    <span className="text-muted-foreground">{WORKER_VERSION} (expected)</span>
-                  )}
-                </span>
-              </div>
-              <div className="flex justify-between items-center font-sans text-sm gap-4">
-                <span className="text-muted-foreground shrink-0">Data Cache</span>
-                <span className="text-foreground font-medium text-right">{CACHE_VERSION}</span>
-              </div>
             </div>
             <div className="flex gap-3 pt-2">
               <button
