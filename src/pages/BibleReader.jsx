@@ -1859,11 +1859,7 @@ export default function BibleReader() {
               <button onClick={toggleFullscreen} title={fullscreen ? 'Exit fullscreen' : 'Fullscreen'} className="kjb-fixed-btn flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10 whitespace-nowrap">{fullscreen ? <Minimize2 className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /> : <Maximize2 className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />}<span className="hidden lg:inline">{fullscreen ? 'Exit' : 'Full Screen'}</span></button>
               <button onClick={(e) => { e.stopPropagation(); setHideHeader(!hideHeader); }} title={hideHeader ? "Show header" : "Hide header"} className="kjb-fixed-btn flex items-center justify-center px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10  whitespace-nowrap flex-shrink-0"><ChevronDown className={`w-5 h-5 transition-transform duration-200 flex-shrink-0 ${hideHeader ? '' : 'rotate-180'}`} /></button>
 
-              {/* Skip this pill for a plain filtered verse range — the book/chapter/verse
-                  buttons above and the ReadingRangeBar below already show that reference,
-                  so showing it a third time here was pure duplication. Still shown for
-                  search/gospel/daily-verse contexts, which add info the buttons don't. */}
-              {(lastReadingActive || searchTerm || gospelMode) && (
+              {((filterMode && selectedVerses.size > 0) || lastReadingActive || searchTerm || gospelMode) && (
                 <CurrentlyReadingIndicator
                   highlightVerse={highlightVerse}
                   filterMode={filterMode}
@@ -2056,13 +2052,7 @@ export default function BibleReader() {
 
       {!isViewingTitlePage && (
         <div className={`text-center mb-6 pt-8 ${(!columnMode || pos.chapter === 1 || (filterMode && selectedVerses.size > 0)) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
-          {filterMode && selectedVerses.size > 0 ? (
-            // Verses-only (filtered) view: show the actual reference (e.g.
-            // "John 3:16-18") of the passage being read, not just "John 3".
-            <h1 className={`notranslate kjb-book-title ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} text-2xl md:text-3xl font-bold text-foreground mb-2 leading-tight`} style={{ fontStyle: 'normal', fontWeight: '900' }}>
-              {book.shortName} {pos.chapter}:{formatVerseRange([...selectedVerses].sort((a, b) => a - b))}
-            </h1>
-          ) : (
+          {filterMode && selectedVerses.size > 0 ? null : (
             <>
               <h1 className={`notranslate kjb-book-title ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} text-3xl md:text-4xl font-bold text-foreground mb-2 leading-tight`} style={{ fontStyle: 'normal', fontWeight: '900' }}>{book.name}</h1>
               <p className={`notranslate kjb-chapter-heading font-sans text-muted-foreground tracking-widest uppercase mt-5 ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100 * 0.875}rem`, fontWeight: fontFamily === 'cursive' ? '400' : undefined }}>
@@ -2092,7 +2082,7 @@ export default function BibleReader() {
         {!loading && !error && isViewingTitlePage && (
           <div style={{ fontFamily: "'Merriweather', 'Cormorant Garamond', Georgia, serif" }} className="kjb-titlepage [&_*]:!font-serif"><TitlePage type={pos.abbr === 'GEN' ? 'testament-old' : pos.abbr === 'MAT' ? 'testament-new' : 'book'} book={book} /></div>
         )}
-        {!loading && !error && verses.length > 0 && columnMode && !isViewingTitlePage && pos.chapter !== 1 && !(filterMode && selectedVerses.size > 0) && (
+        {!loading && !error && verses.length > 0 && columnMode && !isViewingTitlePage && pos.chapter !== 1 && (
           <RunningHead bookName={book.name} chapter={pos.chapter} baseFontRem={zoomLevel / 100 * 0.7} isCursive={fontFamily === 'cursive'} />
         )}
         {!loading && !error && verses.length > 0 && (() => {
