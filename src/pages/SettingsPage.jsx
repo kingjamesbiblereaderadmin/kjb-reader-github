@@ -50,7 +50,7 @@ const isBookmarkBrowser = () => {
   return !isMobile && (isFirefox || (isMac && isSafari));
 };
 
-const LAST_REVISED = 'July 13th, 2026';
+const LAST_REVISED = 'August 26th, 2026';
 const WORKER_VERSION = 'v20260823_1851';
 
 export default function SettingsPage() {
@@ -924,7 +924,6 @@ export default function SettingsPage() {
                 <p className="font-sans text-sm text-foreground font-medium flex items-center gap-1.5">
                   <Lock className="w-4 h-4 text-primary shrink-0" /> Admin Access
                 </p>
-                <p className="font-sans text-xs text-muted-foreground mt-0.5">Admin access</p>
               </div>
               {user?.role === 'admin' ? (
                 <div className="shrink-0 flex flex-col gap-2">
