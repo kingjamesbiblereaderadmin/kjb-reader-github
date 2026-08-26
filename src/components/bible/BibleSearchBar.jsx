@@ -92,6 +92,17 @@ export default function BibleSearchBar({ onClose }) {
   const containerRef = useRef(null);
   const navigate = useNavigate();
 
+  // On very narrow screens there's no room for the "Search..." placeholder
+  // text (it truncates to "Se..."), so show just the icon in an empty box.
+  const [hasRoomForPlaceholder, setHasRoomForPlaceholder] = useState(true);
+  useEffect(() => {
+    const mql = window.matchMedia('(min-width: 420px)');
+    const onChange = () => setHasRoomForPlaceholder(mql.matches);
+    onChange();
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
+
   // Ctrl-F / Cmd-F focuses this search bar instead of the browser's find dialog.
   useEffect(() => {
     const handleFindKey = (e) => {
@@ -475,7 +486,7 @@ export default function BibleSearchBar({ onClose }) {
             onAccept={(full) => { setQuery(full); setOpen(true); inputRef.current?.focus(); }}
             onFocus={() => setOpen(true)}
             onKeyDown={handleKeyDown}
-            placeholder="Search..."
+            placeholder={hasRoomForPlaceholder ? 'Search...' : ''}
             leftPadClass="pl-9"
             inputClassName="w-full pl-9 pr-8 py-1.5 h-9 rounded-lg bg-secondary border border-border text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors truncate"
           />
