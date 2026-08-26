@@ -92,15 +92,19 @@ export default function BibleSearchBar({ onClose }) {
   const containerRef = useRef(null);
   const navigate = useNavigate();
 
-  // On very narrow screens there's no room for the "Search..." placeholder
-  // text (it truncates to "Se..."), so show just the icon in an empty box.
+  // The search box's own width (not the viewport's) determines whether the
+  // "Search..." placeholder fits — the header can be cramped even on a wide
+  // screen (Back/Home + 3 action buttons all share the row). Measure the
+  // actual box via ResizeObserver so it never renders a truncated "Se...".
   const [hasRoomForPlaceholder, setHasRoomForPlaceholder] = useState(true);
   useEffect(() => {
-    const mql = window.matchMedia('(min-width: 420px)');
-    const onChange = () => setHasRoomForPlaceholder(mql.matches);
-    onChange();
-    mql.addEventListener('change', onChange);
-    return () => mql.removeEventListener('change', onChange);
+    const el = containerRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(([entry]) => {
+      setHasRoomForPlaceholder(entry.contentRect.width >= 110);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
   // Ctrl-F / Cmd-F focuses this search bar instead of the browser's find dialog.

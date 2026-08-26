@@ -17,12 +17,6 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   // persisted highlighter colour, OR the user manually applied one this session.
   const [showHighlight, setShowHighlight] = useState(() => !!getVerseHighlight(abbr, chapter, verse.verse));
 
-  // A nav-triggered highlight (e.g. daily verse / search result) always shows,
-  // but must NOT clear a persisted highlighter colour when it turns back off.
-  useEffect(() => {
-    if (highlight) setShowHighlight(true);
-  }, [highlight]);
-
   // Keep in sync if the highlighter toggle button changes this verse's colour
   // elsewhere (e.g. another VerseText instance, or storage restore).
   useEffect(() => {
@@ -108,7 +102,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     // The floated drop-cap letter always sits OUTSIDE the inline highlight box
     // (in every mode), so it needs its own tint to show the highlight.
     // The verse number always stays clear (kjb-dropcap-num is transparent in CSS).
-    const needsOwnTint = showHighlight;
+    const needsOwnTint = showHighlight || highlight;
     const dropRaw = needsOwnTint
       ? highlightColors.find(c => c.name === highlightColor)?.color
       : null;
@@ -198,7 +192,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   // Full-verse background only when the user manually applies a highlight colour.
   // Navigation (highlight prop) just scrolls to the verse; the search term words
   // are already highlighted inline via <mark> tags from renderVerseText.
-  const isHighlighted = showHighlight;
+  const isHighlighted = showHighlight || highlight;
 
   const handleCopy = async (e) => {
     e.stopPropagation();
