@@ -97,7 +97,6 @@ export default function SettingsPage() {
     offlineHtml: true,
     info: true,
     credits: true,
-    advanced: true,
     contact: true,
     developer: false,
     danger: false,
@@ -269,7 +268,6 @@ export default function SettingsPage() {
       offlineHtml: newState,
       info: newState,
       credits: newState,
-      advanced: newState,
       contact: newState,
       developer: newState,
     });
@@ -865,7 +863,7 @@ export default function SettingsPage() {
                 <span className="text-foreground font-medium text-right">King James Bible (PCE)</span>
               </div>
               <div className="flex justify-between items-center font-sans text-sm gap-4">
-                <span className="text-muted-foreground shrink-0">Version</span>
+                <span className="text-muted-foreground shrink-0">Last Updated</span>
                 <span className="text-foreground font-medium text-right">{LAST_REVISED}</span>
               </div>
               <div className="flex justify-between items-center font-sans text-sm gap-4">
@@ -919,40 +917,9 @@ export default function SettingsPage() {
                 </span>
               </div>
             </div>
-          </div>
-        )}
-      </div>
 
-      {/* Credits — link to dedicated page */}
-      <Link
-        to="/credits"
-        className="block bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03] hover:border-accent/40 hover:-translate-y-0.5 transition-all duration-200"
-      >
-        <div className="w-full flex items-center justify-between px-5 py-3.5">
-          <div className="flex flex-col gap-1">
-            <h2 className="font-serif text-lg font-semibold text-foreground">About &amp; Credits</h2>
-            <p className="font-sans text-xs text-muted-foreground">Attributions, licenses and acknowledgements</p>
-          </div>
-          <ChevronDown className="w-5 h-5 text-muted-foreground -rotate-90" />
-        </div>
-      </Link>
-
-      {/* Advanced */}
-      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
-        <button
-          onClick={() => toggleSection('advanced')}
-          className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
-        >
-          <div className="flex flex-col gap-1">
-            <h2 className="font-serif text-lg font-semibold text-foreground">Advanced</h2>
-            <p className="font-sans text-xs text-muted-foreground">Reset settings and check for updates</p>
-          </div>
-          <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${expandedSections.advanced ? 'rotate-180' : ''}`} />
-        </button>
-        {expandedSections.advanced && (
-          <div className="px-5 pb-6 pt-2 space-y-3">
             {/* Admin sign-in / Defence access */}
-            <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-secondary/50 border border-border mb-4">
+            <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-secondary/50 border border-border mt-4">
               <div className="flex-1 min-w-0">
                 <p className="font-sans text-sm text-foreground font-medium flex items-center gap-1.5">
                   <Lock className="w-4 h-4 text-primary shrink-0" /> Admin Access
@@ -983,12 +950,7 @@ export default function SettingsPage() {
                 </button>
               )}
             </div>
-            <div className="space-y-2 mb-4 pt-1 border-b border-border pb-4">
-              <div className="flex justify-between items-center font-sans text-sm gap-4">
-                <span className="text-muted-foreground shrink-0">Last Updated</span>
-                <span className="text-foreground font-medium text-right">{LAST_REVISED}</span>
-              </div>
-            </div>
+
             <div className="flex gap-3 pt-2">
               <button
                 onClick={async () => {
@@ -1028,6 +990,20 @@ localStorage.removeItem('kjb-daily-verse-cache-v17');
           </div>
         )}
       </div>
+
+      {/* Credits — link to dedicated page */}
+      <Link
+        to="/credits"
+        className="block bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03] hover:border-accent/40 hover:-translate-y-0.5 transition-all duration-200"
+      >
+        <div className="w-full flex items-center justify-between px-5 py-3.5">
+          <div className="flex flex-col gap-1">
+            <h2 className="font-serif text-lg font-semibold text-foreground">About &amp; Credits</h2>
+            <p className="font-sans text-xs text-muted-foreground">Attributions, licenses and acknowledgements</p>
+          </div>
+          <ChevronDown className="w-5 h-5 text-muted-foreground -rotate-90" />
+        </div>
+      </Link>
 
       {/* Contact & Feedback */}
       <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
