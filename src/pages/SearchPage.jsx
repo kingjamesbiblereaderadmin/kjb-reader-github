@@ -1090,7 +1090,7 @@ export default function SearchPage() {
               }
             }}
             enterKeyHint="search"
-            placeholder="e.g. Romans 3:25, 1 Corinthians 15:1-4"
+            placeholder="e.g. study, Romans 3:25, 1 Corinthians 15:1-4"
             leftPadClass="pl-9"
             inputClassName="w-full pl-9 pr-4 py-2 rounded-lg bg-secondary border border-border text-sm font-sans text-foreground placeholder:text-muted-foreground placeholder:text-xs sm:placeholder:text-sm focus:outline-none focus:border-accent transition-colors"
             autoFocus={!getQueryFromUrl()}
