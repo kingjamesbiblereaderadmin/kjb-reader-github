@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckSquare, X, Copy, Share2, BookMarked, AlignLeft, List, Printer, Bookmark, Highlighter } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { HIGHLIGHT_COLORS } from '@/lib/highlightColors';
 
 // Action bar shown while in verse-select mode in the reader.
 export default function SelectActionBar({
@@ -90,12 +91,21 @@ export default function SelectActionBar({
           >
             <Bookmark className="w-3.5 h-3.5" /> {saveFeedback ? 'Saved!' : 'Save'}
           </button>
-          <button
-            onClick={onHighlight}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary hover:bg-accent/20 text-foreground font-sans text-xs font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
-          >
-            <Highlighter className="w-3.5 h-3.5" /> Highlight
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary hover:bg-accent/20 text-foreground font-sans text-xs font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap">
+                <Highlighter className="w-3.5 h-3.5" /> Highlight
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-[140px]">
+              {HIGHLIGHT_COLORS.map(c => (
+                <DropdownMenuItem key={c.name} onClick={() => onHighlight(c.name)} className="cursor-pointer gap-2.5">
+                  <span className="w-5 h-5 rounded-full border-2 border-border shadow-sm" style={{ backgroundColor: c.color }} />
+                  <span className="font-sans text-sm text-foreground">{c.label}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <button
             onClick={onReadSelected}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground font-sans text-xs font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
