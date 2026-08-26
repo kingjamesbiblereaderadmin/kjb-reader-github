@@ -36,6 +36,7 @@ import { useClosePopovers } from '@/lib/useClosePopovers';
 import { printChapterContents } from '@/lib/printHelpers';
 import { saveVerse } from '@/lib/savedVerses';
 import { setVerseHighlight } from '@/lib/verseHighlights';
+import { HIGHLIGHT_COLORS } from '@/lib/highlightColors';
 import { usePinchZoom } from '@/hooks/usePinchZoom';
 import { useReadingProgressTracker } from '@/hooks/useReadingProgressTracker';
 
@@ -133,6 +134,15 @@ export default function BibleReader() {
   const [showFontPopover, setShowFontPopover] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [highlightMode, setHighlightMode] = useState(false);
+  const [highlightColor, setHighlightColor] = useState(() => {
+    try { return localStorage.getItem('kjb-highlight-color') || 'accent'; } catch { return 'accent'; }
+  });
+  const [showHighlightColorPicker, setShowHighlightColorPicker] = useState(false);
+  const chooseHighlightColor = (name) => {
+    setHighlightColor(name);
+    try { localStorage.setItem('kjb-highlight-color', name); } catch {}
+    setShowHighlightColorPicker(false);
+  };
   const [selectedVerses, setSelectedVerses] = useState(new Set());
   const [selectedSections, setSelectedSections] = useState(new Set());
   const [filterMode, setFilterMode] = useState(false);
@@ -446,7 +456,7 @@ export default function BibleReader() {
 
   const handleHighlightSelected = () => {
     if (!selectedVerses.size) return;
-    [...selectedVerses].forEach((vNum) => setVerseHighlight(pos.abbr, pos.chapter, vNum, 'accent'));
+    [...selectedVerses].forEach((vNum) => setVerseHighlight(pos.abbr, pos.chapter, vNum, highlightColor));
   };
 
   const handleReadSelected = () => {
@@ -1491,10 +1501,10 @@ export default function BibleReader() {
     else { const prev = getPrevBook(pos.abbr); if (prev) navigate(prev.abbr, prev.chapters); }
   };
 
-  const anyMenuOpen = showBookPicker || showChapterPicker || showVersePicker || showZoomPopover || showFontPopover;
+  const anyMenuOpen = showBookPicker || showChapterPicker || showVersePicker || showZoomPopover || showFontPopover || showHighlightColorPicker;
   const closeAllMenus = useCallback(() => {
     setShowBookPicker(false); setShowChapterPicker(false); setShowVersePicker(false);
-    setShowZoomPopover(false); setShowFontPopover(false);
+    setShowZoomPopover(false); setShowFontPopover(false); setShowHighlightColorPicker(false);
   }, []);
 
   // Close any open reader menu when the user clicks ANYWHERE outside the reader
@@ -1765,6 +1775,29 @@ export default function BibleReader() {
               <button onClick={toggleColumn} title={columnOn ? 'Switch to single column' : 'Switch to two-column'} className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10  whitespace-nowrap">{columnOn ? <Columns2 className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /> : <AlignLeft className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />}<span className="hidden lg:inline">{columnOn ? '2-Col' : '1-Col'}</span></button>
               <button onClick={toggleSelectMode} title="Select verses" className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-xs font-medium transition-all duration-200 touch-manipulation h-10  whitespace-nowrap ${selectMode ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}><CheckSquare className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Select</span></button>
               <button onClick={() => setHighlightMode(m => !m)} title="Tap verses to highlight" className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-xs font-medium transition-all duration-200 touch-manipulation h-10  whitespace-nowrap ${highlightMode ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}><Highlighter className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Highlight</span></button>
+              <div className="relative flex">
+                <button
+                  onClick={() => setShowHighlightColorPicker(p => !p)}
+                  title="Highlight color"
+                  className="kjb-fixed-btn flex items-center justify-center px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 w-10"
+                >
+                  <span className="w-4 h-4 rounded-full border border-border/60 shadow-sm" style={{ backgroundColor: HIGHLIGHT_COLORS.find(c => c.name === highlightColor)?.color }} />
+                </button>
+                {showHighlightColorPicker && (
+                  <div className="kjb-popover-panel absolute top-full left-0 mt-1 z-[100] bg-card border border-border rounded-xl shadow-xl p-2 flex flex-col gap-1 min-w-[140px]">
+                    {HIGHLIGHT_COLORS.map(c => (
+                      <button
+                        key={c.name}
+                        onClick={() => chooseHighlightColor(c.name)}
+                        className="flex items-center gap-2.5 w-full p-1.5 rounded-lg hover:bg-secondary transition-colors"
+                      >
+                        <span className="w-5 h-5 rounded-full border-2 border-border shadow-sm" style={{ backgroundColor: c.color }} />
+                        <span className={`font-sans text-sm ${highlightColor === c.name ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>{c.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <button onClick={() => routerNavigate('/saved')} title="Saved verses" className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10  whitespace-nowrap"><Bookmark className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Saved</span></button>
 
                <DropdownMenu onOpenChange={(open) => { if (open) closeAllMenus(); }}>
@@ -2047,7 +2080,7 @@ export default function BibleReader() {
                 )}
                 <VerseText
                   verse={v} highlight={parseInt(highlightVerse, 10) === parseInt(v.verse, 10) || highlightedVerses.has(parseInt(v.verse, 10))}
-                  id={`v${v.verse}`} bookName={book.name} abbr={pos.abbr} chapter={pos.chapter} isFirstVerse={idx === 0} paragraphMode={paragraphMode} selectMode={selectMode} highlightMode={highlightMode}
+                  id={`v${v.verse}`} bookName={book.name} abbr={pos.abbr} chapter={pos.chapter} isFirstVerse={idx === 0} paragraphMode={paragraphMode} selectMode={selectMode} highlightMode={highlightMode} activeHighlightColor={highlightColor}
                   isSelected={selectedVerses.has(parseInt(v.verse, 10)) || selectedVerses.has(String(v.verse))} onSelect={toggleVerseSelect} onActivateSelect={activateSelectFromVerse} totalVerses={verseCount}
                   colophon={verses.length > 0 && String(v.verse) === String(verses[verses.length - 1].verse) ? colophon : null}
                   subscript={parseInt(v.verse, 10) === 1 ? (chapterSubscript || null) : null}

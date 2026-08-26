@@ -3,12 +3,13 @@ import { renderVerseText } from '@/lib/bibleApi';
 import { Copy, Share2, X, Highlighter, ChevronDown, Bookmark, BookmarkCheck, CheckSquare, Square } from 'lucide-react';
 import { isVerseSaved, saveVerse, removeSavedVerse } from '@/lib/savedVerses';
 import { getVerseHighlight, setVerseHighlight, removeVerseHighlight } from '@/lib/verseHighlights';
+import { HIGHLIGHT_COLORS } from '@/lib/highlightColors';
 import { BIBLE_BOOKS } from '@/lib/bibleData';
 import { formatVerseShare, buildVerseUrl } from '@/lib/formatDailyVerse';
 import VersePopover from '@/components/bible/VersePopover';
 import SaveFolderPicker from '@/components/bible/SaveFolderPicker';
 
-export default function VerseText({ verse, highlight = false, id, bookName, abbr, chapter, isFirstVerse = false, paragraphMode = false, selectMode = false, highlightMode = false, isSelected = false, onSelect, onActivateSelect, totalVerses = 0, colophon = null, subscript = null, isCursive = false, fontFamilyValue = null, zoomLevel = 100, hasSubscript = false, searchTerm = null, dropCap = false, columnMode = false }) {
+export default function VerseText({ verse, highlight = false, id, bookName, abbr, chapter, isFirstVerse = false, paragraphMode = false, selectMode = false, highlightMode = false, activeHighlightColor = null, isSelected = false, onSelect, onActivateSelect, totalVerses = 0, colophon = null, subscript = null, isCursive = false, fontFamilyValue = null, zoomLevel = 100, hasSubscript = false, searchTerm = null, dropCap = false, columnMode = false }) {
   const bookEntry = BIBLE_BOOKS.find(b => b.abbr === abbr);
   const shortBookName = bookEntry ? bookEntry.shortName : bookName;
   const [selected, setSelected] = useState(false);
@@ -62,14 +63,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
 
 
 
-  const highlightColors = [
-    { name: 'accent', bg: 'bg-accent/30 dark:bg-accent/40', label: 'Default', color: 'hsl(var(--accent))' },
-    { name: 'yellow', bg: 'bg-yellow-300/40 dark:bg-yellow-500/30', label: 'Yellow', color: '#facc15' },
-    { name: 'green', bg: 'bg-green-300/40 dark:bg-green-500/30', label: 'Green', color: '#4ade80' },
-    { name: 'blue', bg: 'bg-blue-300/40 dark:bg-blue-500/30', label: 'Blue', color: '#60a5fa' },
-    { name: 'pink', bg: 'bg-pink-300/40 dark:bg-pink-500/30', label: 'Pink', color: '#f472b6' },
-    { name: 'purple', bg: 'bg-purple-300/40 dark:bg-purple-500/30', label: 'Purple', color: '#c084fc' },
-  ];
+  const highlightColors = HIGHLIGHT_COLORS;
 
   // Intentionally no auto-highlight on navigation — the reader scrolls to the
   // verse; the highlight overlay only appears when the user taps and applies it.
@@ -89,8 +83,10 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
         setShowHighlight(false);
         removeVerseHighlight(abbr, chapter, verse.verse);
       } else {
+        const colorToApply = activeHighlightColor || highlightColor;
         setShowHighlight(true);
-        setVerseHighlight(abbr, chapter, verse.verse, highlightColor);
+        setHighlightColor(colorToApply);
+        setVerseHighlight(abbr, chapter, verse.verse, colorToApply);
       }
       return;
     }
