@@ -18,6 +18,7 @@ import CurrentlyReadingIndicator from '@/components/bible/CurrentlyReadingIndica
 import MinimizedHeaderBar from '@/components/bible/MinimizedHeaderBar';
 import ReadingRangeBar from '@/components/bible/ReadingRangeBar';
 import SelectActionBar from '@/components/bible/SelectActionBar';
+import VerseTapBar from '@/components/bible/VerseTapBar';
 import { useHeaderHide } from '@/lib/HeaderHideContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -34,8 +35,8 @@ import { useSearchAndGospelResults } from '@/lib/useSearchAndGospelResults';
 import { resolveBook, formatVerseRange } from '@/lib/readerHelpers';
 import { useClosePopovers } from '@/lib/useClosePopovers';
 import { printChapterContents } from '@/lib/printHelpers';
-import { saveVerse } from '@/lib/savedVerses';
-import { setVerseHighlight } from '@/lib/verseHighlights';
+import { saveVerse, isVerseSaved, removeSavedVerse } from '@/lib/savedVerses';
+import { setVerseHighlight, getVerseHighlight, removeVerseHighlight } from '@/lib/verseHighlights';
 import { HIGHLIGHT_COLORS } from '@/lib/highlightColors';
 import { usePinchZoom } from '@/hooks/usePinchZoom';
 import { useReadingProgressTracker } from '@/hooks/useReadingProgressTracker';
@@ -204,6 +205,12 @@ export default function BibleReader() {
 
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [saveFeedback, setSaveFeedback] = useState(false);
+  // Single verse tapped in normal reading mode — drives the VerseTapBar shown
+  // under the main toolbar instead of a floating tap-anchored popover.
+  const [tappedVerseNum, setTappedVerseNum] = useState(null);
+  const [tapCopyFeedback, setTapCopyFeedback] = useState(false);
+  const [tapShareFeedback, setTapShareFeedback] = useState(false);
+  const [tapSaveFeedback, setTapSaveFeedback] = useState(false);
   const [showFilterOverlay, setShowFilterOverlay] = useState(false);
   const [lastReadingPos, setLastReadingPos] = useState(() => {
     try {
@@ -294,11 +301,56 @@ export default function BibleReader() {
   };
 
   const toggleSelectMode = () => {
+    setTappedVerseNum(null);
     if (selectMode) {
       setSelectMode(false); setSelectedVerses(new Set()); setFilterMode(false);
     } else {
       setSelectMode(true);
     }
+  };
+
+  // Clear the single-verse tap bar whenever the chapter/book changes.
+  useEffect(() => { setTappedVerseNum(null); }, [pos.abbr, pos.chapter]);
+
+  const tappedVerseObj = tappedVerseNum ? verses.find(v => parseInt(v.verse, 10) === tappedVerseNum) : null;
+  const buildTapShareText = () => {
+    if (!tappedVerseObj) return '';
+    const isLast = verses.length > 0 && String(tappedVerseObj.verse) === String(verses[verses.length - 1].verse);
+    const isFirst = parseInt(tappedVerseObj.verse, 10) === 1;
+    return formatVerseShare({
+      text: tappedVerseObj.text,
+      subscript: isFirst ? (chapterSubscript || null) : null,
+      colophon: isLast ? (colophon || null) : null,
+      ref: `${book.shortName} ${pos.chapter}:${tappedVerseNum}`,
+      url: buildVerseUrl({ abbr: pos.abbr, chapter: pos.chapter, verse: tappedVerseNum }),
+    });
+  };
+  const handleTapCopy = async () => {
+    await copyToClipboard(buildTapShareText());
+    setTapCopyFeedback(true);
+    setTimeout(() => setTapCopyFeedback(false), 1800);
+  };
+  const handleTapShare = async () => {
+    const text = buildTapShareText();
+    try { if (navigator.share) return await navigator.share({ text }); } catch (err) { if (err?.name === 'AbortError') return; }
+    await copyToClipboard(text);
+    setTapShareFeedback(true);
+    setTimeout(() => setTapShareFeedback(false), 1800);
+  };
+  const handleTapSave = () => {
+    if (!tappedVerseObj) return;
+    if (isVerseSaved(pos.abbr, pos.chapter, tappedVerseNum)) {
+      removeSavedVerse(pos.abbr, pos.chapter, tappedVerseNum);
+    } else {
+      saveVerse({ abbr: pos.abbr, chapter: pos.chapter, verse: tappedVerseNum, ref: `${book.shortName} ${pos.chapter}:${tappedVerseNum}`, text: cleanVerseText(tappedVerseObj.text), folder: 'Favorites' });
+      setTapSaveFeedback(true);
+      setTimeout(() => setTapSaveFeedback(false), 1800);
+    }
+  };
+  const handleTapHighlightToggle = (colorName) => {
+    if (!tappedVerseNum) return;
+    if (!colorName) { removeVerseHighlight(pos.abbr, pos.chapter, tappedVerseNum); return; }
+    setVerseHighlight(pos.abbr, pos.chapter, tappedVerseNum, colorName);
   };
 
   const activateSelectFromVerse = (verseNum) => {
@@ -1531,7 +1583,7 @@ export default function BibleReader() {
   const isGenesisChapterOne = pos.abbr === 'GEN' && pos.chapter === 1;
 
   return (
-    <div onClick={(e) => { if (!e.target.closest('.kjb-verse-container, h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a')) { setHighlightVerse(null); setHighlightSection(null); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-3 ${hideHeader ? 'pt-16' : ''}`}>
+    <div onClick={(e) => { if (!e.target.closest('.kjb-verse-container, h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerseNum(null); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-3 ${hideHeader ? 'pt-16' : ''}`}>
       {!hideHeader && (
         <div ref={topRef} data-kjb-reader-toolbar-wrap className="print:hidden sticky top-0 z-[100] border-b border-border pb-4 pt-3 mb-8 relative shadow-sm -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background before:content-[''] before:absolute before:bottom-full before:left-0 before:right-0 before:h-12 before:bg-background">
           <div
@@ -1772,7 +1824,7 @@ export default function BibleReader() {
               <button onClick={toggleFlow} title={flowMode === 'line' ? 'Switch to paragraph' : 'Switch to line-by-line'} className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10  whitespace-nowrap">{flowMode === 'line' ? <List className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /> : <AlignJustify className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />}<span className="hidden lg:inline">{flowMode === 'line' ? 'Lines' : 'Para'}</span></button>
               <button onClick={toggleColumn} title={columnOn ? 'Switch to single column' : 'Switch to two-column'} className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10  whitespace-nowrap">{columnOn ? <Columns2 className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /> : <AlignLeft className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />}<span className="hidden lg:inline">{columnOn ? '2-Col' : '1-Col'}</span></button>
               <button onClick={toggleSelectMode} title="Select verses" className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-xs font-medium transition-all duration-200 touch-manipulation h-10  whitespace-nowrap ${selectMode ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}><CheckSquare className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Select</span></button>
-              <button onClick={() => setHighlightMode(m => !m)} title="Tap verses to highlight" className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-xs font-medium transition-all duration-200 touch-manipulation h-10  whitespace-nowrap ${highlightMode ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}><Highlighter className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Highlight</span></button>
+              <button onClick={() => { setTappedVerseNum(null); setHighlightMode(m => !m); }} title="Tap verses to highlight" className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-xs font-medium transition-all duration-200 touch-manipulation h-10  whitespace-nowrap ${highlightMode ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}><Highlighter className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Highlight</span></button>
               <DropdownMenu onOpenChange={(open) => { if (open) closeAllMenus(); }}>
                 <DropdownMenuTrigger asChild>
                   <button title="Highlight color" className="kjb-fixed-btn flex items-center justify-center px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 w-10">
@@ -1987,6 +2039,20 @@ export default function BibleReader() {
             />
           )}
 
+          {!selectMode && !highlightMode && tappedVerseNum && (
+            <VerseTapBar
+              label={`${book.shortName} ${pos.chapter}:${tappedVerseNum}`}
+              isHighlighted={!!getVerseHighlight(pos.abbr, pos.chapter, tappedVerseNum)}
+              isSaved={isVerseSaved(pos.abbr, pos.chapter, tappedVerseNum)}
+              copyFeedback={tapCopyFeedback} shareFeedback={tapShareFeedback} saveFeedback={tapSaveFeedback}
+              onToggleHighlight={handleTapHighlightToggle}
+              onCopy={handleTapCopy}
+              onShare={handleTapShare}
+              onSave={handleTapSave}
+              onClose={() => setTappedVerseNum(null)}
+            />
+          )}
+
           </div>
           )}
 
@@ -2076,6 +2142,7 @@ export default function BibleReader() {
                   subscript={parseInt(v.verse, 10) === 1 ? (chapterSubscript || null) : null}
                   isCursive={fontFamily === 'cursive'} fontFamilyValue={getFontFamilyValue(fontFamily)} zoomLevel={zoomLevel} columnMode={useColumns} dropCap={idx === 0 && parseInt(v.verse, 10) === 1}
                   searchTerm={searchTerm && parseInt(highlightVerse, 10) === parseInt(v.verse, 10) ? searchTerm : null}
+                  onVerseTap={(vNum) => setTappedVerseNum(prev => prev === parseInt(vNum, 10) ? null : parseInt(vNum, 10))}
                 />
               </React.Fragment>
               );
