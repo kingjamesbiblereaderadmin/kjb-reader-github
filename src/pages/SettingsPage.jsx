@@ -918,32 +918,29 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* Admin sign-in / Defence access */}
-            <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-secondary/50 border border-border mt-4">
-              <div className="flex-1 min-w-0">
-                <p className="font-sans text-sm text-foreground font-medium flex items-center gap-1.5">
-                  <Lock className="w-4 h-4 text-primary shrink-0" /> Admin Access
-                </p>
-              </div>
+            {/* Admin sign-in / Defence access — compact filter-bar style row, matching Search's filter bar */}
+            <div className="flex flex-wrap items-center gap-2 pt-4 mt-2 border-t border-border">
+              <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="font-sans text-xs text-muted-foreground">Admin Access:</span>
               {user?.role === 'admin' ? (
-                <div className="shrink-0 flex flex-col gap-2">
+                <>
                   <button
                     onClick={() => navigate('/kjb-defence')}
-                    className="px-3 py-2 rounded-xl bg-primary border border-primary text-primary-foreground font-sans text-xs font-medium hover:opacity-90 transition-all duration-200"
+                    className="px-2.5 py-1 rounded-lg font-sans text-xs font-medium bg-primary text-primary-foreground hover:opacity-90 transition-colors"
                   >
                     Open Defence
                   </button>
                   <button
                     onClick={() => navigate('/dev-tools')}
-                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-secondary border border-border text-foreground font-sans text-xs font-medium hover:border-accent transition-all duration-200"
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg font-sans text-xs font-medium bg-secondary text-secondary-foreground hover:bg-accent/20 transition-colors"
                   >
-                    <Wrench className="w-3.5 h-3.5" /> Dev Tools
+                    <Wrench className="w-3 h-3" /> Dev Tools
                   </button>
-                </div>
+                </>
               ) : (
                 <button
                   onClick={() => navigate('/login?returnTo=/kjb-defence')}
-                  className="shrink-0 px-3 py-2 rounded-xl bg-primary border border-primary text-primary-foreground font-sans text-xs font-medium hover:opacity-90 transition-all duration-200"
+                  className="px-2.5 py-1 rounded-lg font-sans text-xs font-medium bg-primary text-primary-foreground hover:opacity-90 transition-colors"
                 >
                   Sign In
                 </button>
