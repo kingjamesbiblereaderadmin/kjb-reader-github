@@ -2021,7 +2021,7 @@ export default function BibleReader() {
             />
           )}
 
-          {!selectMode && tappedVerseNum && (
+          {!selectMode && selectedVerses.size === 0 && tappedVerseNum && (
             <VerseTapBar
               label={`${book.shortName} ${pos.chapter}:${tappedVerseNum}`}
               isHighlighted={!!getVerseHighlight(pos.abbr, pos.chapter, tappedVerseNum)}
