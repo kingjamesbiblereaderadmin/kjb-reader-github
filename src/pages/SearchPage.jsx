@@ -1229,7 +1229,7 @@ export default function SearchPage() {
                 {/* Old Testament section — hidden entirely if the search has no OT matches at all */}
                 {(!searched || !allBooksWithResults || [...allBooksWithResults].some(abbr => OLD_TESTAMENT.some(b => b.abbr === abbr))) && (
                 <div>
-                  <p className="font-sans text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3 sticky top-0 bg-card py-1.5">
+                  <p className="relative z-10 font-sans text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3 sticky top-0 bg-card py-1.5">
                     Old Testament {searched && searchStats.ot?.books > 0 && <span className="font-normal normal-case text-muted-foreground/60">({searchStats.ot.books} book{searchStats.ot.books !== 1 ? 's' : ''}, {searchStats.ot.verses} verse{searchStats.ot.verses !== 1 ? 's' : ''}, {searchStats.ot.occ} occ)</span>}
                   </p>
                   <div className="flex flex-wrap gap-2.5">
@@ -1272,7 +1272,7 @@ export default function SearchPage() {
                 {/* New Testament section — hidden entirely if the search has no NT matches at all */}
                 {(!searched || !allBooksWithResults || [...allBooksWithResults].some(abbr => NEW_TESTAMENT.some(b => b.abbr === abbr))) && (
                 <div>
-                  <p className="font-sans text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3 sticky top-0 bg-card py-1.5">
+                  <p className="relative z-10 font-sans text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3 sticky top-0 bg-card py-1.5">
                     New Testament {searched && searchStats.nt?.books > 0 && <span className="font-normal normal-case text-muted-foreground/60">({searchStats.nt.books} book{searchStats.nt.books !== 1 ? 's' : ''}, {searchStats.nt.verses} verse{searchStats.nt.verses !== 1 ? 's' : ''}, {searchStats.nt.occ} occ)</span>}
                   </p>
                   <div className="flex flex-wrap gap-2.5">
