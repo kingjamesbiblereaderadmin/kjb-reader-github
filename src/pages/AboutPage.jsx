@@ -82,15 +82,15 @@ export default function AboutPage() {
         <ul className="space-y-2 font-sans text-sm text-foreground/80">
           <li className="flex items-start gap-2">
             <span className="text-accent mt-1">•</span>
-            I believe in the blood-stained gospel as the only way to be saved, and I reject "repent of sins to be saved" (ROYS), "confess with your mouth to be saved," Lordship Salvation, infant baptism, baptism regeneration, etc.
+            I believe in the blood-stained gospel as the only way to be saved, and I reject "repent of sins to be saved" (<span className="notranslate" translate="no">ROYS</span>), "confess with your mouth to be saved," Lordship Salvation, infant baptism, baptism regeneration, etc.
           </li>
           <li className="flex items-start gap-2">
             <span className="text-accent mt-1">•</span>
-            To be saved, you must believe that Jesus is God, that He shed His blood on Calvary, died, was buried, and rose again for your justification.
+            To be saved, you must believe that Jesus is God, that He shed His blood on <span className="notranslate" translate="no">Calvary</span>, died, was buried, and rose again for your justification.
           </li>
           <li className="flex items-start gap-2">
             <span className="text-accent mt-1">•</span>
-            I believe in OSAS (Once Saved, Always Saved): a believer who has trusted the gospel cannot lose salvation, no matter what happens in their life.
+            I believe in <span className="notranslate" translate="no">OSAS (Once Saved, Always Saved)</span>: a believer who has trusted the gospel cannot lose salvation, no matter what happens in their life.
           </li>
         </ul>
       </div>
@@ -117,7 +117,7 @@ export default function AboutPage() {
               <Youtube className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate">King James Bible Playlist</p>
+              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate" translate="no">King James Bible Playlist</p>
               <p className="font-sans text-xs text-muted-foreground truncate">YouTube playlist</p>
             </div>
             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground ml-auto flex-shrink-0" />
@@ -142,7 +142,7 @@ export default function AboutPage() {
               <Youtube className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate">Satan & Hell Playlist</p>
+              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate" translate="no">Satan & Hell Playlist</p>
               <p className="font-sans text-xs text-muted-foreground truncate">YouTube playlist</p>
             </div>
             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground ml-auto flex-shrink-0" />
@@ -152,11 +152,11 @@ export default function AboutPage() {
         <AccordionSection title="Salvation & Pre-Tribulation Rapture">
           <ul className="space-y-2 font-sans text-sm text-foreground/80">
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Jesus Christ is God manifested in the flesh, born of the virgin Mary.</li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Jesus Christ lived a perfect life, died on Calvary's cross, shed his blood, was buried and rose again on the third day.</li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Jesus Christ lived a perfect life, died on <span className="notranslate" translate="no">Calvary's</span> cross, shed his blood, was buried and rose again on the third day.</li>
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Jesus went to heaven to put his precious blood in the mercy seat so we can have eternal life.</li>
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>To be saved: Believe Jesus is God and that he died for your sins, shed his blood, was buried and rose again for your justification.</li>
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Repenting of sins, water baptism, making him Lord or letting him into your heart is not salvation.</li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>I believe in the Pre-Tribulation Rapture where the church will meet in the clouds with our Saviour before the Antichrist reigns on earth.</li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>I believe in the Pre-Tribulation Rapture where the church will meet in the clouds with our Saviour before the <span className="notranslate" translate="no">Antichrist</span> reigns on earth.</li>
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Those in the 7-year tribulation will have to endure to the end, not take the mark, and be martyrs for Christ.</li>
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>I believe Jesus will reign in the new heaven and earth after the white throne judgment.</li>
           </ul>
@@ -170,7 +170,7 @@ export default function AboutPage() {
               <Youtube className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate">Pre-Tribulation Rapture Playlist</p>
+              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate" translate="no">Pre-Tribulation Rapture Playlist</p>
               <p className="font-sans text-xs text-muted-foreground truncate">YouTube playlist</p>
             </div>
             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground ml-auto flex-shrink-0" />
@@ -185,7 +185,7 @@ export default function AboutPage() {
               <Youtube className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate">Salvation Playlist</p>
+              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate" translate="no">Salvation Playlist</p>
               <p className="font-sans text-xs text-muted-foreground truncate">YouTube playlist</p>
             </div>
             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground ml-auto flex-shrink-0" />
@@ -197,9 +197,9 @@ export default function AboutPage() {
             Many widely-observed holidays have roots in pagan customs that were later given a Christian veneer. Believers should study these origins for themselves.
           </p>
           <ul className="space-y-2 font-sans text-sm text-foreground/80">
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Easter — its name, timing and symbols (eggs, rabbits) trace back to pagan spring fertility festivals rather than scripture.</li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Christmas — December 25th and many of its customs (trees, wreaths, yule logs) originate in pagan winter solstice celebrations, not the biblical account of Christ's birth.</li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Halloween — descends from pagan harvest and death festivals (such as Samhain) later absorbed into the church calendar as "All Hallows' Eve."</li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span className="notranslate" translate="no">Easter</span> — its name, timing and symbols (eggs, rabbits) trace back to pagan spring fertility festivals rather than scripture.</li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span className="notranslate" translate="no">Christmas</span> — December 25th and many of its customs (trees, wreaths, yule logs) originate in pagan winter solstice celebrations, not the biblical account of Christ's birth.</li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span className="notranslate" translate="no">Halloween</span> — descends from pagan harvest and death festivals (such as <span className="notranslate" translate="no">Samhain</span>) later absorbed into the church calendar as "<span className="notranslate" translate="no">All Hallows' Eve</span>."</li>
           </ul>
           <a
             href="https://youtube.com/playlist?list=PLNGhZnJavRf183iEUeQHer5aKnlV3LWKP&si=iaMUuwhLBzeGuHyn"
@@ -211,7 +211,7 @@ export default function AboutPage() {
               <Youtube className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate">Pagan Holidays Playlist</p>
+              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate" translate="no">Pagan Holidays Playlist</p>
               <p className="font-sans text-xs text-muted-foreground truncate">YouTube playlist &middot; <span className="notranslate" translate="no">Robert Breaker</span></p>
             </div>
             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground ml-auto flex-shrink-0" />
@@ -220,7 +220,7 @@ export default function AboutPage() {
 
         <AccordionSection title="Why I Am Not... Series">
           <p className="font-sans text-sm text-foreground/80 mb-3">
-            I reject Catholicism, Calvinism, Pentecostalism, Church of God, Mormonism, Jehovah's Witnesses, etc. This video series by <span className="notranslate" translate="no">Robert Breaker</span> examines why various religious movements depart from the truth of scripture.
+            I reject <span className="notranslate" translate="no">Catholicism, Calvinism, Pentecostalism, Church of God, Mormonism, Jehovah's Witnesses</span>, etc. This video series by <span className="notranslate" translate="no">Robert Breaker</span> examines why various religious movements depart from the truth of scripture.
           </p>
           <a
             href="https://youtube.com/playlist?list=PLNGhZnJavRf293XCMldBgwRpQ4U1o8uEf&si=U518NbpNw7HhaCBx"
@@ -232,7 +232,7 @@ export default function AboutPage() {
               <Youtube className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate">Why I Am Not... Series</p>
+              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate" translate="no">Why I Am Not... Series</p>
               <p className="font-sans text-xs text-muted-foreground truncate">7-video playlist &middot; <span className="notranslate" translate="no">Robert Breaker</span></p>
             </div>
             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground ml-auto flex-shrink-0" />
