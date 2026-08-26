@@ -989,6 +989,10 @@ export default function SettingsPage() {
             </div>
             <div className="space-y-2 mb-4 pt-1 border-b border-border pb-4">
               <div className="flex justify-between items-center font-sans text-sm gap-4">
+                <span className="text-muted-foreground shrink-0">Last Updated</span>
+                <span className="text-foreground font-medium text-right">{LAST_REVISED}</span>
+              </div>
+              <div className="flex justify-between items-center font-sans text-sm gap-4">
                 <span className="text-muted-foreground shrink-0">Worker Version</span>
                 <span className="text-foreground font-medium text-right flex items-center gap-1.5">
                   {liveWorkerVersion ? (
