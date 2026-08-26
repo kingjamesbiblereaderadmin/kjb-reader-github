@@ -345,7 +345,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
             title="Remove highlight"
           >
             <Highlighter className="w-3.5 h-3.5" />
-            Unhighlight
+            <span className="hidden sm:inline">Unhighlight</span>
           </button>
         ) : (
           <button
@@ -355,31 +355,34 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
             title="Apply highlight"
           >
             <Highlighter className="w-3.5 h-3.5" />
-            Highlight
+            <span className="hidden sm:inline">Highlight</span>
           </button>
         )}
         <button
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); handleCopy(e); }}
           onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); handleCopy(e); }}
           className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-accent/20 text-foreground font-sans text-xs font-medium transition-colors"
+          title="Copy"
         >
-          <Copy className="w-3 h-3" /> Copy
+          <Copy className="w-3 h-3" /> <span className="hidden sm:inline">Copy</span>
         </button>
         <button
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); handleShare(e); }}
           onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); handleShare(e); }}
           className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary text-primary-foreground hover:opacity-90 font-sans text-xs font-medium transition-colors"
+          title="Share"
         >
-          <Share2 className="w-3 h-3" /> Share
+          <Share2 className="w-3 h-3" /> <span className="hidden sm:inline">Share</span>
         </button>
         <div className="relative">
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); handleToggleSave(e); }}
             onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); handleToggleSave(e); }}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-accent/20 text-foreground font-sans text-xs font-medium transition-colors"
+            title={saved ? 'Saved' : 'Save'}
           >
             {saved ? <BookmarkCheck className="w-3 h-3 text-accent" /> : <Bookmark className="w-3 h-3" />}
-            {saved ? 'Saved' : 'Save'}
+            <span className="hidden sm:inline">{saved ? 'Saved' : 'Save'}</span>
           </button>
           {showFolderPicker && (
             <SaveFolderPicker
@@ -395,7 +398,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-accent/20 text-foreground font-sans text-xs font-medium transition-colors"
             title="Select verses"
           >
-            <CheckSquare className="w-3 h-3" /> Select
+            <CheckSquare className="w-3 h-3" /> <span className="hidden sm:inline">Select</span>
           </button>
         )}
         <button
