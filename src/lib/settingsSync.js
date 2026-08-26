@@ -23,7 +23,6 @@ const SYNC_KEYS = [
   'kjb-position',
   'kjb-flow',
   'kjb-column',
-  'kjb-highlight-color',
 ];
 
 let _patched = false;
