@@ -1,7 +1,6 @@
 // Shared highlight color palette used by the reader's highlight tool,
 // the per-verse popover color picker, and bulk (select-mode) highlighting.
 export const HIGHLIGHT_COLORS = [
-  { name: 'accent', bg: 'bg-accent/30 dark:bg-accent/40', label: 'Default', color: 'hsl(var(--accent))' },
   { name: 'yellow', bg: 'bg-yellow-300/40 dark:bg-yellow-500/30', label: 'Yellow', color: '#facc15' },
   { name: 'green', bg: 'bg-green-300/40 dark:bg-green-500/30', label: 'Green', color: '#4ade80' },
   { name: 'blue', bg: 'bg-blue-300/40 dark:bg-blue-500/30', label: 'Blue', color: '#60a5fa' },

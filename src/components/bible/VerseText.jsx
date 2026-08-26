@@ -31,7 +31,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     return () => window.removeEventListener('kjb-highlights-changed', sync);
   }, [abbr, chapter, verse.verse]);
 
-  const [highlightColor, setHighlightColor] = useState(() => getVerseHighlight(abbr, chapter, verse.verse) || 'accent');
+  const [highlightColor, setHighlightColor] = useState(() => getVerseHighlight(abbr, chapter, verse.verse) || 'yellow');
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [saved, setSaved] = useState(() => isVerseSaved(abbr, chapter, verse.verse));
   const [currentText, setCurrentText] = useState(verse.text);

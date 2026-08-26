@@ -135,7 +135,7 @@ export default function BibleReader() {
   const [showFontPopover, setShowFontPopover] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [highlightColor, setHighlightColor] = useState(() => {
-    try { return localStorage.getItem('kjb-highlight-color') || 'accent'; } catch { return 'accent'; }
+    try { return localStorage.getItem('kjb-highlight-color') || 'yellow'; } catch { return 'yellow'; }
   });
   const chooseHighlightColor = (name) => {
     setHighlightColor(name);
