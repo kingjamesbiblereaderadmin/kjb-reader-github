@@ -1,25 +1,66 @@
-// Auto-rotate preference: when disabled, we attempt to lock the screen
-// orientation to whatever it currently is; when enabled, we unlock it so the
-// device's own rotation behaviour applies. The Screen Orientation lock API is
-// not supported everywhere (notably desktop browsers outside fullscreen), so
-// every call is best-effort and fails silently.
+// Auto-rotate preference: when disabled, we lock the screen to whatever
+// orientation it's currently in. We try the native Screen Orientation Lock
+// API first, but most browsers silently refuse it outside fullscreen / an
+// installed PWA — so we ALSO apply a CSS fallback that rotates the whole page
+// back to the locked orientation whenever the device is physically turned to
+// the opposite one. That fallback is what actually stops the rotation on most
+// phones/browsers.
 const KEY = 'kjb-auto-rotate';
+const STYLE_ID = 'kjb-orientation-lock-style';
 
 export const getAutoRotate = () => {
   try { return localStorage.getItem(KEY) !== 'false'; } catch { return true; }
 };
 
+const removeCssLock = () => {
+  const el = typeof document !== 'undefined' && document.getElementById(STYLE_ID);
+  if (el) el.remove();
+};
+
+// Injects a media query that rotates <html> back to the locked orientation
+// whenever the device's actual orientation flips to the opposite one.
+const applyCssLock = (lockLandscape) => {
+  removeCssLock();
+  if (typeof document === 'undefined') return;
+  const style = document.createElement('style');
+  style.id = STYLE_ID;
+  const oppositeQuery = lockLandscape ? '(orientation: portrait)' : '(orientation: landscape)';
+  const rotate = lockLandscape ? '90deg' : '-90deg';
+  style.textContent = `
+    @media ${oppositeQuery} {
+      html {
+        transform: rotate(${rotate});
+        transform-origin: left top;
+        width: 100vh;
+        height: 100vw;
+        overflow-x: hidden;
+        position: absolute;
+        top: ${lockLandscape ? '0' : '100%'};
+        left: ${lockLandscape ? '100%' : '0'};
+      }
+    }
+  `;
+  document.head.appendChild(style);
+};
+
 export const applyAutoRotate = async (enabled) => {
+  if (enabled) {
+    removeCssLock();
+    if (typeof screen !== 'undefined' && screen.orientation?.unlock) {
+      try { screen.orientation.unlock(); } catch {}
+    }
+    return;
+  }
+  let isLandscape = false;
+  try { isLandscape = window.matchMedia('(orientation: landscape)').matches; } catch {}
+  applyCssLock(isLandscape);
   if (typeof screen === 'undefined' || !screen.orientation) return;
   try {
-    if (enabled) {
-      if (screen.orientation.unlock) screen.orientation.unlock();
-    } else {
-      const current = screen.orientation.type || 'portrait-primary';
-      await screen.orientation.lock(current);
-    }
+    const current = screen.orientation.type || (isLandscape ? 'landscape-primary' : 'portrait-primary');
+    await screen.orientation.lock(current);
   } catch {
-    // Locking commonly requires fullscreen or isn't supported — ignore.
+    // Locking commonly requires fullscreen or isn't supported — the CSS
+    // fallback above covers this case.
   }
 };
 
