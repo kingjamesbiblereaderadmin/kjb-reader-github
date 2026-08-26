@@ -121,7 +121,7 @@ export default function ContentsPage() {
           <List className="w-7 h-7 text-white" />
         </div>
         <h1 className="font-serif text-4xl font-bold text-foreground mb-2">Table of Contents</h1>
-        <p className="font-sans text-sm text-muted-foreground">King James Bible — Pure Cambridge Edition</p>
+        <p className="notranslate font-sans text-sm text-muted-foreground" translate="no">King James Bible — Pure Cambridge Edition</p>
         <div className="mt-4 w-16 h-px bg-accent mx-auto" />
       </div>
 
@@ -131,7 +131,7 @@ export default function ContentsPage() {
           onClick={() => setShowBookSelector(true)}
           className="w-full py-3 px-4 rounded-xl bg-primary text-primary-foreground font-sans font-semibold text-sm hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-between"
         >
-          <span className="notranslate">
+          <span className="notranslate" translate="no">
             {selectedBook && selectedChapter 
               ? `${currentBook?.name} ${selectedChapter}${selectedVerses.length > 0 ? `:${formatVerses(selectedVerses)}` : ''}` 
               : 'Select a Book'}

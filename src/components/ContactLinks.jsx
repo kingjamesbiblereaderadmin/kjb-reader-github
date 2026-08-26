@@ -117,8 +117,8 @@ export default function ContactLinks() {
               {link.icon}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate">{link.label}</p>
-              <p className="notranslate font-sans text-xs text-muted-foreground truncate">{link.sub}</p>
+              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate" translate="no">{link.label}</p>
+              <p className="notranslate font-sans text-xs text-muted-foreground truncate" translate="no">{link.sub}</p>
             </div>
             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground ml-auto flex-shrink-0" />
           </>

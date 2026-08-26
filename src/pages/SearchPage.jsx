@@ -1262,7 +1262,7 @@ export default function SearchPage() {
                             aria-pressed={isSelected}
                             title={book.shortName}
                           >
-                            <span className="notranslate">{book.shortName}</span>
+                            <span className="notranslate" translate="no">{book.shortName}</span>
                           </button>
                         );
                       })}
@@ -1305,7 +1305,7 @@ export default function SearchPage() {
                             aria-pressed={isSelected}
                             title={book.shortName}
                           >
-                            <span className="notranslate">{book.shortName}</span>
+                            <span className="notranslate" translate="no">{book.shortName}</span>
                           </button>
                         );
                       })}
@@ -1355,7 +1355,7 @@ export default function SearchPage() {
               {numberedBookFilter && (
                 <p className="font-sans text-xs text-primary font-semibold mt-0.5 flex items-center gap-1">
                   <BookOpen className="w-3 h-3" />
-                  Showing only <span className="notranslate">{BIBLE_BOOKS.find(b => b.abbr === numberedBookFilter)?.shortName}</span>
+                  Showing only <span className="notranslate" translate="no">{BIBLE_BOOKS.find(b => b.abbr === numberedBookFilter)?.shortName}</span>
                 </p>
               )}
             </div>
@@ -1447,9 +1447,9 @@ export default function SearchPage() {
                   <div key={i} className="text-sm">
                     <span className="font-sans text-xs text-accent font-semibold mr-2 flex items-center gap-1">
                       <span className="text-accent font-serif text-lg leading-none">&bull;</span>
-                      <span className="notranslate">{BIBLE_BOOKS.find(b => b.apiName === results[i].book)?.name || results[i].book}</span>: {results[i].chapter}:{results[i].verse}
+                      <span className="notranslate" translate="no">{BIBLE_BOOKS.find(b => b.apiName === results[i].book)?.name || results[i].book}</span>: {results[i].chapter}:{results[i].verse}
                     </span>
-                    <span className="notranslate font-serif text-foreground leading-relaxed">{results[i].text}</span>
+                    <span className="notranslate font-serif text-foreground leading-relaxed" translate="no">{results[i].text}</span>
                   </div>
                 ))}
               </div>
@@ -1485,7 +1485,7 @@ export default function SearchPage() {
           {showBookResult && (
             <div className="max-w-md mx-auto p-4 rounded-xl bg-primary/5 border border-primary/20 print:hidden">
               <p className="font-sans text-xs text-muted-foreground mb-3 text-center">
-                Did you mean the book of <span className="notranslate font-semibold text-foreground">{showBookResult.bookName}</span>?
+                Did you mean the book of <span className="notranslate font-semibold text-foreground" translate="no">{showBookResult.bookName}</span>?
               </p>
               <button
                 onClick={() => {
@@ -1495,7 +1495,7 @@ export default function SearchPage() {
                 className="w-full flex items-center justify-center gap-2 p-3 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
               >
                 <BookOpen className="w-4 h-4" />
-                Go to <span className="notranslate">{showBookResult.bookName}</span>
+                Go to <span className="notranslate" translate="no">{showBookResult.bookName}</span>
               </button>
             </div>
           )}
@@ -1527,7 +1527,7 @@ export default function SearchPage() {
                     >
                       <BookOpen className="w-5 h-5 flex-shrink-0" />
                       <div className="text-left">
-                        <p className="notranslate font-serif text-sm font-bold">{book.shortName}</p>
+                        <p className="notranslate font-serif text-sm font-bold" translate="no">{book.shortName}</p>
                         <p className="text-xs opacity-75">{book.chapters} {book.chapters === 1 ? 'chapter' : 'chapters'} • {book.testament === 'old' ? 'Old' : 'New'} Testament</p>
                       </div>
                     </button>
@@ -1559,7 +1559,7 @@ export default function SearchPage() {
                   >
                     <BookOpen className="w-5 h-5 flex-shrink-0" />
                     <div className="text-left">
-                      <p className="font-serif text-sm font-bold">Go to <span className="notranslate">{showBookResult.bookName}</span></p>
+                      <p className="font-serif text-sm font-bold">Go to <span className="notranslate" translate="no">{showBookResult.bookName}</span></p>
                       <p className="text-xs opacity-75">{showBookResult.chapters} {showBookResult.chapters === 1 ? 'chapter' : 'chapters'} • {showBookResult.testament === 'old' ? 'Old' : 'New'} Testament</p>
                     </div>
                   </button>

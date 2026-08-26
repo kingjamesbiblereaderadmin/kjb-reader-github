@@ -35,7 +35,7 @@ export default function LandingPage() {
               className="w-full h-full object-cover"
             />
           </Link>
-          <h1 className="font-serif text-4xl font-bold text-foreground mb-2">Welcome to <span className="notranslate">KJB Reader</span></h1>
+          <h1 className="font-serif text-4xl font-bold text-foreground mb-2">Welcome to <span className="notranslate" translate="no">KJB Reader</span></h1>
           <p className="notranslate font-sans text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed" translate="no">
             KJB Reader is a free, installable Bible reading app featuring the King James Bible
             (Pure Cambridge Edition). Enjoy offline reading, search, bookmarks,
@@ -90,7 +90,7 @@ export default function LandingPage() {
               <Globe className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors"><span className="notranslate">KJB Reader - SidePanel</span> <span className="text-accent font-semibold">— Available Now!</span></p>
+              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors"><span className="notranslate" translate="no">KJB Reader - SidePanel</span> <span className="text-accent font-semibold">— Available Now!</span></p>
               <p className="font-sans text-xs text-muted-foreground">Read, search, and look up Bible verses from any web page. Mobile support is limited.</p>
             </div>
             <ArrowRight className="w-4 h-4 text-muted-foreground" />
@@ -103,8 +103,8 @@ export default function LandingPage() {
                 <DiscordIcon className="w-5 h-5" />
               </div>
               <div>
-                <p className="notranslate font-sans font-medium text-sm text-foreground">KJB Discord Bot</p>
-                <p className="font-sans text-xs text-muted-foreground">Add the <span className="notranslate">KJB Reader</span> bot to your Discord.</p>
+                <p className="notranslate font-sans font-medium text-sm text-foreground" translate="no">KJB Discord Bot</p>
+                <p className="font-sans text-xs text-muted-foreground">Add the <span className="notranslate" translate="no">KJB Reader</span> bot to your Discord.</p>
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-1">
@@ -140,7 +140,7 @@ export default function LandingPage() {
               <DiscordIcon className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">KJB Knights Server</p>
+              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors" translate="no">KJB Knights Server</p>
               <p className="font-sans text-xs text-muted-foreground">My and my friends' Discord server — come join us.</p>
             </div>
             <ArrowRight className="w-4 h-4 text-muted-foreground" />
@@ -237,7 +237,7 @@ export default function LandingPage() {
         </div>
 
         <p className="text-center font-sans text-xs text-muted-foreground mt-8">
-          © {new Date().getFullYear()} <span className="notranslate">KJB Reader</span> · Last updated: {LAST_UPDATED}
+          © {new Date().getFullYear()} <span className="notranslate" translate="no">KJB Reader</span> · Last updated: {LAST_UPDATED}
         </p>
       </div>
     </div>
