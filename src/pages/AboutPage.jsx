@@ -76,7 +76,7 @@ export default function AboutPage() {
       <div className="notranslate bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-7 mb-8 shadow-lg shadow-black/[0.03]" translate="no">
         <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">About the Ministry</h2>
         <p className="font-sans text-foreground/85 leading-relaxed mb-4">
-          I'm Shawn, a firm believer that the King James Bible is the pure, infallible, perfect Word of God in the English language. 
+          I'm <span className="notranslate" translate="no">Shawn</span>, a firm believer that the King James Bible is the pure, infallible, perfect Word of God in the English language. 
           I am a dispensational salvationist, rightly dividing the word of truth.
         </p>
         <ul className="space-y-2 font-sans text-sm text-foreground/80">
@@ -101,9 +101,9 @@ export default function AboutPage() {
 
         <AccordionSection title="The King James Bible">
           <ul className="space-y-2 font-sans text-sm text-foreground/80">
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Westcott and Hort created the Critical Text, based on manuscripts from the Vatican and Egypt. These manuscripts have hundreds of errors, deletions and additions to the Bible, attacking doctrines such as the Godhead/Trinity and deity of Christ. Their text was used in the Revised Version of 1881.</li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span className="notranslate" translate="no">Westcott and Hort</span> created the Critical Text, based on manuscripts from the Vatican and Egypt. These manuscripts have hundreds of errors, deletions and additions to the Bible, attacking doctrines such as the Godhead/Trinity and deity of Christ. Their text was used in the <span className="notranslate" translate="no">Revised Version of 1881</span>.</li>
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>The King James Bible is the infallible, perfect Word of God in the English language.</li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Translated with the Textus Receptus (Received Text) that the historical church has always used.</li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Translated with the <span className="notranslate" translate="no">Textus Receptus (Received Text)</span> that the historical church has always used.</li>
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Translated by godly men well versed in the Biblical languages who studied commentaries and foreign translations from an early age.</li>
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>The Bible God has used for countless revivals and bringing the gospel to the world. It is mathematically proven to be a miracle.</li>
           </ul>
