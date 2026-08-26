@@ -35,6 +35,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   const [saved, setSaved] = useState(() => isVerseSaved(abbr, chapter, verse.verse));
   const [currentText, setCurrentText] = useState(verse.text);
   const [showFolderPicker, setShowFolderPicker] = useState(false);
+  const [clickPos, setClickPos] = useState(null);
 
   useEffect(() => {
     setCurrentText(verse.text);
@@ -93,6 +94,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
       }
       return;
     }
+    setClickPos({ x: e.clientX, y: e.clientY });
     setSelected((s) => !s);
   };
 
@@ -270,7 +272,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setSelected(false); }}
         onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setSelected(false); }}
       />
-      <VersePopover>
+      <VersePopover point={clickPos}>
         <div className="relative">
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setShowColorPicker(!showColorPicker); }}
