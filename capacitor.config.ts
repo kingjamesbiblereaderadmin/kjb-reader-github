@@ -19,6 +19,30 @@ const config: CapacitorConfig = {
     url: 'https://kingjamesbiblereader.com',
     // Live site is https-only; keep cleartext off.
     cleartext: false,
+    // OAuth providers (Google, Apple, etc.) MUST stay inside the WebView --
+    // opening them in Chrome logs the user into Chrome, not the app. This is
+    // Capacitor's built-in equivalent of the legacy bare-WebView project's
+    // shouldOverrideUrlLoading()/authHosts allowlist (see MainActivity.kt in
+    // android-legacy/). Bare entries + "*." entries both included since
+    // Capacitor's host mask does exact-arity matching (no implicit subdomain
+    // fallback like the old `host.endsWith(".$it")` check had).
+    allowNavigation: [
+      'accounts.google.com',
+      'accounts.youtube.com',
+      'oauth.googleusercontent.com',
+      'appleid.apple.com',
+      'apple.com',
+      '*.apple.com',
+      'icloud.com',
+      '*.icloud.com',
+      'github.com',
+      '*.github.com',
+      'login.microsoftonline.com',
+      'facebook.com',
+      '*.facebook.com',
+      'base44.com',
+      '*.base44.com',
+    ],
   },
   android: {
     allowMixedContent: false,
