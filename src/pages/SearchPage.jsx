@@ -1099,10 +1099,10 @@ export default function SearchPage() {
         <button
           type="submit"
           disabled={query.trim().length < 2 || loading}
-          className="px-4 py-2 rounded-xl bg-gradient-to-br from-primary to-accent text-primary-foreground font-sans text-sm font-medium shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all flex items-center gap-2"
+          className="px-3 sm:px-4 py-2 rounded-xl bg-gradient-to-br from-primary to-accent text-primary-foreground font-sans text-sm font-medium shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all flex items-center gap-2"
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-          Search
+          <span className="hidden xs:inline">Search</span>
         </button>
       </form>
 
