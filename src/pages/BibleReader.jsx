@@ -1583,7 +1583,7 @@ export default function BibleReader() {
   const isGenesisChapterOne = pos.abbr === 'GEN' && pos.chapter === 1;
 
   return (
-    <div onClick={(e) => { if (!e.target.closest('.kjb-verse-container, h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerseNum(null); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-3 ${hideHeader ? 'pt-16' : ''}`}>
+    <div onClick={(e) => { if (!e.target.closest('.kjb-verse-container, [data-audio-verse], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerseNum(null); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-3 ${hideHeader ? 'pt-16' : ''}`}>
       {!hideHeader && (
         <div ref={topRef} data-kjb-reader-toolbar-wrap className="print:hidden sticky top-0 z-[100] border-b border-border pb-4 pt-3 mb-8 relative shadow-sm -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background before:content-[''] before:absolute before:bottom-full before:left-0 before:right-0 before:h-12 before:bg-background">
           <div
@@ -1824,14 +1824,19 @@ export default function BibleReader() {
               <button onClick={toggleFlow} title={flowMode === 'line' ? 'Switch to paragraph' : 'Switch to line-by-line'} className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10  whitespace-nowrap">{flowMode === 'line' ? <List className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /> : <AlignJustify className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />}<span className="hidden lg:inline">{flowMode === 'line' ? 'Lines' : 'Para'}</span></button>
               <button onClick={toggleColumn} title={columnOn ? 'Switch to single column' : 'Switch to two-column'} className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10  whitespace-nowrap">{columnOn ? <Columns2 className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /> : <AlignLeft className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />}<span className="hidden lg:inline">{columnOn ? '2-Col' : '1-Col'}</span></button>
               <button onClick={toggleSelectMode} title="Select verses" className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-xs font-medium transition-all duration-200 touch-manipulation h-10  whitespace-nowrap ${selectMode ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}><CheckSquare className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Select</span></button>
-              <button onClick={() => { setTappedVerseNum(null); setHighlightMode(m => !m); }} title="Tap verses to highlight" className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-xs font-medium transition-all duration-200 touch-manipulation h-10  whitespace-nowrap ${highlightMode ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}><Highlighter className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Highlight</span></button>
               <DropdownMenu onOpenChange={(open) => { if (open) closeAllMenus(); }}>
                 <DropdownMenuTrigger asChild>
-                  <button title="Highlight color" className="kjb-fixed-btn flex items-center justify-center px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 w-10">
-                    <span className="w-4 h-4 rounded-full border border-border/60 shadow-sm" style={{ backgroundColor: HIGHLIGHT_COLORS.find(c => c.name === highlightColor)?.color }} />
+                  <button title="Highlight" className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-xs font-medium transition-all duration-200 touch-manipulation h-10  whitespace-nowrap ${highlightMode ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}>
+                    <Highlighter className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />
+                    <span className="w-3 h-3 rounded-full border border-border/60 shadow-sm flex-shrink-0" style={{ backgroundColor: HIGHLIGHT_COLORS.find(c => c.name === highlightColor)?.color }} />
+                    <span className="hidden lg:inline">Highlight</span>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-[140px]">
+                <DropdownMenuContent align="start" className="min-w-[160px]">
+                  <DropdownMenuItem onClick={() => { setTappedVerseNum(null); setHighlightMode(m => !m); }} className="cursor-pointer gap-2.5">
+                    <Highlighter className="w-4 h-4" />
+                    <span className="font-sans text-sm">{highlightMode ? 'Stop Highlighting' : 'Tap to Highlight'}</span>
+                  </DropdownMenuItem>
                   {HIGHLIGHT_COLORS.map(c => (
                     <DropdownMenuItem key={c.name} onClick={() => chooseHighlightColor(c.name)} className="cursor-pointer gap-2.5">
                       <span className="w-5 h-5 rounded-full border-2 border-border shadow-sm" style={{ backgroundColor: c.color }} />
