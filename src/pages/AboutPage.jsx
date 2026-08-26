@@ -73,7 +73,7 @@ export default function AboutPage() {
       </div>
 
       {/* About Shawn */}
-      <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-7 mb-8 shadow-lg shadow-black/[0.03]">
+      <div className="notranslate bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-7 mb-8 shadow-lg shadow-black/[0.03]" translate="no">
         <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">About the Ministry</h2>
         <p className="font-sans text-foreground/85 leading-relaxed mb-4">
           I'm Shawn, a firm believer that the King James Bible is the pure, infallible, perfect Word of God in the English language. 
@@ -96,7 +96,7 @@ export default function AboutPage() {
       </div>
 
       {/* Statement of Faith — expandable sections */}
-      <div className="mb-8">
+      <div className="notranslate mb-8" translate="no">
         <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">Statement of Faith</h2>
 
         <AccordionSection title="The King James Bible">

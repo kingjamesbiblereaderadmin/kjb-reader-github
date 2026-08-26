@@ -122,7 +122,7 @@ export default function HomePage() {
       </div>
 
       {/* Gospel call */}
-      <div className="print:hidden bg-gradient-to-br from-rose-50 to-red-50 dark:from-red-950/20 dark:to-rose-950/20 border border-red-200/70 dark:border-red-900/30 rounded-3xl p-6 sm:p-8 text-center mb-6 shadow-sm">
+      <div className="notranslate print:hidden bg-gradient-to-br from-rose-50 to-red-50 dark:from-red-950/20 dark:to-rose-950/20 border border-red-200/70 dark:border-red-900/30 rounded-3xl p-6 sm:p-8 text-center mb-6 shadow-sm" translate="no">
         <p className="font-serif text-xl font-bold text-red-700 dark:text-red-400 mb-2">Are you saved?</p>
         <div className="font-sans text-sm text-foreground/80 mb-4 space-y-1.5">
           <p>Jesus Christ died, shed his blood, was buried, and rose again on the third day for our sins.</p>
