@@ -1995,7 +1995,7 @@ export default function BibleReader() {
             />
           )}
           
-          {!selectMode && selectedVerses.size > 0 && (
+          {!selectMode && selectedVerses.size > 0 && !tappedVerseNum && (
             <ReadingRangeBar
               label={searchTerm ? (/\d+:\d+/.test(searchTerm) ? `Currently Reading: ${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}` : `Search: "${searchTerm}"`) : gospelMode ? 'Gospel' : lastReadingActive ? (lastReadingPos?.fromRandom ? 'Random Chapter' : 'Daily Verse') : `Reading ${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}`}
               filterMode={filterMode} copyFeedback={copyFeedback} shareFeedback={shareFeedback} shareLinkFeedback={shareLinkFeedback} saveFeedback={saveFeedback}
@@ -2021,7 +2021,7 @@ export default function BibleReader() {
             />
           )}
 
-          {!selectMode && selectedVerses.size === 0 && tappedVerseNum && (
+          {!selectMode && tappedVerseNum && (
             <VerseTapBar
               label={`${book.shortName} ${pos.chapter}:${tappedVerseNum}`}
               isHighlighted={!!getVerseHighlight(pos.abbr, pos.chapter, tappedVerseNum)}
