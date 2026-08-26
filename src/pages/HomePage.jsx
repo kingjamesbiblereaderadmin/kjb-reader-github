@@ -108,7 +108,7 @@ export default function HomePage() {
       </div>
 
       {/* Quick links */}
-      <div className="print:hidden grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 auto-rows-fr mt-2">
+      <div className="print:hidden grid grid-cols-[repeat(auto-fit,minmax(15rem,1fr))] gap-3 sm:gap-4 mb-6 auto-rows-fr mt-2">
         {QUICK_LINKS.map((link) => (
           <QuickLinkCard
             key={link.path}
