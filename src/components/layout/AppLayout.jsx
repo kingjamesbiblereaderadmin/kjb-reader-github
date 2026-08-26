@@ -428,7 +428,7 @@ export default function AppLayout() {
               style={{ top: 'calc(3.5rem + env(safe-area-inset-top))' }}
               onClick={() => setMenuOpen(false)}
             />
-            <div data-kjb-menu className="absolute top-full right-0 left-0 z-50 bg-card backdrop-blur-xl border-b border-border/60 shadow-lg shadow-black/[0.05]">
+            <div data-kjb-menu className="absolute top-full right-0 left-0 z-50 bg-card backdrop-blur-xl border-b border-border/60 shadow-lg shadow-black/[0.05] overflow-y-auto" style={{ maxHeight: 'calc(100dvh - 3.5rem - env(safe-area-inset-top))' }}>
               <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 pt-3 pb-1 flex items-center justify-between gap-3 border-b border-border/50">
                 <span className="font-sans text-xs font-medium text-muted-foreground">App Zoom: {appZoom}%</span>
                 <div className="flex items-center gap-1.5">
