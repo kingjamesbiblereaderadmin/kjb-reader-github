@@ -14,6 +14,7 @@ import { useTheme, COLOUR_PALETTES } from '@/lib/themeContext';
 import { toast } from 'sonner';
 import { useNavigate, Link } from 'react-router-dom';
 import ContactLinks from '@/components/ContactLinks';
+import { HIGHLIGHT_COLORS } from '@/lib/highlightColors';
 import { useAuth } from '@/lib/AuthContext';
 import { downloadBibleForOffline, downloadBibleForOfflineWithRetry, clearBibleCache, isBibleCached, CACHE_VERSION } from '@/lib/bibleCache';
 import { getAccessibilityFont, setAccessibilityFont } from '@/lib/accessibilityFont';
@@ -119,6 +120,13 @@ export default function SettingsPage() {
     window.dispatchEvent(new Event('kjb-layout-zoom-changed'));
   };
   const [autoRotate, setAutoRotateState] = useState(getAutoRotate);
+  const [highlightColor, setHighlightColor] = useState(() => {
+    try { return localStorage.getItem('kjb-highlight-color') || 'yellow'; } catch { return 'yellow'; }
+  });
+  const pickHighlightColor = (name) => {
+    setHighlightColor(name);
+    try { localStorage.setItem('kjb-highlight-color', name); } catch {}
+  };
   const toggleAutoRotate = (checked) => {
     setAutoRotateState(checked);
     persistAutoRotate(checked);
@@ -176,6 +184,7 @@ export default function SettingsPage() {
       try { setReaderFontFamily(localStorage.getItem('kjb-reader-font-family') || 'serif'); } catch {}
       try { setZoomLevel(parseInt(localStorage.getItem('kjb-zoom') || '100')); } catch {}
       try { setA11yFont(getAccessibilityFont()); } catch {}
+      try { setHighlightColor(localStorage.getItem('kjb-highlight-color') || 'yellow'); } catch {}
     };
     window.addEventListener('storage', handleStorage);
     window.addEventListener('focus', handleStorage);
@@ -577,6 +586,26 @@ export default function SettingsPage() {
         {/* Theme Color */}
         <div className="pt-4 border-t border-border">
           <ThemeColorPicker />
+        </div>
+
+        {/* Default Highlight Color */}
+        <div className="pt-4 border-t border-border space-y-3">
+          <h3 className="font-serif text-base font-semibold text-foreground">Default Highlight Color</h3>
+          <p className="font-sans text-xs text-muted-foreground -mt-1">Used when you highlight a verse in the reader</p>
+          <div className="flex flex-wrap gap-2">
+            {HIGHLIGHT_COLORS.map(c => (
+              <button
+                key={c.name}
+                onClick={() => pickHighlightColor(c.name)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl font-sans text-sm font-medium border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+                  highlightColor === c.name ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary/50 backdrop-blur-sm text-foreground border-border hover:border-accent'
+                }`}
+              >
+                <span className="w-4 h-4 rounded-full border border-border/60 shadow-sm" style={{ backgroundColor: c.color }} />
+                {c.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         </div>
