@@ -1,10 +1,13 @@
 // Auto-rotate preference: when disabled, we lock the screen to whatever
-// orientation it's currently in. We try the native Screen Orientation Lock
-// API first, but most browsers silently refuse it outside fullscreen / an
-// installed PWA — so we ALSO apply a CSS fallback that rotates the whole page
-// back to the locked orientation whenever the device is physically turned to
-// the opposite one. That fallback is what actually stops the rotation on most
-// phones/browsers.
+// orientation it's currently in.
+// - Native Android/iOS app (Capacitor): uses the ScreenOrientation plugin to
+//   lock the actual native window — this is the only way to stop rotation
+//   there, since a web CSS trick can't override the OS rotating the Activity.
+// - Browser: tries the Screen Orientation Lock API (works in fullscreen / an
+//   installed PWA on most browsers), plus a CSS fallback that rotates the
+//   page back to the locked orientation when the device is physically turned.
+import { Capacitor } from '@capacitor/core';
+
 const KEY = 'kjb-auto-rotate';
 const STYLE_ID = 'kjb-orientation-lock-style';
 
@@ -44,6 +47,21 @@ const applyCssLock = (lockLandscape) => {
 };
 
 export const applyAutoRotate = async (enabled) => {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const { ScreenOrientation } = await import('@capacitor/screen-orientation');
+      if (enabled) {
+        await ScreenOrientation.unlock();
+      } else {
+        const current = await ScreenOrientation.orientation();
+        const orientation = current?.type?.startsWith('landscape') ? 'landscape' : 'portrait';
+        await ScreenOrientation.lock({ orientation });
+      }
+    } catch {
+      // Plugin not available (e.g. not synced into the native build yet) — ignore.
+    }
+    return;
+  }
   if (enabled) {
     removeCssLock();
     if (typeof screen !== 'undefined' && screen.orientation?.unlock) {
