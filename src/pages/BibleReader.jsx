@@ -204,9 +204,20 @@ export default function BibleReader() {
 
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [saveFeedback, setSaveFeedback] = useState(false);
-  // Single verse tapped in normal reading mode — drives the VerseTapBar shown
+  // Verse(s) tapped in normal reading mode — drives the VerseTapBar shown
   // under the main toolbar instead of a floating tap-anchored popover.
-  const [tappedVerseNum, setTappedVerseNum] = useState(null);
+  // Tapping toggles membership in the set, so tapping more than one verse
+  // builds up a multi-verse selection (tapping an already-tapped verse
+  // removes just that one; other taps add more verses to the group).
+  const [tappedVerses, setTappedVerses] = useState(new Set());
+  const toggleTappedVerse = (vNum) => {
+    const n = parseInt(vNum, 10);
+    setTappedVerses(prev => {
+      const next = new Set(prev);
+      next.has(n) ? next.delete(n) : next.add(n);
+      return next;
+    });
+  };
   const [tapCopyFeedback, setTapCopyFeedback] = useState(false);
   const [tapShareFeedback, setTapShareFeedback] = useState(false);
   const [tapSaveFeedback, setTapSaveFeedback] = useState(false);
@@ -300,7 +311,7 @@ export default function BibleReader() {
   };
 
   const toggleSelectMode = () => {
-    setTappedVerseNum(null);
+    setTappedVerses(new Set());
     if (selectMode) {
       setSelectMode(false); setSelectedVerses(new Set()); setFilterMode(false);
     } else {
@@ -308,20 +319,26 @@ export default function BibleReader() {
     }
   };
 
-  // Clear the single-verse tap bar whenever the chapter/book changes.
-  useEffect(() => { setTappedVerseNum(null); }, [pos.abbr, pos.chapter]);
+  // Clear the verse tap bar whenever the chapter/book changes.
+  useEffect(() => { setTappedVerses(new Set()); }, [pos.abbr, pos.chapter]);
 
-  const tappedVerseObj = tappedVerseNum ? verses.find(v => parseInt(v.verse, 10) === tappedVerseNum) : null;
+  const tappedVerseNums = useMemo(() => [...tappedVerses].sort((a, b) => a - b), [tappedVerses]);
+  const tappedVerseObjs = useMemo(
+    () => tappedVerseNums.map(n => verses.find(v => parseInt(v.verse, 10) === n)).filter(Boolean),
+    [tappedVerseNums, verses]
+  );
   const buildTapShareText = () => {
-    if (!tappedVerseObj) return '';
-    const isLast = verses.length > 0 && String(tappedVerseObj.verse) === String(verses[verses.length - 1].verse);
-    const isFirst = parseInt(tappedVerseObj.verse, 10) === 1;
+    if (tappedVerseNums.length === 0) return '';
+    const first = tappedVerseNums[0], last = tappedVerseNums[tappedVerseNums.length - 1];
+    const isFirst = first === 1;
+    const isLast = verses.length > 0 && last === parseInt(verses[verses.length - 1].verse, 10);
+    const range = formatVerseRange(tappedVerseNums);
     return formatVerseShare({
-      text: tappedVerseObj.text,
+      text: tappedVerseObjs.map(v => v.text).join(' '),
       subscript: isFirst ? (chapterSubscript || null) : null,
       colophon: isLast ? (colophon || null) : null,
-      ref: `${book.shortName} ${pos.chapter}:${tappedVerseNum}`,
-      url: buildVerseUrl({ abbr: pos.abbr, chapter: pos.chapter, verse: tappedVerseNum }),
+      ref: `${book.shortName} ${pos.chapter}:${range}`,
+      url: buildVerseUrl({ abbr: pos.abbr, chapter: pos.chapter, verse: first, verseEnd: last > first ? last : undefined }),
     });
   };
   const handleTapCopy = async () => {
@@ -337,19 +354,23 @@ export default function BibleReader() {
     setTimeout(() => setTapShareFeedback(false), 1800);
   };
   const handleTapSave = () => {
-    if (!tappedVerseObj) return;
-    if (isVerseSaved(pos.abbr, pos.chapter, tappedVerseNum)) {
-      removeSavedVerse(pos.abbr, pos.chapter, tappedVerseNum);
+    if (tappedVerseNums.length === 0) return;
+    const allSaved = tappedVerseNums.every(n => isVerseSaved(pos.abbr, pos.chapter, n));
+    if (allSaved) {
+      tappedVerseNums.forEach(n => removeSavedVerse(pos.abbr, pos.chapter, n));
     } else {
-      saveVerse({ abbr: pos.abbr, chapter: pos.chapter, verse: tappedVerseNum, ref: `${book.shortName} ${pos.chapter}:${tappedVerseNum}`, text: cleanVerseText(tappedVerseObj.text), folder: 'Favorites' });
+      tappedVerseObjs.forEach(v => {
+        const n = parseInt(v.verse, 10);
+        saveVerse({ abbr: pos.abbr, chapter: pos.chapter, verse: n, ref: `${book.shortName} ${pos.chapter}:${n}`, text: cleanVerseText(v.text), folder: 'Favorites' });
+      });
       setTapSaveFeedback(true);
       setTimeout(() => setTapSaveFeedback(false), 1800);
     }
   };
   const handleTapHighlightToggle = (colorName) => {
-    if (!tappedVerseNum) return;
-    if (!colorName) { removeVerseHighlight(pos.abbr, pos.chapter, tappedVerseNum); return; }
-    setVerseHighlight(pos.abbr, pos.chapter, tappedVerseNum, colorName);
+    if (tappedVerseNums.length === 0) return;
+    if (!colorName) { tappedVerseNums.forEach(n => removeVerseHighlight(pos.abbr, pos.chapter, n)); return; }
+    tappedVerseNums.forEach(n => setVerseHighlight(pos.abbr, pos.chapter, n, colorName));
   };
 
   const activateSelectFromVerse = (verseNum) => {
@@ -1582,7 +1603,7 @@ export default function BibleReader() {
   const isGenesisChapterOne = pos.abbr === 'GEN' && pos.chapter === 1;
 
   return (
-    <div onClick={(e) => { if (!e.target.closest('.kjb-verse-container, [data-audio-verse], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerseNum(null); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-3 ${hideHeader ? 'pt-16' : ''}`}>
+    <div onClick={(e) => { if (!e.target.closest('.kjb-verse-container, [data-audio-verse], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerses(new Set()); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-3 ${hideHeader ? 'pt-16' : ''}`}>
       {!hideHeader && (
         <div ref={topRef} data-kjb-reader-toolbar-wrap className="print:hidden sticky top-0 z-[100] border-b border-border pb-4 pt-3 mb-8 relative shadow-sm -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background before:content-[''] before:absolute before:bottom-full before:left-0 before:right-0 before:h-12 before:bg-background">
           <div
@@ -1995,7 +2016,7 @@ export default function BibleReader() {
             />
           )}
           
-          {!selectMode && selectedVerses.size > 0 && !tappedVerseNum && (
+          {!selectMode && selectedVerses.size > 0 && tappedVerses.size === 0 && (
             <ReadingRangeBar
               label={searchTerm ? (/\d+:\d+/.test(searchTerm) ? `Currently Reading: ${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}` : `Search: "${searchTerm}"`) : gospelMode ? 'Gospel' : lastReadingActive ? (lastReadingPos?.fromRandom ? 'Random Chapter' : 'Daily Verse') : `Reading ${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}`}
               filterMode={filterMode} copyFeedback={copyFeedback} shareFeedback={shareFeedback} shareLinkFeedback={shareLinkFeedback} saveFeedback={saveFeedback}
@@ -2021,17 +2042,17 @@ export default function BibleReader() {
             />
           )}
 
-          {!selectMode && tappedVerseNum && (
+          {!selectMode && tappedVerseNums.length > 0 && (
             <VerseTapBar
-              label={`${book.shortName} ${pos.chapter}:${tappedVerseNum}`}
-              isHighlighted={!!getVerseHighlight(pos.abbr, pos.chapter, tappedVerseNum)}
-              isSaved={isVerseSaved(pos.abbr, pos.chapter, tappedVerseNum)}
+              label={`${book.shortName} ${pos.chapter}:${formatVerseRange(tappedVerseNums)}`}
+              isHighlighted={tappedVerseNums.every(n => !!getVerseHighlight(pos.abbr, pos.chapter, n))}
+              isSaved={tappedVerseNums.every(n => isVerseSaved(pos.abbr, pos.chapter, n))}
               copyFeedback={tapCopyFeedback} shareFeedback={tapShareFeedback} saveFeedback={tapSaveFeedback}
               onToggleHighlight={handleTapHighlightToggle}
               onCopy={handleTapCopy}
               onShare={handleTapShare}
               onSave={handleTapSave}
-              onClose={() => setTappedVerseNum(null)}
+              onClose={() => setTappedVerses(new Set())}
             />
           )}
 
@@ -2111,14 +2132,14 @@ export default function BibleReader() {
                   </div>
                 )}
                 <VerseText
-                  verse={v} highlight={tappedVerseNum ? tappedVerseNum === parseInt(v.verse, 10) : (parseInt(highlightVerse, 10) === parseInt(v.verse, 10) || highlightedVerses.has(parseInt(v.verse, 10)))}
+                  verse={v} highlight={tappedVerses.size > 0 ? tappedVerses.has(parseInt(v.verse, 10)) : (parseInt(highlightVerse, 10) === parseInt(v.verse, 10) || highlightedVerses.has(parseInt(v.verse, 10)))}
                   id={`v${v.verse}`} bookName={book.name} abbr={pos.abbr} chapter={pos.chapter} isFirstVerse={idx === 0} paragraphMode={paragraphMode} selectMode={selectMode}
                   isSelected={selectedVerses.has(parseInt(v.verse, 10)) || selectedVerses.has(String(v.verse))} onSelect={toggleVerseSelect} onActivateSelect={activateSelectFromVerse} totalVerses={verseCount}
                   colophon={verses.length > 0 && String(v.verse) === String(verses[verses.length - 1].verse) ? colophon : null}
                   subscript={parseInt(v.verse, 10) === 1 ? (chapterSubscript || null) : null}
                   isCursive={fontFamily === 'cursive'} fontFamilyValue={getFontFamilyValue(fontFamily)} zoomLevel={zoomLevel} columnMode={useColumns} dropCap={idx === 0 && parseInt(v.verse, 10) === 1}
                   searchTerm={searchTerm && parseInt(highlightVerse, 10) === parseInt(v.verse, 10) ? searchTerm : null}
-                  onVerseTap={(vNum) => setTappedVerseNum(prev => prev === parseInt(vNum, 10) ? null : parseInt(vNum, 10))}
+                  onVerseTap={toggleTappedVerse}
                 />
               </React.Fragment>
               );
