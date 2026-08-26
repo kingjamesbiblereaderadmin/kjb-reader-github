@@ -1110,24 +1110,30 @@ export default function SearchPage() {
       <div className="flex flex-wrap items-center gap-2 mb-5 print:hidden">
         <Filter className="w-3.5 h-3.5 text-muted-foreground" />
         <span className="font-sans text-xs text-muted-foreground">Testament:</span>
-        <Select
-          value={
+        {(() => {
+          const otDisabled = searched && !searchStats.ot?.books;
+          const ntDisabled = searched && !searchStats.nt?.books;
+          const testamentValue =
             testamentFilter.has('all') ? 'all'
             : (testamentFilter.has('old') && testamentFilter.has('new')) ? 'all'
             : testamentFilter.has('old') ? 'old'
-            : testamentFilter.has('new') ? 'new' : 'all'
-          }
-          onValueChange={(val) => setTestamentFilter(new Set([val]))}
-        >
-          <SelectTrigger className="h-7 w-[132px] rounded-lg font-sans text-xs font-medium border-border bg-secondary px-2.5 py-1 gap-1">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all" className="font-sans text-xs">All</SelectItem>
-            <SelectItem value="old" className="font-sans text-xs" disabled={searched && !searchStats.ot?.books}>Old Testament</SelectItem>
-            <SelectItem value="new" className="font-sans text-xs" disabled={searched && !searchStats.nt?.books}>New Testament</SelectItem>
-          </SelectContent>
-        </Select>
+            : testamentFilter.has('new') ? 'new' : 'all';
+          const triggerLabel = testamentValue === 'all'
+            ? (otDisabled && !ntDisabled ? 'All (NT only)' : (!otDisabled && ntDisabled ? 'All (OT only)' : 'All'))
+            : testamentValue === 'old' ? 'Old Testament' : 'New Testament';
+          return (
+            <Select value={testamentValue} onValueChange={(val) => setTestamentFilter(new Set([val]))}>
+              <SelectTrigger className="h-7 w-[132px] rounded-lg font-sans text-xs font-medium border-border bg-secondary px-2.5 py-1 gap-1">
+                <SelectValue>{triggerLabel}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="font-sans text-xs">All</SelectItem>
+                <SelectItem value="old" className="font-sans text-xs" disabled={otDisabled}>Old Testament</SelectItem>
+                <SelectItem value="new" className="font-sans text-xs" disabled={ntDisabled}>New Testament</SelectItem>
+              </SelectContent>
+            </Select>
+          );
+        })()}
         <button
           type="button"
           onClick={() => setShowBookFilter(!showBookFilter)}
