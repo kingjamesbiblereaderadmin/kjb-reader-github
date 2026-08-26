@@ -253,6 +253,17 @@
           if (isDark) document.documentElement.classList.add('dark');
         } catch (e) {}
         try {
+          // Apply the manual "App Zoom" setting BEFORE first paint, matching
+          // useBrowserZoom.js's manualFactor calc. Without this, the boot
+          // splash and first React paint render at 100% zoom, then visibly
+          // jump to the correct size once useBrowserZoom's effect runs.
+          var kjbZoomVal = parseInt(localStorage.getItem('kjb-layout-zoom') || '100', 10);
+          var kjbZoomFactor = (kjbZoomVal >= 50 && kjbZoomVal <= 200) ? kjbZoomVal / 100 : 1;
+          if (kjbZoomFactor !== 1) {
+            document.documentElement.style.setProperty('--kjb-zoom-scale', String(kjbZoomFactor));
+          }
+        } catch (e) {}
+        try {
           // A shared link can carry ?font=dyslexic or ?font=hyperlegible —
           // persist it so the recipient opens (and stays) in that font mode.
           var qsFont = window.location.search || '';
