@@ -2,23 +2,35 @@ import React, { useState, useEffect } from 'react';
 import { renderVerseText } from '@/lib/bibleApi';
 import { Copy, Share2, X, Highlighter, ChevronDown, Bookmark, BookmarkCheck, CheckSquare, Square } from 'lucide-react';
 import { isVerseSaved, saveVerse, removeSavedVerse } from '@/lib/savedVerses';
+import { getVerseHighlight, setVerseHighlight, removeVerseHighlight } from '@/lib/verseHighlights';
 import { BIBLE_BOOKS } from '@/lib/bibleData';
 import { formatVerseShare, buildVerseUrl } from '@/lib/formatDailyVerse';
 import VersePopover from '@/components/bible/VersePopover';
 import SaveFolderPicker from '@/components/bible/SaveFolderPicker';
 
-export default function VerseText({ verse, highlight = false, id, bookName, abbr, chapter, isFirstVerse = false, paragraphMode = false, selectMode = false, isSelected = false, onSelect, onActivateSelect, totalVerses = 0, colophon = null, subscript = null, isCursive = false, fontFamilyValue = null, zoomLevel = 100, hasSubscript = false, searchTerm = null, dropCap = false, columnMode = false }) {
+export default function VerseText({ verse, highlight = false, id, bookName, abbr, chapter, isFirstVerse = false, paragraphMode = false, selectMode = false, highlightMode = false, isSelected = false, onSelect, onActivateSelect, totalVerses = 0, colophon = null, subscript = null, isCursive = false, fontFamilyValue = null, zoomLevel = 100, hasSubscript = false, searchTerm = null, dropCap = false, columnMode = false }) {
   const bookEntry = BIBLE_BOOKS.find(b => b.abbr === abbr);
   const shortBookName = bookEntry ? bookEntry.shortName : bookName;
   const [selected, setSelected] = useState(false);
-  // showHighlight: true when navigated to this verse (prop) OR user manually applied a colour
-  const [showHighlight, setShowHighlight] = useState(false);
+  // showHighlight: true when navigated to this verse (prop), the verse has a
+  // persisted highlighter colour, OR the user manually applied one this session.
+  const [showHighlight, setShowHighlight] = useState(() => !!getVerseHighlight(abbr, chapter, verse.verse));
 
-  // Sync with the parent's highlight prop (e.g. daily verse / search result navigation)
+  // A nav-triggered highlight (e.g. daily verse / search result) always shows,
+  // but must NOT clear a persisted highlighter colour when it turns back off.
   useEffect(() => {
-    setShowHighlight(highlight);
+    if (highlight) setShowHighlight(true);
   }, [highlight]);
-  const [highlightColor, setHighlightColor] = useState('accent');
+
+  // Keep in sync if the highlighter toggle button changes this verse's colour
+  // elsewhere (e.g. another VerseText instance, or storage restore).
+  useEffect(() => {
+    const sync = () => setShowHighlight(!!getVerseHighlight(abbr, chapter, verse.verse));
+    window.addEventListener('kjb-highlights-changed', sync);
+    return () => window.removeEventListener('kjb-highlights-changed', sync);
+  }, [abbr, chapter, verse.verse]);
+
+  const [highlightColor, setHighlightColor] = useState(() => getVerseHighlight(abbr, chapter, verse.verse) || 'accent');
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [saved, setSaved] = useState(() => isVerseSaved(abbr, chapter, verse.verse));
   const [currentText, setCurrentText] = useState(verse.text);
@@ -67,9 +79,20 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   // renderVerseText handles [italics] and ¶ pilcrow styling, plus search term highlighting
   let html = renderVerseText(displayVerseText, searchTerm, null);
 
-  // Shared click handler: toggles the verse action menu (or selects in select mode).
+  // Shared click handler: toggles the verse action menu (selects in select
+  // mode, or applies/removes the highlighter directly in highlight mode).
   const handleVerseClick = (e) => {
     if (selectMode) { onSelect?.(verse.verse); return; }
+    if (highlightMode) {
+      if (showHighlight) {
+        setShowHighlight(false);
+        removeVerseHighlight(abbr, chapter, verse.verse);
+      } else {
+        setShowHighlight(true);
+        setVerseHighlight(abbr, chapter, verse.verse, highlightColor);
+      }
+      return;
+    }
     setSelected((s) => !s);
   };
 
@@ -287,6 +310,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
                       setHighlightColor(color.name);
                       setShowHighlight(true);
                       setShowColorPicker(false);
+                      setVerseHighlight(abbr, chapter, verse.verse, color.name);
                     }}
                     onTouchEnd={(e) => {
                       e.preventDefault();
@@ -295,6 +319,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
                       setHighlightColor(color.name);
                       setShowHighlight(true);
                       setShowColorPicker(false);
+                      setVerseHighlight(abbr, chapter, verse.verse, color.name);
                     }}
                     className="flex items-center gap-2.5 w-full p-1.5 rounded-lg hover:bg-secondary transition-colors"
                   >
@@ -316,8 +341,8 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
         </div>
         {showHighlight ? (
           <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setShowHighlight(false); }}
-            onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setShowHighlight(false); }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setShowHighlight(false); removeVerseHighlight(abbr, chapter, verse.verse); }}
+            onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setShowHighlight(false); removeVerseHighlight(abbr, chapter, verse.verse); }}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-accent/20 text-accent hover:bg-accent/30 font-sans text-xs font-medium transition-colors"
             title="Remove highlight"
           >
@@ -326,8 +351,8 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
           </button>
         ) : (
           <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setShowHighlight(true); }}
-            onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setShowHighlight(true); }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setShowHighlight(true); setVerseHighlight(abbr, chapter, verse.verse, highlightColor); }}
+            onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setShowHighlight(true); setVerseHighlight(abbr, chapter, verse.verse, highlightColor); }}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-accent/20 text-foreground font-sans text-xs font-medium transition-colors"
             title="Apply highlight"
           >
