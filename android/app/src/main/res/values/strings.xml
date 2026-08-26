@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">KJB Reader</string>
+    <string name="title_activity_main">KJB Reader</string>
+    <string name="package_name">kjbreader.app</string>
+    <string name="custom_url_scheme">kjbreader.app</string>
+</resources>
