@@ -1769,9 +1769,9 @@ export default function BibleReader() {
 
                <DropdownMenu onOpenChange={(open) => { if (open) closeAllMenus(); }}>
                 <DropdownMenuTrigger asChild>
-                  <button title={shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'} className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10  whitespace-nowrap">
+                  <button title={shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'} className="kjb-fixed-btn flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 w-24 whitespace-nowrap">
                     <Share2 className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />
-                    <span className="hidden lg:inline">{shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'}</span>
+                    <span className="hidden lg:inline truncate">{shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'}</span>
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="center" className="w-48">
