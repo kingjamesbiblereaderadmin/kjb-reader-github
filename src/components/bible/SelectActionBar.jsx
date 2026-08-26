@@ -99,7 +99,7 @@ export default function SelectActionBar({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-[140px]">
               {HIGHLIGHT_COLORS.map(c => (
-                <DropdownMenuItem key={c.name} onClick={() => onHighlight(c.name)} className="cursor-pointer gap-2.5">
+                <DropdownMenuItem key={c.name} onSelect={(e) => e.preventDefault()} onClick={() => onHighlight(c.name)} className="cursor-pointer gap-2.5">
                   <span className="w-5 h-5 rounded-full border-2 border-border shadow-sm" style={{ backgroundColor: c.color }} />
                   <span className="font-sans text-sm text-foreground">{c.label}</span>
                 </DropdownMenuItem>
