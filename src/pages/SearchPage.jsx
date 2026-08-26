@@ -1187,16 +1187,16 @@ export default function SearchPage() {
             role="dialog"
             aria-modal="true"
           >
-            <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
+            <div className="flex items-center justify-between p-5 border-b border-border flex-shrink-0">
               <p className="font-sans text-sm font-semibold text-foreground">
                 Select Books {selectedBooks.size > 0 && selectedBooks.size < 66 ? `(${selectedBooks.size})` : selectedBooks.size === 66 ? '(All 66)' : ''}
               </p>
-              <button onClick={() => setShowBookFilter(false)} className="p-1 rounded-lg hover:bg-accent/20">
+              <button onClick={() => setShowBookFilter(false)} className="p-1.5 rounded-lg hover:bg-accent/20">
                 <X className="w-4 h-4 text-muted-foreground" />
               </button>
             </div>
             {/* Search input for filtering books */}
-            <div className="p-4 pb-3 flex-shrink-0">
+            <div className="p-5 pb-4 flex-shrink-0">
               <input
                 type="text"
                 value={bookFilterQuery}
@@ -1206,33 +1206,33 @@ export default function SearchPage() {
                 autoFocus
               />
             </div>
-            <div className="flex flex-wrap gap-2 p-3 sm:p-4 pb-0 flex-shrink-0">
+            <div className="flex flex-wrap gap-2.5 px-4 sm:px-5 pb-1 flex-shrink-0">
               <button
                 onClick={() => {
                   const booksToSelect = BIBLE_BOOKS
                     .filter(b => !bookFilterQuery || b.shortName.toLowerCase().includes(bookFilterQuery.toLowerCase()));
                   setSelectedBooks(new Set(booksToSelect.map(b => b.abbr)));
                 }}
-                className="px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+                className="px-3.5 py-2 rounded-lg bg-secondary text-secondary-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card"
               >
                 Select All
               </button>
               <button
                 onClick={() => setSelectedBooks(new Set())}
-                className="px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+                className="px-3.5 py-2 rounded-lg bg-secondary text-secondary-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card"
               >
                 {selectedBooks.size > 0 ? 'Clear (all matching books)' : 'Clear'}
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto px-3 sm:px-4 pb-2" style={{ minHeight: '200px' }}>
-              <div className="space-y-4">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-3" style={{ minHeight: '200px' }}>
+              <div className="space-y-6">
                 {/* Old Testament section — hidden entirely if the search has no OT matches at all */}
                 {(!searched || !allBooksWithResults || [...allBooksWithResults].some(abbr => OLD_TESTAMENT.some(b => b.abbr === abbr))) && (
                 <div>
-                  <p className="font-sans text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2 sticky top-0 bg-card py-1">
+                  <p className="font-sans text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3 sticky top-0 bg-card py-1.5">
                     Old Testament {searched && searchStats.ot?.books > 0 && <span className="font-normal normal-case text-muted-foreground/60">({searchStats.ot.books} book{searchStats.ot.books !== 1 ? 's' : ''}, {searchStats.ot.verses} verse{searchStats.ot.verses !== 1 ? 's' : ''}, {searchStats.ot.occ} occ)</span>}
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2.5">
                     {OLD_TESTAMENT
                       .filter(book => {
                         const matchesQuery = !bookFilterQuery || book.shortName.toLowerCase().includes(bookFilterQuery.toLowerCase());
@@ -1254,7 +1254,7 @@ export default function SearchPage() {
                                 return next;
                               });
                             }}
-                            className={`px-3 py-2 rounded-lg font-sans text-xs font-medium transition-colors whitespace-normal text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card ${
+                            className={`px-3.5 py-2.5 rounded-lg font-sans text-xs font-medium transition-colors whitespace-normal text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card ${
                               isSelected
                                 ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 ring-offset-card'
                                 : 'bg-secondary text-foreground hover:bg-accent/20'
@@ -1272,10 +1272,10 @@ export default function SearchPage() {
                 {/* New Testament section — hidden entirely if the search has no NT matches at all */}
                 {(!searched || !allBooksWithResults || [...allBooksWithResults].some(abbr => NEW_TESTAMENT.some(b => b.abbr === abbr))) && (
                 <div>
-                  <p className="font-sans text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2 sticky top-0 bg-card py-1">
+                  <p className="font-sans text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3 sticky top-0 bg-card py-1.5">
                     New Testament {searched && searchStats.nt?.books > 0 && <span className="font-normal normal-case text-muted-foreground/60">({searchStats.nt.books} book{searchStats.nt.books !== 1 ? 's' : ''}, {searchStats.nt.verses} verse{searchStats.nt.verses !== 1 ? 's' : ''}, {searchStats.nt.occ} occ)</span>}
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2.5">
                     {NEW_TESTAMENT
                       .filter(book => {
                         const matchesQuery = !bookFilterQuery || book.shortName.toLowerCase().includes(bookFilterQuery.toLowerCase());
@@ -1297,7 +1297,7 @@ export default function SearchPage() {
                                 return next;
                               });
                             }}
-                            className={`px-3 py-2 rounded-lg font-sans text-xs font-medium transition-colors whitespace-normal text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card ${
+                            className={`px-3.5 py-2.5 rounded-lg font-sans text-xs font-medium transition-colors whitespace-normal text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card ${
                               isSelected
                                 ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 ring-offset-card'
                                 : 'bg-secondary text-foreground hover:bg-accent/20'
@@ -1314,7 +1314,7 @@ export default function SearchPage() {
                 )}
               </div>
             </div>
-            <div className="p-3 sm:p-4 border-t border-border flex-shrink-0">
+            <div className="p-4 sm:p-5 border-t border-border flex-shrink-0">
               <button
                 onClick={() => {
                   setShowBookFilter(false);
