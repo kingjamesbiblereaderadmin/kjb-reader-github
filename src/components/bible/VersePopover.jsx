@@ -66,7 +66,7 @@ export default function VersePopover({ children, point }) {
     <div
       ref={ref}
       style={style}
-      className="z-50 w-max max-w-[calc(100vw-1rem)] inline-flex flex-wrap items-center justify-start gap-1.5 bg-card border border-border rounded-xl shadow-xl px-2.5 py-2 overflow-y-auto"
+      className="z-[120] w-max max-w-[calc(100vw-1rem)] inline-flex flex-wrap items-center justify-start gap-1.5 bg-card border border-border rounded-xl shadow-xl px-2.5 py-2 overflow-y-auto"
     >
       {children}
     </div>
