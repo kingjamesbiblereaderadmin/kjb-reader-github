@@ -167,7 +167,7 @@ export default function KjbDefencePage() {
     categories.forEach((cat) => {
       html += `<h2 translate="no" style="font-size:15pt;margin:24pt 0 8pt 0;border-bottom:1px solid #ccc;padding-bottom:4pt;">${esc(cat.name)}</h2>`;
       cat.items.forEach((it) => {
-        html += `<h3 translate="no" style="font-size:13pt;margin:12pt 0 2pt 0;">${esc(it.title)}</h3><p translate="no" style="font-size:11pt;line-height:1.5;margin:0 0 4pt 0;">${esc(it.desc)}</p><p style="font-size:10pt;color:#2a5ac8;margin:0 0 4pt 0;">${esc(it.url)}</p>`;
+        html += `<h3 translate="no" style="font-size:13pt;margin:12pt 0 2pt 0;">${esc(it.title)}</h3><p style="font-size:11pt;line-height:1.5;margin:0 0 4pt 0;">${esc(it.desc)}</p><p style="font-size:10pt;color:#2a5ac8;margin:0 0 4pt 0;">${esc(it.url)}</p>`;
       });
     });
     printHtml(html);
