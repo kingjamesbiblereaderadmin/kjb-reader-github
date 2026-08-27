@@ -114,10 +114,25 @@ export default function BibleSearchBar({ onClose }) {
       setHasRoomForPlaceholder(availableWidth >= textWidth);
     };
     measure();
-    if (typeof ResizeObserver === 'undefined') return;
+    // Re-measure on App Zoom changes too — zoom grows the rendered font size
+    // (via the --kjb-zoom-scale root variable) without necessarily changing
+    // the search box's own layout width, so a ResizeObserver alone can miss
+    // it and leave a stale "fits" verdict that then overlaps/clips the icon.
+    window.addEventListener('kjb-layout-zoom-changed', measure);
+    window.addEventListener('storage', measure);
+    if (typeof ResizeObserver === 'undefined') {
+      return () => {
+        window.removeEventListener('kjb-layout-zoom-changed', measure);
+        window.removeEventListener('storage', measure);
+      };
+    }
     const ro = new ResizeObserver(measure);
     ro.observe(el);
-    return () => ro.disconnect();
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('kjb-layout-zoom-changed', measure);
+      window.removeEventListener('storage', measure);
+    };
   }, []);
 
   // Ctrl-F / Cmd-F focuses this search bar instead of the browser's find dialog.

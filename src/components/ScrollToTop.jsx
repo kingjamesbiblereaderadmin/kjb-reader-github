@@ -22,7 +22,9 @@ export default function ScrollToTop() {
         // Add safe area inset for bottom
         const safeArea = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat-bottom') || '0');
         const baseHeight = showMode === 'two' ? 112 : showMode === 'one' ? 56 : 0;
-        setFooterHeight(baseHeight + safeArea + 16); // 16px extra padding
+        // Sit half over the bottom nav (overlapping it) instead of floating
+        // fully above it with a gap — a standard floating-action-button look.
+        setFooterHeight(baseHeight / 2 + safeArea + 8);
       } catch {
         setFooterHeight(80);
       }
