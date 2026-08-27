@@ -89,7 +89,7 @@ export default function SpanishResourcesPage() {
           </a>
 
           <Link
-            to="/spanish-gospel"
+            to="/espanol-evangelio"
             className="flex items-center gap-3 p-4 mt-3 rounded-xl bg-secondary/40 border border-border hover:border-accent/50 transition-all duration-200 hover:scale-[1.01] active:scale-[0.98] group"
           >
             <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg text-white shadow-sm bg-gradient-to-br from-sky-500 to-blue-600">

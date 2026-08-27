@@ -265,7 +265,7 @@ export default function ResourcesPage() {
             Recursos y estudios de la Biblia en español.
           </p>
           <Link
-            to="/spanish"
+            to="/espanol"
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           >
             Abrir Recursos en Español <ExternalLink className="w-3.5 h-3.5" />

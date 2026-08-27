@@ -8,7 +8,7 @@ export default function GospelPage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
       <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-10">
         <Link
-          to="/spanish-gospel"
+          to="/espanol-evangelio"
           className="flex items-center gap-3 p-5 rounded-2xl bg-card border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group mb-6"
         >
           <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-sky-500 to-blue-600">
