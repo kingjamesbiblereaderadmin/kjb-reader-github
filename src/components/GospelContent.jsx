@@ -365,6 +365,12 @@ const NOT_SAVED_ITEMS = [
 ];
 
 export default function GospelContent({ collapsible = false, showPreachers = true }) {
+  const [notSavedOpen, setNotSavedOpen] = useState(true);
+  const [osasOpen, setOsasOpen] = useState(true);
+  const [videoOpen, setVideoOpen] = useState(true);
+  const [playlistOpen, setPlaylistOpen] = useState(true);
+  const [kjbiOpen, setKjbiOpen] = useState(true);
+
   return (
     <>
       {/* Header */}
@@ -449,103 +455,153 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
         </StepCard>
 
         {/* What DOESN'T save */}
-        <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-xl p-6 flex gap-4">
-          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center">
-            <XCircle className="w-5 h-5 text-red-500" />
-          </div>
-          <div className="flex-1">
-            <div className="flex items-start justify-between gap-4 mb-2">
-              <h3 className="font-serif text-xl font-semibold text-red-700 dark:text-red-400">These do NOT make you a Christian:</h3>
-              <CopyButton text={`These do NOT make you a Christian:\n${NOT_SAVED_ITEMS.map(i => '• ' + i).join('\n')}`} className="p-1.5 rounded-md hover:bg-red-500/10 text-red-500 hover:text-red-600 transition-colors flex-shrink-0 cursor-pointer" />
+        <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-xl overflow-hidden">
+          <button
+            onClick={() => setNotSavedOpen((o) => !o)}
+            className="w-full flex gap-4 p-6 text-left hover:bg-red-100/40 dark:hover:bg-red-900/20 transition-colors"
+          >
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center">
+              <XCircle className="w-5 h-5 text-red-500" />
             </div>
-            <ul className="space-y-1 font-sans text-sm text-foreground/80">
-              {NOT_SAVED_ITEMS.map((item) => (
-                <li key={item} className="flex items-center gap-2">
-                  <XCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
+            <div className="flex-1">
+              <div className="flex items-start justify-between gap-4">
+                <h3 className="font-serif text-xl font-semibold text-red-700 dark:text-red-400">These do NOT make you a Christian:</h3>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <CopyButton text={`These do NOT make you a Christian:\n${NOT_SAVED_ITEMS.map(i => '• ' + i).join('\n')}`} className="p-1.5 rounded-md hover:bg-red-500/10 text-red-500 hover:text-red-600 transition-colors cursor-pointer" />
+                  <ChevronDown className={`w-5 h-5 text-red-500 transition-transform ${notSavedOpen ? 'rotate-180' : ''}`} />
+                </div>
+              </div>
+            </div>
+          </button>
+          {notSavedOpen && (
+            <div className="px-6 pb-6 pl-[4.5rem]">
+              <ul className="space-y-1 font-sans text-sm text-foreground/80">
+                {NOT_SAVED_ITEMS.map((item) => (
+                  <li key={item} className="flex items-center gap-2">
+                    <XCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
 
       {/* OSAS */}
-      <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 mb-8 shadow-lg shadow-black/[0.03]">
-        <div className="flex items-start justify-between gap-4 mb-2">
+      <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl mb-8 shadow-lg shadow-black/[0.03] overflow-hidden">
+        <button
+          onClick={() => setOsasOpen((o) => !o)}
+          className="w-full flex items-start justify-between gap-4 p-6 text-left hover:bg-accent/5 transition-colors"
+        >
           <h3 className="font-serif text-xl font-semibold text-foreground">Once Saved, Always Saved</h3>
-          <CopyButton text={`Once Saved, Always Saved\n\nA believer who has trusted the gospel cannot lose salvation, no matter what happens in their life. God's gift of eternal life is just that — eternal.\n\n"In whom ye also trusted, after that ye heard the word of truth, the gospel of your salvation: in whom also after that ye believed, ye were sealed with that holy Spirit of promise." — Ephesians 1:13`} className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors flex-shrink-0 cursor-pointer" />
-        </div>
-        <p className="font-sans text-sm text-foreground/80 mb-3">
-          A believer who has trusted the gospel cannot lose salvation, no matter what happens in their life. God's gift of eternal life is just that — eternal.
-        </p>
-        <blockquote className="border-l-2 border-accent pl-4 font-serif text-foreground/75 text-sm mb-2">
-          <span className="notranslate" translate="no">"In whom ye also trusted, after that ye heard the word of truth, the gospel of your salvation: in whom also after that ye believed, ye were sealed with that holy Spirit of promise."</span> — <VerseLink book="Ephesians" chapter={1} verse={13}>Ephesians 1:13</VerseLink>
-        </blockquote>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <CopyButton text={`Once Saved, Always Saved\n\nA believer who has trusted the gospel cannot lose salvation, no matter what happens in their life. God's gift of eternal life is just that — eternal.\n\n"In whom ye also trusted, after that ye heard the word of truth, the gospel of your salvation: in whom also after that ye believed, ye were sealed with that holy Spirit of promise." — Ephesians 1:13`} className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors cursor-pointer" />
+            <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${osasOpen ? 'rotate-180' : ''}`} />
+          </div>
+        </button>
+        {osasOpen && (
+          <div className="px-6 pb-6">
+            <p className="font-sans text-sm text-foreground/80 mb-3">
+              A believer who has trusted the gospel cannot lose salvation, no matter what happens in their life. God's gift of eternal life is just that — eternal.
+            </p>
+            <blockquote className="border-l-2 border-accent pl-4 font-serif text-foreground/75 text-sm mb-2">
+              <span className="notranslate" translate="no">"In whom ye also trusted, after that ye heard the word of truth, the gospel of your salvation: in whom also after that ye believed, ye were sealed with that holy Spirit of promise."</span> — <VerseLink book="Ephesians" chapter={1} verse={13}>Ephesians 1:13</VerseLink>
+            </blockquote>
+          </div>
+        )}
       </div>
 
       {/* Video */}
-      <h2 className="font-serif text-2xl font-bold text-foreground mb-4">Watch the Gospel</h2>
       <div className="rounded-2xl overflow-hidden border border-border/60 mb-6 shadow-lg shadow-black/[0.03]">
-        <div className="aspect-video w-full">
-          <iframe
-            src="https://www.youtube-nocookie.com/embed/znP9Dr6tOzU?rel=0&modestbranding=1&playsinline=1"
-            title="THE GOSPEL THAT SAVES"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            referrerPolicy="strict-origin-when-cross-origin"
-            allowFullScreen
-            loading="lazy"
-            className="w-full h-full"
-          />
-        </div>
-        <div className="p-3 bg-card flex items-center justify-between gap-3">
-          <div>
-            <p className="font-sans font-medium text-sm text-foreground">THE GOSPEL THAT SAVES</p>
-            <p className="notranslate font-sans text-xs text-muted-foreground" translate="no">Robert Breaker</p>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <CopyButton text="<https://www.youtube.com/watch?v=znP9Dr6tOzU>" className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors" />
-            <a
-              href="https://www.youtube.com/watch?v=znP9Dr6tOzU"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-sans text-xs text-accent hover:underline whitespace-nowrap"
-            >
-              Watch on YouTube ↗
-            </a>
-          </div>
-        </div>
+        <button
+          onClick={() => setVideoOpen((o) => !o)}
+          className="w-full flex items-center justify-between gap-3 p-4 text-left hover:bg-accent/5 transition-colors"
+        >
+          <h2 className="font-serif text-xl font-bold text-foreground">Watch the Gospel</h2>
+          <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${videoOpen ? 'rotate-180' : ''}`} />
+        </button>
+        {videoOpen && (
+          <>
+            <div className="aspect-video w-full">
+              <iframe
+                src="https://www.youtube-nocookie.com/embed/znP9Dr6tOzU?rel=0&modestbranding=1&playsinline=1"
+                title="THE GOSPEL THAT SAVES"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+                loading="lazy"
+                className="w-full h-full"
+              />
+            </div>
+            <div className="p-3 bg-card flex items-center justify-between gap-3">
+              <div>
+                <p className="font-sans font-medium text-sm text-foreground">THE GOSPEL THAT SAVES</p>
+                <p className="notranslate font-sans text-xs text-muted-foreground" translate="no">Robert Breaker</p>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <CopyButton text="<https://www.youtube.com/watch?v=znP9Dr6tOzU>" className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors" />
+                <a
+                  href="https://www.youtube.com/watch?v=znP9Dr6tOzU"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-sans text-xs text-accent hover:underline whitespace-nowrap"
+                >
+                  Watch on YouTube ↗
+                </a>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Full playlist */}
-      <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-5 mb-6 shadow-lg shadow-black/[0.03]">
-        <h3 className="font-serif text-xl font-semibold text-foreground mb-2">Playlist on Gospel Videos</h3>
-        <div className="flex flex-wrap items-center gap-3">
-          <a
-            href="https://www.youtube.com/playlist?list=PLNGhZnJavRf3f2_NI79j5GigC6xK5_YYq"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-sans text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-            </svg>
-            Watch Full Playlist on YouTube
-          </a>
-          <CopyButton text="<https://www.youtube.com/playlist?list=PLNGhZnJavRf3f2_NI79j5GigC6xK5_YYq>" className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" />
-        </div>
+      <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl mb-6 shadow-lg shadow-black/[0.03] overflow-hidden">
+        <button
+          onClick={() => setPlaylistOpen((o) => !o)}
+          className="w-full flex items-center justify-between gap-3 p-5 text-left hover:bg-accent/5 transition-colors"
+        >
+          <h3 className="font-serif text-xl font-semibold text-foreground">Playlist on Gospel Videos</h3>
+          <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${playlistOpen ? 'rotate-180' : ''}`} />
+        </button>
+        {playlistOpen && (
+          <div className="px-5 pb-5">
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href="https://www.youtube.com/playlist?list=PLNGhZnJavRf3f2_NI79j5GigC6xK5_YYq"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-sans text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                </svg>
+                Watch Full Playlist on YouTube
+              </a>
+              <CopyButton text="<https://www.youtube.com/playlist?list=PLNGhZnJavRf3f2_NI79j5GigC6xK5_YYq>" className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* KJBI — Free Online Bible College */}
-      <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-5 mb-6 shadow-lg shadow-black/[0.03]">
-        <div className="flex items-start gap-3">
+      <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl mb-6 shadow-lg shadow-black/[0.03] overflow-hidden">
+        <button
+          onClick={() => setKjbiOpen((o) => !o)}
+          className="w-full flex items-start gap-3 p-5 text-left hover:bg-accent/5 transition-colors"
+        >
           <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-indigo-500 to-purple-600">
             <GraduationCap className="w-5 h-5" />
           </div>
-          <div className="flex-1">
-            <h3 className="font-serif text-xl font-semibold text-foreground mb-1">KJBI.org — Free Online Bible College</h3>
+          <div className="flex-1 flex items-start justify-between gap-3">
+            <h3 className="font-serif text-xl font-semibold text-foreground">KJBI.org — Free Online Bible College</h3>
+            <ChevronDown className={`w-5 h-5 text-muted-foreground flex-shrink-0 transition-transform ${kjbiOpen ? 'rotate-180' : ''}`} />
+          </div>
+        </button>
+        {kjbiOpen && (
+          <div className="px-5 pb-5 pl-[4.5rem]">
             <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
               <span className="notranslate" translate="no">King James Bible Institute</span> by <span className="notranslate" translate="no">Robert Breaker</span> & <span className="notranslate" translate="no">Robert Potthoff</span> — a free online Bible college for those who want to go deeper in God's Word.
             </p>
@@ -558,7 +614,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
               Visit KJBI.org <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Trusted KJB Preachers — landing/salvation page only */}
