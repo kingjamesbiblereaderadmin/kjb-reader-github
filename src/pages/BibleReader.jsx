@@ -218,6 +218,16 @@ export default function BibleReader() {
       return next;
     });
   };
+  // Forces a re-render when a highlight is set/removed anywhere (including from
+  // the VerseTapBar's own Highlight dropdown below) so the tap bar's
+  // "Highlighted" state stays in sync instead of only refreshing on the next
+  // unrelated re-render.
+  const [, forceHighlightRefresh] = useState(0);
+  useEffect(() => {
+    const sync = () => forceHighlightRefresh(n => n + 1);
+    window.addEventListener('kjb-highlights-changed', sync);
+    return () => window.removeEventListener('kjb-highlights-changed', sync);
+  }, []);
   const [tapCopyFeedback, setTapCopyFeedback] = useState(false);
   const [tapShareFeedback, setTapShareFeedback] = useState(false);
   const [tapSaveFeedback, setTapSaveFeedback] = useState(false);
@@ -2045,7 +2055,7 @@ export default function BibleReader() {
           {!selectMode && tappedVerseNums.length > 0 && (
             <VerseTapBar
               label={`${book.shortName} ${pos.chapter}:${formatVerseRange(tappedVerseNums)}`}
-              isHighlighted={tappedVerseNums.every(n => !!getVerseHighlight(pos.abbr, pos.chapter, n))}
+              isHighlighted={tappedVerseNums.some(n => !!getVerseHighlight(pos.abbr, pos.chapter, n))}
               isSaved={tappedVerseNums.every(n => isVerseSaved(pos.abbr, pos.chapter, n))}
               copyFeedback={tapCopyFeedback} shareFeedback={tapShareFeedback} saveFeedback={tapSaveFeedback}
               onToggleHighlight={handleTapHighlightToggle}
@@ -2118,7 +2128,7 @@ export default function BibleReader() {
           const shownCount = activeFilter ? verses.filter(verseInSelection).length : verses.length;
           const useColumns = columnMode && shownCount > 6;
           return (
-          <div className={`${useColumns ? 'kjb-two-col text-left hyphens-auto' : 'text-left'} ${paragraphMode ? 'text-left px-2 sm:px-4' : ''}`} style={useColumns ? { fontSize: 'inherit', columnCount: 2, columnGap: '1.5rem', columnRule: '1px solid hsl(var(--border))' } : { fontSize: 'inherit' }}>
+          <div className={`${useColumns ? 'kjb-two-col text-left hyphens-auto' : 'text-left'} ${paragraphMode ? 'text-left px-2 sm:px-4' : ''}`} style={useColumns ? { fontSize: 'inherit', columnCount: 2, columnGap: '2.5rem', columnRule: '1px solid hsl(var(--border))' } : { fontSize: 'inherit' }}>
             {columnMode && !isViewingTitlePage && chapterSubscript && (
               <p onClick={() => handleSectionClick('subscript')} id="kjb-subscript-anchor" className={`notranslate kjb-subscript text-center text-muted-foreground mb-4 leading-relaxed transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}><SubscriptContent text={chapterSubscript} searchTerm={sectionActive('subscript') ? searchTerm : null} /></p>
             )}
