@@ -339,9 +339,9 @@ export default function LandingSetupWizard() {
                   </div>
                 )}
               </div>
-            ) : (
+            ) : !actuallyInstalled ? (
               <p className="font-sans text-xs text-muted-foreground">You can install the app later from Settings.</p>
-            )}
+            ) : null}
           </div>
         )}
 
