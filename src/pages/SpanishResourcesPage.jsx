@@ -3,6 +3,7 @@ import { ExternalLink, Globe, FileText, CheckCircle, PlayCircle, BookOpen } from
 import { Link } from 'react-router-dom';
 import CopyButton from '@/components/defence/CopyButton';
 import CollapsibleCard from '@/components/landing/CollapsibleCard';
+import VideoListCard from '@/components/spanish/VideoListCard';
 
 const LINKS = [
   {
@@ -19,7 +20,12 @@ const LINKS = [
 
 const GOSPEL_VIDEO_ID = 'UmJcHODdUGY';
 
-const MORE_VIDEOS = [
+const MORE_VIDEOS_ES = [
+  { id: 'RiMaRkwD1qA', title: 'El Asunto de La Biblia en Español' },
+  { id: 'Dfs9zos3dO4', title: 'La Controversia de la Biblia Española' },
+];
+
+const MORE_VIDEOS_EN = [
   { id: 'z6hQC193RXw', title: 'Which Bible in Spanish?' },
   { id: 'fugWELY6XvQ', title: 'My Testimony About the Spanish Bible Issue' },
   { id: 'NTcuL1h_Fyk', title: 'The Problems and Errors in the 1960 Spanish Bible' },
@@ -32,10 +38,8 @@ const MORE_VIDEOS = [
   { id: 'USo1F9II0TI', title: 'The History of the Spanish Bible' },
   { id: 'ZTnRVsUfkEE', title: 'The History and Truth about the Spanish Bible Issue' },
   { id: 'MEYnVldg5Lg', title: 'The Spanish Bible Issue' },
-  { id: 'RiMaRkwD1qA', title: 'El Asunto de La Biblia en Español' },
   { id: 'WDxisN8QQt0', title: "Why I Don't Use the 1960 Spanish Bible!" },
   { id: 'DQtTV2P1n5Y', title: 'The Spanish Bible Issue Controversy: Which Bible in Spanish' },
-  { id: 'Dfs9zos3dO4', title: 'La Controversia de la Biblia Española' },
   { id: 'DQ_Shf0uFpc', title: 'Part 5 King James Bible Seminar 2025: Spanish Bible History and Exhibition of Bibles' },
   { id: 'i-rsBO_KJb4', title: "The Spanish Bible Walkin' and A-Talkin'" },
 ];
@@ -137,33 +141,20 @@ export default function SpanishResourcesPage() {
           </div>
         </div>
 
-        {/* More gospel videos, collapsible */}
-        <div className="mt-6">
+        {/* More gospel videos, collapsible — Spanish first, then English */}
+        <div className="mt-6 space-y-4">
           <CollapsibleCard
             icon={<PlayCircle className="w-5 h-5 text-red-500 flex-shrink-0" />}
-            title="La Cuestión de la Biblia en Español - Robert Breaker"
+            title="La Cuestión de la Biblia en Español - Robert Breaker (Español)"
           >
-            <div className="space-y-2">
-              {MORE_VIDEOS.map((v) => (
-                <a
-                  key={v.id}
-                  href={`https://youtu.be/${v.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-3 bg-secondary/40 border border-border rounded-lg hover:border-accent/50 transition-all duration-200 hover:scale-[1.01] active:scale-[0.98] group"
-                >
-                  <img
-                    src={`https://img.youtube.com/vi/${v.id}/hqdefault.jpg`}
-                    alt=""
-                    className="w-20 h-12 object-cover rounded-md flex-shrink-0"
-                  />
-                  <span className="font-sans text-sm font-medium text-foreground group-hover:text-accent transition-colors flex-1">
-                    {v.title}
-                  </span>
-                  <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors flex-shrink-0" />
-                </a>
-              ))}
-            </div>
+            <VideoListCard videos={MORE_VIDEOS_ES} />
+          </CollapsibleCard>
+
+          <CollapsibleCard
+            icon={<PlayCircle className="w-5 h-5 text-red-500 flex-shrink-0" />}
+            title="La Cuestión de la Biblia en Español - Robert Breaker (English)"
+          >
+            <VideoListCard videos={MORE_VIDEOS_EN} />
           </CollapsibleCard>
         </div>
       </div>
