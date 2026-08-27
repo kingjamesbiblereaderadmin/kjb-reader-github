@@ -87,7 +87,10 @@ export default function SpanishResourcesPage() {
         <div className="bg-card border border-border rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4">
             <h2 className="notranslate font-serif text-lg font-semibold text-foreground" translate="no">Robert Breaker</h2>
-            <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700/60 text-green-600 dark:text-green-400">
+              <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="font-sans text-xs font-medium">Verified Preacher</span>
+            </span>
           </div>
 
           <div className="space-y-3">
