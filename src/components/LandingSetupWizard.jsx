@@ -274,7 +274,7 @@ export default function LandingSetupWizard() {
                 </div>
               </div>
             ) : null}
-            {!isStandalone && (installDone || promptCancelled) && (
+            {(actuallyInstalled || promptCancelled) && (
               <button
                 type="button"
                 onClick={() => {
