@@ -76,11 +76,12 @@ function getLinkLabel(url) {
 const PREACHERS = [
 {
   name: 'Robert Breaker',
-  desc: <><span className="notranslate" translate="no">KJB</span> missionary evangelist, rightly dividing the word of truth.</>,
+  desc: <><span className="notranslate" translate="no">KJB</span> missionary evangelist, rightly dividing the word of truth. Also preaches in Spanish.</>,
   links: [
   'https://www.youtube.com/@Robertbreaker3',
   'https://www.tiktok.com/@robertbreaker',
-  'https://thecloudchurch.org/']
+  'https://thecloudchurch.org/',
+  'https://laiglesiadelanube.com/']
 
 },
 {
