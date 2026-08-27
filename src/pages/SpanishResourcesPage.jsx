@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Globe, FileText } from 'lucide-react';
+import { ExternalLink, Globe, FileText, CheckCircle } from 'lucide-react';
 import CopyButton from '@/components/defence/CopyButton';
 
 const LINKS = [
@@ -29,32 +29,41 @@ export default function SpanishResourcesPage() {
         <div className="mt-4 w-16 h-px bg-accent mx-auto" />
       </div>
 
-      <div className="space-y-4 max-w-2xl mx-auto">
-        {LINKS.map((item) => (
-          <a
-            key={item.url}
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block bg-card border border-border rounded-2xl p-5 hover:border-accent/50 transition-all duration-200 hover:scale-[1.01] active:scale-[0.98] group"
-          >
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-sky-500 to-blue-600">
-                <Globe className="w-5 h-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h2 className="notranslate font-serif text-lg font-semibold text-foreground group-hover:text-accent transition-colors" translate="no">
-                  {item.title}
-                </h2>
-                <p className="font-sans text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0 mt-1">
-                <CopyButton text={item.url} className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors" />
-                <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-accent transition-colors" />
-              </div>
-            </div>
-          </a>
-        ))}
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-card border border-border rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="notranslate font-serif text-lg font-semibold text-foreground" translate="no">Robert Breaker</h2>
+            <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+          </div>
+
+          <div className="space-y-3">
+            {LINKS.map((item) => (
+              <a
+                key={item.url}
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block bg-secondary/40 border border-border rounded-xl p-4 hover:border-accent/50 transition-all duration-200 hover:scale-[1.01] active:scale-[0.98] group"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg text-white shadow-sm bg-gradient-to-br from-sky-500 to-blue-600">
+                    <Globe className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="notranslate font-serif text-base font-semibold text-foreground group-hover:text-accent transition-colors" translate="no">
+                      {item.title}
+                    </h3>
+                    <p className="font-sans text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0 mt-1">
+                    <CopyButton text={item.url} className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors" />
+                    <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-accent transition-colors" />
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
