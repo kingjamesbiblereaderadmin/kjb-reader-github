@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Shield, FileText, Mail, Globe, Youtube, ArrowRight, Heart, MonitorSmartphone, PlayCircle, Link2, Instagram } from 'lucide-react';
 import LandingSetupWizard from '@/components/LandingSetupWizard';
 import ScriptureBanner from '@/components/ScriptureBanner';
+import CollapsibleCard from '@/components/landing/CollapsibleCard';
 
 function TikTokIcon({ className }) {
   return (
@@ -69,54 +70,71 @@ export default function LandingPage() {
           <LandingSetupWizard />
         </div>
 
-        {/* Legal Links */}
-        <div className="grid sm:grid-cols-3 gap-4 mb-5">
-          <Link
-            to="/privacy"
-            className="flex items-center gap-3 p-5 rounded-2xl bg-card border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+        {/* Legal & Legacy */}
+        <div className="mb-5">
+          <CollapsibleCard
+            icon={
+              <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-violet-500 to-purple-600">
+                <Shield className="w-5 h-5" />
+              </div>
+            }
+            title="Legal & Legacy"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-violet-500 to-purple-600">
-              <Shield className="w-5 h-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">Privacy Policy</p>
-              <p className="font-sans text-xs text-muted-foreground">How your data is handled</p>
-            </div>
-            <ArrowRight className="w-4 h-4 text-muted-foreground" />
-          </Link>
+            <div className="grid sm:grid-cols-3 gap-4">
+              <Link
+                to="/privacy"
+                className="flex items-center gap-3 p-5 rounded-2xl bg-secondary/40 border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+              >
+                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-violet-500 to-purple-600">
+                  <Shield className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">Privacy Policy</p>
+                  <p className="font-sans text-xs text-muted-foreground">How your data is handled</p>
+                </div>
+                <ArrowRight className="w-4 h-4 text-muted-foreground" />
+              </Link>
 
-          <Link
-            to="/terms"
-            className="flex items-center gap-3 p-5 rounded-2xl bg-card border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
-          >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-emerald-500 to-teal-600">
-              <FileText className="w-5 h-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">Terms of Service</p>
-              <p className="font-sans text-xs text-muted-foreground">Rules for using this app</p>
-            </div>
-            <ArrowRight className="w-4 h-4 text-muted-foreground" />
-          </Link>
+              <Link
+                to="/terms"
+                className="flex items-center gap-3 p-5 rounded-2xl bg-secondary/40 border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+              >
+                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-emerald-500 to-teal-600">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">Terms of Service</p>
+                  <p className="font-sans text-xs text-muted-foreground">Rules for using this app</p>
+                </div>
+                <ArrowRight className="w-4 h-4 text-muted-foreground" />
+              </Link>
 
-          <Link
-            to="/legacy"
-            className="flex items-center gap-3 p-5 rounded-2xl bg-card border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
-          >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-slate-500 to-slate-700">
-              <MonitorSmartphone className="w-5 h-5" />
+              <Link
+                to="/legacy"
+                className="flex items-center gap-3 p-5 rounded-2xl bg-secondary/40 border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+              >
+                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-slate-500 to-slate-700">
+                  <MonitorSmartphone className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">Legacy Reader</p>
+                  <p className="font-sans text-xs text-muted-foreground">For old browsers (IE 11)</p>
+                </div>
+                <ArrowRight className="w-4 h-4 text-muted-foreground" />
+              </Link>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">Legacy Reader</p>
-              <p className="font-sans text-xs text-muted-foreground">For old browsers (IE 11)</p>
-            </div>
-            <ArrowRight className="w-4 h-4 text-muted-foreground" />
-          </Link>
+          </CollapsibleCard>
         </div>
 
         {/* Contact */}
-        <div className="bg-card border border-border/60 rounded-2xl p-6 sm:p-7 shadow-lg shadow-black/[0.03]">
-          <h2 className="font-serif text-xl font-semibold text-foreground mb-3">Contact</h2>
+        <CollapsibleCard
+          icon={
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
+              <Mail className="w-5 h-5" />
+            </div>
+          }
+          title="Contact"
+        >
           <div className="space-y-3 font-sans text-sm text-foreground/85">
             <a href="mailto:kingjamesbiblereader@outlook.sg" className="flex items-center gap-2 hover:text-primary transition-colors">
               <Mail className="w-4 h-4 text-muted-foreground" />
@@ -151,7 +169,7 @@ export default function LandingPage() {
               linktr.ee/shawnr325av
             </a>
           </div>
-        </div>
+        </CollapsibleCard>
 
         <p className="text-center font-sans text-xs text-muted-foreground mt-8">
           © {new Date().getFullYear()} <span className="notranslate" translate="no">KJB Reader</span> · Last updated: {LAST_UPDATED}
