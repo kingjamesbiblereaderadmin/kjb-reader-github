@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ExternalLink, FileText, BookOpen, ShieldAlert, Globe, CheckCircle, Users, ChevronDown, Youtube, Facebook, Instagram, Link as LinkIcon, Copy, Printer, Mail, PlayCircle, Link2 } from 'lucide-react';
 import { printHtml } from '@/lib/printHelpers';
+import CollapsibleCard from '@/components/landing/CollapsibleCard';
 
 function CopyButton({ text, className }) {
   const [copied, setCopied] = useState(false);
@@ -325,152 +326,162 @@ export default function ResourcesPage() {
       </div>
 
       {/* KJBI — Free Online Bible College */}
-      <div className="bg-card border border-border rounded-2xl mb-6 p-5">
-        <div className="flex items-start gap-3">
-          <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <h2 className="notranslate font-serif text-lg font-bold text-foreground mb-1">KJBI.org — Free Online Bible College</h2>
-            <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-              <span className="notranslate" translate="no">King James Bible Institute by Robert Breaker & Robert Potthoff</span> — a free online Bible college for those who want to go deeper in God's Word.
-            </p>
-            <div className="flex items-center gap-3 flex-wrap">
-              <a
-                href="https://kjbi.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                Visit KJBI.org <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-              <CopyButton text="https://kjbi.org" className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" />
-            </div>
+      <div className="mb-6">
+        <CollapsibleCard
+          defaultOpen
+          icon={<CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />}
+          title="KJBI.org — Free Online Bible College"
+        >
+          <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
+            <span className="notranslate" translate="no">King James Bible Institute by Robert Breaker & Robert Potthoff</span> — a free online Bible college for those who want to go deeper in God's Word.
+          </p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <a
+              href="https://kjbi.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Visit KJBI.org <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+            <CopyButton text="https://kjbi.org" className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" />
           </div>
-        </div>
+        </CollapsibleCard>
       </div>
 
       {/* KJB Discord Bot */}
-      <div className="bg-card border border-border rounded-2xl mb-6 p-5">
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-violet-500 to-purple-700">
-            <DiscordIcon className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="notranslate font-serif text-lg font-bold text-foreground mb-1">KJB Discord Bot</h2>
-            <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-              Use the <span className="notranslate">KJB Reader</span> bot in your own <span className="notranslate" translate="no">Discord</span> account or add it to a server for daily verses and verse search directly in <span className="notranslate" translate="no">Discord</span>.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <a
-                href="https://discord.com/oauth2/authorize?client_id=1529303667348606996&scope=applications.commands&integration_type=1"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col items-center text-center gap-1.5 p-4 rounded-xl bg-secondary/50 border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
-              >
-                <span className="font-sans font-semibold text-sm text-foreground group-hover:text-accent transition-colors">📱 Personal Install</span>
-                <span className="font-sans text-xs text-muted-foreground leading-relaxed">Adds slash commands to your Discord account — works in DMs, group DMs, and any server.</span>
-              </a>
-              <a
-                href="https://discord.com/oauth2/authorize?client_id=1529303667348606996&scope=bot+applications.commands&permissions=378494381072"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col items-center text-center gap-1.5 p-4 rounded-xl bg-secondary/50 border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
-              >
-                <span className="font-sans font-semibold text-sm text-foreground group-hover:text-accent transition-colors">🏠 Server Install</span>
-                <span className="font-sans text-xs text-muted-foreground leading-relaxed">Bot joins a server for daily verse delivery and searching up verses and keywords.</span>
-              </a>
+      <div className="mb-6">
+        <CollapsibleCard
+          defaultOpen
+          icon={
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-violet-500 to-purple-700">
+              <DiscordIcon className="w-5 h-5" />
             </div>
+          }
+          title="KJB Discord Bot"
+        >
+          <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
+            Use the <span className="notranslate">KJB Reader</span> bot in your own <span className="notranslate" translate="no">Discord</span> account or add it to a server for daily verses and verse search directly in <span className="notranslate" translate="no">Discord</span>.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <a
+              href="https://discord.com/oauth2/authorize?client_id=1529303667348606996&scope=applications.commands&integration_type=1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center text-center gap-1.5 p-4 rounded-xl bg-secondary/50 border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            >
+              <span className="font-sans font-semibold text-sm text-foreground group-hover:text-accent transition-colors">📱 Personal Install</span>
+              <span className="font-sans text-xs text-muted-foreground leading-relaxed">Adds slash commands to your Discord account — works in DMs, group DMs, and any server.</span>
+            </a>
+            <a
+              href="https://discord.com/oauth2/authorize?client_id=1529303667348606996&scope=bot+applications.commands&permissions=378494381072"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center text-center gap-1.5 p-4 rounded-xl bg-secondary/50 border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            >
+              <span className="font-sans font-semibold text-sm text-foreground group-hover:text-accent transition-colors">🏠 Server Install</span>
+              <span className="font-sans text-xs text-muted-foreground leading-relaxed">Bot joins a server for daily verse delivery and searching up verses and keywords.</span>
+            </a>
           </div>
-        </div>
+        </CollapsibleCard>
       </div>
 
       {/* KJB Knights Server */}
-      <div className="bg-card border border-border rounded-2xl mb-6 p-5">
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-violet-500 to-purple-700">
-            <DiscordIcon className="w-5 h-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="notranslate font-serif text-lg font-bold text-foreground mb-1">KJB Knights Server</h2>
-            <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-              My and my friends' <span className="notranslate" translate="no">Discord</span> server — feel free to join.
-            </p>
-            <div className="flex items-center gap-3 flex-wrap">
-              <a
-                href="https://discord.gg/HK9Kqmg7Jh"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                Join KJB Knights <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+      <div className="mb-6">
+        <CollapsibleCard
+          defaultOpen
+          icon={
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-violet-500 to-purple-700">
+              <DiscordIcon className="w-5 h-5" />
             </div>
+          }
+          title="KJB Knights Server"
+        >
+          <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
+            My and my friends' <span className="notranslate" translate="no">Discord</span> server — feel free to join.
+          </p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <a
+              href="https://discord.gg/HK9Kqmg7Jh"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Join KJB Knights <ExternalLink className="w-3.5 h-3.5" />
+            </a>
           </div>
-        </div>
+        </CollapsibleCard>
       </div>
 
       {/* KJB Reader Chrome Extension */}
-      <div className="bg-card border border-border rounded-2xl mb-6 p-5">
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-cyan-600">
-            <Globe className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="notranslate font-serif text-lg font-bold text-foreground mb-1">KJB SidePanel</h2>
-            <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-              Read, search, and look up Bible verses from any web page with the <span className="notranslate">KJB Reader</span> sidebar extension — now available on the <span className="notranslate" translate="no">Chrome Web Store</span>.
-            </p>
-            <div className="flex items-center gap-3 flex-wrap">
-              <Link
-                to="/extension"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                Get KJB SidePanel
-              </Link>
+      <div className="mb-6">
+        <CollapsibleCard
+          defaultOpen
+          icon={
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-cyan-600">
+              <Globe className="w-5 h-5" />
             </div>
+          }
+          title="KJB SidePanel"
+        >
+          <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
+            Read, search, and look up Bible verses from any web page with the <span className="notranslate">KJB Reader</span> sidebar extension — now available on the <span className="notranslate" translate="no">Chrome Web Store</span>.
+          </p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Link
+              to="/extension"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Get KJB SidePanel
+            </Link>
           </div>
-        </div>
+        </CollapsibleCard>
       </div>
 
       {/* Spanish Resources — dedicated page */}
-      <div className="bg-card border border-border rounded-2xl mb-6 p-5">
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-sky-500 to-blue-600">
-            <Globe className="w-5 h-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="font-serif text-lg font-bold text-foreground mb-1">Recursos en Español</h2>
-            <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-              Recursos y estudios de la Biblia en español.
-            </p>
-            <Link
-              to="/spanish"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              Abrir Recursos en Español <ExternalLink className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-        </div>
+      <div className="mb-6">
+        <CollapsibleCard
+          defaultOpen
+          icon={
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-sky-500 to-blue-600">
+              <Globe className="w-5 h-5" />
+            </div>
+          }
+          title="Recursos en Español"
+        >
+          <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
+            Recursos y estudios de la Biblia en español.
+          </p>
+          <Link
+            to="/spanish"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            Abrir Recursos en Español <ExternalLink className="w-3.5 h-3.5" />
+          </Link>
+        </CollapsibleCard>
       </div>
 
       {/* KJB Defence — dedicated page */}
-      <div className="bg-card border border-border rounded-2xl mb-6 p-5">
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
-            <ShieldAlert className="w-5 h-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="notranslate font-serif text-lg font-bold text-foreground mb-1">KJB Defence</h2>
-            <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-              A dedicated collection of resources defending the <span className="notranslate" translate="no">King James Bible</span> and exposing the corruption of modern versions.
-            </p>
-            <Link
-              to="/kjb-defence"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              Open KJB Defence <ExternalLink className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-        </div>
+      <div className="mb-6">
+        <CollapsibleCard
+          defaultOpen
+          icon={
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+          }
+          title="KJB Defence"
+        >
+          <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
+            A dedicated collection of resources defending the <span className="notranslate" translate="no">King James Bible</span> and exposing the corruption of modern versions.
+          </p>
+          <Link
+            to="/kjb-defence"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            Open KJB Defence <ExternalLink className="w-3.5 h-3.5" />
+          </Link>
+        </CollapsibleCard>
       </div>
 
       {/* Verified Preachers section */}
