@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.205', date: 'August 27, 2026', items: ['Fixed verse reference clicks being silently swallowed on complex websites (Facebook, React apps, Bootstrap sites). The interactive-element guard was too aggressive, blocking clicks on verse text inside containers with tabindex or onclick attributes. The guard now only blocks genuinely interactive controls (buttons, selects, inputs, textarea, summary, and elements with ARIA roles like role="button")'] },
   { version: 'v0.4.204', date: 'August 25, 2026', items: ['Fixed multi-word keyword search returning no results when any word appears in 500+ verses (e.g. "holy, men, moved" now correctly finds 2 Peter 1:21)', 'Multi-word AND search now searches the rarest word first, then filters results client-side for remaining words \u2014 eliminates the API result limit that was cutting off valid matches'] },
   { version: 'v0.4.202', date: 'August 23, 2026', items: ['Updated search result copy format to use curly quotation marks around verse text with the reference after a dash: \u201Cverse text\u201D - Reference (KJB)', 'Full chapter copy remains unchanged \u2014 no quotes, verse numbers and text only'] },
   { version: 'v0.4.201', date: 'August 23, 2026', items: ['Fixed verse detection intercepting clicks on nearby buttons, dropdowns, and close (X) controls \u2014 interactive elements now work normally even when a Bible reference is nearby', 'Removed aggressive bounding box fallback that was capturing clicks within the expanded padding area of verse references', 'Added interactive element guard that skips verse detection when clicking on buttons, selects, inputs, accordion toggles, and ARIA role="button" elements'] },
@@ -205,7 +206,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.204
+            Current Version: v0.4.205
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
