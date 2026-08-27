@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Heart, ExternalLink, PlayCircle, ArrowLeft } from 'lucide-react';
 
 const VIDEOS = [
@@ -17,14 +17,23 @@ function Verse({ children }) {
 }
 
 export default function SpanishGospelPage() {
+  const navigate = useNavigate();
+  const handleBack = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/spanish');
+    }
+  };
+
   return (
     <div className="w-full max-w-3xl mx-auto px-5 sm:px-8 lg:px-12 py-10">
-      <Link
-        to="/spanish"
+      <button
+        onClick={handleBack}
         className="inline-flex items-center gap-1.5 text-sm font-sans font-medium text-accent hover:underline mb-6"
       >
-        <ArrowLeft className="w-4 h-4" /> Volver a Recursos en Español
-      </Link>
+        <ArrowLeft className="w-4 h-4" /> Volver
+      </button>
 
       <a
         href="https://laiglesiadelanube.com/el-evangelio-de-salvaci%C3%B3n"
