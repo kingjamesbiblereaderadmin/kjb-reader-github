@@ -19,25 +19,25 @@ const LINKS = [
 
 const GOSPEL_VIDEO_ID = 'UmJcHODdUGY';
 
-const MORE_VIDEO_IDS = [
-  'z6hQC193RXw',
-  'MEYnVldg5Lg',
-  'USo1F9II0TI',
-  'ZTnRVsUfkEE',
-  'fugWELY6XvQ',
-  'DQtTV2P1n5Y',
-  'WDxisN8QQt0',
-  'NTcuL1h_Fyk',
-  'i-rsBO_KJb4',
-  'A24ZR2_jFVg',
-  '9lVy-rwVJPw',
-  'Dfs9zos3dO4',
-  'SKrXSayjdHQ',
-  'x94ufvXm-wA',
-  'DpnThwT6Zn8',
-  'DQ_Shf0uFpc',
-  'RiMaRkwD1qA',
-  'u4cv2uLVN1A',
+const MORE_VIDEOS = [
+  { id: 'z6hQC193RXw', title: 'Which Bible in Spanish?' },
+  { id: 'fugWELY6XvQ', title: 'My Testimony About the Spanish Bible Issue' },
+  { id: 'NTcuL1h_Fyk', title: 'The Problems and Errors in the 1960 Spanish Bible' },
+  { id: 'A24ZR2_jFVg', title: 'Spanish Bible Issue Introduction' },
+  { id: '9lVy-rwVJPw', title: 'The Truth about the 1909 Spanish Bible' },
+  { id: 'x94ufvXm-wA', title: 'The Truth About the 1865 Spanish Bible' },
+  { id: 'DpnThwT6Zn8', title: 'A Look at the Modern Gomez Bible and the Grievous Errors in Its First Edition' },
+  { id: 'SKrXSayjdHQ', title: 'The 1865 Spanish Bible Contains Critical Texts' },
+  { id: 'u4cv2uLVN1A', title: 'The 1865 Spanish Bible Reads with the Critical Texts!' },
+  { id: 'USo1F9II0TI', title: 'The History of the Spanish Bible' },
+  { id: 'ZTnRVsUfkEE', title: 'The History and Truth about the Spanish Bible Issue' },
+  { id: 'MEYnVldg5Lg', title: 'The Spanish Bible Issue' },
+  { id: 'RiMaRkwD1qA', title: 'El Asunto de La Biblia en Español' },
+  { id: 'WDxisN8QQt0', title: "Why I Don't Use the 1960 Spanish Bible!" },
+  { id: 'DQtTV2P1n5Y', title: 'The Spanish Bible Issue Controversy: Which Bible in Spanish' },
+  { id: 'Dfs9zos3dO4', title: 'La Controversia de la Biblia Española' },
+  { id: 'DQ_Shf0uFpc', title: 'Part 5 King James Bible Seminar 2025: Spanish Bible History and Exhibition of Bibles' },
+  { id: 'i-rsBO_KJb4', title: "The Spanish Bible Walkin' and A-Talkin'" },
 ];
 
 export default function SpanishResourcesPage() {
@@ -144,21 +144,21 @@ export default function SpanishResourcesPage() {
             title="La Cuestión de la Biblia en Español - Robert Breaker"
           >
             <div className="space-y-2">
-              {MORE_VIDEO_IDS.map((id, idx) => (
+              {MORE_VIDEOS.map((v) => (
                 <a
-                  key={id}
-                  href={`https://youtu.be/${id}`}
+                  key={v.id}
+                  href={`https://youtu.be/${v.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-3 bg-secondary/40 border border-border rounded-lg hover:border-accent/50 transition-all duration-200 hover:scale-[1.01] active:scale-[0.98] group"
                 >
                   <img
-                    src={`https://img.youtube.com/vi/${id}/hqdefault.jpg`}
+                    src={`https://img.youtube.com/vi/${v.id}/hqdefault.jpg`}
                     alt=""
                     className="w-20 h-12 object-cover rounded-md flex-shrink-0"
                   />
                   <span className="font-sans text-sm font-medium text-foreground group-hover:text-accent transition-colors flex-1">
-                    Video {idx + 1}
+                    {v.title}
                   </span>
                   <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors flex-shrink-0" />
                 </a>
