@@ -62,11 +62,12 @@ function getLinkLabel(url) {
 export const PREACHERS = [
   {
     name: 'Robert Breaker',
-    desc: 'KJB missionary evangelist, rightly dividing the word of truth.',
+    desc: 'KJB missionary evangelist, rightly dividing the word of truth. Also preaches in Spanish.',
     links: [
       'https://www.youtube.com/@Robertbreaker3',
       'https://www.tiktok.com/@robertbreaker',
-      'https://thecloudchurch.org/']
+      'https://thecloudchurch.org/',
+      'https://laiglesiadelanube.com/']
   },
   {
     name: 'Robert Potthoff',
@@ -122,21 +123,28 @@ export const PREACHERS = [
   },
 ];
 
-export default function PreachersSection({ openPreachers: externalOpen, togglePreacher: externalToggle }) {
+export default function PreachersSection({
+  openPreachers: externalOpen,
+  togglePreacher: externalToggle,
+  groupOpen: externalGroupOpen,
+  onToggleGroup: externalToggleGroup,
+}) {
   const [internalOpen, setInternalOpen] = useState(() =>
     Object.fromEntries(PREACHERS.map((p) => [p.name, true]))
   );
-  const [groupOpen, setGroupOpen] = useState(true);
+  const [internalGroupOpen, setInternalGroupOpen] = useState(true);
 
   const openPreachers = externalOpen || internalOpen;
   const togglePreacher = externalToggle || ((name) => {
     setInternalOpen((prev) => ({ ...prev, [name]: !prev[name] }));
   });
+  const groupOpen = externalGroupOpen !== undefined ? externalGroupOpen : internalGroupOpen;
+  const toggleGroup = externalToggleGroup || (() => setInternalGroupOpen((o) => !o));
 
   return (
     <div className="mb-8 bg-card border border-border rounded-2xl overflow-hidden">
       <button
-        onClick={() => setGroupOpen((o) => !o)}
+        onClick={toggleGroup}
         className="w-full flex items-start justify-between gap-4 p-5 hover:bg-accent/5 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left"
       >
         <div>
