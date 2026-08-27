@@ -1,6 +1,7 @@
 import React from 'react';
-import { ExternalLink, Globe, FileText, CheckCircle } from 'lucide-react';
+import { ExternalLink, Globe, FileText, CheckCircle, PlayCircle } from 'lucide-react';
 import CopyButton from '@/components/defence/CopyButton';
+import CollapsibleCard from '@/components/landing/CollapsibleCard';
 
 const LINKS = [
   {
@@ -13,6 +14,29 @@ const LINKS = [
     desc: 'Estudios sobre la controversia de las versiones de la Biblia en español.',
     url: 'https://spanishbibleissue.com/',
   },
+];
+
+const GOSPEL_VIDEO_ID = 'UmJcHODdUGY';
+
+const MORE_VIDEO_IDS = [
+  'z6hQC193RXw',
+  'MEYnVldg5Lg',
+  'USo1F9II0TI',
+  'ZTnRVsUfkEE',
+  'fugWELY6XvQ',
+  'DQtTV2P1n5Y',
+  'WDxisN8QQt0',
+  'NTcuL1h_Fyk',
+  'i-rsBO_KJb4',
+  'A24ZR2_jFVg',
+  '9lVy-rwVJPw',
+  'Dfs9zos3dO4',
+  'SKrXSayjdHQ',
+  'x94ufvXm-wA',
+  'DpnThwT6Zn8',
+  'DQ_Shf0uFpc',
+  'RiMaRkwD1qA',
+  'u4cv2uLVN1A',
 ];
 
 export default function SpanishResourcesPage() {
@@ -30,6 +54,36 @@ export default function SpanishResourcesPage() {
       </div>
 
       <div className="max-w-2xl mx-auto">
+        {/* Gospel video */}
+        <div className="bg-card border border-border rounded-2xl p-5 mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <PlayCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+            <h2 className="font-serif text-lg font-semibold text-foreground">El Evangelio en Español</h2>
+          </div>
+          <div className="rounded-xl overflow-hidden border border-border">
+            <div className="aspect-video w-full">
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${GOSPEL_VIDEO_ID}?rel=0&modestbranding=1&playsinline=1`}
+                title="El Evangelio en Español"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+                loading="lazy"
+                className="w-full h-full"
+              />
+            </div>
+          </div>
+          <a
+            href={`https://youtu.be/${GOSPEL_VIDEO_ID}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 mt-3 text-xs font-sans font-medium text-accent hover:underline"
+          >
+            Ver en YouTube <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
+
         <div className="bg-card border border-border rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4">
             <h2 className="notranslate font-serif text-lg font-semibold text-foreground" translate="no">Robert Breaker</h2>
@@ -63,6 +117,36 @@ export default function SpanishResourcesPage() {
               </a>
             ))}
           </div>
+        </div>
+
+        {/* More gospel videos, collapsible */}
+        <div className="mt-6">
+          <CollapsibleCard
+            icon={<PlayCircle className="w-5 h-5 text-red-500 flex-shrink-0" />}
+            title="Más Videos del Evangelio"
+          >
+            <div className="space-y-2">
+              {MORE_VIDEO_IDS.map((id, idx) => (
+                <a
+                  key={id}
+                  href={`https://youtu.be/${id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 bg-secondary/40 border border-border rounded-lg hover:border-accent/50 transition-all duration-200 hover:scale-[1.01] active:scale-[0.98] group"
+                >
+                  <img
+                    src={`https://img.youtube.com/vi/${id}/hqdefault.jpg`}
+                    alt=""
+                    className="w-20 h-12 object-cover rounded-md flex-shrink-0"
+                  />
+                  <span className="font-sans text-sm font-medium text-foreground group-hover:text-accent transition-colors flex-1">
+                    Video {idx + 1}
+                  </span>
+                  <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors flex-shrink-0" />
+                </a>
+              ))}
+            </div>
+          </CollapsibleCard>
         </div>
       </div>
     </div>
