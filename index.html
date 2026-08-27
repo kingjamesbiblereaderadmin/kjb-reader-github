@@ -261,6 +261,14 @@
           var kjbZoomFactor = (kjbZoomVal >= 50 && kjbZoomVal <= 200) ? kjbZoomVal / 100 : 1;
           if (kjbZoomFactor !== 1) {
             document.documentElement.style.setProperty('--kjb-zoom-scale', String(kjbZoomFactor));
+            // Also set the root font-size directly (not just the CSS variable) —
+            // the variable only takes effect once index.css's `:root { font-size:
+            // calc(...) }` rule loads, which can lag behind this inline script.
+            // Without this, the rem-sized boot splash below paints at the
+            // default 100% size first, then visibly jumps to the saved zoom
+            // once the stylesheet arrives. Setting it here makes the splash
+            // correctly sized from the very first frame, every reopen.
+            document.documentElement.style.fontSize = (kjbZoomFactor * 100) + '%';
           }
         } catch (e) {}
         try {
