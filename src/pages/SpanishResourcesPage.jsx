@@ -1,5 +1,6 @@
 import React from 'react';
-import { ExternalLink, Globe, FileText, CheckCircle, PlayCircle } from 'lucide-react';
+import { ExternalLink, Globe, FileText, CheckCircle, PlayCircle, BookOpen } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import CopyButton from '@/components/defence/CopyButton';
 import CollapsibleCard from '@/components/landing/CollapsibleCard';
 
@@ -74,14 +75,22 @@ export default function SpanishResourcesPage() {
               />
             </div>
           </div>
-          <a
-            href={`https://youtu.be/${GOSPEL_VIDEO_ID}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 mt-3 text-xs font-sans font-medium text-accent hover:underline"
-          >
-            Ver en YouTube <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+          <div className="flex items-center gap-4 mt-3">
+            <a
+              href={`https://youtu.be/${GOSPEL_VIDEO_ID}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs font-sans font-medium text-accent hover:underline"
+            >
+              Ver en YouTube <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+            <Link
+              to="/spanish-gospel"
+              className="inline-flex items-center gap-1.5 text-xs font-sans font-medium text-accent hover:underline"
+            >
+              <BookOpen className="w-3.5 h-3.5" /> Leer el Evangelio de Salvación
+            </Link>
+          </div>
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-5">

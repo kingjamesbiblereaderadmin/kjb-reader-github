@@ -50,6 +50,7 @@ const loaders = {
 
   Credits: () => import('@/pages/CreditsPage').catch((err) => { console.error('Failed to load CreditsPage:', err); throw err; }),
   Spanish: () => import('@/pages/SpanishResourcesPage.jsx').catch((err) => { console.error('Failed to load SpanishResourcesPage:', err); throw err; }),
+  SpanishGospel: () => import('@/pages/SpanishGospelPage.jsx').catch((err) => { console.error('Failed to load SpanishGospelPage:', err); throw err; }),
   Changelog: () => import('@/pages/ChangelogPage').catch((err) => { console.error('Failed to load ChangelogPage:', err); throw err; }),
 
 };
@@ -87,6 +88,7 @@ const RegisterPage = lazy(loaders.Register);
 const OAuthConsentPage = lazy(loaders.OAuthConsent);
 const CreditsPage = lazy(loaders.Credits);
 const SpanishResourcesPage = lazy(loaders.Spanish);
+const SpanishGospelPage = lazy(loaders.SpanishGospel);
 const ChangelogPage = lazy(loaders.Changelog);
 
 
@@ -314,6 +316,7 @@ const AuthenticatedApp = () => {
               <Route path="/legacy" element={<Suspense fallback={<RouteLoader />}><FadeIn><LegacyReader /></FadeIn></Suspense>} />
               <Route path="/dev-tools" element={<Suspense fallback={<RouteLoader />}><FadeIn><DevToolsPage /></FadeIn></Suspense>} />
               <Route path="/spanish" element={<Suspense fallback={<RouteLoader />}><FadeIn><SpanishResourcesPage /></FadeIn></Suspense>} />
+              <Route path="/spanish-gospel" element={<Suspense fallback={<RouteLoader />}><FadeIn><SpanishGospelPage /></FadeIn></Suspense>} />
             </Route>
             <Route path="/bible.txt" element={<Suspense fallback={null}><BibleTxt /></Suspense>} />
             <Route path="*" element={<PageNotFound />} />
