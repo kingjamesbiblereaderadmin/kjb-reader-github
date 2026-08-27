@@ -65,6 +65,23 @@ export default function LandingPage() {
           </Link>
         </div>
 
+        {/* Spanish gospel promo card */}
+        <div className="mb-5">
+          <Link
+            to="/spanish-gospel"
+            className="flex items-center gap-3 p-5 rounded-2xl bg-card border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+          >
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-sky-500 to-blue-600">
+              <Globe className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">¿Necesitas el Evangelio en Español?</p>
+              <p className="font-sans text-xs text-muted-foreground">El Evangelio de Salvación en español</p>
+            </div>
+            <ArrowRight className="w-4 h-4 text-muted-foreground" />
+          </Link>
+        </div>
+
         {/* Step-by-step setup wizard */}
         <div className="mb-5">
           <LandingSetupWizard />
