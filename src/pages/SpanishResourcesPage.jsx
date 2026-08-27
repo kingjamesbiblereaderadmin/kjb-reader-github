@@ -75,22 +75,28 @@ export default function SpanishResourcesPage() {
               />
             </div>
           </div>
-          <div className="flex items-center gap-4 mt-3">
-            <a
-              href={`https://youtu.be/${GOSPEL_VIDEO_ID}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-sans font-medium text-accent hover:underline"
-            >
-              Ver en YouTube <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-            <Link
-              to="/spanish-gospel"
-              className="inline-flex items-center gap-1.5 text-xs font-sans font-medium text-accent hover:underline"
-            >
-              <BookOpen className="w-3.5 h-3.5" /> Leer el Evangelio de Salvación
-            </Link>
-          </div>
+          <a
+            href={`https://youtu.be/${GOSPEL_VIDEO_ID}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs font-sans font-medium text-accent hover:underline mt-3"
+          >
+            Ver en YouTube <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+
+          <Link
+            to="/spanish-gospel"
+            className="flex items-center gap-3 p-4 mt-3 rounded-xl bg-secondary/40 border border-border hover:border-accent/50 transition-all duration-200 hover:scale-[1.01] active:scale-[0.98] group"
+          >
+            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg text-white shadow-sm bg-gradient-to-br from-sky-500 to-blue-600">
+              <BookOpen className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">Leer el Evangelio de Salvación</p>
+              <p className="font-sans text-xs text-muted-foreground">El artículo completo con videos adicionales</p>
+            </div>
+            <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-accent transition-colors flex-shrink-0" />
+          </Link>
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-5">
