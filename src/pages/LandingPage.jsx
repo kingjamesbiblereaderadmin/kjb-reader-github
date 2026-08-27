@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, FileText, Mail, Globe, Youtube, ArrowRight, Heart, MonitorSmartphone, PlayCircle, Link2, GraduationCap, Instagram } from 'lucide-react';
+import { Shield, FileText, Mail, Globe, Youtube, ArrowRight, Heart, MonitorSmartphone, PlayCircle, Link2, Instagram } from 'lucide-react';
 import LandingSetupWizard from '@/components/LandingSetupWizard';
 import ScriptureBanner from '@/components/ScriptureBanner';
 
@@ -47,9 +47,8 @@ export default function LandingPage() {
         {/* Scripture banner */}
         <ScriptureBanner />
 
-        {/* Promo cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-          {/* Gospel */}
+        {/* Promo card */}
+        <div className="mb-4">
           <Link
             to="/salvation"
             className="flex items-center gap-3 p-5 rounded-2xl bg-card border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
@@ -63,88 +62,6 @@ export default function LandingPage() {
             </div>
             <ArrowRight className="w-4 h-4 text-muted-foreground" />
           </Link>
-
-          {/* KJBI */}
-          <a
-            href="https://kjbi.org"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 p-5 rounded-2xl bg-card border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
-          >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-indigo-500 to-purple-600">
-              <GraduationCap className="w-5 h-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">KJBI.org — Free Online Bible College</p>
-              <p className="font-sans text-xs text-muted-foreground"><span className="notranslate" translate="no">King James Bible Institute by Robert Breaker & Robert Potthoff</span> — go deeper in God's Word, for free.</p>
-            </div>
-            <ArrowRight className="w-4 h-4 text-muted-foreground" />
-          </a>
-
-          {/* KJB Reader Chrome Extension */}
-          <Link
-            to="/extension"
-            className="flex items-center gap-3 p-5 rounded-2xl bg-card border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
-          >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-cyan-600">
-              <Globe className="w-5 h-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors"><span className="notranslate" translate="no">KJB Reader - SidePanel</span> <span className="text-accent font-semibold">— Available Now!</span></p>
-              <p className="font-sans text-xs text-muted-foreground">Read, search, and look up Bible verses from any web page. Mobile support is limited.</p>
-            </div>
-            <ArrowRight className="w-4 h-4 text-muted-foreground" />
-          </Link>
-
-          {/* KJB Discord Bot */}
-          <div className="p-5 rounded-2xl bg-card border border-border/60 shadow-sm flex flex-col">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-violet-500 to-purple-700">
-                <DiscordIcon className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="notranslate font-sans font-medium text-sm text-foreground" translate="no">KJB Discord Bot</p>
-                <p className="font-sans text-xs text-muted-foreground">Add the <span className="notranslate" translate="no">KJB Reader</span> bot to your Discord.</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-1">
-              <a
-                href="https://discord.com/oauth2/authorize?client_id=1529303667348606996&scope=applications.commands&integration_type=1"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col items-center text-center justify-center gap-1 p-3 rounded-xl bg-background/40 border border-border/60 hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
-              >
-                <p className="font-sans font-semibold text-xs text-foreground group-hover:text-accent transition-colors">📱 Personal Install</p>
-                <p className="font-sans text-[11px] text-muted-foreground leading-relaxed">Slash commands for your account — DMs, group DMs, any server.</p>
-              </a>
-              <a
-                href="https://discord.com/oauth2/authorize?client_id=1529303667348606996&scope=bot+applications.commands&permissions=378494381072"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col items-center text-center justify-center gap-1 p-3 rounded-xl bg-background/40 border border-border/60 hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
-              >
-                <p className="font-sans font-semibold text-xs text-foreground group-hover:text-accent transition-colors">🏠 Server Install</p>
-                <p className="font-sans text-[11px] text-muted-foreground leading-relaxed">Bot joins a server for searching up verses and keywords.</p>
-              </a>
-            </div>
-          </div>
-
-          {/* KJB Knights Server */}
-          <a
-            href="https://discord.gg/HK9Kqmg7Jh"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="sm:col-span-2 flex items-center gap-3 p-5 rounded-2xl bg-card border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
-          >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-violet-500 to-purple-700">
-              <DiscordIcon className="w-5 h-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors" translate="no">KJB Knights Server</p>
-              <p className="font-sans text-xs text-muted-foreground">My and my friends' Discord server — come join us.</p>
-            </div>
-            <ArrowRight className="w-4 h-4 text-muted-foreground" />
-          </a>
         </div>
 
         {/* Step-by-step setup wizard */}
