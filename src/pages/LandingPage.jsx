@@ -118,7 +118,7 @@ export default function LandingPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">Legacy Reader</p>
-                  <p className="font-sans text-xs text-muted-foreground">For old browsers (IE 11)</p>
+                  <p className="font-sans text-xs text-muted-foreground">For old browsers (Internet Explorer 11)</p>
                 </div>
                 <ArrowRight className="w-4 h-4 text-muted-foreground" />
               </Link>

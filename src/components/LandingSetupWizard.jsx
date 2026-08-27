@@ -469,6 +469,20 @@ export default function LandingSetupWizard() {
                 <ArrowRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
               </Link>
 
+              <Link
+                to="/spanish"
+                className="flex items-center gap-2.5 p-3 rounded-xl bg-secondary/40 border border-border hover:border-accent/40 transition-all group"
+              >
+                <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-white shadow-sm bg-gradient-to-br from-sky-500 to-blue-600">
+                  <Globe className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="font-sans font-medium text-xs text-foreground group-hover:text-accent transition-colors">Recursos en Español</p>
+                  <p className="font-sans text-[10px] text-muted-foreground">Recursos y estudios de la Biblia en español</p>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+              </Link>
+
               <a
                 href="https://discord.com/oauth2/authorize?client_id=1529303667348606996&scope=bot+applications.commands&permissions=378494381072"
                 target="_blank"
