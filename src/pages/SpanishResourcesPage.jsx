@@ -141,7 +141,7 @@ export default function SpanishResourcesPage() {
         <div className="mt-6">
           <CollapsibleCard
             icon={<PlayCircle className="w-5 h-5 text-red-500 flex-shrink-0" />}
-            title="Spanish Bible Issue - Robert Breaker"
+            title="La Cuestión de la Biblia en Español - Robert Breaker"
           >
             <div className="space-y-2">
               {MORE_VIDEO_IDS.map((id, idx) => (
