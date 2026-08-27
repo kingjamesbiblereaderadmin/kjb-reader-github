@@ -1,5 +1,6 @@
 import React from 'react';
-import { Heart, ExternalLink, PlayCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Heart, ExternalLink, PlayCircle, ArrowLeft } from 'lucide-react';
 
 const VIDEOS = [
   { title: 'La Importancia de la Sangre', id: 'Vpn00jurClA' },
@@ -18,6 +19,23 @@ function Verse({ children }) {
 export default function SpanishGospelPage() {
   return (
     <div className="w-full max-w-3xl mx-auto px-5 sm:px-8 lg:px-12 py-10">
+      <Link
+        to="/spanish"
+        className="inline-flex items-center gap-1.5 text-sm font-sans font-medium text-accent hover:underline mb-6"
+      >
+        <ArrowLeft className="w-4 h-4" /> Volver a Recursos en Español
+      </Link>
+
+      <a
+        href="https://laiglesiadelanube.com/el-evangelio-de-salvaci%C3%B3n"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="notranslate block text-center font-sans text-xs text-muted-foreground mb-6 hover:text-accent transition-colors"
+        translate="no"
+      >
+        Fuente: laiglesiadelanube.com — Roberto Breaker
+      </a>
+
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-secondary mb-4">
           <Heart className="w-7 h-7 text-rose-500" />
@@ -182,10 +200,6 @@ export default function SpanishGospelPage() {
           ))}
         </div>
       </div>
-
-      <p className="text-center font-sans text-xs text-muted-foreground mt-10 notranslate" translate="no">
-        Fuente: laiglesiadelanube.com — Roberto Breaker
-      </p>
     </div>
   );
 }

@@ -297,6 +297,7 @@ const AuthenticatedApp = () => {
             <Route path="/extension-terms" element={<Suspense fallback={<RouteLoader />}><ExtensionTermsPage /></Suspense>} />
             <Route path="/extension-license" element={<Suspense fallback={<RouteLoader />}><ExtensionLicensePage /></Suspense>} />
             <Route path="/landing" element={<Suspense fallback={<RouteLoader />}><LandingPage /></Suspense>} />
+            <Route path="/spanish-gospel" element={<Suspense fallback={<RouteLoader />}><SpanishGospelPage /></Suspense>} />
             <Route element={<AppLayout />}>
               <Route path="/" element={<Suspense fallback={<RouteLoader />}><FadeIn><HomePage /></FadeIn></Suspense>} />
               <Route path="/read" element={<Suspense fallback={<RouteLoader />}><FadeIn><BibleReader /></FadeIn></Suspense>} />
@@ -316,7 +317,6 @@ const AuthenticatedApp = () => {
               <Route path="/legacy" element={<Suspense fallback={<RouteLoader />}><FadeIn><LegacyReader /></FadeIn></Suspense>} />
               <Route path="/dev-tools" element={<Suspense fallback={<RouteLoader />}><FadeIn><DevToolsPage /></FadeIn></Suspense>} />
               <Route path="/spanish" element={<Suspense fallback={<RouteLoader />}><FadeIn><SpanishResourcesPage /></FadeIn></Suspense>} />
-              <Route path="/spanish-gospel" element={<Suspense fallback={<RouteLoader />}><FadeIn><SpanishGospelPage /></FadeIn></Suspense>} />
             </Route>
             <Route path="/bible.txt" element={<Suspense fallback={null}><BibleTxt /></Suspense>} />
             <Route path="*" element={<PageNotFound />} />
