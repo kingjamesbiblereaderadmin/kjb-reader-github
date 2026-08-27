@@ -149,10 +149,13 @@ const RESOURCES = [];
 
 
 
-function PreachersSection({ openPreachers, togglePreacher }) {
+function PreachersSection({ isOpen, onToggle, openPreachers, togglePreacher }) {
   return (
-    <div className="mb-10">
-      <div className="flex items-start justify-between gap-4 mb-4">
+    <div className="bg-card border border-border rounded-2xl mb-6 overflow-hidden">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-start justify-between gap-4 p-5 hover:bg-accent/5 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left"
+      >
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700/60 mb-2">
             <Users className="w-4 h-4 text-amber-600" />
@@ -162,12 +165,16 @@ function PreachersSection({ openPreachers, togglePreacher }) {
             KJB-believing, soul-winning preachers — tap to see all their links
           </p>
         </div>
-        <CopyButton 
-          text={`Verified KJB Preachers\n\n${PREACHERS.map(p => `${p.name}\n${p.desc}\n${p.links.join('\n')}`).join('\n\n')}`} 
-          className="p-2 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-400 transition-colors flex-shrink-0 cursor-pointer" 
-        />
-      </div>
-      <div className="space-y-2">
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <CopyButton
+            text={`Verified KJB Preachers\n\n${PREACHERS.map(p => `${p.name}\n${p.desc}\n${p.links.join('\n')}`).join('\n\n')}`}
+            className="p-2 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-400 transition-colors cursor-pointer"
+          />
+          <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        </div>
+      </button>
+      {isOpen && (
+      <div className="p-5 pt-0 space-y-2">
         {PREACHERS.map((preacher, idx) => {
           const isOpen = !!openPreachers[preacher.name];
           return (
@@ -218,6 +225,7 @@ function PreachersSection({ openPreachers, togglePreacher }) {
 
         })}
       </div>
+      )}
     </div>);
 
 }
@@ -473,9 +481,12 @@ export default function ResourcesPage() {
       </div>
 
       {/* Verified Preachers section */}
-      {expandedSections.preachers && (
-        <PreachersSection openPreachers={expandedSections.preacherLinks} togglePreacher={togglePreacher} />
-      )}
+      <PreachersSection
+        isOpen={expandedSections.preachers}
+        onToggle={() => toggleSection('preachers')}
+        openPreachers={expandedSections.preacherLinks}
+        togglePreacher={togglePreacher}
+      />
 
       {/* Ministry Links */}
       <div className="bg-card border border-border rounded-2xl mb-6 overflow-hidden">
