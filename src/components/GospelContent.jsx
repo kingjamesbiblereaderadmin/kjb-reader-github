@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Heart, AlertCircle, CheckCircle, XCircle, Copy, Check, Share2, Download, FileText, FileType, ChevronDown, Printer, GraduationCap, ExternalLink } from 'lucide-react';
+import { Heart, AlertCircle, CheckCircle, XCircle, Copy, Check, Share2, Download, FileText, FileType, ChevronDown, Printer, GraduationCap, ExternalLink, Globe, ArrowRight } from 'lucide-react';
 import { printHtml } from '@/lib/printHelpers';
 import { jsPDF } from 'jspdf';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { BIBLE_BOOKS } from '@/lib/bibleData';
 import { setGospelNav } from '@/lib/searchNav';
 import { getGospelResults } from '@/lib/gospelVerses';
@@ -364,7 +364,7 @@ const NOT_SAVED_ITEMS = [
   'Lordship Salvation',
 ];
 
-export default function GospelContent({ collapsible = false, showPreachers = true }) {
+export default function GospelContent({ collapsible = false, showPreachers = true, showSpanishGospelCard = false }) {
   const [notSavedOpen, setNotSavedOpen] = useState(true);
   const [osasOpen, setOsasOpen] = useState(true);
   const [videoOpen, setVideoOpen] = useState(true);
@@ -390,6 +390,22 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
           <GospelActions />
         </div>
       </div>
+
+      {showSpanishGospelCard && (
+        <Link
+          to="/espanol-evangelio"
+          className="flex items-center gap-3 p-5 rounded-2xl bg-card border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group mb-6"
+        >
+          <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-sky-500 to-blue-600">
+            <Globe className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">¿Necesitas el Evangelio en Español?</p>
+            <p className="font-sans text-xs text-muted-foreground">El Evangelio de Salvación en español</p>
+          </div>
+          <ArrowRight className="w-4 h-4 text-muted-foreground" />
+        </Link>
+      )}
 
       {/* Gospel Steps */}
       {collapsible && (
