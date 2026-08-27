@@ -438,15 +438,15 @@ export default function ResourcesPage() {
             <Globe className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="font-serif text-lg font-bold text-foreground mb-1">Spanish Resources</h2>
+            <h2 className="font-serif text-lg font-bold text-foreground mb-1">Recursos en Español</h2>
             <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-              <span className="notranslate" translate="no">KJB</span> resources and studies in the Spanish language.
+              Recursos y estudios de la Biblia en español.
             </p>
             <Link
               to="/spanish"
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
-              Open Spanish Resources <ExternalLink className="w-3.5 h-3.5" />
+              Abrir Recursos en Español <ExternalLink className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>

@@ -22,9 +22,9 @@ export default function SpanishResourcesPage() {
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-secondary mb-4">
           <FileText className="w-7 h-7 text-accent" />
         </div>
-        <h1 className="font-serif text-4xl font-bold text-foreground mb-3">Spanish Resources</h1>
+        <h1 className="font-serif text-4xl font-bold text-foreground mb-3">Recursos en Español</h1>
         <p className="font-sans text-muted-foreground max-w-lg mx-auto">
-          <span className="notranslate" translate="no">KJB</span> resources and studies in the Spanish language.
+          Recursos y estudios de la Biblia en español.
         </p>
         <div className="mt-4 w-16 h-px bg-accent mx-auto" />
       </div>
