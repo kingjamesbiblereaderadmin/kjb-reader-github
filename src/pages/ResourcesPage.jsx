@@ -328,7 +328,6 @@ export default function ResourcesPage() {
       {/* KJBI — Free Online Bible College */}
       <div className="mb-6">
         <CollapsibleCard
-          defaultOpen
           icon={<CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />}
           title="KJBI.org — Free Online Bible College"
         >
@@ -349,66 +348,58 @@ export default function ResourcesPage() {
         </CollapsibleCard>
       </div>
 
-      {/* KJB Discord Bot */}
+      {/* Discord (Bot + Knights Server) */}
       <div className="mb-6">
         <CollapsibleCard
-          defaultOpen
           icon={
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-violet-500 to-purple-700">
               <DiscordIcon className="w-5 h-5" />
             </div>
           }
-          title="KJB Discord Bot"
+          title="Discord"
         >
-          <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-            Use the <span className="notranslate">KJB Reader</span> bot in your own <span className="notranslate" translate="no">Discord</span> account or add it to a server for daily verses and verse search directly in <span className="notranslate" translate="no">Discord</span>.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <a
-              href="https://discord.com/oauth2/authorize?client_id=1529303667348606996&scope=applications.commands&integration_type=1"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center text-center gap-1.5 p-4 rounded-xl bg-secondary/50 border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
-            >
-              <span className="font-sans font-semibold text-sm text-foreground group-hover:text-accent transition-colors">📱 Personal Install</span>
-              <span className="font-sans text-xs text-muted-foreground leading-relaxed">Adds slash commands to your Discord account — works in DMs, group DMs, and any server.</span>
-            </a>
-            <a
-              href="https://discord.com/oauth2/authorize?client_id=1529303667348606996&scope=bot+applications.commands&permissions=378494381072"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center text-center gap-1.5 p-4 rounded-xl bg-secondary/50 border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
-            >
-              <span className="font-sans font-semibold text-sm text-foreground group-hover:text-accent transition-colors">🏠 Server Install</span>
-              <span className="font-sans text-xs text-muted-foreground leading-relaxed">Bot joins a server for daily verse delivery and searching up verses and keywords.</span>
-            </a>
+          <div className="mb-5">
+            <h3 className="notranslate font-sans font-semibold text-sm text-foreground mb-1">KJB Discord Bot</h3>
+            <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
+              Use the <span className="notranslate">KJB Reader</span> bot in your own <span className="notranslate" translate="no">Discord</span> account or add it to a server for daily verses and verse search directly in <span className="notranslate" translate="no">Discord</span>.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <a
+                href="https://discord.com/oauth2/authorize?client_id=1529303667348606996&scope=applications.commands&integration_type=1"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center text-center gap-1.5 p-4 rounded-xl bg-secondary/50 border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+              >
+                <span className="font-sans font-semibold text-sm text-foreground group-hover:text-accent transition-colors">📱 Personal Install</span>
+                <span className="font-sans text-xs text-muted-foreground leading-relaxed">Adds slash commands to your Discord account — works in DMs, group DMs, and any server.</span>
+              </a>
+              <a
+                href="https://discord.com/oauth2/authorize?client_id=1529303667348606996&scope=bot+applications.commands&permissions=378494381072"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center text-center gap-1.5 p-4 rounded-xl bg-secondary/50 border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+              >
+                <span className="font-sans font-semibold text-sm text-foreground group-hover:text-accent transition-colors">🏠 Server Install</span>
+                <span className="font-sans text-xs text-muted-foreground leading-relaxed">Bot joins a server for daily verse delivery and searching up verses and keywords.</span>
+              </a>
+            </div>
           </div>
-        </CollapsibleCard>
-      </div>
 
-      {/* KJB Knights Server */}
-      <div className="mb-6">
-        <CollapsibleCard
-          defaultOpen
-          icon={
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-violet-500 to-purple-700">
-              <DiscordIcon className="w-5 h-5" />
+          <div>
+            <h3 className="notranslate font-sans font-semibold text-sm text-foreground mb-1">KJB Knights Server</h3>
+            <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
+              My and my friends' <span className="notranslate" translate="no">Discord</span> server — feel free to join.
+            </p>
+            <div className="flex items-center gap-3 flex-wrap">
+              <a
+                href="https://discord.gg/HK9Kqmg7Jh"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Join KJB Knights <ExternalLink className="w-3.5 h-3.5" />
+              </a>
             </div>
-          }
-          title="KJB Knights Server"
-        >
-          <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-            My and my friends' <span className="notranslate" translate="no">Discord</span> server — feel free to join.
-          </p>
-          <div className="flex items-center gap-3 flex-wrap">
-            <a
-              href="https://discord.gg/HK9Kqmg7Jh"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              Join KJB Knights <ExternalLink className="w-3.5 h-3.5" />
-            </a>
           </div>
         </CollapsibleCard>
       </div>
@@ -416,7 +407,6 @@ export default function ResourcesPage() {
       {/* KJB Reader Chrome Extension */}
       <div className="mb-6">
         <CollapsibleCard
-          defaultOpen
           icon={
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-cyan-600">
               <Globe className="w-5 h-5" />
@@ -441,7 +431,6 @@ export default function ResourcesPage() {
       {/* Spanish Resources — dedicated page */}
       <div className="mb-6">
         <CollapsibleCard
-          defaultOpen
           icon={
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-sky-500 to-blue-600">
               <Globe className="w-5 h-5" />
@@ -464,7 +453,6 @@ export default function ResourcesPage() {
       {/* KJB Defence — dedicated page */}
       <div className="mb-6">
         <CollapsibleCard
-          defaultOpen
           icon={
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
               <ShieldAlert className="w-5 h-5" />
