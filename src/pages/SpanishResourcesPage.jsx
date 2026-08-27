@@ -5,7 +5,7 @@ import CopyButton from '@/components/defence/CopyButton';
 const LINKS = [
   {
     title: 'La Iglesia de la Nube',
-    desc: 'Iglesia y recursos en español fieles a la Biblia King James.',
+    desc: 'Sitio Web de Evangelista Misionero Roberto Breaker',
     url: 'https://laiglesiadelanube.com/',
   },
   {
