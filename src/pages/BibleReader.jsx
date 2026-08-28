@@ -41,7 +41,18 @@ import { HIGHLIGHT_COLORS } from '@/lib/highlightColors';
 import { usePinchZoom } from '@/hooks/usePinchZoom';
 import { useReadingProgressTracker } from '@/hooks/useReadingProgressTracker';
 
-const isMobile = () => window.innerWidth < 640;
+// Viewport-width checks (window.innerWidth < 640) are unreliable inside some
+// Android WebViews (e.g. the native app shell), which can report a much wider
+// layout viewport than the device's visible width — causing the desktop popover
+// to render instead of the mobile bottom sheet. Detect by actual input type
+// (touchscreen vs mouse) and device user agent instead, which reflect the real
+// device regardless of how the WebView measures its layout viewport.
+const isMobile = () => {
+  try {
+    if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return true;
+  } catch {}
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '') || window.innerWidth < 640;
+};
 const STORAGE_KEY = 'kjb-position';
 
 function loadPosition() {
@@ -1630,8 +1641,8 @@ export default function BibleReader() {
                 <span className="notranslate truncate text-center">{isViewingTitlePage ? 'Title Page' : book.shortName}</span>
                 <ChevronRight className={`w-3 h-3 opacity-70 transition-transform duration-200 flex-shrink-0 ${showBookPicker ? 'rotate-90' : ''}`} />
               </button>
-              {showBookPicker && (
-                <div className="hidden sm:block kjb-popover-panel absolute top-full left-0 mt-1 z-[100]">
+              {showBookPicker && !isMobile() && (
+                <div className="kjb-popover-panel absolute top-full left-0 mt-1 z-[100]">
                   <BookSelector
                     currentAbbr={pos.abbr}
                     onSelect={(b, isTitlePage, showChapter) => {
@@ -1647,7 +1658,7 @@ export default function BibleReader() {
                   />
                 </div>
               )}
-              <SelectorSheet open={showBookPicker} onClose={() => setShowBookPicker(false)} title="Select Book">
+              <SelectorSheet open={showBookPicker && isMobile()} onClose={() => setShowBookPicker(false)} title="Select Book">
                 <BookSelector
                   currentAbbr={pos.abbr}
                   onSelect={(b, isTitlePage, showChapter) => {
@@ -1678,8 +1689,8 @@ export default function BibleReader() {
                   <span className="notranslate">Ch.{pos.chapter}</span>
                   <ChevronRight className={`w-3 h-3 opacity-70 transition-transform duration-200 flex-shrink-0 ${showChapterPicker ? 'rotate-90' : ''}`} />
                 </button>
-                {showChapterPicker && (
-                  <div className="hidden sm:block kjb-popover-panel absolute top-full left-0 mt-1 z-[100]">
+                {showChapterPicker && !isMobile() && (
+                  <div className="kjb-popover-panel absolute top-full left-0 mt-1 z-[100]">
                     <ChapterSelector
                       totalChapters={book.chapters}
                       currentChapter={pos.chapter}
@@ -1689,7 +1700,7 @@ export default function BibleReader() {
                     />
                   </div>
                 )}
-                <SelectorSheet open={showChapterPicker} onClose={() => setShowChapterPicker(false)} title="Select Chapter">
+                <SelectorSheet open={showChapterPicker && isMobile()} onClose={() => setShowChapterPicker(false)} title="Select Chapter">
                   <ChapterSelector
                     totalChapters={book.chapters}
                     currentChapter={pos.chapter}
@@ -1714,8 +1725,8 @@ export default function BibleReader() {
                   </span>
                   {selectMode ? <CheckSquare className="w-3.5 h-3.5 opacity-70 flex-shrink-0 transition-transform duration-200" /> : <ChevronRight className={`w-3 h-3 opacity-70 transition-transform duration-200 flex-shrink-0 ${showVersePicker ? 'rotate-90' : ''}`} />}
                 </button>
-                {showVersePicker && verseCount > 0 && (
-                  <div className="hidden sm:block kjb-popover-panel absolute top-full left-0 mt-1 z-[100]">
+                {showVersePicker && verseCount > 0 && !isMobile() && (
+                  <div className="kjb-popover-panel absolute top-full left-0 mt-1 z-[100]">
                     <VerseGrid
                       verseCount={verseCount}
                       currentVerse={highlightVerse}
@@ -1726,7 +1737,7 @@ export default function BibleReader() {
                     />
                   </div>
                 )}
-                <SelectorSheet open={showVersePicker && verseCount > 0} onClose={() => setShowVersePicker(false)} title="Select Verse">
+                <SelectorSheet open={showVersePicker && verseCount > 0 && isMobile()} onClose={() => setShowVersePicker(false)} title="Select Verse">
                   <VerseGrid
                     verseCount={verseCount}
                     currentVerse={highlightVerse}
@@ -1748,8 +1759,8 @@ export default function BibleReader() {
                 <ZoomIn className="w-3.5 h-3.5 transition-transform duration-200 flex-shrink-0" />
                 <span className="truncate">{zoomLevel}%</span>
               </button>
-              {showZoomPopover && (
-                <div className="hidden sm:block kjb-popover-panel absolute top-full right-0 mt-1 z-[100]" onClick={(e) => e.stopPropagation()}>
+              {showZoomPopover && !isMobile() && (
+                <div className="kjb-popover-panel absolute top-full right-0 mt-1 z-[100]" onClick={(e) => e.stopPropagation()}>
                   <div className="bg-card border border-border rounded-xl shadow-xl p-4 w-64 relative overflow-hidden">
                     <div className="flex items-center justify-between mb-3 pr-6">
                       <span className="font-sans text-xs font-medium text-foreground">Text Size</span>
@@ -1767,7 +1778,7 @@ export default function BibleReader() {
                   </div>
                 </div>
               )}
-              <SelectorSheet open={showZoomPopover} onClose={() => setShowZoomPopover(false)} title="Text Size">
+              <SelectorSheet open={showZoomPopover && isMobile()} onClose={() => setShowZoomPopover(false)} title="Text Size">
                 <div className="space-y-4 p-2">
                   <div className="flex items-center justify-between">
                     <span className="font-sans text-sm font-medium text-foreground">Zoom Level</span>
@@ -1794,8 +1805,8 @@ export default function BibleReader() {
                 <Type className="w-3.5 h-3.5 transition-transform duration-200 flex-shrink-0" />
                 <span className="hidden sm:inline">{(() => { const active = a11yActive ? a11yFont : fontFamily; return active === 'serif' ? 'Serif' : active === 'sans-serif' ? 'Sans' : active === 'monospace' ? 'Mono' : active === 'comic-sans' ? 'Comic' : active === 'times' ? 'Times' : active === 'dyslexic' ? 'Dyslexic' : active === 'hyperlegible' ? 'Legible' : 'Cursive'; })()}</span>
               </button>
-              {showFontPopover && (
-                <div className="hidden sm:block kjb-popover-panel absolute top-full left-0 mt-1 z-[100]" onClick={(e) => e.stopPropagation()}>
+              {showFontPopover && !isMobile() && (
+                <div className="kjb-popover-panel absolute top-full left-0 mt-1 z-[100]" onClick={(e) => e.stopPropagation()}>
                   <div className="bg-card border border-border rounded-xl shadow-xl p-4 w-64 relative overflow-hidden">
                     <div className="flex items-center justify-between mb-3 pr-6"><span className="font-sans text-xs font-medium text-foreground">Font Family</span></div>
                     <button onClick={() => setShowFontPopover(false)} className="absolute top-3 right-3 p-1 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"><X className="w-4 h-4" /></button>
@@ -1822,7 +1833,7 @@ export default function BibleReader() {
                   </div>
                 </div>
               )}
-              <SelectorSheet open={showFontPopover} onClose={() => setShowFontPopover(false)} title="Font Family">
+              <SelectorSheet open={showFontPopover && isMobile()} onClose={() => setShowFontPopover(false)} title="Font Family">
                 <div className="space-y-2 p-2">
                   {a11yActive && <p className="font-sans text-xs text-muted-foreground leading-snug mb-1">An accessibility font is active app-wide and overrides reading fonts.</p>}
                   <p className="font-sans text-xs text-muted-foreground">Standard</p>
@@ -2075,14 +2086,12 @@ export default function BibleReader() {
 
           {hideHeader && <MinimizedHeaderBar fullscreen={fullscreen} toggleFullscreen={toggleFullscreen} setHideHeader={setHideHeader} />}
 
-      {/* Desktop-only backdrop for the inline popovers, hidden via CSS (not a JS
-          width check) so it never renders on real mobile devices regardless of
-          how a given WebView reports window.innerWidth. On mobile the selectors
-          use the sheet (SelectorSheet), which has its own overlay — rendering
+      {/* Desktop-only backdrop for the inline popovers. On mobile the selectors
+          use the bottom sheet (SelectorSheet), which has its own overlay — rendering
           this backdrop there would intercept the first tap and close the sheet. */}
-      {(showBookPicker || showChapterPicker || showVersePicker || showZoomPopover || showFontPopover) && (
+      {!isMobile() && (showBookPicker || showChapterPicker || showVersePicker || showZoomPopover || showFontPopover) && (
         <div
-          className="hidden sm:block fixed inset-0 z-[99]"
+          className="fixed inset-0 z-[99]"
           onClick={() => { setShowBookPicker(false); setShowChapterPicker(false); setShowVersePicker(false); setShowZoomPopover(false); setShowFontPopover(false); }}
         />
       )}
