@@ -548,7 +548,11 @@ export default function BibleReader() {
       let url = `/read?book=${pos.abbr}&chapter=${pos.chapter}&verse=${first}`;
       if (last > first) url += `&verseEnd=${last}`;
       try {
-        window.history.replaceState({}, '', url);
+        // Use router navigate (not a raw History API call) so react-router's
+        // tracked location stays in sync with the real URL — otherwise the
+        // bottom nav's per-tab history and the URL-sync effect read a stale
+        // location and can jump back into this filtered passage later.
+        routerNavigate(url, { replace: true });
         // Only persist the starting verse (not verseEnd) so reopening the reader
         // lands on the chapter instead of jumping back into this filtered passage.
         savePosition(pos.abbr, pos.chapter, first);
@@ -1458,7 +1462,7 @@ export default function BibleReader() {
     setPos({ abbr, chapter, verse: null });
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ abbr, chapter, verse: null, verseEnd: null })); } catch {}
     
-    try { window.history.replaceState({}, '', '/read'); } catch {}
+    try { routerNavigate('/read', { replace: true }); } catch {}
     freshNavRef.current = false;
     
     // Force reload by calling loadChapter directly
@@ -1985,7 +1989,7 @@ export default function BibleReader() {
                       // leaving via Home and returning to Read doesn't re-read
                       // the old filtered verse from localStorage and jump back.
                       savePosition(pos.abbr, pos.chapter, null);
-                      try { window.history.replaceState({}, '', '/read'); } catch {}
+                      try { routerNavigate('/read', { replace: true }); } catch {}
                     }
                   }}
                 />
@@ -2056,7 +2060,7 @@ export default function BibleReader() {
                 // coming back to Read re-reads the old filtered verse from
                 // localStorage and jumps right back into it.
                 savePosition(pos.abbr, pos.chapter, null);
-                try { window.history.replaceState({}, '', pos.chapter === 0 ? window.location.pathname : `/read?book=${pos.abbr}&chapter=${pos.chapter}`); } catch {}
+                try { routerNavigate(pos.chapter === 0 ? window.location.pathname : `/read?book=${pos.abbr}&chapter=${pos.chapter}`, { replace: true }); } catch {}
                 try { localStorage.removeItem('kjb-reader-toolbar-state'); } catch {}
               }}
             />
