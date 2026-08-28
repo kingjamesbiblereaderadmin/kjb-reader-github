@@ -2047,6 +2047,12 @@ export default function BibleReader() {
                 if (gospelMode) { clearGospelNav(); setGospelMode(false); setHighlightVerse(null); setLastReadingPos(null); try { localStorage.removeItem('kjb-last-reading'); localStorage.removeItem('kjb-reader-toolbar-state'); } catch {} return; }
                 if (lastReadingActive) { setLastReadingPos(null); try { localStorage.removeItem('kjb-last-reading'); localStorage.removeItem('kjb-reader-toolbar-state'); } catch {} return; }
                 rangeHighlightRef.current = false; setFilterMode(false); setSelectMode(false); setSelectedVerses(new Set()); setHighlightedVerses(new Set()); setShowFilterOverlay(false);
+                setHighlightVerse(null);
+                // Clear the saved verse/verseEnd — otherwise leaving via Home and
+                // coming back to Read re-reads the old filtered verse from
+                // localStorage and jumps right back into it.
+                savePosition(pos.abbr, pos.chapter, null);
+                try { window.history.replaceState({}, '', pos.chapter === 0 ? window.location.pathname : `/read?book=${pos.abbr}&chapter=${pos.chapter}`); } catch {}
                 try { localStorage.removeItem('kjb-reader-toolbar-state'); } catch {}
               }}
             />
