@@ -1,4 +1,4 @@
-package kjbreader.app;
+package com.kingjamesbiblereader.twa;
 
 import android.content.Intent;
 import android.net.Uri;
