@@ -1574,6 +1574,13 @@ export default function BibleReader() {
       navigate(pos.abbr, pos.chapter + 1, null, false, false, isAutoAdvance);
       return true;
     }
+    // Exception: end of the Old Testament (Malachi) stops at the New
+    // Testament title page instead of jumping straight into Matthew 1.
+    if (pos.abbr === 'MAL') {
+      if (isAutoAdvance) autoAdvanceRef.current = true;
+      navigate('MAT', 0, null, false, false, isAutoAdvance);
+      return true;
+    }
     const next = getNextBook(pos.abbr);
     if (next) {
       if (isAutoAdvance) autoAdvanceRef.current = true;
@@ -1585,6 +1592,9 @@ export default function BibleReader() {
 
   const goPrev = () => {
     if (pos.chapter > 1) { navigate(pos.abbr, pos.chapter - 1); }
+    // Exception: the start of the New Testament (Matthew) stops at the New
+    // Testament title page instead of jumping straight back into Malachi 4.
+    else if (pos.abbr === 'MAT' && pos.chapter === 1) { navigate('MAT', 0); }
     else { const prev = getPrevBook(pos.abbr); if (prev) navigate(prev.abbr, prev.chapters); }
   };
 
@@ -2178,22 +2188,6 @@ export default function BibleReader() {
         )}
       </div>
 
-      {!loading && !error && ((pos.abbr === 'MAL' && pos.chapter === 4) || (pos.abbr === 'REV' && pos.chapter === 22)) && (
-        <div className="text-center mt-14 mb-12 select-none">
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <span className="block h-px w-16 sm:w-24 bg-border" />
-            <span className="block w-1.5 h-1.5 rotate-45 bg-muted-foreground/50" />
-            <span className="block h-px w-16 sm:w-24 bg-border" />
-          </div>
-          <p className={`notranslate text-foreground tracking-[0.35em] uppercase font-semibold kjb-end-marker ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'}`} style={{ fontSize: `${zoomLevel / 100 * 1.15}rem`, fontStyle: 'normal' }}>{resolveEndMarker(book.apiName, pos.chapter) || (pos.abbr === 'MAL' ? 'The End of the Prophets' : 'The End')}</p>
-          <div className="flex items-center justify-center gap-4 mt-4">
-            <span className="block h-px w-16 sm:w-24 bg-border" />
-            <span className="block w-1.5 h-1.5 rotate-45 bg-muted-foreground/50" />
-            <span className="block h-px w-16 sm:w-24 bg-border" />
-          </div>
-        </div>
-      )}
-
       {!loading && !error && (
         <div className="hidden print:block mt-8 pt-4 border-t border-border text-sm text-muted-foreground text-center">Printed on {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}</div>
       )}
@@ -2203,12 +2197,12 @@ export default function BibleReader() {
           {!isFirstChapterFirstBook ? (
           <button onClick={goPrev} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-colors min-h-[48px] touch-manipulation min-w-0">
             <ChevronLeft className="w-4 h-4 flex-shrink-0" />
-            <span className="hidden sm:inline truncate">{isViewingTitlePage ? `${getPrevBook(pos.abbr)?.shortName} ${getPrevBook(pos.abbr)?.chapters}` : pos.chapter > 1 ? `Chapter ${pos.chapter - 1}` : `${getPrevBook(pos.abbr)?.shortName} ${getPrevBook(pos.abbr)?.chapters}`}</span>
+            <span className="hidden sm:inline truncate">{isViewingTitlePage ? `${getPrevBook(pos.abbr)?.shortName} ${getPrevBook(pos.abbr)?.chapters}` : pos.chapter > 1 ? `Chapter ${pos.chapter - 1}` : (pos.abbr === 'MAT' ? 'New Testament Title Page' : `${getPrevBook(pos.abbr)?.shortName} ${getPrevBook(pos.abbr)?.chapters}`)}</span>
           </button>
           ) : <div className="flex-1" />}
           {!isLastChapterLastBook ? (
           <button onClick={() => goNext()} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-colors min-h-[48px] touch-manipulation min-w-0">
-            <span className="hidden sm:inline truncate">{isViewingTitlePage ? `Chapter 1` : pos.chapter < book.chapters ? `Chapter ${pos.chapter + 1}` : getNextBook(pos.abbr) ? `${getNextBook(pos.abbr).shortName} 1` : ''}</span>
+            <span className="hidden sm:inline truncate">{isViewingTitlePage ? `Chapter 1` : pos.chapter < book.chapters ? `Chapter ${pos.chapter + 1}` : pos.abbr === 'MAL' ? 'New Testament Title Page' : getNextBook(pos.abbr) ? `${getNextBook(pos.abbr).shortName} 1` : ''}</span>
             <ChevronRight className="w-4 h-4 flex-shrink-0" />
           </button>
           ) : <div className="flex-1" />}
