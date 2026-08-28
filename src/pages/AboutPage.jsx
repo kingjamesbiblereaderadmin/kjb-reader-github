@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Info, Mail, MessageSquare, ExternalLink, BookOpen, Globe, ChevronDown, ChevronRight, Youtube, PlayCircle, Link2, FileText } from 'lucide-react';
+import { Info, Mail, MessageSquare, ExternalLink, BookOpen, Globe, ChevronDown, ChevronRight, Youtube, PlayCircle, Link2, FileText, ShieldAlert } from 'lucide-react';
 import ContactLinks from '@/components/ContactLinks';
 
 function AccordionSection({ title, children }) {
@@ -122,6 +122,19 @@ export default function AboutPage() {
             </div>
             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground ml-auto flex-shrink-0" />
           </a>
+          <Link
+            to="/kjb-defence"
+            className="flex items-center gap-3 p-4 mt-3 rounded-2xl bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+          >
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate" translate="no">KJB Defence</p>
+              <p className="font-sans text-xs text-muted-foreground truncate">Resources defending the King James Bible</p>
+            </div>
+            <ExternalLink className="w-3.5 h-3.5 text-muted-foreground ml-auto flex-shrink-0" />
+          </Link>
         </AccordionSection>
 
         <AccordionSection title="Satan & Hell">
