@@ -1076,6 +1076,18 @@ export default function SearchPage() {
             value={query}
             onChange={e => { setQuery(e.target.value); setFocusedIndex(-1); }}
             onAccept={(full) => setQuery(full)}
+            onFocus={() => {
+              // On mobile, the on-screen keyboard shrinks the viewport and the
+              // browser's own scroll-into-view can leave this sticky header
+              // (title + search box) scrolled above the visible area. Force the
+              // scroll container back to the top after the keyboard finishes
+              // animating in, so the input stays visible while typing.
+              setTimeout(() => {
+                const scroller = document.getElementById('kjb-scroll');
+                if (scroller) scroller.scrollTo({ top: 0 });
+                else window.scrollTo({ top: 0 });
+              }, 300);
+            }}
             onKeyDown={(e) => {
               // Enter in the box always submits THIS query. We preventDefault to
               // stop the browser's native form GET-submit (which bounces to "/" on
