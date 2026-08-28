@@ -1595,6 +1595,9 @@ export default function BibleReader() {
     // Exception: the start of the New Testament (Matthew) stops at the New
     // Testament title page instead of jumping straight back into Malachi 4.
     else if (pos.abbr === 'MAT' && pos.chapter === 1) { navigate('MAT', 0); }
+    // Exception: the start of the Old Testament (Genesis) stops at the cover
+    // title page instead of doing nothing (there is no previous book).
+    else if (pos.abbr === 'GEN' && pos.chapter === 1) { navigate('GEN', 0); }
     else { const prev = getPrevBook(pos.abbr); if (prev) navigate(prev.abbr, prev.chapters); }
   };
 
@@ -2197,7 +2200,7 @@ export default function BibleReader() {
           {!isFirstChapterFirstBook ? (
           <button onClick={goPrev} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-colors min-h-[48px] touch-manipulation min-w-0">
             <ChevronLeft className="w-4 h-4 flex-shrink-0" />
-            <span className="hidden sm:inline truncate">{isViewingTitlePage ? `${getPrevBook(pos.abbr)?.shortName} ${getPrevBook(pos.abbr)?.chapters}` : pos.chapter > 1 ? `Chapter ${pos.chapter - 1}` : (pos.abbr === 'MAT' ? 'New Testament Title Page' : `${getPrevBook(pos.abbr)?.shortName} ${getPrevBook(pos.abbr)?.chapters}`)}</span>
+            <span className="hidden sm:inline truncate">{isViewingTitlePage ? `${getPrevBook(pos.abbr)?.shortName} ${getPrevBook(pos.abbr)?.chapters}` : pos.chapter > 1 ? `Chapter ${pos.chapter - 1}` : pos.abbr === 'MAT' ? 'New Testament Title Page' : pos.abbr === 'GEN' ? 'Old Testament Title Page' : `${getPrevBook(pos.abbr)?.shortName} ${getPrevBook(pos.abbr)?.chapters}`}</span>
           </button>
           ) : <div className="flex-1" />}
           {!isLastChapterLastBook ? (
