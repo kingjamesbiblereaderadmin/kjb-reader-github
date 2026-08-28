@@ -82,15 +82,15 @@ export default function AboutPage() {
         <ul className="space-y-2 font-sans text-sm text-foreground/80">
           <li className="flex items-start gap-2">
             <span className="text-accent mt-1">•</span>
-            I believe in the blood-stained gospel as the only way to be saved, and I reject "repent of sins to be saved" (<span className="notranslate" translate="no">ROYS</span>), "confess with your mouth to be saved," Lordship Salvation, infant baptism, baptism regeneration, etc.
+            <span>I believe in the blood-stained gospel as the only way to be saved, and I reject "repent of sins to be saved" (<span className="notranslate" translate="no">ROYS</span>), "confess with your mouth to be saved," Lordship Salvation, infant baptism, baptism regeneration, etc.</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-accent mt-1">•</span>
-            To be saved, you must believe that Jesus is God, that He shed His blood on <span className="notranslate" translate="no">Calvary</span>, died, was buried, and rose again for your justification.
+            <span>To be saved, you must believe that Jesus is God, that He shed His blood on <span className="notranslate" translate="no">Calvary</span>, died, was buried, and rose again for your justification.</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-accent mt-1">•</span>
-            I believe in <span className="notranslate" translate="no">OSAS (Once Saved, Always Saved)</span>: a believer who has trusted the gospel cannot lose salvation, no matter what happens in their life.
+            <span>I believe in <span className="notranslate" translate="no">OSAS (Once Saved, Always Saved)</span>: a believer who has trusted the gospel cannot lose salvation, no matter what happens in their life.</span>
           </li>
         </ul>
       </div>
@@ -101,9 +101,9 @@ export default function AboutPage() {
 
         <AccordionSection title="The King James Bible">
           <ul className="space-y-2 font-sans text-sm text-foreground/80">
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span className="notranslate" translate="no">Westcott and Hort</span> created the Critical Text, based on manuscripts from the Vatican and Egypt. These manuscripts have hundreds of errors, deletions and additions to the Bible, attacking doctrines such as the Godhead/Trinity and deity of Christ. Their text was used in the <span className="notranslate" translate="no">Revised Version of 1881</span>.</li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>The King James Bible is the infallible, perfect Word of God in the English language.</li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Translated with the <span className="notranslate" translate="no">Textus Receptus (Received Text)</span> that the historical church has always used.</li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Westcott and Hort</span> created the Critical Text, based on manuscripts from the Vatican and Egypt. These manuscripts have hundreds of errors, deletions and additions to the Bible, attacking doctrines such as the Godhead/Trinity and deity of Christ. Their text was used in the <span className="notranslate" translate="no">Revised Version of 1881</span>.</span></li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span>The King James Bible is the infallible, perfect Word of God in the English language.</span></li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span>Translated with the <span className="notranslate" translate="no">Textus Receptus (Received Text)</span> that the historical church has always used.</span></li>
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Translated by godly men well versed in the Biblical languages who studied commentaries and foreign translations from an early age.</li>
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>The Bible God has used for countless revivals and bringing the gospel to the world. It is mathematically proven to be a miracle.</li>
           </ul>
@@ -152,11 +152,11 @@ export default function AboutPage() {
         <AccordionSection title="Salvation & Pre-Tribulation Rapture">
           <ul className="space-y-2 font-sans text-sm text-foreground/80">
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Jesus Christ is God manifested in the flesh, born of the virgin Mary.</li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Jesus Christ lived a perfect life, died on <span className="notranslate" translate="no">Calvary's</span> cross, shed his blood, was buried and rose again on the third day.</li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span>Jesus Christ lived a perfect life, died on <span className="notranslate" translate="no">Calvary's</span> cross, shed his blood, was buried and rose again on the third day.</span></li>
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Jesus went to heaven to put his precious blood in the mercy seat so we can have eternal life.</li>
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>To be saved: Believe Jesus is God and that he died for your sins, shed his blood, was buried and rose again for your justification.</li>
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Repenting of sins, water baptism, making him Lord or letting him into your heart is not salvation.</li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>I believe in the Pre-Tribulation Rapture where the church will meet in the clouds with our Saviour before the <span className="notranslate" translate="no">Antichrist</span> reigns on earth.</li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span>I believe in the Pre-Tribulation Rapture where the church will meet in the clouds with our Saviour before the <span className="notranslate" translate="no">Antichrist</span> reigns on earth.</span></li>
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>Those in the 7-year tribulation will have to endure to the end, not take the mark, and be martyrs for Christ.</li>
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span>I believe Jesus will reign in the new heaven and earth after the white throne judgment.</li>
           </ul>
@@ -197,9 +197,9 @@ export default function AboutPage() {
             Many widely-observed holidays have roots in pagan customs that were later given a Christian veneer. Believers should study these origins for themselves.
           </p>
           <ul className="space-y-2 font-sans text-sm text-foreground/80">
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span className="notranslate" translate="no">Easter</span> — its name, timing and symbols (eggs, rabbits) trace back to pagan spring fertility festivals rather than scripture.</li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span className="notranslate" translate="no">Christmas</span> — December 25th and many of its customs (trees, wreaths, yule logs) originate in pagan winter solstice celebrations, not the biblical account of Christ's birth.</li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span className="notranslate" translate="no">Halloween</span> — descends from pagan harvest and death festivals (such as <span className="notranslate" translate="no">Samhain</span>) later absorbed into the church calendar as "<span className="notranslate" translate="no">All Hallows' Eve</span>."</li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Easter</span> — its name, timing and symbols (eggs, rabbits) trace back to pagan spring fertility festivals rather than scripture.</span></li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Christmas</span> — December 25th and many of its customs (trees, wreaths, yule logs) originate in pagan winter solstice celebrations, not the biblical account of Christ's birth.</span></li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Halloween</span> — descends from pagan harvest and death festivals (such as <span className="notranslate" translate="no">Samhain</span>) later absorbed into the church calendar as "<span className="notranslate" translate="no">All Hallows' Eve</span>."</span></li>
           </ul>
           <a
             href="https://youtube.com/playlist?list=PLNGhZnJavRf183iEUeQHer5aKnlV3LWKP&si=iaMUuwhLBzeGuHyn"
