@@ -401,6 +401,7 @@ export default function BibleSearchBar({ onClose }) {
     setSuggestions([]);
     setOpen(false);
     onClose?.();
+    inputRef.current?.blur();
     const vEndParam = verse && verseEnd && verseEnd > verse ? `&verseEnd=${verseEnd}` : '';
     // Route verse-level jumps through the same single-result "search nav" path
     // that goPassage/goMulti already use (from=search + setSearchNav). That path
@@ -432,6 +433,7 @@ export default function BibleSearchBar({ onClose }) {
     setSuggestions([]);
     setOpen(false);
     onClose?.();
+    inputRef.current?.blur();
     const blocks = await expandPassage(p);
     if (!blocks.length) return;
     // Store the blocks as a stepper so the reader's up/down arrows walk through
@@ -454,6 +456,7 @@ export default function BibleSearchBar({ onClose }) {
     setSuggestions([]);
     setOpen(false);
     onClose?.();
+    inputRef.current?.blur();
     const expanded = await expandMultiReference(input);
     if (!expanded) return;
     const { results, label } = expanded;
@@ -477,6 +480,7 @@ export default function BibleSearchBar({ onClose }) {
     setSuggestions([]);
     setOpen(false);
     onClose?.();
+    inputRef.current?.blur();
     navigate(`/search?q=${encodeURIComponent(kw)}`);
   };
 
