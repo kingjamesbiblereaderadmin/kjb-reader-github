@@ -17,7 +17,7 @@ export default function VerseTapBar({ label, isHighlighted, isSaved, copyFeedbac
             <Highlighter className="w-3.5 h-3.5" /> {isHighlighted ? 'Highlighted' : 'Highlight'} <ChevronDown className="w-3 h-3 opacity-60" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="min-w-[140px]">
+        <DropdownMenuContent align="start" className="min-w-[140px]" onCloseAutoFocus={(e) => e.preventDefault()}>
           {isHighlighted && (
             <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => onToggleHighlight(null)} className="cursor-pointer text-destructive">
               Remove Highlight

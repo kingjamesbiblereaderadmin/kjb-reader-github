@@ -1886,7 +1886,7 @@ export default function BibleReader() {
                     <span className="hidden lg:inline truncate">{shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'}</span>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="w-48">
+                <DropdownMenuContent align="center" className="w-48" onCloseAutoFocus={(e) => e.preventDefault()}>
                   <DropdownMenuItem onClick={handleShareChapter} className="cursor-pointer">
                     <AlignLeft className="w-4 h-4 mr-2" />
                     Share Text

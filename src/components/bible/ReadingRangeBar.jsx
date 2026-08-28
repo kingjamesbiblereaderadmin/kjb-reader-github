@@ -37,7 +37,7 @@ export default function ReadingRangeBar({ label, filterMode, copyFeedback, share
               <Copy className="w-3.5 h-3.5" /> {copyFeedback ? 'Copied!' : 'Copy'}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52">
+          <DropdownMenuContent align="end" className="w-52" onCloseAutoFocus={(e) => e.preventDefault()}>
             <DropdownMenuItem onClick={onCopy} className="cursor-pointer">
               <AlignLeft className="w-4 h-4 mr-2" />
               Copy (Passage)
@@ -70,7 +70,7 @@ export default function ReadingRangeBar({ label, filterMode, copyFeedback, share
             <Share2 className="w-3.5 h-3.5" /> {shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'}
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuContent align="end" className="w-48" onCloseAutoFocus={(e) => e.preventDefault()}>
           <DropdownMenuItem onClick={onShareText} className="cursor-pointer">
             <AlignLeft className="w-4 h-4 mr-2" />
             Share Text

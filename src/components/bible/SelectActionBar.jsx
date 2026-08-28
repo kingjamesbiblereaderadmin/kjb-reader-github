@@ -34,7 +34,7 @@ export default function SelectActionBar({
                 <Copy className="w-3.5 h-3.5" /> {copyFeedback ? 'Copied!' : 'Copy'}
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuContent align="end" className="w-52" onCloseAutoFocus={(e) => e.preventDefault()}>
               <DropdownMenuItem onClick={onCopy} className="cursor-pointer">
                 <AlignLeft className="w-4 h-4 mr-2" />
                 Copy (Passage)
@@ -51,7 +51,7 @@ export default function SelectActionBar({
                 <Share2 className="w-3.5 h-3.5" /> {shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'}
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuContent align="end" className="w-52" onCloseAutoFocus={(e) => e.preventDefault()}>
               <DropdownMenuItem onClick={onShareText} className="cursor-pointer">
                 <AlignLeft className="w-4 h-4 mr-2" />
                 Share Text (Passage)
@@ -73,7 +73,7 @@ export default function SelectActionBar({
                 <Printer className="w-3.5 h-3.5" /> Print
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-48" onCloseAutoFocus={(e) => e.preventDefault()}>
               <DropdownMenuItem onClick={onPrintPage} className="cursor-pointer">
                 <Printer className="w-4 h-4 mr-2" />
                 Print Full Page
@@ -97,7 +97,7 @@ export default function SelectActionBar({
                 <Highlighter className="w-3.5 h-3.5" /> Highlight
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[140px]">
+            <DropdownMenuContent align="end" className="min-w-[140px]" onCloseAutoFocus={(e) => e.preventDefault()}>
               {HIGHLIGHT_COLORS.map(c => (
                 <DropdownMenuItem key={c.name} onSelect={(e) => e.preventDefault()} onClick={() => onHighlight(c.name)} className="cursor-pointer gap-2.5">
                   <span className="w-5 h-5 rounded-full border-2 border-border shadow-sm" style={{ backgroundColor: c.color }} />
