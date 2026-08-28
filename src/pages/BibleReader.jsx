@@ -1447,8 +1447,7 @@ export default function BibleReader() {
 
   const returnToChapter = (abbr, chapter, exactY) => {
     if (!abbr || !chapter) return;
-    setFilterMode(false); setSelectMode(false); setSelectedVerses(new Set());
-    setHighlightedVerses(new Set()); setHighlightVerse(null); setHighlightSection(null);
+    setHighlightSection(null);
     setShowFilterOverlay(false);
     
     // Save scroll position for restoration
@@ -1456,17 +1455,11 @@ export default function BibleReader() {
       try { localStorage.setItem(`kjb-scroll-${abbr}-${chapter}`, String(Math.round(exactY))); } catch {}
     }
     
-    // CRITICAL: update pos to the target chapter. Without this, pos stays on the
-    // daily/search chapter, the URL-sync effect rewrites the URL back to it, and
-    // the chapter reloads — so Clear appears to "do nothing but hide the indicator".
-    setPos({ abbr, chapter, verse: null });
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ abbr, chapter, verse: null, verseEnd: null })); } catch {}
-    
-    try { routerNavigate('/read', { replace: true }); } catch {}
-    freshNavRef.current = false;
-    
-    // Force reload by calling loadChapter directly
-    loadChapter(abbr, chapter, null);
+    // Reuse the app's main navigate() (defined below) instead of duplicating
+    // pos/localStorage/URL updates here — it's the single vetted path that
+    // keeps react-router's tracked location, the real URL, and kjb-position
+    // in sync, so Home → Read afterward never re-reads a stale filtered verse.
+    navigate(abbr, chapter, null, false, false, true);
     
     // ALSO manually restore scroll after chapter loads (in case effect doesn't trigger for same chapter)
     setTimeout(() => {
@@ -1985,11 +1978,10 @@ export default function BibleReader() {
                     if (prevAbbr && prevChapter) {
                       returnToChapter(prevAbbr, prevChapter, prevScrollY);
                     } else {
-                      // No prior session found — still clear the saved verse so
-                      // leaving via Home and returning to Read doesn't re-read
-                      // the old filtered verse from localStorage and jump back.
-                      savePosition(pos.abbr, pos.chapter, null);
-                      try { routerNavigate('/read', { replace: true }); } catch {}
+                      // No prior session found — still go through the main
+                      // navigate() so kjb-position, the URL and react-router's
+                      // tracked location all clear the saved verse together.
+                      navigate(pos.abbr, pos.chapter, null, false, false, true);
                     }
                   }}
                 />
@@ -2054,14 +2046,12 @@ export default function BibleReader() {
                 if (searchTerm) { clearSearchContext(); return; }
                 if (gospelMode) { clearGospelNav(); setGospelMode(false); setHighlightVerse(null); setLastReadingPos(null); try { localStorage.removeItem('kjb-last-reading'); localStorage.removeItem('kjb-reader-toolbar-state'); } catch {} return; }
                 if (lastReadingActive) { setLastReadingPos(null); try { localStorage.removeItem('kjb-last-reading'); localStorage.removeItem('kjb-reader-toolbar-state'); } catch {} return; }
-                rangeHighlightRef.current = false; setFilterMode(false); setSelectMode(false); setSelectedVerses(new Set()); setHighlightedVerses(new Set()); setShowFilterOverlay(false);
-                setHighlightVerse(null);
-                // Clear the saved verse/verseEnd — otherwise leaving via Home and
-                // coming back to Read re-reads the old filtered verse from
-                // localStorage and jumps right back into it.
-                savePosition(pos.abbr, pos.chapter, null);
-                try { routerNavigate(pos.chapter === 0 ? window.location.pathname : `/read?book=${pos.abbr}&chapter=${pos.chapter}`, { replace: true }); } catch {}
+                rangeHighlightRef.current = false; setSelectMode(false); setShowFilterOverlay(false);
                 try { localStorage.removeItem('kjb-reader-toolbar-state'); } catch {}
+                // Go through the main navigate() so pos, kjb-position (verse
+                // cleared) and the URL all update together via react-router —
+                // otherwise Home → Read can re-read a stale filtered verse.
+                navigate(pos.abbr, pos.chapter, null, false, false, true);
               }}
             />
           )}
