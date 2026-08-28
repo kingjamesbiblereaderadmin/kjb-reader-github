@@ -1981,6 +1981,10 @@ export default function BibleReader() {
                     if (prevAbbr && prevChapter) {
                       returnToChapter(prevAbbr, prevChapter, prevScrollY);
                     } else {
+                      // No prior session found — still clear the saved verse so
+                      // leaving via Home and returning to Read doesn't re-read
+                      // the old filtered verse from localStorage and jump back.
+                      savePosition(pos.abbr, pos.chapter, null);
                       try { window.history.replaceState({}, '', '/read'); } catch {}
                     }
                   }}
