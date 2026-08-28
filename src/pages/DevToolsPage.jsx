@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-import { Wrench, BookOpen, Smartphone, LogOut, Loader2, Puzzle } from 'lucide-react';
+import { Wrench, BookOpen, Smartphone, LogOut, Loader2, Puzzle, Terminal } from 'lucide-react';
 import BibleTextEditor from '@/components/dev/BibleTextEditor';
 import ManifestEditor from '@/components/dev/ManifestEditor';
 import ExtensionLinksEditor from '@/components/dev/ExtensionLinksEditor';
 import ExtensionImagesEditor from '@/components/dev/ExtensionImagesEditor';
 import DevToolErrorBoundary from '@/components/dev/DevToolErrorBoundary';
 import DevToolsSignIn from '@/components/dev/DevToolsSignIn';
+import AndroidPromptTool from '@/components/dev/AndroidPromptTool';
 
 // NOTE: The page is protected by admin authentication (base44.auth.me() +
 // role === 'admin'). Backend saves also require a real admin session.
@@ -16,6 +17,7 @@ const TABS = [
   { id: 'manifest', label: 'Manifest & Icons', icon: Smartphone },
   { id: 'links', label: 'Extension Links', icon: Puzzle },
   { id: 'images', label: 'Extension Images', icon: Puzzle },
+  { id: 'prompts', label: 'Android Prompt', icon: Terminal },
 ];
 
 export default function DevToolsPage() {
@@ -79,6 +81,7 @@ export default function DevToolsPage() {
         {tab === 'manifest' && <ManifestEditor />}
         {tab === 'links' && <ExtensionLinksEditor />}
         {tab === 'images' && <ExtensionImagesEditor />}
+        {tab === 'prompts' && <AndroidPromptTool />}
       </DevToolErrorBoundary>
     </div>
   );
