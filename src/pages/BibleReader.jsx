@@ -1585,7 +1585,6 @@ export default function BibleReader() {
 
   const goPrev = () => {
     if (pos.chapter > 1) { navigate(pos.abbr, pos.chapter - 1); }
-    else if (pos.chapter === 1) { navigate(pos.abbr, 0); }
     else { const prev = getPrevBook(pos.abbr); if (prev) navigate(prev.abbr, prev.chapters); }
   };
 
@@ -2204,7 +2203,7 @@ export default function BibleReader() {
           {!isFirstChapterFirstBook ? (
           <button onClick={goPrev} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-colors min-h-[48px] touch-manipulation min-w-0">
             <ChevronLeft className="w-4 h-4 flex-shrink-0" />
-            <span className="hidden sm:inline truncate">{isViewingTitlePage ? `${getPrevBook(pos.abbr)?.shortName} ${getPrevBook(pos.abbr)?.chapters}` : pos.chapter > 1 ? `Chapter ${pos.chapter - 1}` : `${book.shortName} Title Page`}</span>
+            <span className="hidden sm:inline truncate">{isViewingTitlePage ? `${getPrevBook(pos.abbr)?.shortName} ${getPrevBook(pos.abbr)?.chapters}` : pos.chapter > 1 ? `Chapter ${pos.chapter - 1}` : `${getPrevBook(pos.abbr)?.shortName} ${getPrevBook(pos.abbr)?.chapters}`}</span>
           </button>
           ) : <div className="flex-1" />}
           {!isLastChapterLastBook ? (
