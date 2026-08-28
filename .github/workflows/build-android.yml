@@ -18,7 +18,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Sync Capacitor Android (regenerates gitignored native plugin files)
-        run: npx cap sync android
+        run: |
+          # android/app/src/main/assets is entirely gitignored (public/, capacitor.config.json,
+          # capacitor.plugins.json), so a fresh checkout doesn't have the directory at all —
+          # cap sync's copy step can't write into a path that doesn't exist yet.
+          mkdir -p android/app/src/main/assets
+          npx cap sync android
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
