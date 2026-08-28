@@ -29,7 +29,13 @@ export function useReaderUrlSync(pos, loading, a11yFont, navigate, searchTerm, g
       }
       let url;
       if (pos.chapter === 0) {
-        url = `/read?titlePage=${pos.abbr === 'MAT' ? 'new' : 'old'}`;
+        // Keep the testament-cover URL for GEN/MAT (their title page IS that
+        // cover); every other book's title page needs its own book param, or
+        // it gets rewritten into the Old Testament cover and silently jumps
+        // back to Genesis.
+        url = (pos.abbr === 'GEN' || pos.abbr === 'MAT')
+          ? `/read?titlePage=${pos.abbr === 'MAT' ? 'new' : 'old'}`
+          : `/read?book=${pos.abbr}&chapter=0`;
       } else {
         url = `/read?book=${pos.abbr}&chapter=${pos.chapter}`;
         if (pos.verse) url += `&verse=${pos.verse}`;

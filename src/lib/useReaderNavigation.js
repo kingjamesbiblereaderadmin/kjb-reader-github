@@ -20,7 +20,6 @@ export function useReaderNavigation(pos, loadChapter, routerNavigate, routerLoca
   };
 
   const navigate = (newAbbr, newChapter, jumpVerse = null, fromDailyVerse = false, fromRandom = false, isAutoAdvance = false, section = null, preserveSearchContext = false, clearSearchNav, setGospelMode, clearGospelNav) => {
-    if (newChapter === 0 && newAbbr !== 'GEN' && newAbbr !== 'MAT') return;
     if (!preserveSearchContext) {
       clearSearchNav();
       setGospelMode(false);
@@ -36,7 +35,17 @@ export function useReaderNavigation(pos, loadChapter, routerNavigate, routerLoca
     
     try {
       let url;
-      if (newChapter === 0) url = `/read?titlePage=${newAbbr === 'MAT' ? 'new' : 'old'}`;
+      if (newChapter === 0) {
+        // GEN/MAT's title page doubles as the Old/New Testament cover — keep
+        // that URL form. Every other book's title page has no testament-cover
+        // equivalent, so it must carry its own book abbr instead of being
+        // silently coerced into the Old Testament cover (which was reopening
+        // Genesis whenever a Prev/BookSelector jump landed on another book's
+        // title page).
+        url = (newAbbr === 'GEN' || newAbbr === 'MAT')
+          ? `/read?titlePage=${newAbbr === 'MAT' ? 'new' : 'old'}`
+          : `/read?book=${newAbbr}&chapter=0`;
+      }
       else {
         url = `/read?book=${newAbbr}&chapter=${newChapter}`;
         if (jumpVerse) url += `&verse=${jumpVerse}`;
