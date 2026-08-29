@@ -3,6 +3,7 @@ import {
   ABBR_TO_NAME,
   loadBible,
   processVerse,
+  normalizePilcrows,
 } from "../../shared/bibleData.ts";
 
 // Public, no-auth Bible search endpoint for the KJB Reader browser extension.
@@ -31,14 +32,16 @@ function json(data, status = 200) {
 const OLD_TESTAMENT = new Set(BOOK_ORDER.slice(0, 39));
 const NEW_TESTAMENT = new Set(BOOK_ORDER.slice(39));
 
-// Strip KJB markup to get the searchable visible text.
+// Strip KJB markup to get the searchable visible text. Uses the shared
+// normalizePilcrows so a \uFFFD is only treated as an apostrophe when it
+// follows a letter (e.g. "God\uFFFDs" -> "God's") — any other \uFFFD is a
+// paragraph pilcrow and gets removed, not turned into a stray apostrophe.
 function visibleText(raw) {
-  return String(raw)
-    .replace(/^<<[^>]*>>\s*/, "") // superscription markers
-    .replace(/\[/g, "")           // italic-supplied word brackets
+  const noSup = String(raw).replace(/^<<[^>]*>>\s*/, ""); // superscription markers
+  return normalizePilcrows(noSup)
+    .replace(/\[/g, "")   // italic-supplied word brackets
     .replace(/\]/g, "")
-    .replace(/¶/g, "")            // pilcrows
-    .replace(/\uFFFD/g, "'");     // corrupted chars → apostrophes
+    .replace(/¶/g, "");   // pilcrows
 }
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
