@@ -105,9 +105,6 @@ export default function SettingsPage() {
     danger: false,
   });
   const { isDark, mode, setMode, colourId, setColourId } = useTheme();
-  const [isNativeAndroid] = useState(() => {
-    try { return checkIsNativeAndroid(); } catch { return false; }
-  });
   const [readerFontFamily, setReaderFontFamily] = useState(() => {
     try { return localStorage.getItem('kjb-reader-font-family') || 'serif'; } catch { return 'serif'; }
   });
