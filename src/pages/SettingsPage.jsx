@@ -20,7 +20,6 @@ import { getAccessibilityFont, setAccessibilityFont } from '@/lib/accessibilityF
 import { getAutoRotate, setAutoRotate as persistAutoRotate } from '@/lib/autoRotate';
 import { detectIncognito } from '@/lib/incognito';
 import { getLiveWorkerVersion, getDeployedWorkerVersion } from '@/lib/liveWorkerVersion';
-import { isNativeAndroid as checkIsNativeAndroid } from '@/lib/isNativeAndroid';
 import { isMobileDevice } from '@/lib/isMobileDevice';
 
 const A11Y_FONTS = [
