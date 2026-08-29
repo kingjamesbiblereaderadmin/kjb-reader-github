@@ -488,7 +488,29 @@ public class MainActivity extends BridgeActivity {
                     String assetPath = "public" + (looksLikeRoute ? "/index.html" : path);
                     try {
                         InputStream stream = activity.getAssets().open(assetPath);
-                        return new WebResourceResponse(guessMimeType(assetPath), null, stream);
+                        if (looksLikeRoute) {
+                            // Capacitor's own bridge JS (window.Capacitor,
+                            // native plugin calls, isNativePlatform()) is
+                            // normally injected into index.html by Capacitor's
+                            // OWN request handling (bridge.getLocalServer()),
+                            // which we bypass entirely here by reading the
+                            // asset file directly -- that's the whole reason
+                            // this fallback needed a custom implementation in
+                            // the first place (see the comment block above).
+                            // Without SOME replacement for that injection,
+                            // Capacitor.isNativePlatform() could read wrong
+                            // when the app is showing this bundled copy,
+                            // silently breaking anything gated on it (e.g.
+                            // bibleCache.js switching to the bundled Bible
+                            // path, or Settings' native-only sections). Inject
+                            // our own minimal, guaranteed-correct marker
+                            // instead of trying to replicate Capacitor's exact
+                            // injection -- see main.jsx / bibleCache.js /
+                            // HighlightToSearchTip.jsx, which check this flag
+                            // first and fall back to Capacitor's own check.
+                            stream = injectNativeMarker(stream);
+                        }
+                        return new WebResourceResponse(guessMimeType(assetPath), looksLikeRoute ? "UTF-8" : null, stream);
                     } catch (IOException e) {
                         // Fall through to normal (network) handling below.
                     }
