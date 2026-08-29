@@ -27,6 +27,7 @@ import {
 
 import { exportVerses } from '@/lib/exportVerses';
 import { buildVerseUrl } from '@/lib/formatDailyVerse';
+import { getPublicOrigin } from '@/lib/publicOrigin';
 import { SUBSCRIPTS } from '@/lib/bibleSubscripts';
 
 // Parse a cross-chapter / cross-book passage like "John 3:16-4:2" (same book,
