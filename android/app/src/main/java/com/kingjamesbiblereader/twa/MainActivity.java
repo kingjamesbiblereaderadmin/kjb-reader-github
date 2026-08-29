@@ -566,7 +566,17 @@ public class MainActivity extends BridgeActivity {
             // network. Matches with or without the app_id-scoped API prefix,
             // since LegacyReader.jsx picks whichever applies for the current
             // host.
-            if (path0 != null && path0.endsWith("/functions/legacy")) {
+            //
+            // Excludes ?download=1 specifically: OfflineHtmlSection.jsx's
+            // "Download HTML File" link points at this SAME path with that
+            // query param, expecting a real file download (handled by
+            // DownloadListener below). Since shouldInterceptRequest matches on
+            // path only, this block was catching that request too and serving
+            // it as an ordinary page load -- the download link silently did
+            // nothing, because the request never reached DownloadListener at
+            // all once we'd already handled it here.
+            boolean isExplicitDownload = url.getQuery() != null && url.getQuery().contains("download=1");
+            if (path0 != null && path0.endsWith("/functions/legacy") && !isExplicitDownload) {
                 try {
                     InputStream stream = view.getContext().getAssets().open("legacy/legacy.html");
                     WebResourceResponse response = new WebResourceResponse("text/html", "UTF-8", stream);
