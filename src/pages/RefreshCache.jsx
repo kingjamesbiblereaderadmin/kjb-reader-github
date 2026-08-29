@@ -113,7 +113,7 @@ export default function RefreshCache() {
         <div className="relative mb-12">
           <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full scale-150 animate-pulse"></div>
           <img 
-            src="https://media.base44.com/images/public/6a05d76723afe58d80c589e8/8e738d108_cfb4bf781_Untitled.png" 
+            src="https://media.base44.com/images/public/6a05d76723afe58d80c589e8/2279e016e_8e738d108_cfb4bf781_Untitled.png" 
             alt="KJB Reader" 
             className="relative w-32 h-32 object-contain drop-shadow-xl"
           />
