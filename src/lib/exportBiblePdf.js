@@ -5,6 +5,7 @@ import { SUBSCRIPTS, COLOPHONS } from '@/lib/bibleSubscripts';
 import { mergeAdjacentBrackets } from '@/lib/bibleApi';
 import { getExportFont } from '@/lib/exportFonts';
 import { embedPdfFont } from '@/lib/embedPdfFont';
+import { triggerDownload } from '@/lib/nativeDownload';
 
 // ── Title page text blocks (mirrors components/bible/TitlePage) ──
 const TITLE_WHOLE = [
