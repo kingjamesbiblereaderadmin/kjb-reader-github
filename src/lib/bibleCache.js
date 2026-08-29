@@ -6,6 +6,7 @@
 import { saveToIndexedDB, loadFromIndexedDB, clearIndexedDB } from '@/lib/bibleIndexedDB';
 import { COLOPHONS } from '@/lib/bibleSubscripts';
 import { parsePceText } from '@/lib/biblePceParser';
+import { Capacitor } from '@capacitor/core';
 
 // Bump this version string whenever the Bible text file changes — every client
 // will then re-download and re-parse fresh. Replaces the old remote VERSION.txt
@@ -20,7 +21,18 @@ const CACHE_KEY = 'bible_data_pce_v100_SINGLE_FILE';
 // format: book titles, CHAPTER headings, [bracketed] italics, double-space
 // pilcrow markers). Bumping CACHE_VERSION forces every device to invalidate
 // stale IndexedDB/localStorage Bible data and re-fetch from this source.
-const PCE_TEXT_FILE_URL = 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/dabab1ba3_recovered-pce-bible.txt';
+const REMOTE_PCE_TEXT_FILE_URL = 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/dabab1ba3_recovered-pce-bible.txt';
+// In the native Android app, this exact same file is bundled into the APK
+// (android/app/src/main/assets/bible/pce-bible.txt) and served locally by a
+// WebViewClient.shouldInterceptRequest override in MainActivity.java for
+// requests to this same-origin path — no real network involved. Means the
+// full Bible is available from the very first launch, offline, with no
+// one-time download required. Must match MainActivity's BUNDLED_BIBLE_PATH
+// exactly. Falls back to the remote URL on web/iOS or if interception isn't
+// wired up for some reason.
+let isNative = false;
+try { isNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android'; } catch {}
+const PCE_TEXT_FILE_URL = isNative ? '/__native/pce-bible.txt' : REMOTE_PCE_TEXT_FILE_URL;
 
 const EXPECTED_BOOK_COUNT = 66;
 
