@@ -409,8 +409,36 @@ public class MainActivity extends BridgeActivity {
             }
 
             if (FALLBACK_DOMAIN.equals(url.getHost())) {
-                WebResourceResponse response = assetLoader.shouldInterceptRequest(url);
-                if (response != null) return response;
+                // Serves android/app/src/main/assets/public/<path> for any
+                // request to FALLBACK_DOMAIN/<path> -- the entire bundled site
+                // (copied to assets/public/ by `cap sync` from a real `npm run
+                // build`), used as a last resort when the live site can't be
+                // reached at all (see onReceivedError below).
+                //
+                // Direct getAssets() lookup by path instead of androidx.webkit's
+                // WebViewAssetLoader: that library's PathHandler prefix-matching
+                // doesn't reliably match a root-only "/" prefix across
+                // androidx.webkit versions -- it silently returned null for
+                // every request here, falling through to a real (failing)
+                // network request for the fake FALLBACK_DOMAIN and showing a
+                // "page not found" error. A non-root prefix like "/app/"
+                // matches fine, but then breaks the OTHER way: the built
+                // index.html references its JS/CSS with root-relative paths
+                // like "/assets/xxxx.js", which resolve against the domain
+                // root regardless of index.html's own path -- so a subpath
+                // prefix leaves every asset AFTER index.html unmatched. Doing
+                // the lookup directly, the same way the Bible text and fonts
+                // above already are, sidesteps both problems at once.
+                String path = url.getPath(); // already starts with "/"
+                if (path != null) {
+                    String assetPath = "public" + path;
+                    try {
+                        InputStream stream = activity.getAssets().open(assetPath);
+                        return new WebResourceResponse(guessMimeType(assetPath), null, stream);
+                    } catch (IOException e) {
+                        // Fall through to normal (network) handling below.
+                    }
+                }
             }
 
             return super.shouldInterceptRequest(view, request);
