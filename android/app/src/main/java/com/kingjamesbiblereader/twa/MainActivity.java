@@ -306,15 +306,15 @@ public class MainActivity extends BridgeActivity {
             super(bridge);
             this.activity = activity;
             // Serves android/app/src/main/assets/public/<path> for any request
-            // to FALLBACK_DOMAIN/app/<path>. A custom PathHandler (rather than
-            // the library's built-in AssetsPathHandler) because our bundled
-            // site lives inside a "public/" subfolder of assets/ (that's where
-            // `cap sync` copies `npm run build`'s dist/ output to) -- the
-            // built index.html references its JS/CSS with root-relative paths
-            // like "/assets/xxxx.js", so a request for e.g.
-            // https://.../app/assets/xxxx.js arrives here with the "/app/"
-            // prefix already stripped (path="assets/xxxx.js"), and prepending
-            // "public/" lines that up with the real folder.
+            // to FALLBACK_DOMAIN/<path>. A custom PathHandler (rather than the
+            // library's built-in AssetsPathHandler) because our bundled site
+            // lives inside a "public/" subfolder of assets/ (that's where `cap
+            // sync` copies `npm run build`'s dist/ output to). Registered at
+            // root ("/") rather than a conventional "/assets/"-style prefix:
+            // the built index.html references its JS/CSS with root-relative
+            // paths like "/assets/xxxx.js", which the browser resolves against
+            // the DOMAIN ROOT regardless of index.html's own path -- so the
+            // handler has to cover the whole domain, not a subpath under it.
             WebViewAssetLoader.PathHandler publicAssetsHandler = path -> {
                 try {
                     InputStream stream = activity.getAssets().open("public/" + path);
@@ -323,7 +323,7 @@ public class MainActivity extends BridgeActivity {
                     return null;
                 }
             };
-            assetLoader = new WebViewAssetLoader.Builder().setDomain(FALLBACK_DOMAIN).addPathHandler("/app/", publicAssetsHandler).build();
+            assetLoader = new WebViewAssetLoader.Builder().setDomain(FALLBACK_DOMAIN).addPathHandler("/", publicAssetsHandler).build();
         }
 
         private static String guessMimeType(String path) {
