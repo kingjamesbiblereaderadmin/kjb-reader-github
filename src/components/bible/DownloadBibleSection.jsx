@@ -3,6 +3,7 @@ import { Download, Loader2, Columns2, AlignLeft, AlignJustify, List, CheckCircle
 import { Switch } from '@/components/ui/switch';
 import { exportBiblePdf } from '@/lib/exportBiblePdf';
 import { DEFAULT_EXPORT_FONT } from '@/lib/exportFonts';
+import { isNativeAndroid } from '@/lib/isNativeAndroid';
 
 function Toggle({ active, onClick, icon: Icon, label }) {
   return (
