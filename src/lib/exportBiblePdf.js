@@ -961,7 +961,7 @@ async function buildText(opts, bible, onProgress, format) {
     blob = new Blob(['\uFEFF', out.join('\r\n')], { type: 'text/plain;charset=utf-8' });
     name = fileName(opts, 'txt');
   }
-  triggerDownload(blob, name);
+  await triggerDownload(blob, name);
 }
 
 // ─────────────────────────────────────────────────────────────
