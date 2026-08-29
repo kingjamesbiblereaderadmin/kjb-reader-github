@@ -721,4 +721,66 @@ public class MainActivity extends BridgeActivity {
             });
         }
     }
+
+    // Exposed to JS as window.kjbPrintBridge (see the addJavascriptInterface
+    // call in onCreate). Hooks up Android's real PrintManager -- the native
+    // counterpart to window.print()/iframe.print(), which does nothing by
+    // itself in a bare WebView (see the comment on the addJavascriptInterface
+    // call above).
+    private static class PrintBridge {
+        private final MainActivity activity;
+
+        PrintBridge(MainActivity activity) {
+            this.activity = activity;
+        }
+
+        // Prints the live, already-loaded main WebView exactly as shown
+        // (reader's plain "Print Page" button).
+        @JavascriptInterface
+        public void printCurrent() {
+            activity.runOnUiThread(() -> {
+                try {
+                    WebView webView = activity.getBridge().getWebView();
+                    PrintManager printManager = (PrintManager) activity.getSystemService(Context.PRINT_SERVICE);
+                    if (printManager == null) return;
+                    String jobName = "KJB Reader";
+                    PrintDocumentAdapter adapter = webView.createPrintDocumentAdapter(jobName);
+                    printManager.print(jobName, adapter, new PrintAttributes.Builder().build());
+                } catch (Exception e) {
+                    // Nothing more we can do here -- fail silently rather than crash.
+                }
+            });
+        }
+
+        // Prints an arbitrary formatted HTML document (the Gospel/Salvation
+        // export and search-results/reading-mode export's "Print" option) --
+        // loaded into a disposable, never-displayed WebView purely so Android
+        // has something to hand to PrintManager; the live app WebView is never
+        // touched or navigated away from.
+        @JavascriptInterface
+        public void printHtml(String html) {
+            activity.runOnUiThread(() -> {
+                try {
+                    WebView printWebView = new WebView(activity);
+                    printWebView.setWebViewClient(new WebViewClient() {
+                        @Override
+                        public void onPageFinished(WebView view, String url) {
+                            try {
+                                PrintManager printManager = (PrintManager) activity.getSystemService(Context.PRINT_SERVICE);
+                                if (printManager == null) return;
+                                String jobName = "KJB Reader Document";
+                                PrintDocumentAdapter adapter = view.createPrintDocumentAdapter(jobName);
+                                printManager.print(jobName, adapter, new PrintAttributes.Builder().build());
+                            } catch (Exception e) {
+                                // Nothing more we can do here -- fail silently rather than crash.
+                            }
+                        }
+                    });
+                    printWebView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
+                } catch (Exception e) {
+                    // Nothing more we can do here -- fail silently rather than crash.
+                }
+            });
+        }
+    }
 }
