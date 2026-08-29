@@ -162,7 +162,7 @@ export default function DownloadBibleSection() {
       )}
       {!busy && status === 'Done!' && (
         <p className="font-sans text-sm text-green-600 dark:text-green-400 flex items-center gap-1.5">
-          <CheckCircle2 className="w-4 h-4" /> File downloaded successfully!
+          <CheckCircle2 className="w-4 h-4" /> {isNativeAndroid() ? 'Saved to your Downloads folder!' : 'File downloaded successfully!'}
         </p>
       )}
       {error && (
