@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Smartphone, MonitorSmartphone, AlertCircle, CheckCircle2, ExternalLink } from 'lucide-react';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import { detectIncognito } from '@/lib/incognito';
+import HighlightToSearchTip from '@/components/settings/HighlightToSearchTip';
 
 const inIframe = () => {
   try { return window.self !== window.top; } catch (e) { return true; }
