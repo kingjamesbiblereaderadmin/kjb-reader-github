@@ -80,7 +80,13 @@ async function fetchWithRetry(url, retries = 5, expectPilcrows = false, onProgre
   // cached data. navigator.onLine isn't 100% reliable (it can be true on a
   // Wi-Fi network with no real internet), but it correctly catches the common
   // case this bug report is about: airplane mode / no radio at all.
-  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+  //
+  // Exception: the bundled-Bible path on native Android never touches the
+  // network at all (WebViewClient.shouldInterceptRequest in MainActivity.java
+  // serves it straight from the APK's assets), so navigator.onLine is
+  // irrelevant to it and would otherwise wrongly block a real offline launch.
+  const isBundledLocalAsset = url.startsWith('/__native/');
+  if (!isBundledLocalAsset && typeof navigator !== 'undefined' && navigator.onLine === false) {
     throw new Error('Offline — skipping network fetch');
   }
   for (let attempt = 1; attempt <= retries; attempt++) {
