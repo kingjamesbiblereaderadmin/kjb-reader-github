@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Capacitor } from '@capacitor/core';
+import { isNativeAndroid as checkIsNativeAndroid } from '@/lib/isNativeAndroid';
 import { TextSelect } from 'lucide-react';
 
 // Android doesn't let apps auto-register themselves in the text-selection
@@ -14,9 +14,7 @@ export default function HighlightToSearchTip({ compact = false }) {
   const [isNativeAndroid, setIsNativeAndroid] = useState(false);
 
   useEffect(() => {
-    try {
-      setIsNativeAndroid(Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android');
-    } catch {}
+    setIsNativeAndroid(checkIsNativeAndroid());
   }, []);
 
   if (!isNativeAndroid) return null;
