@@ -22,7 +22,6 @@ import { getAutoRotate, setAutoRotate as persistAutoRotate } from '@/lib/autoRot
 import { detectIncognito } from '@/lib/incognito';
 import { getLiveWorkerVersion, getDeployedWorkerVersion } from '@/lib/liveWorkerVersion';
 import { isNativeAndroid as checkIsNativeAndroid } from '@/lib/isNativeAndroid';
-import { isMobileDevice } from '@/lib/isMobileDevice';
 
 const A11Y_FONTS = [
   { value: 'dyslexic', label: 'OpenDyslexic', desc: 'Designed for readers with dyslexia', preview: "'OpenDyslexic', 'Comic Sans MS', sans-serif" },
@@ -510,8 +509,8 @@ export default function SettingsPage() {
         )}
       </div>
 
-      {/* Keyboard Shortcuts */}
-      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      {/* Keyboard Shortcuts — desktop only, not relevant on mobile/touch devices */}
+      <div className="hidden sm:block bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('shortcuts')}
           className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
