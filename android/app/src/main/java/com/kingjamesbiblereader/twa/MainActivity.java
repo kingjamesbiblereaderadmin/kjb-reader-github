@@ -232,4 +232,38 @@ public class MainActivity extends BridgeActivity {
             }
         }
     }
+
+    // Path bibleCache.js requests (only on native Android) instead of the
+    // real remote Bible-text URL. Kept as a constant here since the Java side
+    // (matching against the incoming request) and the JS side (constructing
+    // the request) both need to agree on the exact same path.
+    static final String BUNDLED_BIBLE_PATH = "/__native/pce-bible.txt";
+
+    private static class BundledBibleWebViewClient extends BridgeWebViewClient {
+
+        BundledBibleWebViewClient(Bridge bridge) {
+            super(bridge);
+        }
+
+        @Override
+        public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+            Uri url = request.getUrl();
+            if (url != null && BUNDLED_BIBLE_PATH.equals(url.getPath())) {
+                try {
+                    InputStream stream = view.getContext().getAssets().open("bible/pce-bible.txt");
+                    WebResourceResponse response = new WebResourceResponse("text/plain", "UTF-8", stream);
+                    Map<String, String> headers = new HashMap<>();
+                    // Same-origin in practice (server.url and this intercepted
+                    // response share the kingjamesbiblereader.com origin), but
+                    // set explicitly in case that ever changes.
+                    headers.put("Access-Control-Allow-Origin", "*");
+                    response.setResponseHeaders(headers);
+                    return response;
+                } catch (IOException e) {
+                    // Fall through to normal (network) handling below.
+                }
+            }
+            return super.shouldInterceptRequest(view, request);
+        }
+    }
 }
