@@ -52,18 +52,23 @@ jobs:
         working-directory: android
         run: |
           ./gradlew assembleRelease bundleRelease
+      - name: Rename outputs to kjbreader
+        working-directory: android
+        run: |
+          mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/kjbreader.apk
+          mv app/build/outputs/bundle/release/app-release.aab app/build/outputs/bundle/release/kjbreader.aab
       - name: Verify signature
         working-directory: android
         run: |
           BUILD_TOOLS_DIR=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)
-          "$BUILD_TOOLS_DIR/apksigner" verify --verbose app/build/outputs/apk/release/app-release.apk
+          "$BUILD_TOOLS_DIR/apksigner" verify --verbose app/build/outputs/apk/release/kjbreader.apk
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: android/app/build/outputs/apk/release/kjbreader.apk
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
           name: android-aab
-          path: android/app/build/outputs/bundle/release/app-release.aab
+          path: android/app/build/outputs/bundle/release/kjbreader.aab
