@@ -131,6 +131,15 @@ public class MainActivity extends BridgeActivity {
         // in exportBiblePdf.js, which calls it when available.
         webView.addJavascriptInterface(new DownloadBridge(this), "kjbDownloadBridge");
 
+        // Same gap, different feature: "Print Page"/"Print Contents" (reader),
+        // and the Gospel/Salvation/search-results "Print" option, all call
+        // window.print() (or iframe.contentWindow.print(), same underlying
+        // browser Print API) which a bare WebView has no UI to respond to --
+        // it silently does nothing. This hooks up Android's real PrintManager
+        // instead; see PrintBridge below and nativePrint.js, which calls it
+        // when available.
+        webView.addJavascriptInterface(new PrintBridge(this), "kjbPrintBridge");
+
         // Covers a DIFFERENT download case than the bridge above: a plain
         // <a download href="https://..."> pointing at a REAL remote URL
         // (OfflineHtmlSection.jsx's "Download HTML File" link), rather than a
