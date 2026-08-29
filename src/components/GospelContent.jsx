@@ -80,7 +80,7 @@ function VerseLink({ book, chapter, verse, verseEnd, children }) {
 }
 
 function buildGospelText() {
-  const origin = (typeof window !== 'undefined' && window.location?.origin) ? window.location.origin : '';
+  const origin = getPublicOrigin();
   const link = (abbr, chapter, verse) => `<${origin}/read?book=${abbr}&chapter=${chapter}&verse=${verse}&from=gospel>`;
   return `✝ HOW TO BE SAVED
 
