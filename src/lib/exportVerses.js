@@ -463,7 +463,7 @@ export async function exportXls(items, query, filters, options = {}) {
   const csv = [...summaryRows, header, ...rows].join('\r\n');
   // Leading BOM so Excel detects UTF-8.
   const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' });
-  downloadBlob(blob, `kjb-${sanitizeFilename(query)}${options.filenameSuffix || ''}${filterSuffix(filters)}.csv`);
+  await downloadBlob(blob, `kjb-${sanitizeFilename(query)}${options.filenameSuffix || ''}${filterSuffix(filters)}.csv`);
 }
 
 // ── PDF (jsPDF) — italics preserved via font style switching ──
