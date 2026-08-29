@@ -257,7 +257,7 @@ function GospelActions() {
       return `<p style="margin:0;line-height:1.4">${esc(line)}</p>`;
     }).join('');
     const html = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>The Gospel</title></head><body style="font-family:Georgia,serif;font-size:12pt;color:#000">${body}</body></html>`;
-    downloadBlob(new Blob(['\ufeff', html], { type: 'application/msword' }), 'the-gospel.doc');
+    triggerDownload(new Blob(['\ufeff', html], { type: 'application/msword' }), 'the-gospel.doc').catch((err) => console.error('Download failed:', err));
   };
 
   return (
