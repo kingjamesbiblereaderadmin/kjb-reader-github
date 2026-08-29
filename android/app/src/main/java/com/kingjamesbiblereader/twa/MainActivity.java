@@ -407,6 +407,44 @@ public class MainActivity extends BridgeActivity {
                 }
             }
 
+            // Same pattern again for the app's own logo (header, landing
+            // page, boot splash text) and PWA manifest icon: these are
+            // hosted on media.base44.com/base44.app and only ever got cached
+            // via main.jsx's post-first-successful-load "prewarm" list, so a
+            // fresh install used offline from the very first launch showed
+            // them as broken images. kjb-icon512-v20260713.png and
+            // icon-512.png are two different hosted URLs for the exact same
+            // bytes (verified by hash), so both map to the one bundled file.
+            String path0 = url.getPath();
+            if ("media.base44.com".equals(url.getHost())
+                && path0 != null
+                && path0.endsWith("/2279e016e_8e738d108_cfb4bf781_Untitled.png")) {
+                try {
+                    InputStream stream = view.getContext().getAssets().open("images/logo.png");
+                    WebResourceResponse response = new WebResourceResponse("image/png", null, stream);
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Access-Control-Allow-Origin", "*");
+                    response.setResponseHeaders(headers);
+                    return response;
+                } catch (IOException e) {
+                    // Fall through to normal (network) handling below.
+                }
+            }
+            if ("base44.app".equals(url.getHost())
+                && path0 != null
+                && (path0.endsWith("/c2459f3df_kjb-icon512-v20260713.png") || path0.endsWith("/1d77e5114_icon-512.png"))) {
+                try {
+                    InputStream stream = view.getContext().getAssets().open("images/icon512.png");
+                    WebResourceResponse response = new WebResourceResponse("image/png", null, stream);
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Access-Control-Allow-Origin", "*");
+                    response.setResponseHeaders(headers);
+                    return response;
+                } catch (IOException e) {
+                    // Fall through to normal (network) handling below.
+                }
+            }
+
             if (FALLBACK_DOMAIN.equals(url.getHost())) {
                 // Serves android/app/src/main/assets/public/<path> for any
                 // request to FALLBACK_DOMAIN/<path> -- the entire bundled site
