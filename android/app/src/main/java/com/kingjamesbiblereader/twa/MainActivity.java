@@ -131,10 +131,46 @@ public class MainActivity extends BridgeActivity {
     private static class OAuthPopupChromeClient extends BridgeWebChromeClient {
 
         private final Bridge bridge;
+        private View customView;
+        private WebChromeClient.CustomViewCallback customViewCallback;
 
         OAuthPopupChromeClient(Bridge bridge) {
             super(bridge);
             this.bridge = bridge;
+        }
+
+        @Override
+        public void onShowCustomView(View view, WebChromeClient.CustomViewCallback callback) {
+            // Capacitors own BridgeWebChromeClient.onShowCustomView is a
+            // stub that calls callback.onCustomViewHidden() immediately --
+            // silently rejecting every fullscreen request. That is what the
+            // web apps Full Screen button (document.documentElement.
+            // requestFullscreen()) relies on, so it looked like it did
+            // nothing. Actually add the view over the whole window instead
+            // of deferring to super.
+            if (customView != null) {
+                callback.onCustomViewHidden();
+                return;
+            }
+            customView = view;
+            customViewCallback = callback;
+            ViewGroup decor = (ViewGroup) bridge.getActivity().getWindow().getDecorView();
+            decor.addView(
+                customView,
+                new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            );
+        }
+
+        @Override
+        public void onHideCustomView() {
+            if (customView == null) return;
+            ViewGroup decor = (ViewGroup) bridge.getActivity().getWindow().getDecorView();
+            decor.removeView(customView);
+            customView = null;
+            if (customViewCallback != null) {
+                customViewCallback.onCustomViewHidden();
+                customViewCallback = null;
+            }
         }
 
         @Override
