@@ -9,7 +9,6 @@
 //   is physically turned — this is what makes the lock work in a plain,
 //   non-fullscreen browser tab too.
 import { Capacitor } from '@capacitor/core';
-import { isNativeAndroid } from '@/lib/isNativeAndroid';
 
 const KEY = 'kjb-auto-rotate';
 const STYLE_ID = 'kjb-orientation-lock-style';
