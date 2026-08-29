@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<!-- Plain FrameLayout instead of CoordinatorLayout: CoordinatorLayout is
+     documented to swallow window insets before they reach the WebView on
+     Android 15+ (https://forum.ionicframework.com/t/android-15-edge-to-edge-webview-never-receives-real-windowinsets/251820),
+     and we don't use any of its AppBarLayout/Snackbar-coordination features
+     here anyway. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,4 +13,4 @@
     <WebView
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</FrameLayout>
