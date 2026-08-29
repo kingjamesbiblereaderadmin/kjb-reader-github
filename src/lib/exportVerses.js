@@ -151,7 +151,7 @@ function splitBySections(items) {
 }
 
 // ── TXT ──
-export function exportTxt(items, query, filters, options = {}) {
+export async function exportTxt(items, query, filters, options = {}) {
   const titlePrefix = options.titlePrefix || 'KJB Search Results';
   const isReading = titlePrefix === 'KJB Reading';
   const titleLine = isReading
