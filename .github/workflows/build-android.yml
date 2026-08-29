@@ -65,7 +65,22 @@ jobs:
       - name: Build signed release (APK + AAB)
         working-directory: android
         run: |
-          ./gradlew assembleRelease bundleRelease
+          # Retry: "Failed to create Jar file .../jars-9/.../bcprov-*.jar" is a
+          # known intermittent Gradle transform-cache race (see gradle.properties
+          # for the org.gradle.workers.max=1 fix targeting the same root cause).
+          # A retry catches it if it still slips through once in a while.
+          n=0
+          until [ $n -ge 3 ]; do
+            ./gradlew assembleRelease bundleRelease && break
+            n=$((n+1))
+            echo "Build attempt $n failed, retrying..."
+            ./gradlew --stop || true
+            sleep 5
+          done
+          if [ $n -ge 3 ]; then
+            echo "Build failed after 3 attempts"
+            exit 1
+          fi
       - name: Rename outputs to kjbreader
         working-directory: android
         run: |
