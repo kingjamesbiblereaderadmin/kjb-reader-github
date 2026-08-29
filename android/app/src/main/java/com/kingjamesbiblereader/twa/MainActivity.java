@@ -128,6 +128,31 @@ public class MainActivity extends BridgeActivity {
         // in exportBiblePdf.js, which calls it when available.
         webView.addJavascriptInterface(new DownloadBridge(this), "kjbDownloadBridge");
 
+        // Covers a DIFFERENT download case than the bridge above: a plain
+        // <a download href="https://..."> pointing at a REAL remote URL
+        // (OfflineHtmlSection.jsx's "Download HTML File" link), rather than a
+        // JS-generated Blob. A bare WebView has no default handling for
+        // either kind, but this one's a genuine network request, so Android's
+        // own DownloadManager can just fetch it directly -- no need to
+        // pull the bytes through JS first the way the Blob case requires.
+        webView.setDownloadListener(new DownloadListener() {
+            @Override
+            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
+                try {
+                    String guessedName = android.webkit.URLUtil.guessFileName(url, contentDisposition, mimeType);
+                    DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+                    request.setMimeType(mimeType);
+                    request.addRequestHeader("User-Agent", userAgent);
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                    request.setDestinationInExternalPublicDir(android.os.Environment.DIRECTORY_DOWNLOADS, guessedName);
+                    DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                    if (dm != null) dm.enqueue(request);
+                } catch (Exception e) {
+                    // Nothing more we can do here -- fail silently rather than crash.
+                }
+            }
+        });
+
         // Serves (a) the bundled Bible text for BUNDLED_BIBLE_PATH -- see
         // bibleCache.js, requested only when Capacitor.isNativePlatform() --
         // and (b) the entire bundled site (android/app/src/main/assets/public/,
