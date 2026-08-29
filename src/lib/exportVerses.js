@@ -711,13 +711,16 @@ export async function exportPdf(items, query, filters, options = {}) {
     y += lineH + 6;
   };
 
-  splitBySections(items).forEach(sec => {
+  const showOcc = !isReading && !!query;
+  splitBySections(items, showOcc ? { query, filters } : null).forEach(sec => {
     if (sec.isTestament) {
-      renderTestamentHeading(sec.title.toUpperCase());
+      const occText = showOcc ? `, ${sec.occCount} occurrence${sec.occCount !== 1 ? 's' : ''}` : '';
+      renderTestamentHeading(`${sec.title.toUpperCase()} (${sec.items.length} verse${sec.items.length !== 1 ? 's' : ''}${occText})`);
     } else {
       const bookNameObj = sec.items[0]?.bookNameObj;
       const fullBookName = bookNameObj ? bookNameObj.name : sec.title;
-      renderBookHeading(`${fullBookName}:`);
+      const bookOccText = showOcc && sec.occCount > sec.items.length ? ` (${sec.occCount} occurrences)` : '';
+      renderBookHeading(`${fullBookName}:${bookOccText}`);
       sec.items.forEach((it, idx) => {
         const hasPilcrow = (it.text || '').includes('¶');
         if (hasPilcrow && idx > 0) {
