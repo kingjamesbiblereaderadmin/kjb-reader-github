@@ -35,6 +35,7 @@ import { useSearchAndGospelResults } from '@/lib/useSearchAndGospelResults';
 import { resolveBook, formatVerseRange } from '@/lib/readerHelpers';
 import { useClosePopovers } from '@/lib/useClosePopovers';
 import { printChapterContents } from '@/lib/printHelpers';
+import { nativePrintCurrentPage } from '@/lib/nativePrint';
 import { saveVerse, isVerseSaved, removeSavedVerse } from '@/lib/savedVerses';
 import { setVerseHighlight, getVerseHighlight, removeVerseHighlight } from '@/lib/verseHighlights';
 import { HIGHLIGHT_COLORS } from '@/lib/highlightColors';
