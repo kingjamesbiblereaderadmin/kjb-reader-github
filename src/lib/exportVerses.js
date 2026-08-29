@@ -383,7 +383,7 @@ function highlightTermHtml(html, query, filters) {
 }
 
 // ── DOCX (Word-compatible HTML) — italics preserved ──
-export function exportDocx(items, query, filters, options = {}) {
+export async function exportDocx(items, query, filters, options = {}) {
   const titlePrefix = options.titlePrefix || 'KJB Search Results';
   const isReading = titlePrefix === 'KJB Reading';
   const rows = splitBySections(items).map(sec => {
