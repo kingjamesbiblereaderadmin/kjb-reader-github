@@ -8,19 +8,22 @@ export default function ThemeColorPicker({ compact = false }) {
   const { colorMode, setColorMode, colourId, setColourId } = useTheme();
   const palettes = COLOUR_PALETTES.filter(p => p.id !== 'custom');
 
-  // "Match Daily" mode has been removed — always use a fixed palette.
-  useEffect(() => {
-    if (colorMode !== 'fixed') setColorMode('fixed');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const [customHex, setCustomHex] = useState(() => {
     try { return localStorage.getItem('kjb-custom-accent') || '#B8860B'; } catch { return '#B8860B'; }
   });
 
+  // Switch to a fixed palette only when the user actually picks a colour —
+  // not just from this picker being rendered/mounted (e.g. opening the
+  // landing setup wizard shouldn't silently override "daily" mode colours).
+  const pickPalette = (id) => {
+    if (colorMode !== 'fixed') setColorMode('fixed');
+    setColourId(id);
+  };
+
   // Save the chosen hex and (re)apply the Custom palette. Toggling colourId off
   // and back to 'custom' forces the theme effect to re-read the new hex.
   const applyCustom = (hex) => {
+    if (colorMode !== 'fixed') setColorMode('fixed');
     setCustomHex(hex);
     try { localStorage.setItem('kjb-custom-accent', hex); } catch {}
     if (colourId === 'custom') {
@@ -45,7 +48,7 @@ export default function ThemeColorPicker({ compact = false }) {
         {palettes.map(p => (
           <button
             key={p.id}
-            onClick={() => setColourId(p.id)}
+            onClick={() => pickPalette(p.id)}
             title={p.name}
             className={`flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-lg border-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
               colourId === p.id ? 'border-foreground' : 'border-border hover:border-accent'
