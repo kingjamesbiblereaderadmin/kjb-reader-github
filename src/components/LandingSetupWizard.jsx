@@ -477,7 +477,7 @@ export default function LandingSetupWizard() {
             <p className="font-sans text-xs text-muted-foreground mb-4">Choose how verses are laid out</p>
 
             <p className="font-sans text-xs font-medium text-foreground mb-2">Reading Flow</p>
-            <div className="grid grid-cols-2 gap-2 max-w-xs mx-auto mb-5">
+            <div className="grid grid-cols-2 gap-1.5 max-w-[15rem] mx-auto mb-4">
               {[
                 { id: 'line', label: 'Line by Line', icon: List },
                 { id: 'paragraph', label: 'Paragraph', icon: AlignJustify },
@@ -489,19 +489,19 @@ export default function LandingSetupWizard() {
                     key={opt.id}
                     type="button"
                     onClick={() => pickFlow(opt.id)}
-                    className={`flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border-2 font-sans text-xs font-medium transition-all ${
+                    className={`flex flex-col items-center gap-1 px-2 py-2 rounded-lg border-2 font-sans text-[11px] font-medium transition-all ${
                       isActive ? 'bg-primary text-primary-foreground border-primary shadow-md scale-[1.02]'
                       : 'bg-card text-foreground border-border hover:border-accent'
                     }`}
                   >
-                    <Icon className="w-5 h-5" /> {opt.label}
+                    <Icon className="w-3.5 h-3.5" /> {opt.label}
                   </button>
                 );
               })}
             </div>
 
             <p className="font-sans text-xs font-medium text-foreground mb-2">Columns</p>
-            <div className="grid grid-cols-2 gap-2 max-w-xs mx-auto">
+            <div className="grid grid-cols-2 gap-1.5 max-w-[15rem] mx-auto">
               {[
                 { id: false, label: 'Single Column', icon: AlignLeft },
                 { id: true, label: 'Two Column', icon: Columns2 },
@@ -513,12 +513,12 @@ export default function LandingSetupWizard() {
                     key={String(opt.id)}
                     type="button"
                     onClick={() => pickColumn(opt.id)}
-                    className={`flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border-2 font-sans text-xs font-medium transition-all ${
+                    className={`flex flex-col items-center gap-1 px-2 py-2 rounded-lg border-2 font-sans text-[11px] font-medium transition-all ${
                       isActive ? 'bg-primary text-primary-foreground border-primary shadow-md scale-[1.02]'
                       : 'bg-card text-foreground border-border hover:border-accent'
                     }`}
                   >
-                    <Icon className="w-5 h-5" /> {opt.label}
+                    <Icon className="w-3.5 h-3.5" /> {opt.label}
                   </button>
                 );
               })}
