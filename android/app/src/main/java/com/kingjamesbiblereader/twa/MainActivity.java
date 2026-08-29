@@ -476,6 +476,7 @@ public class MainActivity extends BridgeActivity {
             }
 
             if (FALLBACK_DOMAIN.equals(url.getHost())) {
+                // Serves android/app/src/main/assets/public/<path> for any
                 // request to FALLBACK_DOMAIN/<path> -- the entire bundled site
                 // (copied to assets/public/ by `cap sync` from a real `npm run
                 // build`), used as a last resort when the live site can't be
