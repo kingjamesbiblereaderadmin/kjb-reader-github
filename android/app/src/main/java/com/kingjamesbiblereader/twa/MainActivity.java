@@ -428,9 +428,24 @@ public class MainActivity extends BridgeActivity {
                 // prefix leaves every asset AFTER index.html unmatched. Doing
                 // the lookup directly, the same way the Bible text and fonts
                 // above already are, sidesteps both problems at once.
+                //
+                // "/" itself, and any path with no file extension in its last
+                // segment (an SPA client-side route like "/search", reached via
+                // a hard navigation rather than in-app routing), both serve
+                // index.html -- this mirrors the live site's own service
+                // worker fallback (public/sw.js) so client-side routing can
+                // take over regardless of which URL the fallback was entered
+                // from. Without this, loading FALLBACK_URL's exact path
+                // ("/") worked, but React Router's location.pathname would be
+                // literally "/index.html" if we'd pointed FALLBACK_URL there
+                // instead -- which matches none of the app's routes and shows
+                // its own "Page Not Found" (PageNotFound.jsx renders the raw
+                // pathname as the missing page's name).
                 String path = url.getPath(); // already starts with "/"
                 if (path != null) {
-                    String assetPath = "public" + path;
+                    String lastSegment = path.substring(path.lastIndexOf('/') + 1);
+                    boolean looksLikeRoute = path.equals("/") || !lastSegment.contains(".");
+                    String assetPath = "public" + (looksLikeRoute ? "/index.html" : path);
                     try {
                         InputStream stream = activity.getAssets().open(assetPath);
                         return new WebResourceResponse(guessMimeType(assetPath), null, stream);
