@@ -1141,7 +1141,7 @@ async function buildRtf(opts, bible, onProgress) {
     .replace(/\u0000FRONT\u0000/g, '\\sectd');
   const rtfFont = getExportFont(opts.font).rtf;
   const rtf = `{\\rtf1\\ansi\\deff0\\fet0{\\fonttbl{\\f0 ${rtfFont};}}\\f0\\fs20 ${body}}`;
-  triggerDownload(new Blob([rtf], { type: 'application/rtf' }), fileName(opts, 'rtf'));
+  await triggerDownload(new Blob([rtf], { type: 'application/rtf' }), fileName(opts, 'rtf'));
 }
 
 function fileName(opts, ext) {
