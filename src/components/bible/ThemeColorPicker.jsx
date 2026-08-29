@@ -41,7 +41,7 @@ export default function ThemeColorPicker({ compact = false }) {
       )}
 
       {/* Palette swatches */}
-      <div className="flex flex-wrap gap-2 pt-1">
+      <div className="grid grid-cols-2 gap-2 pt-1">
         {palettes.map(p => (
           <button
             key={p.id}
@@ -51,8 +51,8 @@ export default function ThemeColorPicker({ compact = false }) {
               colourId === p.id ? 'border-foreground' : 'border-border hover:border-accent'
             }`}
           >
-            <span className="w-5 h-5 rounded-full border border-black/10" style={{ backgroundColor: p.swatch }} />
-            <span className="font-sans text-xs font-medium text-foreground">{p.name}</span>
+            <span className="w-5 h-5 rounded-full border border-black/10 flex-shrink-0" style={{ backgroundColor: p.swatch }} />
+            <span className="font-sans text-xs font-medium text-foreground truncate">{p.name}</span>
           </button>
         ))}
 
@@ -63,7 +63,7 @@ export default function ThemeColorPicker({ compact = false }) {
           }`}
           title="Custom colour"
         >
-          <span className="relative w-5 h-5 rounded-full border border-black/10 overflow-hidden" style={{ backgroundColor: customHex }}>
+          <span className="relative w-5 h-5 rounded-full border border-black/10 overflow-hidden flex-shrink-0" style={{ backgroundColor: customHex }}>
             <input
               type="color"
               value={customHex}
@@ -71,7 +71,7 @@ export default function ThemeColorPicker({ compact = false }) {
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
           </span>
-          <span className="font-sans text-xs font-medium text-foreground">Custom</span>
+          <span className="font-sans text-xs font-medium text-foreground truncate">Custom</span>
         </label>
       </div>
     </div>
