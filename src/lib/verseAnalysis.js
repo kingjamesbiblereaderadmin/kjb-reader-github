@@ -306,8 +306,8 @@ export function matchesTerms(plainText, terms, caseSensitive, wholeWord, inOrder
   // boundary character that also separates it from the NEXT term. (Consuming
   // the trailing boundary was the bug that made whole-word "in order" and
   // "adjacent" phrase searches fail on consecutive words like "Lamb of God".)
-  const before = wholeWord ? `(?<![A-Za-z'-])` : '';
-  const after = wholeWord ? `(?![A-Za-z'-])` : '';
+  const before = wholeWord ? `(?<![A-Za-z'])` : '';
+  const after = wholeWord ? `(?![A-Za-z'])` : '';
 
   // Adjacent → single phrase: term1 <space(s)> term2 <space(s)> … in order.
   if (adjacent) {
