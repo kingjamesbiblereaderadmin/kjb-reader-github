@@ -61,11 +61,32 @@ export default function CreditsPage() {
             </div>
             <h2 className="font-serif text-xl font-semibold text-foreground">Fonts</h2>
           </div>
-          <ul className="space-y-1.5 font-sans text-sm text-foreground/85">
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Cormorant Garamond, Inter, Merriweather, Dancing Script</strong> — Google Fonts (SIL Open Font License).</span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Times New Roman &amp; Comic Sans MS</strong> — system fonts bundled with Windows/macOS; no attribution required.</span></li>
+
+          <p className="font-sans text-xs font-semibold text-foreground/70 uppercase tracking-wide mb-1.5">Reading &amp; Decorative</p>
+          <ul className="space-y-1.5 font-sans text-sm text-foreground/85 mb-4">
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Cormorant Garamond</strong> — reading font option</span></li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Merriweather</strong> — reading font option</span></li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Inter</strong> — interface text</span></li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Caveat, Dancing Script, Great Vibes</strong> — handwritten-style fonts for shareable verse cards</span></li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Comic Neue</strong> — a friendly, rounded font option for verse cards</span></li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Serif, Sans, Mono, Cursive</strong> reading-font options use your device's own built-in fonts — no download or separate attribution needed.</span></li>
           </ul>
-          <p className="font-sans text-[11px] text-muted-foreground leading-relaxed mt-3">All fonts are open source and freely available under the SIL Open Font License.</p>
+          <p className="font-sans text-xs text-muted-foreground leading-relaxed mb-4">
+            All of the above are Google Fonts, released under the{' '}
+            <a href="https://scripts.sil.org/OFL" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">SIL Open Font License</a>.
+          </p>
+
+          <p className="font-sans text-xs font-semibold text-foreground/70 uppercase tracking-wide mb-1.5">Accessibility</p>
+          <ul className="space-y-1.5 font-sans text-sm text-foreground/85">
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Atkinson Hyperlegible</strong> — designed by the{' '}
+              <a href="https://brailleinstitute.org/freefont" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Braille Institute of America</a>{' '}
+              for readers with low vision. SIL Open Font License.</span></li>
+            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">OpenDyslexic</strong> — designed by{' '}
+              <a href="https://opendyslexic.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Abbie Gonzalez</a>{' '}
+              to increase readability for readers with dyslexia. SIL Open Font License.</span></li>
+          </ul>
+
+          <p className="font-sans text-[11px] text-muted-foreground leading-relaxed mt-4">In the Android app, these fonts are bundled with the app itself so they're available offline from first launch, instead of being downloaded from Google Fonts.</p>
         </section>
 
         {/* App Platform & Thanks */}
