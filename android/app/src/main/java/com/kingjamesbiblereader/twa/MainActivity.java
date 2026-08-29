@@ -33,13 +33,26 @@ public class MainActivity extends BridgeActivity {
 
         // Edge-to-edge (above) stops the system from automatically reserving
         // space for the status/nav bars, so without this the page content
-        // renders underneath them and gets clipped at the top/bottom. Pad
-        // the WebView by the actual system bar insets instead of relying on
-        // the remote site's CSS to guess them.
+        // renders underneath them and gets clipped at the top/bottom. Pad the
+        // WebView by the actual system bar insets instead of relying on the
+        // remote site's CSS to guess them.
+        //
+        // Using layout MARGIN (not View.setPadding) and returning
+        // WindowInsetsCompat.CONSUMED: the previous padding-based version
+        // didn't visibly move the WebView's rendered content on-device even
+        // though the listener fired. Margin-on-the-WebView is the pattern
+        // Google's own "Make WebViews edge-to-edge" guide and multiple
+        // real-world Capacitor edge-to-edge bug fixes use instead
+        // (developer.android.com/develop/ui/views/layout/webapps/understand-window-insets).
         ViewCompat.setOnApplyWindowInsetsListener(webView, (v, windowInsets) -> {
             Insets bars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
-            return windowInsets;
+            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+            params.leftMargin = bars.left;
+            params.topMargin = bars.top;
+            params.rightMargin = bars.right;
+            params.bottomMargin = bars.bottom;
+            v.setLayoutParams(params);
+            return WindowInsetsCompat.CONSUMED;
         });
 
         // Allow 3rd-party cookies so the OAuth popup can set its session cookie.
