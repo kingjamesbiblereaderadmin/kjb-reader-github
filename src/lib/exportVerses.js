@@ -841,6 +841,11 @@ export function exportPrint(items, query, filters, options = {}) {
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(printTitle)}</title><style>@page { margin: 1.5cm; } body { margin: 0 !important; display: block !important; height: auto !important; position: static !important; overflow: visible !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }</style></head><body style="padding:20px;max-width:800px;margin:0 auto;color:#000;">` +
     `${headerHtml}${rows}${footerHtml}</body></html>`;
 
+  // Android's bare WebView has no print UI to respond to window.print() (see
+  // nativePrint.js) -- try the real native path first; only fall through to
+  // the hidden-iframe browser trick below when there's no native bridge.
+  if (nativePrintHtml(html)) return;
+
   // Print via a hidden iframe so no new tab / about:blank page opens.
   const iframe = document.createElement('iframe');
   iframe.style.position = 'fixed';
