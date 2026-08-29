@@ -12,18 +12,27 @@ export default function ThemeColorPicker({ compact = false }) {
     try { return localStorage.getItem('kjb-custom-accent') || '#B8860B'; } catch { return '#B8860B'; }
   });
 
+  // Only show a swatch as "selected" once the user has actually chosen a
+  // colour — otherwise the default (Gold Leaf) would show a selection ring
+  // even though nobody picked it.
+  const [hasChosen, setHasChosen] = useState(() => {
+    try { return localStorage.getItem('kjb-colour') !== null; } catch { return false; }
+  });
+
   // Switch to a fixed palette only when the user actually picks a colour —
   // not just from this picker being rendered/mounted (e.g. opening the
   // landing setup wizard shouldn't silently override "daily" mode colours).
   const pickPalette = (id) => {
     if (colorMode !== 'fixed') setColorMode('fixed');
     setColourId(id);
+    setHasChosen(true);
   };
 
   // Save the chosen hex and (re)apply the Custom palette. Toggling colourId off
   // and back to 'custom' forces the theme effect to re-read the new hex.
   const applyCustom = (hex) => {
     if (colorMode !== 'fixed') setColorMode('fixed');
+    setHasChosen(true);
     setCustomHex(hex);
     try { localStorage.setItem('kjb-custom-accent', hex); } catch {}
     if (colourId === 'custom') {
@@ -51,7 +60,7 @@ export default function ThemeColorPicker({ compact = false }) {
             onClick={() => pickPalette(p.id)}
             title={p.name}
             className={`flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg border-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
-              colourId === p.id ? 'border-foreground' : 'border-border hover:border-accent'
+              hasChosen && colourId === p.id ? 'border-foreground' : 'border-border hover:border-accent'
             }`}
           >
             <span className="w-5 h-5 rounded-full border border-black/10 flex-shrink-0" style={{ backgroundColor: p.swatch }} />
@@ -62,7 +71,7 @@ export default function ThemeColorPicker({ compact = false }) {
         {/* Custom colour picker */}
         <label
           className={`flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
-            colourId === 'custom' ? 'border-foreground' : 'border-border hover:border-accent'
+            hasChosen && colourId === 'custom' ? 'border-foreground' : 'border-border hover:border-accent'
           }`}
           title="Custom colour"
         >

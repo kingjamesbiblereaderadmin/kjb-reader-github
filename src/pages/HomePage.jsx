@@ -94,7 +94,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-background via-accent/10 to-background"
+    <div className="min-h-full flex flex-col justify-center bg-gradient-to-br from-background via-accent/10 to-background"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
