@@ -51,7 +51,7 @@ jobs:
         run: |
           if [ ! -f gradlew ]; then
             echo "No gradlew found — generating Gradle wrapper..."
-            gradle wrapper --gradle-version 8.7
+            gradle wrapper --gradle-version 8.13
           fi
           chmod +x gradlew || true
       - name: Restore persistent release keystore
