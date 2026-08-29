@@ -48,6 +48,14 @@ export function useBrowserZoom() {
         autoFactor = 1 / zoom;
       }
       const manualFactor = getManualZoomFactor();
+      // The boot-time inline script (index.html) sets html.style.fontSize
+      // directly on first paint to avoid a flash. That inline style has
+      // higher priority than the stylesheet's `:root { font-size: calc(...) }`
+      // rule and never gets cleared — so once set, later zoom changes (which
+      // only update the CSS variable below) were silently blocked from ever
+      // visually applying. Clearing it here hands control back to the
+      // stylesheet rule for the rest of the session.
+      document.documentElement.style.removeProperty('font-size');
       document.documentElement.style.setProperty('--kjb-zoom-scale', String(autoFactor * manualFactor));
     };
     apply();
