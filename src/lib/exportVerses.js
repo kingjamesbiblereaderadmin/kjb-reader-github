@@ -188,7 +188,7 @@ export async function exportTxt(items, query, filters, options = {}) {
   }).join('\n\n\n');
   const footer = `\n\n${'='.repeat(50)}\n${items.length} verse${items.length !== 1 ? 's' : ''} — King James Bible`;
   const blob = new Blob(['\uFEFF', header + body + footer], { type: 'text/plain;charset=utf-8' });
-  downloadBlob(blob, `kjb-${sanitizeFilename(query)}${options.filenameSuffix || ''}${filterSuffix(filters)}.txt`);
+  await downloadBlob(blob, `kjb-${sanitizeFilename(query)}${options.filenameSuffix || ''}${filterSuffix(filters)}.txt`);
 }
 
 // Parse a query into its highlight term(s). Quoted queries → a single literal
