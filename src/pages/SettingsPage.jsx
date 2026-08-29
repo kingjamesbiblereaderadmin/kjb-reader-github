@@ -509,7 +509,13 @@ export default function SettingsPage() {
         )}
       </div>
 
-      {/* Keyboard Shortcuts — desktop only, not relevant on mobile/touch devices */}
+      {/* Keyboard Shortcuts — desktop only, not relevant on mobile/touch
+          devices. "hidden sm:block" alone only checks CSS viewport WIDTH
+          (>=640px), which a phone in landscape (or just a larger phone) can
+          still exceed -- showing this on an actual touchscreen device with
+          no physical keyboard. isMobileDevice() checks the real device type
+          instead, regardless of current orientation/viewport size. */}
+      {!isMobileDevice() && (
       <div className="hidden sm:block bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('shortcuts')}
