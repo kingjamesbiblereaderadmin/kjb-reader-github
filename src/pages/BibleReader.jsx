@@ -1648,7 +1648,7 @@ export default function BibleReader() {
                 closeAllMenus();
               }
             }}
-            className="kjb-reader-toolbar flex flex-wrap items-stretch justify-stretch gap-3 w-full max-w-[120rem] mx-auto [&>button]:flex-grow [&>button]:basis-0 [&>button]:min-w-[5.5rem] sm:[&>button]:basis-auto sm:[&>button]:min-w-0 sm:[&>button.kjb-fixed-btn]:flex-grow-0 [&>div.relative]:flex-grow [&>div.relative]:basis-0 [&>div.relative]:min-w-[5.5rem] sm:[&>div.relative]:basis-auto sm:[&>div.relative]:min-w-0 [&>div.relative>button]:w-full">
+            className="kjb-reader-toolbar flex flex-wrap items-stretch justify-stretch gap-3 w-full max-w-[120rem] mx-auto [&>button:not(.kjb-fixed-btn)]:flex-grow [&>button:not(.kjb-fixed-btn)]:basis-auto [&>div.relative]:flex-grow [&>div.relative>button]:w-full">
             <div className="relative flex">
               <button
                 onClick={() => { setShowBookPicker(p => !p); setShowChapterPicker(false); setShowVersePicker(false); setShowZoomPopover(false); setShowFontPopover(false); }}
@@ -1881,9 +1881,9 @@ export default function BibleReader() {
               
                <DropdownMenu onOpenChange={(open) => { if (open) closeAllMenus(); }}>
                 <DropdownMenuTrigger asChild>
-                  <button title={shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'} className="kjb-fixed-btn flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 sm:w-24 sm:flex-none overflow-hidden">
+                  <button title={shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'} className="kjb-fixed-btn flex-none flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 w-24 whitespace-nowrap">
                     <Share2 className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />
-                    <span className="truncate">{shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'}</span>
+                    <span className="hidden lg:inline truncate">{shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'}</span>
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="center" className="w-48" onCloseAutoFocus={(e) => e.preventDefault()}>
@@ -1901,17 +1901,17 @@ export default function BibleReader() {
               <button
                 onClick={() => printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode)}
                 title="Print"
-                className="kjb-fixed-btn flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10 overflow-hidden"
+                className="kjb-fixed-btn flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"
               >
                 <Printer className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />
-                <span className="truncate">Print</span>
+                <span className="hidden lg:inline">Print</span>
               </button>
 
-              <div className="flex gap-2 flex-shrink-0 flex-grow basis-0 min-w-[11rem] sm:flex-grow-0 sm:basis-auto sm:min-w-0">
-                <button onClick={goPrev} disabled={isFirstChapterFirstBook} className="flex-1 min-w-0 flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 overflow-hidden"><ChevronLeft className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="truncate">Prev</span></button>
-                <button onClick={() => goNext()} disabled={isLastChapterLastBook} className="flex-1 min-w-0 flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 overflow-hidden"><span className="truncate">Next</span><ChevronRight className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /></button>
+              <div className="flex gap-2 flex-shrink-0">
+                <button onClick={goPrev} disabled={isFirstChapterFirstBook} className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"><ChevronLeft className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Prev</span></button>
+                <button onClick={() => goNext()} disabled={isLastChapterLastBook} className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"><span className="hidden lg:inline">Next</span><ChevronRight className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /></button>
               </div>
-              <button onClick={toggleFullscreen} title={fullscreen ? 'Exit fullscreen' : 'Fullscreen'} className="kjb-fixed-btn flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10 overflow-hidden">{fullscreen ? <Minimize2 className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /> : <Maximize2 className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />}<span className="truncate">{fullscreen ? 'Exit' : 'Full Screen'}</span></button>
+              <button onClick={toggleFullscreen} title={fullscreen ? 'Exit fullscreen' : 'Fullscreen'} className="kjb-fixed-btn flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10 whitespace-nowrap">{fullscreen ? <Minimize2 className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /> : <Maximize2 className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />}<span className="hidden lg:inline">{fullscreen ? 'Exit' : 'Full Screen'}</span></button>
               <button onClick={(e) => { e.stopPropagation(); setHideHeader(!hideHeader); }} title={hideHeader ? "Show header" : "Hide header"} className="kjb-fixed-btn flex items-center justify-center px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10  whitespace-nowrap flex-shrink-0"><ChevronDown className={`w-5 h-5 transition-transform duration-200 flex-shrink-0 ${hideHeader ? '' : 'rotate-180'}`} /></button>
 
               {((filterMode && selectedVerses.size > 0) || lastReadingActive || searchTerm || gospelMode) && (
