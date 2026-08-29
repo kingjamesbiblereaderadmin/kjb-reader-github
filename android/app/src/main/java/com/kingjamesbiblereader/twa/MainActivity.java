@@ -603,4 +603,65 @@ public class MainActivity extends BridgeActivity {
             }
         }
     }
+
+    // Exposed to JS as window.kjbDownloadBridge (see the addJavascriptInterface
+    // call in onCreate). Saves a base64-encoded file to the device's public
+    // Downloads folder via MediaStore -- the real native counterpart to the
+    // browser-only Blob-URL-plus-<a download> trick exportBiblePdf.js uses,
+    // which does nothing by itself in a bare WebView (see the comment on the
+    // addJavascriptInterface call above).
+    //
+    // MediaStore.Downloads (used here) needs API 29+ and needs no runtime
+    // permission -- ContentResolver handles the write via the system's own
+    // Downloads provider under Android's scoped storage rules. Below API 29,
+    // this reports failure back to JS via the callback rather than attempting
+    // a legacy WRITE_EXTERNAL_STORAGE-based direct file write: minSdkVersion
+    // is 22, but devices that old are vanishingly rare in practice, and the
+    // legacy path needs a whole separate runtime-permission-request flow to
+    // implement safely.
+    private static class DownloadBridge {
+        private final MainActivity activity;
+
+        DownloadBridge(MainActivity activity) {
+            this.activity = activity;
+        }
+
+        @JavascriptInterface
+        public void saveFile(String base64Data, String filename, String mimeType, String callbackId) {
+            String result;
+            try {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                    result = "unsupported";
+                } else {
+                    byte[] bytes = Base64.decode(base64Data, Base64.DEFAULT);
+                    ContentValues values = new ContentValues();
+                    values.put(MediaStore.Downloads.DISPLAY_NAME, filename);
+                    values.put(MediaStore.Downloads.MIME_TYPE, mimeType);
+                    values.put(MediaStore.Downloads.IS_PENDING, 1);
+                    Uri item = activity.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+                    if (item == null) {
+                        result = "error";
+                    } else {
+                        try (OutputStream out = activity.getContentResolver().openOutputStream(item)) {
+                            if (out == null) throw new IOException("openOutputStream returned null");
+                            out.write(bytes);
+                        }
+                        values.clear();
+                        values.put(MediaStore.Downloads.IS_PENDING, 0);
+                        activity.getContentResolver().update(item, values, null, null);
+                        result = "ok";
+                    }
+                }
+            } catch (Exception e) {
+                result = "error";
+            }
+            final String finalResult = result;
+            activity.runOnUiThread(() -> {
+                WebView webView = activity.getBridge().getWebView();
+                String js = "window.__kjbDownloadCallback && window.__kjbDownloadCallback("
+                    + org.json.JSONObject.quote(callbackId) + ", " + org.json.JSONObject.quote(finalResult) + ");";
+                webView.evaluateJavascript(js, null);
+            });
+        }
+    }
 }
