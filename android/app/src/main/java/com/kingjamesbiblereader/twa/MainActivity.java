@@ -108,6 +108,17 @@ public class MainActivity extends BridgeActivity {
         webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
         webView.setWebChromeClient(new OAuthPopupChromeClient(getBridge()));
 
+        // The "Download Bible" export (PDF/Word/RTF/TXT, exportBiblePdf.js)
+        // saves its file with the standard browser trick: a Blob URL plus a
+        // hidden <a download> click. That relies on the browser CHROME to
+        // catch the download and save it -- a bare WebView has none, so
+        // without this bridge the click just silently did nothing (no file
+        // ever appeared anywhere), while the JS side still reported success
+        // since the click itself never threw. This exposes a real native
+        // save path instead; see DownloadBridge below and triggerDownload()
+        // in exportBiblePdf.js, which calls it when available.
+        webView.addJavascriptInterface(new DownloadBridge(this), "kjbDownloadBridge");
+
         // Serves (a) the bundled Bible text for BUNDLED_BIBLE_PATH -- see
         // bibleCache.js, requested only when Capacitor.isNativePlatform() --
         // and (b) the entire bundled site (android/app/src/main/assets/public/,
