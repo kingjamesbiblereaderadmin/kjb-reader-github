@@ -27,6 +27,16 @@ export function resolveColophon(bookApiName, chapter) {
 // they're ready in memory by the time a chapter is opened.
 loadOverrides();
 
+// The source text stores every apostrophe as a replacement/pilcrow char
+// (\u00B6 or \uFFFD) immediately after a letter, e.g. "God\uFFFDs". Convert
+// those to real apostrophes. Used everywhere verse text is rendered OR
+// searched/matched, so typing "God's" always matches "God's" in the text.
+export function normalizeApostrophes(text = '') {
+  return String(text)
+    .replace(/([A-Za-z])[\u00B6\uFFFD](?=[A-Za-z])/g, "$1'")
+    .replace(/([A-Za-z])[\u00B6\uFFFD](?=[^A-Za-z]|$)/g, "$1'");
+}
+
 // Strip trailing end markers and "Made in Australia" from verse text
 function stripEndMarker(text) {
   return text
@@ -126,8 +136,7 @@ export function renderVerseText(text, searchTerm = null, audioWordIndices = null
   // both in-word ("Christ¶s" → "Christ's") and trailing possessives
   // ("sons¶ wives" → "sons' wives"). The remaining (verse-start / post-space)
   // pilcrows are handled below as paragraph marks.
-  cleaned = cleaned.replace(/([A-Za-z])[\u00B6\uFFFD](?=[A-Za-z])/g, "$1'");
-  cleaned = cleaned.replace(/([A-Za-z])[\u00B6\uFFFD](?=[^A-Za-z]|$)/g, "$1'");
+  cleaned = normalizeApostrophes(cleaned);
   // Render pilcrow as a paragraph marker when it appears at the START of the text…
   cleaned = cleaned.replace(/^[\u00B6\uFFFD]\s*/, '<span class="pilcrow">¶</span> ');
   // …or mid-verse when preceded by a space or sentence punctuation (e.g. "houses. ¶But").
@@ -218,9 +227,7 @@ export function renderColophonText(text, searchTerm = null) {
     .replace(/\u201C/g, '"').replace(/\u201D/g, '"')
     .replace(/^[\u00B6\uFFFD]\s*/, '');
   // Convert replacement-char/pilcrow apostrophes (e.g. "David�s" → "David's")
-  normalized = normalized
-    .replace(/([A-Za-z])[\u00B6\uFFFD](?=[A-Za-z])/g, "$1'")
-    .replace(/([A-Za-z])[\u00B6\uFFFD](?=[^A-Za-z]|$)/g, "$1'");
+  normalized = normalizeApostrophes(normalized);
   normalized = mergeAdjacentBrackets(normalized);
   normalized = escapeHtml(normalized);
   const parts = normalized.split(/\[([^\]]+)\]/g);
@@ -238,9 +245,7 @@ export function renderSubscriptText(text, searchTerm = null) {
     .replace(/\u2019/g, "'").replace(/\u2018/g, "'")
     .replace(/\u201C/g, '"').replace(/\u201D/g, '"');
   // Convert replacement-char/pilcrow apostrophes to real apostrophes
-  normalized = normalized
-    .replace(/([A-Za-z])[\u00B6\uFFFD](?=[A-Za-z])/g, "$1'")
-    .replace(/([A-Za-z])[\u00B6\uFFFD](?=[^A-Za-z]|$)/g, "$1'");
+  normalized = normalizeApostrophes(normalized);
   normalized = mergeAdjacentBrackets(normalized);
   normalized = escapeHtml(normalized);
   const parts = normalized.split(/\[([^\]]+)\]/g);

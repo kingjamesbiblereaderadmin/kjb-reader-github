@@ -15,6 +15,7 @@
 
 import { getBibleData } from '@/lib/bibleCache';
 import { BOOK_BY_API_NAME, BIBLE_BOOKS } from '@/lib/bibleData';
+import { normalizeApostrophes } from '@/lib/bibleApi';
 
 // Strip the leading pilcrow and its space.
 function stripPilcrow(t) {
@@ -150,8 +151,12 @@ export async function buildVerseIndex(force = false) {
         if (!Array.isArray(verses)) continue;
         for (const v of verses) {
           if (!v || typeof v.text !== 'string' || v.verse == null) continue;
-          const metrics = computeMetrics(v.text);
-          const plain = stripBrackets(stripPilcrow(v.text)).replace(/\s+/g, ' ').trim();
+          // Apostrophes are stored as a replacement char after a letter
+          // (e.g. "God\uFFFDs") — normalize before computing metrics/plain
+          // text so text search and the apostrophe metrics work correctly.
+          const text = normalizeApostrophes(v.text);
+          const metrics = computeMetrics(text);
+          const plain = stripBrackets(stripPilcrow(text)).replace(/\s+/g, ' ').trim();
           records.push({
             book,
             abbr: bookEntry.abbr,
@@ -160,7 +165,7 @@ export async function buildVerseIndex(force = false) {
             chapter,
             verse: v.verse,
             ref: `${bookEntry.shortName} ${chapter}:${v.verse}`,
-            rawText: v.text,
+            rawText: text,
             plainText: plain,
             metrics,
           });

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, BookOpen, Loader2, Filter, Copy, Download, CheckSquare, Square, X, BookMarked, ChevronDown, Share2, ChevronUp, ChevronDown as ChevronDownIcon, ChevronRight, Printer, FlaskConical } from 'lucide-react';
 import { getBibleData } from '@/lib/bibleCache';
+import { normalizeApostrophes } from '@/lib/bibleApi';
 import { BIBLE_BOOKS, OLD_TESTAMENT, NEW_TESTAMENT, BOOK_BY_API_NAME } from '@/lib/bibleData';
 import { parseReference, resolveBook } from '@/lib/parseReference';
 import { expandPassage } from '@/lib/expandPassage';
@@ -413,11 +414,7 @@ export default function SearchPage() {
           // so typing "God's" actually matches.
           const processedVerses = verses.map(v => ({
             verse: v.verse,
-            text: v.text
-              .replace(/¶\s*/g, '')
-              .replace(/^<<[^>]*>>\s*/, '')
-              .replace(/([A-Za-z])[\u00B6\uFFFD](?=[A-Za-z])/g, "$1'")
-              .replace(/([A-Za-z])[\u00B6\uFFFD](?=[^A-Za-z]|$)/g, "$1'"),
+            text: normalizeApostrophes(v.text.replace(/¶\s*/g, '').replace(/^<<[^>]*>>\s*/, '')),
             heading: v.heading || null
           }));
           
@@ -532,10 +529,7 @@ export default function SearchPage() {
           // Search in colophons for this chapter (keyed flat as "BookName:chapter")
           const colophon = bible.__colophons?.[`${bookName}:${chapterNum}`];
           if (colophon) {
-            const colophonText = colophon
-              .replace(/¶\s*/g, '')
-              .replace(/([A-Za-z])[\u00B6\uFFFD](?=[A-Za-z])/g, "$1'")
-              .replace(/([A-Za-z])[\u00B6\uFFFD](?=[^A-Za-z]|$)/g, "$1'");
+            const colophonText = normalizeApostrophes(colophon.replace(/¶\s*/g, ''));
             const colophonLower = colophonText.toLowerCase();
             let colophonFound = false;
             
@@ -577,10 +571,7 @@ export default function SearchPage() {
           // Search in subscript (Psalm superscription) for this chapter
           const subscript = SUBSCRIPTS[`${bookName}:${chapterNum}`];
           if (subscript) {
-            const subscriptText = subscript
-              .replace(/¶\s*/g, '')
-              .replace(/([A-Za-z])[\u00B6\uFFFD](?=[A-Za-z])/g, "$1'")
-              .replace(/([A-Za-z])[\u00B6\uFFFD](?=[^A-Za-z]|$)/g, "$1'");
+            const subscriptText = normalizeApostrophes(subscript.replace(/¶\s*/g, ''));
             const subscriptClean = subscriptText.replace(/[[\]]/g, '');
             const subscriptLower = subscriptClean.toLowerCase();
             let subscriptFound = false;
