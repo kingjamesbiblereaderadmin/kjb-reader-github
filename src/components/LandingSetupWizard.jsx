@@ -573,8 +573,8 @@ export default function LandingSetupWizard() {
                   <Globe className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0 text-left">
-                  <p className="font-sans font-medium text-xs text-foreground group-hover:text-accent transition-colors">Recursos en Español</p>
-                  <p className="font-sans text-[10px] text-muted-foreground">Recursos y estudios de la Biblia en español</p>
+                  <p className="font-sans font-medium text-xs text-foreground group-hover:text-accent transition-colors">Bible Resources (Español)</p>
+                  <p className="font-sans text-[10px] text-muted-foreground">Bible resources and studies (Español)</p>
                 </div>
                 <ArrowRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
               </Link>

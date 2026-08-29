@@ -75,8 +75,8 @@ export default function LandingPage() {
               <Globe className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">Are you saved? (in Spanish)</p>
-              <p className="font-sans text-xs text-muted-foreground">The Gospel of Salvation, in Spanish</p>
+              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">Are you saved? (Español)</p>
+              <p className="font-sans text-xs text-muted-foreground">The Gospel of Salvation (Español)</p>
             </div>
             <ArrowRight className="w-4 h-4 text-muted-foreground" />
           </Link>

@@ -259,16 +259,16 @@ export default function ResourcesPage() {
               <Globe className="w-5 h-5" />
             </div>
           }
-          title="Recursos en Español"
+          title="Bible Resources (Español)"
         >
           <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-            Recursos y estudios de la Biblia en español.
+            Bible resources and studies (Español).
           </p>
           <Link
             to="/espanol"
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           >
-            Abrir Recursos en Español <ExternalLink className="w-3.5 h-3.5" />
+            Open Bible Resources (Español) <ExternalLink className="w-3.5 h-3.5" />
           </Link>
         </CollapsibleCard>
       </div>
