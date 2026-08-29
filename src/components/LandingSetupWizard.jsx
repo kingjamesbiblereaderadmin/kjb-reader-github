@@ -4,6 +4,7 @@ import {
   Share, MonitorSmartphone, Download, Palette,
   Type, Moon, Sun, Monitor, ChevronLeft, ChevronRight, Check, Star,
   Compass, GraduationCap, Globe, ArrowRight,
+  List, AlignJustify, AlignLeft, Columns2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getAccessibilityFont, setAccessibilityFont } from '@/lib/accessibilityFont';
@@ -95,6 +96,29 @@ export default function LandingSetupWizard() {
   const [readerFontFamily, setReaderFontFamily] = useState(() => {
     try { return localStorage.getItem('kjb-reader-font-family') || 'serif'; } catch { return 'serif'; }
   });
+  const [flowMode, setFlowMode] = useState(() => {
+    try { return localStorage.getItem('kjb-flow') === 'paragraph' ? 'paragraph' : 'line'; } catch { return 'line'; }
+  });
+  const [columnOn, setColumnOn] = useState(() => {
+    try {
+      const v = localStorage.getItem('kjb-column');
+      if (v === 'true') return true;
+      if (v === 'false') return false;
+      return window.matchMedia('(min-width: 1024px)').matches;
+    } catch { return false; }
+  });
+  const pickFlow = (value) => {
+    setFlowMode(value);
+    try { localStorage.setItem('kjb-flow', value); } catch {}
+    window.dispatchEvent(new Event('storage'));
+    markDone('layout');
+  };
+  const pickColumn = (value) => {
+    setColumnOn(value);
+    try { localStorage.setItem('kjb-column', String(value)); } catch {}
+    window.dispatchEvent(new Event('storage'));
+    markDone('layout');
+  };
   const { promptInstall } = useInstallPrompt();
 
   // Per-step completion. Initialized from actual persisted settings (not just
@@ -114,11 +138,18 @@ export default function LandingSetupWizard() {
       fonts = (rf && rf !== 'serif') || getAccessibilityFont() !== 'default';
     } catch {}
     a11y = getAccessibilityFont() !== 'default';
+    let layout = false;
+    try {
+      const fl = localStorage.getItem('kjb-flow');
+      const col = localStorage.getItem('kjb-column');
+      layout = (fl && fl !== 'line') || (col === 'true' || col === 'false');
+    } catch {}
     return {
       install: false,
       theme: !!theme,
       fonts: !!fonts,
       a11y,
+      layout: !!layout,
     };
   });
 
@@ -193,6 +224,7 @@ export default function LandingSetupWizard() {
     { id: 'install', label: 'Install', icon: Download },
     { id: 'theme', label: 'Theme', icon: Palette },
     { id: 'fonts', label: 'Fonts', icon: Type },
+    { id: 'layout', label: 'Layout', icon: Columns2 },
     { id: 'explore', label: 'Explore', icon: Compass },
   ];
 
@@ -433,8 +465,64 @@ export default function LandingSetupWizard() {
           </div>
         )}
 
-        {/* Step 3: Explore (extra resources & community) */}
+        {/* Step 3: Layout (reading flow + columns) */}
         {step === 3 && (
+          <div className="text-center">
+            <h3 className="font-serif text-lg font-bold text-foreground mb-1">Layout</h3>
+            <p className="font-sans text-xs text-muted-foreground mb-4">Choose how verses are laid out</p>
+
+            <p className="font-sans text-xs font-medium text-foreground mb-2">Reading Flow</p>
+            <div className="grid grid-cols-2 gap-2 max-w-xs mx-auto mb-5">
+              {[
+                { id: 'line', label: 'Line by Line', icon: List },
+                { id: 'paragraph', label: 'Paragraph', icon: AlignJustify },
+              ].map(opt => {
+                const Icon = opt.icon;
+                const isActive = flowMode === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => pickFlow(opt.id)}
+                    className={`flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border-2 font-sans text-xs font-medium transition-all ${
+                      isActive ? 'bg-primary text-primary-foreground border-primary shadow-md scale-[1.02]'
+                      : 'bg-card text-foreground border-border hover:border-accent'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" /> {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <p className="font-sans text-xs font-medium text-foreground mb-2">Columns</p>
+            <div className="grid grid-cols-2 gap-2 max-w-xs mx-auto">
+              {[
+                { id: false, label: 'Single Column', icon: AlignLeft },
+                { id: true, label: 'Two Column', icon: Columns2 },
+              ].map(opt => {
+                const Icon = opt.icon;
+                const isActive = columnOn === opt.id;
+                return (
+                  <button
+                    key={String(opt.id)}
+                    type="button"
+                    onClick={() => pickColumn(opt.id)}
+                    className={`flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border-2 font-sans text-xs font-medium transition-all ${
+                      isActive ? 'bg-primary text-primary-foreground border-primary shadow-md scale-[1.02]'
+                      : 'bg-card text-foreground border-border hover:border-accent'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" /> {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: Explore (extra resources & community) */}
+        {step === 4 && (
           <div>
             <h3 className="font-serif text-lg font-bold text-foreground mb-1 text-center">Explore More</h3>
             <p className="font-sans text-xs text-muted-foreground mb-4 text-center">A few more resources worth checking out</p>
