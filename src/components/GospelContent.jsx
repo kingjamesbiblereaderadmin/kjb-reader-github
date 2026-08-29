@@ -232,7 +232,7 @@ function GospelActions() {
       doc.text(line, margin, y);
       y += 16;
     });
-    doc.save('the-gospel.pdf');
+    triggerDownload(doc.output('blob'), 'the-gospel.pdf').catch((err) => console.error('Download failed:', err));
   };
 
   const handlePrint = () => {
