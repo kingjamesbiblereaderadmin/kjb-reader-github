@@ -32,53 +32,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-disabled: false
-      - name: Kill any stale Gradle daemons and clean corrupted cache
-        run: |
-          if [ -f android/gradlew ]; then
-            android/gradlew --stop || true
-          fi
-          rm -rf ~/.gradle/caches/jars-*
-          rm -rf ~/.gradle/wrapper/dists/*
-          rm -rf ~/.gradle/caches/build-cache-1
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-      - name: Generate Gradle wrapper (if missing)
-        working-directory: android
-        run: |
-          if [ ! -f gradlew ]; then
-            echo "No gradlew found — generating Gradle wrapper..."
-            gradle wrapper --gradle-version 8.7
-          fi
-          chmod +x gradlew || true
-      - name: Restore persistent release keystore
-        run: |
-          # Decode the real, persistent signing key from a repo secret instead
-          # of generating a throwaway one. This MUST be the same key used for
-          # the first Play Store upload, or every update after that is
-          # rejected. Add it via: base64 -w0 release.keystore, saved as the
-          # ANDROID_KEYSTORE_BASE64 secret.
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$ANDROID_KEYSTORE_PATH"
-      - name: Build signed release (APK + AAB)
-        working-directory: android
-        run: |
-          ./gradlew assembleRelease bundleRelease
-      - name: Rename outputs to kjbreader
-        working-directory: android
-        run: |
-          mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/kjbreader.apk
-          mv app/build/outputs/bundle/release/app-release.aab app/build/outputs/bundle/release/kjbreader.aab
-      - name: Verify signature
-        working-directory: android
-        run: |
-          BUILD_TOOLS_DIR=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)
-          "$BUILD_TOOLS_DIR/apksigner" verify --verbose app/build/outputs/apk/release/kjbreader.apk
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-apk
-          path: android/app/build/outputs/apk/release/kjbreader.apk
-      - name: Upload AAB
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-aab
-          path: android/app/build/outputs/bundle/release/kjbreader.aab
+     - name: Kill any stale Gradle daemons and clean corrupted cache
+       run: |
+         if [ -f android/gradlew ]; then
+           android/gradlew --stop || true
+         fi
+         rm -rf ~/.gradle/caches/
+         rm -rf ~/.gradle/wrapper/dists/*
