@@ -65,23 +65,19 @@ jobs:
       - name: Build signed release (APK + AAB)
         working-directory: android
         run: |
-          # "Failed to create Jar file .../jars-9/.../bcprov-*.jar" leaves a
-          # partially-written, corrupted entry behind. Confirmed from a real
-          # run's timing: attempt 1 failed in 26s (did real work: download +
-          # write), attempts 2 and 3 failed in 4s each -- i.e. they hit the
-          # SAME broken file immediately without redoing anything. Stopping
-          # the daemon (below) doesn't remove that file, so retries alone were
-          # pointless. Delete the specific transform-cache dir before each
-          # attempt, and add --stacktrace so if this still fails we get the
-          # real underlying cause instead of Gradle's summary line.
+          # The "Failed to create Jar file .../jars-9/.../bcprov-*.jar"
+          # ("Unsupported class file major version 65") seen here previously
+          # was Gradle 8.2.1 unable to parse Java-21 multi-release classes
+          # pulled in by AGP 8.11.1, which requires Gradle 8.13+ (see
+          # gradle-wrapper.properties). Real fix was the Gradle version bump;
+          # the retry below is just a cheap safety net for any other
+          # transient CI flakiness, not a fix for that specific error.
           n=0
           until [ $n -ge 3 ]; do
             ./gradlew --stacktrace assembleRelease bundleRelease && break
             n=$((n+1))
             echo "Build attempt $n failed, retrying..."
             ./gradlew --stop || true
-            rm -rf ~/.gradle/caches/jars-9
-            rm -rf ~/.gradle/caches/*/generated-gradle-jars
             sleep 5
           done
           if [ $n -ge 3 ]; then
