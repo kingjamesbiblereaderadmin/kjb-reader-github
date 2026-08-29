@@ -41,24 +41,24 @@ export default function ThemeColorPicker({ compact = false }) {
       )}
 
       {/* Palette swatches */}
-      <div className="flex flex-wrap gap-2 pt-1">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
         {palettes.map(p => (
           <button
             key={p.id}
             onClick={() => setColourId(p.id)}
             title={p.name}
-            className={`flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-lg border-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+            className={`w-full flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-lg border-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
               colourId === p.id ? 'border-foreground' : 'border-border hover:border-accent'
             }`}
           >
-            <span className="w-5 h-5 rounded-full border border-black/10" style={{ backgroundColor: p.swatch }} />
-            <span className="font-sans text-xs font-medium text-foreground">{p.name}</span>
+            <span className="w-5 h-5 rounded-full border border-black/10 flex-shrink-0" style={{ backgroundColor: p.swatch }} />
+            <span className="font-sans text-xs font-medium text-foreground truncate">{p.name}</span>
           </button>
         ))}
 
         {/* Custom colour picker */}
         <label
-          className={`flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+          className={`w-full flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
             colourId === 'custom' ? 'border-foreground' : 'border-border hover:border-accent'
           }`}
           title="Custom colour"
