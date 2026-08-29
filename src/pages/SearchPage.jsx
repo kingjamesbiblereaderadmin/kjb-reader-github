@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, BookOpen, Loader2, Filter, Copy, Download, CheckSquare, Square, X, BookMarked, ChevronDown, Share2, ChevronUp, ChevronDown as ChevronDownIcon, ChevronRight, Printer, FlaskConical } from 'lucide-react';
 import { getBibleData } from '@/lib/bibleCache';
-import { normalizeApostrophes } from '@/lib/bibleApi';
+import { normalizeApostrophes, normalizeQueryApostrophes } from '@/lib/bibleApi';
 import { BIBLE_BOOKS, OLD_TESTAMENT, NEW_TESTAMENT, BOOK_BY_API_NAME } from '@/lib/bibleData';
 import { parseReference, resolveBook } from '@/lib/parseReference';
 import { expandPassage } from '@/lib/expandPassage';
@@ -155,7 +155,10 @@ export default function SearchPage() {
       // synchronous scan begins (otherwise the UI looks frozen on big terms).
       await new Promise(r => requestAnimationFrame(() => r()));
       console.log('[SEARCH] Bible data loaded, books:', Object.keys(bible).filter(k => k !== '__colophons').length);
-      let searchTerm = kw.trim();
+      // Normalize a curly apostrophe (from mobile "smart punctuation") to a
+      // plain one, so the query matches verse text regardless of which
+      // apostrophe form either side happens to use.
+      let searchTerm = normalizeQueryApostrophes(kw.trim());
       // If query is wrapped in quotes, treat as exact phrase: strip the quotes
       // (the Bible text doesn't contain literal quote characters)
       const isQuotedPhrase = (searchTerm.startsWith('"') && searchTerm.endsWith('"') && searchTerm.length >= 3) ||

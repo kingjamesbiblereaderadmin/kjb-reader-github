@@ -27,14 +27,25 @@ export function resolveColophon(bookApiName, chapter) {
 // they're ready in memory by the time a chapter is opened.
 loadOverrides();
 
-// The source text stores every apostrophe as a replacement/pilcrow char
-// (\u00B6 or \uFFFD) immediately after a letter, e.g. "God\uFFFDs". Convert
-// those to real apostrophes. Used everywhere verse text is rendered OR
-// searched/matched, so typing "God's" always matches "God's" in the text.
+// The source text stores apostrophes in more than one way depending on the
+// data source: a replacement/pilcrow char (\u00B6 or \uFFFD) immediately after
+// a letter, e.g. "God\uFFFDs", OR a real curly apostrophe (\u2019), e.g.
+// "God\u2019s". Convert all of them to a plain straight apostrophe. Used
+// everywhere verse text is rendered OR searched/matched, so typing "God's"
+// (straight quote) always matches "God's"/"God\u2019s" in the text.
 export function normalizeApostrophes(text = '') {
   return String(text)
-    .replace(/([A-Za-z])[\u00B6\uFFFD](?=[A-Za-z])/g, "$1'")
-    .replace(/([A-Za-z])[\u00B6\uFFFD](?=[^A-Za-z]|$)/g, "$1'");
+    .replace(/([A-Za-z])[\u00B6\uFFFD\u2019](?=[A-Za-z])/g, "$1'")
+    .replace(/([A-Za-z])[\u00B6\uFFFD\u2019](?=[^A-Za-z]|$)/g, "$1'");
+}
+
+// Typed search input can contain a curly apostrophe/quote instead of a plain
+// one — mobile keyboards with "smart punctuation" auto-curl a typed ' into '
+// (\u2019) as you type. Normalize those to a plain apostrophe so the query
+// matches verse text (which normalizeApostrophes above also reduces to plain
+// apostrophes) regardless of which form the user's keyboard produced.
+export function normalizeQueryApostrophes(text = '') {
+  return String(text).replace(/[\u2018\u2019]/g, "'");
 }
 
 // Strip trailing end markers and "Made in Australia" from verse text

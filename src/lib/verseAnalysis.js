@@ -15,7 +15,7 @@
 
 import { getBibleData } from '@/lib/bibleCache';
 import { BOOK_BY_API_NAME, BIBLE_BOOKS } from '@/lib/bibleData';
-import { normalizeApostrophes } from '@/lib/bibleApi';
+import { normalizeApostrophes, normalizeQueryApostrophes } from '@/lib/bibleApi';
 
 // Strip the leading pilcrow and its space.
 function stripPilcrow(t) {
@@ -261,8 +261,10 @@ export function isDefaultFilters(f) {
 // Case is preserved so a case-sensitive match can compare exactly.
 export function parseSearchTerms(text) {
   // Split on commas AND/OR whitespace, so "love, LORD begat" and "love LORD"
-  // both work. Every term must appear in the verse (AND matching).
-  return (text || '').trim().split(/[\s,]+/).filter(Boolean);
+  // both work. Every term must appear in the verse (AND matching). Normalize a
+  // curly apostrophe (mobile "smart punctuation") to a plain one so the term
+  // matches verse text either way.
+  return normalizeQueryApostrophes(text || '').trim().split(/[\s,]+/).filter(Boolean);
 }
 
 // Max number of unrelated words allowed between consecutive terms in "In order"

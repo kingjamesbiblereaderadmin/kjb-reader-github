@@ -68,7 +68,10 @@ export default async function (req) {
     }
 
     const body = await req.json();
-    const query = String(body.query || "").trim();
+    // Normalize a curly apostrophe (mobile "smart punctuation") to a plain
+    // one, so the query matches verse text regardless of which apostrophe
+    // form the caller's keyboard produced.
+    const query = String(body.query || "").trim().replace(/[\u2018\u2019]/g, "'");
     if (!query) return json({ error: "query required" }, 400);
 
     const wholeWord = body.whole_word === true;
