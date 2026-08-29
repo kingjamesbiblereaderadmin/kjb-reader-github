@@ -102,6 +102,9 @@ export default function InstallAppSection({ expanded, isIncognito }) {
         <p className="font-sans text-sm text-muted-foreground leading-relaxed">
           Add the KJB Reader to your home screen for quick access and offline reading.
         </p>
+
+        {/* Android app tip -- self-hides entirely on web/iOS/non-native */}
+        <HighlightToSearchTip />
         
 
         {isInstalled ? (
