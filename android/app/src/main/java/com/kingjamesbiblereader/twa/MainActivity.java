@@ -63,6 +63,38 @@ public class MainActivity extends BridgeActivity {
     static final String BUNDLED_BIBLE_PATH = "/__native/pce-bible.txt";
 
     private boolean usingOfflineFallback = false;
+    // Retries a live-site reload a few times with backoff after falling back
+    // to the bundled snapshot, instead of only checking again on onResume().
+    // Without this, a purely TRANSIENT failure right at cold start (a slow
+    // DNS lookup, a flaky first packet -- network was fine the whole time)
+    // left the app stuck showing the frozen bundled copy for the entire
+    // session unless the user happened to background and re-foreground it,
+    // even though it was never actually offline. Every link/share/copy built
+    // from the current page's URL would then carry FALLBACK_DOMAIN instead of
+    // the real site (see getPublicOrigin() on the JS side, which corrects for
+    // this in shared text, but the WebView itself stays on the wrong origin
+    // until a reload actually happens).
+    private final android.os.Handler reconnectHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private int reconnectAttempts = 0;
+    private static final long[] RECONNECT_DELAYS_MS = {3000, 8000, 20000};
+
+    private void scheduleReconnectAttempt() {
+        if (reconnectAttempts >= RECONNECT_DELAYS_MS.length) return;
+        long delay = RECONNECT_DELAYS_MS[reconnectAttempts++];
+        reconnectHandler.postDelayed(() -> {
+            if (!usingOfflineFallback) return; // already recovered another way
+            if (isNetworkAvailable()) {
+                usingOfflineFallback = false;
+                reconnectAttempts = 0;
+                getBridge().getWebView().loadUrl(REMOTE_URL);
+                // If this load itself fails, onReceivedError sets
+                // usingOfflineFallback back to true and this whole retry
+                // sequence starts over from attempt 0.
+            } else {
+                scheduleReconnectAttempt();
+            }
+        }, delay);
+    }
     // The last live-site URL handleIncomingIntent() tried to navigate to
     // (search from a share/process-text intent, or an App Link deep link).
     // If that load fails and onReceivedError falls back to the bundled

@@ -424,12 +424,17 @@ function highlightTermHtml(html, query, filters) {
 export async function exportDocx(items, query, filters, options = {}) {
   const titlePrefix = options.titlePrefix || 'KJB Search Results';
   const isReading = titlePrefix === 'KJB Reading';
-  const rows = splitBySections(items).map(sec => {
-    if (sec.isTestament) return `<h2 style="font-family:Georgia,serif;font-size:15pt;margin:24pt 0 12pt 0;border-bottom:1px solid #ccc;padding-bottom:4pt;page-break-after:avoid;break-after:avoid;">${escapeHtml(sec.title.toUpperCase())}</h2>`;
+  const showOcc = !isReading && !!query;
+  const rows = splitBySections(items, showOcc ? { query, filters } : null).map(sec => {
+    if (sec.isTestament) {
+      const occText = showOcc ? `, ${sec.occCount} occurrence${sec.occCount !== 1 ? 's' : ''}` : '';
+      return `<h2 style="font-family:Georgia,serif;font-size:15pt;margin:24pt 0 12pt 0;border-bottom:1px solid #ccc;padding-bottom:4pt;page-break-after:avoid;break-after:avoid;">${escapeHtml(sec.title.toUpperCase())} <span style="font-size:11pt;font-weight:normal;color:#666;">(${sec.items.length} verse${sec.items.length !== 1 ? 's' : ''}${occText})</span></h2>`;
+    }
     const bookNameObj = sec.items[0]?.bookNameObj;
     const fullBookName = bookNameObj ? bookNameObj.name : sec.title;
     const bookVerseCount = sec.items.length;
-    return `<h3 style="font-family:Georgia,serif;font-size:13pt;margin:18pt 0 8pt 0;">${escapeHtml(fullBookName)} <span style="font-size:11pt;font-weight:normal;color:#666;">(${bookVerseCount} verse${bookVerseCount !== 1 ? 's' : ''})</span>:</h3>` +
+    const bookOccText = showOcc && sec.occCount > bookVerseCount ? `, ${sec.occCount} occurrence${sec.occCount !== 1 ? 's' : ''}` : '';
+    return `<h3 style="font-family:Georgia,serif;font-size:13pt;margin:18pt 0 8pt 0;">${escapeHtml(fullBookName)} <span style="font-size:11pt;font-weight:normal;color:#666;">(${bookVerseCount} verse${bookVerseCount !== 1 ? 's' : ''}${bookOccText})</span>:</h3>` +
       `<ul style="margin:0 0 12pt 0; padding-left: 20px;">` +
       sec.items.map((it, idx) => {
         const isSpecial = it.isColophon || it.isSubscript;
