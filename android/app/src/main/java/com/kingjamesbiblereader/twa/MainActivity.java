@@ -241,6 +241,22 @@ public class MainActivity extends BridgeActivity {
                 customView,
                 new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
             );
+            // The main WebView gets margin-adjusted for system bar insets in
+            // MainActivity.onCreate() (edge-to-edge is on for the whole
+            // window), but THIS view is a separate native overlay added
+            // straight onto the decor view -- it never got that same
+            // treatment, so fullscreen content was drawing directly under the
+            // status bar. Apply the identical margin fix here too.
+            ViewCompat.setOnApplyWindowInsetsListener(customView, (v, windowInsets) -> {
+                Insets bars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+                ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+                params.leftMargin = bars.left;
+                params.topMargin = bars.top;
+                params.rightMargin = bars.right;
+                params.bottomMargin = bars.bottom;
+                v.setLayoutParams(params);
+                return WindowInsetsCompat.CONSUMED;
+            });
         }
 
         @Override
