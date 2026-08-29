@@ -1012,7 +1012,7 @@ export default function SearchPage() {
       testament,
       bookCount: selectedBooks.size > 0 && selectedBooks.size < 66 ? selectedBooks.size : 0,
     };
-    exportVerses(format, items, q, filters, { showQuery: true });
+    exportVerses(format, items, q, filters, { showQuery: true }).catch((err) => console.error('Export failed:', err));
   };
 
   // Share search results as a LINK ONLY — builds the search URL and copies/shares it.
