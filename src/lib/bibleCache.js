@@ -6,7 +6,7 @@
 import { saveToIndexedDB, loadFromIndexedDB, clearIndexedDB } from '@/lib/bibleIndexedDB';
 import { COLOPHONS } from '@/lib/bibleSubscripts';
 import { parsePceText } from '@/lib/biblePceParser';
-import { Capacitor } from '@capacitor/core';
+import { isNativeAndroid } from '@/lib/isNativeAndroid';
 
 // Bump this version string whenever the Bible text file changes — every client
 // will then re-download and re-parse fresh. Replaces the old remote VERSION.txt
