@@ -1,14 +1,12 @@
 import { jsPDF } from 'jspdf';
 import { mergeAdjacentBrackets } from '@/lib/bibleApi';
+import { triggerDownload } from '@/lib/nativeDownload';
+import { nativePrintHtml } from '@/lib/nativePrint';
 
-// Trigger a browser download for a Blob
+// Trigger a file save for a Blob -- see nativeDownload.js for why this isn't
+// just the plain browser Blob-URL trick.
 function downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return triggerDownload(blob, filename);
 }
 
 // Escape text for safe HTML embedding (DOCX/XLS are HTML-based)
