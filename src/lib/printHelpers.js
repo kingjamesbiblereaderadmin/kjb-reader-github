@@ -95,6 +95,19 @@ export function printChapterContents(verses, book, pos, filterMode, selectedVers
     });
   }
 
+  // "The End" (Revelation 22) / "The End of the Prophets" (Malachi 4) marker —
+  // shown on-screen after the last chapter of each Testament, but was missing
+  // from print/export output since it isn't part of the verse/colophon data.
+  if ((pos.abbr === 'MAL' && pos.chapter === 4) || (pos.abbr === 'REV' && pos.chapter === 22)) {
+    itemsToPrint.push({
+      text: resolveEndMarker(book.apiName, pos.chapter) || (pos.abbr === 'MAL' ? 'The End of the Prophets' : 'The End'),
+      ref: `${book.shortName} ${pos.chapter} end marker`,
+      testament: book.testament,
+      bookName: book.name,
+      isEndMarker: true
+    });
+  }
+
   const queryStr = filterMode && selectedVerses.size > 0 
     ? `${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}`
     : `${book.name} ${pos.chapter}`;

@@ -725,6 +725,15 @@ export function exportPrint(items, query, filters, options = {}) {
     let isFirstParagraph = true;
 
     items.forEach(it => {
+      if (it.isEndMarker) {
+        if (currentBlock.length > 0) {
+          currentParagraphs.push(`<p style="margin:0 0 10pt 0; page-break-inside:avoid; break-inside:avoid;">${currentBlock.join('')}</p>`);
+          isFirstParagraph = false;
+          currentBlock = [];
+        }
+        currentParagraphs.push(`<div style="margin:28pt 0 10pt 0;font-family:Georgia,serif;font-size:14pt;font-weight:700;text-transform:uppercase;letter-spacing:0.35em;text-align:center;column-span:all;page-break-inside:avoid;break-inside:avoid;">${escapeHtml(it.text)}</div>`);
+        return;
+      }
       if (it.isColophon || it.isSubscript) {
         if (currentBlock.length > 0) {
           currentParagraphs.push(`<p style="margin:0 0 10pt 0; page-break-inside:avoid; break-inside:avoid;">${currentBlock.join('')}</p>`);
