@@ -607,7 +607,17 @@ public class MainActivity extends BridgeActivity {
             // of leaving the WebView on its default ugly error page.
             if (request.isForMainFrame() && !activity.usingOfflineFallback) {
                 activity.usingOfflineFallback = true;
-                view.post(() -> view.loadUrl(FALLBACK_URL));
+                String target = FALLBACK_URL;
+                if (activity.pendingDestination != null) {
+                    try {
+                        Uri live = Uri.parse(activity.pendingDestination);
+                        target = live.buildUpon().scheme("https").authority(FALLBACK_DOMAIN).build().toString();
+                    } catch (Exception e) {
+                        target = FALLBACK_URL;
+                    }
+                }
+                final String finalTarget = target;
+                view.post(() -> view.loadUrl(finalTarget));
             }
         }
     }
