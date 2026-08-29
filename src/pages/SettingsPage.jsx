@@ -531,6 +531,25 @@ export default function SettingsPage() {
         )}
       </div>
 
+      {/* Android: highlight-to-search tip (renders nothing outside the native Android app) */}
+      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+        <button
+          onClick={() => toggleSection('androidTips')}
+          className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
+        >
+          <div className="flex flex-col gap-1">
+            <h2 className="font-serif text-lg font-semibold text-foreground">Highlight-to-Search</h2>
+            <p className="font-sans text-xs text-muted-foreground">Look up text you highlight in other apps</p>
+          </div>
+          <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${expandedSections.androidTips ? 'rotate-180' : ''}`} />
+        </button>
+        {expandedSections.androidTips && (
+          <div className="px-5 pb-6 pt-3">
+            <HighlightToSearchTip />
+          </div>
+        )}
+      </div>
+
       {/* Appearance */}
       <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
