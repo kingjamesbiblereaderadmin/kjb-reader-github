@@ -76,6 +76,14 @@ export function formatVerseShare({ text, ref, url, title, subscript, colophon } 
   return parts.join('\n\n');
 }
 
+// Pad a short line with leading spaces so it appears roughly centered when
+// pasted into a monospace-ish context (notes apps, messaging). Plain text has
+// no real alignment, so this is an approximation based on a typical line width.
+export function centerLine(text, width = 40) {
+  const pad = Math.max(0, Math.floor((width - text.length) / 2));
+  return ' '.repeat(pad) + text;
+}
+
 export function formatDailyVerseForCopy(verse) {
   const dateTitle = new Date().toLocaleDateString('en-US', {
     month: 'long', day: 'numeric', year: 'numeric',

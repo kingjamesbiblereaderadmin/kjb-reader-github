@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Loader2, AlignJustify, AlignLeft, List, Columns2, Maximize2, Minimize2, ChevronDown, CheckSquare, Square, Copy, X, BookMarked, ZoomIn, Minus, Plus, Type, Share2, Printer, Highlighter, Bookmark } from 'lucide-react';
-import { buildVerseUrl, formatVerseShare, cleanVerseText } from '@/lib/formatDailyVerse';
+import { buildVerseUrl, formatVerseShare, cleanVerseText, centerLine } from '@/lib/formatDailyVerse';
 import { BIBLE_BOOKS, getNextBook, getPrevBook } from '@/lib/bibleData';
 import { fetchChapter, fetchVerseCount, renderVerseText, renderColophonText, renderSubscriptText, resolveSubscript, resolveEndMarker } from '@/lib/bibleApi';
 import SubscriptContent from '@/components/bible/SubscriptContent';
@@ -518,7 +518,7 @@ export default function BibleReader() {
     // a single verse moves it to the end with a dash, matching the
     // paragraph-copy citation style.
     const isMultiVerse = selectedVersesList.length > 1;
-    if (isMultiVerse) parts.push(`${ref} (KJB)`);
+    if (isMultiVerse) parts.push(centerLine(`${ref} (KJB)`));
     if (chapterSub && (selectedSections.has('subscript') || (!anySectionToggled && includesV1))) {
       parts.push(`¶ ${cleanVerseText(chapterSub).replace(/^[\u00B6\uFFFD¶]\s*/, '')}`);
     }
