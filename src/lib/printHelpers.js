@@ -1,6 +1,7 @@
 import { exportVerses, cleanPrintUrl } from './exportVerses';
 import { SUBSCRIPTS } from './bibleSubscripts';
 import { formatVerseRange } from './readerHelpers';
+import { nativePrintHtml } from './nativePrint';
 
 // Rewrite a print iframe's URL to the clean public URL so the browser's native
 // print footer shows the real public link instead of the preview/sandbox one.
