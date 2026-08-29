@@ -433,7 +433,7 @@ function csvCell(s) {
   const v = (s || '').replace(/"/g, '""');
   return `"${v}"`;
 }
-export function exportXls(items, query, filters, options = {}) {
+export async function exportXls(items, query, filters, options = {}) {
   const isReading = options.titlePrefix === 'KJB Reading';
   const header = `${csvCell('Testament')},${csvCell('Book')},${csvCell('Reference')},${csvCell('Text ([brackets] = italics)')}`;
   const rows = [];
