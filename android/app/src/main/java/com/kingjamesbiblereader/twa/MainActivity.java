@@ -56,6 +56,13 @@ public class MainActivity extends BridgeActivity {
     static final String BUNDLED_BIBLE_PATH = "/__native/pce-bible.txt";
 
     private boolean usingOfflineFallback = false;
+    // The last live-site URL handleIncomingIntent() tried to navigate to
+    // (search from a share/process-text intent, or an App Link deep link).
+    // If that load fails and onReceivedError falls back to the bundled
+    // snapshot, it's rewritten onto FALLBACK_DOMAIN and used instead of the
+    // bare FALLBACK_URL -- otherwise the fallback always lands on the plain
+    // home page and the search/verse the user was taken here for is lost.
+    private String pendingDestination = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
