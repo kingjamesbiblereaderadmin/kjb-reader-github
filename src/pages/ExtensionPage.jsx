@@ -388,7 +388,7 @@ export default function ExtensionPage() {
                 Extension MIT License
               </p>
               <p className="font-sans text-xs text-muted-foreground">
-                Open-source license terms
+                Open-source licence terms
               </p>
             </div>
             <ArrowLeft className="w-4 h-4 text-muted-foreground rotate-180 group-hover:text-accent transition-colors" />

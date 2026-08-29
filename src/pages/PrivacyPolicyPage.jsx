@@ -202,7 +202,7 @@ export default function PrivacyPolicyPage() {
         </p>
       </Section>
 
-      <Section title="Third-Party Content & Licenses">
+      <Section title="Third-Party Content & Licences">
         <p>
           The Bible text used is the King James Bible (Pure Cambridge Edition), which is in the
           public domain.

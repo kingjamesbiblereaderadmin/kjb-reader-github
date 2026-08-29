@@ -68,7 +68,7 @@ export default function TermsOfServicePage() {
           <p>
             KJB Reader is a free, non-commercial application that provides access to the King James
             Bible (Pure Cambridge Edition) for personal reading, study, and reflection. The App
-            works offline, offers daily verses, search, bookmarks, and customizable reading
+            works offline, offers daily verses, search, bookmarks, and customisable reading
             settings. A browser extension is also available, providing the same Bible
             reading and search functionality as a sidebar panel.
           </p>
@@ -148,7 +148,7 @@ export default function TermsOfServicePage() {
           </p>
         </Section>
 
-        <Section title="Third-Party Content & Licenses">
+        <Section title="Third-Party Content & Licences">
           <p>
             The Bible text used is the King James Bible (Pure Cambridge Edition), which is in the
             public domain.

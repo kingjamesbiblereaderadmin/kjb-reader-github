@@ -291,7 +291,7 @@ export default function SettingsPage() {
           <Settings className="w-7 h-7 text-white" />
         </div>
         <h1 className="font-serif text-4xl font-bold text-foreground mb-2">Settings</h1>
-        <p className="font-sans text-sm text-muted-foreground">Customize your experience</p>
+        <p className="font-sans text-sm text-muted-foreground">Customise your experience</p>
         <div className="mt-4 w-16 h-px bg-accent mx-auto" />
         <button
           onClick={toggleAll}
@@ -309,7 +309,7 @@ export default function SettingsPage() {
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">Display</h2>
-            <p className="font-sans text-xs text-muted-foreground">Customize text size, zoom, font and rotation</p>
+            <p className="font-sans text-xs text-muted-foreground">Customise text size, zoom, font and rotation</p>
           </div>
           <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${expandedSections.text ? 'rotate-180' : ''}`} />
         </button>
@@ -564,7 +564,7 @@ export default function SettingsPage() {
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">Appearance</h2>
-            <p className="font-sans text-xs text-muted-foreground">Customize the look and feel</p>
+            <p className="font-sans text-xs text-muted-foreground">Customise the look and feel</p>
           </div>
           <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${expandedSections.appearance ? 'rotate-180' : ''}`} />
         </button>
@@ -933,7 +933,7 @@ export default function SettingsPage() {
               </div>
               <div className="flex justify-between items-center font-sans text-sm gap-4">
                 <span className="text-muted-foreground shrink-0">Daily Verse Panel</span>
-                <span className="text-foreground font-medium text-right">Customizable</span>
+                <span className="text-foreground font-medium text-right">Customisable</span>
               </div>
               <div className="flex justify-between items-center font-sans text-sm gap-4">
                 <span className="text-muted-foreground shrink-0">Theme</span>
@@ -1022,7 +1022,7 @@ localStorage.removeItem('kjb-daily-verse-cache-v17');
         <div className="w-full flex items-center justify-between px-5 py-3.5">
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">About &amp; Credits</h2>
-            <p className="font-sans text-xs text-muted-foreground">Attributions, licenses and acknowledgements</p>
+            <p className="font-sans text-xs text-muted-foreground">Attributions, licences and acknowledgements</p>
           </div>
           <ChevronDown className="w-5 h-5 text-muted-foreground -rotate-90" />
         </div>
