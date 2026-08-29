@@ -800,4 +800,42 @@ public class MainActivity extends BridgeActivity {
             });
         }
     }
+
+    // Exposed to JS as window.kjbOrientationBridge (see the
+    // addJavascriptInterface call in onCreate). Locks/unlocks the real
+    // Activity window directly via setRequestedOrientation() -- bypasses
+    // @capacitor/screen-orientation entirely (see the comment on the
+    // addJavascriptInterface call above for why).
+    private static class OrientationBridge {
+        private final MainActivity activity;
+
+        OrientationBridge(MainActivity activity) {
+            this.activity = activity;
+        }
+
+        @JavascriptInterface
+        public void lock(String orientation) {
+            activity.runOnUiThread(() -> {
+                try {
+                    int mode = "landscape".equals(orientation)
+                        ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                        : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+                    activity.setRequestedOrientation(mode);
+                } catch (Exception e) {
+                    // Nothing more we can do here -- fail silently rather than crash.
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void unlock() {
+            activity.runOnUiThread(() -> {
+                try {
+                    activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+                } catch (Exception e) {
+                    // Nothing more we can do here -- fail silently rather than crash.
+                }
+            });
+        }
+    }
 }
