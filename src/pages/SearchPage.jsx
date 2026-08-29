@@ -1019,7 +1019,7 @@ export default function SearchPage() {
   // Share search results as a LINK ONLY — builds the search URL and copies/shares it.
   const handleShare = async () => {
     const q = getQueryFromUrl() || query;
-    const shareUrl = `<${window.location.origin}/search?q=${encodeURIComponent(q)}>`;
+    const shareUrl = `<${getPublicOrigin()}/search?q=${encodeURIComponent(q)}>`;
 
     try {
       if (navigator.share) {
