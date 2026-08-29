@@ -31,15 +31,19 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          cache-disabled: false
-      - name: Kill any stale Gradle daemons and clean corrupted cache
+          # Was restoring the cache from a prior run and then trying to
+          # selectively clean out corrupted pieces (see the step below) --
+          # but the corruption kept recurring ("Failed to create Jar file
+          # .../jars-9/.../bcprov-jdk18on-1.79.jar"), meaning something in the
+          # restored cache itself was bad. Disabling persistence entirely
+          # means every run starts clean, trading a bit of speed for not
+          # inheriting a broken cache.
+          cache-disabled: true
+      - name: Kill any stale Gradle daemons
         run: |
           if [ -f android/gradlew ]; then
             android/gradlew --stop || true
           fi
-          rm -rf ~/.gradle/caches/jars-*
-          rm -rf ~/.gradle/wrapper/dists/*
-          rm -rf ~/.gradle/caches/build-cache-1
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
       - name: Generate Gradle wrapper (if missing)
