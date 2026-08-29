@@ -225,6 +225,7 @@ public class MainActivity extends BridgeActivity {
         // this when we're not already falling back.
         if (usingOfflineFallback) return;
 
+        pendingDestination = url;
         WebView webView = getBridge().getWebView();
         if (isInitialLaunch) {
             // Bridge already queued the normal server.url load -- override it
