@@ -86,7 +86,7 @@ export default function CreditsPage() {
               to increase readability for readers with dyslexia. SIL Open Font License.</span></li>
           </ul>
 
-          <p className="font-sans text-[11px] text-muted-foreground leading-relaxed mt-4">In the Android app, these fonts are bundled with the app itself so they're available offline from first launch, instead of being downloaded from Google Fonts.</p>
+          <p className="font-sans text-[11px] text-muted-foreground leading-relaxed mt-4">In the Android app (Google Play), these fonts are bundled with the app itself so they're available offline from first launch, instead of being downloaded from Google Fonts.</p>
         </section>
 
         {/* App Platform & Thanks */}
