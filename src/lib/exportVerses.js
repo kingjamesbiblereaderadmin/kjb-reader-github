@@ -710,7 +710,7 @@ export async function exportPdf(items, query, filters, options = {}) {
     }
   }
 
-  doc.save(`kjb-${sanitizeFilename(query)}${options.filenameSuffix || ''}${filterSuffix(filters)}.pdf`);
+  await downloadBlob(doc.output('blob'), `kjb-${sanitizeFilename(query)}${options.filenameSuffix || ''}${filterSuffix(filters)}.pdf`);
 }
 
 // ── Print ──
