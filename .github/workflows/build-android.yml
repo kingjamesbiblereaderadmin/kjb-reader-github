@@ -65,16 +65,23 @@ jobs:
       - name: Build signed release (APK + AAB)
         working-directory: android
         run: |
-          # Retry: "Failed to create Jar file .../jars-9/.../bcprov-*.jar" is a
-          # known intermittent Gradle transform-cache race (see gradle.properties
-          # for the org.gradle.workers.max=1 fix targeting the same root cause).
-          # A retry catches it if it still slips through once in a while.
+          # "Failed to create Jar file .../jars-9/.../bcprov-*.jar" leaves a
+          # partially-written, corrupted entry behind. Confirmed from a real
+          # run's timing: attempt 1 failed in 26s (did real work: download +
+          # write), attempts 2 and 3 failed in 4s each -- i.e. they hit the
+          # SAME broken file immediately without redoing anything. Stopping
+          # the daemon (below) doesn't remove that file, so retries alone were
+          # pointless. Delete the specific transform-cache dir before each
+          # attempt, and add --stacktrace so if this still fails we get the
+          # real underlying cause instead of Gradle's summary line.
           n=0
           until [ $n -ge 3 ]; do
-            ./gradlew assembleRelease bundleRelease && break
+            ./gradlew --stacktrace assembleRelease bundleRelease && break
             n=$((n+1))
             echo "Build attempt $n failed, retrying..."
             ./gradlew --stop || true
+            rm -rf ~/.gradle/caches/jars-9
+            rm -rf ~/.gradle/caches/*/generated-gradle-jars
             sleep 5
           done
           if [ $n -ge 3 ]; then
