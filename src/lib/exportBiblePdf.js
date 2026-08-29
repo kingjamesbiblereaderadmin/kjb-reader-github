@@ -651,7 +651,7 @@ async function buildPdf(opts, bible, onProgress) {
   });
 
   onProgress(98, 'Finalising PDF…');
-  doc.save(fileName(opts, 'pdf'));
+  await triggerDownload(doc.output('blob'), fileName(opts, 'pdf'));
 }
 
 // ─────────────────────────────────────────────────────────────
