@@ -102,6 +102,12 @@ export function cleanPrintUrl() {
     }
     // preview-sandbox--<id>.base44.app → <id>.base44.app
     u.hostname = u.hostname.replace(/^preview-sandbox--/, '');
+    // Native Android's internal offline-fallback origin -- never externally
+    // meaningful (see MainActivity.java) -- swap it for the real public site.
+    if (u.hostname === 'appassets.androidplatform.net') {
+      u.protocol = 'https:';
+      u.hostname = 'kingjamesbiblereader.com';
+    }
     // Drop only refresh/updated internal flags; keep book/chapter/verse/from/q.
     u.searchParams.delete('refresh');
     u.searchParams.delete('updated');
