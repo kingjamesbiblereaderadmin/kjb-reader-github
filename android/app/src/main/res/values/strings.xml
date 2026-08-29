@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">KJB Reader</string>
     <string name="title_activity_main">KJB Reader</string>
+    <string name="process_text_label">Look up in KJB Reader</string>
     <string name="package_name">com.kingjamesbiblereader.twa</string>
     <string name="custom_url_scheme">com.kingjamesbiblereader.twa</string>
 </resources>
