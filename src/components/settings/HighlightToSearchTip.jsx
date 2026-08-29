@@ -27,9 +27,11 @@ export default function HighlightToSearchTip({ compact = false }) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-sans text-xs font-semibold text-foreground mb-1">Highlight-to-search in other apps</p>
-          <p className="font-sans text-xs text-muted-foreground leading-relaxed">
-            Highlight any word, phrase or verse in another app and <span className="notranslate" translate="no">KJB Reader</span> can appear right in the selection menu to search for it. On some phones this needs a one-time toggle: check your phone's <strong>Settings → text selection menu / app actions</strong> (naming varies by manufacturer) and enable <span className="notranslate" translate="no">KJB Reader</span> there. If you don't see that option, it may already work automatically.
-          </p>
+          <ul className="font-sans text-xs text-muted-foreground leading-relaxed space-y-1 list-disc pl-4">
+            <li>Highlight any word, phrase or verse in another app and <span className="notranslate" translate="no">KJB Reader</span> can appear right in the selection menu to search for it.</li>
+            <li>On some phones this needs a one-time toggle: check your phone's <strong>Settings → text selection menu / app actions</strong> (naming varies by manufacturer) and enable <span className="notranslate" translate="no">KJB Reader</span> there.</li>
+            <li>If you don't see that option, it may already work automatically.</li>
+          </ul>
         </div>
       </div>
     </div>
