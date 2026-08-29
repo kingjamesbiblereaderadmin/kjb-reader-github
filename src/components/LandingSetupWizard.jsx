@@ -119,7 +119,7 @@ export default function LandingSetupWizard() {
     window.dispatchEvent(new Event('storage'));
     markDone('layout');
   };
-  const { promptInstall } = useInstallPrompt();
+  const { promptInstall, isInstalled: hookInstalled } = useInstallPrompt();
 
   // Per-step completion. Initialized from actual persisted settings (not just
   // this-session interactions) so a step already configured earlier — e.g.
@@ -195,7 +195,11 @@ export default function LandingSetupWizard() {
     };
   }, []);
 
-  const actuallyInstalled = isStandalone || installDone;
+  // hookInstalled comes from useInstallPrompt, which already detects the
+  // native Android app / TWA wrapper (not just display-mode) — without it,
+  // opening this wizard inside the actually-installed native app still showed
+  // the manual-install guide.
+  const actuallyInstalled = isStandalone || installDone || hookInstalled;
   const showInstall = incognitoChecked && !isIncognito && !actuallyInstalled;
 
   const pickReaderFont = (value) => {
