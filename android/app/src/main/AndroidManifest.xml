@@ -70,8 +70,8 @@
     <!-- Used to detect whether to load the live site or fall back to the
          bundled offline copy (see MainActivity's isNetworkAvailable()). -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- Needed only on API <29 for DownloadManager to write to the public
-         Downloads directory (see MainActivity's DownloadListener) -- 29+
-         handles this without any permission via scoped storage. -->
+    <!-- Needed only on API less than 29 for DownloadManager to write to the
+         public Downloads directory (see MainActivity's DownloadListener):
+         29+ handles this without any permission via scoped storage. -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
 </manifest>
