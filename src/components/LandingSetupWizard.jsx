@@ -385,7 +385,7 @@ export default function LandingSetupWizard() {
         {/* Step 1: Theme (mode + color) */}
         {step === 1 && (
           <div className="text-center">
-            <h3 className="font-serif text-lg font-bold text-foreground mb-1">Theme & Color</h3>
+            <h3 className="font-serif text-lg font-bold text-foreground mb-1">Theme & Colour</h3>
             <p className="font-sans text-xs text-muted-foreground mb-4">Choose light/dark and your accent color</p>
             <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto mb-5">
               {[

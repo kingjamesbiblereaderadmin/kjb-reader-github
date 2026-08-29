@@ -149,7 +149,7 @@ export function ThemeProvider({ children }) {
     try { return localStorage.getItem('kjb-theme-mode') || 'system'; } catch { return 'system'; }
   });
   const [colourId, setColourIdState] = useState(() => {
-    try { return localStorage.getItem('kjb-colour') || 'gold'; } catch { return 'gold'; }
+    try { return localStorage.getItem('kjb-colour') || 'sky'; } catch { return 'sky'; }
   });
   // 'daily' = accent matches the daily verse card (auto-changes each day).
   // 'fixed' = use the chosen colour palette (colourId) instead.
@@ -217,7 +217,7 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     if (!isInitialized) {
       const savedMode = localStorage.getItem('kjb-theme-mode') || 'system';
-      const savedColour = localStorage.getItem('kjb-colour') || 'gold';
+      const savedColour = localStorage.getItem('kjb-colour') || 'sky';
       const dark = resolveIsDark(savedMode);
       const savedColorMode = localStorage.getItem('kjb-color-mode') || 'fixed';
       document.documentElement.classList.toggle('dark', dark);
@@ -316,7 +316,7 @@ export function ThemeProvider({ children }) {
     const onSettingsSynced = () => {
       try {
         const newMode = localStorage.getItem('kjb-theme-mode') || 'system';
-        const newColourId = localStorage.getItem('kjb-colour') || 'gold';
+        const newColourId = localStorage.getItem('kjb-colour') || 'sky';
         const newColorMode = localStorage.getItem('kjb-color-mode') || 'fixed';
         setMode(newMode);
         setColourIdState(newColourId);
