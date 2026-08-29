@@ -13,6 +13,7 @@ import { detectIncognito } from '@/lib/incognito';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import ThemeColorPicker from '@/components/bible/ThemeColorPicker';
 import AlreadyInstalledHelp from '@/components/AlreadyInstalledHelp';
+import HighlightToSearchTip from '@/components/settings/HighlightToSearchTip';
 
 const VERSE_FONTS = [
   { value: 'serif', label: 'Serif' },
