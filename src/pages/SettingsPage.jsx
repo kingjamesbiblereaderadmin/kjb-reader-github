@@ -52,7 +52,7 @@ const isBookmarkBrowser = () => {
   return !isMobile && (isFirefox || (isMac && isSafari));
 };
 
-const LAST_REVISED = 'August 26th, 2026';
+const LAST_REVISED = 'August 29th, 2026';
 const WORKER_VERSION = 'v20260823_1851';
 
 export default function SettingsPage() {
