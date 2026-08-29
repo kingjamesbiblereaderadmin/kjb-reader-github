@@ -133,13 +133,13 @@ export default function AdvancedResultsToolbar({ records, selectedRecords, filte
     // Keep the title clean ("KJB Advanced Search") — the exact search text is
     // already shown in the Applied Filters block, so don't append the
     // comma/quote-normalised highlight query to the heading.
-    exportVerses(format, items, hlQuery, hlFilters, { ...exportOptions, showQuery: false });
+    exportVerses(format, items, hlQuery, hlFilters, { ...exportOptions, showQuery: false }).catch((err) => console.error('Export failed:', err));
   };
 
   const doPrint = () => {
     if (!items.length) return;
     const { hlQuery, hlFilters } = buildHighlight();
-    exportVerses('print', items, hlQuery, hlFilters, { ...exportOptions, showQuery: false });
+    exportVerses('print', items, hlQuery, hlFilters, { ...exportOptions, showQuery: false }).catch((err) => console.error('Print failed:', err));
   };
 
   const doCopy = async () => {
