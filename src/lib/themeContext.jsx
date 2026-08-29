@@ -154,7 +154,7 @@ export function ThemeProvider({ children }) {
   // 'daily' = accent matches the daily verse card (auto-changes each day).
   // 'fixed' = use the chosen colour palette (colourId) instead.
   const [colorMode, setColorModeState] = useState(() => {
-    try { return localStorage.getItem('kjb-color-mode') || 'daily'; } catch { return 'daily'; }
+    try { return localStorage.getItem('kjb-color-mode') || 'fixed'; } catch { return 'fixed'; }
   });
 
   const setColorMode = (m) => {
@@ -219,7 +219,7 @@ export function ThemeProvider({ children }) {
       const savedMode = localStorage.getItem('kjb-theme-mode') || 'system';
       const savedColour = localStorage.getItem('kjb-colour') || 'gold';
       const dark = resolveIsDark(savedMode);
-      const savedColorMode = localStorage.getItem('kjb-color-mode') || 'daily';
+      const savedColorMode = localStorage.getItem('kjb-color-mode') || 'fixed';
       document.documentElement.classList.toggle('dark', dark);
       applyPalette(savedColour, dark);
       // Only override with the daily-verse accent when in 'daily' colour mode.
@@ -317,7 +317,7 @@ export function ThemeProvider({ children }) {
       try {
         const newMode = localStorage.getItem('kjb-theme-mode') || 'system';
         const newColourId = localStorage.getItem('kjb-colour') || 'gold';
-        const newColorMode = localStorage.getItem('kjb-color-mode') || 'daily';
+        const newColorMode = localStorage.getItem('kjb-color-mode') || 'fixed';
         setMode(newMode);
         setColourIdState(newColourId);
         setColorModeState(newColorMode);
