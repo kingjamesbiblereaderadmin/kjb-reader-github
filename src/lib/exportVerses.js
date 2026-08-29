@@ -424,7 +424,7 @@ export async function exportDocx(items, query, filters, options = {}) {
     `${headerHtml}${!isReading ? summaryHtml(options.filterSummary) : ''}${rows}` +
     `<p style="font-size:10pt;color:#777;${isReading ? 'text-align:center;' : ''}">${items.length} verse${items.length !== 1 ? 's' : ''} — King James Bible</p></body></html>`;
   const blob = new Blob(['\uFEFF', html], { type: 'application/msword' });
-  downloadBlob(blob, `kjb-${sanitizeFilename(query)}${options.filenameSuffix || ''}${filterSuffix(filters)}.doc`);
+  await downloadBlob(blob, `kjb-${sanitizeFilename(query)}${options.filenameSuffix || ''}${filterSuffix(filters)}.doc`);
 }
 
 // ── CSV (Excel-compatible) — opens cleanly without the .xls format warning.
