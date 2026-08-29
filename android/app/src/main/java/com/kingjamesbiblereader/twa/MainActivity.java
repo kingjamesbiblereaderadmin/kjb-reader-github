@@ -78,6 +78,14 @@ public class MainActivity extends BridgeActivity {
         webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
         webView.setWebChromeClient(new OAuthPopupChromeClient(getBridge()));
 
+        // Serves the bundled Bible text (android/app/src/main/assets/bible/
+        // pce-bible.txt) for requests to BUNDLED_BIBLE_PATH instead of hitting
+        // the network -- see bibleCache.js, which requests that same-origin
+        // path only when Capacitor.isNativePlatform(). Means first launch
+        // (and every launch after) has the full Bible available with zero
+        // network required, instead of needing the ~4MB fetch to succeed once.
+        webView.setWebViewClient(new BundledBibleWebViewClient(getBridge()));
+
         // If the app was launched via Android's share sheet, the text-selection
         // "Process text" menu, or an https App Link, route straight to the
         // matching destination instead of the normal home load.
