@@ -152,30 +152,6 @@ self.addEventListener('periodicsync', (event) => {
   }
 });
 
-// ── Push Notifications (web push) ─────────────────────────────────────────
-// Display incoming web-push messages. The page subscribes via PushManager
-// with the VAPID public key; a backend function sends the daily-verse push to
-// all stored subscriptions. Local (page-triggered) daily-verse notifications
-// use reg.showNotification directly and don't go through here.
-self.addEventListener('push', (event) => {
-  let payload;
-  try {
-    payload = event.data ? event.data.json() : {};
-  } catch (err) {
-    try { payload = { body: event.data ? event.data.text() : '' }; } catch { payload = {}; }
-  }
-  const title = payload.title || 'KJB Reader';
-  const options = {
-    body: payload.body || '',
-    icon: payload.icon || 'https://media.base44.com/images/public/6a05d76723afe58d80c589e8/8e738d108_cfb4bf781_Untitled.png',
-    badge: payload.badge || payload.icon,
-    tag: payload.tag || 'kjb-push',
-    data: { url: payload.url || '/' },
-    vibrate: [200, 100, 200],
-  };
-  event.waitUntil(self.registration.showNotification(title, options));
-});
-
 // Fetch event - cache-first strategy with dev mode bypass
 self.addEventListener('fetch', (event) => {
   const { request } = event;
