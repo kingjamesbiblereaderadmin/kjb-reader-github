@@ -59,16 +59,34 @@ const applyCssLock = (lockLandscape) => {
 };
 
 export const applyAutoRotate = async (enabled) => {
-  // isNativeAndroid() checks our own guaranteed-correct marker before falling
-  // back to Capacitor.isNativePlatform() -- plain Capacitor.isNativePlatform()
-  // could read false specifically when showing the offline-fallback bundled
-  // copy (see MainActivity.java's injectNativeMarker), silently dropping to
-  // the web-only fallback below. That fallback only counter-rotates page
-  // CONTENT via CSS -- it can't stop the actual Android Activity/window
-  // itself from rotating, which is what made "Auto-rotate: off" appear to do
-  // nothing. Still checks Capacitor.isNativePlatform() too (not just the
-  // Android-specific marker) so iOS keeps using the native branch as before.
-  if (isNativeAndroid() || Capacitor.isNativePlatform()) {
+  // Talk to our own native bridge directly instead of the
+  // @capacitor/screen-orientation plugin -- that plugin's native-vs-web
+  // routing goes through Capacitor's own PluginHeaders mechanism, a
+  // DIFFERENT check than window.__KJB_NATIVE_ANDROID__/isNativeAndroid()
+  // above, and one we can't guarantee is always populated correctly. If it
+  // ever reads wrong, ScreenOrientation.lock() would silently fall through
+  // to the web implementation, which needs browser fullscreen to do
+  // anything and otherwise just throws (caught below, doing nothing) --
+  // exactly the "still rotates" symptom this replaces. window.kjbOrientation
+  // Bridge (registered by MainActivity.java, Android only) calls
+  // setRequestedOrientation() directly, with no plugin dispatch involved.
+  if (typeof window !== 'undefined' && window.kjbOrientationBridge) {
+    try {
+      if (enabled) {
+        window.kjbOrientationBridge.unlock();
+      } else {
+        let isLandscape = false;
+        try { isLandscape = window.matchMedia('(orientation: landscape)').matches; } catch {}
+        window.kjbOrientationBridge.lock(isLandscape ? 'landscape' : 'portrait');
+      }
+    } catch {
+      // Bridge not available for some reason -- nothing more we can do.
+    }
+    return;
+  }
+  // iOS/other native platforms without our bridge: still use the Capacitor
+  // plugin, since that's a genuinely different, untested platform.
+  if (Capacitor.isNativePlatform()) {
     try {
       const { ScreenOrientation } = await import('@capacitor/screen-orientation');
       if (enabled) {
