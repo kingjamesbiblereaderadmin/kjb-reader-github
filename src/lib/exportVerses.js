@@ -467,7 +467,7 @@ export async function exportXls(items, query, filters, options = {}) {
 }
 
 // ── PDF (jsPDF) — italics preserved via font style switching ──
-export function exportPdf(items, query, filters, options = {}) {
+export async function exportPdf(items, query, filters, options = {}) {
   const titlePrefix = options.titlePrefix || 'KJB Search Results';
   const isReading = titlePrefix === 'KJB Reading';
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
