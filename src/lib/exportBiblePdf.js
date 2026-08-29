@@ -1157,46 +1157,6 @@ function fileName(opts, ext) {
   return `KJB-${scopeLabel}-${cols}-${flow}-${names}${extras ? '-' + extras : ''}.${ext}`;
 }
 
-let downloadCallbackSeq = 0;
-function triggerDownload(blob, name) {
-  if (typeof window !== 'undefined' && window.kjbDownloadBridge && typeof window.kjbDownloadBridge.saveFile === 'function') {
-    return new Promise((resolve, reject) => {
-      const callbackId = 'dl_' + (++downloadCallbackSeq) + '_' + Date.now();
-      if (typeof window.__kjbDownloadCallback !== 'function') {
-        window.__kjbDownloadCallback = function (id, result) {
-          const entry = window.__kjbDownloadCallback._pending && window.__kjbDownloadCallback._pending[id];
-          if (!entry) return;
-          delete window.__kjbDownloadCallback._pending[id];
-          if (result === 'ok') entry.resolve();
-          else entry.reject(new Error('Could not save the file.'));
-        };
-        window.__kjbDownloadCallback._pending = {};
-      }
-      window.__kjbDownloadCallback._pending[callbackId] = { resolve, reject };
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64 = String(reader.result).split(',')[1] || '';
-        try {
-          window.kjbDownloadBridge.saveFile(base64, name, blob.type || 'application/octet-stream', callbackId);
-        } catch (err) {
-          delete window.__kjbDownloadCallback._pending[callbackId];
-          reject(err);
-        }
-      };
-      reader.onerror = () => reject(new Error('Could not read the generated file.'));
-      reader.readAsDataURL(blob);
-    });
-  }
-
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = name;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  return Promise.resolve();
-}
-
 /**
  * Generate and download the entire Bible.
  * Runs fully in the browser (no server / no credits).
