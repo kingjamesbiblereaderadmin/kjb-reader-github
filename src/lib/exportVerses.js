@@ -130,27 +130,53 @@ function filterSuffix(filters) {
   return parts.length ? `-${parts.join('-')}` : '';
 }
 
-// Split items into sections by Testament and then by Book.
-function splitBySections(items) {
+// Count occurrences of the search term(s) in a verse's text — reuses the same
+// quote/whole-word/case-sensitive rules as the on-screen highlighter, so
+// export occurrence counts match what's shown in the search results.
+function countTermOccurrences(text, query, filters) {
+  const { terms, isQuoted } = parseQueryTerms(query);
+  if (!terms.length) return 1;
+  const cs = isQuoted || (filters && filters.caseSensitive);
+  const ww = isQuoted || (filters && filters.wholeWord);
+  const clean = (text || '').replace(/[[\]]/g, '');
+  let total = 0;
+  for (const term of terms) {
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = ww
+      ? new RegExp(`(^|[^a-zA-Z'])(${escaped})(?=[^a-zA-Z']|$)`, cs ? 'g' : 'gi')
+      : new RegExp(`(${escaped})`, cs ? 'g' : 'gi');
+    total += (clean.match(re) || []).length;
+  }
+  return total;
+}
+
+// Split items into sections by Testament and then by Book. When occOptions
+// ({query, filters}) is given, each section also gets an occCount — the
+// summed term-occurrence count across its items (matching the on-screen
+// "N verses, M occurrences" labels).
+function splitBySections(items, occOptions) {
   const old = items.filter(it => it.testament !== 'new');
   const neu = items.filter(it => it.testament === 'new');
   const sections = [];
-  
+  const sumOcc = (arr) => occOptions
+    ? arr.reduce((sum, it) => sum + countTermOccurrences(it.text, occOptions.query, occOptions.filters), 0)
+    : arr.length;
+
   if (old.length) {
-    sections.push({ title: 'Old Testament', isTestament: true, items: old });
+    sections.push({ title: 'Old Testament', isTestament: true, items: old, occCount: sumOcc(old) });
     const books = Array.from(new Set(old.map(it => it.bookName || it.book || '')));
     books.forEach(b => {
       const bookItems = old.filter(it => (it.bookName || it.book || '') === b);
-      if (bookItems.length) sections.push({ title: b, isBook: true, items: bookItems });
+      if (bookItems.length) sections.push({ title: b, isBook: true, items: bookItems, occCount: sumOcc(bookItems) });
     });
   }
   
   if (neu.length) {
-    sections.push({ title: 'New Testament', isTestament: true, items: neu });
+    sections.push({ title: 'New Testament', isTestament: true, items: neu, occCount: sumOcc(neu) });
     const books = Array.from(new Set(neu.map(it => it.bookName || it.book || '')));
     books.forEach(b => {
       const bookItems = neu.filter(it => (it.bookName || it.book || '') === b);
-      if (bookItems.length) sections.push({ title: b, isBook: true, items: bookItems });
+      if (bookItems.length) sections.push({ title: b, isBook: true, items: bookItems, occCount: sumOcc(bookItems) });
     });
   }
   return sections;
@@ -160,16 +186,22 @@ function splitBySections(items) {
 export async function exportTxt(items, query, filters, options = {}) {
   const titlePrefix = options.titlePrefix || 'KJB Search Results';
   const isReading = titlePrefix === 'KJB Reading';
+  const showOcc = !isReading && !!query;
   const titleLine = isReading
     ? `${options.bookName || query}\n${options.chapterText ? options.chapterText.toUpperCase() + '\n' : ''}`
     : `${titlePrefix}${options.showQuery ? ` — "${query}"` : ''}\n`;
   const header = `${titleLine}${'='.repeat(50)}\n\n${!isReading ? summaryText(options.filterSummary) : ''}`;
-  const sections = splitBySections(items);
+  const sections = splitBySections(items, showOcc ? { query, filters } : null);
   const body = sections.map(sec => {
-    if (sec.isTestament) return `${sec.title.toUpperCase()}\n${'='.repeat(sec.title.length)}`;
+    if (sec.isTestament) {
+      const occSuffix = showOcc ? `, ${sec.occCount} occurrence${sec.occCount !== 1 ? 's' : ''}` : '';
+      const label = `${sec.title.toUpperCase()} [${sec.items.length} verse${sec.items.length !== 1 ? 's' : ''}${occSuffix}]`;
+      return `${label}\n${'='.repeat(sec.title.length)}`;
+    }
     const bookNameObj = sec.items[0]?.bookNameObj;
     const fullBookName = bookNameObj ? bookNameObj.name : sec.title;
-    const headingText = `${fullBookName}:`;
+    const bookOccSuffix = showOcc && sec.occCount > sec.items.length ? ` [${sec.occCount} occurrences]` : '';
+    const headingText = `${fullBookName}:${bookOccSuffix}`;
     const heading = `${headingText}\n${'-'.repeat(headingText.length)}\n\n`;
     const verses = sec.items.map((it, idx) => {
       const isSpecial = it.isColophon || it.isSubscript;
