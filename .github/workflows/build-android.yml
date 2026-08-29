@@ -30,6 +30,16 @@ jobs:
           java-version: '17'
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: false
+      - name: Kill any stale Gradle daemons and clean corrupted cache
+        run: |
+          if [ -f android/gradlew ]; then
+            android/gradlew --stop || true
+          fi
+          rm -rf ~/.gradle/caches/jars-*
+          rm -rf ~/.gradle/wrapper/dists/*
+          rm -rf ~/.gradle/caches/build-cache-1
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
       - name: Generate Gradle wrapper (if missing)
