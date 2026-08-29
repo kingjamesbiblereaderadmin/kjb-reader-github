@@ -717,6 +717,7 @@ public class MainActivity extends BridgeActivity {
                 }
                 final String finalTarget = target;
                 view.post(() -> view.loadUrl(finalTarget));
+                activity.scheduleReconnectAttempt();
             }
         }
     }

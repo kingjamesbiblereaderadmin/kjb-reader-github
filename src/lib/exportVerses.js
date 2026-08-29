@@ -478,7 +478,8 @@ function csvCell(s) {
 }
 export async function exportXls(items, query, filters, options = {}) {
   const isReading = options.titlePrefix === 'KJB Reading';
-  const header = `${csvCell('Testament')},${csvCell('Book')},${csvCell('Reference')},${csvCell('Text ([brackets] = italics)')}`;
+  const showOcc = !isReading && !!query;
+  const header = `${csvCell('Testament')},${csvCell('Book')},${csvCell('Reference')},${csvCell('Text ([brackets] = italics)')}${showOcc ? ',' + csvCell('Occurrences') : ''}`;
   const rows = [];
   
   const old = items.filter(it => it.testament !== 'new');
@@ -488,13 +489,15 @@ export async function exportXls(items, query, filters, options = {}) {
     const isSpecial = it.isColophon || it.isSubscript;
     const text = plainWithBrackets(it.text, isSpecial, true);
     const formattedText = (!isReading && query) ? highlightTermText(text, query, filters) : text;
-    rows.push(`${csvCell('Old Testament')},${csvCell(it.bookName || it.book || '')},${csvCell(it.ref)},${csvCell(formattedText)}`);
+    const occCell = showOcc ? ',' + csvCell(String(countTermOccurrences(it.text, query, filters))) : '';
+    rows.push(`${csvCell('Old Testament')},${csvCell(it.bookName || it.book || '')},${csvCell(it.ref)},${csvCell(formattedText)}${occCell}`);
   });
   neu.forEach(it => {
     const isSpecial = it.isColophon || it.isSubscript;
     const text = plainWithBrackets(it.text, isSpecial, true);
     const formattedText = (!isReading && query) ? highlightTermText(text, query, filters) : text;
-    rows.push(`${csvCell('New Testament')},${csvCell(it.bookName || it.book || '')},${csvCell(it.ref)},${csvCell(formattedText)}`);
+    const occCell = showOcc ? ',' + csvCell(String(countTermOccurrences(it.text, query, filters))) : '';
+    rows.push(`${csvCell('New Testament')},${csvCell(it.bookName || it.book || '')},${csvCell(it.ref)},${csvCell(formattedText)}${occCell}`);
   });
   
   // Prepend an "Applied filters" block (label,value rows) above the table.
