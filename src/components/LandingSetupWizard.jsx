@@ -531,6 +531,9 @@ export default function LandingSetupWizard() {
           <div>
             <h3 className="font-serif text-lg font-bold text-foreground mb-1 text-center">Explore More</h3>
             <p className="font-sans text-xs text-muted-foreground mb-4 text-center">A few more resources worth checking out</p>
+            <div className="max-w-sm mx-auto mb-3">
+              <HighlightToSearchTip compact />
+            </div>
             <div className="space-y-2 max-w-sm mx-auto">
               <a
                 href="https://kjbi.org"
