@@ -842,17 +842,20 @@ export function exportPrint(items, query, filters, options = {}) {
     const content = currentParagraphs.join('');
     rows = `<div style="text-align:justify;margin-top:20px;${options.columnMode ? 'column-count:2;column-gap:1.5cm;column-rule:1px solid #ccc;' : 'display:block;'}">${content}</div>`;
   } else {
-    rows = splitBySections(items).map(sec => {
+    const showOcc = !isReading && !!query;
+    rows = splitBySections(items, showOcc ? { query, filters } : null).map(sec => {
       if (sec.isTestament) {
         const verseCount = sec.items.reduce((sum, item) => sum + (item.items ? item.items.length : 1), 0);
-        return `<h2 style="font-family:Georgia,serif;font-size:16pt;margin:30pt 0 16pt 0;border-bottom:1px solid #ccc;padding-bottom:4pt;page-break-after:avoid;break-after:avoid;">${escapeHtml(sec.title.toUpperCase())} <span style="font-size:12pt;font-weight:normal;color:#666;">(${verseCount} verse${verseCount !== 1 ? 's' : ''})</span></h2>`;
+        const occText = showOcc ? `, ${sec.occCount} occurrence${sec.occCount !== 1 ? 's' : ''}` : '';
+        return `<h2 style="font-family:Georgia,serif;font-size:16pt;margin:30pt 0 16pt 0;border-bottom:1px solid #ccc;padding-bottom:4pt;page-break-after:avoid;break-after:avoid;">${escapeHtml(sec.title.toUpperCase())} <span style="font-size:12pt;font-weight:normal;color:#666;">(${verseCount} verse${verseCount !== 1 ? 's' : ''}${occText})</span></h2>`;
       }
       
       const bookNameObj = sec.items[0]?.bookNameObj;
       const fullBookName = bookNameObj ? bookNameObj.name : sec.title;
       const bookVerseCount = sec.items.length;
+      const bookOccText = showOcc && sec.occCount > bookVerseCount ? `, ${sec.occCount} occurrence${sec.occCount !== 1 ? 's' : ''}` : '';
       
-      return `<div style="page-break-inside:avoid;"><h3 style="font-family:Georgia,serif;font-size:14pt;margin:20pt 0 10pt 0;">${escapeHtml(fullBookName)} <span style="font-size:11pt;font-weight:normal;color:#666;">(${bookVerseCount} verse${bookVerseCount !== 1 ? 's' : ''})</span>:</h3>` +
+      return `<div style="page-break-inside:avoid;"><h3 style="font-family:Georgia,serif;font-size:14pt;margin:20pt 0 10pt 0;">${escapeHtml(fullBookName)} <span style="font-size:11pt;font-weight:normal;color:#666;">(${bookVerseCount} verse${bookVerseCount !== 1 ? 's' : ''}${bookOccText})</span>:</h3>` +
         `<ul style="margin:0 0 14pt 0; padding-left: 20px;">` +
         sec.items.map((it, idx) => {
           const isSpecial = it.isColophon || it.isSubscript;
