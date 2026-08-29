@@ -21,7 +21,7 @@ public class MainActivity extends BridgeActivity {
         // Window.setStatusBarColor()/setNavigationBarColor() APIs flagged on
         // Android 15 -- the WebView draws behind the system bars and its own
         // CSS safe-area insets handle the spacing instead.
-        WindowCompat.setDecorFitsSystemWindow(getWindow(), false);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
         WebView webView = getBridge().getWebView();
 
