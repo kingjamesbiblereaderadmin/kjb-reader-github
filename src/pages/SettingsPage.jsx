@@ -540,6 +540,7 @@ export default function SettingsPage() {
           </div>
         )}
       </div>
+      )}
 
       {/* Android: highlight-to-search tip -- only relevant inside the native Android app */}
       {isNativeAndroid && (
