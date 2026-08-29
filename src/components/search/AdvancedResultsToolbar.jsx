@@ -3,11 +3,12 @@ import { Download, Printer, Copy, Check, ChevronDown, FileText, FileType, Table,
 import { exportVerses } from '@/lib/exportVerses';
 import { mergeAdjacentBrackets } from '@/lib/bibleApi';
 import { describeFilters } from '@/lib/describeFilters';
+import { getPublicOrigin } from '@/lib/publicOrigin';
 
 // Build the public reader URL for a record so exports can link back to it.
 function recordUrl(r) {
   try {
-    const origin = window.location.origin.replace(/^https?:\/\/preview-sandbox--/, 'https://');
+    const origin = getPublicOrigin().replace(/^https?:\/\/preview-sandbox--/, 'https://');
     return `${origin}/read?book=${r.abbr}&chapter=${r.chapter}&verse=${r.verse}`;
   } catch {
     return '';
