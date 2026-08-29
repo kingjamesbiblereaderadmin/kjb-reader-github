@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Heart, AlertCircle, CheckCircle, XCircle, Copy, Check, Share2, Download, FileText, FileType, ChevronDown, Printer, GraduationCap, ExternalLink, Globe, ArrowRight } from 'lucide-react';
 import { printHtml } from '@/lib/printHelpers';
+import { triggerDownload } from '@/lib/nativeDownload';
 import { jsPDF } from 'jspdf';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useNavigate, Link } from 'react-router-dom';
