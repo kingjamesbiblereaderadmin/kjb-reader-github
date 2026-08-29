@@ -367,6 +367,47 @@ public class MainActivity extends BridgeActivity {
                 }
             }
 
+            // Same idea as the Bible text above, applied to fonts: index.html,
+            // src/index.css, and main.jsx's prewarm list all request Google
+            // Fonts CSS (fonts.googleapis.com/css2?...) with a few different
+            // exact query strings (display=block vs display=swap, prewarm's
+            // trimmed family list, etc.) -- rather than matching every exact
+            // variant, match on host+path and pick which bundled CSS to serve
+            // by whether Atkinson Hyperlegible is in the request. That CSS was
+            // pre-rewritten (see /tmp build script from the bundling session)
+            // so every url(...) inside it already points at our own
+            // /__native/fonts/<file>.woff2 paths -- fonts.gstatic.com is never
+            // actually requested, so there's nothing to intercept for it.
+            if ("fonts.googleapis.com".equals(url.getHost()) && "/css2".equals(url.getPath())) {
+                String query = url.getQuery();
+                boolean isAtkinson = query != null && query.contains("Atkinson");
+                String asset = isAtkinson ? "fonts/atkinson.css" : "fonts/main-fonts.css";
+                try {
+                    InputStream stream = view.getContext().getAssets().open(asset);
+                    WebResourceResponse response = new WebResourceResponse("text/css", "UTF-8", stream);
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Access-Control-Allow-Origin", "*");
+                    response.setResponseHeaders(headers);
+                    return response;
+                } catch (IOException e) {
+                    // Fall through to normal (network) handling below.
+                }
+            }
+
+            if (url.getPath() != null && url.getPath().startsWith("/__native/fonts/")) {
+                String fileName = url.getPath().substring("/__native/fonts/".length());
+                try {
+                    InputStream stream = view.getContext().getAssets().open("fonts/" + fileName);
+                    WebResourceResponse response = new WebResourceResponse("font/woff2", null, stream);
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Access-Control-Allow-Origin", "*");
+                    response.setResponseHeaders(headers);
+                    return response;
+                } catch (IOException e) {
+                    // Fall through to normal (network) handling below.
+                }
+            }
+
             if (FALLBACK_DOMAIN.equals(url.getHost())) {
                 WebResourceResponse response = assetLoader.shouldInterceptRequest(url);
                 if (response != null) return response;
