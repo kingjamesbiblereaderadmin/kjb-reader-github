@@ -31,7 +31,7 @@ const REMOTE_PCE_TEXT_FILE_URL = 'https://base44.app/api/apps/6a713d810d97fdb592
 // exactly. Falls back to the remote URL on web/iOS or if interception isn't
 // wired up for some reason.
 let isNative = false;
-try { isNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android'; } catch {}
+try { isNative = isNativeAndroid(); } catch {}
 const PCE_TEXT_FILE_URL = isNative ? '/__native/pce-bible.txt' : REMOTE_PCE_TEXT_FILE_URL;
 
 const EXPECTED_BOOK_COUNT = 66;
