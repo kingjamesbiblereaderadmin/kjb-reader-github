@@ -2051,7 +2051,7 @@ export default function BibleReader() {
               }}
               onCopy={handleCopySelected} onCopyPerVerse={handleCopyPerVerse} onShareText={handleShareChapter} onShareTextPerVerse={handleSharePerVerse} onShareLink={handleShareLink}
               onReadSelected={handleReadSelected} onShowFull={() => { setFilterMode(false); setSelectMode(false); setSelectedVerses(new Set()); setShowFilterOverlay(false); }}
-              onPrintPage={() => window.print()} onPrintContents={() => printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode)}
+              onPrintPage={() => { if (!nativePrintCurrentPage()) window.print(); }} onPrintContents={() => printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode)}
               onSave={handleSaveSelected} onHighlight={handleHighlightSelected}
             />
           )}
