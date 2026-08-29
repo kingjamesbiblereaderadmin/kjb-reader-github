@@ -262,7 +262,7 @@ export default function ResourcesPage() {
           title="Bible Resources (Español)"
         >
           <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-            Bible resources and studies (Español).
+            Recursos y estudios de la Biblia en español.
           </p>
           <Link
             to="/espanol"
