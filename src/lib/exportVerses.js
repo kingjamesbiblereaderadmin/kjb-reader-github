@@ -899,13 +899,13 @@ export function exportPrint(items, query, filters, options = {}) {
 }
 
 // Single entry point
-export function exportVerses(format, items, query, filters, options = {}) {
+export async function exportVerses(format, items, query, filters, options = {}) {
   switch (format) {
-    case 'txt': return exportTxt(items, query, filters, options);
-    case 'docx': return exportDocx(items, query, filters, options);
-    case 'xls': return exportXls(items, query, filters, options);
-    case 'pdf': return exportPdf(items, query, filters, options);
+    case 'txt': return await exportTxt(items, query, filters, options);
+    case 'docx': return await exportDocx(items, query, filters, options);
+    case 'xls': return await exportXls(items, query, filters, options);
+    case 'pdf': return await exportPdf(items, query, filters, options);
     case 'print': return exportPrint(items, query, filters, options);
-    default: return exportTxt(items, query, filters, options);
+    default: return await exportTxt(items, query, filters, options);
   }
 }
