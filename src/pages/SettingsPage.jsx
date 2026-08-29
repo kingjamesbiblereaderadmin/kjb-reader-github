@@ -21,6 +21,7 @@ import { getAccessibilityFont, setAccessibilityFont } from '@/lib/accessibilityF
 import { getAutoRotate, setAutoRotate as persistAutoRotate } from '@/lib/autoRotate';
 import { detectIncognito } from '@/lib/incognito';
 import { getLiveWorkerVersion, getDeployedWorkerVersion } from '@/lib/liveWorkerVersion';
+import { Capacitor } from '@capacitor/core';
 
 const A11Y_FONTS = [
   { value: 'dyslexic', label: 'OpenDyslexic', desc: 'Designed for readers with dyslexia', preview: "'OpenDyslexic', 'Comic Sans MS', sans-serif" },
