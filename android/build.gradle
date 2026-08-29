@@ -22,14 +22,6 @@ allprojects {
         google()
         mavenCentral()
     }
-    
-    configurations.all {
-        resolutionStrategy {
-            // Force refresh of androidx.core to ensure setDecorFitsSystemWindow() is available
-            cacheDynamicVersionsFor 0, 'seconds'
-            cacheChangingModulesFor 0, 'seconds'
-        }
-    }
 }
 
 task clean(type: Delete) {
