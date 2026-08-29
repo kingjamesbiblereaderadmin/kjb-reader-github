@@ -39,6 +39,18 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
 
+            <!-- Android App Links: opening kingjamesbiblereader.com in a
+                 browser (or tapping such a link elsewhere) launches this app
+                 directly instead of the browser, once assetlinks.json at the
+                 site's root verifies ownership. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="kingjamesbiblereader.com" />
+                <data android:scheme="https" android:host="www.kingjamesbiblereader.com" />
+            </intent-filter>
+
         </activity>
 
         <provider

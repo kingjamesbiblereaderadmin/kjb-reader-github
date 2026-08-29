@@ -27,7 +27,10 @@ export default function SpanishGospelPage() {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-5 sm:px-8 lg:px-12 py-10">
+    <div
+      className="w-full max-w-3xl mx-auto px-5 sm:px-8 lg:px-12 py-10"
+      style={{ paddingTop: 'calc(2.5rem + env(safe-area-inset-top))', paddingBottom: 'calc(2.5rem + env(safe-area-inset-bottom))' }}
+    >
       <button
         onClick={handleBack}
         className="inline-flex items-center gap-1.5 text-sm font-sans font-medium text-accent hover:underline mb-6"
