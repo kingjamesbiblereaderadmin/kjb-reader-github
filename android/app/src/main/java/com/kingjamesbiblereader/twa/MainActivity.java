@@ -108,15 +108,19 @@ public class MainActivity extends BridgeActivity {
         // requested at FALLBACK_DOMAIN, used below when there's no connectivity.
         webView.setWebViewClient(new OfflineCapableWebViewClient(getBridge(), this));
 
-        // If there's no network at all, don't bother letting Capacitor's
-        // already-queued load of the live site time out -- go straight to the
-        // bundled offline copy instead, so a brand-new install works fully
-        // offline from the very first launch, not just after one successful
-        // online session.
-        if (!isNetworkAvailable()) {
-            usingOfflineFallback = true;
-            webView.loadUrl(FALLBACK_URL);
-        }
+        // Deliberately NOT checking connectivity here and jumping straight to
+        // the bundled snapshot when offline. The site's own service worker
+        // (registered on kingjamesbiblereader.com during any earlier online
+        // visit, and persisted by the WebView across app restarts same as any
+        // browser profile) already caches the app shell and self-updates every
+        // time the app is opened online -- so letting Capacitor's normal,
+        // already-queued load of the REAL site proceed means an offline
+        // launch is served straight from that live, self-updating cache,
+        // without ever touching the network. The bundled APK snapshot below
+        // (onReceivedError) is only a last resort for when that fails
+        // entirely -- i.e. no service worker cache exists yet at all, which
+        // only happens on a genuinely first-ever launch with zero prior
+        // connectivity.
 
         // If the app was launched via Android's share sheet, the text-selection
         // "Process text" menu, or an https App Link, route straight to the
