@@ -311,7 +311,7 @@ export function matchesTerms(plainText, terms, caseSensitive, wholeWord, inOrder
 
   // Adjacent → single phrase: term1 <space(s)> term2 <space(s)> … in order.
   if (adjacent) {
-    const phrase = terms.map(frag).join('\\s+');
+    const phrase = terms.map(frag).join('[,;:.!?()\\u2013\\u2014\\s-]+');
     const pattern = `${before}${phrase}${after}`;
     return new RegExp(pattern, flags).test(plainText);
   }

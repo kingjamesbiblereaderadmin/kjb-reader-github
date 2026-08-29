@@ -48,7 +48,7 @@ function highlightInOrder(text, terms, keyPrefix, adjacent, caseSensitive, whole
 
   // Adjacent → one contiguous phrase span.
   if (adjacent) {
-    const pattern = before + terms.map(escapeRe).join(`${after}\\s+${before}`) + after;
+    const pattern = before + terms.map(escapeRe).join(`${after}[,;:.!?()\\u2013\\u2014\\s-]+${before}`) + after;
     let re;
     try { re = new RegExp(pattern, flags); } catch { return highlightAny(text, terms, keyPrefix); }
     const m = re.exec(text);
