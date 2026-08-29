@@ -271,9 +271,11 @@ export default function BibleReader() {
       if (!document.fullscreenElement) {
         await document.documentElement.requestFullscreen?.();
         setFullscreen(true);
+        setHideHeader(true);
       } else {
         await document.exitFullscreen?.();
         setFullscreen(false);
+        setHideHeader(false);
       }
     } catch {}
   };
