@@ -140,6 +140,22 @@ public class MainActivity extends BridgeActivity {
         // when available.
         webView.addJavascriptInterface(new PrintBridge(this), "kjbPrintBridge");
 
+        // Auto-rotate off (Settings) needs to lock the real Activity window,
+        // not just the page content -- a web page can't override the OS
+        // rotating the Activity around it. autoRotate.js originally used the
+        // @capacitor/screen-orientation PLUGIN for this, but that plugin's
+        // JS side routes native-vs-web through Capacitor's OWN separate
+        // PluginHeaders mechanism (distinct from window.__KJB_NATIVE_ANDROID__
+        // above) -- if that ever reads wrong the same way isNativePlatform()
+        // did, the call silently falls through to the web implementation,
+        // which requires browser fullscreen to do anything and otherwise just
+        // throws (caught and ignored), leaving rotation fully unlocked with
+        // no visible error. Bypassing the plugin entirely and calling
+        // setRequestedOrientation() straight from our own bridge removes that
+        // whole class of uncertainty -- this is guaranteed correct regardless
+        // of Capacitor's internal plugin dispatch.
+        webView.addJavascriptInterface(new OrientationBridge(this), "kjbOrientationBridge");
+
         // Covers a DIFFERENT download case than the bridge above: a plain
         // <a download href="https://..."> pointing at a REAL remote URL
         // (OfflineHtmlSection.jsx's "Download HTML File" link), rather than a
