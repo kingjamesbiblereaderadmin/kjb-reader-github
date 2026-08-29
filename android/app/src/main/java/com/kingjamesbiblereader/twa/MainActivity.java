@@ -326,15 +326,21 @@ public class MainActivity extends BridgeActivity {
             super(bridge);
             this.activity = activity;
             // Serves android/app/src/main/assets/public/<path> for any request
-            // to FALLBACK_DOMAIN/<path>. A custom PathHandler (rather than the
-            // library's built-in AssetsPathHandler) because our bundled site
+            // to FALLBACK_DOMAIN/app/<path>. A custom PathHandler (rather than
+            // the library's built-in AssetsPathHandler) because our bundled site
             // lives inside a "public/" subfolder of assets/ (that's where `cap
-            // sync` copies `npm run build`'s dist/ output to). Registered at
-            // root ("/") rather than a conventional "/assets/"-style prefix:
-            // the built index.html references its JS/CSS with root-relative
-            // paths like "/assets/xxxx.js", which the browser resolves against
-            // the DOMAIN ROOT regardless of index.html's own path -- so the
-            // handler has to cover the whole domain, not a subpath under it.
+            // sync` copies `npm run build`'s dist/ output to).
+            //
+            // Registered under "/app/" rather than bare "/": WebViewAssetLoader's
+            // path matching doesn't reliably match a root-only "/" prefix across
+            // androidx.webkit versions -- it silently returned null for every
+            // request, falling through to a real (failing) network request for
+            // the fake FALLBACK_DOMAIN and showing a "page not found" error. The
+            // built index.html references its JS/CSS with root-relative paths
+            // like "/assets/xxxx.js" though, which the browser resolves against
+            // the domain root regardless of index.html's own "/app/" path -- so
+            // the handler still has to cover everything under the domain, just
+            // reached via a real (non-empty) prefix instead of the bare domain.
             WebViewAssetLoader.PathHandler publicAssetsHandler = path -> {
                 try {
                     InputStream stream = activity.getAssets().open("public/" + path);
@@ -343,7 +349,7 @@ public class MainActivity extends BridgeActivity {
                     return null;
                 }
             };
-            assetLoader = new WebViewAssetLoader.Builder().setDomain(FALLBACK_DOMAIN).addPathHandler("/", publicAssetsHandler).build();
+            assetLoader = new WebViewAssetLoader.Builder().setDomain(FALLBACK_DOMAIN).addPathHandler("/app/", publicAssetsHandler).build();
         }
 
         private static String guessMimeType(String path) {
