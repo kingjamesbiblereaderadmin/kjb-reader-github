@@ -48,6 +48,15 @@ export function normalizeQueryApostrophes(text = '') {
   return String(text).replace(/[\u2018\u2019]/g, "'");
 }
 
+// The client-side Bible text spells several proper names with the classical
+// æ/Æ ligature (e.g. "Judæa", "Cæsar", "Alphæus") — a single character that
+// represents two letters. Typing the plain "ae" spelling (e.g. "Caesar",
+// "Judea") would never match that character. Used for matching only (never
+// on text that gets displayed), so the authentic ligature stays on screen.
+export function normalizeLigatures(text = '') {
+  return String(text).replace(/æ/g, 'ae').replace(/Æ/g, 'Ae');
+}
+
 // Strip trailing end markers and "Made in Australia" from verse text
 function stripEndMarker(text) {
   return text

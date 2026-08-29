@@ -15,7 +15,7 @@
 
 import { getBibleData } from '@/lib/bibleCache';
 import { BOOK_BY_API_NAME, BIBLE_BOOKS } from '@/lib/bibleData';
-import { normalizeApostrophes, normalizeQueryApostrophes } from '@/lib/bibleApi';
+import { normalizeApostrophes, normalizeQueryApostrophes, normalizeLigatures } from '@/lib/bibleApi';
 
 // Strip the leading pilcrow and its space.
 function stripPilcrow(t) {
@@ -156,7 +156,10 @@ export async function buildVerseIndex(force = false) {
           // text so text search and the apostrophe metrics work correctly.
           const text = normalizeApostrophes(v.text);
           const metrics = computeMetrics(text);
-          const plain = stripBrackets(stripPilcrow(text)).replace(/\s+/g, ' ').trim();
+          // plainText is used for text-search matching ONLY (display uses
+          // rawText) — also normalize æ/Æ ligatures here so typing "Caesar" or
+          // "Judea" finds "Cæsar"/"Judæa" without changing the displayed text.
+          const plain = normalizeLigatures(stripBrackets(stripPilcrow(text)).replace(/\s+/g, ' ').trim());
           records.push({
             book,
             abbr: bookEntry.abbr,

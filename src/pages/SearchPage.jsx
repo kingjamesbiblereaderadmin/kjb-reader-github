@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, BookOpen, Loader2, Filter, Copy, Download, CheckSquare, Square, X, BookMarked, ChevronDown, Share2, ChevronUp, ChevronDown as ChevronDownIcon, ChevronRight, Printer, FlaskConical } from 'lucide-react';
 import { getBibleData } from '@/lib/bibleCache';
-import { normalizeApostrophes, normalizeQueryApostrophes } from '@/lib/bibleApi';
+import { normalizeApostrophes, normalizeQueryApostrophes, normalizeLigatures } from '@/lib/bibleApi';
 import { BIBLE_BOOKS, OLD_TESTAMENT, NEW_TESTAMENT, BOOK_BY_API_NAME } from '@/lib/bibleData';
 import { parseReference, resolveBook } from '@/lib/parseReference';
 import { expandPassage } from '@/lib/expandPassage';
@@ -424,8 +424,11 @@ export default function SearchPage() {
           // Search in verses
           for (const verseObj of processedVerses) {
             let found = false;
-            // Strip bracket markers so word boundaries match real words (e.g. [sin] -> sin)
-            const searchText = verseObj.text.replace(/[[\]]/g, '');
+            // Strip bracket markers so word boundaries match real words (e.g. [sin] -> sin).
+            // Also normalize æ/Æ ligatures (e.g. "Judæa", "Cæsar") to "ae"/"Ae" for
+            // matching only — typing "Caesar" or "Judea" still finds them — the
+            // displayed match text below uses the original verseObj.text untouched.
+            const searchText = normalizeLigatures(verseObj.text.replace(/[[\]]/g, ''));
             const searchTextLower = searchText.toLowerCase();
 
             // Multi-keyword AND: verse must contain EVERY term (case-insensitive,
