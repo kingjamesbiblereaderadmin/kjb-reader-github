@@ -1,11 +1,12 @@
 // Shared formatters for copying / sharing verses across the whole app.
 // One consistent, clean format used by the daily verse, single-verse copy/share,
 // and multi-verse selection copy/share.
+import { getPublicOrigin } from '@/lib/publicOrigin';
 
 // Build a shareable deep-link URL to a specific verse/chapter in the app.
 export function buildVerseUrl({ abbr, chapter, verse, verseEnd, from } = {}) {
   if (!abbr || !chapter) return '';
-  const base = (typeof window !== 'undefined' && window.location?.origin) ? window.location.origin : '';
+  const base = getPublicOrigin();
   let url = `${base}/read?book=${abbr}&chapter=${chapter}`;
   if (verse) url += `&verse=${verse}`;
   if (verseEnd && verseEnd > verse) url += `&verseEnd=${verseEnd}`;
