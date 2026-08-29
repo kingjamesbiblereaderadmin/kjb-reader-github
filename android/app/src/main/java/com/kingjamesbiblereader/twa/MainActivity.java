@@ -1,6 +1,5 @@
 package com.kingjamesbiblereader.twa;
 
-import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -9,7 +8,10 @@ import android.webkit.CookieManager;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import com.getcapacitor.Bridge;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebChromeClient;
@@ -24,9 +26,20 @@ public class MainActivity extends BridgeActivity {
         // Window.setStatusBarColor()/setNavigationBarColor() APIs flagged on
         // Android 15 -- the WebView draws behind the system bars and its own
         // CSS safe-area insets handle the spacing instead.
-        WindowCompat.setDecorFitsSystemWindow(getWindow(), false);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
         WebView webView = getBridge().getWebView();
+
+        // Edge-to-edge (above) stops the system from automatically reserving
+        // space for the status/nav bars, so without this the page content
+        // renders underneath them and gets clipped at the top/bottom. Pad
+        // the WebView by the actual system bar insets instead of relying on
+        // the remote site's CSS to guess them.
+        ViewCompat.setOnApplyWindowInsetsListener(webView, (v, windowInsets) -> {
+            Insets bars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+            return windowInsets;
+        });
 
         // Allow 3rd-party cookies so the OAuth popup can set its session cookie.
         // Ported from the legacy bare-WebView MainActivity.kt.
@@ -43,10 +56,10 @@ public class MainActivity extends BridgeActivity {
         webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
         webView.setWebChromeClient(new OAuthPopupChromeClient(getBridge()));
 
-        // If the app was launched via Android's share sheet or text-selection
-        // toolbar (user selected text in another app), route straight to the
-        // matching search instead of the normal home load.
-        handleShareIntent(getIntent(), true);
+        // If the app was launched via Android's share sheet, the text-selection
+        // "Process text" menu, or an https App Link, route straight to the
+        // matching destination instead of the normal home load.
+        handleIncomingIntent(getIntent(), true);
     }
 
     @Override
@@ -54,103 +67,103 @@ public class MainActivity extends BridgeActivity {
         super.onNewIntent(intent);
         setIntent(intent);
         // App already running (singleTask) -- navigate the live WebView.
-        handleShareIntent(intent, false);
+        handleIncomingIntent(intent, false);
     }
 
-    private void handleShareIntent(Intent intent, boolean isInitialLaunch) {
+    private void handleIncomingIntent(Intent intent, boolean isInitialLaunch) {
         if (intent == null) return;
         String action = intent.getAction();
-        String sharedText;
-        if (Intent.ACTION_SEND.equals(action)) {
-            sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
-        } else if (Intent.ACTION_PROCESS_TEXT.equals(action)) {
-            CharSequence processText = intent.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT);
-            sharedText = processText != null ? processText.toString() : null;
-        } else {
-            return;
-        }
-        if (sharedText == null || sharedText.trim().isEmpty()) return;
+        String url = null;
 
-        String url = "https://kingjamesbiblereader.com/search?q=" + Uri.encode(sharedText.trim());
+        if (Intent.ACTION_SEND.equals(action)) {
+            // User selected text in another app, tapped Share, and chose
+            // KJB Reader.
+            String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+            if (sharedText != null && !sharedText.trim().isEmpty()) {
+                url = "https://kingjamesbiblereader.com/search?q=" + Uri.encode(sharedText.trim());
+            }
+        } else if (Intent.ACTION_PROCESS_TEXT.equals(action)) {
+            // User highlighted text in another app and picked "KJB Reader"
+            // directly from the text-selection toolbar/menu (no Share sheet
+            // detour needed).
+            CharSequence processText = intent.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT);
+            if (processText != null && !processText.toString().trim().isEmpty()) {
+                url = "https://kingjamesbiblereader.com/search?q=" + Uri.encode(processText.toString().trim());
+            }
+        } else if (Intent.ACTION_VIEW.equals(action) && intent.getData() != null) {
+            // App Link: user tapped a kingjamesbiblereader.com link (e.g. in
+            // another app or a search result) and it opened directly here
+            // instead of a browser.
+            Uri data = intent.getData();
+            if (data.getHost() != null && data.getHost().endsWith("kingjamesbiblereader.com")) {
+                url = data.toString();
+            }
+        }
+
+        if (url == null) return;
+
         WebView webView = getBridge().getWebView();
         if (isInitialLaunch) {
             // Bridge already queued the normal server.url load -- override it
-            // with the shared-text destination instead.
+            // with the shared-text/deep-link destination instead.
             webView.loadUrl(url);
         } else {
             webView.evaluateJavascript("window.location.href = " + org.json.JSONObject.quote(url) + ";", null);
         }
     }
 
-    // Hosts that must stay inside the app's own WebView so their session
-    // cookie is set on the app -- everything else (regular external links,
-    // e.g. YouTube, Discord, ministry sites) opens in the system browser.
-    // Reusing the app's main WebView for ALL window.open() targets (the
-    // previous behaviour) navigated the bridge-attached WebView away from
-    // kingjamesbiblereader.com for any target="_blank" link, breaking the
-    // Capacitor bridge and crashing the app -- this restores that only for
-    // known OAuth hosts.
-    private static final String[] OAUTH_HOSTS = {
-        "accounts.google.com", "oauth.googleusercontent.com", "accounts.youtube.com",
-        "appleid.apple.com", "apple.com", "icloud.com",
-        "login.microsoftonline.com", "facebook.com",
-    };
-
-    private static boolean isOAuthHost(String url) {
-        try {
-            String host = Uri.parse(url).getHost();
-            if (host == null) return false;
-            for (String oauthHost : OAUTH_HOSTS) {
-                if (host.equals(oauthHost) || host.endsWith("." + oauthHost)) return true;
-            }
-        } catch (Exception e) { /* fall through */ }
-        return false;
-    }
-
     private static class OAuthPopupChromeClient extends BridgeWebChromeClient {
+
+        private final Bridge bridge;
 
         OAuthPopupChromeClient(Bridge bridge) {
             super(bridge);
+            this.bridge = bridge;
         }
 
         @Override
-        public boolean onCreateWindow(final WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+        public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
             WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
             if (transport == null) {
                 return false;
             }
 
-            // A throwaway WebView just to inspect the popup's destination URL
-            // before deciding where it should actually go. It is never added
-            // to the layout, so nothing renders in it.
-            WebView probeWebView = new WebView(view.getContext());
-            probeWebView.setWebViewClient(new WebViewClient() {
+            // Every target="_blank" link on the page reaches this callback,
+            // not just OAuth popups -- supportMultipleWindows() has to be on
+            // for the OAuth flow to trigger it at all. Handing the live main
+            // WebView straight to the popup's transport (the old approach)
+            // meant a SECOND WebContents got attached to a view that was
+            // already hosting one, which could crash the renderer on
+            // ordinary link taps. Instead, give the popup a disposable,
+            // never-displayed WebView whose only job is to report which URL
+            // it was asked to load; we then decide where that URL actually
+            // belongs.
+            WebView throwaway = new WebView(view.getContext());
+            throwaway.getSettings().setJavaScriptEnabled(true);
+            throwaway.setWebViewClient(new WebViewClient() {
                 @Override
-                public boolean shouldOverrideUrlLoading(WebView webView, WebResourceRequest request) {
-                    return handlePopupUrl(view, request.getUrl().toString());
-                }
-
-                @Override
-                public boolean shouldOverrideUrlLoading(WebView webView, String url) {
-                    return handlePopupUrl(view, url);
+                public boolean shouldOverrideUrlLoading(WebView popupView, WebResourceRequest request) {
+                    routePopupUrl(view, request.getUrl());
+                    popupView.post(popupView::destroy);
+                    return true;
                 }
             });
-            transport.setWebView(probeWebView);
+
+            transport.setWebView(throwaway);
             resultMsg.sendToTarget();
             return true;
         }
 
-        private boolean handlePopupUrl(WebView mainView, String url) {
-            if (isOAuthHost(url)) {
-                // Keep the OAuth consent flow inside the app's own WebView so
-                // its session cookie is set on the app, not the browser.
-                mainView.loadUrl(url);
-            } else {
-                try {
-                    mainView.getContext().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-                } catch (ActivityNotFoundException e) { /* no app can handle it -- ignore */ }
+        private void routePopupUrl(WebView mainView, Uri url) {
+            // Reuse Capacitor's own allowNavigation logic (capacitor.config.ts)
+            // instead of duplicating the OAuth host list here: launchIntent()
+            // opens it externally and returns true for anything NOT in
+            // server.url's own host or the allowNavigation list, or returns
+            // false (meaning "keep it in-app") for hosts that are.
+            boolean openedExternally = bridge.launchIntent(url);
+            if (!openedExternally) {
+                mainView.post(() -> mainView.loadUrl(url.toString()));
             }
-            return true;
         }
     }
 }
