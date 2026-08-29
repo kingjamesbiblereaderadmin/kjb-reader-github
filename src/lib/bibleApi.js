@@ -34,9 +34,14 @@ loadOverrides();
 // everywhere verse text is rendered OR searched/matched, so typing "God's"
 // (straight quote) always matches "God's"/"God\u2019s" in the text.
 export function normalizeApostrophes(text = '') {
+  // Include ']'/'[' alongside letters — some possessives are split across an
+  // italic bracket right at the apostrophe (e.g. "[man]'[s]", "[king]'[s]",
+  // "[God]'[s]"), so the char before/after the apostrophe is a bracket, not a
+  // letter. Without this, those specific possessives keep their curly quote
+  // and never match a plain "man's"/"king's"/"God's" search.
   return String(text)
-    .replace(/([A-Za-z])[\u00B6\uFFFD\u2019](?=[A-Za-z])/g, "$1'")
-    .replace(/([A-Za-z])[\u00B6\uFFFD\u2019](?=[^A-Za-z]|$)/g, "$1'");
+    .replace(/([A-Za-z\]])[\u00B6\uFFFD\u2019](?=[A-Za-z[])/g, "$1'")
+    .replace(/([A-Za-z\]])[\u00B6\uFFFD\u2019](?=[^A-Za-z[]|$)/g, "$1'");
 }
 
 // Typed search input can contain a curly apostrophe/quote instead of a plain
