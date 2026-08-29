@@ -1,6 +1,10 @@
 package com.kingjamesbiblereader.twa;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Message;
@@ -8,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
@@ -16,6 +21,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.webkit.WebViewAssetLoader;
 import com.getcapacitor.Bridge;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebChromeClient;
@@ -26,6 +32,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MainActivity extends BridgeActivity {
+
+    // Domain the bundled offline copy is served at (androidx.webkit's
+    // conventional placeholder domain for WebViewAssetLoader -- it doesn't
+    // resolve on the real internet, it's just a virtual https origin so the
+    // bundled copy behaves like a normal secure page instead of the legacy,
+    // less-safe file:// scheme).
+    private static final String FALLBACK_DOMAIN = "appassets.androidplatform.net";
+    private static final String FALLBACK_URL = "https://" + FALLBACK_DOMAIN + "/index.html";
+    private static final String REMOTE_URL = "https://kingjamesbiblereader.com";
+
+    // Path bibleCache.js requests (only on native Android) instead of the
+    // real remote Bible-text URL. Kept as a constant here since the Java side
+    // (matching against the incoming request) and the JS side (constructing
+    // the request) both need to agree on the exact same path.
+    static final String BUNDLED_BIBLE_PATH = "/__native/pce-bible.txt";
+
+    private boolean usingOfflineFallback = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -78,18 +101,55 @@ public class MainActivity extends BridgeActivity {
         webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
         webView.setWebChromeClient(new OAuthPopupChromeClient(getBridge()));
 
-        // Serves the bundled Bible text (android/app/src/main/assets/bible/
-        // pce-bible.txt) for requests to BUNDLED_BIBLE_PATH instead of hitting
-        // the network -- see bibleCache.js, which requests that same-origin
-        // path only when Capacitor.isNativePlatform(). Means first launch
-        // (and every launch after) has the full Bible available with zero
-        // network required, instead of needing the ~4MB fetch to succeed once.
-        webView.setWebViewClient(new BundledBibleWebViewClient(getBridge()));
+        // Serves (a) the bundled Bible text for BUNDLED_BIBLE_PATH -- see
+        // bibleCache.js, requested only when Capacitor.isNativePlatform() --
+        // and (b) the entire bundled site (android/app/src/main/assets/public/,
+        // copied there by `cap sync` from a real `npm run build`) for anything
+        // requested at FALLBACK_DOMAIN, used below when there's no connectivity.
+        webView.setWebViewClient(new OfflineCapableWebViewClient(getBridge(), this));
+
+        // If there's no network at all, don't bother letting Capacitor's
+        // already-queued load of the live site time out -- go straight to the
+        // bundled offline copy instead, so a brand-new install works fully
+        // offline from the very first launch, not just after one successful
+        // online session.
+        if (!isNetworkAvailable()) {
+            usingOfflineFallback = true;
+            webView.loadUrl(FALLBACK_URL);
+        }
 
         // If the app was launched via Android's share sheet, the text-selection
         // "Process text" menu, or an https App Link, route straight to the
-        // matching destination instead of the normal home load.
+        // matching destination instead of the normal home load. Takes priority
+        // over the offline-fallback load above if both apply (loadUrl just
+        // queues the most recent call).
         handleIncomingIntent(getIntent(), true);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Came back online since we fell back to the bundled copy (e.g. user
+        // opened the app offline, then reconnected and returned to it) --
+        // switch to the live site now rather than waiting for the next cold
+        // launch.
+        if (usingOfflineFallback && isNetworkAvailable()) {
+            usingOfflineFallback = false;
+            getBridge().getWebView().loadUrl(REMOTE_URL);
+        }
+    }
+
+    private boolean isNetworkAvailable() {
+        try {
+            ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (cm == null) return true; // fail open -- don't force offline mode on a lookup failure
+            Network network = cm.getActiveNetwork();
+            if (network == null) return false;
+            NetworkCapabilities capabilities = cm.getNetworkCapabilities(network);
+            return capabilities != null && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+        } catch (Exception e) {
+            return true; // fail open
+        }
     }
 
     @Override
@@ -131,6 +191,10 @@ public class MainActivity extends BridgeActivity {
         }
 
         if (url == null) return;
+        // These all need the live site (search, deep links) -- if we're
+        // offline there's nothing meaningful to load anyway, so only apply
+        // this when we're not already falling back.
+        if (usingOfflineFallback) return;
 
         WebView webView = getBridge().getWebView();
         if (isInitialLaunch) {
@@ -233,22 +297,59 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
-    // Path bibleCache.js requests (only on native Android) instead of the
-    // real remote Bible-text URL. Kept as a constant here since the Java side
-    // (matching against the incoming request) and the JS side (constructing
-    // the request) both need to agree on the exact same path.
-    static final String BUNDLED_BIBLE_PATH = "/__native/pce-bible.txt";
+    private static class OfflineCapableWebViewClient extends BridgeWebViewClient {
 
-    private static class BundledBibleWebViewClient extends BridgeWebViewClient {
+        private final MainActivity activity;
+        private final WebViewAssetLoader assetLoader;
 
-        BundledBibleWebViewClient(Bridge bridge) {
+        OfflineCapableWebViewClient(Bridge bridge, MainActivity activity) {
             super(bridge);
+            this.activity = activity;
+            // Serves android/app/src/main/assets/public/<path> for any request
+            // to FALLBACK_DOMAIN/<path>. A custom PathHandler (rather than the
+            // library's built-in AssetsPathHandler) because our bundled site
+            // lives inside a "public/" subfolder of assets/ (that's where `cap
+            // sync` copies `npm run build`'s dist/ output to) -- the built
+            // index.html references its JS/CSS with root-relative paths like
+            // "/assets/xxxx.js", and stripping just the registered "/" prefix
+            // and prepending "public/" lines that up with the real folder.
+            WebViewAssetLoader.PathHandler publicAssetsHandler = path -> {
+                try {
+                    InputStream stream = activity.getAssets().open("public/" + path);
+                    return new WebResourceResponse(guessMimeType(path), null, stream);
+                } catch (IOException e) {
+                    return null;
+                }
+            };
+            assetLoader = new WebViewAssetLoader.Builder().setDomain(FALLBACK_DOMAIN).addPathHandler("/", publicAssetsHandler).build();
+        }
+
+        private static String guessMimeType(String path) {
+            String lower = path.toLowerCase();
+            if (lower.endsWith(".html")) return "text/html";
+            if (lower.endsWith(".js") || lower.endsWith(".mjs")) return "text/javascript";
+            if (lower.endsWith(".css")) return "text/css";
+            if (lower.endsWith(".json") || lower.endsWith(".webmanifest")) return "application/json";
+            if (lower.endsWith(".svg")) return "image/svg+xml";
+            if (lower.endsWith(".png")) return "image/png";
+            if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+            if (lower.endsWith(".webp")) return "image/webp";
+            if (lower.endsWith(".ico")) return "image/x-icon";
+            if (lower.endsWith(".woff2")) return "font/woff2";
+            if (lower.endsWith(".woff")) return "font/woff";
+            if (lower.endsWith(".ttf")) return "font/ttf";
+            if (lower.endsWith(".txt")) return "text/plain";
+            return "application/octet-stream";
         }
 
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
             Uri url = request.getUrl();
-            if (url != null && BUNDLED_BIBLE_PATH.equals(url.getPath())) {
+            if (url == null) {
+                return super.shouldInterceptRequest(view, request);
+            }
+
+            if (BUNDLED_BIBLE_PATH.equals(url.getPath())) {
                 try {
                     InputStream stream = view.getContext().getAssets().open("bible/pce-bible.txt");
                     WebResourceResponse response = new WebResourceResponse("text/plain", "UTF-8", stream);
@@ -263,7 +364,28 @@ public class MainActivity extends BridgeActivity {
                     // Fall through to normal (network) handling below.
                 }
             }
+
+            if (FALLBACK_DOMAIN.equals(url.getHost())) {
+                WebResourceResponse response = assetLoader.shouldInterceptRequest(url);
+                if (response != null) return response;
+            }
+
             return super.shouldInterceptRequest(view, request);
+        }
+
+        @Override
+        public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+            super.onReceivedError(view, request, error);
+            // A failure loading the top-level page itself (not some
+            // sub-resource like an image or an analytics script) while we
+            // were trying to show the live site -- e.g. connectivity dropped
+            // between the launch-time check and now, or the site is
+            // temporarily unreachable. Fall back to the bundled copy instead
+            // of leaving the WebView on its default ugly error page.
+            if (request.isForMainFrame() && !activity.usingOfflineFallback) {
+                activity.usingOfflineFallback = true;
+                view.post(() -> view.loadUrl(FALLBACK_URL));
+            }
         }
     }
 }
