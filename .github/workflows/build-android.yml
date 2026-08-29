@@ -31,14 +31,11 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          # Was restoring the cache from a prior run and then trying to
-          # selectively clean out corrupted pieces (see the step below) --
-          # but the corruption kept recurring ("Failed to create Jar file
-          # .../jars-9/.../bcprov-jdk18on-1.79.jar"), meaning something in the
-          # restored cache itself was bad. Disabling persistence entirely
-          # means every run starts clean, trading a bit of speed for not
-          # inheriting a broken cache.
-          cache-disabled: true
+          # Cache persistence was disabled earlier while misdiagnosing the
+          # jars-9/bcprov failure as cache corruption -- it was actually a
+          # Gradle 8.2.1 / AGP 8.11.1 version mismatch (see the build step
+          # below). Re-enabled now that Gradle is on a compatible version.
+          cache-disabled: false
       - name: Kill any stale Gradle daemons
         run: |
           if [ -f android/gradlew ]; then
