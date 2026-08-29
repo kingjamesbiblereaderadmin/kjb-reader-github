@@ -91,6 +91,7 @@ export default function SettingsPage() {
     text: true,
     accessibility: true,
     shortcuts: true,
+    androidTips: true,
     appearance: true,
     install: true,
     offline: true,
