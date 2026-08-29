@@ -17,6 +17,14 @@ jobs:
           node-version: '20'
       - name: Install dependencies
         run: npm ci
+      - name: Build web app (bundled into the APK as an offline fallback)
+        run: |
+          # server.url still makes the app load the LIVE site whenever there's
+          # a connection (see capacitor.config.ts) -- this build only exists so
+          # cap sync below has something to copy into the APK as a fallback for
+          # when there's no connectivity at all. Website updates still don't
+          # need an app rebuild for the normal (online) case.
+          npm run build
       - name: Sync Capacitor Android (regenerates gitignored native plugin files)
         run: |
           # android/app/src/main/assets is entirely gitignored (public/, capacitor.config.json,
