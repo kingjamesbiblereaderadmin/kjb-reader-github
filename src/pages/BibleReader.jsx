@@ -2060,7 +2060,7 @@ export default function BibleReader() {
             <ReadingRangeBar
               label={searchTerm ? (/\d+:\d+/.test(searchTerm) ? `Currently Reading: ${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}` : `Search: "${searchTerm}"`) : gospelMode ? 'Gospel' : lastReadingActive ? (lastReadingPos?.fromRandom ? 'Random Chapter' : 'Daily Verse') : `Reading ${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}`}
               filterMode={filterMode} copyFeedback={copyFeedback} shareFeedback={shareFeedback} shareLinkFeedback={shareLinkFeedback} saveFeedback={saveFeedback}
-              onCopy={handleCopySelected} onCopyPerVerse={handleCopyPerVerse} onShareText={handleShareChapter} onShareLink={handleShareLink} onSave={handleSaveSelected} onPrintPage={() => window.print()}
+              onCopy={handleCopySelected} onCopyPerVerse={handleCopyPerVerse} onShareText={handleShareChapter} onShareLink={handleShareLink} onSave={handleSaveSelected} onPrintPage={() => { if (!nativePrintCurrentPage()) window.print(); }}
               onPrintContents={() => printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode)}
               onToggleView={() => {
                 setFilterMode(prev => {
