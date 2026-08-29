@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Message;
 import android.webkit.CookieManager;
 import android.webkit.WebView;
+import androidx.core.view.WindowCompat;
 import com.getcapacitor.Bridge;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebChromeClient;
@@ -15,6 +16,12 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Modern edge-to-edge replacement for the deprecated
+        // Window.setStatusBarColor()/setNavigationBarColor() APIs flagged on
+        // Android 15 -- the WebView draws behind the system bars and its own
+        // CSS safe-area insets handle the spacing instead.
+        WindowCompat.setDecorFitsSystemWindow(getWindow(), false);
 
         WebView webView = getBridge().getWebView();
 
