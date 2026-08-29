@@ -690,11 +690,22 @@ public class MainActivity extends BridgeActivity {
     }
 
     // Exposed to JS as window.kjbDownloadBridge (see the addJavascriptInterface
-    // call in onCreate). Saves a base64-encoded file to the device's public
-    // Downloads folder via MediaStore -- the real native counterpart to the
-    // browser-only Blob-URL-plus-<a download> trick exportBiblePdf.js uses,
-    // which does nothing by itself in a bare WebView (see the comment on the
+    // call in onCreate). Saves a file to the device's public Downloads folder
+    // via MediaStore -- the real native counterpart to the browser-only
+    // Blob-URL-plus-<a download> trick exportBiblePdf.js uses, which does
+    // nothing by itself in a bare WebView (see the comment on the
     // addJavascriptInterface call above).
+    //
+    // Chunked (start/append/finish) rather than one big saveFile(wholeBase64)
+    // call: passing the ENTIRE file as a single JS-to-Java string argument
+    // hit Android's WebView bridge transaction size limit for large exports
+    // (a full-Bible PDF can run tens of MB, well past what a single
+    // @JavascriptInterface call reliably carries) -- it surfaced as "Java
+    // exception was raised during method invocation" with no more specific
+    // cause, consistent with a transport-layer failure rather than a bug in
+    // the write logic itself. Streaming fixed-size chunks through an open
+    // OutputStream avoids ever holding (or transporting) the whole file as
+    // one giant value on either side.
     //
     // MediaStore.Downloads (used here) needs API 29+ and needs no runtime
     // permission -- ContentResolver handles the write via the system's own
@@ -706,36 +717,57 @@ public class MainActivity extends BridgeActivity {
     // implement safely.
     private static class DownloadBridge {
         private final MainActivity activity;
+        private final Map<String, OutputStream> openStreams = new ConcurrentHashMap<>();
+        private final Map<String, Uri> openUris = new ConcurrentHashMap<>();
 
         DownloadBridge(MainActivity activity) {
             this.activity = activity;
         }
 
         @JavascriptInterface
-        public void saveFile(String base64Data, String filename, String mimeType, String callbackId) {
-            String result;
+        public void startFile(String sessionId, String filename, String mimeType) {
             try {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                    result = "unsupported";
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return; // reported as failure at finishFile
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Downloads.DISPLAY_NAME, filename);
+                values.put(MediaStore.Downloads.MIME_TYPE, mimeType);
+                values.put(MediaStore.Downloads.IS_PENDING, 1);
+                Uri item = activity.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+                if (item == null) return;
+                OutputStream out = activity.getContentResolver().openOutputStream(item);
+                if (out == null) return;
+                openStreams.put(sessionId, out);
+                openUris.put(sessionId, item);
+            } catch (Exception e) {
+                // Reported as failure at finishFile (openStreams won't contain sessionId).
+            }
+        }
+
+        @JavascriptInterface
+        public void appendChunk(String sessionId, String base64Chunk) {
+            OutputStream out = openStreams.get(sessionId);
+            if (out == null) return;
+            try {
+                out.write(Base64.decode(base64Chunk, Base64.DEFAULT));
+            } catch (Exception e) {
+                // finishFile's own try/write-close will surface the failure.
+            }
+        }
+
+        @JavascriptInterface
+        public void finishFile(String sessionId, String callbackId) {
+            String result;
+            OutputStream out = openStreams.remove(sessionId);
+            Uri item = openUris.remove(sessionId);
+            try {
+                if (out == null || item == null) {
+                    result = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ? "unsupported" : "error";
                 } else {
-                    byte[] bytes = Base64.decode(base64Data, Base64.DEFAULT);
+                    out.close();
                     ContentValues values = new ContentValues();
-                    values.put(MediaStore.Downloads.DISPLAY_NAME, filename);
-                    values.put(MediaStore.Downloads.MIME_TYPE, mimeType);
-                    values.put(MediaStore.Downloads.IS_PENDING, 1);
-                    Uri item = activity.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
-                    if (item == null) {
-                        result = "error";
-                    } else {
-                        try (OutputStream out = activity.getContentResolver().openOutputStream(item)) {
-                            if (out == null) throw new IOException("openOutputStream returned null");
-                            out.write(bytes);
-                        }
-                        values.clear();
-                        values.put(MediaStore.Downloads.IS_PENDING, 0);
-                        activity.getContentResolver().update(item, values, null, null);
-                        result = "ok";
-                    }
+                    values.put(MediaStore.Downloads.IS_PENDING, 0);
+                    activity.getContentResolver().update(item, values, null, null);
+                    result = "ok";
                 }
             } catch (Exception e) {
                 result = "error";
