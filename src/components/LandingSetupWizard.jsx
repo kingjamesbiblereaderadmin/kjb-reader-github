@@ -423,13 +423,13 @@ export default function LandingSetupWizard() {
             <p className="font-sans text-xs text-muted-foreground mb-4">Pick a font for reading</p>
 
             <p className="font-sans text-xs font-medium text-foreground mb-2">Accessibility Font</p>
-            <div className="grid grid-cols-3 gap-2 max-w-sm mx-auto mb-5">
+            <div className="grid grid-cols-3 gap-1.5 max-w-xs mx-auto mb-4">
               {A11Y_FONTS.map(font => (
                 <button
                   key={font.value}
                   type="button"
                   onClick={() => { setA11yFont(font.value); setAccessibilityFont(font.value); markDone('fonts'); if (font.value !== 'default') markDone('a11y'); }}
-                  className={`px-2 py-3 rounded-xl border-2 font-sans text-xs font-bold transition-all flex flex-col items-center justify-center ${
+                  className={`px-1.5 py-2 rounded-lg border-2 font-sans text-[11px] font-bold transition-all flex flex-col items-center justify-center ${
                     a11yFont === font.value ? 'bg-primary text-primary-foreground border-primary shadow-md scale-[1.02]'
                     : 'bg-card text-foreground border-border hover:border-accent'
                   }`}
@@ -443,7 +443,7 @@ export default function LandingSetupWizard() {
             </div>
 
             <p className="font-sans text-xs font-medium text-foreground mb-2">Reading Font</p>
-            <div className="grid grid-cols-4 gap-2 max-w-sm mx-auto mb-5">
+            <div className="grid grid-cols-4 gap-1.5 max-w-xs mx-auto mb-4">
               {VERSE_FONTS.map(font => {
                 const isActive = a11yFont !== 'default' ? false : readerFontFamily === font.value;
                 const isDisabled = a11yFont !== 'default';
@@ -453,7 +453,7 @@ export default function LandingSetupWizard() {
                     disabled={isDisabled}
                     type="button"
                     onClick={() => pickReaderFont(font.value)}
-                    className={`px-2 py-3 rounded-xl border-2 font-sans text-xs font-medium transition-all ${
+                    className={`px-1.5 py-2 rounded-lg border-2 font-sans text-[11px] font-medium transition-all ${
                       isActive ? 'bg-primary text-primary-foreground border-primary shadow-md scale-[1.02]'
                       : 'bg-card text-foreground border-border hover:border-accent'
                     } ${isDisabled ? 'opacity-40 pointer-events-none' : ''}`}
