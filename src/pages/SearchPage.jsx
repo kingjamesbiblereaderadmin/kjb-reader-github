@@ -407,10 +407,17 @@ export default function SearchPage() {
         const chapters = bible[bookName];
         for (const chapterNum in chapters) {
           const verses = chapters[chapterNum];
-          // Keep italics in brackets for search and display
+          // Keep italics in brackets for search and display. Apostrophes are
+          // stored in the source text as a replacement char immediately after
+          // a letter (e.g. "God\uFFFDs") — convert those to real apostrophes
+          // so typing "God's" actually matches.
           const processedVerses = verses.map(v => ({
             verse: v.verse,
-            text: v.text.replace(/¶\s*/g, '').replace(/^<<[^>]*>>\s*/, ''),
+            text: v.text
+              .replace(/¶\s*/g, '')
+              .replace(/^<<[^>]*>>\s*/, '')
+              .replace(/([A-Za-z])[\u00B6\uFFFD](?=[A-Za-z])/g, "$1'")
+              .replace(/([A-Za-z])[\u00B6\uFFFD](?=[^A-Za-z]|$)/g, "$1'"),
             heading: v.heading || null
           }));
           
@@ -525,7 +532,10 @@ export default function SearchPage() {
           // Search in colophons for this chapter (keyed flat as "BookName:chapter")
           const colophon = bible.__colophons?.[`${bookName}:${chapterNum}`];
           if (colophon) {
-            const colophonText = colophon.replace(/¶\s*/g, '');
+            const colophonText = colophon
+              .replace(/¶\s*/g, '')
+              .replace(/([A-Za-z])[\u00B6\uFFFD](?=[A-Za-z])/g, "$1'")
+              .replace(/([A-Za-z])[\u00B6\uFFFD](?=[^A-Za-z]|$)/g, "$1'");
             const colophonLower = colophonText.toLowerCase();
             let colophonFound = false;
             
@@ -567,7 +577,10 @@ export default function SearchPage() {
           // Search in subscript (Psalm superscription) for this chapter
           const subscript = SUBSCRIPTS[`${bookName}:${chapterNum}`];
           if (subscript) {
-            const subscriptText = subscript.replace(/¶\s*/g, '');
+            const subscriptText = subscript
+              .replace(/¶\s*/g, '')
+              .replace(/([A-Za-z])[\u00B6\uFFFD](?=[A-Za-z])/g, "$1'")
+              .replace(/([A-Za-z])[\u00B6\uFFFD](?=[^A-Za-z]|$)/g, "$1'");
             const subscriptClean = subscriptText.replace(/[[\]]/g, '');
             const subscriptLower = subscriptClean.toLowerCase();
             let subscriptFound = false;
