@@ -345,6 +345,34 @@ public class MainActivity extends BridgeActivity {
             return "application/octet-stream";
         }
 
+        // Reads the given HTML stream fully and inserts a small inline
+        // <script> immediately after <head>, guaranteeing it runs before any
+        // other script tag on the page (our own bundled app JS included), so
+        // window.__KJB_NATIVE_ANDROID__ is reliably defined by the time
+        // bibleCache.js's module-level native check runs. Falls back to
+        // prepending if the file has no literal "<head>" (shouldn't happen
+        // for a real build, but fails safe rather than dropping the marker).
+        private static InputStream injectNativeMarker(InputStream original) throws IOException {
+            java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
+            byte[] chunk = new byte[8192];
+            int read;
+            while ((read = original.read(chunk)) != -1) {
+                buffer.write(chunk, 0, read);
+            }
+            original.close();
+            String html = buffer.toString("UTF-8");
+            String marker = "<script>window.__KJB_NATIVE_ANDROID__=true;</script>";
+            String injected;
+            int headIdx = html.indexOf("<head>");
+            if (headIdx >= 0) {
+                int insertAt = headIdx + "<head>".length();
+                injected = html.substring(0, insertAt) + marker + html.substring(insertAt);
+            } else {
+                injected = marker + html;
+            }
+            return new ByteArrayInputStream(injected.getBytes(StandardCharsets.UTF_8));
+        }
+
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
             Uri url = request.getUrl();
