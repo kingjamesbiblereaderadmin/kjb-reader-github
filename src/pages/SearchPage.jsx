@@ -941,7 +941,11 @@ export default function SearchPage() {
       const q = getQueryFromUrl() || query;
       const url = buildVerseUrl({ abbr: r.abbr, chapter: r.chapter, verse: (isColophon || r.isSubscript) ? null : r.verse, from: 'search' }) + (q ? `&q=${encodeURIComponent(q)}` : '');
       // Wrap the link in <> so chat apps don't render a link embed/preview.
-      const bullet = `• "${text}"\n  — ${ref} (KJB)\n  Read: <${url}>`;
+      // Copying more than one verse puts each reference at the top (no dash);
+      // a single verse keeps the reference at the end with a dash.
+      const bullet = sorted.length > 1
+        ? `${ref} (KJB)\n"${text}"\n  Read: <${url}>`
+        : `• "${text}"\n  — ${ref} (KJB)\n  Read: <${url}>`;
       return (hasPilcrow && idx > 0) ? `\n${bullet}` : bullet;
     });
     return lines.join('\n\n');
@@ -1493,7 +1497,7 @@ export default function SearchPage() {
 
       {!loading && searched && results.length === 0 && (
         <div className="space-y-4">
-          <p className="font-sans text-sm text-muted-foreground text-center py-12 print:text-black">No results found for "{stripQuotes(query)}".</p>
+          <p className="font-sans text-sm text-muted-foreground text-center py-12 print:text-black">No results found for "{stripQuotes(getQueryFromUrl() || query)}".</p>
           {showBookResult && (
             <div className="max-w-md mx-auto p-4 rounded-xl bg-primary/5 border border-primary/20 print:hidden">
               <p className="font-sans text-xs text-muted-foreground mb-3 text-center">

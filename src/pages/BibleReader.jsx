@@ -514,11 +514,11 @@ export default function BibleReader() {
     const lastVerseNum = verses.length ? parseInt(verses[verses.length - 1].verse, 10) : null;
     const includesLast = lastVerseNum != null && selectedVersesList.some(v => parseInt(v.verse, 10) === lastVerseNum);
     const anySectionToggled = selectedSections.size > 0;
-    // A full-chapter per-verse copy keeps the reference at the top (heading the
-    // whole chapter); a specific verse selection moves it to the end with a
-    // dash, matching the paragraph-copy citation style.
-    const isFullChapter = selectedVersesList.length === verses.length;
-    if (isFullChapter) parts.push(`${ref} (KJB)`);
+    // Copying more than one verse keeps the reference at the top (no dash);
+    // a single verse moves it to the end with a dash, matching the
+    // paragraph-copy citation style.
+    const isMultiVerse = selectedVersesList.length > 1;
+    if (isMultiVerse) parts.push(`${ref} (KJB)`);
     if (chapterSub && (selectedSections.has('subscript') || (!anySectionToggled && includesV1))) {
       parts.push(`¶ ${cleanVerseText(chapterSub).replace(/^[\u00B6\uFFFD¶]\s*/, '')}`);
     }
@@ -526,7 +526,7 @@ export default function BibleReader() {
     if (colophon && (selectedSections.has('colophon') || (!anySectionToggled && includesLast))) {
       parts.push(`¶ ${cleanVerseText(colophon).replace(/^[\u00B6\uFFFD¶]\s*/, '')}`);
     }
-    if (!isFullChapter) parts.push(`— ${ref} (KJB)`);
+    if (!isMultiVerse) parts.push(`— ${ref} (KJB)`);
     parts.push(`Read more: <${url}>`);
     return parts.join('\n\n');
   };
