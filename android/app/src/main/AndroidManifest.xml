@@ -33,7 +33,7 @@
             <!-- Text-selection toolbar target: lets a user highlight text in
                  another app and tap "KJB Reader" directly in the selection
                  popup (no need to go through the Share sheet). -->
-            <intent-filter>
+            <intent-filter android:label="@string/process_text_label">
                 <action android:name="android.intent.action.PROCESS_TEXT" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
