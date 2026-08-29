@@ -67,4 +67,7 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Used to detect whether to load the live site or fall back to the
+         bundled offline copy (see MainActivity's isNetworkAvailable()). -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 </manifest>
