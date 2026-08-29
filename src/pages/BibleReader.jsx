@@ -1648,7 +1648,7 @@ export default function BibleReader() {
                 closeAllMenus();
               }
             }}
-            className="kjb-reader-toolbar flex flex-wrap items-stretch justify-stretch gap-3 w-full max-w-[120rem] mx-auto [&>button]:flex-grow [&>button]:basis-0 [&>button]:min-w-0 sm:[&>button]:basis-auto sm:[&>button.kjb-fixed-btn]:flex-grow-0 [&>div.relative]:flex-grow [&>div.relative]:basis-0 sm:[&>div.relative]:basis-auto [&>div.relative>button]:w-full [&>div.relative>button]:min-w-0">
+            className="kjb-reader-toolbar flex flex-wrap items-stretch justify-stretch gap-3 w-full max-w-[120rem] mx-auto [&>button]:flex-grow [&>button]:basis-0 [&>button]:min-w-[5.5rem] sm:[&>button]:basis-auto sm:[&>button]:min-w-0 sm:[&>button.kjb-fixed-btn]:flex-grow-0 [&>div.relative]:flex-grow [&>div.relative]:basis-0 [&>div.relative]:min-w-[5.5rem] sm:[&>div.relative]:basis-auto sm:[&>div.relative]:min-w-0 [&>div.relative>button]:w-full">
             <div className="relative flex">
               <button
                 onClick={() => { setShowBookPicker(p => !p); setShowChapterPicker(false); setShowVersePicker(false); setShowZoomPopover(false); setShowFontPopover(false); }}
@@ -1907,7 +1907,7 @@ export default function BibleReader() {
                 <span className="truncate">Print</span>
               </button>
 
-              <div className="flex gap-2 flex-shrink-0 flex-grow basis-0 min-w-0 sm:flex-grow-0 sm:basis-auto">
+              <div className="flex gap-2 flex-shrink-0 flex-grow basis-0 min-w-[11rem] sm:flex-grow-0 sm:basis-auto sm:min-w-0">
                 <button onClick={goPrev} disabled={isFirstChapterFirstBook} className="flex-1 min-w-0 flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 overflow-hidden"><ChevronLeft className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="truncate">Prev</span></button>
                 <button onClick={() => goNext()} disabled={isLastChapterLastBook} className="flex-1 min-w-0 flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 overflow-hidden"><span className="truncate">Next</span><ChevronRight className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /></button>
               </div>
