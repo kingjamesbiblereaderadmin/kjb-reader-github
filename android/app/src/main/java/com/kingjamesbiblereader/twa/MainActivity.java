@@ -475,6 +475,29 @@ public class MainActivity extends BridgeActivity {
                 }
             }
 
+            // The /legacy React route (LegacyReader.jsx) just redirects to
+            // this backend function, which server-renders a large, fully
+            // self-contained static page (no client JS needed, for very old
+            // browsers). It's dynamic online, so there's no one fixed file to
+            // point client code at the way BUNDLED_BIBLE_PATH works -- instead
+            // intercept the real function URL directly and serve the bundled
+            // snapshot whenever it's requested and would otherwise need
+            // network. Matches with or without the app_id-scoped API prefix,
+            // since LegacyReader.jsx picks whichever applies for the current
+            // host.
+            if (path0 != null && path0.endsWith("/functions/legacy")) {
+                try {
+                    InputStream stream = view.getContext().getAssets().open("legacy/legacy.html");
+                    WebResourceResponse response = new WebResourceResponse("text/html", "UTF-8", stream);
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Access-Control-Allow-Origin", "*");
+                    response.setResponseHeaders(headers);
+                    return response;
+                } catch (IOException e) {
+                    // Fall through to normal (network) handling below.
+                }
+            }
+
             if (FALLBACK_DOMAIN.equals(url.getHost())) {
                 // Serves android/app/src/main/assets/public/<path> for any
                 // request to FALLBACK_DOMAIN/<path> -- the entire bundled site
