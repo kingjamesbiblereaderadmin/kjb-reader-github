@@ -915,15 +915,14 @@ public class MainActivity extends BridgeActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
-            // Marks content as ready to show -- releases the OS splash
-            // screen (see installSplashScreen() in onCreate) and hides the
-            // "Look Up" overlay (see showLookupOverlay()/hideLookupOverlay()
-            // below), if either is currently up. Network-level failures
-            // (offline, DNS, etc.) reach onReceivedError above instead of
-            // this callback for the failed attempt itself, so this only
-            // actually fires for a genuinely successful load -- the live
-            // site, or the bundled fallback once onReceivedError has
-            // redirected to it -- never for the failed attempt in between.
+            // Marks content as ready to show -- hides the "Look Up" overlay
+            // (see showLookupOverlay()/hideLookupOverlay() below), if
+            // currently up. Network-level failures (offline, DNS, etc.)
+            // reach onReceivedError above instead of this callback for the
+            // failed attempt itself, so this only actually fires for a
+            // genuinely successful load -- the live site, or the bundled
+            // fallback once onReceivedError has redirected to it -- never
+            // for the failed attempt in between.
             activity.contentReady = true;
             activity.hideLookupOverlay();
         }
