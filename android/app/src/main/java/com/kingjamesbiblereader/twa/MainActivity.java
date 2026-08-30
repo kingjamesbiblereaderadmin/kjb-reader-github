@@ -257,6 +257,13 @@ public class MainActivity extends BridgeActivity {
     private volatile boolean contentReady = false;
     private View lookupOverlay;
 
+    // Set by maybeCarryStateFromColdStart() when it initiates the brief
+    // FALLBACK_URL visit -- tells onPageFinished() to trigger the state
+    // carry to REMOTE_URL once that specific load completes, instead of the
+    // normal overlay-hide behavior (the overlay should stay up through both
+    // loads, not flash away between them).
+    private boolean pendingColdStartCarry = false;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         // Safety net for the "Look Up" overlay below: never let a bug in
