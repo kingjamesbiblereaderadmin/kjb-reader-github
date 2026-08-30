@@ -66,7 +66,19 @@ export function useToolbarState(pos, loading, verses, filterMode, selectedVerses
   }, [filterMode, selectedVerses, searchTerm, searchClearedRef.current, gospelMode, searchResultIndex, searchTotalResults, pos.abbr, pos.chapter, loading, restoreTick]);
 
   // Restore toolbar state after chapter loads
-  useEffect(() => {
+  // useLayoutEffect (not useEffect) deliberately: this restores filterMode/
+  // selectedVerses from localStorage AFTER the chapter's own verses have
+  // just loaded (verses.length > 0 is a dependency). With a plain
+  // useEffect, the browser gets a chance to PAINT the initial
+  // filterMode=false render (the full, unfiltered chapter) before this
+  // effect runs and flips it to the restored filtered view -- a visible
+  // flash from "full chapter" to "filtered passage" on every navigation
+  // into the reader with an active filter. useLayoutEffect runs
+  // synchronously after React computes the DOM changes but BEFORE the
+  // browser paints them, so the filterMode update here lands in the SAME
+  // paint as the verses themselves -- nothing incorrect is ever actually
+  // shown on screen.
+  useLayoutEffect(() => {
     if (loading || verses.length === 0) return;
 
     const restoreToolbarState = (isRevisit = false) => {
