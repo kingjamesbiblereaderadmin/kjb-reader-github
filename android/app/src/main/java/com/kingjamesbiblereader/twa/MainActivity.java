@@ -244,6 +244,23 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Checked and acted on IMMEDIATELY after super.onCreate() -- before
+        // any of the setup below -- specifically to keep the window where
+        // Capacitor's own already-queued default page load could progress
+        // as short as possible. maybeCarryStateFromColdStart() calls
+        // stopLoading() on the main WebView as its first real action, but
+        // stopLoading() only stops an IN-PROGRESS load; it can't undo
+        // anything already rendered. Calling this any later (after the
+        // edge-to-edge/cookie/JS-bridge/WebViewClient setup that used to sit
+        // between super.onCreate() and this call) gave that default load
+        // enough time on a fast connection to actually render the "new
+        // visitor" welcome screen before we ever got a chance to stop it --
+        // producing a brief but real "welcome, then welcome back" flash even
+        // though the carried state ultimately arrived correctly afterward.
+        if (!isSpecialDestinationIntent(getIntent())) {
+            maybeCarryStateFromColdStart();
+        }
+
         // Modern edge-to-edge replacement for the deprecated
         // Window.setStatusBarColor()/setNavigationBarColor() APIs flagged on
         // Android 15 -- the WebView draws behind the system bars and its own
