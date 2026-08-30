@@ -71,15 +71,10 @@ export default function KjbDefencePage() {
     setLoading(true);
     try {
       const list = await base44.entities.DefenceResource.list('-updated_date', 500);
-      // Plain "|| []" here, NOT Array.isArray() -- matching every other
-      // working .list() call in this codebase (ExtensionConfig,
-      // ManifestConfig, BibleTextOverride, etc). The SDK's returned value
-      // may not be a literal JS Array (e.g. wrapped/proxied) while still
-      // being perfectly valid data -- an earlier version of this used
-      // Array.isArray() specifically here and it silently discarded a
-      // real, successful response, showing "No defence resources yet."
-      // even though the backend genuinely had 38 entries.
-      const safeList = list || [];
+      // Guard against a non-array response (e.g. an error/object shape) --
+      // "|| []" alone isn't enough since a truthy non-array value would
+      // still crash the .forEach calls below with "forEach is not a function".
+      const safeList = Array.isArray(list) ? list : [];
       setItems(safeList);
       // Cache the last successful fetch so offline visits (or a temporarily
       // unreachable backend) can still show something instead of an empty
@@ -114,12 +109,7 @@ export default function KjbDefencePage() {
   useEffect(() => {
     const unsub = base44.entities.DefenceResource.subscribe((event) => {
       setItems((prev) => {
-        // Defensive against `prev` genuinely being null/undefined (falsy)
-        // at the moment a realtime event arrives -- "|| []" here rather
-        // than a stricter Array.isArray() check, since items state is set
-        // from the SDK's .list() response, which may not be a literal JS
-        // Array while still being valid, iterable data (see load() above).
-        const list = prev || [];
+        const list = Array.isArray(prev) ? prev : [];
         if (event.type === 'delete') return list.filter((i) => i.id !== event.id);
         const idx = list.findIndex((i) => i.id === event.id);
         const next = [...list];
