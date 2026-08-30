@@ -239,7 +239,9 @@ function GospelActions() {
       doc.text(line, margin, y);
       y += 16;
     });
-    triggerDownload(doc.output('blob'), 'the-gospel.pdf').catch((err) => console.error('Download failed:', err));
+    triggerDownload(doc.output('blob'), 'the-gospel.pdf')
+      .then(() => toast.success(isNativeAndroid() ? 'Saved to your Downloads folder!' : 'File downloaded successfully!'))
+      .catch((err) => { console.error('Download failed:', err); toast.error('Download failed. Please try again.'); });
   };
 
   const handlePrint = () => {
