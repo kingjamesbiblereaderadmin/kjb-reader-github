@@ -1033,7 +1033,7 @@ public class MainActivity extends BridgeActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
-            // Marks content as ready to show -- hides the "Look Up" overlay
+            // Marks content as ready to show, and hides the "Look Up" overlay
             // (see showLookupOverlay()/hideLookupOverlay() below), if
             // currently up. Network-level failures (offline, DNS, etc.)
             // reach onReceivedError above instead of this callback for the
@@ -1041,8 +1041,24 @@ public class MainActivity extends BridgeActivity {
             // genuinely successful load -- the live site, or the bundled
             // fallback once onReceivedError has redirected to it -- never
             // for the failed attempt in between.
+            //
+            // The overlay hide is deliberately delayed a moment rather than
+            // immediate: onPageFinished corresponds to the underlying
+            // page/resources finishing loading (roughly window.onload) --
+            // it does NOT wait for React to actually mount and render its
+            // OWN "Looking up…"/splash screen, let alone any lazily-loaded
+            // route chunk (e.g. the search page's own JS) that hasn't
+            // resolved yet. Hiding this overlay the INSTANT onPageFinished
+            // fires could reveal whatever's still underneath at that exact
+            // moment -- a blank page, or a route-loading spinner -- for a
+            // brief, jarring flash before React's own "Looking up…" splash
+            // (see SplashScreen.jsx's isLookup handling) actually takes
+            // over. This short delay gives React a moment to settle first,
+            // so the transition is straight from this native overlay to
+            // React's matching one, with nothing showing in between.
             activity.contentReady = true;
-            activity.hideLookupOverlay();
+            new android.os.Handler(android.os.Looper.getMainLooper())
+                .postDelayed(activity::hideLookupOverlay, 350);
         }
     }
 
