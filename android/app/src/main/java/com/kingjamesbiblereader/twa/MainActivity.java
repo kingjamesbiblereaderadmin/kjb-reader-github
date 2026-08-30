@@ -582,25 +582,21 @@ public class MainActivity extends BridgeActivity {
         // rewrite (and the plain reconnect in onResume/scheduleReconnectAttempt)
         // still has the correct live destination to work from.
         pendingDestination = url;
-        if (isInitialLaunch) {
-            // Bridge already queued the normal server.url load -- override it
-            // with the shared-text/deep-link destination instead.
-            webView.loadUrl(target);
-        } else {
-            // A warm resume (app already running, brought to foreground by
-            // this same intent) -- loadUrl() here too, not
-            // evaluateJavascript("window.location.href = ..."). The JS-
-            // execution route requires a round trip through the page's own
-            // JS engine before the navigation actually starts, during which
-            // Android has already brought the app to the foreground showing
-            // whatever page was on screen before -- a brief, visible flash
-            // of "the app as it was" before the Look Up destination (and its
-            // splash) takes over. loadUrl() is a direct, immediate native
-            // navigation call with no such round trip, shortening that
-            // window. Safe to call here: onNewIntent() runs on the main/UI
-            // thread, same as onCreate() above.
-            webView.loadUrl(target);
-        }
+        // Direct, immediate native navigation call -- for BOTH cold start
+        // (isInitialLaunch, overriding Capacitor's already-queued
+        // server.url load) and a warm resume (app already running, this
+        // same intent just brought it to the foreground). An earlier
+        // version used evaluateJavascript("window.location.href = ...")
+        // for the warm case specifically, but that requires a round trip
+        // through the page's own JS engine before the navigation actually
+        // starts -- during which Android has already brought the app to the
+        // foreground showing whatever page was on screen before, a brief,
+        // visible flash of "the app as it was" before the Look Up
+        // destination (and its splash) takes over. loadUrl() has no such
+        // round trip, shortening that window. Safe to call here regardless
+        // of which path: onNewIntent() runs on the main/UI thread, same as
+        // onCreate().
+        webView.loadUrl(target);
     }
 
     private static class OAuthPopupChromeClient extends BridgeWebChromeClient {
