@@ -366,10 +366,7 @@ public class MainActivity extends BridgeActivity {
         // switch to the live site now rather than waiting for the next
         // scheduled retry (see scheduleReconnectAttempt()).
         if (usingOfflineFallback && isNetworkAvailable()) {
-            usingOfflineFallback = false;
-            reconnectAttempts = 0;
-            reconnectHandler.removeCallbacksAndMessages(null);
-            getBridge().getWebView().loadUrl(REMOTE_URL);
+            reconnectPreservingState();
         }
     }
 
