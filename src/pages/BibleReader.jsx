@@ -373,6 +373,7 @@ export default function BibleReader() {
   };
   const handleTapShare = async () => {
     const text = buildTapShareText();
+    if (nativeShare({ text })) return;
     try { if (navigator.share) return await navigator.share({ text }); } catch (err) { if (err?.name === 'AbortError') return; }
     await copyToClipboard(text);
     setTapShareFeedback(true);
