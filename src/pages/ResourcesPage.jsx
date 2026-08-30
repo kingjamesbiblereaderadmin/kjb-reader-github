@@ -168,6 +168,8 @@ export default function ResourcesPage() {
         <CollapsibleCard
           icon={<CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />}
           title="KJBI.org — Free Online Bible College"
+          open={expandedSections.kjbi}
+          onToggle={() => toggleSection('kjbi')}
         >
           <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
             <span className="notranslate" translate="no">King James Bible Institute by Robert Breaker & Robert Potthoff</span> — a free online Bible college for those who want to go deeper in God's Word.
@@ -195,6 +197,8 @@ export default function ResourcesPage() {
             </div>
           }
           title="Discord"
+          open={expandedSections.discord}
+          onToggle={() => toggleSection('discord')}
         >
           <div className="mb-5">
             <h3 className="notranslate font-sans font-semibold text-sm text-foreground mb-1">KJB Discord Bot</h3>
@@ -251,6 +255,8 @@ export default function ResourcesPage() {
             </div>
           }
           title="KJB SidePanel"
+          open={expandedSections.sidepanel}
+          onToggle={() => toggleSection('sidepanel')}
         >
           <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
             Read, search, and look up Bible verses from any web page with the <span className="notranslate">KJB Reader</span> sidebar extension — now available on the <span className="notranslate" translate="no">Chrome Web Store</span>.
