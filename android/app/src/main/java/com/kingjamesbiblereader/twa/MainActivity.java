@@ -950,6 +950,41 @@ public class MainActivity extends BridgeActivity {
                 }
             }
 
+            // Same page's official "Available in the Chrome Web Store" /
+            // "Get from Microsoft Edge Add-ons" badge images -- unlike
+            // everything else bundled so far, these are hosted directly by
+            // Google/Microsoft (developer.chrome.com, learn.microsoft.com),
+            // not media.base44.com/base44.app, so they'd never have been
+            // caught by any of the checks above.
+            if ("developer.chrome.com".equals(url.getHost())
+                && path0 != null
+                && path0.endsWith("/HRs9MPufa1J1h5glNhut.png")) {
+                try {
+                    InputStream stream = view.getContext().getAssets().open("images/extension/chrome-badge.png");
+                    WebResourceResponse response = new WebResourceResponse("image/png", null, stream);
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Access-Control-Allow-Origin", "*");
+                    response.setResponseHeaders(headers);
+                    return response;
+                } catch (IOException e) {
+                    // Fall through to normal (network) handling below.
+                }
+            }
+            if ("learn.microsoft.com".equals(url.getHost())
+                && path0 != null
+                && path0.endsWith("/microsoft-edge-add-ons-badge.png")) {
+                try {
+                    InputStream stream = view.getContext().getAssets().open("images/extension/edge-badge.png");
+                    WebResourceResponse response = new WebResourceResponse("image/png", null, stream);
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Access-Control-Allow-Origin", "*");
+                    response.setResponseHeaders(headers);
+                    return response;
+                } catch (IOException e) {
+                    // Fall through to normal (network) handling below.
+                }
+            }
+
             // The /legacy React route (LegacyReader.jsx) just redirects to
             // this backend function, which server-renders a large, fully
             // self-contained static page (no client JS needed, for very old
