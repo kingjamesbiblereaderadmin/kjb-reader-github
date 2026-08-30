@@ -92,10 +92,7 @@ export default function KjbDefencePage() {
     setLoading(true);
     try {
       const list = await base44.entities.DefenceResource.list('-updated_date', 500);
-      // Guard against a non-array response (e.g. an error/object shape) --
-      // "|| []" alone isn't enough since a truthy non-array value would
-      // still crash the .forEach calls below with "forEach is not a function".
-      const safeList = Array.isArray(list) ? list : [];
+      const safeList = toArray(list);
       setItems(safeList);
       // Cache the last successful fetch so offline visits (or a temporarily
       // unreachable backend) can still show something instead of an empty
