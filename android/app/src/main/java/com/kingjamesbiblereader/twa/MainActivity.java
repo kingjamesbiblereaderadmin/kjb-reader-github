@@ -933,4 +933,37 @@ public class MainActivity extends BridgeActivity {
             });
         }
     }
+
+    // Exposed to JS as window.kjbShareBridge (see the addJavascriptInterface
+    // call in onCreate). Shows Android's real native share sheet via
+    // Intent.ACTION_SEND wrapped in a chooser -- the counterpart to
+    // navigator.share(), which doesn't work by itself in a WebView embedded
+    // inside a third-party app (see the comment on the addJavascriptInterface
+    // call above).
+    private static class ShareBridge {
+        private final MainActivity activity;
+
+        ShareBridge(MainActivity activity) {
+            this.activity = activity;
+        }
+
+        @JavascriptInterface
+        public void share(String title, String text) {
+            activity.runOnUiThread(() -> {
+                try {
+                    Intent sendIntent = new Intent(Intent.ACTION_SEND);
+                    sendIntent.setType("text/plain");
+                    if (title != null && !title.isEmpty()) {
+                        sendIntent.putExtra(Intent.EXTRA_SUBJECT, title);
+                    }
+                    sendIntent.putExtra(Intent.EXTRA_TEXT, text != null ? text : "");
+                    Intent chooser = Intent.createChooser(sendIntent, null);
+                    chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    activity.startActivity(chooser);
+                } catch (Exception e) {
+                    // Nothing more we can do here -- fail silently rather than crash.
+                }
+            });
+        }
+    }
 }
