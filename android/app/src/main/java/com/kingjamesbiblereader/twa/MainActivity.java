@@ -240,6 +240,12 @@ public class MainActivity extends BridgeActivity {
     // home page and the search/verse the user was taken here for is lost.
     private String pendingDestination = null;
 
+    // Set by maybeCarryStateFromColdStart() while the main WebView is hidden
+    // (see that method for why) -- tells OfflineCapableWebViewClient's
+    // onPageFinished to reveal it again once the carried-state navigation
+    // actually completes, instead of leaving it hidden indefinitely.
+    private boolean pendingRevealAfterCarry = false;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
