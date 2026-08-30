@@ -179,7 +179,7 @@ export default function AdvancedResultsToolbar({ records, selectedRecords, filte
           <ChevronDown className={`w-3.5 h-3.5 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
         </button>
         {menuOpen && (
-          <div className="absolute right-0 z-30 mt-1 w-48 rounded-xl bg-popover border border-border shadow-xl overflow-hidden">
+          <div className="absolute right-0 z-30 mt-1 w-48 max-w-[calc(100vw-1.5rem)] rounded-xl bg-popover border border-border shadow-xl overflow-hidden">
             {FORMATS.map(f => (
               <button
                 key={f.key}

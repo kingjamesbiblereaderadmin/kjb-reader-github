@@ -50,6 +50,11 @@ export default function ResourcesPage() {
     preachers: true,
     ministry: true,
     disclaimer: true,
+    kjbi: true,
+    discord: true,
+    sidepanel: true,
+    spanish: true,
+    defence: true,
     resources: Object.fromEntries(RESOURCES.map((_, idx) => [idx, true])),
     preacherLinks: Object.fromEntries(PREACHERS.map((p) => [p.name, true])),
   }));
@@ -60,6 +65,11 @@ export default function ResourcesPage() {
     expandedSections.preachers &&
     expandedSections.ministry &&
     expandedSections.disclaimer &&
+    expandedSections.kjbi &&
+    expandedSections.discord &&
+    expandedSections.sidepanel &&
+    expandedSections.spanish &&
+    expandedSections.defence &&
     RESOURCES.every((_, idx) => expandedSections.resources[idx] === true) &&
     PREACHERS.every((p) => expandedSections.preacherLinks[p.name] === true);
 
@@ -78,6 +88,11 @@ export default function ResourcesPage() {
       preachers: newState,
       ministry: newState,
       disclaimer: newState,
+      kjbi: newState,
+      discord: newState,
+      sidepanel: newState,
+      spanish: newState,
+      defence: newState,
       resources: newResourcesState,
       preacherLinks: newPreacherLinksState,
     }));

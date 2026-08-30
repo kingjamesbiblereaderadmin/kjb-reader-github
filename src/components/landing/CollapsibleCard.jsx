@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
-export default function CollapsibleCard({ icon, title, children, defaultOpen = false }) {
-  const [open, setOpen] = useState(defaultOpen);
+export default function CollapsibleCard({ icon, title, children, defaultOpen = false, open: openProp, onToggle }) {
+  const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  const isControlled = openProp !== undefined;
+  const open = isControlled ? openProp : internalOpen;
+  const handleToggle = () => {
+    if (isControlled) onToggle?.();
+    else setInternalOpen((o) => !o);
+  };
   return (
     <div className="bg-card border border-border/60 rounded-2xl shadow-sm overflow-hidden">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={handleToggle}
         className="w-full flex items-center gap-3 p-5 hover:bg-secondary/40 transition-colors"
       >
         {icon}
