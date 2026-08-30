@@ -281,6 +281,8 @@ export default function ResourcesPage() {
             </div>
           }
           title="Bible Resources (Español)"
+          open={expandedSections.spanish}
+          onToggle={() => toggleSection('spanish')}
         >
           <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
             Recursos y estudios de la Biblia en español.
@@ -303,6 +305,8 @@ export default function ResourcesPage() {
             </div>
           }
           title="KJB Defence"
+          open={expandedSections.defence}
+          onToggle={() => toggleSection('defence')}
         >
           <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
             A dedicated collection of resources defending the <span className="notranslate" translate="no">King James Bible</span> and exposing the corruption of modern versions.
