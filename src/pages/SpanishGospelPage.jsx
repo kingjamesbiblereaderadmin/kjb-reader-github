@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, ExternalLink, PlayCircle, ArrowLeft } from 'lucide-react';
+import SpanishGospelActions from '@/components/SpanishGospelActions';
 
 const VIDEOS = [
   { title: 'La Importancia de la Sangre', id: 'Vpn00jurClA' },
@@ -55,6 +56,9 @@ export default function SpanishGospelPage() {
         <h1 className="font-serif text-4xl font-bold text-foreground mb-2">¡El Evangelio es 1 Corintios 15:1-4!</h1>
         <p className="font-sans text-muted-foreground">El Evangelio de Salvación</p>
         <div className="mt-4 w-16 h-px bg-accent mx-auto" />
+        <div className="mt-5">
+          <SpanishGospelActions />
+        </div>
       </div>
 
       <div className="prose-sm font-sans text-foreground/90 leading-relaxed space-y-4">
