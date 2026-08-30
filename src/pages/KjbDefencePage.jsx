@@ -71,7 +71,8 @@ export default function KjbDefencePage() {
     setLoading(true);
     try {
       const list = await base44.entities.DefenceResource.list('-updated_date', 500);
-      setItems(list || []);
+      const safeList = Array.isArray(list) ? list : [];
+      setItems(safeList);
       // Cache the last successful fetch so offline visits (or a temporarily
       // unreachable backend) can still show something instead of an empty
       // page + error toast. This content lives in a live, admin-editable
@@ -80,7 +81,7 @@ export default function KjbDefencePage() {
       // moment an admin edits it -- caching the most recent successful load
       // instead keeps it reasonably fresh while still giving a usable
       // offline fallback.
-      try { localStorage.setItem('kjb-defence-cache', JSON.stringify(list || [])); } catch {}
+      try { localStorage.setItem('kjb-defence-cache', JSON.stringify(safeList)); } catch {}
     } catch (err) {
       console.error('[KjbDefence] load failed', err);
       let cached = null;
@@ -88,7 +89,7 @@ export default function KjbDefencePage() {
         const raw = localStorage.getItem('kjb-defence-cache');
         if (raw) cached = JSON.parse(raw);
       } catch {}
-      if (cached && cached.length > 0) {
+      if (Array.isArray(cached) && cached.length > 0) {
         setItems(cached);
         toast.error('Showing saved copy — could not reach the server for the latest resources.');
       } else {
