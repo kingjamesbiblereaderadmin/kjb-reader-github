@@ -180,9 +180,7 @@ public class MainActivity extends BridgeActivity {
             "if(skip)continue;" +
             "data[k]=localStorage.getItem(k);" +
             "}" +
-            "XXXXX" +
-            "h:localStorage.getItem('kjb-verse-highlights')||''," +
-            "path:location.pathname+location.search};" +
+            "return {data:data,path:location.pathname+location.search};" +
             "}catch(e){return {};}})();";
         webView.evaluateJavascript(script, (result) -> {
             String target = REMOTE_URL;
