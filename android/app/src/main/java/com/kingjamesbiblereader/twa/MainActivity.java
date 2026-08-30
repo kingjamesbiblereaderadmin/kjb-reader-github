@@ -128,9 +128,9 @@ public class MainActivity extends BridgeActivity {
         }, delay);
     }
 
-    // Carries a few small, text-only pieces of state across the reconnect
-    // from the bundled offline snapshot (FALLBACK_DOMAIN) back to the real
-    // site (REMOTE_URL). Browser storage (localStorage) is strictly
+    // Carries state across the reconnect from the bundled offline snapshot
+    // (FALLBACK_DOMAIN) back to the real site (REMOTE_URL). Browser storage
+    // (localStorage) is strictly
     // per-origin -- anything saved while showing the bundled copy is
     // completely invisible once the app reloads the real site, which
     // otherwise looks EXACTLY like a brand-new install even to a user who's
