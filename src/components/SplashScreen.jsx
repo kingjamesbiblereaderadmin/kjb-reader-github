@@ -193,14 +193,12 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
       // === SUBSEQUENT VISIT FLOW ===
       {
         // Welcome back -- shown immediately, no loading/update-check steps.
-        // "LOOKING UP…" instead when this boot is a share/process-text
-        // "Look Up" from another app straight to search results -- a
-        // "welcome back" message doesn't fit a quick lookup, and this also
-        // matches (rather than duplicates/contradicts) the native "Looking
-        // up…" overlay MainActivity.java shows for the same action.
-        const welcomeMessage = isLookup ? 'LOOKING UP…' : 'WELCOME BACK TO KJB READER.';
-        setStep(welcomeMessage);
-        window.dispatchEvent(new CustomEvent('kjb-progress', { detail: { message: welcomeMessage, status: 'success' } }));
+        // No longer skipped/reworded for a "Look Up" boot -- App.jsx now
+        // skips rendering this splash ENTIRELY in that case instead (the
+        // native "Looking up…" overlay already covers it), so this code path
+        // no longer runs for that scenario at all.
+        setStep('WELCOME BACK TO KJB READER.');
+        window.dispatchEvent(new CustomEvent('kjb-progress', { detail: { message: 'WELCOME BACK TO KJB READER.', status: 'success' } }));
         await pause(STEP_PAUSE_MS);
         window.dispatchEvent(new Event('kjb-progress-clear'));
 
