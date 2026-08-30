@@ -3,10 +3,18 @@ import { Copy, Check, Share2 } from 'lucide-react';
 import { nativeShare } from '@/lib/nativeShare';
 import { getPublicOrigin } from '@/lib/publicOrigin';
 
+const VIDEOS = [
+  { title: 'La Importancia de la Sangre', id: 'Vpn00jurClA' },
+  { title: 'Doctrina de la Expiación de Sangre', id: 'rW7cF6T8LSs' },
+  { title: 'El Evangelio Sin Sangre', id: '6ZCvPnYxn0A' },
+];
+
 function buildSpanishGospelText() {
   const origin = getPublicOrigin();
   return `¡El Evangelio es 1 Corintios 15:1-4!
 El Evangelio de Salvación
+
+Fuente: laiglesiadelanube.com — Roberto Breaker
 
 Muchas sectas cristianas modernas erróneamente enseñan que la salvación viene por medio de algo que el pecador HACE. Ellos afirman que la salvación de una persona es dependiente sobre las obras del pecador. ¡Pero nada podría ser más lejos de la verdad de la palabra de Dios! Según la Biblia, la salvación es algo que recibimos (por fe) en lo que Jesús HIZO en la cruz del Calvario, porque allí ÉL derramó su sangre para pagar por los pecados de todos los seres humanos. SU OBRA TERMINADA, hecha una sola vez para todos, es la única cosa que puede salvar al pecador y darle perdón de sus pecados y vida eterna.
 
@@ -49,7 +57,10 @@ Para ser justificado, o salvado, la fe del pecador debe ser puesta solamente en 
 Tristemente, en nuestra edad moderna de apostasía, hay muy pocos cristianos que predican de la sangre de Jesús, y la necesidad de confiar en ella para obtener la salvación. ¡Pero la verdad bíblica simple es, NI ERES CRISTIANO HASTA QUE CONFÍAS EN LA SANGRE DERRAMADA DE CRISTO JESÚS!
 
 Lee el Evangelio completo:
-${origin}/espanol-evangelio`;
+${origin}/espanol-evangelio
+
+🎬 Mis Videos Sobre la Sangre de Cristo:
+${VIDEOS.map((v) => `${v.title}\nhttps://youtu.be/${v.id}`).join('\n\n')}`;
 }
 
 export default function SpanishGospelActions() {
