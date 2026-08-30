@@ -474,14 +474,24 @@ public class MainActivity extends BridgeActivity {
     // which worked but was visibly noticeable (a brief but real "the app
     // just restarted" flash) -- reading through a hidden WebView instead
     // means the user never sees anything except the eventual real-site
-    // destination; the main WebView's own view is never touched.
+    // destination; the main WebView's own view is never navigated away from.
     //
-    // Also explicitly stops the main WebView's own already-queued load
-    // (Capacitor's normal server.url load, started by super.onCreate()
-    // above) while the hidden WebView does its work -- without this, that
-    // queued load could finish FIRST and briefly show the "new visitor"
-    // welcome/download flow before the carried state arrives and corrects
-    // it, since the two WebViews load fully independently of each other.
+    // Also makes the main WebView actually INVISIBLE (not just stopped)
+    // while the hidden WebView does its work, revealing it again only once
+    // the carried-state navigation actually finishes (see
+    // pendingRevealAfterCarry / OfflineCapableWebViewClient's
+    // onPageFinished). A plain stopLoading() call was tried first and isn't
+    // reliable enough alone: modern WebViews progressively RENDER content as
+    // bytes arrive, well before onPageFinished (or even a completed load)
+    // fires -- on a fast connection, Capacitor's own default page load could
+    // already have visually painted the "new visitor" welcome screen before
+    // stopLoading() was ever called, even when that call happens as early as
+    // technically possible in onCreate(). Hiding the VIEW itself sidesteps
+    // that race entirely: it doesn't matter how far the underlying load
+    // progressed, since nothing it renders is actually visible until we
+    // explicitly reveal it again. A safety timeout guards against ever
+    // leaving the WebView hidden indefinitely if something in the carry
+    // process fails silently.
     //
     // Runs at most ONCE per fallback use (the persisted flag is cleared
     // immediately before triggering) -- every launch after that is a
@@ -496,7 +506,22 @@ public class MainActivity extends BridgeActivity {
             getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                 .edit().putBoolean(PREF_USED_FALLBACK, false).apply();
 
-            getBridge().getWebView().stopLoading();
+            WebView mainWebView = getBridge().getWebView();
+            mainWebView.setVisibility(View.INVISIBLE);
+            mainWebView.stopLoading();
+            pendingRevealAfterCarry = true;
+
+            // Safety net: reveal the WebView regardless after a few seconds
+            // even if the carry never completes (a network hiccup mid-way,
+            // an unexpected exception, etc.) -- leaving it invisible
+            // indefinitely would be far worse than the flash this whole fix
+            // exists to prevent.
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                if (pendingRevealAfterCarry) {
+                    pendingRevealAfterCarry = false;
+                    mainWebView.setVisibility(View.VISIBLE);
+                }
+            }, 5000);
 
             WebView hidden = new WebView(this);
             hidden.getSettings().setJavaScriptEnabled(true);
@@ -526,10 +551,10 @@ public class MainActivity extends BridgeActivity {
                             return new WebResourceResponse("text/html", "UTF-8", stream);
                         } catch (IOException e) {
                             // Fall through -- onPageFinished below won't fire
-                            // usefully, but the try/catch around the whole
-                            // caller (maybeCarryStateFromColdStart) means this
+                            // usefully, but the safety timeout above still
+                            // reveals the main WebView regardless, so this
                             // just results in the ordinary "new visitor" flow,
-                            // not a crash.
+                            // not a stuck hidden screen.
                         }
                     }
                     return super.shouldInterceptRequest(view, request);
@@ -539,7 +564,7 @@ public class MainActivity extends BridgeActivity {
                 public void onPageFinished(WebView view, String url) {
                     view.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> {
                         String target = buildCarryTarget(result);
-                        getBridge().getWebView().loadUrl(target);
+                        mainWebView.loadUrl(target);
                         view.destroy();
                     });
                 }
@@ -548,6 +573,8 @@ public class MainActivity extends BridgeActivity {
         } catch (Exception e) {
             // Non-fatal -- worst case, this one launch shows the "new
             // visitor" flow again, same as always happened before this fix.
+            // If we'd already hidden the main WebView before this exception,
+            // the safety timeout above still reveals it a few seconds later.
         }
     }
 
