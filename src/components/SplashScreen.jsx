@@ -179,8 +179,9 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
           setStep('WELCOME TO KJB READER (GUEST MODE)');
           window.dispatchEvent(new CustomEvent('kjb-progress', { detail: { message: 'WELCOME TO KJB READER (GUEST MODE)', status: 'success' } }));
         } else {
-          setStep('WELCOME TO KJB READER.');
-          window.dispatchEvent(new CustomEvent('kjb-progress', { detail: { message: 'WELCOME TO KJB READER.', status: 'success' } }));
+          const finalMessage = isLookup ? 'LOOKING UP…' : 'WELCOME TO KJB READER.';
+          setStep(finalMessage);
+          window.dispatchEvent(new CustomEvent('kjb-progress', { detail: { message: finalMessage, status: 'success' } }));
         }
         await pause(STEP_PAUSE_MS);
         window.dispatchEvent(new Event('kjb-progress-clear'));
