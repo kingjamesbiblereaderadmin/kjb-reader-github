@@ -144,6 +144,7 @@ export default function SavedVersesPage() {
   const handleBulkShare = async () => {
     if (selectedEntries.length === 0) return;
     const text = selectedEntries.map(buildShareText).join('\n\n');
+    if (nativeShare({ title: 'Saved Verses — KJB Reader', text })) return;
     try {
       if (navigator.share) {
         await navigator.share({ title: 'Saved Verses — KJB Reader', text });
