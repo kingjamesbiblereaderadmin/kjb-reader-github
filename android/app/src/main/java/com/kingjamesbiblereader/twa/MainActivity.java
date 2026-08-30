@@ -582,21 +582,33 @@ public class MainActivity extends BridgeActivity {
         // rewrite (and the plain reconnect in onResume/scheduleReconnectAttempt)
         // still has the correct live destination to work from.
         pendingDestination = url;
-        // Direct, immediate native navigation call -- for BOTH cold start
-        // (overriding Capacitor's already-queued server.url load) and a
-        // warm resume (app already running, this
-        // same intent just brought it to the foreground). An earlier
-        // version used evaluateJavascript("window.location.href = ...")
-        // for the warm case specifically, but that requires a round trip
-        // through the page's own JS engine before the navigation actually
-        // starts -- during which Android has already brought the app to the
-        // foreground showing whatever page was on screen before, a brief,
-        // visible flash of "the app as it was" before the Look Up
-        // destination (and its splash) takes over. loadUrl() has no such
-        // round trip, shortening that window. Safe to call here regardless
-        // of which path: onNewIntent() runs on the main/UI thread, same as
-        // onCreate().
-        webView.loadUrl(target);
+        if (isInitialLaunch) {
+            // Bridge already queued the normal server.url load -- override it
+            // with the shared-text/deep-link destination instead. loadUrl()
+            // is correct here: no page has actually started rendering yet
+            // for this fresh process to "drop" the call.
+            webView.loadUrl(target);
+        } else {
+            // A warm resume (app already running in the background, this
+            // intent just brought it to the foreground) -- evaluateJavascript
+            // executing on the CURRENT, already-loaded page, not loadUrl().
+            // A previous version of this used loadUrl() here too (to reduce
+            // a brief visual flash of the old page before the destination
+            // takes over), but onNewIntent() runs BEFORE onResume() in
+            // Android's activity lifecycle -- meaning the WebView can still
+            // be in a paused/backgrounded state at this exact point, and a
+            // loadUrl() call made then was sometimes silently dropped
+            // instead of queued, leaving "Look Up" opening the app to
+            // whatever it last showed with no navigation at all (confirmed:
+            // happened on a genuine app-was-backgrounded case, worked again
+            // on retry). evaluateJavascript targets the page's own already-
+            // running JS engine rather than initiating a fresh WebView-level
+            // load, which held up reliably here before switching to
+            // loadUrl() introduced this regression. The brief flash this
+            // reintroduces is a real but much smaller cost than navigation
+            // sometimes not happening at all.
+            webView.evaluateJavascript("window.location.href = " + org.json.JSONObject.quote(target) + ";", null);
+        }
     }
 
     private static class OAuthPopupChromeClient extends BridgeWebChromeClient {
