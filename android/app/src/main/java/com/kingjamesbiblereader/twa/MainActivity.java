@@ -169,68 +169,68 @@ public class MainActivity extends BridgeActivity {
         usingOfflineFallback = false;
         reconnectAttempts = 0;
         reconnectHandler.removeCallbacksAndMessages(null);
-        carryStateAndNavigate();
+        WebView webView = getBridge().getWebView();
+        webView.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> webView.loadUrl(buildCarryTarget(result)));
     }
 
-    // Called by reconnectPreservingState() -- reads localStorage from
-    // WHATEVER page is CURRENTLY loaded in the WebView and navigates to
-    // REMOTE_URL (plus the current path, if it's a real in-app route) with
-    // that state carried across via the __kjb_carry mechanism. See the
-    // comment this replaced (originally inline in reconnectPreservingState())
-    // for the full reasoning on WHY this exists and what it excludes.
-    private void carryStateAndNavigate() {
-        WebView webView = getBridge().getWebView();
-        String script =
-            "(function(){try{" +
-            "var EXCLUDE_PREFIXES=['bible_data'];" +
-            "var EXCLUDE_EXACT=['kjb-splash-logo-dataurl','kjb-overrides-cache'];" +
-            "var data={};" +
-            "for(var i=0;i<localStorage.length;i++){" +
-            "var k=localStorage.key(i);if(!k)continue;" +
-            "if(EXCLUDE_EXACT.indexOf(k)!==-1)continue;" +
-            "var skip=false;" +
-            "for(var j=0;j<EXCLUDE_PREFIXES.length;j++){if(k.indexOf(EXCLUDE_PREFIXES[j])===0){skip=true;break;}}" +
-            "if(skip)continue;" +
-            "data[k]=localStorage.getItem(k);" +
-            "}" +
-            "return {data:data,path:location.pathname+location.search};" +
-            "}catch(e){return {};}})();";
-        webView.evaluateJavascript(script, (result) -> {
-            String target = REMOTE_URL;
-            try {
-                // evaluateJavascript's result is the JSON-serialized form of
-                // whatever the script returned -- here a plain object, so
-                // this parses directly (no extra unwrap needed, unlike if the
-                // script itself had returned a JSON.stringify'd STRING).
-                org.json.JSONObject obj = new org.json.JSONObject(result);
-                org.json.JSONObject data = obj.optJSONObject("data");
-                String path = obj.optString("path", "");
-                // Only carry the current path if it's a REAL in-app route
-                // (starts with "/"), never FALLBACK_DOMAIN's own root "/" with
-                // nothing meaningful after it -- in that case the plain
-                // REMOTE_URL home page is exactly right already.
-                boolean carryPath = path.startsWith("/") && !path.equals("/");
-                String base = carryPath ? (REMOTE_URL + path) : REMOTE_URL;
-                if (data != null && data.length() > 0) {
-                    String dataStr = data.toString();
-                    if (dataStr.getBytes(StandardCharsets.UTF_8).length <= MAX_CARRY_BYTES) {
-                        String encoded = Base64.encodeToString(
-                            dataStr.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
-                        String sep = base.contains("?") ? "&" : "?";
-                        target = base + sep + "__kjb_carry=" + Uri.encode(encoded);
-                    } else {
-                        target = base;
-                    }
+    // The script run against a page to collect what carryStateAndNavigate()
+    // (and, differently, maybeCarryStateFromColdStart()'s hidden WebView)
+    // needs: the page's own localStorage (minus a few known-large,
+    // easily-re-derived caches) plus its current path+query. Shared as one
+    // constant so both call sites -- reading from two DIFFERENT WebView
+    // instances -- stay in exact agreement on what "carry" means.
+    private static final String CARRY_READ_SCRIPT =
+        "(function(){try{" +
+        "var EXCLUDE_PREFIXES=['bible_data'];" +
+        "var EXCLUDE_EXACT=['kjb-splash-logo-dataurl','kjb-overrides-cache'];" +
+        "var data={};" +
+        "for(var i=0;i<localStorage.length;i++){" +
+        "var k=localStorage.key(i);if(!k)continue;" +
+        "if(EXCLUDE_EXACT.indexOf(k)!==-1)continue;" +
+        "var skip=false;" +
+        "for(var j=0;j<EXCLUDE_PREFIXES.length;j++){if(k.indexOf(EXCLUDE_PREFIXES[j])===0){skip=true;break;}}" +
+        "if(skip)continue;" +
+        "data[k]=localStorage.getItem(k);" +
+        "}" +
+        "return {data:data,path:location.pathname+location.search};" +
+        "}catch(e){return {};}})();";
+
+    // Turns a CARRY_READ_SCRIPT result (evaluateJavascript's callback value --
+    // the JSON-serialized form of whatever the script returned, a plain
+    // object here, so this parses directly with no extra unwrap needed)
+    // into the final REMOTE_URL navigation target, with the collected state
+    // encoded as a query param.
+    private static String buildCarryTarget(String result) {
+        String target = REMOTE_URL;
+        try {
+            org.json.JSONObject obj = new org.json.JSONObject(result);
+            org.json.JSONObject data = obj.optJSONObject("data");
+            String path = obj.optString("path", "");
+            // Only carry the current path if it's a REAL in-app route
+            // (starts with "/"), never FALLBACK_DOMAIN's own root "/" with
+            // nothing meaningful after it -- in that case the plain
+            // REMOTE_URL home page is exactly right already.
+            boolean carryPath = path.startsWith("/") && !path.equals("/");
+            String base = carryPath ? (REMOTE_URL + path) : REMOTE_URL;
+            if (data != null && data.length() > 0) {
+                String dataStr = data.toString();
+                if (dataStr.getBytes(StandardCharsets.UTF_8).length <= MAX_CARRY_BYTES) {
+                    String encoded = Base64.encodeToString(
+                        dataStr.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
+                    String sep = base.contains("?") ? "&" : "?";
+                    target = base + sep + "__kjb_carry=" + Uri.encode(encoded);
                 } else {
                     target = base;
                 }
-            } catch (Exception e) {
-                // Fall back to the plain reload -- losing this state just
-                // means the normal "new visitor" flow shows once, same as
-                // before this fix existed, not a crash or a stuck state.
+            } else {
+                target = base;
             }
-            webView.loadUrl(target);
-        });
+        } catch (Exception e) {
+            // Fall back to the plain REMOTE_URL -- losing this state just
+            // means the normal "new visitor" flow shows once, same as before
+            // this fix existed, not a crash or a stuck state.
+        }
+        return target;
     }
     // The last live-site URL handleIncomingIntent() tried to navigate to
     // (search from a share/process-text intent, or an App Link deep link).
