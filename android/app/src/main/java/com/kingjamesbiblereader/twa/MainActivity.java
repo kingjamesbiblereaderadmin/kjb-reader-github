@@ -190,9 +190,7 @@ public class MainActivity extends BridgeActivity {
                 // this parses directly (no extra unwrap needed, unlike if the
                 // script itself had returned a JSON.stringify'd STRING).
                 org.json.JSONObject obj = new org.json.JSONObject(result);
-                String v = obj.optString("v", "");
-                String p = obj.optString("p", "");
-                String h = obj.optString("h", "");
+                org.json.JSONObject data = obj.optJSONObject("data");
                 String path = obj.optString("path", "");
                 // Only carry the current path if it's a REAL in-app route
                 // (starts with "/"), never FALLBACK_DOMAIN's own root "/" with
