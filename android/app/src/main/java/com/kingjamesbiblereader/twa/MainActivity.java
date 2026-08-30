@@ -433,6 +433,66 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
+    private boolean isSpecialDestinationIntent(Intent intent) {
+        if (intent == null) return false;
+        String action = intent.getAction();
+        return Intent.ACTION_SEND.equals(action)
+            || Intent.ACTION_PROCESS_TEXT.equals(action)
+            || (Intent.ACTION_VIEW.equals(action) && intent.getData() != null);
+    }
+
+    // A genuinely fresh app restart (not the same running process
+    // reconnecting -- see reconnectPreservingState() for that case) after
+    // this device previously fell back to the bundled offline snapshot at
+    // some earlier point (PREF_USED_FALLBACK, set in onReceivedError below).
+    // Capacitor's own bridge always tries the REAL site first on a normal
+    // cold start, deliberately, so a returning user gets the live,
+    // self-updating site immediately whenever possible. But that means THIS
+    // specific case -- someone who has ONLY ever seen the bundled fallback
+    // (its own separate virtual origin), now reconnecting for the first time
+    // via a genuine app restart rather than staying in the same running
+    // session -- had no chance to carry state across the origin switch:
+    // there's no "current page" within a FRESH process to read
+    // FALLBACK_DOMAIN's storage from, unlike reconnectPreservingState()'s
+    // same-process case.
+    //
+    // Android's WebView actually PERSISTS per-origin storage across app
+    // restarts (it's tied to the WebView's on-disk profile, not the process
+    // lifetime) -- so FALLBACK_DOMAIN's old data is still sitting there; this
+    // just needs to briefly visit it to read it. Loads FALLBACK_URL FIRST
+    // (instead of letting Capacitor's already-queued live-site load
+    // proceed), and once that brief load finishes (see onPageFinished's
+    // pendingColdStartCarry check below), reads ITS storage and navigates to
+    // the real site with it carried across -- the exact same mechanism
+    // reconnectPreservingState() uses, just triggered from a different
+    // starting point. Deliberately does NOT show any native loading overlay
+    // during this brief transition (an earlier version of this did, and it
+    // repeatedly rendered corrupted/truncated text on-device across several
+    // fix attempts) -- the bundled fallback page's own web splash (and then
+    // the real site's, once we land there) already provides loading
+    // feedback, and both will show the same "WELCOME BACK" message since the
+    // carried state makes the real site correctly recognize a returning
+    // visitor, so the transition should read as one continuous splash rather
+    // than a jarring swap. Runs at most ONCE per fallback use (the persisted
+    // flag is cleared immediately before triggering) -- every launch after
+    // that is a completely ordinary live-site load, identical to any other
+    // returning user.
+    private void maybeCarryStateFromColdStart() {
+        try {
+            boolean usedFallbackBefore = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getBoolean(PREF_USED_FALLBACK, false);
+            if (!usedFallbackBefore) return;
+            if (!isNetworkAvailable()) return; // nothing to reconnect to yet -- try again next launch
+            getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit().putBoolean(PREF_USED_FALLBACK, false).apply();
+            pendingColdStartCarry = true;
+            getBridge().getWebView().loadUrl(FALLBACK_URL);
+        } catch (Exception e) {
+            // Non-fatal -- worst case, this one launch shows the "new
+            // visitor" flow again, same as always happened before this fix.
+        }
+    }
+
     @Override
     public void onDestroy() {
         reconnectHandler.removeCallbacksAndMessages(null);
