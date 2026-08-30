@@ -240,6 +240,12 @@ public class MainActivity extends BridgeActivity {
     // home page and the search/verse the user was taken here for is lost.
     private String pendingDestination = null;
 
+    // Set by maybeCarryStateFromColdStart() when it initiates the brief
+    // FALLBACK_URL visit -- tells onPageFinished() to trigger the state
+    // carry to REMOTE_URL once that specific load completes, instead of
+    // the normal (no-op) behavior.
+    private boolean pendingColdStartCarry = false;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
