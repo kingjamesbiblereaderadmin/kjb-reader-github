@@ -71,7 +71,15 @@ export default function KjbDefencePage() {
     setLoading(true);
     try {
       const list = await base44.entities.DefenceResource.list('-updated_date', 500);
-      const safeList = Array.isArray(list) ? list : [];
+      // Plain "|| []" here, NOT Array.isArray() -- matching every other
+      // working .list() call in this codebase (ExtensionConfig,
+      // ManifestConfig, BibleTextOverride, etc). The SDK's returned value
+      // may not be a literal JS Array (e.g. wrapped/proxied) while still
+      // being perfectly valid data -- an earlier version of this used
+      // Array.isArray() specifically here and it silently discarded a
+      // real, successful response, showing "No defence resources yet."
+      // even though the backend genuinely had 38 entries.
+      const safeList = list || [];
       setItems(safeList);
       // Cache the last successful fetch so offline visits (or a temporarily
       // unreachable backend) can still show something instead of an empty
