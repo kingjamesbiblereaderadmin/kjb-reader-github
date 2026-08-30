@@ -133,7 +133,7 @@ export default function KjbDefencePage() {
 
   const categories = useMemo(() => {
     const map = new Map();
-    (Array.isArray(items) ? items : []).forEach((it) => {
+    (items || []).forEach((it) => {
       if (!map.has(it.category)) map.set(it.category, []);
       map.get(it.category).push(it);
     });
