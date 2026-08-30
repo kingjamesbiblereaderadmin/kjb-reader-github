@@ -96,6 +96,18 @@ public class MainActivity extends BridgeActivity {
     // localStorage cache, which is preferred over this whenever it exists.
     static final String BUNDLED_DEFENCE_PATH = "/__native/defence-resources.json";
 
+    // Persists (via SharedPreferences, which survives a full app restart --
+    // unlike usingOfflineFallback below, an in-memory field reset every time
+    // a fresh process starts) whether this device has EVER fallen back to the
+    // bundled snapshot. Used on the NEXT cold start (see onCreate) to decide
+    // whether it's worth briefly checking FALLBACK_DOMAIN's own storage for
+    // state to carry forward before committing to the live site load -- see
+    // the long comment on maybeCarryStateFromColdStart() below for why a
+    // fresh app restart needs this AT ALL, when reconnectPreservingState()
+    // already covers the same-process case.
+    private static final String PREFS_NAME = "kjb_prefs";
+    private static final String PREF_USED_FALLBACK = "used_fallback";
+
     private boolean usingOfflineFallback = false;
     // Retries a live-site reload a few times with backoff after falling back
     // to the bundled snapshot, instead of only checking again on onResume().
