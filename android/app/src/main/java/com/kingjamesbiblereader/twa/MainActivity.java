@@ -169,15 +169,12 @@ public class MainActivity extends BridgeActivity {
         carryStateAndNavigate();
     }
 
-    // Shared by reconnectPreservingState() (same-process reconnect: the app
-    // stayed running/backgrounded and came back online) AND
-    // maybeCarryStateFromColdStart() below (a genuine app restart after
-    // previously falling back) -- reads localStorage from WHATEVER page is
-    // CURRENTLY loaded in the WebView and navigates to REMOTE_URL (plus the
-    // current path, if it's a real in-app route) with that state carried
-    // across via the __kjb_carry mechanism. See the comment this replaced
-    // (originally inline in reconnectPreservingState()) for the full
-    // reasoning on WHY this exists and what it excludes.
+    // Called by reconnectPreservingState() -- reads localStorage from
+    // WHATEVER page is CURRENTLY loaded in the WebView and navigates to
+    // REMOTE_URL (plus the current path, if it's a real in-app route) with
+    // that state carried across via the __kjb_carry mechanism. See the
+    // comment this replaced (originally inline in reconnectPreservingState())
+    // for the full reasoning on WHY this exists and what it excludes.
     private void carryStateAndNavigate() {
         WebView webView = getBridge().getWebView();
         String script =
