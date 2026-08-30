@@ -335,12 +335,13 @@ export default function AppLayout() {
     // Initialize periodic cache refresh (checks every 24 hours when user opens app)
     initPeriodicCacheRefresh();
 
-    // Proactively warm the KJB Defence resources cache too, regardless of
-    // whether the user ever opens that specific page (see defenceCache.js
-    // for why this matters -- otherwise it only cached on that page's own
-    // visit, so it could still show empty offline for someone who'd been
-    // using the rest of the app online the whole time).
-    prefetchDefenceResources().catch(() => {});
+    // Proactively warm the KJB Defence resources and browser-extension
+    // config caches too, regardless of whether the user ever opens those
+    // specific pages (see backgroundCache.js for why this matters --
+    // otherwise each only cached on its own page's visit, so it could still
+    // show empty/stale offline for someone who'd been using the rest of the
+    // app online the whole time).
+    prefetchAllBackgroundCaches();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
