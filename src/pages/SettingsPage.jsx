@@ -972,10 +972,18 @@ export default function SettingsPage() {
                     localStorage.removeItem('kjb-daily-verse-cache');
 localStorage.removeItem('kjb-daily-verse-cache-v16');
 localStorage.removeItem('kjb-daily-verse-cache-v17');
-                    // Flag a fresh re-download, THEN clear the Bible cache.
-                    // clearBibleCache() reloads the page itself, so set the flag first.
+                    // Flag a fresh re-download for after the reload below
+                    // picks it up (isBibleCached()'s mount effect checks this
+                    // flag and auto-starts the download). clearBibleCache()
+                    // itself only clears storage -- it does NOT reload on its
+                    // own (despite an earlier version of this comment saying
+                    // otherwise), so without the explicit reload below the
+                    // flag just sat there unused until some unrelated later
+                    // navigation happened to trigger it, disconnected from
+                    // this button press entirely.
                     try { localStorage.setItem('kjb-auto-redownload', 'true'); } catch {}
-                    await clearBibleCache(); // clears cache + reloads the page
+                    await clearBibleCache();
+                    window.location.reload();
                   }
                 }}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-transparent border border-destructive text-destructive font-sans text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:bg-destructive/10"
