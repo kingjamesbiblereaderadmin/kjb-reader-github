@@ -102,7 +102,20 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     // The floated drop-cap letter always sits OUTSIDE the inline highlight box
     // (in every mode), so it needs its own tint to show the highlight.
     // The verse number always stays clear (kjb-dropcap-num is transparent in CSS).
-    const needsOwnTint = showHighlight || highlight;
+    // `highlight` is a broad "this verse is relevant to the current
+    // navigation" flag -- true both for a genuine direct verse jump (e.g. a
+    // cross-reference link) AND for a full-chapter search view where THIS
+    // verse contains a match somewhere. In the second case, the match is
+    // often NOT the first word -- but this flag doesn't distinguish that, so
+    // the drop cap's own tint was applying to verse 1 any time it was part of
+    // a search-matched chapter, even when "queen"/"prove"/etc. appeared later
+    // in the verse, nowhere near the actual drop-cap letter. Only trust
+    // `highlight` for the drop cap specifically when there's no active search
+    // term at all (a genuine direct-jump case), or when the drop cap's own
+    // first letter is ACTUALLY inside the <mark> span renderVerseText just
+    // wrapped around a real match -- i.e. the drop cap itself is the match.
+    const dropCapIsActualMatch = /^(?:<[^>]+>|\s)*<mark\b/.test(html);
+    const needsOwnTint = showHighlight || (highlight && (!searchTerm || dropCapIsActualMatch));
     const dropRaw = needsOwnTint
       ? highlightColors.find(c => c.name === highlightColor)?.color
       : null;
