@@ -390,6 +390,16 @@ public class MainActivity extends BridgeActivity {
         // only happens on a genuinely first-ever launch with zero prior
         // connectivity.
 
+        // A genuinely FRESH app restart (not the same process reconnecting --
+        // see reconnectPreservingState() for that) after this device
+        // previously fell back to the bundled snapshot at some earlier point.
+        // Only for a NORMAL launch -- a share/process-text/deep-link intent
+        // (handled by handleIncomingIntent below, which has its own separate
+        // offline-aware routing) is left alone entirely here.
+        if (!isSpecialDestinationIntent(getIntent())) {
+            maybeCarryStateFromColdStart();
+        }
+
         // If the app was launched via Android's share sheet, the text-selection
         // "Process text" menu, or an https App Link, route straight to the
         // matching destination instead of the normal home load. Takes priority
