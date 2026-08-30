@@ -328,19 +328,38 @@ public class MainActivity extends BridgeActivity {
         }
 
         if (url == null) return;
-        // These all need the live site (search, deep links) -- if we're
-        // offline there's nothing meaningful to load anyway, so only apply
-        // this when we're not already falling back.
-        if (usingOfflineFallback) return;
 
-        pendingDestination = url;
         WebView webView = getBridge().getWebView();
+        String target = url;
+        if (usingOfflineFallback) {
+            // Still showing the bundled snapshot -- rewrite onto
+            // FALLBACK_DOMAIN (same transform onReceivedError uses below)
+            // instead of abandoning the navigation entirely. Search and
+            // verse lookups still work fully offline (the Bible text is
+            // bundled natively, independent of which origin is showing), so
+            // there's no real reason to give up on it here -- doing so just
+            // meant "Look Up" from another app silently did nothing while
+            // offline, only bringing the existing app to the foreground on
+            // whatever page it happened to already be on.
+            try {
+                Uri live = Uri.parse(url);
+                target = live.buildUpon().scheme("https").authority(FALLBACK_DOMAIN).build().toString();
+            } catch (Exception e) {
+                target = url;
+            }
+        }
+
+        // Keep the ORIGINAL (real-domain) URL here regardless of the rewrite
+        // above, so that if/when the app reconnects, onReceivedError's own
+        // rewrite (and the plain reconnect in onResume/scheduleReconnectAttempt)
+        // still has the correct live destination to work from.
+        pendingDestination = url;
         if (isInitialLaunch) {
             // Bridge already queued the normal server.url load -- override it
             // with the shared-text/deep-link destination instead.
-            webView.loadUrl(url);
+            webView.loadUrl(target);
         } else {
-            webView.evaluateJavascript("window.location.href = " + org.json.JSONObject.quote(url) + ";", null);
+            webView.evaluateJavascript("window.location.href = " + org.json.JSONObject.quote(target) + ";", null);
         }
     }
 
