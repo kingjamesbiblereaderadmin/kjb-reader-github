@@ -230,22 +230,8 @@ public class MainActivity extends BridgeActivity {
     // home page and the search/verse the user was taken here for is lost.
     private String pendingDestination = null;
 
-    // Guards the "Look Up" overlay's own visibility (see
-    // showLookupOverlay()/hideLookupOverlay() below).
-    private volatile boolean contentReady = false;
-    private View lookupOverlay;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        // Safety net for the "Look Up" overlay below: never let a bug in
-        // the completion signal (an edge case neither onPageFinished nor
-        // onReceivedError's redirect ends up covering) strand the user
-        // behind it forever.
-        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-            contentReady = true;
-            hideLookupOverlay();
-        }, 6000);
-
         super.onCreate(savedInstanceState);
 
         // Modern edge-to-edge replacement for the deprecated
