@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
-import { Copy, Check, Share2 } from 'lucide-react';
+import { Copy, Check, Share2, ChevronDown, Download, FileText, FileType, Printer } from 'lucide-react';
 import { nativeShare } from '@/lib/nativeShare';
 import { getPublicOrigin } from '@/lib/publicOrigin';
+import { printHtml } from '@/lib/printHelpers';
+import { triggerDownload } from '@/lib/nativeDownload';
+import { isNativeAndroid } from '@/lib/isNativeAndroid';
+import { toast } from 'sonner';
+import { jsPDF } from 'jspdf';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const VIDEOS = [
   { title: 'La Importancia de la Sangre', id: 'Vpn00jurClA' },
@@ -103,6 +109,62 @@ export default function SpanishGospelActions() {
     } catch {}
   };
 
+  const handleDownloadTxt = () => {
+    triggerDownload(new Blob([buildSpanishGospelText()], { type: 'text/plain;charset=utf-8' }), 'el-evangelio.txt')
+      .then(() => toast.success(isNativeAndroid() ? 'Guardado en tu carpeta de Descargas!' : '¡Archivo descargado correctamente!'))
+      .catch((err) => { console.error('Download failed:', err); toast.error('Error al descargar. Inténtalo de nuevo.'); });
+  };
+
+  const handleDownloadPdf = () => {
+    const text = buildSpanishGospelText()
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/[\u2013\u2014]/g, '-')
+      .replace(/[\u2026]/g, '...');
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const margin = 48;
+    const maxWidth = doc.internal.pageSize.getWidth() - margin * 2;
+    const pageHeight = doc.internal.pageSize.getHeight();
+    doc.setFont('times', 'normal');
+    doc.setFontSize(11);
+    const lines = doc.splitTextToSize(text, maxWidth);
+    let y = margin;
+    lines.forEach((line) => {
+      if (y > pageHeight - margin) { doc.addPage(); y = margin; }
+      doc.text(line, margin, y);
+      y += 16;
+    });
+    triggerDownload(doc.output('blob'), 'el-evangelio.pdf')
+      .then(() => toast.success(isNativeAndroid() ? 'Guardado en tu carpeta de Descargas!' : '¡Archivo descargado correctamente!'))
+      .catch((err) => { console.error('Download failed:', err); toast.error('Error al descargar. Inténtalo de nuevo.'); });
+  };
+
+  const handleDownloadWord = () => {
+    const text = buildSpanishGospelText();
+    const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const body = text.split('\n').map((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) return '<p style="margin:0;line-height:1.4">&nbsp;</p>';
+      return `<p style="margin:0;line-height:1.4">${esc(line)}</p>`;
+    }).join('');
+    const html = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>El Evangelio</title></head><body style="font-family:Georgia,serif;font-size:12pt;color:#000">${body}</body></html>`;
+    triggerDownload(new Blob(['\ufeff', html], { type: 'application/msword' }), 'el-evangelio.doc')
+      .then(() => toast.success(isNativeAndroid() ? 'Guardado en tu carpeta de Descargas!' : '¡Archivo descargado correctamente!'))
+      .catch((err) => { console.error('Download failed:', err); toast.error('Error al descargar. Inténtalo de nuevo.'); });
+  };
+
+  const handlePrint = () => {
+    const text = buildSpanishGospelText();
+    const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const bodyHtml = text.split('\n').map((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) return '<p style="margin:0 0 8pt 0;">&nbsp;</p>';
+      return `<p style="margin:0 0 8pt 0;line-height:1.5;font-size:12pt;">${esc(line)}</p>`;
+    }).join('');
+    const header = `<h1 style="font-family:Georgia,serif;font-size:22pt;text-align:center;margin-bottom:6pt;">¡El Evangelio es 1 Corintios 15:1-4!</h1><p style="text-align:center;font-size:11pt;color:#555;margin-bottom:24pt;">El Evangelio de Salvación</p>`;
+    printHtml(header + bodyHtml);
+  };
+
   return (
     <div className="flex flex-wrap items-center justify-center gap-2">
       <button
@@ -112,13 +174,36 @@ export default function SpanishGospelActions() {
         {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
         {copied ? '¡Copiado!' : 'Copiar Texto'}
       </button>
-      <button
-        onClick={handleShare}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-secondary border border-border hover:bg-accent/20 text-foreground rounded-lg font-sans text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-      >
-        {shared ? <Check className="w-4 h-4 text-green-600" /> : <Share2 className="w-4 h-4" />}
-        {shared ? '¡Copiado!' : 'Compartir'}
-      </button>
+      <div className="inline-flex items-stretch bg-secondary border border-border rounded-lg overflow-hidden">
+        <button
+          onClick={handleShare}
+          className="flex items-center gap-2 px-4 py-2 hover:bg-accent/20 text-foreground font-sans text-sm font-medium transition-colors"
+        >
+          {shared ? <Check className="w-4 h-4 text-green-600" /> : <Share2 className="w-4 h-4" />}
+          {shared ? '¡Copiado!' : 'Compartir'}
+        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center justify-center px-3 hover:bg-accent/20 text-foreground transition-colors outline-none border-l border-border/50">
+              <ChevronDown className="w-4 h-4 opacity-70" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="font-sans w-56">
+            <DropdownMenuItem onClick={handleDownloadTxt} className="gap-2 cursor-pointer py-2.5">
+              <Download className="w-4 h-4 text-muted-foreground flex-shrink-0" /> Descargar como Texto
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleDownloadPdf} className="gap-2 cursor-pointer py-2.5">
+              <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" /> Descargar como PDF
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleDownloadWord} className="gap-2 cursor-pointer py-2.5">
+              <FileType className="w-4 h-4 text-muted-foreground flex-shrink-0" /> Descargar como Word
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handlePrint} className="gap-2 cursor-pointer py-2.5">
+              <Printer className="w-4 h-4 text-muted-foreground flex-shrink-0" /> Imprimir
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   );
 }
