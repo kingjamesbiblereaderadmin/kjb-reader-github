@@ -4,6 +4,8 @@ import { printHtml } from '@/lib/printHelpers';
 import { triggerDownload } from '@/lib/nativeDownload';
 import { nativeShare } from '@/lib/nativeShare';
 import { getPublicOrigin } from '@/lib/publicOrigin';
+import { isNativeAndroid } from '@/lib/isNativeAndroid';
+import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useNavigate, Link } from 'react-router-dom';
