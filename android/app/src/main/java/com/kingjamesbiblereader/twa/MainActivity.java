@@ -139,20 +139,28 @@ public class MainActivity extends BridgeActivity {
     // splashMode / "first-time visitors" logic, both keyed off
     // localStorage['kjb-has-visited-app']).
     //
-    // Carries: 'kjb-has-visited-app' (a bare "true"), 'kjb-position' (a small
-    // JSON object -- current book/chapter/verse), 'kjb-verse-highlights'
-    // (highlighted verses, capped -- see MAX_HIGHLIGHTS_BYTES below), and the
-    // CURRENT page's own path+query (e.g. "/search?q=romans"), so a reconnect
-    // while on a search-results page lands back on those same results
-    // instead of the bare home page. The actual Bible text cache itself is
-    // too large to practically pass this way (it's several MB, well past
-    // what's sane to embed in a URL), so a quiet re-fetch of that specific
-    // data is still an accepted, unavoidable cost of the origin switch --
-    // what this fixes is the jarring part: dumping an already-returning user
-    // back on the marketing landing page (or losing their highlights/search),
-    // instead of just quietly re-fetching in the background while they're
-    // already looking at what they were looking at before.
-    private static final int MAX_HIGHLIGHTS_BYTES = 20000; // ~20KB -- generous for realistic highlight counts, still tiny next to typical URL length limits
+    // Carries the WHOLE of localStorage across (every key EXCEPT the few
+    // known-large, easily-re-derived caches excluded below), plus the
+    // CURRENT page's own path+query (e.g. "/search?q=romans"), so a
+    // reconnect while on a search-results page lands back on those same
+    // results instead of the bare home page. This covers every feature that
+    // uses localStorage automatically -- saved verses, highlights, reading
+    // position/progress, every setting/preference, the Defence-resources
+    // cache, etc. -- without this list needing to know each one by name or
+    // be kept in sync as new features add new keys. Only the actual Bible
+    // text cache (several MB across many keys) and a couple of large,
+    // trivially-re-fetchable derived caches (the splash logo image, the
+    // server-side text-override cache) are excluded, since none of those are
+    // user-authored data and all regenerate themselves within moments of
+    // being back online regardless.
+    //
+    // MAX_CARRY_BYTES is a blanket safety cap on the total payload (not
+    // per-key): if a user's REALISTIC total (even a large saved-verses/
+    // highlights collection) somehow exceeds it, this falls back to carrying
+    // just the path with no state -- losing that state ONLY for this narrow
+    // reconnect path is a far smaller cost than risking an oversized URL the
+    // WebView or server might reject outright.
+    private static final int MAX_CARRY_BYTES = 200000; // ~200KB
 
     private void reconnectPreservingState() {
         usingOfflineFallback = false;
