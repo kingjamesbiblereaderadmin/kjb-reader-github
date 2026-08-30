@@ -190,6 +190,17 @@ public class MainActivity extends BridgeActivity {
         // of Capacitor's internal plugin dispatch.
         webView.addJavascriptInterface(new OrientationBridge(this), "kjbOrientationBridge");
 
+        // Every "Share" button in the app calls navigator.share() first,
+        // falling back to a clipboard copy when unavailable. That works fine
+        // in the actual Chrome app or a Custom Tab, but a WebView EMBEDDED in
+        // a third-party app like this one has no OS-level share-sheet hook
+        // wired up automatically -- navigator.share was always undefined (or
+        // failing) here, so every share silently fell through to "just
+        // copies text", with no indication anything was missing. This shows
+        // Android's real native share sheet directly; see ShareBridge below
+        // and nativeShare.js, which calls it when available.
+        webView.addJavascriptInterface(new ShareBridge(this), "kjbShareBridge");
+
         // Covers a DIFFERENT download case than the bridge above: a plain
         // <a download href="https://..."> pointing at a REAL remote URL
         // (OfflineHtmlSection.jsx's "Download HTML File" link), rather than a
