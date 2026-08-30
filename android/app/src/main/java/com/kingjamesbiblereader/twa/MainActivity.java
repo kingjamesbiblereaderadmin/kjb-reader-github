@@ -1172,6 +1172,21 @@ public class MainActivity extends BridgeActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
+
+            // maybeCarryStateFromColdStart() (in onCreate) loaded
+            // FALLBACK_URL deliberately, to read ITS storage before
+            // navigating to the real site with it carried across. This IS
+            // that load finishing -- read the state and move on to the real
+            // site instead of the normal overlay-hide behavior below. The
+            // overlay deliberately stays up: it'll be hidden by this SAME
+            // callback once the resulting REMOTE_URL load finishes instead
+            // (pendingColdStartCarry will be false by then).
+            if (activity.pendingColdStartCarry) {
+                activity.pendingColdStartCarry = false;
+                activity.carryStateAndNavigate();
+                return;
+            }
+
             // Marks content as ready to show, and hides the "Look Up" overlay
             // (see showLookupOverlay()/hideLookupOverlay() below), if
             // currently up. Network-level failures (offline, DNS, etc.)
@@ -1185,16 +1200,15 @@ public class MainActivity extends BridgeActivity {
             // immediate: onPageFinished corresponds to the underlying
             // page/resources finishing loading (roughly window.onload) --
             // it does NOT wait for React to actually mount and render its
-            // OWN "Looking up…"/splash screen, let alone any lazily-loaded
-            // route chunk (e.g. the search page's own JS) that hasn't
-            // resolved yet. Hiding this overlay the INSTANT onPageFinished
-            // fires could reveal whatever's still underneath at that exact
-            // moment -- a blank page, or a route-loading spinner -- for a
-            // brief, jarring flash before React's own "Looking up…" splash
-            // (see SplashScreen.jsx's isLookup handling) actually takes
-            // over. This short delay gives React a moment to settle first,
-            // so the transition is straight from this native overlay to
-            // React's matching one, with nothing showing in between.
+            // OWN loading UI, let alone any lazily-loaded route chunk (e.g.
+            // the search page's own JS) that hasn't resolved yet. Hiding
+            // this overlay the INSTANT onPageFinished fires could reveal
+            // whatever's still underneath at that exact moment -- a blank
+            // page, or a route-loading spinner -- for a brief, jarring flash
+            // before React actually takes over. This short delay gives React
+            // a moment to settle first, so the transition is straight from
+            // this native overlay to the real content, with nothing showing
+            // in between.
             activity.contentReady = true;
             new android.os.Handler(android.os.Looper.getMainLooper())
                 .postDelayed(activity::hideLookupOverlay, 350);
