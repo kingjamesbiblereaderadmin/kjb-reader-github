@@ -197,26 +197,19 @@ public class MainActivity extends BridgeActivity {
                 // nothing meaningful after it -- in that case the plain
                 // REMOTE_URL home page is exactly right already.
                 boolean carryPath = path.startsWith("/") && !path.equals("/");
-                if (h.getBytes(StandardCharsets.UTF_8).length > MAX_HIGHLIGHTS_BYTES) {
-                    // Unrealistically large (thousands of highlights) --
-                    // skip carrying it rather than risk an oversized URL the
-                    // WebView or server might reject; losing highlights ONLY
-                    // from this narrow reconnect path is a far smaller cost
-                    // than the reload failing outright.
-                    h = "";
-                }
-                if (!v.isEmpty() || !p.isEmpty() || !h.isEmpty()) {
-                    org.json.JSONObject carry = new org.json.JSONObject();
-                    if (!v.isEmpty()) carry.put("kjb-has-visited-app", v);
-                    if (!p.isEmpty()) carry.put("kjb-position", p);
-                    if (!h.isEmpty()) carry.put("kjb-verse-highlights", h);
-                    String encoded = Base64.encodeToString(
-                        carry.toString().getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
-                    String base = carryPath ? (REMOTE_URL + path) : REMOTE_URL;
-                    String sep = base.contains("?") ? "&" : "?";
-                    target = base + sep + "__kjb_carry=" + Uri.encode(encoded);
-                } else if (carryPath) {
-                    target = REMOTE_URL + path;
+                String base = carryPath ? (REMOTE_URL + path) : REMOTE_URL;
+                if (data != null && data.length() > 0) {
+                    String dataStr = data.toString();
+                    if (dataStr.getBytes(StandardCharsets.UTF_8).length <= MAX_CARRY_BYTES) {
+                        String encoded = Base64.encodeToString(
+                            dataStr.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
+                        String sep = base.contains("?") ? "&" : "?";
+                        target = base + sep + "__kjb_carry=" + Uri.encode(encoded);
+                    } else {
+                        target = base;
+                    }
+                } else {
+                    target = base;
                 }
             } catch (Exception e) {
                 // Fall back to the plain reload -- losing this state just
