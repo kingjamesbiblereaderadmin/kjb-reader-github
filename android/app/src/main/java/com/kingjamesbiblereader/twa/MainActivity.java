@@ -1229,6 +1229,25 @@ public class MainActivity extends BridgeActivity {
                 activity.scheduleReconnectAttempt();
             }
         }
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            super.onPageFinished(view, url);
+            // maybeCarryStateFromColdStart() hid the main WebView (this one)
+            // while a separate hidden WebView recovered state from the old
+            // fallback origin, then navigated THIS WebView to the final,
+            // carried-state destination -- this onPageFinished is that
+            // destination actually finishing loading. Reveal it now, since
+            // whatever's about to be shown is the fully correct, final state
+            // (not the earlier default page that was never actually visible
+            // in the first place). No-op for every other ordinary page load,
+            // since pendingRevealAfterCarry only gets set true in that one
+            // specific situation.
+            if (activity.pendingRevealAfterCarry) {
+                activity.pendingRevealAfterCarry = false;
+                view.setVisibility(View.VISIBLE);
+            }
+        }
     }
 
     // Exposed to JS as window.kjbDownloadBridge (see the addJavascriptInterface
