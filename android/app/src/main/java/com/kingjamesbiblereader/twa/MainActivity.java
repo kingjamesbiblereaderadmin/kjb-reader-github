@@ -1063,7 +1063,7 @@ public class MainActivity extends BridgeActivity {
             if (request.isForMainFrame() && !activity.usingOfflineFallback) {
                 activity.usingOfflineFallback = true;
                 try {
-                    activity.getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                    activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                         .edit().putBoolean(PREF_USED_FALLBACK, true).apply();
                 } catch (Exception e) {
                     // Non-fatal -- worst case, a future cold start just won't
