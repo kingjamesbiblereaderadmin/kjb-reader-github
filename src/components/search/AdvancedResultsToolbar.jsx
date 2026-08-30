@@ -136,7 +136,9 @@ export default function AdvancedResultsToolbar({ records, selectedRecords, filte
     // Keep the title clean ("KJB Advanced Search") — the exact search text is
     // already shown in the Applied Filters block, so don't append the
     // comma/quote-normalised highlight query to the heading.
-    exportVerses(format, items, hlQuery, hlFilters, { ...exportOptions, showQuery: false }).catch((err) => console.error('Export failed:', err));
+    exportVerses(format, items, hlQuery, hlFilters, { ...exportOptions, showQuery: false })
+      .then(() => toast.success(isNativeAndroid() ? 'Saved to your Downloads folder!' : 'File downloaded successfully!'))
+      .catch((err) => { console.error('Export failed:', err); toast.error('Export failed. Please try again.'); });
   };
 
   const doPrint = () => {
