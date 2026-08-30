@@ -807,30 +807,31 @@ public class MainActivity extends BridgeActivity {
         }
 
         @JavascriptInterface
-        public void finishFile(String sessionId, String callbackId) {
-            String result;
+        public String finishFile(String sessionId) {
+            // Returns the result DIRECTLY as the method's return value rather
+            // than via evaluateJavascript + a global callback keyed by ID.
+            // addJavascriptInterface calls are already synchronous from JS's
+            // perspective (the call blocks until this method returns), so the
+            // callback dance was unnecessary indirection -- and, per repeated
+            // reports of exports completing (the file genuinely saves) but the
+            // UI never showing success, an unreliable one: some path in that
+            // evaluateJavascript round-trip wasn't reliably reaching the
+            // pending-promise map back on the JS side. A direct return value
+            // can't be dropped in transit the same way.
             OutputStream out = openStreams.remove(sessionId);
             Uri item = openUris.remove(sessionId);
             try {
                 if (out == null || item == null) {
-                    result = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ? "unsupported" : "error";
-                } else {
-                    out.close();
-                    ContentValues values = new ContentValues();
-                    values.put(MediaStore.Downloads.IS_PENDING, 0);
-                    activity.getContentResolver().update(item, values, null, null);
-                    result = "ok";
+                    return Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ? "unsupported" : "error";
                 }
+                out.close();
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Downloads.IS_PENDING, 0);
+                activity.getContentResolver().update(item, values, null, null);
+                return "ok";
             } catch (Exception e) {
-                result = "error";
+                return "error";
             }
-            final String finalResult = result;
-            activity.runOnUiThread(() -> {
-                WebView webView = activity.getBridge().getWebView();
-                String js = "window.__kjbDownloadCallback && window.__kjbDownloadCallback("
-                    + org.json.JSONObject.quote(callbackId) + ", " + org.json.JSONObject.quote(finalResult) + ");";
-                webView.evaluateJavascript(js, null);
-            });
         }
     }
 
