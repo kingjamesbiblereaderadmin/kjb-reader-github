@@ -512,8 +512,8 @@ export default function AppLayout() {
 
       <BottomNav pathname={pathname} navigate={navigate} />
 
-      {/* Scroll to top button - appears on all pages when scrolling */}
-      <ScrollToTop />
+      {/* Scroll to top button - only on the Read page */}
+      {pathname === '/read' && <ScrollToTop />}
 
       <ProgressBar />
 
