@@ -152,7 +152,10 @@ public class MainActivity extends BridgeActivity {
         // Safety net: never let a bug in the contentReady logic (an edge
         // case neither onPageFinished nor onReceivedError's redirect ends up
         // covering) strand the user on the splash screen forever.
-        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> contentReady = true, 6000);
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+            contentReady = true;
+            hideLookupOverlay();
+        }, 6000);
 
         super.onCreate(savedInstanceState);
 
