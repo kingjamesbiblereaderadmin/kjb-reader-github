@@ -94,21 +94,6 @@ export default function KjbDefencePage() {
     try {
       const list = await base44.entities.DefenceResource.list('-updated_date', 500);
       const safeList = toArray(list);
-      // TEMPORARY diagnostic -- the backend and code both check out on
-      // every angle verifiable from outside the device (raw unauthenticated
-      // HTTP request returns a plain 38-entry array; toArray() handles a
-      // plain array as its very first case), yet the page has repeatedly
-      // shown empty on-device. This surfaces the ACTUAL shape `list` arrives
-      // in AT RUNTIME so the next report can include real data instead of
-      // more speculation. Safe to remove once this is diagnosed for good.
-      try {
-        toast.info(
-          `[debug] list: ${Array.isArray(list) ? 'array' : typeof list}` +
-          `, length=${safeList.length}` +
-          `, raw=${JSON.stringify(list).slice(0, 200)}`,
-          { duration: 15000 }
-        );
-      } catch {}
       setItems(safeList);
       // Cache the last successful fetch so offline visits (or a temporarily
       // unreachable backend) can still show something instead of an empty
