@@ -17,42 +17,32 @@
 // JS-to-Java string argument hit Android's WebView bridge transaction size
 // limit, surfacing as "Java exception was raised during method invocation".
 // Streaming smaller pieces avoids that ceiling regardless of file size.
-let downloadCallbackSeq = 0;
+//
+// finishFile() returns its result DIRECTLY (a plain synchronous return
+// value, not a callback) -- addJavascriptInterface calls already block the
+// calling JS until the Java method returns, so there's no need for the
+// evaluateJavascript-plus-global-callback round trip an earlier version of
+// this used, which could complete the save (the file genuinely appeared)
+// without reliably signaling success back to the UI.
+let downloadSessionSeq = 0;
 const CHUNK_SIZE = 750000; // base64 chars per call (~560KB of real data)
 
-export function triggerDownload(blob, name) {
+export async function triggerDownload(blob, name) {
   if (typeof window !== 'undefined' && window.kjbDownloadBridge && typeof window.kjbDownloadBridge.startFile === 'function') {
-    return new Promise((resolve, reject) => {
-      const sessionId = 'dl_' + (++downloadCallbackSeq) + '_' + Date.now();
-      if (typeof window.__kjbDownloadCallback !== 'function') {
-        window.__kjbDownloadCallback = function (id, result) {
-          const entry = window.__kjbDownloadCallback._pending && window.__kjbDownloadCallback._pending[id];
-          if (!entry) return;
-          delete window.__kjbDownloadCallback._pending[id];
-          if (result === 'ok') entry.resolve();
-          else entry.reject(new Error('Could not save the file.'));
-        };
-        window.__kjbDownloadCallback._pending = {};
-      }
-      window.__kjbDownloadCallback._pending[sessionId] = { resolve, reject };
-
+    const sessionId = 'dl_' + (++downloadSessionSeq) + '_' + Date.now();
+    const base64 = await new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => {
-        const base64 = String(reader.result).split(',')[1] || '';
-        try {
-          window.kjbDownloadBridge.startFile(sessionId, name, blob.type || 'application/octet-stream');
-          for (let i = 0; i < base64.length; i += CHUNK_SIZE) {
-            window.kjbDownloadBridge.appendChunk(sessionId, base64.slice(i, i + CHUNK_SIZE));
-          }
-          window.kjbDownloadBridge.finishFile(sessionId, sessionId);
-        } catch (err) {
-          delete window.__kjbDownloadCallback._pending[sessionId];
-          reject(err);
-        }
-      };
+      reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
       reader.onerror = () => reject(new Error('Could not read the generated file.'));
       reader.readAsDataURL(blob);
     });
+    window.kjbDownloadBridge.startFile(sessionId, name, blob.type || 'application/octet-stream');
+    for (let i = 0; i < base64.length; i += CHUNK_SIZE) {
+      window.kjbDownloadBridge.appendChunk(sessionId, base64.slice(i, i + CHUNK_SIZE));
+    }
+    const result = window.kjbDownloadBridge.finishFile(sessionId);
+    if (result === 'ok') return;
+    throw new Error('Could not save the file.');
   }
 
   const url = URL.createObjectURL(blob);
@@ -60,5 +50,4 @@ export function triggerDownload(blob, name) {
   a.href = url; a.download = name;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  return Promise.resolve();
 }
