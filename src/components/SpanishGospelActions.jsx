@@ -135,7 +135,7 @@ export default function SpanishGospelActions() {
       y += 16;
     });
     triggerDownload(doc.output('blob'), 'el-evangelio.pdf')
-      .then(() => toast.success(isNativeAndroid() ? 'Guardado en tu carpeta de Descargas!' : '¡Archivo descargado correctamente!'))
+      .then(() => toast.success(isNativeAndroid() ? '¡Guardado en tu carpeta de Descargas!' : '¡Archivo descargado correctamente!'))
       .catch((err) => { console.error('Download failed:', err); toast.error('Error al descargar. Inténtalo de nuevo.'); });
   };
 
