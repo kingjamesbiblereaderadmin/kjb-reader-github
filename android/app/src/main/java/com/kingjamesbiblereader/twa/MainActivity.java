@@ -123,35 +123,17 @@ public class MainActivity extends BridgeActivity {
     // home page and the search/verse the user was taken here for is lost.
     private String pendingDestination = null;
 
-    // Guards Android's own splash screen (see onCreate below) and, for the
-    // "Look Up" overlay, its own visibility. See installSplashScreen() call
-    // in onCreate for what this actually fixes.
+    // Guards the "Look Up" overlay's own visibility (see
+    // showLookupOverlay()/hideLookupOverlay() below).
     private volatile boolean contentReady = false;
     private View lookupOverlay;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        // Must run BEFORE super.onCreate() per androidx.core.splashscreen's
-        // own contract.
-        //
-        // Without this, Android's OS-level splash (both the legacy
-        // pre-Android-12 windowBackground and the newer platform
-        // SplashScreen API on 12+) dismisses automatically the instant the
-        // Activity draws its FIRST frame -- which, when the live site's load
-        // fails (offline, first launch), is a brief flash of the WebView's
-        // own default "can't reach this page" error interstitial, since
-        // THAT'S what actually renders first, before onReceivedError below
-        // has a chance to redirect to the bundled fallback. Explicitly
-        // controlling when the splash releases -- not just relying on
-        // Android's default "first frame" timing -- means it stays covering
-        // the WebView through that whole failure-then-redirect sequence,
-        // hiding the flash entirely; see the onPageFinished override and
-        // contentReady field below for what actually releases it.
-        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
-        splashScreen.setKeepOnScreenCondition(() -> !contentReady);
-        // Safety net: never let a bug in the contentReady logic (an edge
-        // case neither onPageFinished nor onReceivedError's redirect ends up
-        // covering) strand the user on the splash screen forever.
+        // Safety net for the "Look Up" overlay below: never let a bug in
+        // the completion signal (an edge case neither onPageFinished nor
+        // onReceivedError's redirect ends up covering) strand the user
+        // behind it forever.
         new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
             contentReady = true;
             hideLookupOverlay();
