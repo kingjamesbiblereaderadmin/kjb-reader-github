@@ -777,6 +777,47 @@ public class MainActivity extends BridgeActivity {
                 }
             }
 
+            // The browser extension info page (/extension, ExtensionPage.jsx)
+            // has several screenshot/icon images showing the extension's UI,
+            // all hosted on media.base44.com/base44.app and never cached
+            // anywhere -- same class of gap as the app logo/manifest icon
+            // above, just on a lower-traffic page nobody had gotten to yet.
+            if ("media.base44.com".equals(url.getHost()) && path0 != null) {
+                String extAsset = null;
+                if (path0.endsWith("/426f5c30f_Screenshot2026-08-16012745.png")) extAsset = "images/extension/screenshot1.png";
+                else if (path0.endsWith("/2d3c47491_Screenshot2026-08-16012601.png")) extAsset = "images/extension/screenshot2.png";
+                else if (path0.endsWith("/64c3a9b7b_Screenshot2026-08-16012624.png")) extAsset = "images/extension/screenshot3.png";
+                else if (path0.endsWith("/6ed4814da_Screenshot2026-08-16012656.png")) extAsset = "images/extension/screenshot4.png";
+                else if (path0.endsWith("/b38904652_62b1eeff0_unified-all-browsers.png")) extAsset = "images/extension/unified-browsers.png";
+                if (extAsset != null) {
+                    try {
+                        InputStream stream = view.getContext().getAssets().open(extAsset);
+                        WebResourceResponse response = new WebResourceResponse("image/png", null, stream);
+                        Map<String, String> headers = new HashMap<>();
+                        headers.put("Access-Control-Allow-Origin", "*");
+                        response.setResponseHeaders(headers);
+                        return response;
+                    } catch (IOException e) {
+                        // Fall through to normal (network) handling below.
+                    }
+                }
+            }
+            // Requested directly at base44.app (redirects to media.base44.com
+            // normally, but shouldInterceptRequest sees the ORIGINAL URL
+            // before any redirect is followed) -- same image as hero-icon.png.
+            if ("base44.app".equals(url.getHost()) && path0 != null && path0.endsWith("/679d87279_icon128.png")) {
+                try {
+                    InputStream stream = view.getContext().getAssets().open("images/extension/hero-icon.png");
+                    WebResourceResponse response = new WebResourceResponse("image/png", null, stream);
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Access-Control-Allow-Origin", "*");
+                    response.setResponseHeaders(headers);
+                    return response;
+                } catch (IOException e) {
+                    // Fall through to normal (network) handling below.
+                }
+            }
+
             // The /legacy React route (LegacyReader.jsx) just redirects to
             // this backend function, which server-renders a large, fully
             // self-contained static page (no client JS needed, for very old
