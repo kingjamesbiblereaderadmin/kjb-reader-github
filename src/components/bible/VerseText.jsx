@@ -246,6 +246,10 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   const handleShare = (e) => {
     e.stopPropagation();
     console.log('[VerseText] handleShare called for', verseRef);
+    if (nativeShare({ text: verseTextToShare })) {
+      setSelected(false);
+      return;
+    }
     if (navigator.share) {
       console.log('[VerseText] Using native share');
       navigator.share({ text: verseTextToShare });
