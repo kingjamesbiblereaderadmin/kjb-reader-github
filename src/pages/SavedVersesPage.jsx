@@ -4,6 +4,7 @@ import { Bookmark, Trash2, BookOpen, Share2, Copy, FolderPlus, Folder, MoreVerti
 import { getSavedVerses, removeSavedVerse, getSavedFolders, createFolder, deleteFolder, updateVerseFolder } from '@/lib/savedVerses';
 import { formatVerseShare, buildVerseUrl } from '@/lib/formatDailyVerse';
 import { printHtml } from '@/lib/printHelpers';
+import { nativeShare } from '@/lib/nativeShare';
 import { toast } from 'sonner';
 
 import {
