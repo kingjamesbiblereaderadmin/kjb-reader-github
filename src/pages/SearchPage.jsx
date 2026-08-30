@@ -1022,6 +1022,8 @@ export default function SearchPage() {
     const q = getQueryFromUrl() || query;
     const shareUrl = `<${getPublicOrigin()}/search?q=${encodeURIComponent(q)}>`;
 
+    if (nativeShare({ title: `KJB Search: ${q}`, text: shareUrl })) return;
+
     try {
       if (navigator.share) {
         await navigator.share({ title: `KJB Search: ${q}`, text: shareUrl });
