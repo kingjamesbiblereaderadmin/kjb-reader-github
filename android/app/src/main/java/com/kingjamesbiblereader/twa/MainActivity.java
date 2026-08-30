@@ -504,7 +504,7 @@ public class MainActivity extends BridgeActivity {
         super.onNewIntent(intent);
         setIntent(intent);
         // App already running (singleTask) -- navigate the live WebView.
-        handleIncomingIntent(intent);
+        handleIncomingIntent(intent, false);
     }
 
     private void handleIncomingIntent(Intent intent) {
