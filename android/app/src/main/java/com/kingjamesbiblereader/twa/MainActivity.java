@@ -843,6 +843,7 @@ public class MainActivity extends BridgeActivity {
 
         @Override
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+            super.onReceivedError(view, request, error);
             // A failure loading the top-level page itself (not some
             // sub-resource like an image or an analytics script) while we
             // were trying to show the live site -- e.g. connectivity dropped
