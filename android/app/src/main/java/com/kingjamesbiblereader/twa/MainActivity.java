@@ -547,7 +547,7 @@ public class MainActivity extends BridgeActivity {
         content.addView(spinner, spinnerParams);
 
         TextView text = new TextView(this);
-        text.setText("Looking up…");
+        text.setText("Looking up...");
         text.setTextColor(fg);
         text.setTextSize(14);
         content.addView(text);
