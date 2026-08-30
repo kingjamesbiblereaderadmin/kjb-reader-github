@@ -11,6 +11,23 @@ export default function RefreshCache() {
 
   const handleRefresh = async () => {
     try {
+      // Checking for updates and clearing caches both need network -- if
+      // we're offline, doing either is actively harmful: caches.keys()
+      // below deletes EVERY cache for this origin indiscriminately, which
+      // includes the service worker's own app-shell precache (the thing
+      // that makes offline self-healing possible at all -- see
+      // MainActivity.java's comments on this). Wiping that while offline,
+      // then trying to reload the real site, meant the reload had neither a
+      // live connection NOR a cache to fall back on -- forcing the native
+      // fallback to the frozen bundled snapshot instead of the site's own
+      // self-updating cache. There's genuinely nothing useful this page can
+      // do offline, so skip straight to a plain reload -- the service
+      // worker's EXISTING (untouched) cache serves it normally.
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        window.location.href = '/';
+        return;
+      }
+
       let hasCodeUpdates = false;
       let hasBibleUpdates = false;
 
