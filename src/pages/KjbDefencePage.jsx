@@ -114,15 +114,12 @@ export default function KjbDefencePage() {
   useEffect(() => {
     const unsub = base44.entities.DefenceResource.subscribe((event) => {
       setItems((prev) => {
-        // Defensive: `prev` should always be an array (useState([]) plus
-        // every other setItems() call here produces one), but nothing
-        // downstream re-checked that assumption -- if it were ever
-        // something else at the moment a realtime event arrived, every
-        // method below would throw "X is not a function", and a returned
-        // non-array would keep propagating into every later render (the
-        // categories useMemo's own "|| []" fallback only rescues a falsy
-        // value, not a truthy non-array one).
-        const list = Array.isArray(prev) ? prev : [];
+        // Defensive against `prev` genuinely being null/undefined (falsy)
+        // at the moment a realtime event arrives -- "|| []" here rather
+        // than a stricter Array.isArray() check, since items state is set
+        // from the SDK's .list() response, which may not be a literal JS
+        // Array while still being valid, iterable data (see load() above).
+        const list = prev || [];
         if (event.type === 'delete') return list.filter((i) => i.id !== event.id);
         const idx = list.findIndex((i) => i.id === event.id);
         const next = [...list];
