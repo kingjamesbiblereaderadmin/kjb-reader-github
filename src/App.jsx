@@ -187,6 +187,16 @@ const AuthenticatedApp = () => {
   const location = useLocation();
   const [showSplash, setShowSplash] = useState(true);
   const [fadeSplash, setFadeSplash] = useState(false);
+  // Captured once at mount (not the live location.pathname) specifically for
+  // the "subsequent mode, non-home route" splash-skip check below. Using the
+  // live pathname there instead would mean the skip stops applying the
+  // moment the user navigates back to Home later in the same session --
+  // since SplashScreen's internal flow (and the setShowSplash(false) it
+  // triggers) never actually ran while skipped, showSplash itself stays
+  // true in the background, so isVisible would flip back to true on that
+  // later Home visit and the "WELCOME BACK" splash would suddenly pop up
+  // mid-session, well after the app already feels fully loaded.
+  const [initialPathname] = useState(() => location.pathname);
 
   // The app's canonical tab title. Printing/exporting opens a temporary
   // document whose title (e.g. "KJB Advanced Search") can otherwise get stuck
