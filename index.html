@@ -356,12 +356,31 @@
             // splash for a beat in standalone mode so it only becomes visible
             // once the window has settled, and reveal instantly everywhere else
             // (plain browser tabs aren't affected and shouldn't see extra delay).
+            //
+            // Native Android (Capacitor) is excluded from this delay entirely:
+            // it ALSO matches display-mode: standalone, so it was getting this
+            // same 150ms treatment despite the window-resize issue it exists
+            // for being purely a desktop-browser-chrome concern -- a native
+            // Activity is already a fixed, full-screen surface with nothing to
+            // "settle". During that unnecessary delay, this placeholder stayed
+            // invisible while React was often already bootstrapping underneath
+            // (e.g. a "Look Up" launch straight to /search), so whatever React
+            // had rendered so far -- typically the lazy-route Suspense
+            // fallback's spinner -- was briefly visible unmasked, before this
+            // placeholder (and shortly after, the real SplashScreen) finally
+            // appeared. window.androidBridge is Capacitor's own native JS
+            // interface, injected directly by MainActivity.java and
+            // synchronously available the instant any page JS runs in that
+            // WebView -- reliable regardless of online/offline state, unlike
+            // Capacitor's own bridge script injection (see MainActivity.java's
+            // injectNativeMarker()).
             var boot = document.getElementById('kjb-boot-splash');
-            var isStandalone = (window.matchMedia && (
+            var isNativeAndroid = !!window.androidBridge;
+            var isStandalone = !isNativeAndroid && ((window.matchMedia && (
               window.matchMedia('(display-mode: standalone)').matches ||
               window.matchMedia('(display-mode: window-controls-overlay)').matches ||
               window.matchMedia('(display-mode: minimal-ui)').matches
-            )) || navigator.standalone === true;
+            )) || navigator.standalone === true);
             if (isStandalone) {
               setTimeout(function () { boot.style.opacity = '1'; }, 150);
             } else {
