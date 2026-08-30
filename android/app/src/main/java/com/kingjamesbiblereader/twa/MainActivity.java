@@ -713,6 +713,19 @@ public class MainActivity extends BridgeActivity {
                 }
             }
 
+            if (BUNDLED_DEFENCE_PATH.equals(url.getPath())) {
+                try {
+                    InputStream stream = view.getContext().getAssets().open("defence-resources-snapshot.json");
+                    WebResourceResponse response = new WebResourceResponse("application/json", "UTF-8", stream);
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Access-Control-Allow-Origin", "*");
+                    response.setResponseHeaders(headers);
+                    return response;
+                } catch (IOException e) {
+                    // Fall through to normal (network) handling below.
+                }
+            }
+
             // Same idea as the Bible text above, applied to fonts: index.html,
             // src/index.css, and main.jsx's prewarm list all request Google
             // Fonts CSS (fonts.googleapis.com/css2?...) with a few different
