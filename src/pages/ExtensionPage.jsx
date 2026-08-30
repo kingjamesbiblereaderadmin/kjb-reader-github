@@ -95,6 +95,23 @@ export default function ExtensionPage() {
   const [heroIcon, setHeroIcon] = useState('https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/679d87279_icon128.png');
   const [mockups, setMockups] = useState(MOCKUPS);
 
+  const applyConfig = (cfg) => {
+    setUrls({
+      // Chrome & Edge are permanently pinned to their official store listings
+      // and never replaced by a saved ZIP link.
+      chrome: DEFAULT_URLS.chrome,
+      edge: DEFAULT_URLS.edge,
+      firefox: cfg.firefox || DEFAULT_URLS.firefox,
+      opera: cfg.opera || DEFAULT_URLS.opera,
+    });
+    if (cfg.version) setVersion(cfg.version);
+    setShowInstructions(cfg.show_instructions !== false);
+    if (cfg.hero_icon) setHeroIcon(cfg.hero_icon);
+    if (cfg.mockups?.length) {
+      setMockups(cfg.mockups.map((m) => ({ light: m.src, dark: m.src, label: m.label })));
+    }
+  };
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -102,21 +119,23 @@ export default function ExtensionPage() {
         const rows = await base44.entities.ExtensionConfig.list('-updated_date', 1);
         const cfg = rows && rows[0];
         if (cancelled || !cfg) return;
-        setUrls({
-          // Chrome & Edge are permanently pinned to their official store listings
-          // and never replaced by a saved ZIP link.
-          chrome: DEFAULT_URLS.chrome,
-          edge: DEFAULT_URLS.edge,
-          firefox: cfg.firefox || DEFAULT_URLS.firefox,
-          opera: cfg.opera || DEFAULT_URLS.opera,
-        });
-        if (cfg.version) setVersion(cfg.version);
-        setShowInstructions(cfg.show_instructions !== false);
-        if (cfg.hero_icon) setHeroIcon(cfg.hero_icon);
-        if (cfg.mockups?.length) {
-          setMockups(cfg.mockups.map((m) => ({ light: m.src, dark: m.src, label: m.label })));
-        }
-      } catch {}
+        applyConfig(cfg);
+        // Cache the successful fetch so a later offline visit shows the most
+        // recently known-good config instead of falling all the way back to
+        // whatever defaults happened to be hardcoded in THIS build -- those
+        // could be considerably staler than a config actually fetched once,
+        // e.g. after an admin updates the version number or a download link.
+        try { localStorage.setItem('kjb-extension-config-cache', JSON.stringify(cfg)); } catch {}
+      } catch (err) {
+        if (cancelled) return;
+        // Live fetch failed (offline, or briefly unreachable) -- fall back to
+        // the last successfully fetched config, if any, rather than jumping
+        // straight to the hardcoded defaults above.
+        try {
+          const raw = localStorage.getItem('kjb-extension-config-cache');
+          if (raw) applyConfig(JSON.parse(raw));
+        } catch {}
+      }
     })();
     return () => { cancelled = true; };
   }, []);
