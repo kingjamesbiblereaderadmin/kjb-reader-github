@@ -3,6 +3,7 @@ import { Download, FileCode, HardDrive, Loader2, CheckCircle2, AlertCircle } fro
 import { appParams } from '@/lib/app-params';
 import { triggerDownload } from '@/lib/nativeDownload';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
+
 // The standalone, single-file HTML version of the entire KJB (all 66 books +
 // Gospel, Resources, About). 100% self-contained, no JavaScript, works on any
 // host and on very old browsers. Served LIVE by the legacy backend function
