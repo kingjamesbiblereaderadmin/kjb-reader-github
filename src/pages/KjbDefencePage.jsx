@@ -105,12 +105,21 @@ export default function KjbDefencePage() {
   useEffect(() => {
     const unsub = base44.entities.DefenceResource.subscribe((event) => {
       setItems((prev) => {
-        if (event.type === 'delete') return prev.filter((i) => i.id !== event.id);
-        const idx = prev.findIndex((i) => i.id === event.id);
-        const next = [...prev];
-        if (event.type === 'create' && idx === -1) return [event.data, ...prev];
+        // Defensive: `prev` should always be an array (useState([]) plus
+        // every other setItems() call here produces one), but nothing
+        // downstream re-checked that assumption -- if it were ever
+        // something else at the moment a realtime event arrived, every
+        // method below would throw "X is not a function", and a returned
+        // non-array would keep propagating into every later render (the
+        // categories useMemo's own "|| []" fallback only rescues a falsy
+        // value, not a truthy non-array one).
+        const list = Array.isArray(prev) ? prev : [];
+        if (event.type === 'delete') return list.filter((i) => i.id !== event.id);
+        const idx = list.findIndex((i) => i.id === event.id);
+        const next = [...list];
+        if (event.type === 'create' && idx === -1) return [event.data, ...list];
         if (idx >= 0) { next[idx] = event.data; return next; }
-        return prev;
+        return list;
       });
     });
     return unsub;
@@ -118,7 +127,7 @@ export default function KjbDefencePage() {
 
   const categories = useMemo(() => {
     const map = new Map();
-    (items || []).forEach((it) => {
+    (Array.isArray(items) ? items : []).forEach((it) => {
       if (!map.has(it.category)) map.set(it.category, []);
       map.get(it.category).push(it);
     });
