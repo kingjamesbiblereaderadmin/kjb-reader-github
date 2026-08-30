@@ -278,30 +278,14 @@ const AuthenticatedApp = () => {
 
   return (
     <>
-      {/* Splash screen ALWAYS renders on first paint to prevent flash — hidden via opacity, not removed.
-          Skipped entirely (not just re-worded) for a "subsequent" boot that
-          lands directly on /search -- a share/process-text "Look Up" from
-          another app. The native Android side (MainActivity.java) already
-          shows its own "Looking up…" overlay for that action and keeps it up
-          a moment past page-load specifically so this splash never gets a
-          chance to flash underneath it -- so showing ANOTHER "Looking
-          up…" here on top of that would just be a redundant second message
-          instead of one clean transition. "first_load" mode still always
-          shows (uses initialPathname, not the live route, so this decision
-          is made once at boot and can't flip back on later in the session --
-          see the comment above initialPathname's definition): it genuinely
-          needs to download Bible data before search can even work. */}
+      {/* Splash screen ALWAYS renders on first paint to prevent flash — hidden via opacity, not removed. */}
       <SplashScreen
         isFadingOut={fadeSplash}
         onDone={handleSplashDone}
         mode={splashMode}
-        isVisible={
-          showSplash &&
-          location.pathname !== '/legacy' &&
-          location.pathname !== '/bible.txt' &&
-          !(splashMode === 'subsequent' && initialPathname === '/search')
-        }
+        isVisible={showSplash && location.pathname !== '/legacy' && location.pathname !== '/bible.txt'}
         skipMarkVisited={location.pathname === '/landing'}
+        isLookup={initialPathname === '/search'}
       />
       <ChunkErrorBoundary>
         <Routes location={location}>
