@@ -128,9 +128,9 @@ public class MainActivity extends BridgeActivity {
         }, delay);
     }
 
-    // Carries a couple of small, text-only pieces of state across the
-    // reconnect from the bundled offline snapshot (FALLBACK_DOMAIN) back to
-    // the real site (REMOTE_URL). Browser storage (localStorage) is strictly
+    // Carries a few small, text-only pieces of state across the reconnect
+    // from the bundled offline snapshot (FALLBACK_DOMAIN) back to the real
+    // site (REMOTE_URL). Browser storage (localStorage) is strictly
     // per-origin -- anything saved while showing the bundled copy is
     // completely invisible once the app reloads the real site, which
     // otherwise looks EXACTLY like a brand-new install even to a user who's
@@ -139,16 +139,21 @@ public class MainActivity extends BridgeActivity {
     // splashMode / "first-time visitors" logic, both keyed off
     // localStorage['kjb-has-visited-app']).
     //
-    // Only 'kjb-has-visited-app' (a bare "true") and 'kjb-position' (a small
-    // JSON object -- current book/chapter/verse) are carried; the actual
-    // Bible text cache itself is too large to practically pass this way (it's
-    // several MB, well past what's sane to embed in a URL), so a quiet
-    // re-fetch of that specific data is still an accepted, unavoidable cost
-    // of the origin switch -- what this fixes is the jarring PART: dumping an
-    // already-returning user back on the marketing landing page and the full
-    // dramatic "first load" download sequence, instead of just quietly
-    // re-fetching in the background while they're already looking at their
-    // actual reading position.
+    // Carries: 'kjb-has-visited-app' (a bare "true"), 'kjb-position' (a small
+    // JSON object -- current book/chapter/verse), 'kjb-verse-highlights'
+    // (highlighted verses, capped -- see MAX_HIGHLIGHTS_BYTES below), and the
+    // CURRENT page's own path+query (e.g. "/search?q=romans"), so a reconnect
+    // while on a search-results page lands back on those same results
+    // instead of the bare home page. The actual Bible text cache itself is
+    // too large to practically pass this way (it's several MB, well past
+    // what's sane to embed in a URL), so a quiet re-fetch of that specific
+    // data is still an accepted, unavoidable cost of the origin switch --
+    // what this fixes is the jarring part: dumping an already-returning user
+    // back on the marketing landing page (or losing their highlights/search),
+    // instead of just quietly re-fetching in the background while they're
+    // already looking at what they were looking at before.
+    private static final int MAX_HIGHLIGHTS_BYTES = 20000; // ~20KB -- generous for realistic highlight counts, still tiny next to typical URL length limits
+
     private void reconnectPreservingState() {
         usingOfflineFallback = false;
         reconnectAttempts = 0;
@@ -156,7 +161,10 @@ public class MainActivity extends BridgeActivity {
         WebView webView = getBridge().getWebView();
         String script =
             "(function(){try{" +
-            "return {v:localStorage.getItem('kjb-has-visited-app')||'',p:localStorage.getItem('kjb-position')||''};" +
+            "return {v:localStorage.getItem('kjb-has-visited-app')||''," +
+            "p:localStorage.getItem('kjb-position')||''," +
+            "h:localStorage.getItem('kjb-verse-highlights')||''," +
+            "path:location.pathname+location.search};" +
             "}catch(e){return {};}})();";
         webView.evaluateJavascript(script, (result) -> {
             String target = REMOTE_URL;
@@ -168,13 +176,33 @@ public class MainActivity extends BridgeActivity {
                 org.json.JSONObject obj = new org.json.JSONObject(result);
                 String v = obj.optString("v", "");
                 String p = obj.optString("p", "");
-                if (!v.isEmpty() || !p.isEmpty()) {
+                String h = obj.optString("h", "");
+                String path = obj.optString("path", "");
+                // Only carry the current path if it's a REAL in-app route
+                // (starts with "/"), never FALLBACK_DOMAIN's own root "/" with
+                // nothing meaningful after it -- in that case the plain
+                // REMOTE_URL home page is exactly right already.
+                boolean carryPath = path.startsWith("/") && !path.equals("/");
+                if (h.getBytes(StandardCharsets.UTF_8).length > MAX_HIGHLIGHTS_BYTES) {
+                    // Unrealistically large (thousands of highlights) --
+                    // skip carrying it rather than risk an oversized URL the
+                    // WebView or server might reject; losing highlights ONLY
+                    // from this narrow reconnect path is a far smaller cost
+                    // than the reload failing outright.
+                    h = "";
+                }
+                if (!v.isEmpty() || !p.isEmpty() || !h.isEmpty()) {
                     org.json.JSONObject carry = new org.json.JSONObject();
                     if (!v.isEmpty()) carry.put("kjb-has-visited-app", v);
                     if (!p.isEmpty()) carry.put("kjb-position", p);
+                    if (!h.isEmpty()) carry.put("kjb-verse-highlights", h);
                     String encoded = Base64.encodeToString(
                         carry.toString().getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
-                    target = REMOTE_URL + "?__kjb_carry=" + Uri.encode(encoded);
+                    String base = carryPath ? (REMOTE_URL + path) : REMOTE_URL;
+                    String sep = base.contains("?") ? "&" : "?";
+                    target = base + sep + "__kjb_carry=" + Uri.encode(encoded);
+                } else if (carryPath) {
+                    target = REMOTE_URL + path;
                 }
             } catch (Exception e) {
                 // Fall back to the plain reload -- losing this state just
