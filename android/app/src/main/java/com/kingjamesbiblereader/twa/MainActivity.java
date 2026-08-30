@@ -563,6 +563,8 @@ public class MainActivity extends BridgeActivity {
             }
 
             if (BUNDLED_BIBLE_PATH.equals(url.getPath())) {
+                try {
+                    InputStream stream = view.getContext().getAssets().open("bible/pce-bible.txt");
                     WebResourceResponse response = new WebResourceResponse("text/plain", "UTF-8", stream);
                     Map<String, String> headers = new HashMap<>();
                     // Same-origin in practice (server.url and this intercepted
