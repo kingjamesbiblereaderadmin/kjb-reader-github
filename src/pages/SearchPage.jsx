@@ -1016,7 +1016,9 @@ export default function SearchPage() {
       testament,
       bookCount: selectedBooks.size > 0 && selectedBooks.size < 66 ? selectedBooks.size : 0,
     };
-    exportVerses(format, items, q, filters, { showQuery: true }).catch((err) => console.error('Export failed:', err));
+    exportVerses(format, items, q, filters, { showQuery: true })
+      .then(() => toast.success(isNativeAndroid() ? 'Saved to your Downloads folder!' : 'File downloaded successfully!'))
+      .catch((err) => { console.error('Export failed:', err); toast.error('Export failed. Please try again.'); });
   };
 
   // Share search results as a LINK ONLY — builds the search URL and copies/shares it.
