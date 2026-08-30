@@ -201,7 +201,7 @@ export default function KjbDefencePage() {
   // Updates optimistically and rolls back via reload if the save fails.
   const handleReorder = async (categoryName, reorderedItems) => {
     const previous = items;
-    setItems((prev) => (Array.isArray(prev) ? prev : []).map((it) => {
+    setItems((prev) => (prev || []).map((it) => {
       if (it.category !== categoryName) return it;
       const newOrder = reorderedItems.findIndex((r) => r.id === it.id);
       return newOrder >= 0 ? { ...it, order: newOrder } : it;
