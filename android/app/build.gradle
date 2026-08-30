@@ -3,18 +3,6 @@ apply plugin: 'com.android.application'
 android {
     namespace "com.kingjamesbiblereader.twa"
     compileSdk rootProject.ext.compileSdkVersion
-
-    // Explicit UTF-8 for javac reading .java source files, rather than
-    // relying on the build environment's platform default (which isn't
-    // guaranteed to be UTF-8 across every CI runner/locale). Without this,
-    // any non-ASCII character used directly in a Java string literal --
-    // e.g. the ellipsis in MainActivity.java's "Looking up..." overlay text
-    // -- risks being misread as a different byte sequence during
-    // compilation, silently truncating or corrupting the resulting string
-    // at runtime with no compile error to catch it.
-    compileOptions {
-        encoding 'UTF-8'
-    }
     defaultConfig {
         applicationId "com.kingjamesbiblereader.twa"
         minSdkVersion rootProject.ext.minSdkVersion
