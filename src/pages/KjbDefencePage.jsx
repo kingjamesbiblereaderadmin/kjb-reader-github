@@ -127,7 +127,7 @@ export default function KjbDefencePage() {
   useEffect(() => {
     const unsub = base44.entities.DefenceResource.subscribe((event) => {
       setItems((prev) => {
-        const list = Array.isArray(prev) ? prev : [];
+        const list = toArray(prev);
         if (event.type === 'delete') return list.filter((i) => i.id !== event.id);
         const idx = list.findIndex((i) => i.id === event.id);
         const next = [...list];
