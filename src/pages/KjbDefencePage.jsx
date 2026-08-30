@@ -11,6 +11,27 @@ import CopyButton from '@/components/defence/CopyButton';
 import { Copy } from 'lucide-react';
 import { toast } from 'sonner';
 
+// Normalizes whatever the .list() SDK call (or a cached/localStorage value)
+// hands back into a guaranteed real array, regardless of its exact shape.
+// This page's crash ("(r || []).forEach is not a function") came from two
+// DIFFERENT, contradictory over-corrections made in earlier passes: first
+// "|| []" alone (doesn't rescue a TRUTHY non-array value -- only a falsy
+// one), then a strict Array.isArray() check (which is safe but, if the SDK
+// ever genuinely wraps the array in an envelope like {items:[...]} or
+// {data:[...]}, would silently discard perfectly valid data instead of
+// unwrapping it -- showing an empty page with no error at all). This
+// handles both real shapes at once instead of guessing which one applies.
+function toArray(x) {
+  if (Array.isArray(x)) return x;
+  if (x && typeof x === 'object') {
+    if (Array.isArray(x.items)) return x.items;
+    if (Array.isArray(x.data)) return x.data;
+    if (Array.isArray(x.results)) return x.results;
+    if (Array.isArray(x.entities)) return x.entities;
+  }
+  return [];
+}
+
 const CATEGORY_STYLES = {
   'KJB Defence': { color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
   'Why Modern Versions Are Corrupt': { color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20' },
