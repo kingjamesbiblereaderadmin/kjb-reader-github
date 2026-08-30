@@ -190,7 +190,7 @@ export default function KjbDefencePage() {
     try {
       await base44.entities.DefenceResource.delete(item.id);
       toast.success('Resource deleted.');
-      setItems((prev) => (Array.isArray(prev) ? prev : []).filter((i) => i.id !== item.id));
+      setItems((prev) => (prev || []).filter((i) => i.id !== item.id));
     } catch (err) {
       console.error('[KjbDefence] delete failed', err);
       toast.error('Delete failed.');
