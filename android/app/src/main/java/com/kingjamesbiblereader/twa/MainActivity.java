@@ -557,7 +557,6 @@ public class MainActivity extends BridgeActivity {
 
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-            Uri url = request.getUrl();
             if (url == null) {
                 return super.shouldInterceptRequest(view, request);
             }
