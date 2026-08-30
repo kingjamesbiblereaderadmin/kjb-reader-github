@@ -156,7 +156,14 @@ export default function SpanishGospelActions() {
   const handlePrint = () => {
     const text = buildSpanishGospelText();
     const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const bodyHtml = text.split('\n').map((line) => {
+    // Skip the first two lines (title + "El Evangelio de Salvación" subtitle)
+    // -- they're already rendered below as the styled <h1>/<p> header. Without
+    // this, buildSpanishGospelText()'s own copy of those same two lines
+    // printed AGAIN right underneath, as plain unstyled text -- a duplicate
+    // of the title on the printed page. Everything else, including the
+    // "Fuente: laiglesiadelanube.com — Roberto Breaker" credit line right
+    // after, is kept exactly as before.
+    const bodyHtml = text.split('\n').slice(2).map((line) => {
       const trimmed = line.trim();
       if (!trimmed) return '<p style="margin:0 0 8pt 0;">&nbsp;</p>';
       return `<p style="margin:0 0 8pt 0;line-height:1.5;font-size:12pt;">${esc(line)}</p>`;
