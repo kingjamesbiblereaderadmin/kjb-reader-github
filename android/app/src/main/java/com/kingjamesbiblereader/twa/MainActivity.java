@@ -180,7 +180,7 @@ public class MainActivity extends BridgeActivity {
             "if(skip)continue;" +
             "data[k]=localStorage.getItem(k);" +
             "}" +
-            "p:localStorage.getItem('kjb-position')||''," +
+            "XXXXX" +
             "h:localStorage.getItem('kjb-verse-highlights')||''," +
             "path:location.pathname+location.search};" +
             "}catch(e){return {};}})();";
