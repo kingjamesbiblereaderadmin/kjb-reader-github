@@ -416,17 +416,14 @@ public class MainActivity extends BridgeActivity {
     }
 
     // "Looking up…" feedback for a share/process-text/deep-link navigation.
-    // The OS splash screen (installSplashScreen() in onCreate) already covers
-    // a COLD start, but Android never re-shows it for a WARM resume (the app
-    // already running, onNewIntent() -- the common case for "Look Up" from
-    // another app) -- without this, that case had no visual feedback
-    // whatsoever between tapping "Look Up" and the search results actually
-    // appearing, however long that took. Shown unconditionally (cold or
-    // warm) for simplicity; harmless to also show briefly during a cold
-    // start, since the OS splash is on top of it regardless. Removed by
+    // Android never shows any kind of loading indicator on its own for a WARM
+    // resume (the app already running, onNewIntent() -- the common case for
+    // "Look Up" from another app) -- without this, that case had no visual
+    // feedback whatsoever between tapping "Look Up" and the search results
+    // actually appearing, however long that took. Shown unconditionally
+    // (cold or warm launch) for simplicity. Removed by
     // OfflineCapableWebViewClient.onPageFinished() above once real content
-    // is ready, or by the same safety-timeout path as contentReady if
-    // something goes wrong.
+    // is ready, or by the safety-timeout in onCreate if something goes wrong.
     private void showLookupOverlay() {
         if (lookupOverlay != null) return;
         boolean isDark = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
