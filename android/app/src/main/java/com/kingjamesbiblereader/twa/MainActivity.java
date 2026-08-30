@@ -447,7 +447,8 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
-    private boolean isNetworkAvailable() {        try {
+    private boolean isNetworkAvailable() {
+        try {
             ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
             if (cm == null) return true; // fail open -- don't force offline mode on a lookup failure
             Network network = cm.getActiveNetwork();
