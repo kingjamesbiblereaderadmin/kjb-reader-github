@@ -103,6 +103,7 @@ export default function SavedVersesPage() {
 
   const handleShare = async (entry) => {
     const shareText = buildShareText(entry);
+    if (nativeShare({ title: `${entry.ref} — KJB Reader`, text: shareText })) return;
     try {
       if (navigator.share) {
         await navigator.share({ title: `${entry.ref} — KJB Reader`, text: shareText });
