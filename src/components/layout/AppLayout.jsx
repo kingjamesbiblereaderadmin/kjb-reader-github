@@ -623,11 +623,17 @@ function BottomNav({ pathname, navigate }) {
   }, [location.pathname, location.search]);
 
   const cycleShowMode = () => {
-    // Cycle: two rows → one row → bar (centered chevron only) → two rows
+    // Cycle: one row (default) → two rows (expand, more nav items) → bar
+    // (minimize to a thin strip) → back to one row. The chevron points DOWN,
+    // which reads as "there's more below, tap to expand" -- starting the
+    // cycle by jumping straight from the default 'one' state to 'bar' (as an
+    // earlier version of this did) meant the very first tap always
+    // MINIMIZED instead, which fights that expectation. This way the first
+    // tap always expands first; a second tap is what minimizes.
     const next =
-      showMode === 'two' ? 'one' :
-      showMode === 'one' ? 'bar' :
-      'two';
+      showMode === 'one' ? 'two' :
+      showMode === 'two' ? 'bar' :
+      'one';
     setShowMode(next);
     try { localStorage.setItem('kjb-footer-mode', next); } catch {}
     try { window.dispatchEvent(new Event('kjb-footer-mode-change')); } catch {}
