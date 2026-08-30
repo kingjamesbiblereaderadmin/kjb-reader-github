@@ -64,6 +64,36 @@ const rootElement = document.getElementById('root');
 if (!rootElement) {
   console.error('[KJB] #root element not found — cannot mount app.');
 } else {
+  // Restores a couple of small localStorage values that MainActivity.java's
+  // reconnectPreservingState() carries across the switch from the bundled
+  // offline snapshot (a different virtual origin, appassets.androidplatform.
+  // net) back to this real site. Browser storage is strictly per-origin, so
+  // anything saved while showing the bundled copy is otherwise invisible
+  // here -- without this, a returning user who'd been offline looked
+  // exactly like a brand-new install the moment the app reconnected (full
+  // "first visit" download flow, dumped on the landing page). Runs here,
+  // before React ever mounts, since App.jsx's splashMode/landing-redirect
+  // logic reads these same keys on its very first render.
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const carry = params.get('__kjb_carry');
+    if (carry) {
+      const decoded = JSON.parse(atob(carry));
+      if (decoded && typeof decoded === 'object') {
+        for (const [key, value] of Object.entries(decoded)) {
+          if (typeof value === 'string') localStorage.setItem(key, value);
+        }
+      }
+      // Clean up the URL so this param doesn't linger in the address bar,
+      // get bookmarked/shared, or get reapplied on a later plain reload.
+      params.delete('__kjb_carry');
+      const cleanUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '') + window.location.hash;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  } catch (e) {
+    console.warn('[KJB] Failed to restore carried state:', e);
+  }
+
   createRoot(rootElement).render(
     <React.StrictMode>
       <App />
