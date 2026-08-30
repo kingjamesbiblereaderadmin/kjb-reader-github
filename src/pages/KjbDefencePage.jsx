@@ -114,6 +114,28 @@ export default function KjbDefencePage() {
       if (Array.isArray(cached) && cached.length > 0) {
         setItems(cached);
         toast.error('Showing saved copy — could not reach the server for the latest resources.');
+      } else if (isNativeAndroid()) {
+        // No localStorage cache yet either -- a genuinely first-ever launch
+        // with zero prior connectivity, the one case the cache above can't
+        // help with (nothing's ever been successfully fetched to cache).
+        // Fall back to the build-time snapshot bundled in the APK (see
+        // BUNDLED_DEFENCE_PATH / defence-resources-snapshot.json in
+        // MainActivity.java) so this shows the resources as they stood at
+        // build time instead of an empty page. Not attempted on web, since
+        // there's nothing bundled to fall back to there.
+        try {
+          const res = await fetch('/__native/defence-resources.json');
+          const snapshot = toArray(await res.json());
+          if (snapshot.length > 0) {
+            setItems(snapshot);
+            toast.error('Showing built-in resources — could not reach the server.');
+          } else {
+            toast.error('Failed to load defence resources.');
+          }
+        } catch (snapshotErr) {
+          console.error('[KjbDefence] bundled snapshot fallback failed', snapshotErr);
+          toast.error('Failed to load defence resources.');
+        }
       } else {
         toast.error('Failed to load defence resources.');
       }
