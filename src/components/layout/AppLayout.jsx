@@ -15,6 +15,7 @@ import ProgressBar from '@/components/ProgressBar';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 
 import { getBibleData, isBibleCached, initPeriodicCacheRefresh, downloadBibleForOffline, refreshCacheIfDue, CACHE_VERSION } from '@/lib/bibleCache';
+import { prefetchDefenceResources } from '@/lib/defenceCache';
 import { toast } from 'sonner';
 import { useSoftReload } from '@/lib/SoftReloadContext';
 import { getAccessibilityFont, applyAccessibilityFont } from '@/lib/accessibilityFont';
