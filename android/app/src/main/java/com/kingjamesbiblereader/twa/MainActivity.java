@@ -587,7 +587,19 @@ public class MainActivity extends BridgeActivity {
             // with the shared-text/deep-link destination instead.
             webView.loadUrl(target);
         } else {
-            webView.evaluateJavascript("window.location.href = " + org.json.JSONObject.quote(target) + ";", null);
+            // A warm resume (app already running, brought to foreground by
+            // this same intent) -- loadUrl() here too, not
+            // evaluateJavascript("window.location.href = ..."). The JS-
+            // execution route requires a round trip through the page's own
+            // JS engine before the navigation actually starts, during which
+            // Android has already brought the app to the foreground showing
+            // whatever page was on screen before -- a brief, visible flash
+            // of "the app as it was" before the Look Up destination (and its
+            // splash) takes over. loadUrl() is a direct, immediate native
+            // navigation call with no such round trip, shortening that
+            // window. Safe to call here: onNewIntent() runs on the main/UI
+            // thread, same as onCreate() above.
+            webView.loadUrl(target);
         }
     }
 
