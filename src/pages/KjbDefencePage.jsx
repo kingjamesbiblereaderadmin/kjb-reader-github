@@ -141,7 +141,7 @@ export default function KjbDefencePage() {
 
   const categories = useMemo(() => {
     const map = new Map();
-    (items || []).forEach((it) => {
+    toArray(items).forEach((it) => {
       if (!map.has(it.category)) map.set(it.category, []);
       map.get(it.category).push(it);
     });
