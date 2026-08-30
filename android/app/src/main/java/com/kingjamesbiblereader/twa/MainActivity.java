@@ -495,6 +495,39 @@ public class MainActivity extends BridgeActivity {
             hidden.getSettings().setJavaScriptEnabled(true);
             hidden.getSettings().setDomStorageEnabled(true); // required for localStorage access
             hidden.setWebViewClient(new WebViewClient() {
+                // FALLBACK_URL is a virtual domain (see FALLBACK_DOMAIN's own
+                // comment) that only resolves through OfflineCapableWebViewClient's
+                // custom interception -- a plain WebViewClient like this one
+                // has no such handling, so without this override the request
+                // would just fail outright (nothing real to actually connect
+                // to over the network). Only index.html itself needs to be
+                // served: localStorage is available on the page as soon as
+                // its document/origin context exists, independent of
+                // whether any OTHER resource (fonts, images, the JS bundle)
+                // successfully loads afterward -- since this hidden page is
+                // never actually rendered or interacted with, none of those
+                // secondary resources matter here the way they do for the
+                // real bundled-fallback experience.
+                @Override
+                public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                    Uri url = request.getUrl();
+                    if (url != null && FALLBACK_DOMAIN.equals(url.getHost())
+                        && ("/".equals(url.getPath()) || url.getPath() == null)) {
+                        try {
+                            InputStream stream = getAssets().open("public/index.html");
+                            stream = OfflineCapableWebViewClient.injectNativeMarker(stream);
+                            return new WebResourceResponse("text/html", "UTF-8", stream);
+                        } catch (IOException e) {
+                            // Fall through -- onPageFinished below won't fire
+                            // usefully, but the try/catch around the whole
+                            // caller (maybeCarryStateFromColdStart) means this
+                            // just results in the ordinary "new visitor" flow,
+                            // not a crash.
+                        }
+                    }
+                    return super.shouldInterceptRequest(view, request);
+                }
+
                 @Override
                 public void onPageFinished(WebView view, String url) {
                     view.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> {
