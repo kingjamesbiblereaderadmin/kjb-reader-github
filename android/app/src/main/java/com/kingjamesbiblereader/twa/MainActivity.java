@@ -459,24 +459,27 @@ public class MainActivity extends BridgeActivity {
     // Android's WebView actually PERSISTS per-origin storage across app
     // restarts (it's tied to the WebView's on-disk profile, not the process
     // lifetime) -- so FALLBACK_DOMAIN's old data is still sitting there; this
-    // just needs to briefly visit it to read it. Loads FALLBACK_URL FIRST
-    // (instead of letting Capacitor's already-queued live-site load
-    // proceed), and once that brief load finishes (see onPageFinished's
-    // pendingColdStartCarry check below), reads ITS storage and navigates to
-    // the real site with it carried across -- the exact same mechanism
-    // reconnectPreservingState() uses, just triggered from a different
-    // starting point. Deliberately does NOT show any native loading overlay
-    // during this brief transition (an earlier version of this did, and it
-    // repeatedly rendered corrupted/truncated text on-device across several
-    // fix attempts) -- the bundled fallback page's own web splash (and then
-    // the real site's, once we land there) already provides loading
-    // feedback, and both will show the same "WELCOME BACK" message since the
-    // carried state makes the real site correctly recognize a returning
-    // visitor, so the transition should read as one continuous splash rather
-    // than a jarring swap. Runs at most ONCE per fallback use (the persisted
-    // flag is cleared immediately before triggering) -- every launch after
-    // that is a completely ordinary live-site load, identical to any other
-    // returning user.
+    // just needs to briefly read it. Uses a SEPARATE, never-attached,
+    // never-shown WebView purely to load FALLBACK_URL and read its storage
+    // in the background -- the same disposable-WebView pattern PrintBridge
+    // below already uses for HTML printing. An earlier version of this
+    // navigated the MAIN, VISIBLE WebView to FALLBACK_URL and back instead,
+    // which worked but was visibly noticeable (a brief but real "the app
+    // just restarted" flash) -- reading through a hidden WebView instead
+    // means the user never sees anything except the eventual real-site
+    // destination; the main WebView's own view is never touched.
+    //
+    // Also explicitly stops the main WebView's own already-queued load
+    // (Capacitor's normal server.url load, started by super.onCreate()
+    // above) while the hidden WebView does its work -- without this, that
+    // queued load could finish FIRST and briefly show the "new visitor"
+    // welcome/download flow before the carried state arrives and corrects
+    // it, since the two WebViews load fully independently of each other.
+    //
+    // Runs at most ONCE per fallback use (the persisted flag is cleared
+    // immediately before triggering) -- every launch after that is a
+    // completely ordinary live-site load, identical to any other returning
+    // user.
     private void maybeCarryStateFromColdStart() {
         try {
             boolean usedFallbackBefore = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -485,8 +488,23 @@ public class MainActivity extends BridgeActivity {
             if (!isNetworkAvailable()) return; // nothing to reconnect to yet -- try again next launch
             getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                 .edit().putBoolean(PREF_USED_FALLBACK, false).apply();
-            pendingColdStartCarry = true;
-            getBridge().getWebView().loadUrl(FALLBACK_URL);
+
+            getBridge().getWebView().stopLoading();
+
+            WebView hidden = new WebView(this);
+            hidden.getSettings().setJavaScriptEnabled(true);
+            hidden.getSettings().setDomStorageEnabled(true); // required for localStorage access
+            hidden.setWebViewClient(new WebViewClient() {
+                @Override
+                public void onPageFinished(WebView view, String url) {
+                    view.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> {
+                        String target = buildCarryTarget(result);
+                        getBridge().getWebView().loadUrl(target);
+                        view.destroy();
+                    });
+                }
+            });
+            hidden.loadUrl(FALLBACK_URL);
         } catch (Exception e) {
             // Non-fatal -- worst case, this one launch shows the "new
             // visitor" flow again, same as always happened before this fix.
