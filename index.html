@@ -322,6 +322,20 @@
       <script>
         (function () {
           try {
+            // If this fresh page load is landing directly on /search --
+            // i.e. a "Look Up" from another app, or a shared/bookmarked
+            // search link -- "Welcome to KJB Reader." doesn't fit; match
+            // the React SplashScreen's own isLookup logic (App.jsx /
+            // SplashScreen.jsx) so this static PRE-React placeholder shows
+            // the same "LOOKING UP..." wording instead. Without this, the
+            // static placeholder (visible for a brief moment before React
+            // mounts and takes over) showed the generic welcome text, then
+            // visibly swapped to "LOOKING UP..." once React's own splash
+            // rendered -- a small but noticeable mismatched flash.
+            var bootText = document.getElementById('kjb-boot-text');
+            if (bootText) {
+              bootText.textContent = (location.pathname === '/search') ? 'Looking up…' : 'Welcome to KJB Reader.';
+            }
             // Use the base64-cached logo from localStorage if available (works
             // offline without SW). Falls back to the cross-origin URL online.
             var logoEl = document.getElementById('kjb-boot-logo');
