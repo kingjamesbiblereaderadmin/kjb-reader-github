@@ -587,6 +587,7 @@ export default function BibleReader() {
     const shareText = generateShareText();
     const hasSel = selectedVerses.size > 0;
     const ref = hasSel ? `${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}` : `${book.shortName} ${pos.chapter}`;
+    if (nativeShare({ title: `${ref} — KJB Reader`, text: shareText })) return;
     try {
       if (navigator.share) return await navigator.share({ title: `${ref} — KJB Reader`, text: shareText });
     } catch (err) { if (err?.name === 'AbortError') return; }
