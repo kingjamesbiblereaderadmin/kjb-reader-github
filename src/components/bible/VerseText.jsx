@@ -6,6 +6,7 @@ import { getVerseHighlight, setVerseHighlight, removeVerseHighlight } from '@/li
 import { HIGHLIGHT_COLORS } from '@/lib/highlightColors';
 import { BIBLE_BOOKS } from '@/lib/bibleData';
 import { formatVerseShare, buildVerseUrl } from '@/lib/formatDailyVerse';
+import { nativeShare } from '@/lib/nativeShare';
 import VersePopover from '@/components/bible/VersePopover';
 import SaveFolderPicker from '@/components/bible/SaveFolderPicker';
 
