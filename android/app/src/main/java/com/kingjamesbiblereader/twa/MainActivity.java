@@ -1082,20 +1082,6 @@ public class MainActivity extends BridgeActivity {
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
 
-            // maybeCarryStateFromColdStart() (in onCreate) loaded
-            // FALLBACK_URL deliberately, to read ITS storage before
-            // navigating to the real site with it carried across. This IS
-            // that load finishing -- read the state and move on to the real
-            // site instead of the normal overlay-hide behavior below. The
-            // overlay deliberately stays up: it'll be hidden by this SAME
-            // callback once the resulting REMOTE_URL load finishes instead
-            // (pendingColdStartCarry will be false by then).
-            if (activity.pendingColdStartCarry) {
-                activity.pendingColdStartCarry = false;
-                activity.carryStateAndNavigate();
-                return;
-            }
-
             // Marks content as ready to show, and hides the "Look Up" overlay
             // (see showLookupOverlay()/hideLookupOverlay() below), if
             // currently up. Network-level failures (offline, DNS, etc.)
