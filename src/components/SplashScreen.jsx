@@ -6,12 +6,8 @@ import { getSplashLogo } from '@/lib/splashLogo';
 const STEP_PAUSE_MS = 1500;
 
 // mode: 'first_load' | 'subsequent'
-export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load', isVisible = true, skipMarkVisited = false, isLookup = false }) {
-  const [currentMessage, setCurrentMessage] = useState(
-    mode === 'subsequent'
-      ? (isLookup ? 'LOOKING UP…' : 'WELCOME BACK TO KJB READER.')
-      : 'WELCOME TO KJB READER.'
-  );
+export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load', isVisible = true, skipMarkVisited = false }) {
+  const [currentMessage, setCurrentMessage] = useState(mode === 'subsequent' ? 'WELCOME BACK TO KJB READER.' : 'WELCOME TO KJB READER.');
   const [isIncognito, setIsIncognito] = useState(false);
   // progress: 0-100 for a determinate bar (during downloads); null = indeterminate
   const [progress, setProgress] = useState(null);
