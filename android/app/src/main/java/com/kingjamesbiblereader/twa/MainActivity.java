@@ -1089,6 +1089,22 @@ public class MainActivity extends BridgeActivity {
                 activity.scheduleReconnectAttempt();
             }
         }
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            super.onPageFinished(view, url);
+            // maybeCarryStateFromColdStart() (in onCreate) loaded
+            // FALLBACK_URL deliberately, to read ITS storage before
+            // navigating to the real site with it carried across. This IS
+            // that load finishing -- read the state and move on to the real
+            // site. No other behavior needed here otherwise (unlike an
+            // earlier version of this file, nothing else in this app
+            // currently depends on onPageFinished).
+            if (activity.pendingColdStartCarry) {
+                activity.pendingColdStartCarry = false;
+                activity.carryStateAndNavigate();
+            }
+        }
     }
 
     // Exposed to JS as window.kjbDownloadBridge (see the addJavascriptInterface
