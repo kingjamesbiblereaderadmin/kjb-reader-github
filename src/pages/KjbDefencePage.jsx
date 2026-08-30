@@ -10,6 +10,7 @@ import DefenceCategoryList from '@/components/defence/DefenceCategoryList';
 import CopyButton from '@/components/defence/CopyButton';
 import { Copy } from 'lucide-react';
 import { toast } from 'sonner';
+import { isNativeAndroid } from '@/lib/isNativeAndroid';
 
 // Normalizes whatever the .list() SDK call (or a cached/localStorage value)
 // hands back into a guaranteed real array, regardless of its exact shape.
