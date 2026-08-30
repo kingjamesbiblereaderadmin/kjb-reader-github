@@ -405,7 +405,7 @@ public class MainActivity extends BridgeActivity {
         // matching destination instead of the normal home load. Takes priority
         // over the offline-fallback load above if both apply (loadUrl just
         // queues the most recent call).
-        handleIncomingIntent(getIntent(), true);
+        handleIncomingIntent(getIntent());
     }
 
     @Override
