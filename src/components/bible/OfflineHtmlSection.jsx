@@ -36,8 +36,20 @@ export default function OfflineHtmlSection() {
     setStatus('Downloading…');
     setProgress(15);
     try {
-      const res = await fetch(legacyDownloadUrl());
-      if (!res.ok) throw new Error(`Server returned ${res.status}`);
+      let res;
+      try {
+        res = await fetch(legacyDownloadUrl());
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+      } catch (fetchErr) {
+        // Live fetch failed (most likely offline) -- fall back to the copy
+        // bundled natively in the APK (see MainActivity.java's
+        // BUNDLED_LEGACY_PATH) rather than giving up. Only meaningful on
+        // native Android; on web there's nothing bundled to fall back to,
+        // so just surface the original error there.
+        if (!isNativeAndroid()) throw fetchErr;
+        res = await fetch('/__native/legacy.html');
+        if (!res.ok) throw fetchErr;
+      }
       setProgress(60);
       const blob = await res.blob();
       setStatus('Saving…');
