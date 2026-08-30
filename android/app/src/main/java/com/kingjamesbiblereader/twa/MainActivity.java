@@ -496,7 +496,6 @@ public class MainActivity extends BridgeActivity {
         // rewrite (and the plain reconnect in onResume/scheduleReconnectAttempt)
         // still has the correct live destination to work from.
         pendingDestination = url;
-        showLookupOverlay();
         if (isInitialLaunch) {
             // Bridge already queued the normal server.url load -- override it
             // with the shared-text/deep-link destination instead.
