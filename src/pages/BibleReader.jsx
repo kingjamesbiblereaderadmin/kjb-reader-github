@@ -1894,10 +1894,14 @@ export default function BibleReader() {
                     <span className="hidden lg:inline truncate">{shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'}</span>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="w-48" onCloseAutoFocus={(e) => e.preventDefault()}>
+                <DropdownMenuContent align="center" className="w-52" onCloseAutoFocus={(e) => e.preventDefault()}>
                   <DropdownMenuItem onClick={handleShareChapter} className="cursor-pointer">
                     <AlignLeft className="w-4 h-4 mr-2" />
-                    Share Text
+                    Share Text (Passage)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleSharePerVerse} className="cursor-pointer">
+                    <List className="w-4 h-4 mr-2" />
+                    Share Text (Per Verse)
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleShareLink} className="cursor-pointer">
                     <Share2 className="w-4 h-4 mr-2" />
@@ -2065,7 +2069,7 @@ export default function BibleReader() {
             <ReadingRangeBar
               label={searchTerm ? (/\d+:\d+/.test(searchTerm) ? `Currently Reading: ${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}` : `Search: "${searchTerm}"`) : gospelMode ? 'Gospel' : lastReadingActive ? (lastReadingPos?.fromRandom ? 'Random Chapter' : 'Daily Verse') : `Reading ${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}`}
               filterMode={filterMode} copyFeedback={copyFeedback} shareFeedback={shareFeedback} shareLinkFeedback={shareLinkFeedback} saveFeedback={saveFeedback}
-              onCopy={handleCopySelected} onCopyPerVerse={handleCopyPerVerse} onShareText={handleShareChapter} onShareLink={handleShareLink} onSave={handleSaveSelected} onPrintPage={() => { if (!nativePrintCurrentPage()) window.print(); }}
+              onCopy={handleCopySelected} onCopyPerVerse={handleCopyPerVerse} onShareText={handleShareChapter} onShareTextPerVerse={handleSharePerVerse} onShareLink={handleShareLink} onSave={handleSaveSelected} onPrintPage={() => { if (!nativePrintCurrentPage()) window.print(); }}
               onPrintContents={() => printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode)}
               onToggleView={() => {
                 setFilterMode(prev => {
