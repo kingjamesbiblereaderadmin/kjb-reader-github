@@ -169,7 +169,7 @@ public class MainActivity extends BridgeActivity {
         WebView webView = getBridge().getWebView();
         String script =
             "(function(){try{" +
-            "return {v:localStorage.getItem('kjb-has-visited-app')||''," +
+            "return {vXXX:localStorage.getItem('kjb-has-visited-app')||''," +
             "p:localStorage.getItem('kjb-position')||''," +
             "h:localStorage.getItem('kjb-verse-highlights')||''," +
             "path:location.pathname+location.search};" +
