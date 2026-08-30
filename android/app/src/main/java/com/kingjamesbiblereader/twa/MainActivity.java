@@ -507,7 +507,7 @@ public class MainActivity extends BridgeActivity {
         handleIncomingIntent(intent, false);
     }
 
-    private void handleIncomingIntent(Intent intent) {
+    private void handleIncomingIntent(Intent intent, boolean isInitialLaunch) {
         if (intent == null) return;
         String action = intent.getAction();
         String url = null;
