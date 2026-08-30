@@ -111,7 +111,7 @@ export default function SpanishGospelActions() {
 
   const handleDownloadTxt = () => {
     triggerDownload(new Blob([buildSpanishGospelText()], { type: 'text/plain;charset=utf-8' }), 'el-evangelio.txt')
-      .then(() => toast.success(isNativeAndroid() ? 'Guardado en tu carpeta de Descargas!' : '¡Archivo descargado correctamente!'))
+      .then(() => toast.success(isNativeAndroid() ? '¡Guardado en tu carpeta de Descargas!' : '¡Archivo descargado correctamente!'))
       .catch((err) => { console.error('Download failed:', err); toast.error('Error al descargar. Inténtalo de nuevo.'); });
   };
 
