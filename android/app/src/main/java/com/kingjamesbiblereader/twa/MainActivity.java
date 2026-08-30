@@ -583,8 +583,8 @@ public class MainActivity extends BridgeActivity {
         // still has the correct live destination to work from.
         pendingDestination = url;
         // Direct, immediate native navigation call -- for BOTH cold start
-        // (isInitialLaunch, overriding Capacitor's already-queued
-        // server.url load) and a warm resume (app already running, this
+        // (overriding Capacitor's already-queued server.url load) and a
+        // warm resume (app already running, this
         // same intent just brought it to the foreground). An earlier
         // version used evaluateJavascript("window.location.href = ...")
         // for the warm case specifically, but that requires a round trip
