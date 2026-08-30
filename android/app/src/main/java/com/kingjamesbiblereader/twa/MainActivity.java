@@ -169,7 +169,17 @@ public class MainActivity extends BridgeActivity {
         WebView webView = getBridge().getWebView();
         String script =
             "(function(){try{" +
-            "return {vXXX:localStorage.getItem('kjb-has-visited-app')||''," +
+            "var EXCLUDE_PREFIXES=['bible_data'];" +
+            "var EXCLUDE_EXACT=['kjb-splash-logo-dataurl','kjb-overrides-cache'];" +
+            "var data={};" +
+            "for(var i=0;i<localStorage.length;i++){" +
+            "var k=localStorage.key(i);if(!k)continue;" +
+            "if(EXCLUDE_EXACT.indexOf(k)!==-1)continue;" +
+            "var skip=false;" +
+            "for(var j=0;j<EXCLUDE_PREFIXES.length;j++){if(k.indexOf(EXCLUDE_PREFIXES[j])===0){skip=true;break;}}" +
+            "if(skip)continue;" +
+            "data[k]=localStorage.getItem(k);" +
+            "}" +
             "p:localStorage.getItem('kjb-position')||''," +
             "h:localStorage.getItem('kjb-verse-highlights')||''," +
             "path:location.pathname+location.search};" +
