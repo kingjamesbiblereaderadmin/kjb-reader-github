@@ -212,7 +212,9 @@ function GospelActions() {
   };
 
   const handleDownloadTxt = () => {
-    triggerDownload(new Blob([buildGospelTextPlain()], { type: 'text/plain;charset=utf-8' }), 'the-gospel.txt').catch((err) => console.error('Download failed:', err));
+    triggerDownload(new Blob([buildGospelTextPlain()], { type: 'text/plain;charset=utf-8' }), 'the-gospel.txt')
+      .then(() => toast.success(isNativeAndroid() ? 'Saved to your Downloads folder!' : 'File downloaded successfully!'))
+      .catch((err) => { console.error('Download failed:', err); toast.error('Download failed. Please try again.'); });
   };
 
   const handleDownloadPdf = () => {
