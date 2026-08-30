@@ -182,6 +182,7 @@ function GospelActions() {
 
   const handleShare = async () => {
     const text = buildGospelTextPlain();
+    if (nativeShare({ title: 'How to be Saved — The Gospel of Jesus Christ', text })) return;
     try {
       if (navigator.share) {
         await navigator.share({ title: 'How to be Saved — The Gospel of Jesus Christ', text });
