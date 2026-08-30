@@ -140,18 +140,29 @@ export default function KjbDefencePage() {
   }, []);
 
   const categories = useMemo(() => {
-    const map = new Map();
-    toArray(items).forEach((it) => {
-      if (!map.has(it.category)) map.set(it.category, []);
-      map.get(it.category).push(it);
-    });
-    const known = CATEGORY_ORDER.filter((c) => map.has(c));
-    const extras = [...map.keys()].filter((c) => !CATEGORY_ORDER.includes(c)).sort();
-    return [...known, ...extras].map((c) => ({
-      name: c,
-      style: CATEGORY_STYLES[c] || DEFAULT_STYLE,
-      items: map.get(c).sort((a, b) => (a.order || 0) - (b.order || 0)),
-    }));
+    // Wrapped in try/catch as a last-resort safety net: toArray() above
+    // handles every response shape we've actually seen, but if some future
+    // change (ours or the SDK's) introduces a shape neither handles, this
+    // still degrades to an empty list instead of crashing the whole page --
+    // matching how load() already recovers from a genuine fetch failure.
+    try {
+      const map = new Map();
+      toArray(items).forEach((it) => {
+        if (!it || !it.category) return;
+        if (!map.has(it.category)) map.set(it.category, []);
+        map.get(it.category).push(it);
+      });
+      const known = CATEGORY_ORDER.filter((c) => map.has(c));
+      const extras = [...map.keys()].filter((c) => !CATEGORY_ORDER.includes(c)).sort();
+      return [...known, ...extras].map((c) => ({
+        name: c,
+        style: CATEGORY_STYLES[c] || DEFAULT_STYLE,
+        items: map.get(c).sort((a, b) => (a.order || 0) - (b.order || 0)),
+      }));
+    } catch (err) {
+      console.error('[KjbDefence] categories computation failed', err);
+      return [];
+    }
   }, [items]);
 
   const filtered = useMemo(() => {
