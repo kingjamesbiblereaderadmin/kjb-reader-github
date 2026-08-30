@@ -118,9 +118,7 @@ public class MainActivity extends BridgeActivity {
         reconnectHandler.postDelayed(() -> {
             if (!usingOfflineFallback) return; // already recovered another way
             if (isNetworkAvailable()) {
-                usingOfflineFallback = false;
-                reconnectAttempts = 0;
-                getBridge().getWebView().loadUrl(REMOTE_URL);
+                reconnectPreservingState();
                 // If this load itself fails, onReceivedError sets
                 // usingOfflineFallback back to true and this whole retry
                 // sequence starts over from attempt 0.
@@ -128,6 +126,63 @@ public class MainActivity extends BridgeActivity {
                 scheduleReconnectAttempt();
             }
         }, delay);
+    }
+
+    // Carries a couple of small, text-only pieces of state across the
+    // reconnect from the bundled offline snapshot (FALLBACK_DOMAIN) back to
+    // the real site (REMOTE_URL). Browser storage (localStorage) is strictly
+    // per-origin -- anything saved while showing the bundled copy is
+    // completely invisible once the app reloads the real site, which
+    // otherwise looks EXACTLY like a brand-new install even to a user who's
+    // been using the app for a while: it re-triggers the full "first visit"
+    // download/welcome flow and the '/' -> '/landing' redirect (see App.jsx's
+    // splashMode / "first-time visitors" logic, both keyed off
+    // localStorage['kjb-has-visited-app']).
+    //
+    // Only 'kjb-has-visited-app' (a bare "true") and 'kjb-position' (a small
+    // JSON object -- current book/chapter/verse) are carried; the actual
+    // Bible text cache itself is too large to practically pass this way (it's
+    // several MB, well past what's sane to embed in a URL), so a quiet
+    // re-fetch of that specific data is still an accepted, unavoidable cost
+    // of the origin switch -- what this fixes is the jarring PART: dumping an
+    // already-returning user back on the marketing landing page and the full
+    // dramatic "first load" download sequence, instead of just quietly
+    // re-fetching in the background while they're already looking at their
+    // actual reading position.
+    private void reconnectPreservingState() {
+        usingOfflineFallback = false;
+        reconnectAttempts = 0;
+        reconnectHandler.removeCallbacksAndMessages(null);
+        WebView webView = getBridge().getWebView();
+        String script =
+            "(function(){try{" +
+            "return {v:localStorage.getItem('kjb-has-visited-app')||'',p:localStorage.getItem('kjb-position')||''};" +
+            "}catch(e){return {};}})();";
+        webView.evaluateJavascript(script, (result) -> {
+            String target = REMOTE_URL;
+            try {
+                // evaluateJavascript's result is the JSON-serialized form of
+                // whatever the script returned -- here a plain object, so
+                // this parses directly (no extra unwrap needed, unlike if the
+                // script itself had returned a JSON.stringify'd STRING).
+                org.json.JSONObject obj = new org.json.JSONObject(result);
+                String v = obj.optString("v", "");
+                String p = obj.optString("p", "");
+                if (!v.isEmpty() || !p.isEmpty()) {
+                    org.json.JSONObject carry = new org.json.JSONObject();
+                    if (!v.isEmpty()) carry.put("kjb-has-visited-app", v);
+                    if (!p.isEmpty()) carry.put("kjb-position", p);
+                    String encoded = Base64.encodeToString(
+                        carry.toString().getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
+                    target = REMOTE_URL + "?__kjb_carry=" + Uri.encode(encoded);
+                }
+            } catch (Exception e) {
+                // Fall back to the plain reload -- losing this state just
+                // means the normal "new visitor" flow shows once, same as
+                // before this fix existed, not a crash or a stuck state.
+            }
+            webView.loadUrl(target);
+        });
     }
     // The last live-site URL handleIncomingIntent() tried to navigate to
     // (search from a share/process-text intent, or an App Link deep link).
