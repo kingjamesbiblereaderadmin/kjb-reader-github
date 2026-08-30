@@ -330,6 +330,24 @@ public class MainActivity extends BridgeActivity {
         if (url == null) return;
 
         WebView webView = getBridge().getWebView();
+
+        // usingOfflineFallback can go stale: it's otherwise only cleared by
+        // onResume() (a background/foreground transition) or the scheduled
+        // retry (scheduleReconnectAttempt -- backs off over ~31s, then gives
+        // up entirely), neither of which necessarily gets a chance to run
+        // before a share/process-text/deep-link intent arrives. Without this,
+        // a single earlier transient failure could leave "Look Up" routing to
+        // the frozen bundled snapshot indefinitely even after the connection
+        // came back, since nothing forced a fresh check at the moment it
+        // actually mattered. Re-verifying real connectivity right here means
+        // routing always reflects the ACTUAL current network state for this
+        // specific action, not a potentially outdated flag from the past.
+        if (usingOfflineFallback && isNetworkAvailable()) {
+            usingOfflineFallback = false;
+            reconnectAttempts = 0;
+            reconnectHandler.removeCallbacksAndMessages(null);
+        }
+
         String target = url;
         if (usingOfflineFallback) {
             // Still showing the bundled snapshot -- rewrite onto
