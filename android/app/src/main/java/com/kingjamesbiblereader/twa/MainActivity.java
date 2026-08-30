@@ -431,6 +431,66 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
+    // "Looking up…" feedback for a share/process-text/deep-link navigation.
+    // The OS splash screen (installSplashScreen() in onCreate) already covers
+    // a COLD start, but Android never re-shows it for a WARM resume (the app
+    // already running, onNewIntent() -- the common case for "Look Up" from
+    // another app) -- without this, that case had no visual feedback
+    // whatsoever between tapping "Look Up" and the search results actually
+    // appearing, however long that took. Shown unconditionally (cold or
+    // warm) for simplicity; harmless to also show briefly during a cold
+    // start, since the OS splash is on top of it regardless. Removed by
+    // OfflineCapableWebViewClient.onPageFinished() above once real content
+    // is ready, or by the same safety-timeout path as contentReady if
+    // something goes wrong.
+    private void showLookupOverlay() {
+        if (lookupOverlay != null) return;
+        boolean isDark = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+            == Configuration.UI_MODE_NIGHT_YES;
+        int bg = isDark ? Color.parseColor("#100E1B") : Color.WHITE;
+        int fg = isDark ? Color.WHITE : Color.parseColor("#1A1A1A");
+
+        FrameLayout overlay = new FrameLayout(this);
+        overlay.setBackgroundColor(bg);
+
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setGravity(Gravity.CENTER);
+
+        ProgressBar spinner = new ProgressBar(this);
+        LinearLayout.LayoutParams spinnerParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        spinnerParams.bottomMargin = dp(16);
+        content.addView(spinner, spinnerParams);
+
+        TextView text = new TextView(this);
+        text.setText("Looking up…");
+        text.setTextColor(fg);
+        text.setTextSize(14);
+        content.addView(text);
+
+        overlay.addView(content, new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER));
+
+        ViewGroup decor = (ViewGroup) getWindow().getDecorView();
+        decor.addView(overlay, new ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        lookupOverlay = overlay;
+    }
+
+    private void hideLookupOverlay() {
+        if (lookupOverlay == null) return;
+        View toRemove = lookupOverlay;
+        lookupOverlay = null;
+        ViewGroup decor = (ViewGroup) getWindow().getDecorView();
+        decor.removeView(toRemove);
+    }
+
+    private int dp(int value) {
+        float density = getResources().getDisplayMetrics().density;
+        return Math.round(value * density);
+    }
+
     private static class OAuthPopupChromeClient extends BridgeWebChromeClient {
 
         private final Bridge bridge;
