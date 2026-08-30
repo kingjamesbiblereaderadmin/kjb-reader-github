@@ -62,6 +62,18 @@ public class MainActivity extends BridgeActivity {
     // the request) both need to agree on the exact same path.
     static final String BUNDLED_BIBLE_PATH = "/__native/pce-bible.txt";
 
+    // Always serves the bundled legacy.html snapshot regardless of
+    // connectivity -- used specifically by OfflineHtmlSection.jsx's
+    // "Download HTML File" button as a fallback when the live
+    // ?download=1 fetch fails (offline, or the site briefly unreachable).
+    // A separate constant from the /functions/legacy interception below:
+    // that one deliberately EXCLUDES ?download=1 so the real network
+    // response can reach DownloadListener for the plain-anchor-tag legacy
+    // page's own download link. This path has no such exclusion to worry
+    // about, since it's never a real URL the backend would ever see --
+    // it's purely a marker JS uses to explicitly ask for the bundled copy.
+    static final String BUNDLED_LEGACY_PATH = "/__native/legacy.html";
+
     private boolean usingOfflineFallback = false;
     // Retries a live-site reload a few times with backoff after falling back
     // to the bundled snapshot, instead of only checking again on onResume().
