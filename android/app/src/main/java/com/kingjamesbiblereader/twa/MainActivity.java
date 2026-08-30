@@ -1063,14 +1063,6 @@ public class MainActivity extends BridgeActivity {
             // of leaving the WebView on its default ugly error page.
             if (request.isForMainFrame() && !activity.usingOfflineFallback) {
                 activity.usingOfflineFallback = true;
-                try {
-                    activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                        .edit().putBoolean(PREF_USED_FALLBACK, true).apply();
-                } catch (Exception e) {
-                    // Non-fatal -- worst case, a future cold start just won't
-                    // know to check for carried state, same as before this
-                    // existed.
-                }
                 String target = FALLBACK_URL;
                 if (activity.pendingDestination != null) {
                     try {
