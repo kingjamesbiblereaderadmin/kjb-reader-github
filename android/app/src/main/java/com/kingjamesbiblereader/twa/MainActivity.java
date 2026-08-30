@@ -173,7 +173,7 @@ public class MainActivity extends BridgeActivity {
         webView.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> webView.loadUrl(buildCarryTarget(result)));
     }
 
-    // The script run against a page to collect what carryStateAndNavigate()
+    // The script run against a page to collect what reconnectPreservingState()
     // (and, differently, maybeCarryStateFromColdStart()'s hidden WebView)
     // needs: the page's own localStorage (minus a few known-large,
     // easily-re-derived caches) plus its current path+query. Shared as one
