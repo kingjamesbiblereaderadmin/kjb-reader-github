@@ -81,6 +81,21 @@ public class MainActivity extends BridgeActivity {
     // it's purely a marker JS uses to explicitly ask for the bundled copy.
     static final String BUNDLED_LEGACY_PATH = "/__native/legacy.html";
 
+    // A static SNAPSHOT of the KJB Defence resources (taken at build time),
+    // used ONLY as a last resort when the live database fetch fails AND
+    // there's no localStorage cache yet either (see KjbDefencePage.jsx's
+    // load()) -- i.e. a genuinely first-ever launch with zero prior
+    // connectivity. This content is a LIVE, admin-editable database (an
+    // admin can add/edit/delete entries at any time), unlike the Bible
+    // text/fonts/images bundled elsewhere in the app, which are effectively
+    // static -- so this snapshot WILL drift out of date the moment an admin
+    // makes a change, same as the offline-fallback site snapshot at
+    // FALLBACK_DOMAIN already does. It exists purely so that very first
+    // offline launch shows SOMETHING instead of an empty page; every
+    // subsequent successful online load refreshes the real (non-bundled)
+    // localStorage cache, which is preferred over this whenever it exists.
+    static final String BUNDLED_DEFENCE_PATH = "/__native/defence-resources.json";
+
     private boolean usingOfflineFallback = false;
     // Retries a live-site reload a few times with backoff after falling back
     // to the bundled snapshot, instead of only checking again on onResume().
