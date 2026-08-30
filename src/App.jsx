@@ -268,12 +268,26 @@ const AuthenticatedApp = () => {
 
   return (
     <>
-      {/* Splash screen ALWAYS renders on first paint to prevent flash — hidden via opacity, not removed */}
+      {/* Splash screen ALWAYS renders on first paint to prevent flash — hidden via opacity, not removed.
+          "subsequent" mode (returning visitor) landing directly on a non-home
+          route — a share/process-text "Look Up" from another app, or any
+          other deep link — skips the splash entirely: unlike "first_load"
+          (which genuinely needs to download Bible data before search can
+          even work, so it always shows), "subsequent" mode is purely a
+          decorative "WELCOME BACK" message with a fixed pause and no
+          functional purpose — showing it on top of the native "Looking
+          up..." overlay just meant an extra, redundant splash before
+          getting to the content the user was already taken here to see. */}
       <SplashScreen
         isFadingOut={fadeSplash}
         onDone={handleSplashDone}
         mode={splashMode}
-        isVisible={showSplash && location.pathname !== '/legacy' && location.pathname !== '/bible.txt'}
+        isVisible={
+          showSplash &&
+          location.pathname !== '/legacy' &&
+          location.pathname !== '/bible.txt' &&
+          !(splashMode === 'subsequent' && location.pathname !== '/')
+        }
         skipMarkVisited={location.pathname === '/landing'}
       />
       <ChunkErrorBoundary>
