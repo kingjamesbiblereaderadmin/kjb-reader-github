@@ -20,7 +20,23 @@ const VERSE_FONTS = [
   { value: 'sans-serif', label: 'Sans' },
   { value: 'monospace', label: 'Mono' },
   { value: 'cursive', label: 'Cursive' },
+  { value: 'comic-sans', label: 'Comic' },
+  { value: 'times', label: 'Times' },
 ];
+
+// Mirrors BibleReader.jsx's getFontFamilyValue() -- the wizard's own preview
+// buttons need the same real CSS font stacks, not the bare setting value
+// (which only happens to double as a valid CSS keyword for the four
+// original generic families; 'comic-sans' and 'times' aren't real CSS
+// generic names and would silently fall back to the browser default font).
+const WIZARD_FONT_FAMILY_VALUES = {
+  serif: "'Merriweather', 'Cormorant Garamond', Georgia, serif",
+  'sans-serif': "'Inter', system-ui, -apple-system, sans-serif",
+  monospace: "'Courier New', monospace",
+  cursive: "'Dancing Script', cursive",
+  'comic-sans': "'Comic Sans MS', 'Comic Sans', 'Chalkboard SE', 'Comic Neue', system-ui, sans-serif",
+  times: "'Times New Roman', Times, serif",
+};
 
 const A11Y_FONTS = [
   { value: 'default', label: 'Off' },
