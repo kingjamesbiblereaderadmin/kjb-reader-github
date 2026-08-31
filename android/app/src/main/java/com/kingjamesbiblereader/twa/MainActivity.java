@@ -586,7 +586,7 @@ public class MainActivity extends BridgeActivity {
                 @Override
                 public void onPageFinished(WebView view, String url) {
                     view.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> {
-                        String target = buildCarryTarget(result);
+                        String target = buildCarryTarget(result, REMOTE_URL, true);
                         mainWebView.loadUrl(target);
                         view.destroy();
                     });
