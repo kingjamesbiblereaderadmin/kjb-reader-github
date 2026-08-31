@@ -7,7 +7,7 @@ export default function InstallBanner({ onInstall, onDismiss }) {
       <div className="max-w-md mx-auto bg-card border border-border rounded-2xl shadow-xl p-4 flex items-center gap-3 pointer-events-auto">
         <div className="flex-1 min-w-0">
           <p className="font-sans text-sm font-semibold text-foreground">Add to Home Screen</p>
-          <p className="font-sans text-xs text-muted-foreground mt-0.5">Install the KJB Reader app for offline access and daily verse notifications.</p>
+          <p className="font-sans text-xs text-muted-foreground mt-0.5">Install the KJB Reader app for offline access and faster loading.</p>
         </div>
         <button
           onClick={onInstall}
