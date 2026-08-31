@@ -247,6 +247,18 @@ const AuthenticatedApp = () => {
   // into the 'subsequent' flow (showing "LOADING → CHECKING → FOUND" instead of
   // "FOUND UPDATES" first). The flag is cleared only when the splash completes.
   const splashMode = React.useMemo(() => {
+    // Native reconnect-carry navigation (MainActivity.java) marks itself via
+    // main.jsx, which stores this flag before React ever mounts -- the user
+    // was already looking at a live app a moment ago, so "Welcome"/"Welcome
+    // back" doesn't fit. SplashScreen shows a distinct "Reconnecting..."
+    // message for this mode instead, matching the pre-React placeholder in
+    // index.html for the same navigation.
+    try {
+      if (sessionStorage.getItem('kjb-reconnect-once') === 'true') {
+        sessionStorage.removeItem('kjb-reconnect-once');
+        return 'reconnect';
+      }
+    } catch {}
     const homeUpdate = sessionStorage.getItem('kjb-splash-home-update') === 'true';
     const hasVisited = localStorage.getItem('kjb-has-visited-app');
 
