@@ -21,6 +21,7 @@ import { getAutoRotate, setAutoRotate as persistAutoRotate } from '@/lib/autoRot
 import { detectIncognito } from '@/lib/incognito';
 import { getLiveWorkerVersion, getDeployedWorkerVersion } from '@/lib/liveWorkerVersion';
 import { isMobileDevice } from '@/lib/isMobileDevice';
+import { isNativeAndroid } from '@/lib/isNativeAndroid';
 
 const A11Y_FONTS = [
   { value: 'dyslexic', label: 'OpenDyslexic', desc: 'Designed for readers with dyslexia', preview: "'OpenDyslexic', 'Comic Sans MS', sans-serif" },
