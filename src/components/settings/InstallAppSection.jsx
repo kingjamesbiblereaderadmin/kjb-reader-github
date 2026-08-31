@@ -94,7 +94,7 @@ export default function InstallAppSection({ expanded, isIncognito }) {
       >
         <div className="flex flex-col gap-1">
           <h2 className="font-serif text-lg font-semibold text-foreground">Install App</h2>
-          <p className="font-sans text-xs text-muted-foreground">Add to home screen for offline access</p>
+          <p className="font-sans text-xs text-muted-foreground">Offline access and faster loading</p>
         </div>
       </button>
       {expanded && (
