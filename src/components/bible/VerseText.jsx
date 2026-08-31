@@ -10,7 +10,7 @@ import { nativeShare } from '@/lib/nativeShare';
 import VersePopover from '@/components/bible/VersePopover';
 import SaveFolderPicker from '@/components/bible/SaveFolderPicker';
 
-export default function VerseText({ verse, highlight = false, id, bookName, abbr, chapter, isFirstVerse = false, paragraphMode = false, selectMode = false, highlightMode = false, activeHighlightColor = null, isSelected = false, onSelect, onActivateSelect, totalVerses = 0, colophon = null, subscript = null, isCursive = false, fontFamilyValue = null, zoomLevel = 100, hasSubscript = false, searchTerm = null, dropCap = false, columnMode = false, onVerseTap = null }) {
+export default function VerseText({ verse, highlight = false, id, bookName, abbr, chapter, isFirstVerse = false, paragraphMode = false, selectMode = false, highlightMode = false, activeHighlightColor = null, isSelected = false, onSelect, onActivateSelect, totalVerses = 0, colophon = null, subscript = null, isCursive = false, fontFamilyValue = null, zoomLevel = 100, hasSubscript = false, searchTerm = null, dropCap = false, columnMode = false, onVerseTap = null, isDirectJump = false }) {
   const bookEntry = BIBLE_BOOKS.find(b => b.abbr === abbr);
   const shortBookName = bookEntry ? bookEntry.shortName : bookName;
   const [selected, setSelected] = useState(false);
