@@ -566,7 +566,7 @@ export default function LandingSetupWizard() {
               </Link>
 
               <Link
-                to="/spanish"
+                to="/espanol"
                 className="flex items-center gap-2.5 p-3 rounded-xl bg-secondary/40 border border-border hover:border-accent/40 transition-all group"
               >
                 <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-white shadow-sm bg-gradient-to-br from-sky-500 to-blue-600">
