@@ -334,6 +334,12 @@
             // rendered -- a small but noticeable mismatched flash.
             var bootText = document.getElementById('kjb-boot-text');
             if (bootText) {
+              var hasVisited = localStorage.getItem('kjb-has-visited-app') === 'true';
+              bootText.textContent = (location.pathname === '/search')
+                ? 'Looking up\u2026'
+                : (hasVisited ? 'Welcome back to KJB Reader.' : 'Welcome to KJB Reader.');
+            }
+            if (bootText) {
               bootText.textContent = (location.pathname === '/search') ? 'Looking up…' : 'Welcome to KJB Reader.';
             }
             // Use the base64-cached logo from localStorage if available (works
