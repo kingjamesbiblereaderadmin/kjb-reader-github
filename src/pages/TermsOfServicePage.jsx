@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, ArrowLeft } from 'lucide-react';
 
-const LAST_UPDATED = 'August 15th, 2026';
+const LAST_UPDATED = 'September 1st, 2026';
 
 function AIDisclaimer() {
   return (
