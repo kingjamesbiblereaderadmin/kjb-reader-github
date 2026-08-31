@@ -476,7 +476,7 @@ export default function AppLayout() {
                 </span>
                 <Switch checked={autoRotate} onCheckedChange={toggleAutoRotate} />
               </div>
-              <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-4 grid grid-cols-[repeat(auto-fit,minmax(9.5rem,1fr))] gap-2.5">
+              <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 pt-4 pb-10 grid grid-cols-[repeat(auto-fit,minmax(9.5rem,1fr))] gap-2.5">
                 {NAV_ITEMS.map(item => {
                   const Icon = item.icon;
                   const active = item.path === '/' ? pathname === '/' : pathname === item.path;
