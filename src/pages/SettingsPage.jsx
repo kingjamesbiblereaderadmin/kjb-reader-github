@@ -961,10 +961,8 @@ export default function SettingsPage() {
             <div className="flex gap-3 pt-2">
               <button
                 onClick={async () => {
-                  if (confirm('Reset all settings to default? This cannot be undone. (Your daily verse background image is kept.)')) {
-                    // Reset all localStorage settings — but KEEP the custom
-                    // daily-verse background image (kjb-daily-verse-bg), since the
-                    // user's uploaded daily verse image should survive a reset.
+                  if (confirm('Reset all settings to default? This cannot be undone.')) {
+                    // Reset all localStorage settings.
                     localStorage.removeItem('kjb-verse-text-color');
                     localStorage.removeItem('kjb-verse-text-opacity');
                     localStorage.removeItem('kjb-verse-font-family');
@@ -972,6 +970,7 @@ export default function SettingsPage() {
                     localStorage.removeItem('kjb-verse-panel-visible');
                     localStorage.removeItem('kjb-zoom');
                     localStorage.removeItem('kjb-notif-image');
+                    localStorage.removeItem('kjb-daily-verse-bg');
                     localStorage.removeItem('kjb-daily-verse-cache');
 localStorage.removeItem('kjb-daily-verse-cache-v16');
 localStorage.removeItem('kjb-daily-verse-cache-v17');
