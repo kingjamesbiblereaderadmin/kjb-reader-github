@@ -8,8 +8,10 @@ const STEP_PAUSE_MS = 1500;
 // mode: 'first_load' | 'subsequent'
 export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load', isVisible = true, skipMarkVisited = false, isLookup = false }) {
   const [currentMessage, setCurrentMessage] = useState(
-    mode === 'subsequent'
-      ? (isLookup ? 'LOOKING UP…' : 'WELCOME BACK TO KJB READER.')
+    mode === 'reconnect'
+      ? 'RECONNECTING\u2026'
+      : mode === 'subsequent'
+      ? (isLookup ? 'LOOKING UP\u2026' : 'WELCOME BACK TO KJB READER.')
       : 'WELCOME TO KJB READER.'
   );
   const [isIncognito, setIsIncognito] = useState(false);
