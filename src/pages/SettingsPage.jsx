@@ -916,10 +916,6 @@ export default function SettingsPage() {
                 </div>
               )}
               <div className="flex justify-between items-center font-sans text-sm gap-4">
-                <span className="text-muted-foreground shrink-0">Daily Verse Panel</span>
-                <span className="text-foreground font-medium text-right">Customisable</span>
-              </div>
-              <div className="flex justify-between items-center font-sans text-sm gap-4">
                 <span className="text-muted-foreground shrink-0">Theme</span>
                 <span className="text-foreground font-medium text-right">
                   {mode === 'auto' ? '🕐 Auto' :
