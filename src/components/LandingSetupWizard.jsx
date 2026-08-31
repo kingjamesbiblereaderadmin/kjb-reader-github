@@ -459,7 +459,7 @@ export default function LandingSetupWizard() {
             </div>
 
             <p className="font-sans text-xs font-medium text-foreground mb-2">Reading Font</p>
-            <div className="grid grid-cols-4 gap-1.5 max-w-xs mx-auto mb-4">
+            <div className="grid grid-cols-3 gap-1.5 max-w-xs mx-auto mb-4">
               {VERSE_FONTS.map(font => {
                 const isActive = a11yFont !== 'default' ? false : readerFontFamily === font.value;
                 const isDisabled = a11yFont !== 'default';
@@ -473,7 +473,7 @@ export default function LandingSetupWizard() {
                       isActive ? 'bg-primary text-primary-foreground border-primary shadow-md scale-[1.02]'
                       : 'bg-card text-foreground border-border hover:border-accent'
                     } ${isDisabled ? 'opacity-40 pointer-events-none' : ''}`}
-                    style={{ fontFamily: font.value }}
+                    style={{ fontFamily: WIZARD_FONT_FAMILY_VALUES[font.value] }}
                   >
                     {font.label}
                   </button>
