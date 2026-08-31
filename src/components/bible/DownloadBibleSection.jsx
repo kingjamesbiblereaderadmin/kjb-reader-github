@@ -19,8 +19,17 @@ function Toggle({ active, onClick, icon: Icon, label }) {
   );
 }
 
-// Rough estimated output size per format (whole KJB ~4.2M chars)
-const SIZE_ESTIMATES = { pdf: '~6 MB', docx: '~5 MB', rtf: '~7 MB', txt: '~4.5 MB' };
+// Rough estimated output size per format, for the WHOLE KJB (~4.2M chars).
+// OT/NT are scaled from this by their share of KJV word count (OT ~77%, NT ~23%),
+// so e.g. NT txt lands at ~1 MB, matching the actual generated file size.
+const BASE_SIZE_MB = { pdf: 6, docx: 5, rtf: 7, txt: 4.5 };
+const SCOPE_SIZE_RATIO = { whole: 1, old: 0.77, new: 0.23 };
+
+function formatSizeEstimate(format, scope) {
+  const mb = BASE_SIZE_MB[format] * SCOPE_SIZE_RATIO[scope];
+  const rounded = mb < 2 ? Math.round(mb * 10) / 10 : Math.round(mb * 2) / 2;
+  return `~${rounded} MB`;
+}
 
 export default function DownloadBibleSection() {
   const [scope, setScope] = useState('whole');
@@ -149,7 +158,7 @@ export default function DownloadBibleSection() {
       >
         {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
         {busy ? 'Downloading…' : `Download Bible (${format === 'docx' ? 'Word' : format.toUpperCase()})`}{/* RTF/PDF/TXT show as-is */}
-        {!busy && <span className="opacity-70 text-xs font-normal">· {SIZE_ESTIMATES[format]}</span>}
+        {!busy && <span className="opacity-70 text-xs font-normal">· {formatSizeEstimate(format, scope)}</span>}
       </button>
 
       {busy && (
