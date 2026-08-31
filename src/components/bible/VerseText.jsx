@@ -345,10 +345,10 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
                       className="w-5 h-5 rounded-full border-2 border-border shadow-sm"
                       style={{ backgroundColor: color.color }}
                     />
-                    <span className={`font-sans text-sm ${highlightColor === color.name ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
+                    <span className={`font-sans text-sm ${(persistedColor || highlightColor) === color.name ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
                       {color.label}
                     </span>
-                    {highlightColor === color.name && showHighlight && (
+                    {(persistedColor || highlightColor) === color.name && showHighlight && (
                       <span className="ml-auto text-xs text-primary font-medium">Active</span>
                     )}
                   </button>
