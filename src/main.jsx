@@ -90,6 +90,19 @@ if (!rootElement) {
       const cleanUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '') + window.location.hash;
       window.history.replaceState({}, document.title, cleanUrl);
     }
+    // Same origin-switch navigation as above, but its own flag (present
+    // even on a carry with no actual localStorage data to restore, or
+    // handled separately from the try/catch above so a parse failure there
+    // can't also swallow this). Recorded to sessionStorage -- read once by
+    // App.jsx's initial showSplash state -- since by the time App.jsx's
+    // first render runs, the query param itself may already be gone (either
+    // stripped above, or never present if this device hit only this flag).
+    if (params.get('__kjb_skip_splash') === '1') {
+      try { sessionStorage.setItem('kjb-skip-splash-once', 'true'); } catch {}
+      params.delete('__kjb_skip_splash');
+      const cleanUrl2 = window.location.pathname + (params.toString() ? '?' + params.toString() : '') + window.location.hash;
+      window.history.replaceState({}, document.title, cleanUrl2);
+    }
   } catch (e) {
     console.warn('[KJB] Failed to restore carried state:', e);
   }
