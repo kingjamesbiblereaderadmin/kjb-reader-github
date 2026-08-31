@@ -896,23 +896,25 @@ export default function SettingsPage() {
                   )}
                 </span>
               </div>
-              <div className="flex justify-between items-center font-sans text-sm gap-4">
-                <span className="text-muted-foreground shrink-0">PWA Status</span>
-                <span className="text-foreground font-medium text-right flex items-center gap-1">
-                  {(() => {
-                    try {
-                      const dmFullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
-                      const dmStandalone = window.matchMedia('(display-mode: standalone)').matches;
-                      const dmMinimal = window.matchMedia('(display-mode: minimal-ui)').matches;
-                      const dmOverlay = window.matchMedia('(display-mode: window-controls-overlay)').matches;
-                      if (dmFullscreen || dmStandalone || dmMinimal || dmOverlay || navigator.standalone === true) {
-                        return <><CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Installed</>;
-                      }
-                    } catch {}
-                    return <><Smartphone className="w-3.5 h-3.5 text-muted-foreground" /> Browser</>;
-                  })()}
-                </span>
-              </div>
+              {!isNativeAndroid() && (
+                <div className="flex justify-between items-center font-sans text-sm gap-4">
+                  <span className="text-muted-foreground shrink-0">PWA Status</span>
+                  <span className="text-foreground font-medium text-right flex items-center gap-1">
+                    {(() => {
+                      try {
+                        const dmFullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
+                        const dmStandalone = window.matchMedia('(display-mode: standalone)').matches;
+                        const dmMinimal = window.matchMedia('(display-mode: minimal-ui)').matches;
+                        const dmOverlay = window.matchMedia('(display-mode: window-controls-overlay)').matches;
+                        if (dmFullscreen || dmStandalone || dmMinimal || dmOverlay || navigator.standalone === true) {
+                          return <><CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Installed</>;
+                        }
+                      } catch {}
+                      return <><Smartphone className="w-3.5 h-3.5 text-muted-foreground" /> Browser</>;
+                    })()}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between items-center font-sans text-sm gap-4">
                 <span className="text-muted-foreground shrink-0">Daily Verse Panel</span>
                 <span className="text-foreground font-medium text-right">Customisable</span>
