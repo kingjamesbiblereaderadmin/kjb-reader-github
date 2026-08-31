@@ -182,10 +182,22 @@ public class MainActivity extends BridgeActivity {
     // easily-re-derived caches) plus its current path+query. Shared as one
     // constant so both call sites -- reading from two DIFFERENT WebView
     // instances -- stay in exact agreement on what "carry" means.
+    // PER_KEY_MAX_CHARS skips any SINGLE oversized value (custom background /
+    // notification images and daily-verse-cache entries are stored as base64
+    // data URLs and can easily run to hundreds of KB or more) rather than
+    // letting one large key sink the ENTIRE carry via MAX_CARRY_BYTES below.
+    // Before this, a user with e.g. a custom background image would silently
+    // lose everything on a reconnect/fallback -- highlights, saved verses,
+    // every setting -- because the one oversized image pushed the total
+    // payload over the cap and buildCarryTarget's overflow branch drops the
+    // WHOLE thing, not just the offending key. Small, high-value data
+    // (highlights, settings, saved verses, reading position) now always
+    // survives even when a large image is present and gets left behind.
     private static final String CARRY_READ_SCRIPT =
         "(function(){try{" +
         "var EXCLUDE_PREFIXES=['bible_data'];" +
         "var EXCLUDE_EXACT=['kjb-splash-logo-dataurl','kjb-overrides-cache'];" +
+        "var PER_KEY_MAX_CHARS=50000;" +
         "var data={};" +
         "for(var i=0;i<localStorage.length;i++){" +
         "var k=localStorage.key(i);if(!k)continue;" +
@@ -193,7 +205,9 @@ public class MainActivity extends BridgeActivity {
         "var skip=false;" +
         "for(var j=0;j<EXCLUDE_PREFIXES.length;j++){if(k.indexOf(EXCLUDE_PREFIXES[j])===0){skip=true;break;}}" +
         "if(skip)continue;" +
-        "data[k]=localStorage.getItem(k);" +
+        "var v=localStorage.getItem(k);" +
+        "if(v&&v.length>PER_KEY_MAX_CHARS)continue;" +
+        "data[k]=v;" +
         "}" +
         "return {data:data,path:location.pathname+location.search};" +
         "}catch(e){return {};}})();";
