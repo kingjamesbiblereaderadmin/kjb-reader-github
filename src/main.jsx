@@ -94,12 +94,12 @@ if (!rootElement) {
     // even on a carry with no actual localStorage data to restore, or
     // handled separately from the try/catch above so a parse failure there
     // can't also swallow this). Recorded to sessionStorage -- read once by
-    // App.jsx's initial showSplash state -- since by the time App.jsx's
+    // App.jsx's splashMode determination -- since by the time App.jsx's
     // first render runs, the query param itself may already be gone (either
     // stripped above, or never present if this device hit only this flag).
-    if (params.get('__kjb_skip_splash') === '1') {
-      try { sessionStorage.setItem('kjb-skip-splash-once', 'true'); } catch {}
-      params.delete('__kjb_skip_splash');
+    if (params.get('__kjb_reconnect') === '1') {
+      try { sessionStorage.setItem('kjb-reconnect-once', 'true'); } catch {}
+      params.delete('__kjb_reconnect');
       const cleanUrl2 = window.location.pathname + (params.toString() ? '?' + params.toString() : '') + window.location.hash;
       window.history.replaceState({}, document.title, cleanUrl2);
     }
