@@ -335,7 +335,10 @@
             var bootText = document.getElementById('kjb-boot-text');
             if (bootText) {
               var hasVisited = localStorage.getItem('kjb-has-visited-app') === 'true';
-              bootText.textContent = (location.pathname === '/search')
+              var isReconnect = new URLSearchParams(location.search).get('__kjb_reconnect') === '1';
+              bootText.textContent = isReconnect
+                ? 'Reconnecting\u2026'
+                : (location.pathname === '/search')
                 ? 'Looking up\u2026'
                 : (hasVisited ? 'Welcome back to KJB Reader.' : 'Welcome to KJB Reader.');
             }
