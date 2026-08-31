@@ -104,18 +104,21 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     // The verse number always stays clear (kjb-dropcap-num is transparent in CSS).
     // `highlight` is a broad "this verse is relevant to the current
     // navigation" flag -- true both for a genuine direct verse jump (e.g. a
-    // cross-reference link) AND for a full-chapter search view where THIS
-    // verse contains a match somewhere. In the second case, the match is
-    // often NOT the first word -- but this flag doesn't distinguish that, so
-    // the drop cap's own tint was applying to verse 1 any time it was part of
-    // a search-matched chapter, even when "queen"/"prove"/etc. appeared later
-    // in the verse, nowhere near the actual drop-cap letter. Only trust
-    // `highlight` for the drop cap specifically when there's no active search
-    // term at all (a genuine direct-jump case), or when the drop cap's own
-    // first letter is ACTUALLY inside the <mark> span renderVerseText just
-    // wrapped around a real match -- i.e. the drop cap itself is the match.
+    // cross-reference link, or a specific search RESULT you paged to) AND for
+    // a full-chapter search view where THIS verse merely contains a match
+    // somewhere. In the second case, the match is often NOT the first word --
+    // but `highlight` alone doesn't distinguish that, so the drop cap's tint
+    // was either applying too broadly (any match anywhere in the chapter) or,
+    // after tightening it to `dropCapIsActualMatch`, not applying at all to a
+    // genuine single-verse search-result jump when the matched term wasn't
+    // the verse's first word (e.g. paging to a specific result highlights the
+    // whole verse, but the drop cap stayed untinted because `searchTerm` was
+    // still set). `isDirectJump` disambiguates: BibleReader passes it true
+    // only when THIS verse is the actual `highlightVerse` target (a real
+    // jump), not just a member of the broader `highlightedVerses` set used
+    // for chapter-wide search scanning.
     const dropCapIsActualMatch = /^(?:<[^>]+>|\s)*<mark\b/.test(html);
-    const needsOwnTint = showHighlight || (highlight && (!searchTerm || dropCapIsActualMatch));
+    const needsOwnTint = showHighlight || (highlight && (isDirectJump || !searchTerm || dropCapIsActualMatch));
     const dropRaw = needsOwnTint
       ? highlightColors.find(c => c.name === (persistedColor || highlightColor))?.color
       : null;
