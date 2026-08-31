@@ -227,13 +227,14 @@ public class MainActivity extends BridgeActivity {
             }
             // The user was already looking at a live, loaded app a moment
             // ago (this is a same-session reconnect, not a fresh cold
-            // start) -- showing the full "Welcome" / "Welcome back" splash
-            // flourish here would be a jarring, unearned restart-feeling
-            // flash on top of the page load this carry-over already
-            // requires. Tell the JS side (see main.jsx / App.jsx) to skip
-            // rendering the splash entirely for this one navigation.
+            // start) -- the full "Welcome"/"Welcome back" wording doesn't
+            // fit here. Tell the JS side (see main.jsx / App.jsx /
+            // SplashScreen.jsx) to show a distinct "Reconnecting..." splash
+            // instead for this one navigation -- the splash itself still
+            // shows (the page reload this origin-switch requires is real),
+            // just with wording that matches what's actually happening.
             String skipSep = target.contains("?") ? "&" : "?";
-            target = target + skipSep + "__kjb_skip_splash=1";
+            target = target + skipSep + "__kjb_reconnect=1";
         } catch (Exception e) {
             // Fall back to the plain REMOTE_URL -- losing this state just
             // means the normal "new visitor" flow shows once, same as before
