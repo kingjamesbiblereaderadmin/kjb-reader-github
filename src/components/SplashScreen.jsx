@@ -119,6 +119,21 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
     const hardTimeout = setTimeout(finishOnce, 90000);
 
     (async () => {
+      // === RECONNECT FLOW ===
+      // Short-circuits entirely before incognito detection, offline
+      // download, or install-prompt timing -- none of that applies here.
+      // The user already has a fully loaded, visited app; this is purely a
+      // brief "give the origin-switch page load a moment" beat with honest
+      // wording, then hand straight back to the app.
+      if (mode === 'reconnect') {
+        setStep('RECONNECTING\u2026');
+        window.dispatchEvent(new CustomEvent('kjb-progress', { detail: { message: 'RECONNECTING\u2026', status: 'loading' } }));
+        await pause(STEP_PAUSE_MS);
+        window.dispatchEvent(new Event('kjb-progress-clear'));
+        finishOnce();
+        return;
+      }
+
       // Wait for incognito detection to complete before starting splash flow
       const detectedIncognito = await detectIncognito();
       setIsIncognito(detectedIncognito);
