@@ -98,7 +98,12 @@ export default function OfflineHtmlSection() {
           </div>
         </div>
       )}
-      {!busy && status === 'Done!' && (
+      {!busy && status === 'Done!' && usedFallback && (
+        <p className="font-sans text-sm text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+          <AlertCircle className="w-4 h-4" /> No connection — saved a short notice page instead. Reconnect and try again to get the actual Bible file.
+        </p>
+      )}
+      {!busy && status === 'Done!' && !usedFallback && (
         <p className="font-sans text-sm text-green-600 dark:text-green-400 flex items-center gap-1.5">
           <CheckCircle2 className="w-4 h-4" /> {isNativeAndroid() ? 'Saved to your Downloads folder!' : 'File downloaded successfully!'}
         </p>
