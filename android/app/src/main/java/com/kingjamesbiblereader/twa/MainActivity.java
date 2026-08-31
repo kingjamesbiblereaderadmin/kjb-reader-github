@@ -54,6 +54,9 @@ public class MainActivity extends BridgeActivity {
     // less-safe file:// scheme).
     private static final String FALLBACK_DOMAIN = "appassets.androidplatform.net";
     private static final String FALLBACK_URL = "https://" + FALLBACK_DOMAIN + "/";
+    // Bare origin (no trailing slash), for composing a carried-path target
+    // the same way REMOTE_URL is used below -- see buildCarryTarget().
+    private static final String FALLBACK_ORIGIN = "https://" + FALLBACK_DOMAIN;
     private static final String REMOTE_URL = "https://kingjamesbiblereader.com";
 
     // Path bibleCache.js requests (only on native Android) instead of the
