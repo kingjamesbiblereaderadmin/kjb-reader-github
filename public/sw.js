@@ -386,36 +386,3 @@ self.addEventListener('message', (event) => {
     }
   }
 });
-
-// Handle notification taps - focus an existing window (and navigate it) or open a
-// new one. Required on Android/Samsung where notifications are shown via the SW.
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-
-  const data = event.notification.data || {};
-  const targetUrl = data.url || '/';
-
-  event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Reuse an open window if one exists - focus it and navigate to the verse.
-      for (const client of clientList) {
-        if ('focus' in client) {
-          const focused = client.focus();
-          if ('navigate' in client) {
-            try {
-              client.navigate(targetUrl);
-            } catch (err) {
-              console.warn('[SW] notificationclick navigate failed:', err);
-            }
-          }
-          return focused;
-        }
-      }
-      // No window open - open a new one.
-      if (self.clients.openWindow) {
-        return self.clients.openWindow(targetUrl);
-      }
-      return undefined;
-    })
-  );
-});
