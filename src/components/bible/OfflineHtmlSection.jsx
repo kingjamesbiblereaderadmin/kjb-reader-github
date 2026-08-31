@@ -29,33 +29,42 @@ export default function OfflineHtmlSection() {
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
+  const [usedFallback, setUsedFallback] = useState(false);
 
   const handleDownload = async () => {
     setBusy(true);
     setError('');
+    setUsedFallback(false);
     setStatus('Downloading…');
     setProgress(15);
     try {
       let res;
+      let fellBack = false;
       try {
         res = await fetch(legacyDownloadUrl());
         if (!res.ok) throw new Error(`Server returned ${res.status}`);
       } catch (fetchErr) {
         // Live fetch failed (most likely offline) -- fall back to the copy
         // bundled natively in the APK (see MainActivity.java's
-        // BUNDLED_LEGACY_PATH) rather than giving up. Only meaningful on
-        // native Android; on web there's nothing bundled to fall back to,
-        // so just surface the original error there.
+        // BUNDLED_LEGACY_PATH) rather than giving up outright. That bundled
+        // copy is NOT a working offline Bible (it can't be -- the real
+        // download is generated live and would need the Bible text baked
+        // in, which this small fallback doesn't carry) -- it's a short
+        // page explaining that and linking back once the person is online.
+        // Only meaningful on native Android; on web there's nothing bundled
+        // to fall back to, so just surface the original error there.
         if (!isNativeAndroid()) throw fetchErr;
         res = await fetch('/__native/legacy.html');
         if (!res.ok) throw fetchErr;
+        fellBack = true;
       }
       setProgress(60);
       const blob = await res.blob();
       setStatus('Saving…');
       setProgress(90);
-      await triggerDownload(blob, 'kjb-bible.html');
+      await triggerDownload(blob, fellBack ? 'kjb-bible-offline-notice.html' : 'kjb-bible.html');
       setProgress(100);
+      setUsedFallback(fellBack);
       setStatus('Done!');
     } catch (err) {
       console.error('HTML download failed:', err);
