@@ -170,7 +170,7 @@ public class MainActivity extends BridgeActivity {
         reconnectAttempts = 0;
         reconnectHandler.removeCallbacksAndMessages(null);
         WebView webView = getBridge().getWebView();
-        webView.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> webView.loadUrl(buildCarryTarget(result)));
+        webView.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> webView.loadUrl(buildCarryTarget(result, REMOTE_URL, true)));
     }
 
     // The script run against a page to collect what reconnectPreservingState()
@@ -198,20 +198,28 @@ public class MainActivity extends BridgeActivity {
     // Turns a CARRY_READ_SCRIPT result (evaluateJavascript's callback value --
     // the JSON-serialized form of whatever the script returned, a plain
     // object here, so this parses directly with no extra unwrap needed)
-    // into the final REMOTE_URL navigation target, with the collected state
-    // encoded as a query param.
-    private static String buildCarryTarget(String result) {
-        String target = REMOTE_URL;
+    // into a navigation target on the given base origin, with the collected
+    // state encoded as a query param. Used for BOTH directions of the
+    // origin switch -- FALLBACK_DOMAIN -> REMOTE_URL on reconnect (base =
+    // REMOTE_URL), and REMOTE_URL -> FALLBACK_DOMAIN when connectivity is
+    // lost mid-session (base = the fallback target computed in
+    // onReceivedError) -- so real user settings/highlights/saved verses
+    // survive the switch either way instead of the destination origin
+    // starting from a blank localStorage. addReconnectFlag controls whether
+    // the distinct "Reconnecting..." splash wording (see below) applies --
+    // only meaningful for the FALLBACK_DOMAIN -> REMOTE_URL direction.
+    private static String buildCarryTarget(String result, String baseTarget, boolean addReconnectFlag) {
+        String target = baseTarget;
         try {
             org.json.JSONObject obj = new org.json.JSONObject(result);
             org.json.JSONObject data = obj.optJSONObject("data");
             String path = obj.optString("path", "");
             // Only carry the current path if it's a REAL in-app route
-            // (starts with "/"), never FALLBACK_DOMAIN's own root "/" with
+            // (starts with "/"), never the origin's own root "/" with
             // nothing meaningful after it -- in that case the plain
-            // REMOTE_URL home page is exactly right already.
+            // base URL is exactly right already.
             boolean carryPath = path.startsWith("/") && !path.equals("/");
-            String base = carryPath ? (REMOTE_URL + path) : REMOTE_URL;
+            String base = carryPath ? (baseTarget + path) : baseTarget;
             if (data != null && data.length() > 0) {
                 String dataStr = data.toString();
                 if (dataStr.getBytes(StandardCharsets.UTF_8).length <= MAX_CARRY_BYTES) {
