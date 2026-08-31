@@ -185,7 +185,22 @@ const FadeIn = ({ children }) => {
 
 const AuthenticatedApp = () => {
   const location = useLocation();
-  const [showSplash, setShowSplash] = useState(true);
+  // Native reconnect-carry navigation (MainActivity.java) marks itself via
+  // main.jsx, which stores this flag before React ever mounts -- the user
+  // was already looking at a live app a moment ago, so the full splash
+  // flourish would be an unearned extra restart-feeling flash on top of the
+  // page load the origin-switch already requires. Read (and clear) it once;
+  // starting showSplash at false skips SplashScreen's entire flow, matching
+  // the pre-React placeholder in index.html staying hidden for the same nav.
+  const [showSplash, setShowSplash] = useState(() => {
+    try {
+      if (sessionStorage.getItem('kjb-skip-splash-once') === 'true') {
+        sessionStorage.removeItem('kjb-skip-splash-once');
+        return false;
+      }
+    } catch {}
+    return true;
+  });
   const [fadeSplash, setFadeSplash] = useState(false);
   // Captured once at mount (not the live location.pathname) specifically for
   // the "subsequent mode, non-home route" splash-skip check below. Using the
