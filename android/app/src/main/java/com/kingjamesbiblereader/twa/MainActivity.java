@@ -205,12 +205,12 @@ public class MainActivity extends BridgeActivity {
     // state encoded as a query param. Used for BOTH directions of the
     // origin switch -- FALLBACK_DOMAIN -> REMOTE_URL on reconnect (base =
     // REMOTE_URL), and REMOTE_URL -> FALLBACK_DOMAIN when connectivity is
-    // lost mid-session (base = the fallback target computed in
-    // onReceivedError) -- so real user settings/highlights/saved verses
-    // survive the switch either way instead of the destination origin
-    // starting from a blank localStorage. addReconnectFlag controls whether
-    // the distinct "Reconnecting..." splash wording (see below) applies --
-    // only meaningful for the FALLBACK_DOMAIN -> REMOTE_URL direction.
+    // lost mid-session (base = FALLBACK_ORIGIN) -- so real user
+    // settings/highlights/saved verses survive the switch either way
+    // instead of the destination origin starting from a blank
+    // localStorage. addReconnectFlag controls whether the distinct
+    // "Reconnecting..." splash wording (see below) applies -- only
+    // meaningful for the FALLBACK_DOMAIN -> REMOTE_URL direction.
     private static String buildCarryTarget(String result, String baseTarget, boolean addReconnectFlag) {
         String target = baseTarget;
         try {
