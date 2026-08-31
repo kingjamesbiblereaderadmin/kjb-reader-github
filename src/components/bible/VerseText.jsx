@@ -201,7 +201,14 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     url: buildVerseUrl({ abbr, chapter, verse: verse.verse, from: searchTerm ? 'search' : undefined }),
   });
 
-  const highlightBg = highlightColors.find(c => c.name === highlightColor)?.bg;
+  // Always derive the DISPLAYED color from the freshly-read persisted value
+  // (same source showHighlight already uses), never from the local
+  // highlightColor state below — that state is only set when THIS
+  // component's own picker is used, so it goes stale (and silently keeps
+  // rendering whatever color was active at mount, usually yellow) the moment
+  // the color is changed via VerseTapBar or the select-mode bar instead.
+  const displayColor = persistedColor || highlightColor;
+  const highlightBg = highlightColors.find(c => c.name === displayColor)?.bg;
   // In two-column mode, columns sit close together (column-rule divider in the
   // gap) — the highlight's own horizontal padding was pushing its background
   // past the text edge and over that divider line. Use tighter padding there.
