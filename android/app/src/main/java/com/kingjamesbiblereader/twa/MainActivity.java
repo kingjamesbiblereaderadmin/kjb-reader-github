@@ -225,6 +225,15 @@ public class MainActivity extends BridgeActivity {
             } else {
                 target = base;
             }
+            // The user was already looking at a live, loaded app a moment
+            // ago (this is a same-session reconnect, not a fresh cold
+            // start) -- showing the full "Welcome" / "Welcome back" splash
+            // flourish here would be a jarring, unearned restart-feeling
+            // flash on top of the page load this carry-over already
+            // requires. Tell the JS side (see main.jsx / App.jsx) to skip
+            // rendering the splash entirely for this one navigation.
+            String skipSep = target.contains("?") ? "&" : "?";
+            target = target + skipSep + "__kjb_skip_splash=1";
         } catch (Exception e) {
             // Fall back to the plain REMOTE_URL -- losing this state just
             // means the normal "new visitor" flow shows once, same as before
