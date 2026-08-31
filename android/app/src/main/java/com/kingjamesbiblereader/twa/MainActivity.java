@@ -241,11 +241,16 @@ public class MainActivity extends BridgeActivity {
             // instead for this one navigation -- the splash itself still
             // shows (the page reload this origin-switch requires is real),
             // just with wording that matches what's actually happening.
-            String skipSep = target.contains("?") ? "&" : "?";
-            target = target + skipSep + "__kjb_reconnect=1";
+            // Only applies to the FALLBACK_DOMAIN -> REMOTE_URL direction --
+            // when falling BACK to the offline copy the plain first-load
+            // splash is already correct.
+            if (addReconnectFlag) {
+                String skipSep = target.contains("?") ? "&" : "?";
+                target = target + skipSep + "__kjb_reconnect=1";
+            }
         } catch (Exception e) {
-            // Fall back to the plain REMOTE_URL -- losing this state just
-            // means the normal "new visitor" flow shows once, same as before
+            // Fall back to the plain base target -- losing this state just
+            // means the destination starts from defaults, same as before
             // this fix existed, not a crash or a stuck state.
         }
         return target;
