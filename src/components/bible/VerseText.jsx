@@ -117,7 +117,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     const dropCapIsActualMatch = /^(?:<[^>]+>|\s)*<mark\b/.test(html);
     const needsOwnTint = showHighlight || (highlight && (!searchTerm || dropCapIsActualMatch));
     const dropRaw = needsOwnTint
-      ? highlightColors.find(c => c.name === highlightColor)?.color
+      ? highlightColors.find(c => c.name === (persistedColor || highlightColor))?.color
       : null;
     const dropHighlight = dropRaw
       ? (dropRaw.startsWith('#') ? `${dropRaw}99` : `hsl(var(--accent) / 0.6)`)
