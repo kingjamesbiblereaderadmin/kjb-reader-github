@@ -1251,7 +1251,31 @@ public class MainActivity extends BridgeActivity {
                     }
                 }
                 final String finalTarget = target;
-                view.post(() -> view.loadUrl(finalTarget));
+                // If the WebView is currently showing an already-loaded
+                // REMOTE_URL page (a mid-session connectivity drop, not a
+                // fresh cold start with nothing loaded yet), carry its real
+                // localStorage -- settings, highlights, saved verses,
+                // everything -- forward into the fallback origin before
+                // switching, mirroring reconnectPreservingState()'s own
+                // carry in the opposite direction. Without this, the
+                // offline session starts from a blank localStorage (i.e.
+                // defaults), and worse: when connectivity returns,
+                // reconnectPreservingState() would carry those blank
+                // defaults back and overwrite the user's real settings on
+                // REMOTE_URL too. Uses the LIVE page's own current path
+                // (via buildCarryTarget) rather than finalTarget/
+                // pendingDestination -- it reflects where the user actually
+                // was, which pendingDestination only approximates for the
+                // no-live-content case handled in the else branch below.
+                String currentUrl = view.getUrl();
+                if (currentUrl != null && currentUrl.startsWith(REMOTE_URL)) {
+                    view.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> {
+                        String carryTarget = buildCarryTarget(result, FALLBACK_ORIGIN, false);
+                        view.post(() -> view.loadUrl(carryTarget));
+                    });
+                } else {
+                    view.post(() -> view.loadUrl(finalTarget));
+                }
                 activity.scheduleReconnectAttempt();
             }
         }
