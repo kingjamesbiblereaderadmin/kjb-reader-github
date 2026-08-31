@@ -385,17 +385,6 @@
             // injectNativeMarker()).
             var boot = document.getElementById('kjb-boot-splash');
             var isNativeAndroid = !!window.androidBridge;
-            // Native reconnect-carry navigation (MainActivity.java's
-            // reconnectPreservingState/maybeCarryStateFromColdStart) marks
-            // itself with this param so the user -- who was already looking
-            // at a live app a moment ago -- doesn't see the full "Welcome"
-            // splash flourish on top of the page reload the origin-switch
-            // already requires. Leave this placeholder hidden entirely;
-            // main.jsx/App.jsx skip their own splash the same way.
-            var skipSplash = new URLSearchParams(location.search).get('__kjb_skip_splash') === '1';
-            if (skipSplash) {
-              boot.style.display = 'none';
-            } else {
             var isStandalone = !isNativeAndroid && ((window.matchMedia && (
               window.matchMedia('(display-mode: standalone)').matches ||
               window.matchMedia('(display-mode: window-controls-overlay)').matches ||
@@ -405,7 +394,6 @@
               setTimeout(function () { boot.style.opacity = '1'; }, 150);
             } else {
               boot.style.opacity = '1';
-            }
             }
           } catch (e) {
             var fallback = document.getElementById('kjb-boot-splash');
