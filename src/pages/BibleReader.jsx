@@ -2192,6 +2192,7 @@ export default function BibleReader() {
                   subscript={parseInt(v.verse, 10) === 1 ? (chapterSubscript || null) : null}
                   isCursive={fontFamily === 'cursive'} fontFamilyValue={getFontFamilyValue(fontFamily)} zoomLevel={zoomLevel} columnMode={useColumns} dropCap={idx === 0 && parseInt(v.verse, 10) === 1}
                   searchTerm={searchTerm && parseInt(highlightVerse, 10) === parseInt(v.verse, 10) ? searchTerm : null}
+                  isDirectJump={parseInt(highlightVerse, 10) === parseInt(v.verse, 10)}
                   onVerseTap={toggleTappedVerse}
                 />
               </React.Fragment>
