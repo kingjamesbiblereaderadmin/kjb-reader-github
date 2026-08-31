@@ -102,11 +102,8 @@ export default function TermsOfServicePage() {
             The core reading App does not require an account. There is no sign-in, no cloud sync,
             and no remote data storage. All your data — saved verses, reading progress, and
             settings — exists only on the device you are using. You are responsible for managing
-            your own data on your device. If you opt in to web push daily verse notifications, I
-            store your push subscription details and device timezone on my servers so the verse
-            can be delivered at your local 8am — see the Privacy Policy for details. (The optional
-            Discord bot integration, described below, is a separate feature that stores minimal
-            server configuration on my servers.)
+            your own data on your device. (The optional Discord bot integration, described below,
+            is a separate feature that stores minimal server configuration on my servers.)
           </p>
         </Section>
 
