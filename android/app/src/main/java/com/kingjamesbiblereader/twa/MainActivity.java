@@ -1334,6 +1334,7 @@ public class MainActivity extends BridgeActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
+            activity.mainPageEverFinishedLoading = true;
             // maybeCarryStateFromColdStart() hid the main WebView (this one)
             // while a separate hidden WebView recovered state from the old
             // fallback origin, then navigated THIS WebView to the final,
