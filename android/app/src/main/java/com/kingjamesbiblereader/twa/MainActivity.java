@@ -1571,6 +1571,16 @@ public class MainActivity extends BridgeActivity {
             activity.mainPageEverFinishedLoading = true;
             activity.specialIntentHandled = true;
 
+            // Snapshot the real site's state on every successful load -- see
+            // persistStateSnapshot() for why. Skipped for FALLBACK_DOMAIN
+            // itself: that origin's storage is recovered a different way
+            // (maybeCarryStateFromColdStart()'s hidden WebView), and
+            // snapshotting it here would overwrite the real site's own
+            // last-known-good state with the fallback's.
+            if (url != null && url.startsWith(REMOTE_URL)) {
+                activity.persistStateSnapshot(view);
+            }
+
             // maybeCarryStateFromColdStart() hid the main WebView (this one)
             // while a separate hidden WebView recovered state from the old
             // fallback origin, then navigated THIS WebView to the final,
