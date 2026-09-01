@@ -359,9 +359,12 @@ export default function BibleReader() {
     const isFirst = first === 1;
     const isLast = verses.length > 0 && last === parseInt(verses[verses.length - 1].verse, 10);
     const range = formatVerseRange(tappedVerseNums);
+    // tappedVerseObjs[0].heading covers Psalm 119's per-verse acrostic headings
+    // (ALEPH, BETH, ...), which chapterSubscript doesn't carry (it's null for
+    // Ps119) — falls back to it so tapping e.g. v9 alone still shows "BETH".
     return formatVerseShare({
       text: tappedVerseObjs.map(v => v.text).join(' '),
-      subscript: isFirst ? (chapterSubscript || null) : null,
+      subscript: (isFirst ? chapterSubscript : null) || tappedVerseObjs[0]?.heading || null,
       colophon: isLast ? (colophon || null) : null,
       ref: `${book.shortName} ${pos.chapter}:${range}`,
       url: buildVerseUrl({ abbr: pos.abbr, chapter: pos.chapter, verse: first, verseEnd: last > first ? last : undefined }),
