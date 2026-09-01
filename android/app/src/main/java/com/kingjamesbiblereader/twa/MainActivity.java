@@ -120,6 +120,10 @@ public class MainActivity extends BridgeActivity {
     // onNewIntent() fall back to the more forceful loadUrl() (the same one
     // onCreate's own genuine cold-start path uses) in that window instead.
     private volatile boolean mainPageEverFinishedLoading = false;
+    // Set true the moment handleIncomingIntent() actually resolves and acts on
+    // a share/process-text/deep-link destination -- lets the onPageFinished
+    // safety net below know whether it still needs to step in.
+    private volatile boolean specialIntentHandled = false;
     // Retries a live-site reload a few times with backoff after falling back
     // to the bundled snapshot, instead of only checking again on onResume().
     // Without this, a purely TRANSIENT failure right at cold start (a slow
@@ -658,35 +662,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     private void handleIncomingIntent(Intent intent, boolean isInitialLaunch) {
-        if (intent == null) return;
-        String action = intent.getAction();
-        String url = null;
-
-        if (Intent.ACTION_SEND.equals(action)) {
-            // User selected text in another app, tapped Share, and chose
-            // KJB Reader.
-            String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
-            if (sharedText != null && !sharedText.trim().isEmpty()) {
-                url = "https://kingjamesbiblereader.com/search?q=" + Uri.encode(sharedText.trim());
-            }
-        } else if (Intent.ACTION_PROCESS_TEXT.equals(action)) {
-            // User highlighted text in another app and picked "KJB Reader"
-            // directly from the text-selection toolbar/menu (no Share sheet
-            // detour needed).
-            CharSequence processText = intent.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT);
-            if (processText != null && !processText.toString().trim().isEmpty()) {
-                url = "https://kingjamesbiblereader.com/search?q=" + Uri.encode(processText.toString().trim());
-            }
-        } else if (Intent.ACTION_VIEW.equals(action) && intent.getData() != null) {
-            // App Link: user tapped a kingjamesbiblereader.com link (e.g. in
-            // another app or a search result) and it opened directly here
-            // instead of a browser.
-            Uri data = intent.getData();
-            if (data.getHost() != null && data.getHost().endsWith("kingjamesbiblereader.com")) {
-                url = data.toString();
-            }
-        }
-
+        String url = resolveDestinationUrl(intent);
         if (url == null) return;
 
         WebView webView = getBridge().getWebView();
@@ -732,6 +708,7 @@ public class MainActivity extends BridgeActivity {
         // rewrite (and the plain reconnect in onResume/scheduleReconnectAttempt)
         // still has the correct live destination to work from.
         pendingDestination = url;
+        specialIntentHandled = true;
         if (isInitialLaunch) {
             // Bridge already queued the normal server.url load -- override it
             // with the shared-text/deep-link destination instead. loadUrl()
