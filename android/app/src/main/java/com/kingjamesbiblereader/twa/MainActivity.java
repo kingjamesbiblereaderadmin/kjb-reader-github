@@ -1359,23 +1359,35 @@ public class MainActivity extends BridgeActivity {
             boolean isFirstLoad = !activity.mainPageEverFinishedLoading;
             activity.mainPageEverFinishedLoading = true;
 
-            // Safety net: if neither onCreate()'s nor onNewIntent()'s attempt
-            // to route a share/process-text/deep-link intent actually landed
-            // (specialIntentHandled still false) by the time the FIRST page
-            // genuinely finishes loading, force it now. This is the guaranteed
-            // fallback for the killed-process/singleTask redelivery race
-            // (mainPageEverFinishedLoading's own comment) -- whatever exact
-            // timing caused the earlier attempts to miss, the JS context is
-            // now definitely ready, so evaluateJavascript here is reliable.
-            // getIntent() is safe to read fresh here: onNewIntent() always
-            // calls setIntent() before this can fire, so it reflects whichever
-            // intent actually launched/resumed the activity, stale-redelivery
-            // quirk included.
-            if (isFirstLoad && !activity.specialIntentHandled) {
+            // Safety net: on the very first page to actually finish loading,
+            // verify it's really the destination the launching intent asked
+            // for -- not just whether an earlier attempt to redirect it was
+            // MADE (specialIntentHandled tracked that, but a failure here has
+            // been 100% reproducible rather than flaky, which points at
+            // something reliably re-loading the default home page AFTER our
+            // override completes, e.g. Capacitor's own deferred initial-load
+            // logic winning a later point in the race -- not just a timing
+            // fluke onCreate/onNewIntent occasionally lose). Comparing the
+            // page that actually finished against the intended destination
+            // catches that case too: it doesn't matter how many earlier
+            // attempts fired or in what order, only whether the right page is
+            // the one that's actually sitting there once loading settles.
+            // Only ever checked on this first load -- getIntent() keeps
+            // returning the same launch intent for the rest of the session,
+            // so checking again on every later navigation would fight the
+            // user's own subsequent taps (e.g. going Home from the search
+            // results) by repeatedly forcing them back to the original lookup.
+            if (isFirstLoad) {
                 String destination = activity.resolveDestinationUrl(activity.getIntent());
                 if (destination != null) {
-                    activity.handleIncomingIntent(activity.getIntent(), false);
+                    String destinationPath = destination.split("\\?")[0];
+                    boolean landedOnDestination = url != null && url.startsWith(destinationPath);
+                    if (!landedOnDestination) {
+                        activity.pendingDestination = destination;
+                        view.loadUrl(destination);
+                    }
                 }
+                activity.specialIntentHandled = true;
             }
 
             // maybeCarryStateFromColdStart() hid the main WebView (this one)
