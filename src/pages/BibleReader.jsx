@@ -2204,7 +2204,7 @@ export default function BibleReader() {
           </div>
           );
         })()}
-        {!loading && !error && colophon && (
+        {!loading && !error && colophon && (!(filterMode && selectedVerses.size > 0) || (verses.length > 0 && selectedVerses.has(parseInt(verses[verses.length - 1].verse, 10)))) && (
           <div onClick={() => handleSectionClick('colophon')} id="kjb-colophon-anchor" className={`${columnMode ? 'mt-6 mb-4' : 'mt-12 mb-4 border-t border-border pt-6'} text-center transition-colors duration-500 rounded-lg cursor-pointer ${sectionActive('colophon') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`}>
             <p className={`notranslate kjb-colophon text-sm text-muted-foreground leading-relaxed ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}><SubscriptContent text={colophon} searchTerm={sectionActive('colophon') ? searchTerm : null} /></p>
           </div>
