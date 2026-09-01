@@ -889,11 +889,6 @@ Deno.serve(async (req) => {
     }
     const theme = url.searchParams.get('theme') === 'dark' ? 'dark' : 'light';
     const isDark = theme === 'dark';
-    // Set by the native Android app's LegacyReader.jsx wrapper, which already
-    // shows its own "Back to App" button above this embedded iframe -- the
-    // header link below would otherwise be a second, redundant way to do the
-    // same thing. Web has no such wrapper, so it keeps the link.
-    const hideBackLink = url.searchParams.get('native') === '1';
     // Carry the app_id forward on every navigation so the absolute function
     // path keeps resolving correctly.
     const idSuffix = (appId ? '&app_id=' + encodeURIComponent(appId) : '') + (isDark ? '&theme=dark' : '');
@@ -1223,7 +1218,7 @@ Deno.serve(async (req) => {
       '<li>Found a bug? Email <a href="mailto:kingjamesbiblereader@outlook.sg">kingjamesbiblereader@outlook.sg</a>.</li>' +
       '</ul></div>';
 
-    const backLinkHtml = hideBackLink ? '' : '<a href="https://kingjamesbiblereader.com" target="_top" class="back">&larr; Back to KJB Reader</a>';
+    const backLinkHtml = '<a href="https://kingjamesbiblereader.com" target="_top" class="back">&larr; Back to KJB Reader</a>';
     const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KJB Reader (Legacy)</title><style>' + STYLE + (isDark ? DARK_STYLE : '') + '</style></head><body><div class="hdr">' + backLinkHtml + '<h1 class="notranslate" translate="no">KJB Reader (Legacy)</h1><p class="notranslate" translate="no">King James Bible &mdash; Pure Cambridge Edition</p></div>' + banner + '<div class="wrap" id="wrap">' + bodyInner + '</div></body></html>';
 
     return new Response(html, { headers: {
