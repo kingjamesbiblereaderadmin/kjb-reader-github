@@ -11,6 +11,7 @@ export default function OfflineStatusBanner() {
   const [done, setDone] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const didAutoUpdate = useRef(false);
+  const didAutoDownload = useRef(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,6 +42,20 @@ export default function OfflineStatusBanner() {
               setTimeout(() => setDone(false), 2000);
             }).catch(() => setUpdating(false));
           }
+        } else if (navigator.onLine && !didAutoDownload.current) {
+          // No cache at all yet (fresh install, or cleared some other way) --
+          // silently populate it in the background instead of just leaving the
+          // "not downloaded" state for the user to discover later in Settings.
+          didAutoDownload.current = true;
+          setUpdating(true);
+          downloadBibleForOffline().then(() => {
+            setBibleReady(true);
+            setDone(true);
+            setTimeout(() => setDone(false), 2000);
+          }).catch(() => {
+            setUpdating(false);
+            didAutoDownload.current = false; // allow a retry on the next online/mount event
+          });
         }
       });
     };
