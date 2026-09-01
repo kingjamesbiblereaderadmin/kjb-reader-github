@@ -2133,7 +2133,7 @@ export default function BibleReader() {
         />
       )}
 
-      {!isViewingTitlePage && !(filterMode && selectedVerses.size > 0) && (
+      {!isViewingTitlePage && (!(filterMode && selectedVerses.size > 0) || chapterSubscript) && (
         <div className={`text-center mb-6 pt-8 ${(!columnMode || pos.chapter === 1 || (filterMode && selectedVerses.size > 0)) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
           {filterMode && selectedVerses.size > 0 ? null : (
             <>
