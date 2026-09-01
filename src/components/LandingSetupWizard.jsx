@@ -429,6 +429,11 @@ export default function LandingSetupWizard() {
             <div className="max-w-sm mx-auto" onClick={() => markDone('theme')}>
               <ThemeColorPicker compact />
             </div>
+            {mode === 'auto' && (
+              <p className="font-sans text-[11px] text-muted-foreground mt-3">
+                🕐 Auto: light 6am–6pm, dark 6pm–6am
+              </p>
+            )}
           </div>
         )}
 
