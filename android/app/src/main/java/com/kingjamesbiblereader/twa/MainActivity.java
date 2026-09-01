@@ -675,18 +675,24 @@ public class MainActivity extends BridgeActivity {
                 @Override
                 public void onPageFinished(WebView view, String url) {
                     view.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> {
-                        String target = buildCarryTarget(result, REMOTE_URL, true);
+                        String target = buildCarryTarget(result, REMOTE_URL, true, specialDestination);
                         mainWebView.loadUrl(target);
                         view.destroy();
                     });
                 }
             });
             hidden.loadUrl(FALLBACK_URL);
+            return true;
         } catch (Exception e) {
             // Non-fatal -- worst case, this one launch shows the "new
-            // visitor" flow again, same as always happened before this fix.
+            // visitor" flow again, same as before this fix, or (if there was
+            // a special destination) falls through to onCreate()'s own
+            // ordinary handleIncomingIntent(getIntent(), true) call instead
+            // -- either way the user still ends up somewhere reasonable, just
+            // without the carried offline-session data.
             // If we'd already hidden the main WebView before this exception,
             // the safety timeout above still reveals it a few seconds later.
+            return false;
         }
     }
 
