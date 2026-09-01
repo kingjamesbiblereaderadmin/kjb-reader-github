@@ -86,7 +86,12 @@ export function useSearchAndGospelResults(
       if (sameVerse && targetVerse) scrollToOccurrence(targetVerse, r.occurrence || 0, topRef);
       return;
     }
-    loadChapter(r.abbr, r.chapter, targetVerse);
+    // Pass the range end through to loadChapter (when this result actually is
+    // one) so its own savePosition() call persists it instead of collapsing
+    // the lookup back down to a single verse the moment the chapter loads.
+    const rangeEnd = (!section && r.verse && r.verseEnd && parseInt(r.verseEnd, 10) > parseInt(r.verse, 10))
+      ? parseInt(r.verseEnd, 10) : null;
+    loadChapter(r.abbr, r.chapter, targetVerse, rangeEnd);
   };
 
   const clearSearchContext = () => {
