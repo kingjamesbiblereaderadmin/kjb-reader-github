@@ -318,7 +318,9 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        trace("onCreate ENTRY, pre-super, intent action=" + (getIntent() != null ? getIntent().getAction() : "null"));
         super.onCreate(savedInstanceState);
+        trace("onCreate POST-super, intent action=" + (getIntent() != null ? getIntent().getAction() : "null") + ", specialIntentHandled=" + specialIntentHandled + ", mainPageEverFinishedLoading=" + mainPageEverFinishedLoading);
 
         // Checked and acted on IMMEDIATELY after super.onCreate() -- before
         // any of the setup below -- specifically to keep the window where
