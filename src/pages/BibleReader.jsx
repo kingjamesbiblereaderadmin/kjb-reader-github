@@ -774,14 +774,15 @@ export default function BibleReader() {
       try {
         const p = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
         if (p && p.abbr && p.chapter) {
-          if (p.verse && p.verseEnd && p.verseEnd > p.verse) {
+          const isRange = p.verse && p.verseEnd && p.verseEnd > p.verse;
+          if (isRange) {
             const range = new Set();
             for (let v = p.verse; v <= p.verseEnd; v++) range.add(v);
             setSelectedVerses(range); setHighlightedVerses(range); setFilterMode(true);
           }
           setPos({ abbr: p.abbr, chapter: p.chapter, verse: p.verse || null });
           setHighlightVerse(p.verse || null);
-          loadChapter(p.abbr, p.chapter, p.verse || null);
+          loadChapter(p.abbr, p.chapter, p.verse || null, isRange ? p.verseEnd : null);
           restored = true;
         }
       } catch {}
