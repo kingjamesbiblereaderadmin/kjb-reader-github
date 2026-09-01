@@ -480,9 +480,13 @@ export default function BibleReader() {
       const nums = g.map(v => parseInt(v.verse, 10));
       const range = formatVerseRange(nums);
       const first = nums[0], last = nums[nums.length - 1];
+      // g[0].heading covers Psalm 119's per-verse acrostic headings (ALEPH,
+      // BETH, ...) — chapterSubscript is null for Ps119, and unlike it a
+      // heading can start ANY group (not just the first), so check every
+      // group's own first verse rather than gating on gi === 0.
       return formatVerseShare({
         text: g.map(v => cleanVerseText(v.text)).join(' '),
-        subscript: gi === 0 && wantSub ? chapterSubscript : null,
+        subscript: (gi === 0 && wantSub ? chapterSubscript : null) || g[0]?.heading || null,
         colophon: gi === groups.length - 1 && wantCol ? colophon : null,
         ref: `${book.shortName} ${pos.chapter}:${range}`,
         url: buildVerseUrl({ abbr: pos.abbr, chapter: pos.chapter, verse: first, verseEnd: last > first ? last : undefined, from: searchTerm ? 'search' : undefined }),
