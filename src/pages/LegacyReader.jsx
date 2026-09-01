@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { appParams } from '@/lib/app-params';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 
@@ -24,11 +23,6 @@ function legacyUrl() {
   // this page's own HTML -- could keep being served for up to a week even
   // after the source was corrected.
   params.push(`t=${Date.now()}`);
-  // On native, the embedded page's own "Back to KJB Reader" link would be a
-  // second, duplicate way to do exactly what this wrapper's own "Back to App"
-  // button already does -- ask the backend to omit it there. Kept on web,
-  // where there's no such wrapper button to begin with.
-  if (isNativeAndroid()) params.push('native=1');
   const sep = base.includes('?') ? '&' : '?';
   return `${base}${sep}${params.join('&')}`;
 }
@@ -37,17 +31,6 @@ export default function LegacyReader() {
   const [url] = useState(legacyUrl);
   const [loaded, setLoaded] = useState(false);
   const native = isNativeAndroid();
-  const navigate = useNavigate();
-
-  // Genuine "go back" -- to wherever the user actually came from (Settings,
-  // About, etc.) -- rather than always landing on Home regardless of entry
-  // point. Falls back to Home only when there's nowhere to go back to (e.g.
-  // Legacy Reader was the very first screen this session).
-  const goBack = () => {
-    const hasHistory = typeof window !== 'undefined' && (window.history.state?.idx ?? 0) > 0;
-    if (hasHistory) navigate(-1);
-    else navigate('/');
-  };
 
   // On web there is no benefit to the iframe-wrapped in-app experience below
   // (that was specifically to keep the NATIVE app feeling contained, instead
@@ -66,10 +49,10 @@ export default function LegacyReader() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: '#f7f7fb' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#2d2a6e', color: '#fff', fontFamily: 'Arial, sans-serif', fontSize: 13, flexShrink: 0 }}>
-        <button onClick={goBack} style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#fff', textDecoration: 'none', background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer' }}>
-          <ArrowLeft size={16} /> Back to App
-        </button>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '10px 14px', background: '#2d2a6e', color: '#fff', fontFamily: 'Arial, sans-serif', fontSize: 13, flexShrink: 0 }}>
+        {/* No separate "Back to App" button here -- the embedded page's own
+            "Back to KJB Reader" link (target="_top", pointing at the real
+            site) already covers that. One back mechanism, not two. */}
         <a href={url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#cfcfe8', textDecoration: 'none' }}>
           Open in Browser <ExternalLink size={13} />
         </a>
