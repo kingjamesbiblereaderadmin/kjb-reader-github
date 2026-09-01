@@ -364,7 +364,8 @@ export default function BibleReader() {
     // Ps119) — falls back to it so tapping e.g. v9 alone still shows "BETH".
     return formatVerseShare({
       text: tappedVerseObjs.map(v => v.text).join(' '),
-      subscript: (isFirst ? chapterSubscript : null) || tappedVerseObjs[0]?.heading || null,
+      subscript: isFirst ? (chapterSubscript || null) : null,
+      heading: tappedVerseObjs[0]?.heading || null,
       colophon: isLast ? (colophon || null) : null,
       ref: `${book.shortName} ${pos.chapter}:${range}`,
       url: buildVerseUrl({ abbr: pos.abbr, chapter: pos.chapter, verse: first, verseEnd: last > first ? last : undefined }),
