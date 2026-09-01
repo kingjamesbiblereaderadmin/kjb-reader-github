@@ -13,8 +13,15 @@ function legacyUrl() {
   // path (no app_id needed). Only base44.app hosting requires the app-scoped
   // path with app_id.
   const isCustom = host.indexOf('base44.app') === -1 && host.indexOf('localhost') === -1;
-  if (isCustom || !appParams.appId) return '/functions/legacy';
-  return `/api/apps/${appParams.appId}/functions/legacy?app_id=${appParams.appId}`;
+  const base = (isCustom || !appParams.appId)
+    ? '/functions/legacy'
+    : `/api/apps/${appParams.appId}/functions/legacy?app_id=${appParams.appId}`;
+  // Cache-bust: this endpoint is served with stale-while-revalidate=604800
+  // (7 days), so without this a stale cached copy -- from before any fix to
+  // this page's own HTML -- could keep being served for up to a week even
+  // after the source was corrected.
+  const sep = base.includes('?') ? '&' : '?';
+  return `${base}${sep}t=${Date.now()}`;
 }
 
 export default function LegacyReader() {
