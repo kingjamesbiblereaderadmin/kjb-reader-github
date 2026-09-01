@@ -1400,10 +1400,20 @@ public class MainActivity extends BridgeActivity {
                 // mechanism maybeCarryStateFromColdStart() already uses for
                 // its own state-carry transition: onPageFinished (below)
                 // reveals the view again once pendingRevealAfterCarry is set
-                // and ANY subsequent page finishes loading, so no separate
-                // reveal call is needed here.
-                view.setVisibility(View.GONE);
+                // and ANY subsequent page finishes loading. Includes the same
+                // safety-timeout pattern that flow uses too, in case the
+                // fallback/redirect somehow never actually finishes loading
+                // (e.g. a corrupted bundled asset) -- leaving the view hidden
+                // indefinitely would be far worse than the flash this exists
+                // to prevent.
+                view.setVisibility(View.INVISIBLE);
                 activity.pendingRevealAfterCarry = true;
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    if (activity.pendingRevealAfterCarry) {
+                        activity.pendingRevealAfterCarry = false;
+                        view.setVisibility(View.VISIBLE);
+                    }
+                }, 5000);
                 try {
                     activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                         .edit().putBoolean(PREF_USED_FALLBACK, true).apply();
