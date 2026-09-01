@@ -889,6 +889,11 @@ Deno.serve(async (req) => {
     }
     const theme = url.searchParams.get('theme') === 'dark' ? 'dark' : 'light';
     const isDark = theme === 'dark';
+    // Set by the native Android app's LegacyReader.jsx wrapper, which already
+    // shows its own "Back to App" button above this embedded iframe -- the
+    // header link below would otherwise be a second, redundant way to do the
+    // same thing. Web has no such wrapper, so it keeps the link.
+    const hideBackLink = url.searchParams.get('native') === '1';
     // Carry the app_id forward on every navigation so the absolute function
     // path keeps resolving correctly.
     const idSuffix = (appId ? '&app_id=' + encodeURIComponent(appId) : '') + (isDark ? '&theme=dark' : '');
