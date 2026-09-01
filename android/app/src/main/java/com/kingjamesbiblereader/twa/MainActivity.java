@@ -1470,36 +1470,6 @@ public class MainActivity extends BridgeActivity {
             super.onPageFinished(view, url);
             activity.mainPageEverFinishedLoading = true;
             activity.specialIntentHandled = true;
-                    // of the host difference, triggering a bogus "correction"
-                    // back to the real (offline-unreachable) domain -- which
-                    // then failed again, sending the WebView through another
-                    // failure/rewrite cycle instead of just leaving the
-                    // already-correct offline page alone. This was a distinct
-                    // bug from the mainPageEverFinishedLoading gate reverted
-                    // elsewhere in onReceivedError -- both affected offline
-                    // specifically, but independently of each other.
-                    Uri destUri = Uri.parse(destination);
-                    Uri loadedUri = url != null ? Uri.parse(url) : null;
-                    String destPath = destUri.getPath() != null ? destUri.getPath() : "/";
-                    String loadedPath = (loadedUri != null && loadedUri.getPath() != null) ? loadedUri.getPath() : "/";
-                    boolean landedOnDestination = destPath.equals(loadedPath);
-                    // Diagnostic-only now, not corrective: onCreate()'s own
-                    // explicit final handleIncomingIntent(getIntent(), true)
-                    // call (restored to match version 1.4, confirmed working
-                    // for offline lookups) is the sole active mechanism for
-                    // cold-start routing again. This safety net's own
-                    // corrective action doesn't exist in 1.4 at all, and has
-                    // already caused one confirmed bug (comparing full URLs
-                    // including host, which wrongly "corrected" an already-
-                    // correct offline landing back to the unreachable real
-                    // domain). Left disabled here rather than removed
-                    // entirely so the trace log still shows whether a
-                    // mismatch WOULD have been detected, without it being able
-                    // to take any action that could interfere with the
-                    // restored, simpler, proven design.
-                }
-                activity.specialIntentHandled = true;
-            }
 
             // maybeCarryStateFromColdStart() hid the main WebView (this one)
             // while a separate hidden WebView recovered state from the old
