@@ -221,11 +221,14 @@ export default function SettingsPage() {
       try {
         localStorage.setItem('kjb-prompt-dismissed', 'true');
       } catch {}
+      setDownloading(false);
+      return true;
     } catch (err) {
       console.error('Download error:', err);
       setDlError('Download failed: ' + err.message + '. Please check your connection and try again.');
+      setDownloading(false);
+      return false;
     }
-    setDownloading(false);
   };
 
   const handleClearCache = async () => {
