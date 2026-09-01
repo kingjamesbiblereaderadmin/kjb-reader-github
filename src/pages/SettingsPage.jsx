@@ -162,11 +162,17 @@ export default function SettingsPage() {
   useEffect(() => {
     isBibleCached().then(async (isCached) => {
       setCached(isCached);
-      // If user just triggered "Clear Cache & Reload", auto-start the download now
+      // If user just triggered "Clear Cache & Reload", auto-start the download now.
+      // Only clear the flag once the download actually succeeds -- if we're
+      // offline (or it fails for any other reason), leave it set so the
+      // 'online' listener below can pick it up and retry later, instead of
+      // silently losing the retry intent the moment this attempt fails.
       try {
-        if (localStorage.getItem('kjb-auto-redownload') === 'true') {
-          localStorage.removeItem('kjb-auto-redownload');
-          handleDownload(null, true); // retry on transient failures
+        if (localStorage.getItem('kjb-auto-redownload') === 'true' && navigator.onLine) {
+          const ok = await handleDownload(null, true); // retry on transient failures
+          if (ok) {
+            try { localStorage.removeItem('kjb-auto-redownload'); } catch {}
+          }
         }
       } catch {}
     });
