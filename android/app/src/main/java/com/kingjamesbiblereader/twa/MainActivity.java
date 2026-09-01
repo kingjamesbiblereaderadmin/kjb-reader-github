@@ -768,6 +768,30 @@ public class MainActivity extends BridgeActivity {
             // meant "Look Up" from another app silently did nothing while
             // offline, only bringing the existing app to the foreground on
             // whatever page it happened to already be on.
+            //
+            // Also mirrors onReceivedError's OWN bookkeeping here
+            // (usingOfflineFallback + the persisted PREF_USED_FALLBACK flag),
+            // which this branch used to skip entirely since it never actually
+            // goes through onReceivedError (that's the whole point -- this
+            // check exists specifically to avoid the real network attempt
+            // that would otherwise fail and trigger it). Without this, a
+            // lookup-triggered offline session left both flags at their
+            // default false: usingOfflineFallback being wrong meant later
+            // in-session checks (onResume, scheduleReconnectAttempt) didn't
+            // know the app was actually showing fallback content, and
+            // PREF_USED_FALLBACK never getting persisted meant
+            // maybeCarryStateFromColdStart() had nothing to trigger on the
+            // NEXT cold start -- so anything changed while offline (a theme,
+            // a setting) silently never made it back once the app
+            // reconnected, since the one mechanism that carries state across
+            // that origin switch never even knew it needed to run.
+            usingOfflineFallback = true;
+            try {
+                getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit().putBoolean(PREF_USED_FALLBACK, true).apply();
+            } catch (Exception e) {
+                // Non-fatal -- worst case, the eventual reconnect just shows
+                // the "new visitor" flow again instead of carrying state.
+            }
             try {
                 Uri live = Uri.parse(url);
                 target = live.buildUpon().scheme("https").authority(FALLBACK_DOMAIN).build().toString();
