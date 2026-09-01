@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Share, MonitorSmartphone, Download, Palette,
-  Type, Moon, Sun, Monitor, ChevronLeft, ChevronRight, Check, Star,
+  Type, Moon, Sun, Monitor, Smartphone, ChevronLeft, ChevronRight, Check, Star,
   Compass, GraduationCap, Globe, ArrowRight,
   List, AlignJustify, AlignLeft, Columns2,
 } from 'lucide-react';
