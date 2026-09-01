@@ -340,8 +340,18 @@ public class MainActivity extends BridgeActivity {
         // visitor" welcome screen before we ever got a chance to stop it --
         // producing a brief but real "welcome, then welcome back" flash even
         // though the carried state ultimately arrived correctly afterward.
-        if (!isSpecialDestinationIntent(getIntent())) {
-            maybeCarryStateFromColdStart();
+        //
+        // Called unconditionally now (previously skipped entirely for a
+        // share/process-text/deep-link launch) -- it resolves that
+        // destination itself now and uses it as the carry's navigation
+        // target, so a lookup-triggered reopen right after an offline
+        // session still restores whatever settings/highlights changed then,
+        // instead of silently losing them. carriedNavigation being true means
+        // it's already taken care of navigating the WebView (async, via the
+        // hidden-WebView carry read) -- skip the ordinary direct
+        // handleIncomingIntent() call below in that case so the two don't
+        // race each other.
+        boolean carriedNavigation = maybeCarryStateFromColdStart();
         }
 
         // Modern edge-to-edge replacement for the deprecated
