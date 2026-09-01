@@ -591,14 +591,32 @@ public class MainActivity extends BridgeActivity {
     // immediately before triggering) -- every launch after that is a
     // completely ordinary live-site load, identical to any other returning
     // user.
-    private void maybeCarryStateFromColdStart() {
+    private boolean maybeCarryStateFromColdStart() {
         try {
             boolean usedFallbackBefore = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                 .getBoolean(PREF_USED_FALLBACK, false);
-            if (!usedFallbackBefore) return;
-            if (!isNetworkAvailable()) return; // nothing to reconnect to yet -- try again next launch
+            if (!usedFallbackBefore) return false;
+            if (!isNetworkAvailable()) return false; // nothing to reconnect to yet -- try again next launch
             getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                 .edit().putBoolean(PREF_USED_FALLBACK, false).apply();
+
+            // Resolved ONCE, up front: this cold start's launching intent
+            // might ALSO be a share/process-text/deep-link, which has its own
+            // specific destination independent of whatever the offline
+            // session was last showing. Previously this whole method was
+            // skipped entirely for that case (see the isSpecialDestinationIntent
+            // check that used to gate the call to this method in onCreate),
+            // meaning a lookup-triggered reopen right after an offline
+            // session with unsaved changes silently lost them -- "sync" only
+            // worked for a plain, ordinary app-icon tap. Carrying the
+            // localStorage data is unconditional either way (see
+            // CARRY_READ_SCRIPT); only the NAVIGATION target depends on
+            // whether this is set.
+            final String specialDestination = resolveDestinationUrl(getIntent());
+            if (specialDestination != null) {
+                pendingDestination = specialDestination;
+                specialIntentHandled = true;
+            }
 
             WebView mainWebView = getBridge().getWebView();
             mainWebView.setVisibility(View.INVISIBLE);
