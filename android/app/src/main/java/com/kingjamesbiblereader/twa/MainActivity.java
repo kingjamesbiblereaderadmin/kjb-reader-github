@@ -1,6 +1,5 @@
 package com.kingjamesbiblereader.twa;
 
-import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.ContentValues;
 import android.content.Context;
@@ -29,9 +28,6 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.ScrollView;
-import android.widget.TextView;
-import android.widget.Toast;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
