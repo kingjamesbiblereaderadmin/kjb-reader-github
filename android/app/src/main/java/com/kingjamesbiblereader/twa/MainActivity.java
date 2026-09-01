@@ -1468,37 +1468,8 @@ public class MainActivity extends BridgeActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
-            boolean isFirstLoad = !activity.mainPageEverFinishedLoading;
             activity.mainPageEverFinishedLoading = true;
-
-            // Safety net: on the very first page to actually finish loading,
-            // verify it's really the destination the launching intent asked
-            // for -- not just whether an earlier attempt to redirect it was
-            // MADE (specialIntentHandled tracked that, but a failure here has
-            // been 100% reproducible rather than flaky, which points at
-            // something reliably re-loading the default home page AFTER our
-            // override completes, e.g. Capacitor's own deferred initial-load
-            // logic winning a later point in the race -- not just a timing
-            // fluke onCreate/onNewIntent occasionally lose). Comparing the
-            // page that actually finished against the intended destination
-            // catches that case too: it doesn't matter how many earlier
-            // attempts fired or in what order, only whether the right page is
-            // the one that's actually sitting there once loading settles.
-            // Only ever checked on this first load -- getIntent() keeps
-            // returning the same launch intent for the rest of the session,
-            // so checking again on every later navigation would fight the
-            // user's own subsequent taps (e.g. going Home from the search
-            // results) by repeatedly forcing them back to the original lookup.
-            if (isFirstLoad) {
-                String destination = activity.resolveDestinationUrl(activity.getIntent());
-                if (destination != null) {
-                    // Compare PATH only, not the full URL -- when offline, the
-                    // correct landing page is legitimately on a different
-                    // host entirely (FALLBACK_DOMAIN, appassets.androidplatform
-                    // .net, not kingjamesbiblereader.com), since that's where
-                    // the bundled offline snapshot is served from. Comparing
-                    // full URLs (as this used to) made a CORRECT offline
-                    // landing on "/search" look like a mismatch purely because
+            activity.specialIntentHandled = true;
                     // of the host difference, triggering a bogus "correction"
                     // back to the real (offline-unreachable) domain -- which
                     // then failed again, sending the WebView through another
