@@ -195,10 +195,13 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   const verseRef = `${shortBookName} ${chapter}:${verse.verse}`;
   // Build the shared, consistent copy/share text (clean text + deep link).
   // Include the Psalm subscript before verse 1, and the chapter colophon after
-  // the last verse — keeping pilcrows and [brackets] intact.
+  // the last verse — keeping pilcrows and [brackets] intact. `subscript` only
+  // ever carries the chapter-wide Psalm title (e.g. "A Song of degrees."),
+  // which is null for Psalm 119 — its Hebrew-letter acrostic headings
+  // (ALEPH, BETH, ...) live on verse.heading instead, so fall back to that.
   const verseTextToShare = formatVerseShare({
     text: currentText,
-    subscript,
+    subscript: subscript || verse.heading || null,
     colophon,
     ref: verseRef,
     url: buildVerseUrl({ abbr, chapter, verse: verse.verse, from: searchTerm ? 'search' : undefined }),
