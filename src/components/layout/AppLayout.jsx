@@ -21,9 +21,13 @@ import { useSoftReload } from '@/lib/SoftReloadContext';
 import { getAccessibilityFont, applyAccessibilityFont } from '@/lib/accessibilityFont';
 
 const scrollMainToTop = () => {
+  // Instant, not smooth: this fires right before the page unmounts and the
+  // next route's slide-in transition plays, so an animated scroll here just
+  // gets cut off mid-motion by the swap -- looks like a jump/flash rather
+  // than a smooth scroll.
   const el = document.getElementById('kjb-scroll');
-  if (el) el.scrollTo({ top: 0, behavior: 'smooth' });
-  else window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (el) el.scrollTo({ top: 0, behavior: 'auto' });
+  else window.scrollTo({ top: 0, behavior: 'auto' });
 };
 
 // Per-route colours so icons are colourful everywhere (menu, bottom nav, footer).
