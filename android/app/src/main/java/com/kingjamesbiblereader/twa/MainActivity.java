@@ -1054,6 +1054,26 @@ public class MainActivity extends BridgeActivity {
                 }
             }
 
+            // "Made with Base44" credit banner on the extension page
+            // (ExtensionPage.jsx) -- the small Base44 favicon shown next to
+            // the credit text. Hosted at base44.com (not base44.app or
+            // media.base44.com like the app's own assets above), so it never
+            // got picked up by any of the existing interceptors and stayed
+            // broken offline. Content-Type is actually image/png despite the
+            // .ico URL (confirmed from the live response).
+            if ("base44.com".equals(url.getHost()) && "/favicon.ico".equals(path0)) {
+                try {
+                    InputStream stream = view.getContext().getAssets().open("images/base44-favicon.png");
+                    WebResourceResponse response = new WebResourceResponse("image/png", null, stream);
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Access-Control-Allow-Origin", "*");
+                    response.setResponseHeaders(headers);
+                    return response;
+                } catch (IOException e) {
+                    // Fall through to normal (network) handling below.
+                }
+            }
+
             // The browser extension info page (/extension, ExtensionPage.jsx)
             // has several screenshot/icon images showing the extension's UI,
             // all hosted on media.base44.com/base44.app and never cached
