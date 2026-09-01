@@ -1528,9 +1528,27 @@ public class MainActivity extends BridgeActivity {
                 String destination = activity.resolveDestinationUrl(activity.getIntent());
                 activity.trace("onPageFinished FIRST LOAD: loaded url=" + url + ", resolved destination=" + destination);
                 if (destination != null) {
-                    String destinationPath = destination.split("\\?")[0];
-                    boolean landedOnDestination = url != null && url.startsWith(destinationPath);
-                    activity.trace("landedOnDestination=" + landedOnDestination);
+                    // Compare PATH only, not the full URL -- when offline, the
+                    // correct landing page is legitimately on a different
+                    // host entirely (FALLBACK_DOMAIN, appassets.androidplatform
+                    // .net, not kingjamesbiblereader.com), since that's where
+                    // the bundled offline snapshot is served from. Comparing
+                    // full URLs (as this used to) made a CORRECT offline
+                    // landing on "/search" look like a mismatch purely because
+                    // of the host difference, triggering a bogus "correction"
+                    // back to the real (offline-unreachable) domain -- which
+                    // then failed again, sending the WebView through another
+                    // failure/rewrite cycle instead of just leaving the
+                    // already-correct offline page alone. This was a distinct
+                    // bug from the mainPageEverFinishedLoading gate reverted
+                    // elsewhere in onReceivedError -- both affected offline
+                    // specifically, but independently of each other.
+                    Uri destUri = Uri.parse(destination);
+                    Uri loadedUri = url != null ? Uri.parse(url) : null;
+                    String destPath = destUri.getPath() != null ? destUri.getPath() : "/";
+                    String loadedPath = (loadedUri != null && loadedUri.getPath() != null) ? loadedUri.getPath() : "/";
+                    boolean landedOnDestination = destPath.equals(loadedPath);
+                    activity.trace("landedOnDestination=" + landedOnDestination + " (destPath=" + destPath + ", loadedPath=" + loadedPath + ")");
                     if (!landedOnDestination) {
                         activity.trace("CORRECTING: view.loadUrl(" + destination + ")");
                         activity.pendingDestination = destination;
