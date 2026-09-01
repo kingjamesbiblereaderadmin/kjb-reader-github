@@ -53,7 +53,7 @@ export default function LegacyReader() {
         {/* No separate "Back to App" button here -- the embedded page's own
             "Back to KJB Reader" link (target="_top", pointing at the real
             site) already covers that. One back mechanism, not two. */}
-        <a href={url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#cfcfe8', textDecoration: 'none' }}>
+        <a href={`${url}&open_external=1`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#cfcfe8', textDecoration: 'none' }}>
           Open in Browser <ExternalLink size={13} />
         </a>
       </div>
