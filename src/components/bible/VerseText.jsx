@@ -201,7 +201,8 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   // (ALEPH, BETH, ...) live on verse.heading instead, so fall back to that.
   const verseTextToShare = formatVerseShare({
     text: currentText,
-    subscript: subscript || verse.heading || null,
+    subscript,
+    heading: verse.heading || null,
     colophon,
     ref: verseRef,
     url: buildVerseUrl({ abbr, chapter, verse: verse.verse, from: searchTerm ? 'search' : undefined }),
