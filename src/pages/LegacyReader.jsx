@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { appParams } from '@/lib/app-params';
+import { isNativeAndroid } from '@/lib/isNativeAndroid';
 
 // The legacy reader is a 100% server-rendered HTML page (no React, no JS),
 // served by the `legacy` backend function so it works on ancient browsers
