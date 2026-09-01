@@ -1356,7 +1356,28 @@ public class MainActivity extends BridgeActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
+            boolean isFirstLoad = !activity.mainPageEverFinishedLoading;
             activity.mainPageEverFinishedLoading = true;
+
+            // Safety net: if neither onCreate()'s nor onNewIntent()'s attempt
+            // to route a share/process-text/deep-link intent actually landed
+            // (specialIntentHandled still false) by the time the FIRST page
+            // genuinely finishes loading, force it now. This is the guaranteed
+            // fallback for the killed-process/singleTask redelivery race
+            // (mainPageEverFinishedLoading's own comment) -- whatever exact
+            // timing caused the earlier attempts to miss, the JS context is
+            // now definitely ready, so evaluateJavascript here is reliable.
+            // getIntent() is safe to read fresh here: onNewIntent() always
+            // calls setIntent() before this can fire, so it reflects whichever
+            // intent actually launched/resumed the activity, stale-redelivery
+            // quirk included.
+            if (isFirstLoad && !activity.specialIntentHandled) {
+                String destination = activity.resolveDestinationUrl(activity.getIntent());
+                if (destination != null) {
+                    activity.handleIncomingIntent(activity.getIntent(), false);
+                }
+            }
+
             // maybeCarryStateFromColdStart() hid the main WebView (this one)
             // while a separate hidden WebView recovered state from the old
             // fallback origin, then navigated THIS WebView to the final,
