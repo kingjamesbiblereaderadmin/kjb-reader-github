@@ -352,7 +352,6 @@ public class MainActivity extends BridgeActivity {
         // handleIncomingIntent() call below in that case so the two don't
         // race each other.
         boolean carriedNavigation = maybeCarryStateFromColdStart();
-        }
 
         // Modern edge-to-edge replacement for the deprecated
         // Window.setStatusBarColor()/setNavigationBarColor() APIs flagged on
