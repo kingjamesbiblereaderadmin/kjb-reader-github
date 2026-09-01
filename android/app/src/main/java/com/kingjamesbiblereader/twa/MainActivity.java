@@ -1368,13 +1368,32 @@ public class MainActivity extends BridgeActivity {
                 // pendingDestination -- it reflects where the user actually
                 // was, which pendingDestination only approximates for the
                 // no-live-content case handled in the else branch below.
+                //
+                // Gated on mainPageEverFinishedLoading, not just view.getUrl()
+                // starting with REMOTE_URL: getUrl() reflects the target of an
+                // in-progress/attempted navigation, not only a successfully
+                // committed one -- on a cold start, our own loadUrl() to the
+                // search destination makes getUrl() start with REMOTE_URL the
+                // moment it's issued, even though that exact request is the
+                // one failing right now (never actually loaded). Without this
+                // guard, that falsely looked like "a real live page to carry
+                // state from", evaluateJavascript ran against a page that
+                // never loaded (garbage/null result), buildCarryTarget failed
+                // to parse it and fell back to the bare origin -- silently
+                // losing the search destination and landing on home. This was
+                // the actual cause of cold-start lookups failing specifically
+                // OFFLINE while working fine online (online never reaches
+                // this branch, since the real site loads successfully).
                 String currentUrl = view.getUrl();
-                if (currentUrl != null && currentUrl.startsWith(REMOTE_URL)) {
+                trace("onReceivedError: currentUrl=" + currentUrl + ", mainPageEverFinishedLoading=" + activity.mainPageEverFinishedLoading + ", pendingDestination=" + activity.pendingDestination);
+                if (activity.mainPageEverFinishedLoading && currentUrl != null && currentUrl.startsWith(REMOTE_URL)) {
+                    trace("onReceivedError -> carry-state-from-live-page branch");
                     view.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> {
                         String carryTarget = buildCarryTarget(result, FALLBACK_ORIGIN, false);
                         view.post(() -> view.loadUrl(carryTarget));
                     });
                 } else {
+                    trace("onReceivedError -> using finalTarget=" + finalTarget);
                     view.post(() -> view.loadUrl(finalTarget));
                 }
                 activity.scheduleReconnectAttempt();
