@@ -1063,7 +1063,8 @@ export default function BibleReader() {
         // otherwise this immediately wipes out the filterMode/selectedVerses we
         // just restored (the bug that made the search & selection toolbars vanish
         // whenever you navigated away and back without an explicit verse range).
-        if (p.verse && p.verseEnd && p.verseEnd > p.verse) {
+        const isRange = p.verse && p.verseEnd && p.verseEnd > p.verse;
+        if (isRange) {
           // kjb-position has a verse range — the user was viewing a filtered
           // passage. Always restore filterMode=true and the selection, even if
           // the toolbar state also restored (it may have saved filterMode=false
@@ -1079,7 +1080,7 @@ export default function BibleReader() {
         // stale/null on kjb-position itself) so the reader highlights AND
         // scrolls to where the user left off, not just the top of the chapter.
         setHighlightVerse(restoredHighlightVerse || p.verse || null);
-        loadChapter(p.abbr, p.chapter, p.verse || null);
+        loadChapter(p.abbr, p.chapter, p.verse || null, isRange ? p.verseEnd : null);
       }
     } catch (err) {
       console.error('[BibleReader] Fallback restore error:', err);
