@@ -511,7 +511,15 @@ export default function BibleReader() {
     const verseInSel = (v) => toUse.has(parseInt(v.verse, 10));
     const selectedVersesList = verses.filter(verseInSel).sort((a, b) => parseInt(a.verse, 10) - parseInt(b.verse, 10));
 
-    const verseLines = selectedVersesList.map(v => `${parseInt(v.verse, 10)} ${cleanVerseText(v.text).replace(/^¶\s*/, '')}`);
+    const verseLines = selectedVersesList.map(v => {
+      const line = `${parseInt(v.verse, 10)} ${cleanVerseText(v.text).replace(/^¶\s*/, '')}`;
+      // Psalm 119's acrostic heading (ALEPH, BETH, ...) lives on the verse
+      // itself and can precede ANY verse in the list, not just the first —
+      // insert it right above the verse it belongs to. chapterSub (below)
+      // only ever covers a chapter-wide title attached to verse 1, which
+      // doesn't apply to Ps119 (chapterSub is null there).
+      return v.heading ? `${v.heading}\n${line}` : line;
+    });
     const nums = selectedVersesList.map(v => parseInt(v.verse, 10));
     const range = formatVerseRange(nums);
     const ref = `${book.shortName} ${pos.chapter}:${range}`;
