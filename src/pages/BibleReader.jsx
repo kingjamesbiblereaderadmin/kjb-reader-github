@@ -6,7 +6,7 @@ import { BIBLE_BOOKS, getNextBook, getPrevBook } from '@/lib/bibleData';
 import { fetchChapter, fetchVerseCount, renderVerseText, renderColophonText, renderSubscriptText, resolveSubscript, resolveEndMarker } from '@/lib/bibleApi';
 import SubscriptContent from '@/components/bible/SubscriptContent';
 import { getBibleData } from '@/lib/bibleCache';
-import { SUBSCRIPTS, COLOPHONS, PSALM_119_SECTIONS } from '@/lib/bibleSubscripts';
+import { SUBSCRIPTS, COLOPHONS } from '@/lib/bibleSubscripts';
 import BookSelector from '@/components/bible/BookSelector';
 import ChapterSelector from '@/components/bible/ChapterSelector';
 import VerseGrid from '@/components/bible/VerseGrid';
