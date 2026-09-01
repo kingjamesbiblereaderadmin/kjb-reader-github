@@ -204,6 +204,29 @@ public class MainActivity extends BridgeActivity {
         webView.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> webView.loadUrl(buildCarryTarget(result, REMOTE_URL, true)));
     }
 
+    // Snapshots the real site's own state (reading position, settings,
+    // highlights -- exactly what CARRY_READ_SCRIPT collects, so it's already
+    // in the shape buildCarryTarget() expects) to SharedPreferences every
+    // time a REMOTE_URL page finishes loading. The mid-session disconnect
+    // path (onReceivedError below) can read this straight off the live
+    // WebView when it has one open -- but a cold start that goes offline
+    // before ever loading REMOTE_URL this session has no live page to read
+    // from at all. This persisted copy is what that path falls back to, so
+    // "close the app online, go offline, reopen" doesn't silently reset the
+    // reader to Genesis 1 and drop every setting.
+    private void persistStateSnapshot(WebView view) {
+        view.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> {
+            if (result == null || "null".equals(result)) return;
+            try {
+                getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                    .edit().putString(PREF_LAST_STATE, result).apply();
+            } catch (Exception e) {
+                // Non-fatal -- worst case, the next offline cold start just
+                // has nothing to fall back on, same as before this existed.
+            }
+        });
+    }
+
     // The script run against a page to collect what reconnectPreservingState()
     // (and, differently, maybeCarryStateFromColdStart()'s hidden WebView)
     // needs: the page's own localStorage (minus a few known-large,
