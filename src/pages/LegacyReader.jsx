@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { appParams } from '@/lib/app-params';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 
@@ -8,7 +9,7 @@ import { isNativeAndroid } from '@/lib/isNativeAndroid';
 // (IE8/IE9, Windows Phone). Embedded in an iframe here (rather than a full
 // window.location.replace() away from the app) so it stays reachable as an
 // in-app page instead of acting like an external link.
-function legacyUrl() {
+function legacyUrl(extraParams = []) {
   const host = (typeof window !== 'undefined' && window.location.hostname) || '';
   // On a custom domain the function is reachable at a clean /functions/legacy
   // path (no app_id needed). Only base44.app hosting requires the app-scoped
@@ -23,14 +24,33 @@ function legacyUrl() {
   // this page's own HTML -- could keep being served for up to a week even
   // after the source was corrected.
   params.push(`t=${Date.now()}`);
+  params.push(...extraParams);
   const sep = base.includes('?') ? '&' : '?';
   return `${base}${sep}${params.join('&')}`;
 }
 
 export default function LegacyReader() {
-  const [url] = useState(legacyUrl);
-  const [loaded, setLoaded] = useState(false);
   const native = isNativeAndroid();
+  // Two distinct URLs: the iframe gets native=1 (asks the backend to omit its
+  // own "Back to KJB Reader" link on native, since the wrapper's own button
+  // below already does that job with proper in-app back-history -- one back
+  // mechanism, not two). "Open in Browser" deliberately does NOT get that
+  // param: once it's genuinely external, the embedded link is the only way
+  // back and should keep working there.
+  const [iframeUrl] = useState(() => legacyUrl(native ? ['native=1'] : []));
+  const [browserUrl] = useState(() => legacyUrl(['open_external=1']));
+  const [loaded, setLoaded] = useState(false);
+  const navigate = useNavigate();
+
+  // Genuine "go back" -- to wherever the user actually came from (Settings,
+  // About, etc.) -- rather than always landing on Home regardless of entry
+  // point. Falls back to Home only when there's nowhere to go back to (e.g.
+  // Legacy Reader was the very first screen this session).
+  const goBack = () => {
+    const hasHistory = typeof window !== 'undefined' && (window.history.state?.idx ?? 0) > 0;
+    if (hasHistory) navigate(-1);
+    else navigate('/');
+  };
 
   // On web there is no benefit to the iframe-wrapped in-app experience below
   // (that was specifically to keep the NATIVE app feeling contained, instead
@@ -40,7 +60,7 @@ export default function LegacyReader() {
   // is already a complete, real page with its own working back link.
   useEffect(() => {
     if (!native) {
-      window.location.replace(url);
+      window.location.replace(iframeUrl);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -49,11 +69,11 @@ export default function LegacyReader() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: '#f7f7fb' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '10px 14px', background: '#2d2a6e', color: '#fff', fontFamily: 'Arial, sans-serif', fontSize: 13, flexShrink: 0 }}>
-        {/* No separate "Back to App" button here -- the embedded page's own
-            "Back to KJB Reader" link (target="_top", pointing at the real
-            site) already covers that. One back mechanism, not two. */}
-        <a href={`${url}&open_external=1`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#cfcfe8', textDecoration: 'none' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#2d2a6e', color: '#fff', fontFamily: 'Arial, sans-serif', fontSize: 13, flexShrink: 0 }}>
+        <button onClick={goBack} style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#fff', textDecoration: 'none', background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer' }}>
+          <ArrowLeft size={16} /> Back to App
+        </button>
+        <a href={browserUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#cfcfe8', textDecoration: 'none' }}>
           Open in Browser <ExternalLink size={13} />
         </a>
       </div>
@@ -63,7 +83,7 @@ export default function LegacyReader() {
         </p>
       )}
       <iframe
-        src={url}
+        src={iframeUrl}
         title="Legacy Reader"
         onLoad={() => setLoaded(true)}
         style={{ flex: 1, width: '100%', border: '0', background: '#fff' }}
