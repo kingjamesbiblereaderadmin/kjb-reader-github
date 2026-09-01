@@ -188,10 +188,28 @@ export default function SettingsPage() {
     window.addEventListener('storage', handleStorage);
     window.addEventListener('focus', handleStorage);
     window.addEventListener('kjb-fonts-changed', handleStorage);
+
+    // Retry a pending auto-redownload once connectivity returns (covers the
+    // case where Reset/Clear Cache happened while offline, so the attempt
+    // above never got the chance to run and the flag is still set).
+    const handleOnlineRetry = () => {
+      try {
+        if (localStorage.getItem('kjb-auto-redownload') === 'true') {
+          isBibleCached().then(async (isCached) => {
+            if (isCached) { try { localStorage.removeItem('kjb-auto-redownload'); } catch {} return; }
+            const ok = await handleDownload(null, true);
+            if (ok) { try { localStorage.removeItem('kjb-auto-redownload'); } catch {} }
+          });
+        }
+      } catch {}
+    };
+    window.addEventListener('online', handleOnlineRetry);
+
     return () => {
       window.removeEventListener('storage', handleStorage);
       window.removeEventListener('focus', handleStorage);
       window.removeEventListener('kjb-fonts-changed', handleStorage);
+      window.removeEventListener('online', handleOnlineRetry);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
