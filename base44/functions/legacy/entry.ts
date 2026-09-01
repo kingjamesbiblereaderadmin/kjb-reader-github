@@ -889,6 +889,14 @@ Deno.serve(async (req) => {
     }
     const theme = url.searchParams.get('theme') === 'dark' ? 'dark' : 'light';
     const isDark = theme === 'dark';
+    // Set by LegacyReader.jsx's iframe URL on native only -- the wrapper
+    // shown above this embedded page already has its own "Back to App"
+    // button with proper in-app back-history, so this link would just be a
+    // second, duplicate way to do the same thing there. Web (no such
+    // wrapper) and the native "Open in Browser" link (genuinely external at
+    // that point) both keep this link, since it's the only way back either
+    // of them has.
+    const hideBackLink = url.searchParams.get('native') === '1';
     // Carry the app_id forward on every navigation so the absolute function
     // path keeps resolving correctly.
     const idSuffix = (appId ? '&app_id=' + encodeURIComponent(appId) : '') + (isDark ? '&theme=dark' : '');
