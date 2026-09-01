@@ -1392,6 +1392,18 @@ public class MainActivity extends BridgeActivity {
             // of leaving the WebView on its default ugly error page.
             if (request.isForMainFrame() && !activity.usingOfflineFallback) {
                 activity.usingOfflineFallback = true;
+                // Hide the WebView immediately so Android's own default
+                // "webpage not available" error page never has a chance to
+                // render/flash on screen -- it would otherwise show for the
+                // instant between this failure and whichever redirect below
+                // finishes loading. Reusing the exact same hide-until-ready
+                // mechanism maybeCarryStateFromColdStart() already uses for
+                // its own state-carry transition: onPageFinished (below)
+                // reveals the view again once pendingRevealAfterCarry is set
+                // and ANY subsequent page finishes loading, so no separate
+                // reveal call is needed here.
+                view.setVisibility(View.GONE);
+                activity.pendingRevealAfterCarry = true;
                 try {
                     activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                         .edit().putBoolean(PREF_USED_FALLBACK, true).apply();
