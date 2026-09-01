@@ -670,7 +670,6 @@ public class MainActivity extends BridgeActivity {
     public void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        trace("onNewIntent, action=" + (intent != null ? intent.getAction() : "null") + ", mainPageEverFinishedLoading=" + mainPageEverFinishedLoading);
         // App already running (singleTask) -- navigate the live WebView via
         // evaluateJavascript(), always (isInitialLaunch=false), matching the
         // simpler behavior confirmed working in version 1.4.
@@ -730,7 +729,6 @@ public class MainActivity extends BridgeActivity {
 
     private void handleIncomingIntent(Intent intent, boolean isInitialLaunch) {
         String url = resolveDestinationUrl(intent);
-        trace("handleIncomingIntent called, isInitialLaunch=" + isInitialLaunch + ", intent action=" + (intent != null ? intent.getAction() : "null") + ", resolved url=" + url);
         if (url == null) return;
 
         WebView webView = getBridge().getWebView();
@@ -764,7 +762,6 @@ public class MainActivity extends BridgeActivity {
         // the bundled/fallback destination when we already know there's no
         // connection, instead of attempting and waiting to fail first.
         boolean shouldUseFallback = usingOfflineFallback || !isNetworkAvailable();
-        trace("handleIncomingIntent connectivity check: usingOfflineFallback=" + usingOfflineFallback + ", isNetworkAvailable=" + isNetworkAvailable() + " -> shouldUseFallback=" + shouldUseFallback);
         if (shouldUseFallback) {
             // Still showing the bundled snapshot -- rewrite onto
             // FALLBACK_DOMAIN (same transform onReceivedError uses below)
@@ -789,13 +786,11 @@ public class MainActivity extends BridgeActivity {
         // still has the correct live destination to work from.
         pendingDestination = url;
         specialIntentHandled = true;
-        trace("handleIncomingIntent RESOLVED target=" + target + ", isInitialLaunch=" + isInitialLaunch + ", usingOfflineFallback=" + usingOfflineFallback);
         if (isInitialLaunch) {
             // Bridge already queued the normal server.url load -- override it
             // with the shared-text/deep-link destination instead. loadUrl()
             // is correct here: no page has actually started rendering yet
             // for this fresh process to "drop" the call.
-            trace("handleIncomingIntent -> webView.loadUrl(" + target + ")");
             webView.loadUrl(target);
         } else {
             // A warm resume (app already running in the background, this
@@ -816,7 +811,6 @@ public class MainActivity extends BridgeActivity {
             // loadUrl() introduced this regression. The brief flash this
             // reintroduces is a real but much smaller cost than navigation
             // sometimes not happening at all.
-            trace("handleIncomingIntent -> webView.evaluateJavascript(location.href = " + target + ")");
             webView.evaluateJavascript("window.location.href = " + org.json.JSONObject.quote(target) + ";", null);
         }
     }
@@ -1459,15 +1453,12 @@ public class MainActivity extends BridgeActivity {
                 // reliability characteristics are, they're better than the
                 // gated version's, at least for this exact scenario.
                 String currentUrl = view.getUrl();
-                activity.trace("onReceivedError: currentUrl=" + currentUrl + ", mainPageEverFinishedLoading=" + activity.mainPageEverFinishedLoading + ", pendingDestination=" + activity.pendingDestination);
                 if (currentUrl != null && currentUrl.startsWith(REMOTE_URL)) {
-                    activity.trace("onReceivedError -> carry-state-from-live-page branch");
                     view.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> {
                         String carryTarget = buildCarryTarget(result, FALLBACK_ORIGIN, false);
                         view.post(() -> view.loadUrl(carryTarget));
                     });
                 } else {
-                    activity.trace("onReceivedError -> using finalTarget=" + finalTarget);
                     view.post(() -> view.loadUrl(finalTarget));
                 }
                 activity.scheduleReconnectAttempt();
@@ -1500,7 +1491,6 @@ public class MainActivity extends BridgeActivity {
             // results) by repeatedly forcing them back to the original lookup.
             if (isFirstLoad) {
                 String destination = activity.resolveDestinationUrl(activity.getIntent());
-                activity.trace("onPageFinished FIRST LOAD: loaded url=" + url + ", resolved destination=" + destination);
                 if (destination != null) {
                     // Compare PATH only, not the full URL -- when offline, the
                     // correct landing page is legitimately on a different
@@ -1522,7 +1512,6 @@ public class MainActivity extends BridgeActivity {
                     String destPath = destUri.getPath() != null ? destUri.getPath() : "/";
                     String loadedPath = (loadedUri != null && loadedUri.getPath() != null) ? loadedUri.getPath() : "/";
                     boolean landedOnDestination = destPath.equals(loadedPath);
-                    activity.trace("landedOnDestination=" + landedOnDestination + " (destPath=" + destPath + ", loadedPath=" + loadedPath + ")");
                     // Diagnostic-only now, not corrective: onCreate()'s own
                     // explicit final handleIncomingIntent(getIntent(), true)
                     // call (restored to match version 1.4, confirmed working
@@ -1538,7 +1527,6 @@ public class MainActivity extends BridgeActivity {
                     // to take any action that could interfere with the
                     // restored, simpler, proven design.
                     if (!landedOnDestination) {
-                        activity.trace("(would have corrected here, but corrective action is disabled -- see comment)");
                     }
                 }
                 activity.specialIntentHandled = true;
