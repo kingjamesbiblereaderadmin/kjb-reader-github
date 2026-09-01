@@ -101,6 +101,13 @@ public class MainActivity extends BridgeActivity {
     // forward before committing to the live site load.
     private static final String PREFS_NAME = "kjb_prefs";
     private static final String PREF_USED_FALLBACK = "used_fallback";
+    // Snapshot of CARRY_READ_SCRIPT's result from the last successful
+    // REMOTE_URL page load -- see persistStateSnapshot() below. This is what
+    // lets a cold start that goes straight to FALLBACK_DOMAIN with no live
+    // REMOTE_URL page open THIS session (nothing to read localStorage from)
+    // still recover the real reading position/settings instead of resetting
+    // to Genesis 1 / defaults.
+    private static final String PREF_LAST_STATE = "last_state_snapshot";
 
     private boolean usingOfflineFallback = false;
     // Set true the first time the main WebView's page load actually finishes.
