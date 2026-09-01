@@ -655,7 +655,7 @@ export default function BibleReader() {
   useReaderUrlSync(pos, loading, a11yFont, routerNavigate, searchTerm, gospelMode);
   const isViewingTitlePage = pos.chapter === 0;
 
-  const loadChapter = useCallback(async (bookAbbr, chapter, jumpVerse) => {
+  const loadChapter = useCallback(async (bookAbbr, chapter, jumpVerse, jumpVerseEnd = null) => {
     setLoading(true); setError(null); setVerses([]); setColophon(null);
     autoAdvanceRef.current = false;
     (document.getElementById('kjb-scroll') || window).scrollTo({ top: 0 });
@@ -671,7 +671,10 @@ export default function BibleReader() {
       const data = await fetchChapter(b.apiName, chapter);
       setVerses(data.verses); setColophon(data.colophon || null); setVerseCount(data.verses.length);
       if (jumpVerse) setHighlightVerse(jumpVerse);
-      savePosition(bookAbbr, chapter, jumpVerse || null);
+      // jumpVerseEnd, when the caller passed one, is what lets a lookup range
+      // (e.g. "1 Cor 15:1-4") survive this save instead of collapsing to just
+      // the first verse the moment the chapter finishes loading.
+      savePosition(bookAbbr, chapter, jumpVerse || null, jumpVerseEnd || null);
     } catch (err) {
       setError('Failed to load chapter. Please check your connection.');
     }
