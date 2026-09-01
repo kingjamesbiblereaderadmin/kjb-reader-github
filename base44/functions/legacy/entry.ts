@@ -1226,7 +1226,7 @@ Deno.serve(async (req) => {
       '<li>Found a bug? Email <a href="mailto:kingjamesbiblereader@outlook.sg">kingjamesbiblereader@outlook.sg</a>.</li>' +
       '</ul></div>';
 
-    const backLinkHtml = '<a href="https://kingjamesbiblereader.com" target="_top" class="back">&larr; Back to KJB Reader</a>';
+    const backLinkHtml = hideBackLink ? '' : '<a href="https://kingjamesbiblereader.com" target="_top" class="back">&larr; Back to KJB Reader</a>';
     const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KJB Reader (Legacy)</title><style>' + STYLE + (isDark ? DARK_STYLE : '') + '</style></head><body><div class="hdr">' + backLinkHtml + '<h1 class="notranslate" translate="no">KJB Reader (Legacy)</h1><p class="notranslate" translate="no">King James Bible &mdash; Pure Cambridge Edition</p></div>' + banner + '<div class="wrap" id="wrap">' + bodyInner + '</div></body></html>';
 
     return new Response(html, { headers: {
