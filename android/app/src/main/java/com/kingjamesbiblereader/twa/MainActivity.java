@@ -552,14 +552,6 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
-    private boolean isSpecialDestinationIntent(Intent intent) {
-        if (intent == null) return false;
-        String action = intent.getAction();
-        return Intent.ACTION_SEND.equals(action)
-            || Intent.ACTION_PROCESS_TEXT.equals(action)
-            || (Intent.ACTION_VIEW.equals(action) && intent.getData() != null);
-    }
-
     // A genuinely fresh app restart (not the same running process
     // reconnecting -- see reconnectPreservingState() for that case) after
     // this device previously fell back to the bundled offline snapshot at
