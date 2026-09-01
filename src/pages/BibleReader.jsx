@@ -1656,7 +1656,7 @@ export default function BibleReader() {
                 closeAllMenus();
               }
             }}
-            className="kjb-reader-toolbar flex flex-wrap items-stretch justify-start gap-3 w-full max-w-[120rem] mx-auto">
+            className="kjb-reader-toolbar flex flex-wrap items-stretch justify-start gap-3 w-full max-w-[120rem] mx-auto [&>*]:flex-grow [&>*]:basis-auto [&>div>button]:w-full">
             <div className="relative flex">
               <button
                 onClick={() => { setShowBookPicker(p => !p); setShowChapterPicker(false); setShowVersePicker(false); setShowZoomPopover(false); setShowFontPopover(false); }}
