@@ -724,6 +724,7 @@ public class MainActivity extends BridgeActivity {
 
     private void handleIncomingIntent(Intent intent, boolean isInitialLaunch) {
         String url = resolveDestinationUrl(intent);
+        trace("handleIncomingIntent called, isInitialLaunch=" + isInitialLaunch + ", intent action=" + (intent != null ? intent.getAction() : "null") + ", resolved url=" + url);
         if (url == null) return;
 
         WebView webView = getBridge().getWebView();
