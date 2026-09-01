@@ -792,7 +792,19 @@ public class MainActivity extends BridgeActivity {
         }
 
         String target = url;
-        if (usingOfflineFallback) {
+        // Proactively check real connectivity, not just the (possibly still
+        // default-false, on a fresh cold start) usingOfflineFallback flag --
+        // without this, a genuinely offline cold-start lookup still attempted
+        // the real network request first, which then had to actually fail
+        // (a real timeout) before onReceivedError's own fallback logic ever
+        // got a chance to run -- producing a brief flash of the WebView's
+        // default network-error page before the correct offline content
+        // finally appeared a moment later. Checking here skips straight to
+        // the bundled/fallback destination when we already know there's no
+        // connection, instead of attempting and waiting to fail first.
+        boolean shouldUseFallback = usingOfflineFallback || !isNetworkAvailable();
+        trace("handleIncomingIntent connectivity check: usingOfflineFallback=" + usingOfflineFallback + ", isNetworkAvailable=" + isNetworkAvailable() + " -> shouldUseFallback=" + shouldUseFallback);
+        if (shouldUseFallback) {
             // Still showing the bundled snapshot -- rewrite onto
             // FALLBACK_DOMAIN (same transform onReceivedError uses below)
             // instead of abandoning the navigation entirely. Search and
