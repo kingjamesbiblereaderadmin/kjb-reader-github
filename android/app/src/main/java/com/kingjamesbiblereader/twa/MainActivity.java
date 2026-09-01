@@ -1526,21 +1526,8 @@ public class MainActivity extends BridgeActivity {
                     // mismatch WOULD have been detected, without it being able
                     // to take any action that could interfere with the
                     // restored, simpler, proven design.
-                    if (!landedOnDestination) {
-                    }
                 }
                 activity.specialIntentHandled = true;
-
-                // Show the accumulated trace as a Toast so this can be
-                // checked on-device without adb/a computer. Only for a
-                // special-destination launch (share/process-text/deep-link) --
-                // no point showing this for an ordinary launcher-icon open.
-                // Diagnostic only; remove once the cold-start lookup issue is
-                // confirmed fixed.
-                if (destination != null) {
-                    final String fullTrace = activity.debugTrace.toString();
-                    view.post(() -> activity.showTraceDialog(fullTrace));
-                }
             }
 
             // maybeCarryStateFromColdStart() hid the main WebView (this one)
