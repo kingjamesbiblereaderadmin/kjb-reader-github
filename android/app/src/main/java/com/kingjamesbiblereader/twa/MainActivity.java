@@ -469,11 +469,23 @@ public class MainActivity extends BridgeActivity {
         // connectivity.
 
         // If the app was launched via Android's share sheet, the text-selection
-        // "Process text" menu, or an https App Link, route straight to the
-        // matching destination instead of the normal home load. Takes priority
-        // over the offline-fallback load above if both apply (loadUrl just
-        // queues the most recent call).
-        handleIncomingIntent(getIntent(), true);
+        // "Process text" menu, or an https App Link, that's already been routed
+        // by the time we get here: Capacitor's own BridgeActivity.load() (called
+        // from super.onCreate() above) creates the Bridge and then immediately
+        // calls this.onNewIntent(getIntent()) itself -- which invokes OUR
+        // override, whose isInitialLaunch check (mainPageEverFinishedLoading)
+        // correctly evaluates true this early, so it already used loadUrl() to
+        // send the WebView to the right destination before this line even runs.
+        // A second explicit call here used to exist and re-issue the exact same
+        // loadUrl() a moment later, AFTER the setWebViewClient() call just above
+        // had already swapped in this activity's own client mid-navigation --
+        // a genuinely confusing double-navigation-with-a-client-swap-in-the-
+        // middle sequence that's since turned out to be the actual cause of
+        // cold-start lookups silently landing on home instead of their real
+        // destination. Removed; the onNewIntent()-during-super.onCreate() call
+        // above already handles it, and the onPageFinished safety net
+        // (OfflineCapableWebViewClient, below) still verifies the end result
+        // regardless.
     }
 
     @Override
