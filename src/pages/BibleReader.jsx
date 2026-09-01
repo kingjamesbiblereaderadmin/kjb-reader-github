@@ -1138,7 +1138,8 @@ export default function BibleReader() {
           }
         } catch {}
       }
-      if (p.verse && p.verseEnd && p.verseEnd > p.verse) {
+      const isRange = p.verse && p.verseEnd && p.verseEnd > p.verse;
+      if (isRange) {
         const range = new Set();
         for (let v = p.verse; v <= p.verseEnd; v++) range.add(v);
         setSelectedVerses(range); setHighlightedVerses(range); setFilterMode(true);
@@ -1155,7 +1156,7 @@ export default function BibleReader() {
       if (!p.verse) freshNavRef.current = true;
       setPos({ abbr: p.abbr, chapter: p.chapter, verse: p.verse || null });
       setHighlightVerse(p.verse || null);
-      loadChapter(p.abbr, p.chapter, p.verse || null);
+      loadChapter(p.abbr, p.chapter, p.verse || null, isRange ? p.verseEnd : null);
     };
     window.addEventListener('kjb-navigate', applyRequestedPosition);
     return () => window.removeEventListener('kjb-navigate', applyRequestedPosition);
