@@ -67,13 +67,11 @@ function loadPosition() {
 
 function savePosition(abbr, chapter, verse = null, verseEnd = null) {
   try {
-    // verseEnd (a lookup/search passage range, e.g. "1 Cor 15:1-4") IS
-    // persisted here so the range highlight survives an app close/reopen —
-    // callers that want a range to survive pass it explicitly; anyone calling
+    // verseEnd (a passage range — either a lookup/search reference like
+    // "1 Cor 15:1-4" or a manual "Select verses -> Read Selected") IS
+    // persisted here so the range highlight survives an app close/reopen.
+    // Callers that want a range to survive pass it explicitly; anyone calling
     // with just (abbr, chapter, verse) still gets verseEnd: null as before.
-    // The one deliberate exception is the manual "Select verses -> Read
-    // Selected" flow (handleReadSelected below), which still calls this with
-    // no verseEnd on purpose — see its own comment.
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ abbr, chapter, verse, verseEnd: verseEnd || null }));
     // Dispatch a storage event so the settings sync push listener picks up
     // the new position and pushes it to the cloud for cross-device sync.
