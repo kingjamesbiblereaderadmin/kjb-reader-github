@@ -661,6 +661,43 @@ public class MainActivity extends BridgeActivity {
         handleIncomingIntent(intent, !mainPageEverFinishedLoading);
     }
 
+    // Extracted from handleIncomingIntent() so both it and the onPageFinished
+    // safety net (OfflineCapableWebViewClient, below) can resolve a
+    // share/process-text/deep-link destination from an intent without
+    // duplicating this logic. Pure function -- no side effects, safe to call
+    // speculatively just to check whether an intent has a destination at all.
+    private String resolveDestinationUrl(Intent intent) {
+        if (intent == null) return null;
+        String action = intent.getAction();
+        String url = null;
+
+        if (Intent.ACTION_SEND.equals(action)) {
+            // User selected text in another app, tapped Share, and chose
+            // KJB Reader.
+            String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+            if (sharedText != null && !sharedText.trim().isEmpty()) {
+                url = "https://kingjamesbiblereader.com/search?q=" + Uri.encode(sharedText.trim());
+            }
+        } else if (Intent.ACTION_PROCESS_TEXT.equals(action)) {
+            // User highlighted text in another app and picked "KJB Reader"
+            // directly from the text-selection toolbar/menu (no Share sheet
+            // detour needed).
+            CharSequence processText = intent.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT);
+            if (processText != null && !processText.toString().trim().isEmpty()) {
+                url = "https://kingjamesbiblereader.com/search?q=" + Uri.encode(processText.toString().trim());
+            }
+        } else if (Intent.ACTION_VIEW.equals(action) && intent.getData() != null) {
+            // App Link: user tapped a kingjamesbiblereader.com link (e.g. in
+            // another app or a search result) and it opened directly here
+            // instead of a browser.
+            Uri data = intent.getData();
+            if (data.getHost() != null && data.getHost().endsWith("kingjamesbiblereader.com")) {
+                url = data.toString();
+            }
+        }
+        return url;
+    }
+
     private void handleIncomingIntent(Intent intent, boolean isInitialLaunch) {
         String url = resolveDestinationUrl(intent);
         if (url == null) return;
