@@ -45,17 +45,21 @@ function withPilcrow(text = '') {
 
 // The canonical share/copy format used everywhere — a clean, professional layout:
 //
-//   ¶ <subscript>          ← outside the quotes (Psalm superscription)
-//   “<text>” - <Reference> (KJB)
-//   ¶ <colophon>           ← outside the quotes (epistle closing note)
+//   “<subscript>
+//
+//   <text> - <Reference> (KJB)
+//
+//   <colophon>”
 //
 //   Read more: <link>
 //
 // Optional title (e.g. "Verse of the Day") sits on its own line at the very top.
-// Each pilcrow (¶) starts a new line with a blank-line gap above it (matching
-// read mode, where a paragraph mark begins a fresh paragraph with space before
-// it) — never indented. A leading pilcrow stays at the very start (no blank
-// line before it).
+// Subscript/heading and colophon are folded INSIDE the same quotation marks as
+// the verse text (not separate lines outside the quote) — a Psalm subscript,
+// Psalm 119 stanza heading (ALEPH, BETH, ...), and epistle colophon are all
+// part of what's being quoted, so the quote should read as one continuous
+// passage. Each pilcrow (¶) still starts a fresh paragraph with a blank-line
+// gap above it (matching read mode).
 function breakParagraphsAtPilcrow(text = '') {
   return String(text)
     .replace(/\s*¶\s*/g, '\n\n¶ ')
@@ -63,16 +67,20 @@ function breakParagraphsAtPilcrow(text = '') {
     .trim();
 }
 
-export function formatVerseShare({ text, ref, url, title, subscript, colophon } = {}) {
+export function formatVerseShare({ text, ref, url, title, subscript, heading, colophon } = {}) {
   const clean = breakParagraphsAtPilcrow(cleanVerseText(text));
   const parts = [];
   if (title) parts.push(title);
-  // Subscript, quoted verse + ref, then colophon — grouped together as one block.
-  const quoteBlock = [];
-  if (subscript) quoteBlock.push(withPilcrow(subscript));
-  quoteBlock.push(`“${clean}” - ${ref} (KJB)`);
-  if (colophon) quoteBlock.push(withPilcrow(colophon));
-  parts.push(quoteBlock.join('\n'));
+  const quoteInner = [];
+  // Psalm 119 stanza heading (ALEPH, BETH, ...) — shown plain, no pilcrow,
+  // matching how it's rendered on screen (VerseText's stanzaHeading).
+  if (heading) quoteInner.push(cleanVerseText(heading));
+  // Chapter subscript (Psalm title) — shown with a pilcrow, matching how
+  // it's rendered on screen (SubscriptContent).
+  if (subscript) quoteInner.push(withPilcrow(subscript));
+  quoteInner.push(clean);
+  if (colophon) quoteInner.push(withPilcrow(colophon));
+  parts.push(`“${quoteInner.join('\n\n')}” - ${ref} (KJB)`);
   if (url) parts.push(`Read more: <${url}>`);
   return parts.join('\n\n');
 }
