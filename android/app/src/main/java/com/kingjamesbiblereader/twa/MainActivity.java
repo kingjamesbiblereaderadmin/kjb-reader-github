@@ -1559,7 +1559,28 @@ public class MainActivity extends BridgeActivity {
                         view.post(() -> view.loadUrl(carryTarget));
                     });
                 } else {
-                    view.post(() -> view.loadUrl(finalTarget));
+                    // No live REMOTE_URL page loaded THIS session to read
+                    // localStorage from -- a cold start that failed before
+                    // ever successfully showing the real site (e.g. the
+                    // SW-served offline attempt described above didn't pan
+                    // out this time). Fall back to whatever
+                    // persistStateSnapshot() saved from the LAST successful
+                    // REMOTE_URL load, so the offline session still opens on
+                    // the right book/chapter with the right settings instead
+                    // of silently resetting to Genesis 1 / defaults.
+                    String savedSnapshot = null;
+                    try {
+                        savedSnapshot = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                            .getString(PREF_LAST_STATE, null);
+                    } catch (Exception e) {
+                        // Fall through -- finalTarget (plain fallback, no carry) below.
+                    }
+                    if (savedSnapshot != null) {
+                        final String carryTarget = buildCarryTarget(savedSnapshot, FALLBACK_ORIGIN, false);
+                        view.post(() -> view.loadUrl(carryTarget));
+                    } else {
+                        view.post(() -> view.loadUrl(finalTarget));
+                    }
                 }
                 activity.scheduleReconnectAttempt();
             }
