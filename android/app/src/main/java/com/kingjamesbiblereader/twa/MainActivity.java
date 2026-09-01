@@ -709,17 +709,25 @@ public class MainActivity extends BridgeActivity {
     public void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        trace("onNewIntent, action=" + (intent != null ? intent.getAction() : "null") + ", mainPageEverFinishedLoading=" + mainPageEverFinishedLoading + " -> isInitialLaunch=" + !mainPageEverFinishedLoading);
-        // App already running (singleTask) -- navigate the live WebView.
+        trace("onNewIntent, action=" + (intent != null ? intent.getAction() : "null") + ", mainPageEverFinishedLoading=" + mainPageEverFinishedLoading);
+        // App already running (singleTask) -- navigate the live WebView via
+        // evaluateJavascript(), always (isInitialLaunch=false), matching the
+        // simpler behavior confirmed working in version 1.4.
         //
-        // Exception: if the main page's first load hasn't actually finished
-        // yet, this onNewIntent() call is almost certainly the redelivery half
-        // of a killed-process cold start (see mainPageEverFinishedLoading's own
-        // comment) rather than a genuine warm resume -- treat it as the real
-        // initial launch (loadUrl(), not evaluateJavascript()) so the lookup
-        // reliably lands on its destination instead of the default home load
-        // winning the race.
-        handleIncomingIntent(intent, !mainPageEverFinishedLoading);
+        // This is ALSO the call Capacitor's own BridgeActivity.load() makes
+        // internally (from super.onCreate(), during Bridge creation) on a
+        // genuine cold start -- at that point no page has loaded yet, so
+        // evaluateJavascript() here is a reliable no-op, and onCreate()'s own
+        // explicit final handleIncomingIntent(getIntent(), true) call is what
+        // actually lands the redirect in that case (see its own comment for
+        // why). A previous version of this method tried branching on
+        // mainPageEverFinishedLoading to decide between loadUrl() and
+        // evaluateJavascript() here, reasoning that a still-loading page meant
+        // this must be that same internal cold-start call needing the more
+        // forceful loadUrl() -- on-device trace logging confirmed that
+        // reasoning was wrong and the branching was the actual regression;
+        // reverted to always evaluateJavascript() here.
+        handleIncomingIntent(intent, false);
     }
 
     // Extracted from handleIncomingIntent() so both it and the onPageFinished
