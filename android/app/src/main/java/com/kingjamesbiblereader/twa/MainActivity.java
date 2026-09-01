@@ -107,43 +107,6 @@ public class MainActivity extends BridgeActivity {
     private static final String PREF_USED_FALLBACK = "used_fallback";
 
     private boolean usingOfflineFallback = false;
-    // Diagnostic breadcrumb trail for the cold-start lookup issue -- shown as
-    // a Toast once the outcome is known (see the onPageFinished safety net,
-    // below) so this can be checked on-device without adb/a computer. Remove
-    // once that issue is actually resolved and confirmed.
-    private final StringBuilder debugTrace = new StringBuilder();
-    private void trace(String s) {
-        try { debugTrace.append(s).append("\n"); } catch (Throwable t) {}
-    }
-    // Shows the trace in a scrollable, selectable dialog with a Copy button --
-    // a Toast truncates long text and can't be selected/copied at all, which
-    // made the earlier version of this diagnostic useless for anything but
-    // the first line or two. Must be called on the UI thread.
-    private void showTraceDialog(String traceText) {
-        try {
-            TextView tv = new TextView(this);
-            tv.setText(traceText);
-            tv.setTextIsSelectable(true);
-            tv.setPadding(40, 30, 40, 30);
-            tv.setTextSize(12);
-            ScrollView scroll = new ScrollView(this);
-            scroll.addView(tv);
-            new AlertDialog.Builder(this)
-                .setTitle("Lookup Debug Trace")
-                .setView(scroll)
-                .setPositiveButton("Copy", (dialog, which) -> {
-                    try {
-                        android.content.ClipboardManager cm =
-                            (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                        android.content.ClipData clip = android.content.ClipData.newPlainText("KJB Debug Trace", traceText);
-                        cm.setPrimaryClip(clip);
-                        Toast.makeText(this, "Copied", Toast.LENGTH_SHORT).show();
-                    } catch (Throwable t) {}
-                })
-                .setNegativeButton("Close", null)
-                .show();
-        } catch (Throwable t) {}
-    }
     // Set true the first time the main WebView's page load actually finishes.
     // Needed because of a documented Android quirk with singleTask activities:
     // when the app's process was killed but its task still exists in Recents,
