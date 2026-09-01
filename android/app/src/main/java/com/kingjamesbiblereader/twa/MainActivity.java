@@ -1462,24 +1462,19 @@ public class MainActivity extends BridgeActivity {
                 // was, which pendingDestination only approximates for the
                 // no-live-content case handled in the else branch below.
                 //
-                // Gated on mainPageEverFinishedLoading, not just view.getUrl()
-                // starting with REMOTE_URL: getUrl() reflects the target of an
-                // in-progress/attempted navigation, not only a successfully
-                // committed one -- on a cold start, our own loadUrl() to the
-                // search destination makes getUrl() start with REMOTE_URL the
-                // moment it's issued, even though that exact request is the
-                // one failing right now (never actually loaded). Without this
-                // guard, that falsely looked like "a real live page to carry
-                // state from", evaluateJavascript ran against a page that
-                // never loaded (garbage/null result), buildCarryTarget failed
-                // to parse it and fell back to the bare origin -- silently
-                // losing the search destination and landing on home. This was
-                // the actual cause of cold-start lookups failing specifically
-                // OFFLINE while working fine online (online never reaches
-                // this branch, since the real site loads successfully).
+                // NOTE: previously gated on activity.mainPageEverFinishedLoading
+                // too, on the theory that view.getUrl() can reflect an
+                // in-progress/attempted navigation rather than only a
+                // successfully committed one, and that this branch could
+                // therefore fire wrongly on a cold start. That gate is
+                // confirmed to have been a REGRESSION: 1.14 (before it
+                // existed) had offline cold-start lookups working; the gate
+                // broke that. Reverted -- whatever this branch's actual
+                // reliability characteristics are, they're better than the
+                // gated version's, at least for this exact scenario.
                 String currentUrl = view.getUrl();
                 activity.trace("onReceivedError: currentUrl=" + currentUrl + ", mainPageEverFinishedLoading=" + activity.mainPageEverFinishedLoading + ", pendingDestination=" + activity.pendingDestination);
-                if (activity.mainPageEverFinishedLoading && currentUrl != null && currentUrl.startsWith(REMOTE_URL)) {
+                if (currentUrl != null && currentUrl.startsWith(REMOTE_URL)) {
                     activity.trace("onReceivedError -> carry-state-from-live-page branch");
                     view.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> {
                         String carryTarget = buildCarryTarget(result, FALLBACK_ORIGIN, false);
