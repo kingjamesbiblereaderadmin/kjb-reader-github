@@ -512,23 +512,28 @@ public class MainActivity extends BridgeActivity {
         // connectivity.
 
         // If the app was launched via Android's share sheet, the text-selection
-        // "Process text" menu, or an https App Link, that's already been routed
-        // by the time we get here: Capacitor's own BridgeActivity.load() (called
-        // from super.onCreate() above) creates the Bridge and then immediately
-        // calls this.onNewIntent(getIntent()) itself -- which invokes OUR
-        // override, whose isInitialLaunch check (mainPageEverFinishedLoading)
-        // correctly evaluates true this early, so it already used loadUrl() to
-        // send the WebView to the right destination before this line even runs.
-        // A second explicit call here used to exist and re-issue the exact same
-        // loadUrl() a moment later, AFTER the setWebViewClient() call just above
-        // had already swapped in this activity's own client mid-navigation --
-        // a genuinely confusing double-navigation-with-a-client-swap-in-the-
-        // middle sequence that's since turned out to be the actual cause of
-        // cold-start lookups silently landing on home instead of their real
-        // destination. Removed; the onNewIntent()-during-super.onCreate() call
-        // above already handles it, and the onPageFinished safety net
-        // (OfflineCapableWebViewClient, below) still verifies the end result
-        // regardless.
+        // "Process text" menu, or an https App Link, route straight to the
+        // matching destination instead of the normal home load. Takes priority
+        // over the offline-fallback load above if both apply (loadUrl just
+        // queues the most recent call).
+        //
+        // This EXPLICIT call, issued LAST after everything else in onCreate()
+        // has run, turned out to matter far more than it looked like it should.
+        // Capacitor's own BridgeActivity.load() (called from super.onCreate()
+        // above) creates the Bridge and then immediately calls
+        // this.onNewIntent(getIntent()) itself, which invokes our override --
+        // but that fires this early, before any page has had a chance to load,
+        // so onNewIntent()'s evaluateJavascript()-based redirect is a reliable
+        // no-op there (nothing to run JS against yet). This call is what
+        // actually lands the redirect, specifically because it's issued dead
+        // last: Capacitor's own default load of server.url also gets queued
+        // somewhere in this same sequence, and on-device testing confirmed
+        // that whichever loadUrl() call happens LAST is the one that
+        // reliably wins -- removing this call (reasoning that it was a
+        // redundant double-navigation racing against onNewIntent's own
+        // attempt) was tried and confirmed, via on-device trace logging, to
+        // be the actual regression that broke cold-start lookups. Restored.
+        handleIncomingIntent(getIntent(), true);
     }
 
     @Override
