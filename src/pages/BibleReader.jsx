@@ -649,7 +649,6 @@ export default function BibleReader() {
   // Subscript for the current chapter, honouring any admin override. Recomputed
   // when verses reload (loadOverrides populates the cache by then).
   const chapterSubscript = resolveSubscript(book.apiName, pos.chapter);
-  const isPsalm119 = book.abbr === 'PSA' && pos.chapter === 119;
 
   useReaderUrlSync(pos, loading, a11yFont, routerNavigate, searchTerm, gospelMode);
   const isViewingTitlePage = pos.chapter === 0;
