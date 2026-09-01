@@ -18,12 +18,19 @@ function legacyUrl() {
   const base = (isCustom || !appParams.appId)
     ? '/functions/legacy'
     : `/api/apps/${appParams.appId}/functions/legacy?app_id=${appParams.appId}`;
+  const params = [];
   // Cache-bust: this endpoint is served with stale-while-revalidate=604800
   // (7 days), so without this a stale cached copy -- from before any fix to
   // this page's own HTML -- could keep being served for up to a week even
   // after the source was corrected.
+  params.push(`t=${Date.now()}`);
+  // On native, the embedded page's own "Back to KJB Reader" link would be a
+  // second, duplicate way to do exactly what this wrapper's own "Back to App"
+  // button already does -- ask the backend to omit it there. Kept on web,
+  // where there's no such wrapper button to begin with.
+  if (isNativeAndroid()) params.push('native=1');
   const sep = base.includes('?') ? '&' : '?';
-  return `${base}${sep}t=${Date.now()}`;
+  return `${base}${sep}${params.join('&')}`;
 }
 
 export default function LegacyReader() {
