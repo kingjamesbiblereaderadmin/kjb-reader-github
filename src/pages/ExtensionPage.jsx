@@ -235,12 +235,15 @@ export default function ExtensionPage() {
               href={urls.firefox}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex flex-col items-center justify-center self-start gap-2 px-8 py-4 rounded-xl font-sans text-base font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg bg-green-500 hover:bg-green-600"
+              title="Get for Firefox — addons.mozilla.org"
+              className="inline-flex flex-col items-center justify-start self-start transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
-              <span className="inline-flex items-center gap-2">
-                <Puzzle className="w-5 h-5" />
-                Get for Firefox
-              </span>
+              <img
+                src="https://blog.mozilla.org/addons/files/2015/11/AMO-button_1.png"
+                alt="Get the Add-on for Firefox"
+                className="h-[58px] w-auto rounded-lg shadow-lg"
+              />
+              <span className="font-sans text-[11px] font-medium text-transparent mt-1" aria-hidden="true">&nbsp;</span>
             </a>
             <a
               href={urls.opera}
