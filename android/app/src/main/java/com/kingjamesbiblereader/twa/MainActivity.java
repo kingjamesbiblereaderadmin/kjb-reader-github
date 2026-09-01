@@ -930,6 +930,32 @@ public class MainActivity extends BridgeActivity {
         }
 
         private void routePopupUrl(WebView mainView, Uri url) {
+            // Explicit escape hatch: LegacyReader.jsx's "Open in Browser" link
+            // points at the SAME host as server.url (kingjamesbiblereader.com,
+            // just a different path) specifically because it wants to open in
+            // a genuine external browser regardless -- but bridge.launchIntent()
+            // below only opens externally for hosts OUTSIDE server.url's own
+            // host/allowNavigation list, so a same-host link like this one was
+            // silently kept in-app (reloaded into the main WebView) instead,
+            // defeating the entire point of that button. Marked with this
+            // query param so it forces a real external Intent regardless of
+            // host, bypassing launchIntent()'s same-host logic entirely.
+            if ("1".equals(url.getQueryParameter("open_external"))) {
+                try {
+                    Uri.Builder stripped = url.buildUpon().clearQuery();
+                    for (String key : url.getQueryParameterNames()) {
+                        if (!"open_external".equals(key)) {
+                            stripped.appendQueryParameter(key, url.getQueryParameter(key));
+                        }
+                    }
+                    Intent intent = new Intent(Intent.ACTION_VIEW, stripped.build());
+                    mainView.getContext().startActivity(intent);
+                    return;
+                } catch (Exception e) {
+                    // Fall through to the normal routing below rather than
+                    // silently doing nothing if no browser app can handle it.
+                }
+            }
             // Reuse Capacitor's own allowNavigation logic (capacitor.config.ts)
             // instead of duplicating the OAuth host list here: launchIntent()
             // opens it externally and returns true for anything NOT in
