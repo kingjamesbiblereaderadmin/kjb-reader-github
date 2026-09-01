@@ -403,6 +403,13 @@ export default function LandingSetupWizard() {
           <div className="text-center">
             <h3 className="font-serif text-lg font-bold text-foreground mb-1">Theme & Colour</h3>
             <p className="font-sans text-xs text-muted-foreground mb-4">Choose light/dark and your accent color</p>
+            {mode === 'auto' && (
+              <div className="max-w-xs mx-auto mb-4 px-3 py-2 rounded-lg bg-accent/10 border border-accent/30">
+                <p className="font-sans text-[11px] text-muted-foreground">
+                  🕐 Auto: light 6am–6pm, dark 6pm–6am
+                </p>
+              </div>
+            )}
             <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto mb-5">
               {[
                 { id: 'light', label: 'Light', icon: Sun },
@@ -429,11 +436,6 @@ export default function LandingSetupWizard() {
             <div className="max-w-sm mx-auto" onClick={() => markDone('theme')}>
               <ThemeColorPicker compact />
             </div>
-            {mode === 'auto' && (
-              <p className="font-sans text-[11px] text-muted-foreground mt-3">
-                🕐 Auto: light 6am–6pm, dark 6pm–6am
-              </p>
-            )}
           </div>
         )}
 
