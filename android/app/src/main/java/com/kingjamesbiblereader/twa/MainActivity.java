@@ -247,17 +247,33 @@ public class MainActivity extends BridgeActivity {
     // "Reconnecting..." splash wording (see below) applies -- only
     // meaningful for the FALLBACK_DOMAIN -> REMOTE_URL direction.
     private static String buildCarryTarget(String result, String baseTarget, boolean addReconnectFlag) {
+        return buildCarryTarget(result, baseTarget, addReconnectFlag, null);
+    }
+
+    // forcedDestination: when non-null, used as the base URL INSTEAD of
+    // baseTarget+carried-path -- for the case where the cold start that
+    // triggered this carry was ALSO a share/process-text/deep-link intent,
+    // which has its own specific destination that has nothing to do with
+    // whatever page the offline session happened to be showing when it was
+    // last used. The carried localStorage DATA still applies either way --
+    // only the navigation target differs.
+    private static String buildCarryTarget(String result, String baseTarget, boolean addReconnectFlag, String forcedDestination) {
         String target = baseTarget;
         try {
             org.json.JSONObject obj = new org.json.JSONObject(result);
             org.json.JSONObject data = obj.optJSONObject("data");
-            String path = obj.optString("path", "");
-            // Only carry the current path if it's a REAL in-app route
-            // (starts with "/"), never the origin's own root "/" with
-            // nothing meaningful after it -- in that case the plain
-            // base URL is exactly right already.
-            boolean carryPath = path.startsWith("/") && !path.equals("/");
-            String base = carryPath ? (baseTarget + path) : baseTarget;
+            String base;
+            if (forcedDestination != null) {
+                base = forcedDestination;
+            } else {
+                String path = obj.optString("path", "");
+                // Only carry the current path if it's a REAL in-app route
+                // (starts with "/"), never the origin's own root "/" with
+                // nothing meaningful after it -- in that case the plain
+                // base URL is exactly right already.
+                boolean carryPath = path.startsWith("/") && !path.equals("/");
+                base = carryPath ? (baseTarget + path) : baseTarget;
+            }
             if (data != null && data.length() > 0) {
                 String dataStr = data.toString();
                 if (dataStr.getBytes(StandardCharsets.UTF_8).length <= MAX_CARRY_BYTES) {
