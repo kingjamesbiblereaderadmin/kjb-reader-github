@@ -1426,15 +1426,33 @@ public class MainActivity extends BridgeActivity {
             // results) by repeatedly forcing them back to the original lookup.
             if (isFirstLoad) {
                 String destination = activity.resolveDestinationUrl(activity.getIntent());
+                activity.trace("onPageFinished FIRST LOAD: loaded url=" + url + ", resolved destination=" + destination);
                 if (destination != null) {
                     String destinationPath = destination.split("\\?")[0];
                     boolean landedOnDestination = url != null && url.startsWith(destinationPath);
+                    activity.trace("landedOnDestination=" + landedOnDestination);
                     if (!landedOnDestination) {
+                        activity.trace("CORRECTING: view.loadUrl(" + destination + ")");
                         activity.pendingDestination = destination;
                         view.loadUrl(destination);
                     }
                 }
                 activity.specialIntentHandled = true;
+
+                // Show the accumulated trace as a Toast so this can be
+                // checked on-device without adb/a computer. Only for a
+                // special-destination launch (share/process-text/deep-link) --
+                // no point showing this for an ordinary launcher-icon open.
+                // Diagnostic only; remove once the cold-start lookup issue is
+                // confirmed fixed.
+                if (destination != null) {
+                    final String fullTrace = activity.debugTrace.toString();
+                    view.post(() -> {
+                        try {
+                            Toast.makeText(activity, fullTrace, Toast.LENGTH_LONG).show();
+                        } catch (Throwable t) {}
+                    });
+                }
             }
 
             // maybeCarryStateFromColdStart() hid the main WebView (this one)
