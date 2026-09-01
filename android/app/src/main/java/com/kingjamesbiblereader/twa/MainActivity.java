@@ -770,11 +770,13 @@ public class MainActivity extends BridgeActivity {
         // still has the correct live destination to work from.
         pendingDestination = url;
         specialIntentHandled = true;
+        trace("handleIncomingIntent RESOLVED target=" + target + ", isInitialLaunch=" + isInitialLaunch + ", usingOfflineFallback=" + usingOfflineFallback);
         if (isInitialLaunch) {
             // Bridge already queued the normal server.url load -- override it
             // with the shared-text/deep-link destination instead. loadUrl()
             // is correct here: no page has actually started rendering yet
             // for this fresh process to "drop" the call.
+            trace("handleIncomingIntent -> webView.loadUrl(" + target + ")");
             webView.loadUrl(target);
         } else {
             // A warm resume (app already running in the background, this
@@ -795,6 +797,7 @@ public class MainActivity extends BridgeActivity {
             // loadUrl() introduced this regression. The brief flash this
             // reintroduces is a real but much smaller cost than navigation
             // sometimes not happening at all.
+            trace("handleIncomingIntent -> webView.evaluateJavascript(location.href = " + target + ")");
             webView.evaluateJavascript("window.location.href = " + org.json.JSONObject.quote(target) + ";", null);
         }
     }
