@@ -672,6 +672,7 @@ public class MainActivity extends BridgeActivity {
     public void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
+        trace("onNewIntent, action=" + (intent != null ? intent.getAction() : "null") + ", mainPageEverFinishedLoading=" + mainPageEverFinishedLoading + " -> isInitialLaunch=" + !mainPageEverFinishedLoading);
         // App already running (singleTask) -- navigate the live WebView.
         //
         // Exception: if the main page's first load hasn't actually finished
