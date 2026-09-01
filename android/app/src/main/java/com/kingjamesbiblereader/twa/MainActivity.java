@@ -515,7 +515,16 @@ public class MainActivity extends BridgeActivity {
         // redundant double-navigation racing against onNewIntent's own
         // attempt) was tried and confirmed, via on-device trace logging, to
         // be the actual regression that broke cold-start lookups. Restored.
-        handleIncomingIntent(getIntent(), true);
+        //
+        // Skipped when carriedNavigation is true: maybeCarryStateFromColdStart()
+        // already resolved this SAME intent's destination and is navigating
+        // there itself (asynchronously, once its hidden-WebView carry-read
+        // finishes) -- calling this too would just be a second, redundant
+        // navigation attempt racing the first, the exact pattern already
+        // confirmed to cause problems elsewhere in this file.
+        if (!carriedNavigation) {
+            handleIncomingIntent(getIntent(), true);
+        }
     }
 
     @Override
