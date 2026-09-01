@@ -787,7 +787,7 @@ public class MainActivity extends BridgeActivity {
             // that origin switch never even knew it needed to run.
             usingOfflineFallback = true;
             try {
-                getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit().putBoolean(PREF_USED_FALLBACK, true).apply();
+                getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(PREF_USED_FALLBACK, true).apply();
             } catch (Exception e) {
                 // Non-fatal -- worst case, the eventual reconnect just shows
                 // the "new visitor" flow again instead of carrying state.
