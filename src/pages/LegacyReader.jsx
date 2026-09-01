@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { appParams } from '@/lib/app-params';
 
 // The legacy reader is a 100% server-rendered HTML page (no React, no JS),
@@ -24,10 +23,11 @@ export default function LegacyReader() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: '#f7f7fb' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#2d2a6e', color: '#fff', fontFamily: 'Arial, sans-serif', fontSize: 13, flexShrink: 0 }}>
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#fff', textDecoration: 'none' }}>
-          <ArrowLeft size={16} /> Back to App
-        </Link>
+      {/* No "Back to App" here anymore -- the embedded legacy page's own
+          header link now targets "_top" (see base44/functions/legacy/entry.ts),
+          so it correctly breaks out of this iframe to "/" on its own. Having
+          both was a duplicate "go back" control doing the same thing. */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '10px 14px', background: '#2d2a6e', color: '#fff', fontFamily: 'Arial, sans-serif', fontSize: 13, flexShrink: 0 }}>
         <a href={url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#cfcfe8', textDecoration: 'none' }}>
           Open in Browser <ExternalLink size={13} />
         </a>
