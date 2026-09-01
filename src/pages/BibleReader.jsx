@@ -2185,14 +2185,8 @@ export default function BibleReader() {
               <p onClick={() => handleSectionClick('subscript')} id="kjb-subscript-anchor" className={`notranslate kjb-subscript text-center text-muted-foreground mb-4 leading-relaxed transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}><SubscriptContent text={chapterSubscript} searchTerm={sectionActive('subscript') ? searchTerm : null} /></p>
             )}
             {verses.filter(v => !activeFilter || verseInSelection(v)).map((v, idx) => {
-              const sectionLetter = isPsalm119 ? PSALM_119_SECTIONS[parseInt(v.verse, 10)] : null;
               return (
               <React.Fragment key={`${pos.abbr}-${pos.chapter}-${v.verse}`}>
-                {sectionLetter && (
-                  <div className="kjb-psalm119-heading text-center my-3" style={{ breakInside: 'avoid' }}>
-                    <span className={`notranslate font-serif uppercase text-muted-foreground ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, letterSpacing: '0.25em' }}>{sectionLetter}</span>
-                  </div>
-                )}
                 <VerseText
                   verse={v} highlight={tappedVerses.size > 0 ? tappedVerses.has(parseInt(v.verse, 10)) : (parseInt(highlightVerse, 10) === parseInt(v.verse, 10) || highlightedVerses.has(parseInt(v.verse, 10)))}
                   id={`v${v.verse}`} bookName={book.name} abbr={pos.abbr} chapter={pos.chapter} isFirstVerse={idx === 0} paragraphMode={paragraphMode} selectMode={selectMode}
