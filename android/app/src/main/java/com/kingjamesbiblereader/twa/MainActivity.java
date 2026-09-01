@@ -103,6 +103,23 @@ public class MainActivity extends BridgeActivity {
     private static final String PREF_USED_FALLBACK = "used_fallback";
 
     private boolean usingOfflineFallback = false;
+    // Set true the first time the main WebView's page load actually finishes.
+    // Needed because of a documented Android quirk with singleTask activities:
+    // when the app's process was killed but its task still exists in Recents,
+    // launching via a "Process text"/share/deep-link intent delivers the STALE
+    // original launcher intent to onCreate() first (so handleIncomingIntent's
+    // cold-start branch sees a plain launch, not the lookup, and does nothing),
+    // then immediately redelivers the REAL intent via onNewIntent() -- while the
+    // WebView is still mid-way through its very first (default, home-page) load
+    // from onCreate. onNewIntent()'s normal warm-resume path uses
+    // evaluateJavascript() to redirect the CURRENT page, which is unreliable
+    // against a page whose JS context hasn't finished initializing yet -- the
+    // exact same class of problem the comment on that call already describes for
+    // a backgrounded WebView, just triggered here by "still loading" instead of
+    // "paused". Tracking whether the initial load has actually finished lets
+    // onNewIntent() fall back to the more forceful loadUrl() (the same one
+    // onCreate's own genuine cold-start path uses) in that window instead.
+    private volatile boolean mainPageEverFinishedLoading = false;
     // Retries a live-site reload a few times with backoff after falling back
     // to the bundled snapshot, instead of only checking again on onResume().
     // Without this, a purely TRANSIENT failure right at cold start (a slow
