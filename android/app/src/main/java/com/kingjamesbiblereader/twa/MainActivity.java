@@ -1319,8 +1319,21 @@ public class MainActivity extends BridgeActivity {
             // it as an ordinary page load -- the download link silently did
             // nothing, because the request never reached DownloadListener at
             // all once we'd already handled it here.
+            //
+            // Also excludes online: this used to intercept UNCONDITIONALLY,
+            // online or offline. Since this bundled snapshot is frozen at
+            // whatever the legacy page looked like when the APK was built, an
+            // online user could never actually reach the LIVE backend
+            // function no matter what changed there (e.g. LegacyReader.jsx's
+            // own native=1 query param, meant to hide this page's embedded
+            // back link on native since the wrapper already has its own --
+            // silently had no effect at all, because this interceptor always
+            // won before the request ever reached the network). Gating on
+            // isNetworkAvailable() restores the bundled snapshot to what it
+            // was meant to be: an OFFLINE fallback specifically, not a
+            // permanent override of the real page.
             boolean isExplicitDownload = url.getQuery() != null && url.getQuery().contains("download=1");
-            if (path0 != null && path0.endsWith("/functions/legacy") && !isExplicitDownload) {
+            if (path0 != null && path0.endsWith("/functions/legacy") && !isExplicitDownload && !activity.isNetworkAvailable()) {
                 try {
                     InputStream stream = view.getContext().getAssets().open("legacy/legacy.html");
                     WebResourceResponse response = new WebResourceResponse("text/html", "UTF-8", stream);
