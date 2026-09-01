@@ -487,7 +487,8 @@ export default function BibleReader() {
       // group's own first verse rather than gating on gi === 0.
       return formatVerseShare({
         text: g.map(v => cleanVerseText(v.text)).join(' '),
-        subscript: (gi === 0 && wantSub ? chapterSubscript : null) || g[0]?.heading || null,
+        subscript: gi === 0 && wantSub ? chapterSubscript : null,
+        heading: g[0]?.heading || null,
         colophon: gi === groups.length - 1 && wantCol ? colophon : null,
         ref: `${book.shortName} ${pos.chapter}:${range}`,
         url: buildVerseUrl({ abbr: pos.abbr, chapter: pos.chapter, verse: first, verseEnd: last > first ? last : undefined, from: searchTerm ? 'search' : undefined }),
