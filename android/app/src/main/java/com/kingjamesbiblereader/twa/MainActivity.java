@@ -1385,15 +1385,15 @@ public class MainActivity extends BridgeActivity {
                 // OFFLINE while working fine online (online never reaches
                 // this branch, since the real site loads successfully).
                 String currentUrl = view.getUrl();
-                trace("onReceivedError: currentUrl=" + currentUrl + ", mainPageEverFinishedLoading=" + activity.mainPageEverFinishedLoading + ", pendingDestination=" + activity.pendingDestination);
+                activity.trace("onReceivedError: currentUrl=" + currentUrl + ", mainPageEverFinishedLoading=" + activity.mainPageEverFinishedLoading + ", pendingDestination=" + activity.pendingDestination);
                 if (activity.mainPageEverFinishedLoading && currentUrl != null && currentUrl.startsWith(REMOTE_URL)) {
-                    trace("onReceivedError -> carry-state-from-live-page branch");
+                    activity.trace("onReceivedError -> carry-state-from-live-page branch");
                     view.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> {
                         String carryTarget = buildCarryTarget(result, FALLBACK_ORIGIN, false);
                         view.post(() -> view.loadUrl(carryTarget));
                     });
                 } else {
-                    trace("onReceivedError -> using finalTarget=" + finalTarget);
+                    activity.trace("onReceivedError -> using finalTarget=" + finalTarget);
                     view.post(() -> view.loadUrl(finalTarget));
                 }
                 activity.scheduleReconnectAttempt();
