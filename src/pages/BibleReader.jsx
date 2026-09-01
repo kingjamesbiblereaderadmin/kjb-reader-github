@@ -576,9 +576,10 @@ export default function BibleReader() {
         // bottom nav's per-tab history and the URL-sync effect read a stale
         // location and can jump back into this filtered passage later.
         routerNavigate(url, { replace: true });
-        // Only persist the starting verse (not verseEnd) so reopening the reader
-        // lands on the chapter instead of jumping back into this filtered passage.
-        savePosition(pos.abbr, pos.chapter, first);
+        // Persist verseEnd too now, consistent with lookup/search ranges —
+        // reopening the reader restores this filtered passage instead of
+        // collapsing to just the first verse.
+        savePosition(pos.abbr, pos.chapter, first, last > first ? last : null);
       } catch {}
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
