@@ -646,7 +646,15 @@ public class MainActivity extends BridgeActivity {
         super.onNewIntent(intent);
         setIntent(intent);
         // App already running (singleTask) -- navigate the live WebView.
-        handleIncomingIntent(intent, false);
+        //
+        // Exception: if the main page's first load hasn't actually finished
+        // yet, this onNewIntent() call is almost certainly the redelivery half
+        // of a killed-process cold start (see mainPageEverFinishedLoading's own
+        // comment) rather than a genuine warm resume -- treat it as the real
+        // initial launch (loadUrl(), not evaluateJavascript()) so the lookup
+        // reliably lands on its destination instead of the default home load
+        // winning the race.
+        handleIncomingIntent(intent, !mainPageEverFinishedLoading);
     }
 
     private void handleIncomingIntent(Intent intent, boolean isInitialLaunch) {
