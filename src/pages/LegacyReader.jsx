@@ -36,6 +36,22 @@ function legacyUrl() {
 export default function LegacyReader() {
   const [url] = useState(legacyUrl);
   const [loaded, setLoaded] = useState(false);
+  const native = isNativeAndroid();
+
+  // On web there is no benefit to the iframe-wrapped in-app experience below
+  // (that was specifically to keep the NATIVE app feeling contained, instead
+  // of kicking users out to an external Chrome tab) -- a plain page
+  // navigation straight to the legacy function's own URL is simpler and
+  // avoids the iframe/cache/target=_top complexity entirely, since that URL
+  // is already a complete, real page with its own working back link.
+  useEffect(() => {
+    if (!native) {
+      window.location.replace(url);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!native) return null;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: '#f7f7fb' }}>
