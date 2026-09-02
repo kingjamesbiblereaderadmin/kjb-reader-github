@@ -38,10 +38,10 @@ export default function ContactPage() {
           </p>
           <a
             href={`mailto:${EMAIL}`}
-            className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-br from-primary to-accent text-primary-foreground font-sans text-base font-medium shadow-md shadow-primary/20 hover:brightness-105 active:scale-[0.98] transition-all duration-200"
+            className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-br from-primary to-accent text-primary-foreground font-sans text-base font-medium shadow-md shadow-primary/20 hover:brightness-105 active:scale-[0.98] transition-all duration-200 max-w-full min-w-0"
           >
-            <Mail className="w-5 h-5" />
-            {EMAIL}
+            <Mail className="w-5 h-5 shrink-0" />
+            <span className="break-all">{EMAIL}</span>
           </a>
           <p className="font-sans text-xs text-muted-foreground mt-4">
             Or copy: <span className="text-foreground font-medium">{EMAIL}</span>
