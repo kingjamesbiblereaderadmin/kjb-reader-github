@@ -480,7 +480,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
             <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center">
               <XCircle className="w-5 h-5 text-red-500" />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-4">
                 <h3 className="font-serif text-xl font-semibold text-red-700 dark:text-red-400">These do NOT make you a Christian:</h3>
                 <div className="flex items-center gap-2 flex-shrink-0">
