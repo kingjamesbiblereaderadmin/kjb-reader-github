@@ -658,56 +658,7 @@ export default function BibleReader() {
   }, []);
   usePinchZoom(readerContentRef, zoomLevel, setZoomPersist);
 
-  // Two-column reading mode: the browser's own column-balancing picks the
-  // break purely by height, with no idea what a pilcrow (paragraph start)
-  // is — so it can land right after one, leaving that verse as an orphaned
-  // lone paragraph-start at the bottom of the left column.
-  //
-  // CSS multi-column forces BOTH columns to the same shared height — there's
-  // no way to make the left column shorter and the right one taller without
-  // that height mechanism getting involved, and every attempt to fight it
-  // with a forced break or a shrunk height either left dead space (height
-  // couldn't shrink to match reduced content) or overflowed into extra
-  // hidden columns (shrinking the shared height cuts BOTH columns' capacity,
-  // not just the left one). So we don't use CSS multi-column for this case
-  // at all: once we spot the problem, we take over layout entirely — split
-  // the verses ourselves into two independent-height flex columns (one verse
-  // short of the natural break), each just flowing to its own natural
-  // height with no shared-height constraint to fight.
   const columnsContainerRef = useRef(null);
-  const [manualColumnSplit, setManualColumnSplit] = useState(null); // null = use native CSS columns
-  useEffect(() => {
-    // Any relevant change invalidates a previous manual split — fall back to
-    // native CSS columns so the natural break gets re-measured from scratch.
-    setManualColumnSplit(null);
-  }, [columnMode, paragraphMode, zoomLevel, fontFamily, verses, pos.abbr, pos.chapter, filterMode, selectedVerses]);
-  useEffect(() => {
-    const onResize = () => setManualColumnSplit(null);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-  useEffect(() => {
-    if (manualColumnSplit !== null) return; // already resolved for this layout
-    const container = columnsContainerRef.current;
-    if (!container) return;
-    const measure = () => {
-      const spans = Array.from(container.querySelectorAll(':scope > span[data-audio-verse]'));
-      if (spans.length < 2) return;
-      const lefts = spans.map((el) => el.getBoundingClientRect().left);
-      const minLeft = Math.min(...lefts);
-      let lastLeftIdx = -1;
-      for (let i = 0; i < spans.length; i++) {
-        if (Math.abs(lefts[i] - minLeft) < 1) lastLeftIdx = i;
-        else break; // column-fill:balance is sequential — first right-column item ends the search
-      }
-      if (lastLeftIdx <= 0 || lastLeftIdx === spans.length - 1) return; // nothing to fix, keep native columns
-      if (spans[lastLeftIdx].getAttribute('data-pilcrow') === 'true') {
-        setManualColumnSplit(lastLeftIdx); // verses [0, lastLeftIdx) go left, the rest go right
-      }
-    };
-    const raf = requestAnimationFrame(measure);
-    return () => cancelAnimationFrame(raf);
-  }, [manualColumnSplit, columnMode, paragraphMode, zoomLevel, fontFamily, verses, pos.abbr, pos.chapter, filterMode, selectedVerses]);
   const posRef = useRef(pos);
   useEffect(() => { posRef.current = pos; }, [pos]);
   // Set by goNext(isAutoAdvance) so loadChapter knows to keep Listen mode on
