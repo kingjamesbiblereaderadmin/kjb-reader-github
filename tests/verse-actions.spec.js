@@ -32,7 +32,7 @@ for (const width of WIDTHS) {
       await page.goto('/read?book=JHN&chapter=3');
       await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
 
-      await page.locator('#v16').click();
+      await page.locator('#v16 .kjb-verse-text').click();
       const highlightBtn = page.getByTitle('Highlight');
       await expect(highlightBtn).toBeVisible();
       await assertNoOverflow(page, 'verse popover open');
