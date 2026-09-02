@@ -75,6 +75,8 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
     <div className={`kjb-running-head mb-6 print:hidden ${isCursive ? 'cursive-em-style' : 'font-serif'}`}>
       <div
         ref={containerRef}
+        data-testid="kjb-running-head"
+        data-stacked={stacked ? 'true' : 'false'}
         className={
           stacked
             ? 'flex flex-col items-center text-center gap-1 min-w-0'
