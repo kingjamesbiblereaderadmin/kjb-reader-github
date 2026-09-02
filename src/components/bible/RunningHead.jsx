@@ -77,11 +77,11 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
         ref={containerRef}
         className={
           stacked
-            ? 'flex flex-col items-start gap-1 min-w-0'
+            ? 'flex flex-col items-center text-center gap-1 min-w-0'
             : 'flex justify-between items-baseline gap-4 min-w-0'
         }
       >
-        <div className="min-w-0 max-w-full">
+        <div className={stacked ? 'min-w-0 max-w-full' : 'min-w-0 max-w-full'}>
           <span
             ref={leftRef}
             className={`notranslate inline-block max-w-full font-semibold tracking-wide text-foreground ${
@@ -92,7 +92,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
             {bookName}
           </span>
         </div>
-        <div className={stacked ? 'min-w-0 max-w-full self-end' : 'min-w-0'}>
+        <div className="min-w-0 max-w-full">
           <span
             ref={rightRef}
             className="notranslate kjb-running-chapter inline-block max-w-full whitespace-nowrap font-semibold tracking-wide text-foreground"
