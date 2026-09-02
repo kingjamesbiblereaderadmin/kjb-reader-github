@@ -4,27 +4,14 @@
  * every step and every customization option in it.
  */
 import { test, expect } from '@playwright/test';
+import { checkOverflow } from './utils/overflow.js';
 
 const WIDTHS = [320, 360, 393];
 const TOLERANCE_PX = 1.5;
 
 async function assertNoOverflow(page, label) {
-  const overflow = await page.evaluate((tolerance) => {
-    const docWidth = document.documentElement.clientWidth;
-    const offenders = [];
-    for (const el of document.querySelectorAll('body *')) {
-      const style = getComputedStyle(el);
-      if (style.display === 'none' || style.visibility === 'hidden') continue;
-      const rect = el.getBoundingClientRect();
-      if (rect.width === 0 && rect.height === 0) continue;
-      if (rect.right > docWidth + tolerance) {
-        offenders.push({ tag: el.tagName.toLowerCase(), text: (el.textContent || '').trim().slice(0, 50) });
-      }
-    }
-    return [...new Map(offenders.map((o) => [`${o.tag}:${o.text}`, o])).values()];
-  }, TOLERANCE_PX);
-
-  expect(overflow, `${label}: horizontal overflow:\n` + overflow.map((o) => `  <${o.tag}> "${o.text}"`).join('\n')).toEqual([]);
+  const offenders = await page.evaluate(checkOverflow, TOLERANCE_PX);
+  expect(offenders, `${label}: horizontal overflow:\n` + offenders.map((o) => `  <${o.tag}> "${o.text}"`).join('\n')).toEqual([]);
 }
 
 for (const width of WIDTHS) {
