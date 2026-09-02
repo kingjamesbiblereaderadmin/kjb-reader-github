@@ -171,10 +171,11 @@
     -webkit-hyphens: auto;
     hyphens: auto;
   }
-  /* Keep each verse intact within a single column when possible */
-  .kjb-two-col > span {
-    break-inside: avoid;
-  }
+  /* Verses are allowed to split across the column break (like a real
+     printed two-column Bible) so the browser can fill each column all the
+     way and hand overflow to the next — keeping every verse fully intact
+     in one column, however long, made a good balance impossible whenever a
+     chapter mixes short and long verses. */
   /* First verse of each column starts flush at the top (no leading gap),
      so the left & right columns align at the same height */
   .kjb-two-col > span:first-child {
