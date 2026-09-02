@@ -1,0 +1,1 @@
+function n(){var e,i;try{return typeof window<"u"&&((e=window.location)==null?void 0:e.hostname)==="appassets.androidplatform.net"?"https://kingjamesbiblereader.com":typeof window<"u"&&((i=window.location)!=null&&i.origin)?window.location.origin:"https://kingjamesbiblereader.com"}catch{return"https://kingjamesbiblereader.com"}}export{n as g};
