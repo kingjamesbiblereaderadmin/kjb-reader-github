@@ -16,11 +16,11 @@ Error: expect(locator).toBeVisible() failed
 
 Locator: getByTitle('Highlight')
 Expected: visible
-Timeout: 5000ms
+Timeout: 10000ms
 Error: element(s) not found
 
 Call log:
-  - Expect "toBeVisible" with timeout 5000ms
+  - Expect "toBeVisible" with timeout 10000ms
   - waiting for getByTitle('Highlight')
 
 ```
@@ -249,15 +249,15 @@ Call log:
   42  | 
   43  |       await verseLocator(page, 16).click();
   44  |       const highlightBtn = page.getByTitle('Highlight');
-> 45  |       await expect(highlightBtn).toBeVisible();
+> 45  |       await expect(highlightBtn).toBeVisible({ timeout: 10000 });
       |                                  ^ Error: expect(locator).toBeVisible() failed
   46  |       await assertNoOverflow(page, 'verse popover open');
   47  | 
   48  |       await highlightBtn.click();
-  49  |       await expect(page.getByTitle('Unhighlight')).toBeVisible();
+  49  |       await expect(page.getByTitle('Unhighlight')).toBeVisible({ timeout: 10000 });
   50  | 
   51  |       await page.getByTitle('Unhighlight').click();
-  52  |       await expect(page.getByTitle('Highlight')).toBeVisible();
+  52  |       await expect(page.getByTitle('Highlight')).toBeVisible({ timeout: 10000 });
   53  |     });
   54  | 
   55  |     test('copy and share actions do not throw', async ({ page }) => {
