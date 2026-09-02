@@ -11,6 +11,7 @@
  * overflowing," checked everywhere at once instead of page by page.
  */
 import { test, expect } from '@playwright/test';
+import { checkOverflow } from './utils/overflow.js';
 
 // Every public, non-destructive, no-auth-required route. Deliberately
 // excludes: /login, /register, /forgot-password, /reset-password,
@@ -71,51 +72,12 @@ for (const width of WIDTHS) {
         await page.goto(route);
         await page.waitForLoadState('networkidle').catch(() => {});
 
-        const overflow = await page.evaluate((tolerance) => {
-          const docWidth = document.documentElement.clientWidth;
-          const offenders = [];
-
-          // Whole-document check first — cheapest signal that *something*
-          // is overflowing.
-          const docOverflow = document.documentElement.scrollWidth - docWidth;
-
-          // Then find exactly which elements, so failures are actionable
-          // instead of just "something, somewhere."
-          const all = document.querySelectorAll('body *');
-          for (const el of all) {
-            const style = getComputedStyle(el);
-            if (style.display === 'none' || style.visibility === 'hidden') continue;
-            const rect = el.getBoundingClientRect();
-            if (rect.width === 0 && rect.height === 0) continue;
-            if (rect.right > docWidth + tolerance) {
-              const text = (el.textContent || '').trim().slice(0, 60);
-              offenders.push({
-                tag: el.tagName.toLowerCase(),
-                cls: (el.className && typeof el.className === 'string' ? el.className : '').slice(0, 80),
-                text,
-                overBy: Math.round((rect.right - docWidth) * 10) / 10,
-              });
-            }
-          }
-          // Dedupe by tag+text — parent/child elements of the same overflow
-          // both get flagged, only the outermost is actionable.
-          const seen = new Set();
-          const deduped = offenders.filter((o) => {
-            const key = `${o.tag}:${o.text}`;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          });
-
-          return { docOverflow, offenders: deduped.slice(0, 15) };
-        }, TOLERANCE_PX);
+        const offenders = await page.evaluate(checkOverflow, TOLERANCE_PX);
 
         expect(
-          overflow.offenders,
-          `${route} @ ${width}px overflows horizontally by ${overflow.docOverflow}px:\n` +
-            overflow.offenders
-              .map((o) => `  <${o.tag} class="${o.cls}"> "${o.text}" (over by ${o.overBy}px)`)
-              .join('\n')
+          offenders,
+          `${route} @ ${width}px overflows horizontally:\n` +
+            offenders.map((o) => `  <${o.tag} class="${o.cls}"> "${o.text}" (over by ${o.overBy}px)`).join('\n')
         ).toEqual([]);
       });
     }
