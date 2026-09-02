@@ -6,7 +6,7 @@
 
 # Test info
 
-- Name: app-wide-overflow.spec.js >> [width 360px] >> no horizontal overflow: /search
+- Name: app-wide-overflow.spec.js >> [width 360px] >> no horizontal overflow: /legacy
 - Location: tests/app-wide-overflow.spec.js:64:7
 
 # Error details
