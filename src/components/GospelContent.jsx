@@ -333,7 +333,7 @@ function StepCard({ number, icon, iconBg, title, copyText, children, defaultOpen
         <div className="flex-shrink-0 w-10 h-10 rounded-2xl shadow-md flex items-center justify-center" style={{ backgroundImage: iconBg }}>
           {icon}
         </div>
-        <h3 className="font-serif text-xl font-semibold text-foreground flex-1">{number ? `${number}. ` : ''}{title}</h3>
+        <h3 className="font-serif text-xl font-semibold text-foreground flex-1 min-w-0">{number ? `${number}. ` : ''}{title}</h3>
         {collapsible ? (
           <ChevronDown className={"w-5 h-5 text-muted-foreground flex-shrink-0 transition-transform duration-200 " + (open ? "rotate-180" : "")} />
         ) : (
