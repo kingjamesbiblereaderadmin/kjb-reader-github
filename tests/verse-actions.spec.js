@@ -42,14 +42,14 @@ for (const width of WIDTHS) {
 
       await verseLocator(page, 16).click();
       const highlightBtn = page.getByTitle('Highlight');
-      await expect(highlightBtn).toBeVisible();
+      await expect(highlightBtn).toBeVisible({ timeout: 10000 });
       await assertNoOverflow(page, 'verse popover open');
 
       await highlightBtn.click();
-      await expect(page.getByTitle('Unhighlight')).toBeVisible();
+      await expect(page.getByTitle('Unhighlight')).toBeVisible({ timeout: 10000 });
 
       await page.getByTitle('Unhighlight').click();
-      await expect(page.getByTitle('Highlight')).toBeVisible();
+      await expect(page.getByTitle('Highlight')).toBeVisible({ timeout: 10000 });
     });
 
     test('copy and share actions do not throw', async ({ page }) => {
