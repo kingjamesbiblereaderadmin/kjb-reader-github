@@ -86,6 +86,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
         <div className={stacked ? 'min-w-0 max-w-full' : 'min-w-0 max-w-full'}>
           <span
             ref={leftRef}
+            data-testid="kjb-running-head-book"
             className={`notranslate inline-block max-w-full font-semibold tracking-wide text-foreground ${
               stacked ? 'whitespace-normal break-words' : 'whitespace-nowrap'
             }`}
@@ -97,6 +98,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
         <div className="min-w-0 max-w-full">
           <span
             ref={rightRef}
+            data-testid="kjb-running-head-chapter"
             className="notranslate kjb-running-chapter inline-block max-w-full whitespace-nowrap font-semibold tracking-wide text-foreground"
             style={{ fontSize, fontStyle: 'normal' }}
           >
