@@ -113,6 +113,20 @@
   body {
     @apply bg-background text-foreground;
     overscroll-behavior-y: none;
+    /* App-wide safety net: no matter what text ends up somewhere (a long
+       book title, a URL, a translated label, a name in a settings field),
+       it wraps instead of overflowing its container and running off-screen
+       or under something else. Elements that need a single line already set
+       whitespace: nowrap explicitly (buttons, pills, nav labels) — nowrap
+       always wins over overflow-wrap/hyphens, so this has no effect on
+       those and only helps normal-flow prose/labels. hyphens: auto is a
+       no-op without an explicit line-break opportunity too, so short button
+       text is unaffected; it only engages for a word that's genuinely too
+       wide for its line. */
+    overflow-wrap: break-word;
+    word-break: normal;
+    -webkit-hyphens: auto;
+    hyphens: auto;
   }
 
   button, a, nav, header {
