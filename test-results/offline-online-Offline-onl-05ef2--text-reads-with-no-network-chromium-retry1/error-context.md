@@ -7,7 +7,7 @@
 # Test info
 
 - Name: offline-online.spec.js >> Offline / online behavior >> downloaded Bible text reads with no network
-- Location: tests/offline-online.spec.js:64:3
+- Location: tests/offline-online.spec.js:74:3
 
 # Error details
 
@@ -101,156 +101,166 @@ Call log:
   25  | }
   26  | 
   27  | async function waitForServiceWorkerActive(page) {
-  28  |   await page.waitForFunction(
-  29  |     async () => {
-  30  |       if (!('serviceWorker' in navigator)) return false;
-  31  |       const reg = await navigator.serviceWorker.getRegistration();
-  32  |       return !!(reg && reg.active);
-  33  |     },
-  34  |     { timeout: 20000 }
-  35  |   );
-  36  | }
-  37  | 
-  38  | test.describe('Offline / online behavior', () => {
-  39  |   test.use({ viewport: { width: 393, height: 851 } });
-  40  | 
-  41  |   test('app shell loads with no network at all after first visit', async ({ page, context }) => {
-  42  |     // First visit: online, lets the service worker install and cache the shell.
-  43  |     await page.goto('/');
-  44  |     await waitForServiceWorkerActive(page);
-  45  |     await page.waitForSelector('body');
-  46  | 
-  47  |     // Now go fully offline and reload — this is the real test: without a
-  48  |     // working service worker cache, this would hit the browser's native
-  49  |     // "no internet" error page instead of the app.
-  50  |     await context.setOffline(true);
-  51  |     await page.reload();
-  52  | 
-  53  |     // The app shell — header nav, KJB Reader branding — should still render.
-  54  |     await expect(page.locator('body')).not.toContainText('ERR_INTERNET_DISCONNECTED');
-  55  |     await expect(page.getByRole('link', { name: /kjb reader/i }).first()).toBeVisible({ timeout: 15000 }).catch(async () => {
-  56  |       // Fallback: some layouts show the logo as an image without accessible
-  57  |       // text — just confirm SOME app chrome rendered, not a browser error page.
-  58  |       await expect(page.locator('[data-kjb-app-root]')).toBeVisible({ timeout: 15000 });
-  59  |     });
-  60  | 
-  61  |     await context.setOffline(false);
-  62  |   });
-  63  | 
-  64  |   test('downloaded Bible text reads with no network', async ({ page, context }) => {
-  65  |     await page.goto('/settings');
-  66  |     await waitForServiceWorkerActive(page);
-  67  |     await page.getByRole('button', { name: /expand all/i }).click();
-  68  | 
-  69  |     const downloadBtn = page.getByRole('button', { name: /download all 66 books/i });
-  70  |     if (await downloadBtn.count()) {
-  71  |       await downloadBtn.click();
-  72  |       // Downloading the full KJV can take a little while on a cold cache.
-  73  |       await expect(page.getByText(/downloaded successfully|cached.*available offline/i)).toBeVisible({ timeout: 60000 });
-  74  |     } else {
-  75  |       // Already cached from a previous run in this worker — fine, that's
-  76  |       // the state we want anyway.
-  77  |       await expect(page.getByText(/cached.*available offline/i)).toBeVisible({ timeout: 10000 }).catch(() => {});
-  78  |     }
-  79  | 
-  80  |     await context.setOffline(true);
-  81  | 
-  82  |     // Full reload while offline, then navigate to a specific chapter via the
-  83  |     // URL — this exercises the real cold-start offline path, not just SPA
-  84  |     // client-side routing on an already-warm page.
-  85  |     await page.goto('/read?book=GEN&chapter=1');
-> 86  |     await page.waitForSelector('.kjb-verse-text', { timeout: 20000 });
+  28  |   // `reg.active` just means a worker exists in the active state — it does
+  29  |   // NOT mean it's controlling *this* page's fetches yet (that only happens
+  30  |   // once `navigator.serviceWorker.controller` is set, which needs either a
+  31  |   // second navigation or this SW's own `clients.claim()` in its activate
+  32  |   // handler to take effect). Testing offline behavior against `active`
+  33  |   // alone is testing the wrong thing — the page's own requests wouldn't
+  34  |   // actually route through the worker yet.
+  35  |   const hasController = () => 'serviceWorker' in navigator && !!navigator.serviceWorker.controller;
+  36  |   try {
+  37  |     await page.waitForFunction(hasController, { timeout: 8000 });
+  38  |     return;
+  39  |   } catch {
+  40  |     // clients.claim() didn't reach this page in time (can happen on a truly
+  41  |     // cold first load) — one online reload is exactly what a real user's
+  42  |     // second visit does, and is enough to pick up the controller.
+  43  |     await page.reload();
+  44  |     await page.waitForFunction(hasController, { timeout: 20000 });
+  45  |   }
+  46  | }
+  47  | 
+  48  | test.describe('Offline / online behavior', () => {
+  49  |   test.use({ viewport: { width: 393, height: 851 } });
+  50  | 
+  51  |   test('app shell loads with no network at all after first visit', async ({ page, context }) => {
+  52  |     // First visit: online, lets the service worker install and cache the shell.
+  53  |     await page.goto('/');
+  54  |     await waitForServiceWorkerActive(page);
+  55  |     await page.waitForSelector('body');
+  56  | 
+  57  |     // Now go fully offline and reload — this is the real test: without a
+  58  |     // working service worker cache, this would hit the browser's native
+  59  |     // "no internet" error page instead of the app.
+  60  |     await context.setOffline(true);
+  61  |     await page.reload();
+  62  | 
+  63  |     // The app shell — header nav, KJB Reader branding — should still render.
+  64  |     await expect(page.locator('body')).not.toContainText('ERR_INTERNET_DISCONNECTED');
+  65  |     await expect(page.getByRole('link', { name: /kjb reader/i }).first()).toBeVisible({ timeout: 15000 }).catch(async () => {
+  66  |       // Fallback: some layouts show the logo as an image without accessible
+  67  |       // text — just confirm SOME app chrome rendered, not a browser error page.
+  68  |       await expect(page.locator('[data-kjb-app-root]')).toBeVisible({ timeout: 15000 });
+  69  |     });
+  70  | 
+  71  |     await context.setOffline(false);
+  72  |   });
+  73  | 
+  74  |   test('downloaded Bible text reads with no network', async ({ page, context }) => {
+  75  |     await page.goto('/settings');
+  76  |     await waitForServiceWorkerActive(page);
+  77  |     await page.getByRole('button', { name: /expand all/i }).click();
+  78  | 
+  79  |     const downloadBtn = page.getByRole('button', { name: /download all 66 books/i });
+  80  |     if (await downloadBtn.count()) {
+  81  |       await downloadBtn.click();
+  82  |       // Downloading the full KJV can take a little while on a cold cache.
+  83  |       await expect(page.getByText(/downloaded successfully|cached.*available offline/i)).toBeVisible({ timeout: 60000 });
+  84  |     } else {
+  85  |       // Already cached from a previous run in this worker — fine, that's
+  86  |       // the state we want anyway.
+  87  |       await expect(page.getByText(/cached.*available offline/i)).toBeVisible({ timeout: 10000 }).catch(() => {});
+  88  |     }
+  89  | 
+  90  |     await context.setOffline(true);
+  91  | 
+  92  |     // Full reload while offline, then navigate to a specific chapter via the
+  93  |     // URL — this exercises the real cold-start offline path, not just SPA
+  94  |     // client-side routing on an already-warm page.
+  95  |     await page.goto('/read?book=GEN&chapter=1');
+> 96  |     await page.waitForSelector('.kjb-verse-text', { timeout: 20000 });
       |                ^ Error: page.waitForSelector: Test timeout of 30000ms exceeded.
-  87  | 
-  88  |     const firstVerse = await page.locator('.kjb-verse-text').first().innerText();
-  89  |     expect(firstVerse.toLowerCase()).toContain('beginning');
-  90  | 
-  91  |     await assertNoOverflow(page, 'offline reader');
-  92  |     await context.setOffline(false);
-  93  |   });
-  94  | 
-  95  |   test('search works with no network once the Bible is cached', async ({ page, context }) => {
-  96  |     await page.goto('/settings');
-  97  |     await waitForServiceWorkerActive(page);
-  98  |     // Rely on the app's own auto-download-on-first-load behavior rather than
-  99  |     // re-triggering a manual download every test — just wait for the cache
-  100 |     // to be ready before going offline.
-  101 |     await page.waitForFunction(
-  102 |       async () => {
-  103 |         try {
-  104 |           const req = indexedDB.open('BibleReaderDB');
-  105 |           return await new Promise((resolve) => {
-  106 |             req.onsuccess = () => {
-  107 |               const db = req.result;
-  108 |               resolve(db.objectStoreNames.contains('bibleData'));
-  109 |               db.close();
-  110 |             };
-  111 |             req.onerror = () => resolve(false);
-  112 |           });
-  113 |         } catch {
-  114 |           return false;
-  115 |         }
-  116 |       },
-  117 |       { timeout: 30000 }
-  118 |     ).catch(() => {});
-  119 | 
-  120 |     await context.setOffline(true);
-  121 |     await page.goto('/search');
-  122 |     await page.waitForSelector('input[type="text"], input[placeholder*="Search" i]', { timeout: 15000 });
-  123 |     const searchInput = page.locator('input[type="text"], input[placeholder*="Search" i]').first();
-  124 |     await searchInput.fill('beginning');
-  125 |     await searchInput.press('Enter');
-  126 | 
-  127 |     // Either real results appear, or (if this worker's cache genuinely
-  128 |     // wasn't warm yet) the app should fail gracefully with a message, not a
-  129 |     // blank crash — either way, no horizontal overflow and no thrown error
-  130 |     // dialog.
-  131 |     await page.waitForTimeout(1500);
-  132 |     await assertNoOverflow(page, 'offline search');
-  133 | 
-  134 |     await context.setOffline(false);
-  135 |   });
+  97  | 
+  98  |     const firstVerse = await page.locator('.kjb-verse-text').first().innerText();
+  99  |     expect(firstVerse.toLowerCase()).toContain('beginning');
+  100 | 
+  101 |     await assertNoOverflow(page, 'offline reader');
+  102 |     await context.setOffline(false);
+  103 |   });
+  104 | 
+  105 |   test('search works with no network once the Bible is cached', async ({ page, context }) => {
+  106 |     await page.goto('/settings');
+  107 |     await waitForServiceWorkerActive(page);
+  108 |     // Rely on the app's own auto-download-on-first-load behavior rather than
+  109 |     // re-triggering a manual download every test — just wait for the cache
+  110 |     // to be ready before going offline.
+  111 |     await page.waitForFunction(
+  112 |       async () => {
+  113 |         try {
+  114 |           const req = indexedDB.open('BibleReaderDB');
+  115 |           return await new Promise((resolve) => {
+  116 |             req.onsuccess = () => {
+  117 |               const db = req.result;
+  118 |               resolve(db.objectStoreNames.contains('bibleData'));
+  119 |               db.close();
+  120 |             };
+  121 |             req.onerror = () => resolve(false);
+  122 |           });
+  123 |         } catch {
+  124 |           return false;
+  125 |         }
+  126 |       },
+  127 |       { timeout: 30000 }
+  128 |     ).catch(() => {});
+  129 | 
+  130 |     await context.setOffline(true);
+  131 |     await page.goto('/search');
+  132 |     await page.waitForSelector('input[type="text"], input[placeholder*="Search" i]', { timeout: 15000 });
+  133 |     const searchInput = page.locator('input[type="text"], input[placeholder*="Search" i]').first();
+  134 |     await searchInput.fill('beginning');
+  135 |     await searchInput.press('Enter');
   136 | 
-  137 |   test('settings changed offline persist after reconnecting', async ({ page, context }) => {
-  138 |     await page.goto('/settings');
-  139 |     await waitForServiceWorkerActive(page);
-  140 |     await page.getByRole('button', { name: /expand all/i }).click();
-  141 | 
-  142 |     await context.setOffline(true);
-  143 |     await page.getByRole('button', { name: '🌙 Dark', exact: true }).click();
-  144 |     await page.getByRole('button', { name: 'Cursive', exact: true }).click();
-  145 | 
-  146 |     // Reconnect and reload — a fully client-side (localStorage) preference
-  147 |     // must not depend on the network to persist or reflect correctly.
-  148 |     await context.setOffline(false);
-  149 |     await page.reload();
-  150 |     await page.waitForLoadState('networkidle').catch(() => {});
+  137 |     // Either real results appear, or (if this worker's cache genuinely
+  138 |     // wasn't warm yet) the app should fail gracefully with a message, not a
+  139 |     // blank crash — either way, no horizontal overflow and no thrown error
+  140 |     // dialog.
+  141 |     await page.waitForTimeout(1500);
+  142 |     await assertNoOverflow(page, 'offline search');
+  143 | 
+  144 |     await context.setOffline(false);
+  145 |   });
+  146 | 
+  147 |   test('settings changed offline persist after reconnecting', async ({ page, context }) => {
+  148 |     await page.goto('/settings');
+  149 |     await waitForServiceWorkerActive(page);
+  150 |     await page.getByRole('button', { name: /expand all/i }).click();
   151 | 
-  152 |     const isDark = await page.evaluate(() => document.documentElement.classList.contains('dark'));
-  153 |     expect(isDark, 'dark mode set while offline should persist after reconnecting').toBe(true);
-  154 | 
-  155 |     const storedFont = await page.evaluate(() => localStorage.getItem('kjb-reader-font-family'));
-  156 |     expect(storedFont).toBe('cursive');
-  157 | 
-  158 |     await assertNoOverflow(page, 'settings after offline change + reconnect');
-  159 |   });
-  160 | 
-  161 |   test('going offline mid-session then back online does not break the reader', async ({ page, context }) => {
-  162 |     await page.goto('/read?book=GEN&chapter=1');
-  163 |     await waitForServiceWorkerActive(page);
-  164 |     await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
-  165 | 
-  166 |     await context.setOffline(true);
-  167 |     // Navigate within the app (client-side routing, no full reload) while offline.
-  168 |     await page.goto('/read?book=GEN&chapter=2');
-  169 |     await page.waitForTimeout(1000);
+  152 |     await context.setOffline(true);
+  153 |     await page.getByRole('button', { name: '🌙 Dark', exact: true }).click();
+  154 |     await page.getByRole('button', { name: 'Cursive', exact: true }).click();
+  155 | 
+  156 |     // Reconnect and reload — a fully client-side (localStorage) preference
+  157 |     // must not depend on the network to persist or reflect correctly.
+  158 |     await context.setOffline(false);
+  159 |     await page.reload();
+  160 |     await page.waitForLoadState('networkidle').catch(() => {});
+  161 | 
+  162 |     const isDark = await page.evaluate(() => document.documentElement.classList.contains('dark'));
+  163 |     expect(isDark, 'dark mode set while offline should persist after reconnecting').toBe(true);
+  164 | 
+  165 |     const storedFont = await page.evaluate(() => localStorage.getItem('kjb-reader-font-family'));
+  166 |     expect(storedFont).toBe('cursive');
+  167 | 
+  168 |     await assertNoOverflow(page, 'settings after offline change + reconnect');
+  169 |   });
   170 | 
-  171 |     await context.setOffline(false);
-  172 |     await page.goto('/read?book=GEN&chapter=3');
-  173 |     await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
-  174 | 
-  175 |     await assertNoOverflow(page, 'reader after offline->online transition mid-session');
-  176 |   });
-  177 | });
-  178 | 
+  171 |   test('going offline mid-session then back online does not break the reader', async ({ page, context }) => {
+  172 |     await page.goto('/read?book=GEN&chapter=1');
+  173 |     await waitForServiceWorkerActive(page);
+  174 |     await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
+  175 | 
+  176 |     await context.setOffline(true);
+  177 |     // Navigate within the app (client-side routing, no full reload) while offline.
+  178 |     await page.goto('/read?book=GEN&chapter=2');
+  179 |     await page.waitForTimeout(1000);
+  180 | 
+  181 |     await context.setOffline(false);
+  182 |     await page.goto('/read?book=GEN&chapter=3');
+  183 |     await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
+  184 | 
+  185 |     await assertNoOverflow(page, 'reader after offline->online transition mid-session');
+  186 |   });
+  187 | });
+  188 | 
 ```
