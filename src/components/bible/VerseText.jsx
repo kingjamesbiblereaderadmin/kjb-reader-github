@@ -446,7 +446,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     // Pilcrow verse: render as a block (new paragraph) with gap above, no indent
     if (hasPilcrow && !isFirstVerse) {
       return (
-        <span id={id} data-audio-verse={verse.verse} className="block relative mt-12 scroll-mt-24" style={columnMode ? { breakAfter: 'avoid' } : undefined}>
+        <span id={id} data-audio-verse={verse.verse} data-pilcrow="true" className="block relative mt-12 scroll-mt-24">
           {stanzaHeading}
           <span
             onClick={handleVerseClick}
@@ -529,7 +529,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     );
   }
   return (
-    <span id={id} data-audio-verse={verse.verse} className={`block relative scroll-mt-24 ${hasPilcrow && !isFirstVerse ? 'mt-12' : 'mt-3'}`} style={columnMode && hasPilcrow && !isFirstVerse ? { breakAfter: 'avoid' } : undefined}>
+    <span id={id} data-audio-verse={verse.verse} data-pilcrow={hasPilcrow && !isFirstVerse ? 'true' : undefined} className={`block relative scroll-mt-24 ${hasPilcrow && !isFirstVerse ? 'mt-12' : 'mt-3'}`}>
       {stanzaHeading}
       <span
         onClick={handleVerseClick}
