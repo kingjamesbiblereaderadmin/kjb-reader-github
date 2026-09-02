@@ -192,15 +192,11 @@
     break-after: avoid;
   }
   /* Dancing Script's connected letterforms and swashes extend visibly past
-     their own layout box. Hyphenating a script word right at the column
-     edge ("say-ing") let that overhang bleed across the column-rule divider
-     — so cursive mode skips hyphenation entirely (the wider column-gap set
-     inline for cursive gives the swashes room to breathe instead). */
-  .cursive-em-style.kjb-two-col,
-  .kjb-two-col.cursive-em-style {
-    -webkit-hyphens: none;
-    hyphens: none;
-  }
+     their own layout box, so cursive mode gets extra column-gap (set inline)
+     for breathing room. Hyphenation itself stays on (see .kjb-two-col above)
+     — turning it off for cursive let long words that hyphenation would have
+     broken overflow straight past the column edge instead, which leaked
+     worse than the original swash overhang did. */
   /* First verse of each column starts flush at the top (no leading gap),
      so the left & right columns align at the same height */
   .kjb-two-col > span:first-child {
