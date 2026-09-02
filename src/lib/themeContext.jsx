@@ -183,9 +183,22 @@ export function ThemeProvider({ children }) {
     });
   };
 
-  // Persist mode and apply dark class
+  // Persist mode and apply dark class. Skip the localStorage write on the
+  // very first run (mount) — this effect fires on mount too since `mode`
+  // has no prior value to diff against, and blindly writing back whatever
+  // `mode` happened to initialize to (e.g. a 'system' fallback, if the read
+  // came back empty for any reason — a different storage origin for the
+  // offline shell is one candidate) permanently overwrote a real stored
+  // choice with that fallback. kjb-colour has no equivalent mount-time
+  // write and doesn't show this problem, which is what exposed it. Only an
+  // actual user-driven change (setMode/toggleTheme) should persist now.
+  const isFirstModeRunRef = useRef(true);
   useEffect(() => {
-    try { localStorage.setItem('kjb-theme-mode', mode); } catch {}
+    if (isFirstModeRunRef.current) {
+      isFirstModeRunRef.current = false;
+    } else {
+      try { localStorage.setItem('kjb-theme-mode', mode); } catch {}
+    }
     setIsDark(resolveIsDark(mode));
     // Dispatch so the settings sync push listener fires and pushes the new
     // theme mode to the cloud for cross-device sync.
