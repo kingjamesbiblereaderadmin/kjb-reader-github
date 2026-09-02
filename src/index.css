@@ -170,6 +170,13 @@
     text-align: left;
     -webkit-hyphens: auto;
     hyphens: auto;
+    /* Safety net for any word hyphens can't find a break point for (browser
+       hyphenation dictionaries don't cover every word/name). Without this, an
+       unbreakable word that's wider than the column just overflows straight
+       through the column-rule divider instead of wrapping — worse than an
+       imperfect hyphen. */
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
   /* Verses are allowed to split across the column break (like a real
      printed two-column Bible) so the browser can fill each column all the
