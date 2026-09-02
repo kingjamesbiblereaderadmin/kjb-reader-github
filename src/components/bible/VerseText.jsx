@@ -440,7 +440,12 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   );
 
   // ── PARAGRAPH MODE: verses flow inline; pilcrow verses break to a new line ──
-  const hasPilcrow = currentText.includes('\u00B6') || currentText.includes('\u000F');
+  // \u00B6/\uFFFD/\u000F double as a corrupted-apostrophe placeholder mid-word
+  // (e.g. "God\u00B6s" → "God's" — see normalizeApostrophes above), so a bare
+  // "does this text contain the byte" check flags nearly every verse with a
+  // possessive. Match renderVerseText's own rule for a REAL paragraph pilcrow:
+  // only at the very start of the verse, or right after whitespace/punctuation.
+  const hasPilcrow = /(^|[\s.,;:!?'")\]])[\u00B6\uFFFD\u000F]/.test(currentText);
 
   if (paragraphMode) {
     // Pilcrow verse: render as a block (new paragraph) with gap above, no indent
