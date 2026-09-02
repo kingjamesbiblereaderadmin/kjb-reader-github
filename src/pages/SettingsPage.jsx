@@ -356,6 +356,7 @@ export default function SettingsPage() {
                   try { localStorage.setItem('kjb-zoom', String(newZoom)); } catch {}
                   window.dispatchEvent(new Event('storage'));
                 }}
+                aria-label="Decrease text size"
                 className="p-2 rounded-xl bg-transparent border border-border text-foreground hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <ZoomOut className="w-4 h-4" />
@@ -367,6 +368,7 @@ export default function SettingsPage() {
                   try { localStorage.setItem('kjb-zoom', String(newZoom)); } catch {}
                   window.dispatchEvent(new Event('storage'));
                 }}
+                aria-label="Increase text size"
                 className="p-2 rounded-xl bg-transparent border border-border text-foreground hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <ZoomIn className="w-4 h-4" />
@@ -399,12 +401,14 @@ export default function SettingsPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setAppZoomPersist(appZoom - 25)}
+                aria-label="Decrease app zoom"
                 className="p-2 rounded-xl bg-transparent border border-border text-foreground hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <ZoomOut className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setAppZoomPersist(appZoom + 25)}
+                aria-label="Increase app zoom"
                 className="p-2 rounded-xl bg-transparent border border-border text-foreground hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <ZoomIn className="w-4 h-4" />
