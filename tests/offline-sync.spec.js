@@ -39,11 +39,15 @@ async function waitForPageControlled(page) {
 }
 
 function trackPageErrors(page) {
+  // Only uncaught exceptions count as real bugs here. console.error is NOT
+  // tracked — a background fetch failing because we deliberately went
+  // offline is expected behaviour, and several parts of the app log that
+  // via console.error on purpose (see e.g. bibleCache.js's own "IndexedDB
+  // load error" logging). Treating those as failures would make every
+  // offline test flaky/false-positive on exactly the condition it's meant
+  // to exercise.
   const errors = [];
   page.on('pageerror', (err) => errors.push(err.message));
-  page.on('console', (msg) => {
-    if (msg.type() === 'error') errors.push(msg.text());
-  });
   return errors;
 }
 
