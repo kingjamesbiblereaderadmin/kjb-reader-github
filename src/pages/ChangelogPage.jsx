@@ -269,7 +269,7 @@ export default function ChangelogPage() {
                     return (
                       <li key={i} className="flex items-start gap-2.5 font-sans text-sm leading-relaxed text-foreground/90">
                         <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-accent mt-[0.55em]" />
-                        <span className="flex-1">{item}</span>
+                        <span className="flex-1 min-w-0">{item}</span>
                         <span className={`flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-md font-sans text-[10px] font-semibold uppercase tracking-wide ${itemStyle.chip}`}>
                           {itemStyle.label}
                         </span>
