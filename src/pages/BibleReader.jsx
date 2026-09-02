@@ -657,6 +657,50 @@ export default function BibleReader() {
     try { localStorage.setItem('kjb-zoom', String(next)); } catch {}
   }, []);
   usePinchZoom(readerContentRef, zoomLevel, setZoomPersist);
+
+  // Two-column reading mode: the browser's own column-balancing picks the
+  // break purely by height, with no idea what a pilcrow (paragraph start)
+  // is — so it can land right after one, leaving that verse as an orphaned
+  // lone paragraph-start at the bottom of the left column. Fix it up after
+  // layout: find whichever verse actually ends the left column, and if it's
+  // a pilcrow verse, force it into the right column instead. Only the ONE
+  // verse sitting at the real break gets the forced break — not every
+  // pilcrow verse in the chapter — so it can't unbalance the rest of the
+  // layout the way a blanket CSS break-after:avoid on all of them did.
+  const columnsContainerRef = useRef(null);
+  useEffect(() => {
+    const container = columnsContainerRef.current;
+    if (!container) return;
+    const fix = () => {
+      const spans = Array.from(container.querySelectorAll(':scope > span[data-audio-verse]'));
+      // Clear any forced break from a previous layout pass first.
+      spans.forEach((el) => { el.style.breakBefore = ''; });
+      if (spans.length < 2) return;
+      // Forcing a break can shift the boundary earlier (onto another pilcrow
+      // verse), so re-measure a few times until it settles.
+      for (let pass = 0; pass < 4; pass++) {
+        const lefts = spans.map((el) => el.getBoundingClientRect().left);
+        const minLeft = Math.min(...lefts);
+        let lastLeftIdx = -1;
+        for (let i = 0; i < spans.length; i++) {
+          if (Math.abs(lefts[i] - minLeft) < 1) lastLeftIdx = i;
+          else break; // column-fill:balance is sequential — first right-column item ends the search
+        }
+        if (lastLeftIdx === -1 || lastLeftIdx === spans.length - 1) return;
+        const lastLeftEl = spans[lastLeftIdx];
+        if (lastLeftEl.getAttribute('data-pilcrow') === 'true') {
+          lastLeftEl.style.breakBefore = 'column';
+          void container.offsetHeight; // force reflow before re-measuring
+          continue;
+        }
+        break;
+      }
+    };
+    // Run after paint (fonts/webfonts can still shift line heights right after mount).
+    const raf = requestAnimationFrame(fix);
+    window.addEventListener('resize', fix);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', fix); };
+  }, [columnMode, paragraphMode, zoomLevel, fontFamily, verses, pos.abbr, pos.chapter, filterMode, selectedVerses]);
   const posRef = useRef(pos);
   useEffect(() => { posRef.current = pos; }, [pos]);
   // Set by goNext(isAutoAdvance) so loadChapter knows to keep Listen mode on
