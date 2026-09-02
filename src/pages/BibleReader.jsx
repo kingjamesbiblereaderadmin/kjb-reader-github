@@ -676,6 +676,7 @@ export default function BibleReader() {
       // Clear any forced break from a previous layout pass first.
       spans.forEach((el) => { el.style.breakBefore = ''; });
       if (spans.length < 2) return;
+      void container.offsetHeight; // reflow with breaks cleared before measuring the natural split
       // Forcing a break can shift the boundary earlier (onto another pilcrow
       // verse), so re-measure a few times until it settles.
       for (let pass = 0; pass < 4; pass++) {
@@ -688,12 +689,17 @@ export default function BibleReader() {
         }
         if (lastLeftIdx === -1 || lastLeftIdx === spans.length - 1) return;
         const lastLeftEl = spans[lastLeftIdx];
-        if (lastLeftEl.getAttribute('data-pilcrow') === 'true') {
-          lastLeftEl.style.breakBefore = 'column';
-          void container.offsetHeight; // force reflow before re-measuring
-          continue;
-        }
-        break;
+        if (lastLeftEl.getAttribute('data-pilcrow') !== 'true') break;
+        // Forcing this verse down costs roughly its own height in dead space
+        // at the bottom of the left column (browsers don't reliably re-shrink
+        // the balanced column height around a manually forced break). Only
+        // worth it for a short orphan (a line or two) — for a long verse the
+        // gap it leaves behind is worse than just letting it end the column.
+        const verseRect = lastLeftEl.getBoundingClientRect();
+        const lineHeightPx = parseFloat(getComputedStyle(lastLeftEl).lineHeight) || (verseRect.height || 24);
+        if (verseRect.height > lineHeightPx * 2.2) break; // too costly — leave the orphan as-is
+        lastLeftEl.style.breakBefore = 'column';
+        void container.offsetHeight; // force reflow before re-measuring
       }
     };
     // Run after paint (fonts/webfonts can still shift line heights right after mount).
