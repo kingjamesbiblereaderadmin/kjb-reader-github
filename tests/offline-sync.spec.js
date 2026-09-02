@@ -18,8 +18,22 @@ async function waitForServiceWorkerActive(page) {
     async () => {
       if (!('serviceWorker' in navigator)) return false;
       const reg = await navigator.serviceWorker.getRegistration();
-      return !!(reg && (reg.active || reg.waiting));
+      return !!(reg && reg.active);
     },
+    { timeout: 20000 }
+  );
+}
+
+// Being *registered* isn't enough for offline reload to work — the current
+// page/tab has to be *controlled* by that active worker (the browser only
+// hands control to a freshly-activated SW once clients.claim() has run and
+// propagated, which is asynchronous even after `reg.active` is set). A
+// reload attempted before that lands as a real network request and fails
+// offline with ERR_INTERNET_DISCONNECTED — not a bug in the app, just an
+// artifact of testing too early.
+async function waitForPageControlled(page) {
+  await page.waitForFunction(
+    () => !!(navigator.serviceWorker && navigator.serviceWorker.controller),
     { timeout: 20000 }
   );
 }
