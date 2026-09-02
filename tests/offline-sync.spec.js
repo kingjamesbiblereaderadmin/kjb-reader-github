@@ -70,7 +70,7 @@ test.describe('Offline / online sync', () => {
     // download, tested below) should still render from cache: no browser
     // "you are offline" error page, no blank screen.
     await expect(page.locator('body')).not.toContainText('ERR_INTERNET_DISCONNECTED');
-    await expect(page.getByRole('img', { name: /kjb reader logo/i }).or(page.locator('h1'))).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h1').first()).toBeVisible({ timeout: 10000 });
 
     await context.setOffline(false);
     expect(errors, `uncaught errors during offline reload:\n${errors.join('\n')}`).toEqual([]);
