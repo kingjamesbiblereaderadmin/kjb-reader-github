@@ -661,77 +661,53 @@ export default function BibleReader() {
   // Two-column reading mode: the browser's own column-balancing picks the
   // break purely by height, with no idea what a pilcrow (paragraph start)
   // is — so it can land right after one, leaving that verse as an orphaned
-  // lone paragraph-start at the bottom of the left column. A forced CSS
-  // break-before on that verse doesn't fix it cleanly: browsers don't
-  // reliably re-shrink the balanced column height around a manual break, so
-  // the left column keeps its original (taller) height and just shows dead
-  // space where that verse used to be — worse for a long verse.
+  // lone paragraph-start at the bottom of the left column.
   //
-  // Instead, take height control away from column-fill:balance entirely:
-  // measure the natural balanced height, then if the left column ends on a
-  // pilcrow verse, shrink the container's explicit height by exactly that
-  // verse's own height and switch to column-fill:auto, which deterministically
-  // fills the left column up to the given height with no leftover gap, and
-  // spills the excluded verse into the right column.
+  // CSS multi-column forces BOTH columns to the same shared height — there's
+  // no way to make the left column shorter and the right one taller without
+  // that height mechanism getting involved, and every attempt to fight it
+  // with a forced break or a shrunk height either left dead space (height
+  // couldn't shrink to match reduced content) or overflowed into extra
+  // hidden columns (shrinking the shared height cuts BOTH columns' capacity,
+  // not just the left one). So we don't use CSS multi-column for this case
+  // at all: once we spot the problem, we take over layout entirely — split
+  // the verses ourselves into two independent-height flex columns (one verse
+  // short of the natural break), each just flowing to its own natural
+  // height with no shared-height constraint to fight.
   const columnsContainerRef = useRef(null);
+  const [manualColumnSplit, setManualColumnSplit] = useState(null); // null = use native CSS columns
   useEffect(() => {
+    // Any relevant change invalidates a previous manual split — fall back to
+    // native CSS columns so the natural break gets re-measured from scratch.
+    setManualColumnSplit(null);
+  }, [columnMode, paragraphMode, zoomLevel, fontFamily, verses, pos.abbr, pos.chapter, filterMode, selectedVerses]);
+  useEffect(() => {
+    const onResize = () => setManualColumnSplit(null);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  useEffect(() => {
+    if (manualColumnSplit !== null) return; // already resolved for this layout
     const container = columnsContainerRef.current;
     if (!container) return;
-    const fix = () => {
-      // Reset any override from a previous pass and remeasure the natural,
-      // browser-balanced layout first.
-      container.style.columnFill = '';
-      container.style.height = '';
-      void container.offsetHeight;
-
+    const measure = () => {
       const spans = Array.from(container.querySelectorAll(':scope > span[data-audio-verse]'));
       if (spans.length < 2) return;
-
-      // Returns the index of the last span in the left column, and how many
-      // distinct columns the content is currently spread across.
-      const findBoundary = () => {
-        const lefts = spans.map((el) => el.getBoundingClientRect().left);
-        const minLeft = Math.min(...lefts);
-        let lastLeftIdx = -1;
-        let columnsSeen = 1;
-        let prevLeft = null;
-        for (let i = 0; i < spans.length; i++) {
-          if (prevLeft !== null && Math.abs(lefts[i] - prevLeft) > 1) columnsSeen++;
-          prevLeft = lefts[i];
-          if (Math.abs(lefts[i] - minLeft) < 1) lastLeftIdx = i;
-        }
-        return { lastLeftIdx, columnsSeen };
-      };
-
-      let { lastLeftIdx, columnsSeen } = findBoundary();
-      if (lastLeftIdx === -1 || lastLeftIdx === spans.length - 1 || columnsSeen > 2) return;
-      let lastLeftEl = spans[lastLeftIdx];
-      if (lastLeftEl.getAttribute('data-pilcrow') !== 'true') return; // nothing to fix
-
-      let height = container.getBoundingClientRect().height;
-      for (let pass = 0; pass < 4; pass++) {
-        const verseHeight = lastLeftEl.getBoundingClientRect().height;
-        height -= verseHeight + 2;
-        if (height < 40) { container.style.columnFill = ''; container.style.height = ''; return; } // sanity floor
-        container.style.columnFill = 'auto';
-        container.style.height = `${height}px`;
-        void container.offsetHeight;
-        const result = findBoundary();
-        if (result.columnsSeen > 2) { // shrank into an unwanted 3rd column — bail entirely
-          container.style.columnFill = '';
-          container.style.height = '';
-          return;
-        }
-        if (result.lastLeftIdx === -1 || result.lastLeftIdx === spans.length - 1) return;
-        lastLeftEl = spans[result.lastLeftIdx];
-        if (lastLeftEl.getAttribute('data-pilcrow') !== 'true') return; // fixed
+      const lefts = spans.map((el) => el.getBoundingClientRect().left);
+      const minLeft = Math.min(...lefts);
+      let lastLeftIdx = -1;
+      for (let i = 0; i < spans.length; i++) {
+        if (Math.abs(lefts[i] - minLeft) < 1) lastLeftIdx = i;
+        else break; // column-fill:balance is sequential — first right-column item ends the search
+      }
+      if (lastLeftIdx <= 0 || lastLeftIdx === spans.length - 1) return; // nothing to fix, keep native columns
+      if (spans[lastLeftIdx].getAttribute('data-pilcrow') === 'true') {
+        setManualColumnSplit(lastLeftIdx); // verses [0, lastLeftIdx) go left, the rest go right
       }
     };
-    // Run after paint (fonts/webfonts can still shift line heights right after mount).
-    const raf = requestAnimationFrame(fix);
-    window.addEventListener('resize', fix);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', fix); };
-  }, [columnMode, paragraphMode, zoomLevel, fontFamily, verses, pos.abbr, pos.chapter, filterMode, selectedVerses]);
+    const raf = requestAnimationFrame(measure);
+    return () => cancelAnimationFrame(raf);
+  }, [manualColumnSplit, columnMode, paragraphMode, zoomLevel, fontFamily, verses, pos.abbr, pos.chapter, filterMode, selectedVerses]);
   const posRef = useRef(pos);
   useEffect(() => { posRef.current = pos; }, [pos]);
   // Set by goNext(isAutoAdvance) so loadChapter knows to keep Listen mode on
