@@ -54,10 +54,14 @@ test.describe('Offline / online sync', () => {
     await page.goto('/');
     await waitForServiceWorkerActive(page);
 
+    // First load registers/activates the worker but isn't controlled by it
+    // yet (standard SW behaviour) — reload once online so this tab becomes
+    // controlled, THEN test the offline path.
+    await page.reload();
+    await waitForPageControlled(page);
     // Give the shell precache a moment to actually finish writing to the
-    // Cache Storage API (registration being "active" doesn't guarantee the
-    // install event's cache.addAll has resolved yet).
-    await page.waitForTimeout(1500);
+    // Cache Storage API.
+    await page.waitForTimeout(1000);
 
     await context.setOffline(true);
     await page.reload();
@@ -75,6 +79,8 @@ test.describe('Offline / online sync', () => {
   test('settings changed while online are still applied after going offline', async ({ page, context }) => {
     await page.goto('/settings');
     await waitForServiceWorkerActive(page);
+    await page.reload();
+    await waitForPageControlled(page);
 
     await page.getByRole('button', { name: /expand all/i }).click();
     await page.getByRole('button', { name: 'Cursive', exact: true }).click();
