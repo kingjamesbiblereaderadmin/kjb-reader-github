@@ -2246,30 +2246,50 @@ export default function BibleReader() {
           // Only actually filter when there's a real selection — never blank the
           // whole chapter (which left just the reference/highlight visible).
           const activeFilter = filterMode && selectedVerses.size > 0;
-          const shownCount = activeFilter ? verses.filter(verseInSelection).length : verses.length;
-          const useColumns = columnMode && shownCount > 6;
+          const shownVerses = verses.filter(v => !activeFilter || verseInSelection(v));
+          const useColumns = columnMode && shownVerses.length > 6;
+          const useManualSplit = useColumns && manualColumnSplit !== null && manualColumnSplit > 0 && manualColumnSplit < shownVerses.length;
+
+          const renderVerse = (v, isFirstOverall) => (
+            <React.Fragment key={`${pos.abbr}-${pos.chapter}-${v.verse}`}>
+              <VerseText
+                verse={v} highlight={tappedVerses.size > 0 ? tappedVerses.has(parseInt(v.verse, 10)) : (parseInt(highlightVerse, 10) === parseInt(v.verse, 10) || highlightedVerses.has(parseInt(v.verse, 10)))}
+                id={`v${v.verse}`} bookName={book.name} abbr={pos.abbr} chapter={pos.chapter} isFirstVerse={isFirstOverall} paragraphMode={paragraphMode} selectMode={selectMode}
+                isSelected={selectedVerses.has(parseInt(v.verse, 10)) || selectedVerses.has(String(v.verse))} onSelect={toggleVerseSelect} onActivateSelect={activateSelectFromVerse} totalVerses={verseCount}
+                colophon={verses.length > 0 && String(v.verse) === String(verses[verses.length - 1].verse) ? colophon : null}
+                subscript={parseInt(v.verse, 10) === 1 ? (chapterSubscript || null) : null}
+                isCursive={fontFamily === 'cursive'} fontFamilyValue={getFontFamilyValue(fontFamily)} zoomLevel={zoomLevel} columnMode={useColumns} dropCap={isFirstOverall && parseInt(v.verse, 10) === 1}
+                searchTerm={searchTerm && parseInt(highlightVerse, 10) === parseInt(v.verse, 10) ? searchTerm : null}
+                isDirectJump={parseInt(highlightVerse, 10) === parseInt(v.verse, 10)}
+                onVerseTap={toggleTappedVerse}
+              />
+            </React.Fragment>
+          );
+
+          const subscriptBlock = columnMode && !isViewingTitlePage && !(filterMode && selectedVerses.size > 0) && chapterSubscript ? (
+            <p onClick={() => handleSectionClick('subscript')} id="kjb-subscript-anchor" className={`notranslate kjb-subscript text-center text-muted-foreground mb-4 leading-relaxed transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}><SubscriptContent text={chapterSubscript} searchTerm={sectionActive('subscript') ? searchTerm : null} /></p>
+          ) : null;
+
+          if (useManualSplit) {
+            const leftVerses = shownVerses.slice(0, manualColumnSplit);
+            const rightVerses = shownVerses.slice(manualColumnSplit);
+            return (
+              <div className={`flex items-start ${paragraphMode ? 'px-2 sm:px-4' : ''}`} style={{ fontSize: 'inherit' }}>
+                <div className="flex-1 min-w-0 text-left hyphens-auto pr-5">
+                  {subscriptBlock}
+                  {leftVerses.map((v, idx) => renderVerse(v, idx === 0))}
+                </div>
+                <div className="flex-1 min-w-0 text-left hyphens-auto pl-5 border-l border-border">
+                  {rightVerses.map((v) => renderVerse(v, false))}
+                </div>
+              </div>
+            );
+          }
+
           return (
           <div ref={useColumns ? columnsContainerRef : null} className={`${useColumns ? 'kjb-two-col text-left hyphens-auto' : 'text-left'} ${paragraphMode ? 'text-left px-2 sm:px-4' : ''}`} style={useColumns ? { fontSize: 'inherit', columnCount: 2, columnGap: '2.5rem', columnRule: '1px solid hsl(var(--border))' } : { fontSize: 'inherit' }}>
-            {columnMode && !isViewingTitlePage && !(filterMode && selectedVerses.size > 0) && chapterSubscript && (
-              <p onClick={() => handleSectionClick('subscript')} id="kjb-subscript-anchor" className={`notranslate kjb-subscript text-center text-muted-foreground mb-4 leading-relaxed transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}><SubscriptContent text={chapterSubscript} searchTerm={sectionActive('subscript') ? searchTerm : null} /></p>
-            )}
-            {verses.filter(v => !activeFilter || verseInSelection(v)).map((v, idx) => {
-              return (
-              <React.Fragment key={`${pos.abbr}-${pos.chapter}-${v.verse}`}>
-                <VerseText
-                  verse={v} highlight={tappedVerses.size > 0 ? tappedVerses.has(parseInt(v.verse, 10)) : (parseInt(highlightVerse, 10) === parseInt(v.verse, 10) || highlightedVerses.has(parseInt(v.verse, 10)))}
-                  id={`v${v.verse}`} bookName={book.name} abbr={pos.abbr} chapter={pos.chapter} isFirstVerse={idx === 0} paragraphMode={paragraphMode} selectMode={selectMode}
-                  isSelected={selectedVerses.has(parseInt(v.verse, 10)) || selectedVerses.has(String(v.verse))} onSelect={toggleVerseSelect} onActivateSelect={activateSelectFromVerse} totalVerses={verseCount}
-                  colophon={verses.length > 0 && String(v.verse) === String(verses[verses.length - 1].verse) ? colophon : null}
-                  subscript={parseInt(v.verse, 10) === 1 ? (chapterSubscript || null) : null}
-                  isCursive={fontFamily === 'cursive'} fontFamilyValue={getFontFamilyValue(fontFamily)} zoomLevel={zoomLevel} columnMode={useColumns} dropCap={idx === 0 && parseInt(v.verse, 10) === 1}
-                  searchTerm={searchTerm && parseInt(highlightVerse, 10) === parseInt(v.verse, 10) ? searchTerm : null}
-                  isDirectJump={parseInt(highlightVerse, 10) === parseInt(v.verse, 10)}
-                  onVerseTap={toggleTappedVerse}
-                />
-              </React.Fragment>
-              );
-            })}
+            {subscriptBlock}
+            {shownVerses.map((v, idx) => renderVerse(v, idx === 0))}
           </div>
           );
         })()}
