@@ -25,12 +25,15 @@ async function assertNoOverflow(page, label) {
 }
 
 async function waitForServiceWorkerActive(page) {
+  // `reg.active` just means a worker exists in the active state — it does
+  // NOT mean it's controlling *this* page's fetches yet (that only happens
+  // once `navigator.serviceWorker.controller` is set, which needs either a
+  // second navigation or this SW's own `clients.claim()` in its activate
+  // handler to take effect). Testing offline behavior against `active`
+  // alone is testing the wrong thing — the page's own requests wouldn't
+  // actually route through the worker yet.
   await page.waitForFunction(
-    async () => {
-      if (!('serviceWorker' in navigator)) return false;
-      const reg = await navigator.serviceWorker.getRegistration();
-      return !!(reg && reg.active);
-    },
+    () => 'serviceWorker' in navigator && !!navigator.serviceWorker.controller,
     { timeout: 20000 }
   );
 }
