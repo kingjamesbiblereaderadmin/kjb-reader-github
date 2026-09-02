@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { applyDailyAccent } from '@/lib/dailyVerseTheme';
 import { getAccessibilityFont, applyAccessibilityFont, applyReaderFont } from '@/lib/accessibilityFont';
 
