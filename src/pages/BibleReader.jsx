@@ -2275,11 +2275,11 @@ export default function BibleReader() {
             const rightVerses = shownVerses.slice(manualColumnSplit);
             return (
               <div className={`flex items-start ${paragraphMode ? 'px-2 sm:px-4' : ''}`} style={{ fontSize: 'inherit' }}>
-                <div className="flex-1 min-w-0 text-left hyphens-auto pr-5">
+                <div className="kjb-two-col flex-1 min-w-0 text-left pr-5">
                   {subscriptBlock}
                   {leftVerses.map((v, idx) => renderVerse(v, idx === 0))}
                 </div>
-                <div className="flex-1 min-w-0 text-left hyphens-auto pl-5 border-l border-border">
+                <div className="kjb-two-col flex-1 min-w-0 text-left pl-5 border-l border-border">
                   {rightVerses.map((v) => renderVerse(v, false))}
                 </div>
               </div>
