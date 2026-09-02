@@ -41,15 +41,15 @@ for (const width of WIDTHS) {
       await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
 
       await verseLocator(page, 16).click();
-      const highlightBtn = page.getByTitle('Highlight');
+      const highlightBtn = page.getByTitle('Apply highlight');
       await expect(highlightBtn).toBeVisible({ timeout: 10000 });
       await assertNoOverflow(page, 'verse popover open');
 
       await highlightBtn.click();
-      await expect(page.getByTitle('Unhighlight')).toBeVisible({ timeout: 10000 });
+      await expect(page.getByTitle('Remove highlight')).toBeVisible({ timeout: 10000 });
 
-      await page.getByTitle('Unhighlight').click();
-      await expect(page.getByTitle('Highlight')).toBeVisible({ timeout: 10000 });
+      await page.getByTitle('Remove highlight').click();
+      await expect(page.getByTitle('Apply highlight')).toBeVisible({ timeout: 10000 });
     });
 
     test('copy and share actions do not throw', async ({ page }) => {
