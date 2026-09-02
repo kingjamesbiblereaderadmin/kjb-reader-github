@@ -32,10 +32,17 @@ async function waitForServiceWorkerActive(page) {
   // handler to take effect). Testing offline behavior against `active`
   // alone is testing the wrong thing — the page's own requests wouldn't
   // actually route through the worker yet.
-  await page.waitForFunction(
-    () => 'serviceWorker' in navigator && !!navigator.serviceWorker.controller,
-    { timeout: 20000 }
-  );
+  const hasController = () => 'serviceWorker' in navigator && !!navigator.serviceWorker.controller;
+  try {
+    await page.waitForFunction(hasController, { timeout: 8000 });
+    return;
+  } catch {
+    // clients.claim() didn't reach this page in time (can happen on a truly
+    // cold first load) — one online reload is exactly what a real user's
+    // second visit does, and is enough to pick up the controller.
+    await page.reload();
+    await page.waitForFunction(hasController, { timeout: 20000 });
+  }
 }
 
 test.describe('Offline / online behavior', () => {
