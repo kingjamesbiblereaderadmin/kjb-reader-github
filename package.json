@@ -16,7 +16,7 @@
     "cap:copy": "cap copy"
   },
   "dependencies": {
-    "@base44/sdk": "^0.8.45",
+    "@base44/sdk": "^0.8.46",
     "@base44/vite-plugin": "^1.0.34",
     "@capacitor/android": "^6.2.1",
     "@capacitor/app": "^6.0.3",
