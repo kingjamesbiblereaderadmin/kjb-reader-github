@@ -661,45 +661,70 @@ export default function BibleReader() {
   // Two-column reading mode: the browser's own column-balancing picks the
   // break purely by height, with no idea what a pilcrow (paragraph start)
   // is — so it can land right after one, leaving that verse as an orphaned
-  // lone paragraph-start at the bottom of the left column. Fix it up after
-  // layout: find whichever verse actually ends the left column, and if it's
-  // a pilcrow verse, force it into the right column instead. Only the ONE
-  // verse sitting at the real break gets the forced break — not every
-  // pilcrow verse in the chapter — so it can't unbalance the rest of the
-  // layout the way a blanket CSS break-after:avoid on all of them did.
+  // lone paragraph-start at the bottom of the left column. A forced CSS
+  // break-before on that verse doesn't fix it cleanly: browsers don't
+  // reliably re-shrink the balanced column height around a manual break, so
+  // the left column keeps its original (taller) height and just shows dead
+  // space where that verse used to be — worse for a long verse.
+  //
+  // Instead, take height control away from column-fill:balance entirely:
+  // measure the natural balanced height, then if the left column ends on a
+  // pilcrow verse, shrink the container's explicit height by exactly that
+  // verse's own height and switch to column-fill:auto, which deterministically
+  // fills the left column up to the given height with no leftover gap, and
+  // spills the excluded verse into the right column.
   const columnsContainerRef = useRef(null);
   useEffect(() => {
     const container = columnsContainerRef.current;
     if (!container) return;
     const fix = () => {
+      // Reset any override from a previous pass and remeasure the natural,
+      // browser-balanced layout first.
+      container.style.columnFill = '';
+      container.style.height = '';
+      void container.offsetHeight;
+
       const spans = Array.from(container.querySelectorAll(':scope > span[data-audio-verse]'));
-      // Clear any forced break from a previous layout pass first.
-      spans.forEach((el) => { el.style.breakBefore = ''; });
       if (spans.length < 2) return;
-      void container.offsetHeight; // reflow with breaks cleared before measuring the natural split
-      // Forcing a break can shift the boundary earlier (onto another pilcrow
-      // verse), so re-measure a few times until it settles.
-      for (let pass = 0; pass < 4; pass++) {
+
+      // Returns the index of the last span in the left column, and how many
+      // distinct columns the content is currently spread across.
+      const findBoundary = () => {
         const lefts = spans.map((el) => el.getBoundingClientRect().left);
         const minLeft = Math.min(...lefts);
         let lastLeftIdx = -1;
+        let columnsSeen = 1;
+        let prevLeft = null;
         for (let i = 0; i < spans.length; i++) {
+          if (prevLeft !== null && Math.abs(lefts[i] - prevLeft) > 1) columnsSeen++;
+          prevLeft = lefts[i];
           if (Math.abs(lefts[i] - minLeft) < 1) lastLeftIdx = i;
-          else break; // column-fill:balance is sequential — first right-column item ends the search
         }
-        if (lastLeftIdx === -1 || lastLeftIdx === spans.length - 1) return;
-        const lastLeftEl = spans[lastLeftIdx];
-        if (lastLeftEl.getAttribute('data-pilcrow') !== 'true') break;
-        // Forcing this verse down costs roughly its own height in dead space
-        // at the bottom of the left column (browsers don't reliably re-shrink
-        // the balanced column height around a manually forced break). Only
-        // worth it for a short orphan (a line or two) — for a long verse the
-        // gap it leaves behind is worse than just letting it end the column.
-        const verseRect = lastLeftEl.getBoundingClientRect();
-        const lineHeightPx = parseFloat(getComputedStyle(lastLeftEl).lineHeight) || (verseRect.height || 24);
-        if (verseRect.height > lineHeightPx * 2.2) break; // too costly — leave the orphan as-is
-        lastLeftEl.style.breakBefore = 'column';
-        void container.offsetHeight; // force reflow before re-measuring
+        return { lastLeftIdx, columnsSeen };
+      };
+
+      let { lastLeftIdx, columnsSeen } = findBoundary();
+      if (lastLeftIdx === -1 || lastLeftIdx === spans.length - 1 || columnsSeen > 2) return;
+      let lastLeftEl = spans[lastLeftIdx];
+      if (lastLeftEl.getAttribute('data-pilcrow') !== 'true') return; // nothing to fix
+
+      let height = container.getBoundingClientRect().height;
+      for (let pass = 0; pass < 4; pass++) {
+        const verseHeight = lastLeftEl.getBoundingClientRect().height;
+        height -= verseHeight + 2;
+        if (height < 40) { container.style.columnFill = ''; container.style.height = ''; return; } // sanity floor
+        container.style.columnFill = 'auto';
+        container.style.height = `${height}px`;
+        void container.offsetHeight;
+        const result = findBoundary();
+        if (result.columnsSeen > 2) { // shrank into an unwanted 3rd column — bail entirely
+          container.style.columnFill = '';
+          container.style.height = '';
+          return;
+        }
+        if (result.lastLeftIdx === -1 || result.lastLeftIdx === spans.length - 1) return;
+        lastLeftEl = spans[result.lastLeftIdx];
+        if (lastLeftEl.getAttribute('data-pilcrow') !== 'true') return; // fixed
       }
     };
     // Run after paint (fonts/webfonts can still shift line heights right after mount).
