@@ -7,7 +7,7 @@
 # Test info
 
 - Name: verse-actions.spec.js >> Verse actions [360px] >> tap verse, highlight it, then unhighlight — popover has no overflow
-- Location: tests/verse-actions.spec.js:31:5
+- Location: tests/verse-actions.spec.js:39:5
 
 # Error details
 
@@ -222,100 +222,108 @@ Call log:
   15  |   expect(offenders, `${label}: horizontal overflow:\n` + offenders.map((o) => `  <${o.tag}> "${o.text}" (over by ${o.overBy}px)`).join('\n')).toEqual([]);
   16  | }
   17  | 
-  18  | for (const width of WIDTHS) {
-  19  |   test.describe(`Verse actions [${width}px]`, () => {
-  20  |     test.use({ viewport: { width, height: 900 } });
-  21  | 
-  22  |     test.beforeEach(async ({ page }) => {
-  23  |       await page.addInitScript(() => {
-  24  |         try {
-  25  |           localStorage.removeItem('kjb-saved-verses');
-  26  |           localStorage.removeItem('kjb-highlighted-verses');
-  27  |         } catch {}
-  28  |       });
-  29  |     });
-  30  | 
-  31  |     test('tap verse, highlight it, then unhighlight — popover has no overflow', async ({ page }) => {
-  32  |       await page.goto('/read?book=JHN&chapter=3');
-  33  |       await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
-  34  | 
-  35  |       await page.locator('#v16').click();
-  36  |       const highlightBtn = page.getByTitle('Highlight');
-> 37  |       await expect(highlightBtn).toBeVisible();
-      |                                  ^ Error: expect(locator).toBeVisible() failed
-  38  |       await assertNoOverflow(page, 'verse popover open');
-  39  | 
-  40  |       await highlightBtn.click();
-  41  |       await expect(page.getByTitle('Unhighlight')).toBeVisible();
+  18  | // The clickable target is the inner `.kjb-verse-text` span, not the outer
+  19  | // `#v{n}` wrapper (which also contains the verse-number <sup> and has extra
+  20  | // padding) — clicking the wrapper's bounding-box center can miss the
+  21  | // element that actually has the onClick handler.
+  22  | function verseLocator(page, n) {
+  23  |   return page.locator(`#v${n} .kjb-verse-text`);
+  24  | }
+  25  | 
+  26  | for (const width of WIDTHS) {
+  27  |   test.describe(`Verse actions [${width}px]`, () => {
+  28  |     test.use({ viewport: { width, height: 900 } });
+  29  | 
+  30  |     test.beforeEach(async ({ page }) => {
+  31  |       await page.addInitScript(() => {
+  32  |         try {
+  33  |           localStorage.removeItem('kjb-saved-verses');
+  34  |           localStorage.removeItem('kjb-highlighted-verses');
+  35  |         } catch {}
+  36  |       });
+  37  |     });
+  38  | 
+  39  |     test('tap verse, highlight it, then unhighlight — popover has no overflow', async ({ page }) => {
+  40  |       await page.goto('/read?book=JHN&chapter=3');
+  41  |       await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
   42  | 
-  43  |       await page.getByTitle('Unhighlight').click();
-  44  |       await expect(page.getByTitle('Highlight')).toBeVisible();
-  45  |     });
-  46  | 
-  47  |     test('copy and share actions do not throw', async ({ page }) => {
-  48  |       const errors = [];
-  49  |       page.on('pageerror', (e) => errors.push(e.message));
+  43  |       await verseLocator(page, 16).click();
+  44  |       const highlightBtn = page.getByTitle('Highlight');
+> 45  |       await expect(highlightBtn).toBeVisible();
+      |                                  ^ Error: expect(locator).toBeVisible() failed
+  46  |       await assertNoOverflow(page, 'verse popover open');
+  47  | 
+  48  |       await highlightBtn.click();
+  49  |       await expect(page.getByTitle('Unhighlight')).toBeVisible();
   50  | 
-  51  |       await page.goto('/read?book=JHN&chapter=3');
-  52  |       await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
-  53  |       await page.locator('#v16').click();
+  51  |       await page.getByTitle('Unhighlight').click();
+  52  |       await expect(page.getByTitle('Highlight')).toBeVisible();
+  53  |     });
   54  | 
-  55  |       await page.getByTitle('Copy').click();
-  56  |       await page.waitForTimeout(300);
-  57  | 
-  58  |       await page.getByTitle('Share').click().catch(() => {});
-  59  |       await page.waitForTimeout(300);
-  60  | 
-  61  |       expect(errors, `errors during copy/share:\n${errors.join('\n')}`).toEqual([]);
-  62  |     });
-  63  | 
-  64  |     test('save a verse via the popover, see it on Saved Verses, then remove it', async ({ page }) => {
-  65  |       await page.goto('/read?book=JHN&chapter=3');
-  66  |       await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
-  67  | 
-  68  |       await page.locator('#v16').click();
-  69  |       await page.getByTitle('Save').click();
-  70  | 
-  71  |       const folderOption = page.locator('[role="menuitem"], button').filter({ hasText: /no folder|default|save/i }).first();
-  72  |       if (await folderOption.count()) {
-  73  |         await folderOption.click().catch(() => {});
-  74  |       }
+  55  |     test('copy and share actions do not throw', async ({ page }) => {
+  56  |       const errors = [];
+  57  |       page.on('pageerror', (e) => errors.push(e.message));
+  58  | 
+  59  |       await page.goto('/read?book=JHN&chapter=3');
+  60  |       await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
+  61  |       await verseLocator(page, 16).click();
+  62  | 
+  63  |       await page.getByTitle('Copy').click();
+  64  |       await page.waitForTimeout(300);
+  65  | 
+  66  |       await page.getByTitle('Share').click().catch(() => {});
+  67  |       await page.waitForTimeout(300);
+  68  | 
+  69  |       expect(errors, `errors during copy/share:\n${errors.join('\n')}`).toEqual([]);
+  70  |     });
+  71  | 
+  72  |     test('save a verse via the popover, see it on Saved Verses, then remove it', async ({ page }) => {
+  73  |       await page.goto('/read?book=JHN&chapter=3');
+  74  |       await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
   75  | 
-  76  |       await page.waitForTimeout(500);
-  77  |       const saved = await page.evaluate(() => localStorage.getItem('kjb-saved-verses'));
-  78  |       expect(saved, 'verse was not persisted after Save').toBeTruthy();
-  79  | 
-  80  |       await page.goto('/saved');
-  81  |       await assertNoOverflow(page, 'saved verses list');
-  82  |       await expect(page.locator('body')).toContainText(/John/i);
+  76  |       await verseLocator(page, 16).click();
+  77  |       await page.getByTitle('Save').click();
+  78  | 
+  79  |       const folderOption = page.locator('[role="menuitem"], button').filter({ hasText: /no folder|default|save/i }).first();
+  80  |       if (await folderOption.count()) {
+  81  |         await folderOption.click().catch(() => {});
+  82  |       }
   83  | 
-  84  |       const removeBtn = page.getByTitle('Remove').first();
-  85  |       if (await removeBtn.count()) {
-  86  |         await removeBtn.click();
-  87  |         await page.waitForTimeout(300);
-  88  |         const savedAfterRemove = await page.evaluate(() => localStorage.getItem('kjb-saved-verses'));
-  89  |         const parsed = savedAfterRemove ? JSON.parse(savedAfterRemove) : [];
-  90  |         expect(parsed.length, 'verse still present in storage after removing').toBe(0);
-  91  |       }
-  92  |     });
-  93  | 
-  94  |     test('select mode: multi-select verses and use the bulk action bar without overflow', async ({ page }) => {
-  95  |       await page.goto('/read?book=JHN&chapter=3');
-  96  |       await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
-  97  | 
-  98  |       await page.locator('#v16').click();
-  99  |       const selectBtn = page.getByTitle('Select verses');
-  100 |       if (await selectBtn.count()) {
-  101 |         await selectBtn.click();
-  102 |         await page.locator('#v17').click().catch(() => {});
-  103 |         await page.locator('#v18').click().catch(() => {});
-  104 |         await assertNoOverflow(page, 'select mode with multiple verses');
+  84  |       await page.waitForTimeout(500);
+  85  |       const saved = await page.evaluate(() => localStorage.getItem('kjb-saved-verses'));
+  86  |       expect(saved, 'verse was not persisted after Save').toBeTruthy();
+  87  | 
+  88  |       await page.goto('/saved');
+  89  |       await assertNoOverflow(page, 'saved verses list');
+  90  |       await expect(page.locator('body')).toContainText(/John/i);
+  91  | 
+  92  |       const removeBtn = page.getByTitle('Remove').first();
+  93  |       if (await removeBtn.count()) {
+  94  |         await removeBtn.click();
+  95  |         await page.waitForTimeout(300);
+  96  |         const savedAfterRemove = await page.evaluate(() => localStorage.getItem('kjb-saved-verses'));
+  97  |         const parsed = savedAfterRemove ? JSON.parse(savedAfterRemove) : [];
+  98  |         expect(parsed.length, 'verse still present in storage after removing').toBe(0);
+  99  |       }
+  100 |     });
+  101 | 
+  102 |     test('select mode: multi-select verses and use the bulk action bar without overflow', async ({ page }) => {
+  103 |       await page.goto('/read?book=JHN&chapter=3');
+  104 |       await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
   105 | 
-  106 |         const cancelBtn = page.getByRole('button', { name: /cancel|done|close/i }).first();
-  107 |         if (await cancelBtn.count()) await cancelBtn.click().catch(() => {});
-  108 |       }
-  109 |     });
-  110 |   });
-  111 | }
-  112 | 
+  106 |       await verseLocator(page, 16).click();
+  107 |       const selectBtn = page.getByTitle('Select verses');
+  108 |       if (await selectBtn.count()) {
+  109 |         await selectBtn.click();
+  110 |         await verseLocator(page, 17).click().catch(() => {});
+  111 |         await verseLocator(page, 18).click().catch(() => {});
+  112 |         await assertNoOverflow(page, 'select mode with multiple verses');
+  113 | 
+  114 |         const cancelBtn = page.getByRole('button', { name: /cancel|done|close/i }).first();
+  115 |         if (await cancelBtn.count()) await cancelBtn.click().catch(() => {});
+  116 |       }
+  117 |     });
+  118 |   });
+  119 | }
+  120 | 
 ```
