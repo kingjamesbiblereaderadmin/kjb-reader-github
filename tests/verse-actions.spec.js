@@ -15,6 +15,14 @@ async function assertNoOverflow(page, label) {
   expect(offenders, `${label}: horizontal overflow:\n` + offenders.map((o) => `  <${o.tag}> "${o.text}" (over by ${o.overBy}px)`).join('\n')).toEqual([]);
 }
 
+// The clickable target is the inner `.kjb-verse-text` span, not the outer
+// `#v{n}` wrapper (which also contains the verse-number <sup> and has extra
+// padding) — clicking the wrapper's bounding-box center can miss the
+// element that actually has the onClick handler.
+function verseLocator(page, n) {
+  return page.locator(`#v${n} .kjb-verse-text`);
+}
+
 for (const width of WIDTHS) {
   test.describe(`Verse actions [${width}px]`, () => {
     test.use({ viewport: { width, height: 900 } });
@@ -32,7 +40,7 @@ for (const width of WIDTHS) {
       await page.goto('/read?book=JHN&chapter=3');
       await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
 
-      await page.locator('#v16 .kjb-verse-text').click();
+      await verseLocator(page, 16).click();
       const highlightBtn = page.getByTitle('Highlight');
       await expect(highlightBtn).toBeVisible();
       await assertNoOverflow(page, 'verse popover open');
@@ -50,7 +58,7 @@ for (const width of WIDTHS) {
 
       await page.goto('/read?book=JHN&chapter=3');
       await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
-      await page.locator('#v16').click();
+      await verseLocator(page, 16).click();
 
       await page.getByTitle('Copy').click();
       await page.waitForTimeout(300);
@@ -65,7 +73,7 @@ for (const width of WIDTHS) {
       await page.goto('/read?book=JHN&chapter=3');
       await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
 
-      await page.locator('#v16').click();
+      await verseLocator(page, 16).click();
       await page.getByTitle('Save').click();
 
       const folderOption = page.locator('[role="menuitem"], button').filter({ hasText: /no folder|default|save/i }).first();
@@ -95,12 +103,12 @@ for (const width of WIDTHS) {
       await page.goto('/read?book=JHN&chapter=3');
       await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
 
-      await page.locator('#v16').click();
+      await verseLocator(page, 16).click();
       const selectBtn = page.getByTitle('Select verses');
       if (await selectBtn.count()) {
         await selectBtn.click();
-        await page.locator('#v17').click().catch(() => {});
-        await page.locator('#v18').click().catch(() => {});
+        await verseLocator(page, 17).click().catch(() => {});
+        await verseLocator(page, 18).click().catch(() => {});
         await assertNoOverflow(page, 'select mode with multiple verses');
 
         const cancelBtn = page.getByRole('button', { name: /cancel|done|close/i }).first();
