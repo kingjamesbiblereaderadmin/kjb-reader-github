@@ -152,6 +152,9 @@ test.describe('Offline / online sync', () => {
 
   test('reading position persists across an offline/online round trip', async ({ page, context }) => {
     await page.goto('/read?book=PSA&chapter=23');
+    await waitForServiceWorkerActive(page);
+    await page.reload();
+    await waitForPageControlled(page);
     await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
     const posBefore = await page.evaluate(() => localStorage.getItem('kjb-position'));
 
