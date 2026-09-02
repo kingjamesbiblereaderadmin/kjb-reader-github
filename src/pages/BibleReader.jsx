@@ -659,68 +659,6 @@ export default function BibleReader() {
   usePinchZoom(readerContentRef, zoomLevel, setZoomPersist);
 
   const columnsContainerRef = useRef(null);
-
-  // Two-column reading mode: the browser's own column-fill:balance tries to
-  // split the content evenly, but verses are indivisible (break-inside:avoid)
-  // so its own balance search doesn't always find the best available split —
-  // it can leave a whole verse's worth of dead space in one column when a
-  // better split existed. Compute the split ourselves instead: measure every
-  // verse's actual rendered height (already available from the native render
-  // used for the initial measurement pass) and pick whichever boundary
-  // minimizes the height difference between the two columns, then render
-  // that split as two independent-height flex columns so there's no
-  // shared-height constraint fighting the result.
-  const [manualColumnSplit, setManualColumnSplit] = useState(null); // null = use native CSS columns
-  useEffect(() => {
-    setManualColumnSplit(null); // any relevant change invalidates a previous split; remeasure from scratch
-  }, [columnMode, paragraphMode, zoomLevel, fontFamily, verses, pos.abbr, pos.chapter, filterMode, selectedVerses]);
-  useEffect(() => {
-    const onResize = () => setManualColumnSplit(null);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-  useEffect(() => {
-    if (manualColumnSplit !== null) return; // already resolved for this layout
-    const container = columnsContainerRef.current;
-    if (!container) return;
-    const measure = () => {
-      const spans = Array.from(container.querySelectorAll(':scope > span[data-audio-verse]'));
-      if (spans.length < 2) return;
-      const heights = spans.map((el) => el.getBoundingClientRect().height);
-      const total = heights.reduce((a, b) => a + b, 0);
-      const target = total / 2;
-
-      // Best possible split: the boundary that minimizes the height gap
-      // between the two columns.
-      let bestIdx = 1, bestDiff = Infinity, running = 0;
-      for (let i = 0; i < spans.length; i++) {
-        running += heights[i];
-        const diff = Math.abs(running - target);
-        if (diff < bestDiff) { bestDiff = diff; bestIdx = i + 1; }
-      }
-      if (bestIdx <= 0 || bestIdx >= spans.length) return;
-
-      // What the browser's native balance already chose, so we only step in
-      // when we can meaningfully improve on it (avoid pointless re-renders).
-      const lefts = spans.map((el) => el.getBoundingClientRect().left);
-      const minLeft = Math.min(...lefts);
-      let nativeLastLeftIdx = -1;
-      for (let i = 0; i < spans.length; i++) {
-        if (Math.abs(lefts[i] - minLeft) < 1) nativeLastLeftIdx = i;
-        else break;
-      }
-      const nativeSplitIdx = nativeLastLeftIdx + 1;
-      if (nativeSplitIdx === bestIdx) return; // native already found the best split
-      const nativeLeftSum = heights.slice(0, nativeSplitIdx).reduce((a, b) => a + b, 0);
-      const nativeDiff = Math.abs(nativeLeftSum - (total - nativeLeftSum));
-      if (nativeDiff - bestDiff < 24) return; // not a meaningful improvement — leave native alone
-
-      setManualColumnSplit(bestIdx);
-    };
-    const raf = requestAnimationFrame(measure);
-    return () => cancelAnimationFrame(raf);
-  }, [manualColumnSplit, columnMode, paragraphMode, zoomLevel, fontFamily, verses, pos.abbr, pos.chapter, filterMode, selectedVerses]);
-
   const posRef = useRef(pos);
   useEffect(() => { posRef.current = pos; }, [pos]);
   // Set by goNext(isAutoAdvance) so loadChapter knows to keep Listen mode on
