@@ -2199,7 +2199,6 @@ export default function BibleReader() {
           const activeFilter = filterMode && selectedVerses.size > 0;
           const shownVerses = verses.filter(v => !activeFilter || verseInSelection(v));
           const useColumns = columnMode && shownVerses.length > 6;
-          const useManualSplit = useColumns && manualColumnSplit !== null && manualColumnSplit > 0 && manualColumnSplit < shownVerses.length;
 
           const renderVerse = (v, isFirstOverall) => (
             <React.Fragment key={`${pos.abbr}-${pos.chapter}-${v.verse}`}>
@@ -2220,22 +2219,6 @@ export default function BibleReader() {
           const subscriptBlock = columnMode && !isViewingTitlePage && !(filterMode && selectedVerses.size > 0) && chapterSubscript ? (
             <p onClick={() => handleSectionClick('subscript')} id="kjb-subscript-anchor" className={`notranslate kjb-subscript text-center text-muted-foreground mb-4 leading-relaxed transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}><SubscriptContent text={chapterSubscript} searchTerm={sectionActive('subscript') ? searchTerm : null} /></p>
           ) : null;
-
-          if (useManualSplit) {
-            const leftVerses = shownVerses.slice(0, manualColumnSplit);
-            const rightVerses = shownVerses.slice(manualColumnSplit);
-            return (
-              <div className={`flex items-start ${paragraphMode ? 'px-2 sm:px-4' : ''}`} style={{ fontSize: 'inherit' }}>
-                <div className="kjb-two-col flex-1 min-w-0 text-left pr-5">
-                  {subscriptBlock}
-                  {leftVerses.map((v, idx) => renderVerse(v, idx === 0))}
-                </div>
-                <div className="kjb-two-col flex-1 min-w-0 text-left pl-5 border-l border-border">
-                  {rightVerses.map((v) => renderVerse(v, false))}
-                </div>
-              </div>
-            );
-          }
 
           return (
           <div ref={useColumns ? columnsContainerRef : null} className={`${useColumns ? 'kjb-two-col text-left hyphens-auto' : 'text-left'} ${paragraphMode ? 'text-left px-2 sm:px-4' : ''}`} style={useColumns ? { fontSize: 'inherit', columnCount: 2, columnGap: '2.5rem', columnRule: '1px solid hsl(var(--border))' } : { fontSize: 'inherit' }}>
