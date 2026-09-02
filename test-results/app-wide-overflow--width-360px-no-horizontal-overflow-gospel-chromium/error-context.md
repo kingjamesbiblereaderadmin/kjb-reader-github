@@ -42,7 +42,7 @@ expect(received).toEqual(expected) // deep equality
           - button "Back" [ref=e7] [cursor=pointer]
           - link "Home" [ref=e8] [cursor=pointer]:
             - /url: /
-        - textbox "Search..." [ref=e14]
+        - textbox [ref=e14]
         - generic [ref=e15]:
           - button "Toggle fullscreen" [ref=e16] [cursor=pointer]
           - button "Toggle theme" [ref=e17] [cursor=pointer]

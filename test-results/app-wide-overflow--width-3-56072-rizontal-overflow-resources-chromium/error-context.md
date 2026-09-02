@@ -13,20 +13,118 @@
 
 ```
 Error: /resources @ 360px overflows horizontally by 0px:
-  <div class="fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm"> "" (over by 16px)
+  <div class="kjb-slide-forward"> "ResourcesKJB defence materials, studies on modern version co" (over by 24px)
+  <h1 class="font-serif text-4xl font-bold text-foreground mb-3"> "Resources" (over by 4px)
+  <p class="font-sans text-muted-foreground max-w-lg mx-auto"> "KJB defence materials, studies on modern version corruption," (over by 4px)
+  <div class="mt-4 flex items-center justify-center gap-2"> "Collapse All Print" (over by 4px)
+  <div class="mb-6"> "KJBI.org — Free Online Bible CollegeKing James Bible Institu" (over by 4px)
+  <button class="w-full flex items-center gap-3 p-5 hover:bg-secondary/40 transition-colors"> "KJBI.org — Free Online Bible College" (over by 3px)
+  <div class="px-5 sm:px-6 pb-6"> "King James Bible Institute by Robert Breaker & Robert Pottho" (over by 3px)
+  <div class="mb-6"> "DiscordKJB Discord BotUse the KJB Reader bot in your own Dis" (over by 4px)
+  <button class="w-full flex items-center gap-3 p-5 hover:bg-secondary/40 transition-colors"> "Discord" (over by 3px)
+  <div class="px-5 sm:px-6 pb-6"> "KJB Discord BotUse the KJB Reader bot in your own Discord ac" (over by 3px)
+  <div class="mb-6"> "KJB SidePanelRead, search, and look up Bible verses from any" (over by 4px)
+  <button class="w-full flex items-center gap-3 p-5 hover:bg-secondary/40 transition-colors"> "KJB SidePanel" (over by 3px)
+  <div class="px-5 sm:px-6 pb-6"> "Read, search, and look up Bible verses from any web page wit" (over by 3px)
+  <div class="mb-6"> "Bible Resources (Español)Recursos y estudios de la Biblia en" (over by 4px)
+  <button class="w-full flex items-center gap-3 p-5 hover:bg-secondary/40 transition-colors"> "Bible Resources (Español)" (over by 3px)
 
 expect(received).toEqual(expected) // deep equality
 
-- Expected  - 1
-+ Received  + 8
+- Expected  -  1
++ Received  + 92
 
 - Array []
 + Array [
 +   Object {
-+     "cls": "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm",
-+     "overBy": 16,
++     "cls": "kjb-slide-forward",
++     "overBy": 24,
 +     "tag": "div",
-+     "text": "",
++     "text": "ResourcesKJB defence materials, studies on modern version co",
++   },
++   Object {
++     "cls": "font-serif text-4xl font-bold text-foreground mb-3",
++     "overBy": 4,
++     "tag": "h1",
++     "text": "Resources",
++   },
++   Object {
++     "cls": "font-sans text-muted-foreground max-w-lg mx-auto",
++     "overBy": 4,
++     "tag": "p",
++     "text": "KJB defence materials, studies on modern version corruption,",
++   },
++   Object {
++     "cls": "mt-4 flex items-center justify-center gap-2",
++     "overBy": 4,
++     "tag": "div",
++     "text": "Collapse All Print",
++   },
++   Object {
++     "cls": "mb-6",
++     "overBy": 4,
++     "tag": "div",
++     "text": "KJBI.org — Free Online Bible CollegeKing James Bible Institu",
++   },
++   Object {
++     "cls": "w-full flex items-center gap-3 p-5 hover:bg-secondary/40 transition-colors",
++     "overBy": 3,
++     "tag": "button",
++     "text": "KJBI.org — Free Online Bible College",
++   },
++   Object {
++     "cls": "px-5 sm:px-6 pb-6",
++     "overBy": 3,
++     "tag": "div",
++     "text": "King James Bible Institute by Robert Breaker & Robert Pottho",
++   },
++   Object {
++     "cls": "mb-6",
++     "overBy": 4,
++     "tag": "div",
++     "text": "DiscordKJB Discord BotUse the KJB Reader bot in your own Dis",
++   },
++   Object {
++     "cls": "w-full flex items-center gap-3 p-5 hover:bg-secondary/40 transition-colors",
++     "overBy": 3,
++     "tag": "button",
++     "text": "Discord",
++   },
++   Object {
++     "cls": "px-5 sm:px-6 pb-6",
++     "overBy": 3,
++     "tag": "div",
++     "text": "KJB Discord BotUse the KJB Reader bot in your own Discord ac",
++   },
++   Object {
++     "cls": "mb-6",
++     "overBy": 4,
++     "tag": "div",
++     "text": "KJB SidePanelRead, search, and look up Bible verses from any",
++   },
++   Object {
++     "cls": "w-full flex items-center gap-3 p-5 hover:bg-secondary/40 transition-colors",
++     "overBy": 3,
++     "tag": "button",
++     "text": "KJB SidePanel",
++   },
++   Object {
++     "cls": "px-5 sm:px-6 pb-6",
++     "overBy": 3,
++     "tag": "div",
++     "text": "Read, search, and look up Bible verses from any web page wit",
++   },
++   Object {
++     "cls": "mb-6",
++     "overBy": 4,
++     "tag": "div",
++     "text": "Bible Resources (Español)Recursos y estudios de la Biblia en",
++   },
++   Object {
++     "cls": "w-full flex items-center gap-3 p-5 hover:bg-secondary/40 transition-colors",
++     "overBy": 3,
++     "tag": "button",
++     "text": "Bible Resources (Español)",
 +   },
 + ]
 ```
@@ -42,7 +140,7 @@ expect(received).toEqual(expected) // deep equality
           - button "Back" [ref=e7] [cursor=pointer]
           - link "Home" [ref=e8] [cursor=pointer]:
             - /url: /
-        - textbox [ref=e14]
+        - textbox "Search..." [ref=e14]
         - generic [ref=e15]:
           - button "Toggle fullscreen" [ref=e16] [cursor=pointer]
           - button "Toggle theme" [ref=e17] [cursor=pointer]

@@ -35,96 +35,99 @@ expect(received).toEqual(expected) // deep equality
 
 ```yaml
 - generic [ref=e2]:
-  - generic [ref=e3]:
-    - banner [ref=e4]:
-      - generic [ref=e5]:
-        - generic [ref=e6]:
-          - button "Back" [ref=e7] [cursor=pointer]
-          - link "Home" [ref=e8] [cursor=pointer]:
+  - generic [ref=e4]:
+    - img "KJB Reader Logo" [ref=e5]
+    - generic [ref=e6]: WELCOME BACK TO KJB READER.
+  - generic [ref=e10]:
+    - banner [ref=e11]:
+      - generic [ref=e12]:
+        - generic [ref=e13]:
+          - button "Back" [ref=e14] [cursor=pointer]
+          - link "Home" [ref=e15] [cursor=pointer]:
             - /url: /
-        - textbox "Search..." [ref=e14]
-        - generic [ref=e15]:
-          - button "Toggle fullscreen" [ref=e16] [cursor=pointer]
-          - button "Toggle theme" [ref=e17] [cursor=pointer]
-          - button "Open menu" [ref=e18] [cursor=pointer]
-    - main [ref=e19]:
-      - generic [ref=e23]:
-        - heading "About" [level=1] [ref=e28]
-        - generic [ref=e30]:
-          - heading "About the Ministry" [level=2] [ref=e31]
-          - paragraph [ref=e32]: I'm Shawn, a firm believer that the King James Bible is the pure, infallible, perfect Word of God in the English language. I am a dispensational salvationist, rightly dividing the word of truth.
-          - list [ref=e33]:
-            - listitem [ref=e34]:
-              - generic [ref=e35]: •
-              - generic [ref=e36]: I believe in the blood-stained gospel as the only way to be saved, and I reject "repent of sins to be saved" (ROYS), "confess with your mouth to be saved," Lordship Salvation, infant baptism, baptism regeneration, etc.
-            - listitem [ref=e37]:
-              - generic [ref=e38]: •
-              - generic [ref=e39]: To be saved, you must believe that Jesus is God, that He shed His blood on Calvary, died, was buried, and rose again for your justification.
-            - listitem [ref=e40]:
-              - generic [ref=e41]: •
-              - generic [ref=e42]: "I believe in OSAS (Once Saved, Always Saved): a believer who has trusted the gospel cannot lose salvation, no matter what happens in their life."
-        - generic [ref=e43]:
-          - heading "Statement of Faith" [level=2] [ref=e44]
-          - button [ref=e46] [cursor=pointer]:
-            - heading "The King James Bible" [level=3] [ref=e47]
-          - button [ref=e51] [cursor=pointer]:
-            - heading "Satan & Hell" [level=3] [ref=e52]
-          - button [ref=e56] [cursor=pointer]:
-            - heading "Salvation & Pre-Tribulation Rapture" [level=3] [ref=e57]
-          - button [ref=e61] [cursor=pointer]:
-            - heading "Pagan Holidays & Traditions" [level=3] [ref=e62]
-          - button [ref=e66] [cursor=pointer]:
-            - heading "Why I Am Not... Series" [level=3] [ref=e67]
-        - generic [ref=e70]:
-          - heading "Links & Contact" [level=2] [ref=e71]
-          - generic [ref=e72]:
-            - link [ref=e73] [cursor=pointer]:
+        - textbox "Search..." [ref=e21]
+        - generic [ref=e22]:
+          - button "Toggle fullscreen" [ref=e23] [cursor=pointer]
+          - button "Toggle theme" [ref=e24] [cursor=pointer]
+          - button "Open menu" [ref=e25] [cursor=pointer]
+    - main [ref=e26]:
+      - generic [ref=e30]:
+        - heading "About" [level=1] [ref=e35]
+        - generic [ref=e37]:
+          - heading "About the Ministry" [level=2] [ref=e38]
+          - paragraph [ref=e39]: I'm Shawn, a firm believer that the King James Bible is the pure, infallible, perfect Word of God in the English language. I am a dispensational salvationist, rightly dividing the word of truth.
+          - list [ref=e40]:
+            - listitem [ref=e41]:
+              - generic [ref=e42]: •
+              - generic [ref=e43]: I believe in the blood-stained gospel as the only way to be saved, and I reject "repent of sins to be saved" (ROYS), "confess with your mouth to be saved," Lordship Salvation, infant baptism, baptism regeneration, etc.
+            - listitem [ref=e44]:
+              - generic [ref=e45]: •
+              - generic [ref=e46]: To be saved, you must believe that Jesus is God, that He shed His blood on Calvary, died, was buried, and rose again for your justification.
+            - listitem [ref=e47]:
+              - generic [ref=e48]: •
+              - generic [ref=e49]: "I believe in OSAS (Once Saved, Always Saved): a believer who has trusted the gospel cannot lose salvation, no matter what happens in their life."
+        - generic [ref=e50]:
+          - heading "Statement of Faith" [level=2] [ref=e51]
+          - button [ref=e53] [cursor=pointer]:
+            - heading "The King James Bible" [level=3] [ref=e54]
+          - button [ref=e58] [cursor=pointer]:
+            - heading "Satan & Hell" [level=3] [ref=e59]
+          - button [ref=e63] [cursor=pointer]:
+            - heading "Salvation & Pre-Tribulation Rapture" [level=3] [ref=e64]
+          - button [ref=e68] [cursor=pointer]:
+            - heading "Pagan Holidays & Traditions" [level=3] [ref=e69]
+          - button [ref=e73] [cursor=pointer]:
+            - heading "Why I Am Not... Series" [level=3] [ref=e74]
+        - generic [ref=e77]:
+          - heading "Links & Contact" [level=2] [ref=e78]
+          - generic [ref=e79]:
+            - link [ref=e80] [cursor=pointer]:
               - /url: https://godisgracious1031ministriescom.odoo.com/
-              - generic [ref=e78]:
-                - paragraph [ref=e79]: God is Gracious 1031 Ministries
-                - paragraph [ref=e80]: Ministry Website
-            - link [ref=e85] [cursor=pointer]:
+              - generic [ref=e85]:
+                - paragraph [ref=e86]: God is Gracious 1031 Ministries
+                - paragraph [ref=e87]: Ministry Website
+            - link [ref=e92] [cursor=pointer]:
               - /url: https://youtube.com/@shawnr325av?si=zC_gQm4I2S_xj-NS
-              - generic [ref=e90]:
-                - paragraph [ref=e91]: YouTube
-                - paragraph [ref=e92]: "@shawnr325av"
-            - link [ref=e97] [cursor=pointer]:
+              - generic [ref=e97]:
+                - paragraph [ref=e98]: YouTube
+                - paragraph [ref=e99]: "@shawnr325av"
+            - link [ref=e104] [cursor=pointer]:
               - /url: https://rumble.com/user/Godisgracious1031
-              - generic [ref=e102]:
-                - paragraph [ref=e103]: Rumble
-                - paragraph [ref=e104]: Godisgracious1031
-            - link [ref=e109] [cursor=pointer]:
+              - generic [ref=e109]:
+                - paragraph [ref=e110]: Rumble
+                - paragraph [ref=e111]: Godisgracious1031
+            - link [ref=e116] [cursor=pointer]:
               - /url: https://www.tiktok.com/@svdbyfaithinr325av
-              - generic [ref=e113]:
-                - paragraph [ref=e114]: TikTok
-                - paragraph [ref=e115]: "@svdbyfaithinr325av"
-            - link [ref=e120] [cursor=pointer]:
+              - generic [ref=e120]:
+                - paragraph [ref=e121]: TikTok
+                - paragraph [ref=e122]: "@svdbyfaithinr325av"
+            - link [ref=e127] [cursor=pointer]:
               - /url: https://www.instagram.com/svdbyfaithinhisbloodr325av/
-              - generic [ref=e124]:
-                - paragraph [ref=e125]: Instagram
-                - paragraph [ref=e126]: "@svdbyfaithinhisbloodr325av"
-            - link [ref=e131] [cursor=pointer]:
+              - generic [ref=e131]:
+                - paragraph [ref=e132]: Instagram
+                - paragraph [ref=e133]: "@svdbyfaithinhisbloodr325av"
+            - link [ref=e138] [cursor=pointer]:
               - /url: https://discord.com/users/faithinhisbloodr325av
-              - generic [ref=e135]:
-                - paragraph [ref=e136]: Discord
-                - paragraph [ref=e137]: faithinhisbloodr325av
-            - link [ref=e142] [cursor=pointer]:
+              - generic [ref=e142]:
+                - paragraph [ref=e143]: Discord
+                - paragraph [ref=e144]: faithinhisbloodr325av
+            - link [ref=e149] [cursor=pointer]:
               - /url: https://linktr.ee/shawnr325av
-              - generic [ref=e146]:
-                - paragraph [ref=e147]: Linktree
-                - paragraph [ref=e148]: linktr.ee/shawnr325av
-            - link [ref=e153] [cursor=pointer]:
+              - generic [ref=e153]:
+                - paragraph [ref=e154]: Linktree
+                - paragraph [ref=e155]: linktr.ee/shawnr325av
+            - link [ref=e160] [cursor=pointer]:
               - /url: mailto:kingjamesbiblereader@outlook.sg
-              - generic [ref=e158]:
-                - paragraph [ref=e159]: Email
-                - paragraph [ref=e160]: kingjamesbiblereader@outlook.sg
-    - navigation [ref=e165]:
-      - generic [ref=e167]:
-        - button "Home" [ref=e168] [cursor=pointer]
-        - button "Contents" [ref=e173] [cursor=pointer]
-        - button "Read" [ref=e176] [cursor=pointer]
-        - button "Gospel" [ref=e180] [cursor=pointer]
-        - button "Toggle navigation rows" [ref=e184] [cursor=pointer]
+              - generic [ref=e165]:
+                - paragraph [ref=e166]: Email
+                - paragraph [ref=e167]: kingjamesbiblereader@outlook.sg
+    - navigation [ref=e172]:
+      - generic [ref=e174]:
+        - button "Home" [ref=e175] [cursor=pointer]
+        - button "Contents" [ref=e180] [cursor=pointer]
+        - button "Read" [ref=e183] [cursor=pointer]
+        - button "Gospel" [ref=e187] [cursor=pointer]
+        - button "Toggle navigation rows" [ref=e191] [cursor=pointer]
   - region "Notifications alt+T"
 ```
 

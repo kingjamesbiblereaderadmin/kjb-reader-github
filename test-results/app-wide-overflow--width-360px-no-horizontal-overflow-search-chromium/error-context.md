@@ -35,46 +35,49 @@ expect(received).toEqual(expected) // deep equality
 
 ```yaml
 - generic [ref=e2]:
-  - generic [ref=e3]:
-    - banner [ref=e4]:
-      - generic [ref=e5]:
-        - generic [ref=e6]:
-          - button "Back" [ref=e7] [cursor=pointer]
-          - link "Home" [ref=e8] [cursor=pointer]:
+  - generic [ref=e4]:
+    - img "KJB Reader Logo" [ref=e5]
+    - generic [ref=e6]: LOOKING UP…
+  - generic [ref=e10]:
+    - banner [ref=e11]:
+      - generic [ref=e12]:
+        - generic [ref=e13]:
+          - button "Back" [ref=e14] [cursor=pointer]
+          - link "Home" [ref=e15] [cursor=pointer]:
             - /url: /
-        - textbox "Search..." [ref=e14]
-        - generic [ref=e15]:
-          - button "Toggle fullscreen" [ref=e16] [cursor=pointer]
-          - button "Toggle theme" [ref=e17] [cursor=pointer]
-          - button "Open menu" [ref=e18] [cursor=pointer]
-    - main [ref=e19]:
-      - generic [ref=e23]:
-        - generic [ref=e24]:
-          - heading "Search Bible" [level=1] [ref=e25]
-          - generic [ref=e26]:
-            - textbox "e.g. study, Romans 3:25, 1 Corinthians 15:1-4" [active] [ref=e29]
-            - button [disabled] [ref=e30]
-          - generic [ref=e34]:
-            - generic [ref=e37]: "Testament:"
-            - combobox [ref=e38] [cursor=pointer]:
+        - textbox "Search..." [ref=e21]
+        - generic [ref=e22]:
+          - button "Toggle fullscreen" [ref=e23] [cursor=pointer]
+          - button "Toggle theme" [ref=e24] [cursor=pointer]
+          - button "Open menu" [ref=e25] [cursor=pointer]
+    - main [ref=e26]:
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - heading "Search Bible" [level=1] [ref=e32]
+          - generic [ref=e33]:
+            - textbox "e.g. study, Romans 3:25, 1 Corinthians 15:1-4" [active] [ref=e36]
+            - button [disabled] [ref=e37]
+          - generic [ref=e41]:
+            - generic [ref=e44]: "Testament:"
+            - combobox [ref=e45] [cursor=pointer]:
               - generic: All
-            - button "Books" [ref=e41] [cursor=pointer]
-            - generic [ref=e46]:
-              - checkbox "Match whole word" [ref=e47] [cursor=pointer]
-              - generic [ref=e48] [cursor=pointer]: Match whole word
-            - generic [ref=e49]:
-              - checkbox "Match case" [ref=e50] [cursor=pointer]
-              - generic [ref=e51] [cursor=pointer]: Match case
-        - generic [ref=e52]:
-          - paragraph [ref=e53]: Type a word or phrase above and press Search.
-          - button "Advanced Search — research by verse properties" [ref=e54] [cursor=pointer]
-    - navigation [ref=e57]:
-      - generic [ref=e59]:
-        - button "Home" [ref=e60] [cursor=pointer]
-        - button "Contents" [ref=e65] [cursor=pointer]
-        - button "Read" [ref=e68] [cursor=pointer]
-        - button "Gospel" [ref=e72] [cursor=pointer]
-        - button "Toggle navigation rows" [ref=e76] [cursor=pointer]
+            - button "Books" [ref=e48] [cursor=pointer]
+            - generic [ref=e53]:
+              - checkbox "Match whole word" [ref=e54] [cursor=pointer]
+              - generic [ref=e55] [cursor=pointer]: Match whole word
+            - generic [ref=e56]:
+              - checkbox "Match case" [ref=e57] [cursor=pointer]
+              - generic [ref=e58] [cursor=pointer]: Match case
+        - generic [ref=e59]:
+          - paragraph [ref=e60]: Type a word or phrase above and press Search.
+          - button "Advanced Search — research by verse properties" [ref=e61] [cursor=pointer]
+    - navigation [ref=e64]:
+      - generic [ref=e66]:
+        - button "Home" [ref=e67] [cursor=pointer]
+        - button "Contents" [ref=e72] [cursor=pointer]
+        - button "Read" [ref=e75] [cursor=pointer]
+        - button "Gospel" [ref=e79] [cursor=pointer]
+        - button "Toggle navigation rows" [ref=e83] [cursor=pointer]
   - region "Notifications alt+T"
 ```
 

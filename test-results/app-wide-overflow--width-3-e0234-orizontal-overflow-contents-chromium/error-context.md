@@ -13,7 +13,7 @@
 
 ```
 Error: /contents @ 360px overflows horizontally by 0px:
-  <div class="fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm"> "" (over by 16px)
+  <div class="absolute top-0 h-full rounded-full"> "" (over by 36.5px)
 
 expect(received).toEqual(expected) // deep equality
 
@@ -23,8 +23,8 @@ expect(received).toEqual(expected) // deep equality
 - Array []
 + Array [
 +   Object {
-+     "cls": "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm",
-+     "overBy": 16,
++     "cls": "absolute top-0 h-full rounded-full",
++     "overBy": 36.5,
 +     "tag": "div",
 +     "text": "",
 +   },
