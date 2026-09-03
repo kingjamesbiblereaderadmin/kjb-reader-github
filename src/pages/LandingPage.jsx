@@ -21,7 +21,7 @@ function DiscordIcon({ className }) {
   );
 }
 
-const LAST_UPDATED = 'September 3rd, 2026';
+const LAST_UPDATED = 'September 4th, 2026';
 
 export default function LandingPage() {
   return (
