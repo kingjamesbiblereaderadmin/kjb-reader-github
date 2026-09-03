@@ -671,7 +671,6 @@ export default function BibleReader() {
 
   const loadChapter = useCallback(async (bookAbbr, chapter, jumpVerse, jumpVerseEnd = null) => {
     setLoading(true); setError(null); setVerses([]); setColophon(null);
-    autoAdvanceRef.current = false;
     (document.getElementById('kjb-scroll') || window).scrollTo({ top: 0 });
     const b = BIBLE_BOOKS.find(bk => bk.abbr === bookAbbr);
     if (!b) { setError('Book not found'); setLoading(false); return; }
