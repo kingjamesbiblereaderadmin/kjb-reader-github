@@ -1555,8 +1555,26 @@ public class MainActivity extends BridgeActivity {
                 String currentUrl = view.getUrl();
                 if (currentUrl != null && currentUrl.startsWith(REMOTE_URL)) {
                     view.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> {
-                        String carryTarget = buildCarryTarget(result, FALLBACK_ORIGIN, false);
-                        view.post(() -> view.loadUrl(carryTarget));
+                        // view.getUrl() can report REMOTE_URL as the ATTEMPTED
+                        // target even when the page never actually committed
+                        // (see the NOTE above) -- e.g. a genuinely fresh cold
+                        // start that failed before ever loading anything. In
+                        // that case this evaluateJavascript ran against a
+                        // blank/uninitialized document, never the real
+                        // origin's storage, so its result carries nothing
+                        // (empty data) even though the user's real settings
+                        // are sitting untouched on REMOTE_URL's actual
+                        // localStorage. Carrying that empty result forward
+                        // would silently reset the offline session to
+                        // defaults/landing -- fall back to the last known-good
+                        // snapshot (same one the no-live-page branch below
+                        // uses) instead of trusting an empty live read.
+                        if (isEmptyCarryResult(result)) {
+                            view.post(() -> loadWithSavedSnapshotOrPlain(activity, view, finalTarget));
+                        } else {
+                            String carryTarget = buildCarryTarget(result, FALLBACK_ORIGIN, false);
+                            view.post(() -> view.loadUrl(carryTarget));
+                        }
                     });
                 } else {
                     // No live REMOTE_URL page loaded THIS session to read
@@ -1568,19 +1586,7 @@ public class MainActivity extends BridgeActivity {
                     // REMOTE_URL load, so the offline session still opens on
                     // the right book/chapter with the right settings instead
                     // of silently resetting to Genesis 1 / defaults.
-                    String savedSnapshot = null;
-                    try {
-                        savedSnapshot = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                            .getString(PREF_LAST_STATE, null);
-                    } catch (Exception e) {
-                        // Fall through -- finalTarget (plain fallback, no carry) below.
-                    }
-                    if (savedSnapshot != null) {
-                        final String carryTarget = buildCarryTarget(savedSnapshot, FALLBACK_ORIGIN, false);
-                        view.post(() -> view.loadUrl(carryTarget));
-                    } else {
-                        view.post(() -> view.loadUrl(finalTarget));
-                    }
+                    view.post(() -> loadWithSavedSnapshotOrPlain(activity, view, finalTarget));
                 }
                 activity.scheduleReconnectAttempt();
             }
