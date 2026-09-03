@@ -1605,20 +1605,17 @@ export default function BibleReader() {
 
   const goNext = (isAutoAdvance = false) => {
     if (pos.chapter < book.chapters) {
-      if (isAutoAdvance) autoAdvanceRef.current = true;
       navigate(pos.abbr, pos.chapter + 1, null, false, false, isAutoAdvance);
       return true;
     }
     // Exception: end of the Old Testament (Malachi) stops at the New
     // Testament title page instead of jumping straight into Matthew 1.
     if (pos.abbr === 'MAL') {
-      if (isAutoAdvance) autoAdvanceRef.current = true;
       navigate('MAT', 0, null, false, false, isAutoAdvance);
       return true;
     }
     const next = getNextBook(pos.abbr);
     if (next) {
-      if (isAutoAdvance) autoAdvanceRef.current = true;
       navigate(next.abbr, 1, null, false, false, isAutoAdvance);
       return true;
     }
