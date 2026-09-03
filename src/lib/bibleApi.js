@@ -138,7 +138,7 @@ export async function isBibleAvailableOffline() {
 // Render verse text: turn [word] into <em>word</em> for KJB italics
 // Render pilcrow (¶) ONLY at beginning of verses, not inside words
 // Optionally highlight search terms with <mark> tags
-export function renderVerseText(text, searchTerm = null, audioWordIndices = null) {
+export function renderVerseText(text, searchTerm = null) {
   // Debug: log verses to check for brackets and pilcrows
   if (text && Math.random() < 0.05) {
     console.log('[RENDER] Sample verse with brackets:', text.substring(0, 200));
@@ -194,31 +194,6 @@ export function renderVerseText(text, searchTerm = null, audioWordIndices = null
       if (tag) return tag; // keep HTML tags untouched
       return text.replace(termRegex, (m) =>
         `<mark data-occ="${occ++}" style="background-color: rgba(250, 204, 21, 0.55); border-radius: 3px; padding: 0 2px;">${m}</mark>`);
-    });
-  }
-
-  // Audio (Listen) mode: wrap each spoken word in a highlightable span carrying
-  // its global timeline index, so AudioProvider can karaoke-highlight words in
-  // place WITHOUT changing the verse's visual markup (italics, pilcrow, drop
-  // cap, and search <mark> all remain intact). Pilcrow ¶ glyphs are skipped so
-  // they don't consume a word index.
-  if (audioWordIndices && audioWordIndices.length) {
-    let wi = 0;
-    // Match HTML tags, OR a run of non-space, non-'<' chars. Stopping at '<'
-    // prevents a glued closing tag from being absorbed into a word token —
-    // e.g. the pilcrow span "¶</span>" would otherwise match as one \S+ token
-    // whose "span" has letters, so the no-letter skip fails and the pilcrow
-    // wrongly consumes a word index (shifting every later span by one).
-    result = result.replace(/(<[^>]+>)|([^\s<]+)/g, (chunk, tag, word) => {
-      if (tag) return tag;
-      // Skip tokens with no letter/digit (pilcrows ¶, control chars \u000F,
-      // replacement chars \uFFFD, stray punctuation). These are filtered out of
-      // the verse word list in audioSync.cleanVerseToWords, so they must NOT
-      // consume a word index here or the karaoke spans drift out of sync.
-      if (!/[\p{L}\p{N}]/u.test(word)) return word;
-      const idx = audioWordIndices[wi++];
-      if (idx == null) return word;
-      return `<span class="kjb-audio-word" data-audio-idx="${idx}">${word}</span>`;
     });
   }
 
