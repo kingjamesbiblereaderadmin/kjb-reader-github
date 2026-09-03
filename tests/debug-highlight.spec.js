@@ -6,10 +6,18 @@ test('debug full popover', async ({ page }) => {
   await page.locator('#v16 .kjb-verse-text').click();
   await page.waitForTimeout(1500);
   const html = await page.evaluate(() => {
-    const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Highlight');
-    if (!btn) return 'NOT FOUND';
-    let container = btn.parentElement ? btn.parentElement.parentElement : btn;
-    return (container || btn).outerHTML.slice(0, 3000);
+    const btns = Array.from(document.querySelectorAll('button')).filter(b => b.textContent.trim() === 'Highlight');
+    return btns.map((b, i) => {
+      // Find nearest ancestor that also contains a "Copy" button — that's the popover.
+      let node = b;
+      let depth = 0;
+      while (node && depth < 8) {
+        if (node.textContent.includes('Copy') && node.textContent.includes('Share')) break;
+        node = node.parentElement;
+        depth++;
+      }
+      return { index: i, title: b.title, hasPopoverAncestor: !!node, popoverHTML: node ? node.outerHTML.slice(0, 2000) : null };
+    });
   });
-  console.log(html);
+  console.log(JSON.stringify(html, null, 2));
 });
