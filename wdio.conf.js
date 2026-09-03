@@ -70,8 +70,8 @@ export const config = {
   logLevel: 'info',
   bail: 0,
   waitforTimeout: 15000,
-  connectionRetryTimeout: 180000,
-  connectionRetryCount: 3,
+  connectionRetryTimeout: 300000,
+  connectionRetryCount: 2,
   framework: 'mocha',
   reporters: ['spec'],
   mochaOpts: {
