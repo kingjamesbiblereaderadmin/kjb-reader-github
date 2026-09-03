@@ -42,10 +42,19 @@ describe('App launch and reader navigation', () => {
     await waitForReaderContent(driver);
 
     // The button has a data-testid on every toolbar-layout variant
-    // (mobile/desktop, titled/untitled) — more reliable than chasing
-    // title attributes or icon classes that only exist on some variants.
-    const nextBtn = await driver.$('[data-testid="next-chapter-btn"]');
-    await nextBtn.waitForExist({ timeout: 10000 });
+    // (mobile/desktop, titled/untitled) — more reliable than chasing title
+    // attributes or icon classes that only exist on some variants. Multiple
+    // variants can coexist in the DOM at once (shown/hidden per breakpoint
+    // via CSS, not conditional rendering), so find whichever one is
+    // actually visible rather than assuming the first match is clickable.
+    const candidates = await driver.$$('[data-testid="next-chapter-btn"]');
+    expect(candidates.length).toBeGreaterThan(0);
+    let nextBtn = null;
+    for (const el of candidates) {
+      if (await el.isDisplayed().catch(() => false)) { nextBtn = el; break; }
+    }
+    expect(nextBtn, 'no visible next-chapter button found among the toolbar variants').not.toBeNull();
+
     const isDisabled = await nextBtn.getAttribute('disabled');
     if (isDisabled === null) {
       await nextBtn.click();
