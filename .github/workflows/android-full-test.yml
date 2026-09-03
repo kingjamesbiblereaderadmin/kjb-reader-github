@@ -1,0 +1,114 @@
+name: Android full native UI test
+
+# The deeper companion to android-emulator-smoke-test.yml: that workflow
+# just confirms the app installs and doesn't crash on launch; this one
+# drives the actual native app end-to-end with Appium — tapping real
+# buttons, reading real WebView DOM content, toggling the emulator's real
+# network connection — covering reader navigation, verse actions (highlight/
+# save), settings, search, and offline behavior specifically through the
+# native shell (the bundled-asset offline path, WebView bridging) that the
+# Playwright web suite (tests/) structurally cannot exercise.
+#
+# Kept in its own workflow file rather than folded into the smoke test
+# because it's substantially slower (installing Appium + running a full spec
+# suite vs. a single crash check) — a quick push shouldn't have to wait on
+# this to get its fast smoke-test signal.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'src/**'
+      - 'public/**'
+      - 'capacitor.config.ts'
+      - 'tests-android/**'
+      - 'wdio.conf.js'
+      - '.github/workflows/android-full-test.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'src/**'
+      - 'public/**'
+      - 'capacitor.config.ts'
+      - 'tests-android/**'
+      - 'wdio.conf.js'
+  workflow_dispatch: {}
+
+jobs:
+  full-native-test:
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Appium's Android driver
+        run: npx appium driver install uiautomator2
+
+      - name: Build web app (bundled into the APK as an offline fallback)
+        run: npm run build
+
+      - name: Sync Capacitor Android (regenerates gitignored native plugin files)
+        run: |
+          mkdir -p android/app/src/main/assets
+          npx cap sync android
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Generate Gradle wrapper (if missing)
+        working-directory: android
+        run: |
+          if [ ! -f gradlew ]; then
+            echo "No gradlew found — generating Gradle wrapper..."
+            gradle wrapper --gradle-version 8.13
+          fi
+          chmod +x gradlew || true
+
+      - name: Build debug APK (unsigned — no Play Store secrets needed)
+        working-directory: android
+        run: ./gradlew --stacktrace assembleDebug
+
+      - name: Run the full Appium spec suite on a real emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          # The emulator only exists for the duration of this `script` block
+          # (the action tears it down after) — everything that needs the
+          # device, including npm run test:android itself, has to happen in
+          # here rather than in a separate step.
+          script: |
+            npm run test:android
+        env:
+          ANDROID_APK_PATH: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload Appium/WebdriverIO logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-full-test-logs
+          path: |
+            appium-logs/
+            wdio-logs/
+          if-no-files-found: ignore
+          retention-days: 14
