@@ -6,14 +6,10 @@ test('debug full popover', async ({ page }) => {
   await page.locator('#v16 .kjb-verse-text').click();
   await page.waitForTimeout(1500);
   const html = await page.evaluate(() => {
-    // Find any element containing the text "Highlight" and walk up a few
-    // levels to capture its container.
-    const all = Array.from(document.querySelectorAll('*'));
-    const target = all.find(el => el.children.length === 0 && el.textContent.trim() === 'Highlight');
-    if (!target) return 'NOT FOUND';
-    let container = target;
-    for (let i = 0; i < 4 && container.parentElement; i++) container = container.parentElement;
-    return container.outerHTML.slice(0, 3000);
+    const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Highlight');
+    if (!btn) return 'NOT FOUND';
+    let container = btn.parentElement ? btn.parentElement.parentElement : btn;
+    return (container || btn).outerHTML.slice(0, 3000);
   });
   console.log(html);
 });
