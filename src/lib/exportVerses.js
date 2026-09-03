@@ -584,9 +584,68 @@ export async function exportPdf(items, query, filters, options = {}) {
     y += 12;
     doc.setTextColor(0);
   }
+  // Pre-measure the total vertical height one verse entry (bulleted text +
+  // reference line + optional link) will need, WITHOUT drawing anything —
+  // mirrors the exact wrapping/line-height math in renderVerse below. This is
+  // what lets an entry be treated as a single atomic block for pagination:
+  // call this once, and if the result doesn't fit in the space left on the
+  // page, move the page break to BEFORE the entry instead of letting
+  // renderVerse's own per-line ensureSpace calls split it wherever the verse
+  // text happens to wrap — which is how a verse's reference/link line ended
+  // up stranded alone at the top of the next page while its quote stayed on
+  // the page before.
+  const measureVerseHeight = (text, url, isSpecial = false, keepPilcrow = false) => {
+    const clean = isSpecial ? plainWithBrackets(text, true, keepPilcrow) : `\u201C${plainWithBrackets(text, false, keepPilcrow)}\u201D`;
+    const runs = [];
+    clean.replace(/\[([^\]]+)\]|([^[]+)/g, (m, inside, plain) => {
+      if (inside !== undefined) runs.push({ str: inside, italic: true });
+      else runs.push({ str: plain, italic: false });
+      return m;
+    });
+    let lines = 1;
+    let x = isSpecial ? marginX : marginX + 15;
+    doc.setFontSize(11);
+    runs.forEach(run => {
+      doc.setFont('times', run.italic ? 'italic' : 'normal');
+      const words = run.str.split(/(\s+)/);
+      words.forEach(word => {
+        if (!word) return;
+        const w = doc.getTextWidth(word);
+        if (x + w > marginX + maxW && word.trim()) {
+          x = marginX + 15;
+          lines++;
+        }
+        x += w;
+      });
+    });
+    doc.setFont('times', 'normal');
+    let height = lines * lineH; // verse-text lines, ending at the reference line's y
+    height += lineH; // reference line itself
+    if (url) {
+      doc.setFontSize(9);
+      const linkStartX = marginX + 15;
+      const linkMaxW = pageW - marginX - linkStartX;
+      const chunks = doc.splitTextToSize(url, linkMaxW);
+      height += (lineH - 2) + Math.max(0, chunks.length - 1) * (lineH - 4);
+    }
+    height += lineH + 8; // trailing spacer before the next entry
+    return height;
+  };
+
   // Render a verse, switching between roman and italic for [bracketed] runs,
   // wrapping words within the page width.
   const renderVerse = (text, ref, url, isSpecial = false, keepPilcrow = false) => {
+    // Atomic pagination: if the WHOLE entry fits on a fresh page but not in
+    // what's left of the current one, break to a new page before drawing
+    // anything for it. An entry too tall to ever fit a single page (rare —
+    // a huge multi-verse passage) falls back to flowing across pages via the
+    // per-line ensureSpace calls below, same as before.
+    const availablePageHeight = pageH - marginTop - 48;
+    const itemHeight = measureVerseHeight(text, url, isSpecial, keepPilcrow);
+    if (itemHeight <= availablePageHeight && y + itemHeight > pageH - 48) {
+      doc.addPage();
+      y = marginTop;
+    }
     const clean = isSpecial ? plainWithBrackets(text, true, keepPilcrow) : `\u201C${plainWithBrackets(text, false, keepPilcrow)}\u201D`;
     // Tokenise into {str, italic} runs by brackets
     const runs = [];
