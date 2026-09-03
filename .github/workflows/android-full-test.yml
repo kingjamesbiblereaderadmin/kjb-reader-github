@@ -42,7 +42,15 @@ on:
 
 jobs:
   full-native-test:
-    runs-on: macos-14
+    # Intel (x86_64) runner, not macos-14 (Apple Silicon/ARM64): GitHub's
+    # ARM64 macOS runners are themselves virtualized, and nested
+    # virtualization for the Android emulator via Apple's HVF framework is
+    # unreliable there ("HVF error: HV_UNSUPPORTED", emulator process dies
+    # on launch, adb never finds a device no matter how long you wait).
+    # Intel + x86_64 system image is the long-established, reliable
+    # combination for reactivecircus/android-emulator-runner and doesn't
+    # depend on nested-virtualization support at all.
+    runs-on: macos-13
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
@@ -97,7 +105,7 @@ jobs:
         with:
           api-level: 33
           target: google_apis
-          arch: arm64-v8a
+          arch: x86_64
           profile: pixel_6
           disable-animations: true
           emulator-boot-timeout: 300
