@@ -42,15 +42,17 @@ on:
 
 jobs:
   full-native-test:
-    # Intel (x86_64) runner, not macos-14 (Apple Silicon/ARM64): GitHub's
-    # ARM64 macOS runners are themselves virtualized, and nested
-    # virtualization for the Android emulator via Apple's HVF framework is
-    # unreliable there ("HVF error: HV_UNSUPPORTED", emulator process dies
-    # on launch, adb never finds a device no matter how long you wait).
-    # Intel + x86_64 system image is the long-established, reliable
-    # combination for reactivecircus/android-emulator-runner and doesn't
-    # depend on nested-virtualization support at all.
-    runs-on: macos-13
+    # macos-15-intel, not macos-13: macos-13 was fully retired by GitHub in
+    # December 2025 (confirmed by this job sitting queued forever — the
+    # image no longer exists in GitHub's fleet, it's not just busy). And
+    # macos-14/macos-14-arm64 is itself mid-deprecation as of 2026 (fully
+    # gone by November 2026), on top of the HVF/nested-virtualization
+    # problem that made the Android emulator crash on launch there in the
+    # first place ("HVF error: HV_UNSUPPORTED"). macos-15-intel is GitHub's
+    # current, actively-supported label for genuine Intel x86_64 hardware —
+    # sidesteps the ARM64 nested-virtualization issue entirely, since it's
+    # real Intel silicon, not a virtualized Apple Silicon host.
+    runs-on: macos-15-intel
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
