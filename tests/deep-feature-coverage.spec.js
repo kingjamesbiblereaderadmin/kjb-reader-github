@@ -185,10 +185,15 @@ test.describe('Select mode — bulk actions in the reader', () => {
   });
 });
 
-test.describe('Toolbar Print dropdown (outside select mode)', () => {
+test.describe('Toolbar Print button (outside select mode)', () => {
   test.use({ viewport: { width: 393, height: 900 } });
 
-  test('opens and both print options run without throwing', async ({ page }) => {
+  test('triggers printChapterContents without throwing', async ({ page }) => {
+    // Unlike the select-mode action bar (a real dropdown with two options,
+    // covered above), the standalone toolbar Print button is a single
+    // direct action — it calls printChapterContents() straight from
+    // onClick. There's no dropdown to open here (PrintDropdown.jsx exists
+    // in the codebase but isn't actually wired up to this button).
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message));
 
@@ -196,19 +201,9 @@ test.describe('Toolbar Print dropdown (outside select mode)', () => {
     await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
     await page.evaluate(() => { window.print = () => {}; });
 
-    const printBtn = page.getByTitle('Print');
-    await printBtn.click();
-    await assertNoOverflow(page, 'print dropdown open');
-
-    await page.getByText('Print Full Page').click();
-    await page.waitForTimeout(300);
-
-    await printBtn.click();
-    const contentsOption = page.locator('text=/Print .*Contents/');
-    if (await contentsOption.count()) {
-      await contentsOption.click();
-      await page.waitForTimeout(300);
-    }
+    await page.getByTitle('Print').click();
+    await page.waitForTimeout(500);
+    await assertNoOverflow(page, 'after triggering print');
 
     expect(errors, `errors during toolbar print:\n${errors.join('\n')}`).toEqual([]);
   });
