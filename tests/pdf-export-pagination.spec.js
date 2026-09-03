@@ -19,6 +19,7 @@
  */
 import { test, expect } from '@playwright/test';
 import { PDFDocument } from 'pdf-lib';
+import fs from 'fs/promises';
 
 test.describe('PDF export', () => {
   test('multi-page search-result export produces a valid PDF', async ({ page }) => {
@@ -39,7 +40,7 @@ test.describe('PDF export', () => {
     const filePath = await download.path();
     expect(filePath, 'PDF export did not produce a downloadable file').toBeTruthy();
 
-    const bytes = await require('fs').promises.readFile(filePath);
+    const bytes = await fs.readFile(filePath);
     expect(bytes.length, 'exported PDF is suspiciously small/empty').toBeGreaterThan(2000);
 
     const pdf = await PDFDocument.load(bytes);
