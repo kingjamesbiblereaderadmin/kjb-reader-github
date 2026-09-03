@@ -68,7 +68,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   let displayVerseText = currentText.replace(/^<<[^>]*>>\s*/, '');
 
   // renderVerseText handles [italics] and ¶ pilcrow styling, plus search term highlighting
-  let html = renderVerseText(displayVerseText, searchTerm, null);
+  let html = renderVerseText(displayVerseText, searchTerm);
 
   // Shared click handler: toggles the verse action menu (selects in select
   // mode, or applies/removes the highlighter directly in highlight mode).
