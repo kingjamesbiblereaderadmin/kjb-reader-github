@@ -44,6 +44,22 @@ export const config = {
       'appium:appWaitForLaunch': true,
       'appium:autoGrantPermissions': true,
       'appium:newCommandTimeout': 240,
+      // This emulator only gets 1 virtual CPU core on GitHub's shared CI
+      // runners (confirmed in the emulator's own boot log: "Running on a
+      // system with less than 6 logical cores. Setting number of virtual
+      // cores to 1"), which makes it far slower than a normal dev machine
+      // or device — every one of Appium's own default operation timeouts
+      // (20-30s) was too tight for it: installing the UiAutomator2 test
+      // server, launching its instrumentation process, and starting the
+      // app itself were all timing out well before the operation actually
+      // finished. These are deliberately generous rather than tuned tight,
+      // since a slow CI runner is the norm here, not the exception.
+      'appium:uiautomator2ServerInstallTimeout': 180000,
+      'appium:uiautomator2ServerLaunchTimeout': 180000,
+      'appium:adbExecTimeout': 120000,
+      'appium:androidInstallTimeout': 180000,
+      'appium:avdLaunchTimeout': 300000,
+      'appium:avdReadyTimeout': 300000,
       // Don't wipe app data between specs within one run — each spec
       // navigates fresh via the reader's own URL sync, and reinstalling per
       // spec would multiply an already-slow emulator run several times
