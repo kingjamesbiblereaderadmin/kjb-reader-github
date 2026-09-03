@@ -11,7 +11,7 @@ export const DISCORD_PERSONAL_INSTALL_URL =
 export const DISCORD_SERVER_INSTALL_URL =
   'https://discord.com/oauth2/authorize?client_id=1529303667348606996&scope=bot+applications.commands&permissions=378494381072';
 
-export const DISCORD_SUPPORT_SERVER_URL = 'https://kingjamesbiblereader.com/discord';
+export const DISCORD_SUPPORT_SERVER_URL = 'https://discord.gg/p8URa4JYBB';
 
 function DiscordIcon({ className }) {
   return (
