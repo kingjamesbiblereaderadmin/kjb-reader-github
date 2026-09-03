@@ -36,11 +36,13 @@ on:
 
 jobs:
   emulator-smoke-test:
-    # macos-15-intel, not macos-13 (retired Dec 2025 — that's why it queued
-    # forever) or macos-14 (mid-deprecation, plus the HVF/nested-
-    # virtualization crash we hit there). This is GitHub's current label for
-    # genuine Intel x86_64 hardware.
-    runs-on: macos-15-intel
+    # ubuntu-latest + KVM, not any macOS runner — see android-full-test.yml
+    # for the full history: three different macOS configs all had real
+    # virtualization problems (ARM64 crashed instantly, Intel-labeled-macos-13
+    # doesn't exist anymore, macos-15-intel ran unaccelerated and never
+    # finished booting). Ubuntu + KVM is the standard, well-documented,
+    # actually-reliable setup for this action.
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -84,6 +86,12 @@ jobs:
         working-directory: android
         run: ./gradlew --stacktrace assembleDebug
 
+      - name: Enable KVM (hardware-accelerated emulation on the Linux runner)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
       - name: Run on emulator, launch the app, check it doesn't crash
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -92,7 +100,7 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          emulator-boot-timeout: 600
+          emulator-boot-timeout: 300
           script: |
             APK=android/app/build/outputs/apk/debug/app-debug.apk
             APP_ID=com.kingjamesbiblereader.twa
