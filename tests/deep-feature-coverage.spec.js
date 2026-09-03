@@ -243,10 +243,12 @@ test.describe('About page — Statement of Faith accordions', () => {
     await assertNoOverflow(page, 'about page initial');
 
     // Named accordion sections (AccordionSection title="...") — targeted by
-    // their actual heading text rather than every button on the page, which
-    // would also hit nav links and theme toggles.
+    // role+name on the heading specifically. Once expanded, some sections
+    // reveal a link with the SAME text (e.g. a YouTube playlist card titled
+    // after the section), so a plain text locator becomes ambiguous after
+    // the first click; scoping to the heading's button role avoids that.
     for (const title of ['Pagan Holidays & Traditions', 'Why I Am Not... Series']) {
-      const header = page.getByText(title, { exact: true });
+      const header = page.getByRole('button', { name: title, exact: true });
       if (await header.count()) {
         await header.click();
         await page.waitForTimeout(200);
