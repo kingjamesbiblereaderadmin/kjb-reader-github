@@ -42,7 +42,7 @@ test.describe('Saved Verses — folders', () => {
     await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
     await verseLocator(page, 16).click();
     await page.getByRole('button', { name: /^Save/ }).click();
-    await page.waitForTimeout(500);
+    await page.waitForFunction(() => !!localStorage.getItem('kjb-saved-verses'), { timeout: 10000 });
 
     await page.goto('/saved');
     await assertNoOverflow(page, 'saved verses page');
