@@ -451,7 +451,7 @@ export async function exportDocx(items, query, filters, options = {}) {
         if (!isReading && query) {
           formattedText = highlightTermHtml(formattedText, query, filters);
         }
-        return `${heading}<li style="margin:0 0 8pt 0;font-family:Georgia,serif;font-size:12pt;${isSpecial ? 'list-style-type:none;text-align:center;color:#555;' : ''}">` +
+        return `${heading}<li style="margin:0 0 8pt 0;font-family:Georgia,serif;font-size:12pt;page-break-inside:avoid;break-inside:avoid;mso-pagination:none;${isSpecial ? 'list-style-type:none;text-align:center;color:#555;' : ''}">` +
         `${formattedText}<br/>` +
         `<span style="font-size:10pt;color:#555;">&mdash; ${escapeHtml(it.ref)} (KJB)</span>` +
         (it.url ? `<br/><a href="${escapeHtml(it.url)}" style="font-size:9pt;color:#2a5ac8;word-break:break-all;overflow-wrap:break-word;">${escapeHtml(it.url)}</a>` : '') +
