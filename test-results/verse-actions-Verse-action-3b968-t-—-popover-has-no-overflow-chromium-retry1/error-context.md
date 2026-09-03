@@ -73,6 +73,23 @@ Call log:
     - img
   - button "Hide header":
     - img
+  - text: John 3:16
+  - button "Highlight":
+    - img
+    - text: Highlight
+    - img
+  - button "Copy":
+    - img
+    - text: Copy
+  - button "Share":
+    - img
+    - text: Share
+  - button "Save":
+    - img
+    - text: Save
+  - button "Close":
+    - img
+    - text: Close
   - heading "The Gospel According to Saint John" [level=1]
   - paragraph: Chapter 3
   - superscript: "1"
