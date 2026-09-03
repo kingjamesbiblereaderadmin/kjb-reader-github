@@ -1,8 +1,8 @@
 /**
- * Verse action tests — tap a verse, use the popover (Highlight/Copy/Share/
- * Save/Select), verify Select mode's bulk action bar, and confirm the
- * Saved Verses page reflects saves and deletions correctly (round-trips
- * through real localStorage, not mocked).
+ * Verse action tests — tap a verse, use the inline VerseTapBar (Highlight
+ * dropdown with color choices/Copy/Share/Save/Close), and confirm the Saved
+ * Verses page reflects saves and deletions correctly (round-trips through
+ * real localStorage, not mocked).
  */
 import { test, expect } from '@playwright/test';
 import { checkOverflow } from './utils/overflow.js';
@@ -36,20 +36,30 @@ for (const width of WIDTHS) {
       });
     });
 
-    test('tap verse, highlight it, then unhighlight — popover has no overflow', async ({ page }) => {
+    test('tap verse, highlight it with a color, then remove — bar has no overflow', async ({ page }) => {
       await page.goto('/read?book=JHN&chapter=3');
       await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
 
       await verseLocator(page, 16).click();
-      const highlightBtn = page.getByTitle('Apply highlight');
-      await expect(highlightBtn).toBeVisible({ timeout: 10000 });
-      await assertNoOverflow(page, 'verse popover open');
+      const highlightTrigger = page.getByRole('button', { name: /^Highlight/ });
+      await expect(highlightTrigger).toBeVisible({ timeout: 10000 });
+      await assertNoOverflow(page, 'VerseTapBar open');
 
-      await highlightBtn.click();
-      await expect(page.getByTitle('Remove highlight')).toBeVisible({ timeout: 10000 });
+      await highlightTrigger.click();
+      const firstColor = page.getByRole('menuitem').first();
+      await expect(firstColor).toBeVisible({ timeout: 5000 });
+      await firstColor.click();
 
-      await page.getByTitle('Remove highlight').click();
-      await expect(page.getByTitle('Apply highlight')).toBeVisible({ timeout: 10000 });
+      // Button label flips to "Highlighted" once applied.
+      await expect(page.getByRole('button', { name: /^Highlighted/ })).toBeVisible({ timeout: 10000 });
+
+      const stored = await page.evaluate(() => localStorage.getItem('kjb-highlighted-verses'));
+      expect(stored, 'highlight was not persisted').toBeTruthy();
+
+      // Remove it via the dropdown's "Remove Highlight" item.
+      await page.getByRole('button', { name: /^Highlighted/ }).click();
+      await page.getByRole('menuitem', { name: 'Remove Highlight' }).click();
+      await expect(page.getByRole('button', { name: /^Highlight$/ })).toBeVisible({ timeout: 10000 });
     });
 
     test('copy and share actions do not throw', async ({ page }) => {
@@ -60,26 +70,20 @@ for (const width of WIDTHS) {
       await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
       await verseLocator(page, 16).click();
 
-      await page.getByTitle('Copy').click();
+      await page.getByRole('button', { name: /^Copy/ }).click();
       await page.waitForTimeout(300);
-
-      await page.getByTitle('Share').click().catch(() => {});
+      await page.getByRole('button', { name: /^Share/ }).click().catch(() => {});
       await page.waitForTimeout(300);
 
       expect(errors, `errors during copy/share:\n${errors.join('\n')}`).toEqual([]);
     });
 
-    test('save a verse via the popover, see it on Saved Verses, then remove it', async ({ page }) => {
+    test('save a verse via the tap bar, see it on Saved Verses, then remove it', async ({ page }) => {
       await page.goto('/read?book=JHN&chapter=3');
       await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
 
       await verseLocator(page, 16).click();
-      await page.getByTitle('Save').click();
-
-      const folderOption = page.locator('[role="menuitem"], button').filter({ hasText: /no folder|default|save/i }).first();
-      if (await folderOption.count()) {
-        await folderOption.click().catch(() => {});
-      }
+      await page.getByRole('button', { name: /^Save/ }).click();
 
       await page.waitForTimeout(500);
       const saved = await page.evaluate(() => localStorage.getItem('kjb-saved-verses'));
@@ -99,21 +103,16 @@ for (const width of WIDTHS) {
       }
     });
 
-    test('select mode: multi-select verses and use the bulk action bar without overflow', async ({ page }) => {
+    test('close button dismisses the tap bar', async ({ page }) => {
       await page.goto('/read?book=JHN&chapter=3');
       await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
 
       await verseLocator(page, 16).click();
-      const selectBtn = page.getByTitle('Select verses');
-      if (await selectBtn.count()) {
-        await selectBtn.click();
-        await verseLocator(page, 17).click().catch(() => {});
-        await verseLocator(page, 18).click().catch(() => {});
-        await assertNoOverflow(page, 'select mode with multiple verses');
+      const highlightTrigger = page.getByRole('button', { name: /^Highlight/ });
+      await expect(highlightTrigger).toBeVisible({ timeout: 10000 });
 
-        const cancelBtn = page.getByRole('button', { name: /cancel|done|close/i }).first();
-        if (await cancelBtn.count()) await cancelBtn.click().catch(() => {});
-      }
+      await page.getByRole('button', { name: /^Close$/ }).click();
+      await expect(highlightTrigger).toBeHidden({ timeout: 5000 });
     });
   });
 }
