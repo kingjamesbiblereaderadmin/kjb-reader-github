@@ -152,11 +152,16 @@ test.describe('Select mode — bulk actions in the reader', () => {
     // around the call doesn't throw, without actually invoking print UI.
     await page.evaluate(() => { window.print = () => {}; });
 
-    await page.getByRole('button', { name: /^Print/ }).click();
+    // Two "Print" buttons coexist here: the sticky toolbar's standalone
+    // print button, and the select-mode action bar's Print dropdown
+    // trigger. Scope to the select bar's one specifically, since it's the
+    // one under test.
+    const selectBarPrint = page.getByRole('button', { name: /^Print/ }).last();
+    await selectBarPrint.click();
     await page.getByText('Print Full Page').click();
     await page.waitForTimeout(300);
 
-    await page.getByRole('button', { name: /^Print/ }).click();
+    await selectBarPrint.click();
     const printSelected = page.getByText('Print Selected Verses');
     if (await printSelected.count()) {
       await printSelected.click();
