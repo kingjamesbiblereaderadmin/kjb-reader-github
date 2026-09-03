@@ -53,9 +53,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Install Appium's Android driver
-        run: npx appium driver install uiautomator2
+        # Note: no separate "appium driver install uiautomator2" step here.
+        # appium-uiautomator2-driver is already a devDependency (installed
+        # above by npm ci), and Appium 2's extension autodiscovery picks it
+        # up directly from node_modules — running the explicit install
+        # command anyway fails with "already installed" once npm has put it
+        # there, which used to abort this whole job before anything else ran.
 
       - name: Build web app (bundled into the APK as an offline fallback)
         run: npm run build
