@@ -66,7 +66,7 @@ test.describe('Saved Verses — folders', () => {
     await page.getByRole('button', { name: 'All', exact: true }).click();
     await page.waitForTimeout(300);
     await page.getByTitle('Move').first().click();
-    await page.getByText('Study Notes', { exact: true }).click();
+    await page.getByRole('menuitem', { name: 'Study Notes' }).click();
     await page.waitForTimeout(500);
 
     // Filter to that folder and confirm the verse shows there.
