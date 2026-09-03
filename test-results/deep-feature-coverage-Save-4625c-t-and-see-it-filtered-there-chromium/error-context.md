@@ -12,83 +12,77 @@
 # Error details
 
 ```
-Error: locator.click: Error: strict mode violation: getByText('Study Notes', { exact: true }) resolved to 2 elements:
-    1) <button class="flex items-center gap-2 px-4 py-2 rounded-full font-sans text-sm font-medium whitespace-nowrap transition-colors bg-secondary text-secondary-foreground hover:bg-accent/20">…</button> aka locator('#kjb-scroll').getByText('Study Notes')
-    2) <span class="font-sans text-sm sm:text-xs">Study Notes</span> aka getByLabel('', { exact: true }).getByText('Study Notes')
+Error: filtered to Study Notes folder: horizontal overflow:
+  <ol> "Moved to Study Notes" (over by 16px)
 
-Call log:
-  - waiting for getByText('Study Notes', { exact: true })
+expect(received).toEqual(expected) // deep equality
 
+- Expected  - 1
++ Received  + 8
+
+- Array []
++ Array [
++   Object {
++     "cls": "toaster group",
++     "overBy": 16,
++     "tag": "ol",
++     "text": "Moved to Study Notes",
++   },
++ ]
 ```
 
 # Page snapshot
 
 ```yaml
-- generic:
-  - generic:
-    - generic:
-      - banner:
-        - generic:
-          - generic [ref=f1e1]:
-            - button [ref=f1e2] [cursor=pointer]
-            - link [ref=f1e3] [cursor=pointer]:
-              - /url: /
-          - textbox [ref=f1e9]:
-            - /placeholder: Search...
-          - generic:
-            - button
-            - button
-            - button
-      - main:
-        - generic:
-          - generic:
-            - generic:
-              - generic:
-                - generic:
-                  - heading [level=1]: Saved Verses
-                  - paragraph: 1 verse saved
-                - generic:
-                  - generic:
-                    - textbox:
-                      - /placeholder: Search saved verses...
-                  - button
-                  - button
-                - generic:
-                  - button: All
-                  - generic:
-                    - button: Favorites
-                  - generic:
-                    - button: Study Notes
-                  - button: New Folder
-                - generic:
-                  - generic:
-                    - button:
-                      - paragraph: John 3:16 Favorites
-                      - blockquote: "\"¶ For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.\""
-                    - generic:
-                      - button [expanded]
-                      - button
-                      - button
-                      - button
-      - navigation:
-        - generic:
-          - generic:
-            - button:
-              - generic: Home
-            - button:
-              - generic: Contents
-            - button:
-              - generic: Read
-            - button:
-              - generic: Gospel
-            - button
-    - region "Notifications alt+T"
-  - menu [active] [ref=f1e10]:
-    - generic [ref=f1e11]: Move to...
-    - menuitem "Favorites" [ref=f1e12]
-    - menuitem "Study Notes" [ref=f1e16]
-    - separator [ref=f1e20]
-    - menuitem "New Folder..." [ref=f1e21]
+- generic [ref=f1e2]:
+  - generic [ref=f1e3]:
+    - banner [ref=f1e4]:
+      - generic [ref=f1e5]:
+        - generic [ref=f1e6]:
+          - button "Back" [ref=f1e7] [cursor=pointer]
+          - link "Home" [ref=f1e8] [cursor=pointer]:
+            - /url: /
+        - textbox "Search..." [ref=f1e14]
+        - generic [ref=f1e15]:
+          - button "Toggle fullscreen" [ref=f1e16] [cursor=pointer]
+          - button "Toggle theme" [ref=f1e17] [cursor=pointer]
+          - button "Open menu" [ref=f1e18] [cursor=pointer]
+    - main [ref=f1e19]:
+      - generic [ref=f1e23]:
+        - generic [ref=f1e24]:
+          - heading "Saved Verses" [level=1] [ref=f1e28]
+          - paragraph [ref=f1e29]: 1 verse saved
+        - generic [ref=f1e31]:
+          - textbox "Search saved verses..." [ref=f1e36]
+          - button "Print saved verses" [ref=f1e37] [cursor=pointer]
+          - button "Select verses" [ref=f1e42] [cursor=pointer]
+        - generic [ref=f1e46]:
+          - button "All" [ref=f1e47] [cursor=pointer]
+          - button "Favorites" [ref=f1e49] [cursor=pointer]
+          - generic [ref=f1e52]:
+            - button "Study Notes" [active] [ref=f1e53] [cursor=pointer]
+            - button "Delete Folder" [ref=f1e56] [cursor=pointer]
+          - button "New Folder" [ref=f1e60] [cursor=pointer]
+        - generic [ref=f1e64]:
+          - button [ref=f1e65] [cursor=pointer]:
+            - paragraph [ref=f1e66]: John 3:16
+            - blockquote [ref=f1e67]: "\"¶ For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.\""
+          - generic [ref=f1e68]:
+            - button "Move" [ref=f1e69] [cursor=pointer]
+            - button "Copy" [ref=f1e72] [cursor=pointer]
+            - button "Share" [ref=f1e76] [cursor=pointer]
+            - button "Remove" [ref=f1e83] [cursor=pointer]
+    - navigation [ref=f1e87]:
+      - generic [ref=f1e89]:
+        - button "Home" [ref=f1e90] [cursor=pointer]
+        - button "Contents" [ref=f1e95] [cursor=pointer]
+        - button "Read" [ref=f1e98] [cursor=pointer]
+        - button "Gospel" [ref=f1e102] [cursor=pointer]
+        - button "Toggle navigation rows" [ref=f1e106] [cursor=pointer]
+  - region "Notifications alt+T":
+    - list:
+      - listitem [ref=f1e109]:
+        - generic [ref=f1e113]: Moved to Study Notes
 ```
 
 # Test source
@@ -113,7 +107,8 @@ Call log:
   17  | 
   18  | async function assertNoOverflow(page, label) {
   19  |   const offenders = await page.evaluate(checkOverflow, TOLERANCE_PX);
-  20  |   expect(offenders, `${label}: horizontal overflow:\n` + offenders.map((o) => `  <${o.tag}> "${o.text}" (over by ${o.overBy}px)`).join('\n')).toEqual([]);
+> 20  |   expect(offenders, `${label}: horizontal overflow:\n` + offenders.map((o) => `  <${o.tag}> "${o.text}" (over by ${o.overBy}px)`).join('\n')).toEqual([]);
+      |                                                                                                                                               ^ Error: filtered to Study Notes folder: horizontal overflow:
   21  | }
   22  | 
   23  | function verseLocator(page, n) {
@@ -162,8 +157,7 @@ Call log:
   66  |     await page.getByRole('button', { name: 'All', exact: true }).click();
   67  |     await page.waitForTimeout(300);
   68  |     await page.getByTitle('Move').first().click();
-> 69  |     await page.getByText('Study Notes', { exact: true }).click();
-      |                                                          ^ Error: locator.click: Error: strict mode violation: getByText('Study Notes', { exact: true }) resolved to 2 elements:
+  69  |     await page.getByRole('menuitem', { name: 'Study Notes' }).click();
   70  |     await page.waitForTimeout(500);
   71  | 
   72  |     // Filter to that folder and confirm the verse shows there.
@@ -215,53 +209,4 @@ Call log:
   118 |     await page.getByRole('button', { name: /Copied!|^Copy/ }).click();
   119 |     const perVerseItem = page.getByText('Copy (Per Verse)');
   120 |     if (await perVerseItem.count()) {
-  121 |       await perVerseItem.click();
-  122 |       await page.waitForTimeout(300);
-  123 |     }
-  124 | 
-  125 |     expect(errors, `errors during bulk copy:\n${errors.join('\n')}`).toEqual([]);
-  126 |   });
-  127 | 
-  128 |   test('bulk Save persists all selected verses to localStorage', async ({ page }) => {
-  129 |     await page.getByRole('button', { name: /^Save/ }).click();
-  130 |     await page.waitForTimeout(500);
-  131 |     const stored = await page.evaluate(() => localStorage.getItem('kjb-saved-verses'));
-  132 |     expect(stored).toBeTruthy();
-  133 |     const parsed = JSON.parse(stored);
-  134 |     expect(parsed.length).toBeGreaterThanOrEqual(2);
-  135 |   });
-  136 | 
-  137 |   test('bulk Highlight applies a color to the selection', async ({ page }) => {
-  138 |     await page.getByRole('button', { name: /^Highlight/ }).click();
-  139 |     const firstColor = page.getByRole('menuitem').first();
-  140 |     await firstColor.waitFor({ state: 'visible', timeout: 5000 });
-  141 |     await firstColor.click();
-  142 |     await page.waitForTimeout(500);
-  143 |     const stored = await page.evaluate(() => localStorage.getItem('kjb-verse-highlights'));
-  144 |     expect(stored).toBeTruthy();
-  145 |   });
-  146 | 
-  147 |   test('Print Full Page and Print Selected Verses do not throw (window.print stubbed)', async ({ page }) => {
-  148 |     const errors = [];
-  149 |     page.on('pageerror', (e) => errors.push(e.message));
-  150 |     // window.print() would otherwise try to open a real OS print dialog,
-  151 |     // which hangs a headless run — stub it to confirm the app's own code
-  152 |     // around the call doesn't throw, without actually invoking print UI.
-  153 |     await page.evaluate(() => { window.print = () => {}; });
-  154 | 
-  155 |     await page.getByRole('button', { name: /^Print/ }).click();
-  156 |     await page.getByText('Print Full Page').click();
-  157 |     await page.waitForTimeout(300);
-  158 | 
-  159 |     await page.getByRole('button', { name: /^Print/ }).click();
-  160 |     const printSelected = page.getByText('Print Selected Verses');
-  161 |     if (await printSelected.count()) {
-  162 |       await printSelected.click();
-  163 |       await page.waitForTimeout(300);
-  164 |     }
-  165 | 
-  166 |     expect(errors, `errors during print:\n${errors.join('\n')}`).toEqual([]);
-  167 |   });
-  168 | 
-  169 |   test('Read Selected and Show Full Chapter change what is displayed', async ({ page }) => {
 ```
