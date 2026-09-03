@@ -451,7 +451,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     // Pilcrow verse: render as a block (new paragraph) with gap above, no indent
     if (hasPilcrow && !isFirstVerse) {
       return (
-        <span id={id} data-audio-verse={verse.verse} data-pilcrow="true" className="block relative mt-12 scroll-mt-24">
+        <span id={id} data-pilcrow="true" className="block relative mt-12 scroll-mt-24">
           {stanzaHeading}
           <span
             onClick={handleVerseClick}
@@ -477,7 +477,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     }
     // Normal inline verse
     return (
-      <span id={id} data-audio-verse={verse.verse} className="inline relative scroll-mt-24">
+      <span id={id} className="inline relative scroll-mt-24">
         {stanzaHeading}
         <span
           onClick={handleVerseClick}
@@ -512,7 +512,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   // floated/pulled back via CSS so it still begins at the left margin.
   if (dropCap && !selectMode) {
     return (
-      <span id={id} data-audio-verse={verse.verse} className="block relative mt-2 scroll-mt-24" style={{ display: 'flow-root' }}>
+      <span id={id} className="block relative mt-2 scroll-mt-24" style={{ display: 'flow-root' }}>
         {stanzaHeading}
         <span
           onClick={handleVerseClick}
@@ -534,7 +534,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     );
   }
   return (
-    <span id={id} data-audio-verse={verse.verse} data-pilcrow={hasPilcrow && !isFirstVerse ? 'true' : undefined} className={`block relative scroll-mt-24 ${hasPilcrow && !isFirstVerse ? 'mt-12' : 'mt-3'}`}>
+    <span id={id} data-pilcrow={hasPilcrow && !isFirstVerse ? 'true' : undefined} className={`block relative scroll-mt-24 ${hasPilcrow && !isFirstVerse ? 'mt-12' : 'mt-3'}`}>
       {stanzaHeading}
       <span
         onClick={handleVerseClick}
