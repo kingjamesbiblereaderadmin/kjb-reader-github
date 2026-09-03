@@ -371,9 +371,6 @@
                 ? 'Looking up\u2026'
                 : (hasVisited ? 'Welcome back to KJB Reader.' : 'Welcome to KJB Reader.');
             }
-            if (bootText) {
-              bootText.textContent = (location.pathname === '/search') ? 'Looking up…' : 'Welcome to KJB Reader.';
-            }
             // Use the base64-cached logo from localStorage if available (works
             // offline without SW). Falls back to the cross-origin URL online.
             var logoEl = document.getElementById('kjb-boot-logo');
