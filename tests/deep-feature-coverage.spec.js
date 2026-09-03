@@ -49,8 +49,8 @@ test.describe('Saved Verses — folders', () => {
     await page.goto('/saved');
     await assertNoOverflow(page, 'saved verses page');
 
-    // "Move" button opens a dropdown with "New Folder..." which uses a
-    // native window.prompt() — intercept it and supply a name.
+    // The Move button opens a dropdown with a New Folder... item, which
+    // uses a native window.prompt() -- intercept it and supply a name.
     page.once('dialog', async (dialog) => {
       expect(dialog.type()).toBe('prompt');
       await dialog.accept('Study Notes');
@@ -59,7 +59,12 @@ test.describe('Saved Verses — folders', () => {
     await page.getByText('New Folder...').click();
     await page.waitForTimeout(500);
 
-    // Moving into the new folder: reopen Move, pick the folder by name.
+    // Creating a folder auto-switches the active filter to it (empty, since
+    // the verse hasn't been moved yet) -- that hides the verse card, and
+    // with it the Move button. Switch back to All to see the card again
+    // before moving the verse into the now-existing folder.
+    await page.getByRole('button', { name: 'All', exact: true }).click();
+    await page.waitForTimeout(300);
     await page.getByTitle('Move').first().click();
     await page.getByText('Study Notes', { exact: true }).click();
     await page.waitForTimeout(500);
