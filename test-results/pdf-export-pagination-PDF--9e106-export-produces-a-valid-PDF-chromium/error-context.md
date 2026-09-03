@@ -1,0 +1,3206 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: pdf-export-pagination.spec.js >> PDF export >> multi-page search-result export produces a valid PDF
+- Location: tests/pdf-export-pagination.spec.js:25:3
+
+# Error details
+
+```
+Test timeout of 30000ms exceeded.
+```
+
+```
+Error: page.waitForEvent: Test timeout of 30000ms exceeded.
+=========================== logs ===========================
+waiting for event "download"
+============================================================
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - button "Back" [ref=e7] [cursor=pointer]
+          - link "Home" [ref=e8] [cursor=pointer]:
+            - /url: /
+        - textbox "Search..." [ref=e14]
+        - generic [ref=e15]:
+          - button "Toggle fullscreen" [ref=e16] [cursor=pointer]
+          - button "Toggle theme" [ref=e17] [cursor=pointer]
+          - button "Open menu" [ref=e18] [cursor=pointer]
+    - main [ref=e19]:
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - heading "Search Bible" [level=1] [ref=e25]
+          - generic [ref=e26]:
+            - textbox "e.g. study, Romans 3:25, 1 Corinthians 15:1-4" [ref=e29]: wisdom
+            - button "Search" [ref=e30] [cursor=pointer]
+          - generic [ref=e35]:
+            - generic [ref=e38]: "Testament:"
+            - combobox [ref=e39] [cursor=pointer]:
+              - generic: All
+            - button "Books" [ref=e42] [cursor=pointer]
+            - generic [ref=e47]:
+              - checkbox "Match whole word" [ref=e48] [cursor=pointer]
+              - generic [ref=e49] [cursor=pointer]: Match whole word
+            - generic [ref=e50]:
+              - checkbox "Match case" [ref=e51] [cursor=pointer]
+              - generic [ref=e52] [cursor=pointer]: Match case
+          - generic [ref=e53]:
+            - generic [ref=e54]:
+              - paragraph [ref=e56]:
+                - text: 222 verses for "wisdom"
+                - generic [ref=e57]: · 234 occurrences
+              - generic [ref=e58]:
+                - button "Select" [ref=e59] [cursor=pointer]
+                - button "Copy All" [ref=e64] [cursor=pointer]
+                - button "Export" [active] [ref=e69] [cursor=pointer]
+                - button "Print" [ref=e76] [cursor=pointer]
+                - button "Share" [ref=e82] [cursor=pointer]
+            - paragraph [ref=e90]: ↑ ↓ or J / K to navigate verses & book headers · Enter to open a verse or collapse / expand a book
+        - generic [ref=e92]:
+          - generic [ref=e93]:
+            - button "Old Testament [172 verses, 181 occurrences]" [ref=e94] [cursor=pointer]:
+              - text: Old Testament
+              - generic [ref=e97]: "[172 verses, 181 occurrences]"
+            - button "Jump to NT" [ref=e98] [cursor=pointer]
+          - generic [ref=e101]:
+            - button "Exodus · 8 verses" [ref=e102] [cursor=pointer]:
+              - generic [ref=e105]: Exodus
+              - generic [ref=e106]: · 8 verses
+            - generic [ref=e107]:
+              - generic [ref=e109] [cursor=pointer]:
+                - paragraph [ref=e110]:
+                  - generic [ref=e111]: •
+                  - generic [ref=e114]: The Second Book of Moses, called Exodus
+                  - generic [ref=e115]: ":"
+                  - text: 28:3
+                - paragraph [ref=e116]:
+                  - generic [ref=e117]:
+                    - text: "\"And thou shalt speak unto all"
+                    - emphasis [ref=e118]: that
+                    - emphasis [ref=e119]: are
+                    - text: wise hearted, whom I have filled with the spirit of
+                    - mark [ref=e120]: wisdom
+                    - text: ", that they may make Aaron's garments to consecrate him, that he may minister unto me in the priest's office.\""
+              - generic [ref=e122] [cursor=pointer]:
+                - paragraph [ref=e123]:
+                  - generic [ref=e124]: •
+                  - generic [ref=e127]: The Second Book of Moses, called Exodus
+                  - generic [ref=e128]: ":"
+                  - text: 31:3
+                - paragraph [ref=e129]:
+                  - generic [ref=e130]:
+                    - text: "\"And I have filled him with the spirit of God, in"
+                    - mark [ref=e131]: wisdom
+                    - text: ", and in understanding, and in knowledge, and in all manner of workmanship,\""
+              - generic [ref=e133] [cursor=pointer]:
+                - paragraph [ref=e134]:
+                  - generic [ref=e135]: •
+                  - generic [ref=e138]: The Second Book of Moses, called Exodus
+                  - generic [ref=e139]: ":"
+                  - text: 31:6
+                - paragraph [ref=e140]:
+                  - generic [ref=e141]:
+                    - text: "\"And I, behold, I have given with him Aholiab, the son of Ahisamach, of the tribe of Dan: and in the hearts of all that are wise hearted I have put"
+                    - mark [ref=e142]: wisdom
+                    - text: ", that they may make all that I have commanded thee;\""
+              - generic [ref=e144] [cursor=pointer]:
+                - paragraph [ref=e145]:
+                  - generic [ref=e146]: •
+                  - generic [ref=e149]: The Second Book of Moses, called Exodus
+                  - generic [ref=e150]: ":"
+                  - text: 35:26
+                - paragraph [ref=e151]:
+                  - generic [ref=e152]:
+                    - text: "\"And all the women whose heart stirred them up in"
+                    - mark [ref=e153]: wisdom
+                    - text: spun goats'
+                    - emphasis [ref=e154]: hair
+                    - text: ."
+              - generic [ref=e156] [cursor=pointer]:
+                - paragraph [ref=e157]:
+                  - generic [ref=e158]: •
+                  - generic [ref=e161]: The Second Book of Moses, called Exodus
+                  - generic [ref=e162]: ":"
+                  - text: 35:31
+                - paragraph [ref=e163]:
+                  - generic [ref=e164]:
+                    - text: "\"And he hath filled him with the spirit of God, in"
+                    - mark [ref=e165]: wisdom
+                    - text: ", in understanding, and in knowledge, and in all manner of workmanship;\""
+              - generic [ref=e167] [cursor=pointer]:
+                - paragraph [ref=e168]:
+                  - generic [ref=e169]: •
+                  - generic [ref=e172]: The Second Book of Moses, called Exodus
+                  - generic [ref=e173]: ":"
+                  - text: 35:35
+                - paragraph [ref=e174]:
+                  - generic [ref=e175]:
+                    - text: "\"Them hath he filled with"
+                    - mark [ref=e176]: wisdom
+                    - text: of heart, to work all manner of work, of the engraver, and of the cunning workman, and of the embroiderer, in blue, and in purple, in scarlet, and in fine linen, and of the weaver,
+                    - emphasis [ref=e177]: even
+                    - text: of them that do any work, and of those that devise cunning work."
+              - generic [ref=e179] [cursor=pointer]:
+                - paragraph [ref=e180]:
+                  - generic [ref=e181]: •
+                  - generic [ref=e184]: The Second Book of Moses, called Exodus
+                  - generic [ref=e185]: ":"
+                  - text: 36:1
+                - paragraph [ref=e186]:
+                  - generic [ref=e187]:
+                    - text: "\"THEN wrought Bezaleel and Aholiab, and every wise hearted man, in whom the LORD put"
+                    - mark [ref=e188]: wisdom
+                    - text: and understanding to know how to work all manner of work for the service of the sanctuary, according to all that the LORD had commanded."
+              - generic [ref=e190] [cursor=pointer]:
+                - paragraph [ref=e191]:
+                  - generic [ref=e192]: •
+                  - generic [ref=e195]: The Second Book of Moses, called Exodus
+                  - generic [ref=e196]: ":"
+                  - text: 36:2
+                - paragraph [ref=e197]:
+                  - generic [ref=e198]:
+                    - text: "\"And Moses called Bezaleel and Aholiab, and every wise hearted man, in whose heart the LORD had put"
+                    - mark [ref=e199]: wisdom
+                    - text: ","
+                    - emphasis [ref=e200]: even
+                    - text: every one whose heart stirred him up to come unto the work to do it:"
+          - generic [ref=e201]:
+            - button "Deuteronomy · 2 verses" [ref=e202] [cursor=pointer]:
+              - generic [ref=e205]: Deuteronomy
+              - generic [ref=e206]: · 2 verses
+            - generic [ref=e207]:
+              - generic [ref=e209] [cursor=pointer]:
+                - paragraph [ref=e210]:
+                  - generic [ref=e211]: •
+                  - generic [ref=e214]: The Fifth Book of Moses, called Deuteronomy
+                  - generic [ref=e215]: ":"
+                  - text: 4:6
+                - paragraph [ref=e216]:
+                  - generic [ref=e217]:
+                    - text: "\"Keep therefore and do"
+                    - emphasis [ref=e218]: them;
+                    - text: for this
+                    - emphasis [ref=e219]: is
+                    - text: your
+                    - mark [ref=e220]: wisdom
+                    - text: and your understanding in the sight of the nations, which shall hear all these statutes, and say, Surely this great nation
+                    - emphasis [ref=e221]: is
+                    - text: a wise and understanding people."
+              - generic [ref=e223] [cursor=pointer]:
+                - paragraph [ref=e224]:
+                  - generic [ref=e225]: •
+                  - generic [ref=e228]: The Fifth Book of Moses, called Deuteronomy
+                  - generic [ref=e229]: ":"
+                  - text: 34:9
+                - paragraph [ref=e230]:
+                  - generic [ref=e231]:
+                    - text: "\"And Joshua the son of Nun was full of the spirit of"
+                    - mark [ref=e232]: wisdom
+                    - text: "; for Moses had laid his hands upon him: and the children of Israel hearkened unto him, and did as the LORD commanded Moses.\""
+          - generic [ref=e233]:
+            - button "2 Samuel · 2 verses" [ref=e234] [cursor=pointer]:
+              - generic [ref=e237]: 2 Samuel
+              - generic [ref=e238]: · 2 verses
+            - generic [ref=e239]:
+              - generic [ref=e241] [cursor=pointer]:
+                - paragraph [ref=e242]:
+                  - generic [ref=e243]: •
+                  - generic [ref=e246]: The Second Book of Samuel, Otherwise called, The Second Book Of The Kings
+                  - generic [ref=e247]: ":"
+                  - text: 14:20
+                - paragraph [ref=e248]:
+                  - generic [ref=e249]:
+                    - text: "\"To fetch about this form of speech hath thy servant Joab done this thing: and my lord"
+                    - emphasis [ref=e250]: is
+                    - text: wise, according to the
+                    - mark [ref=e251]: wisdom
+                    - text: of an angel of God, to know all
+                    - emphasis [ref=e252]: things
+                    - text: that
+                    - emphasis [ref=e253]: are
+                    - text: in the earth."
+              - generic [ref=e255] [cursor=pointer]:
+                - paragraph [ref=e256]:
+                  - generic [ref=e257]: •
+                  - generic [ref=e260]: The Second Book of Samuel, Otherwise called, The Second Book Of The Kings
+                  - generic [ref=e261]: ":"
+                  - text: 20:22
+                - paragraph [ref=e262]:
+                  - generic [ref=e263]:
+                    - text: "\"Then the woman went unto all the people in her"
+                    - mark [ref=e264]: wisdom
+                    - text: . And they cut off the head of Sheba the son of Bichri, and cast
+                    - emphasis [ref=e265]: it
+                    - text: out to Joab. And he blew a trumpet, and they retired from the city, every man to his tent. And Joab returned to Jerusalem unto the king."
+          - generic [ref=e266]:
+            - button "1 Kings · 14 verses · 17 occurrences" [ref=e267] [cursor=pointer]:
+              - generic [ref=e270]: 1 Kings
+              - generic [ref=e271]: · 14 verses · 17 occurrences
+            - generic [ref=e272]:
+              - generic [ref=e274] [cursor=pointer]:
+                - paragraph [ref=e275]:
+                  - generic [ref=e276]: •
+                  - generic [ref=e279]: The First Book Of The Kings, Commonly called, The Third Book Of The Kings
+                  - generic [ref=e280]: ":"
+                  - text: 2:6
+                - paragraph [ref=e281]:
+                  - generic [ref=e282]:
+                    - text: "\"Do therefore according to thy"
+                    - mark [ref=e283]: wisdom
+                    - text: ", and let not his hoar head go down to the grave in peace.\""
+              - generic [ref=e285] [cursor=pointer]:
+                - paragraph [ref=e286]:
+                  - generic [ref=e287]: •
+                  - generic [ref=e290]: The First Book Of The Kings, Commonly called, The Third Book Of The Kings
+                  - generic [ref=e291]: ":"
+                  - text: 3:28
+                - paragraph [ref=e292]:
+                  - generic [ref=e293]:
+                    - text: "\"And all Israel heard of the judgment which the king had judged; and they feared the king: for they saw that the"
+                    - mark [ref=e294]: wisdom
+                    - text: of God
+                    - emphasis [ref=e295]: was
+                    - text: in him, to do judgment."
+              - generic [ref=e297] [cursor=pointer]:
+                - paragraph [ref=e298]:
+                  - generic [ref=e299]: •
+                  - generic [ref=e302]: The First Book Of The Kings, Commonly called, The Third Book Of The Kings
+                  - generic [ref=e303]: ":"
+                  - text: 4:29
+                - paragraph [ref=e304]:
+                  - generic [ref=e305]:
+                    - text: "\"And God gave Solomon"
+                    - mark [ref=e306]: wisdom
+                    - text: and understanding exceeding much, and largeness of heart, even as the sand that
+                    - emphasis [ref=e307]: is
+                    - text: on the sea shore."
+              - generic [ref=e309] [cursor=pointer]:
+                - paragraph [ref=e310]:
+                  - generic [ref=e311]: •
+                  - generic [ref=e314]: The First Book Of The Kings, Commonly called, The Third Book Of The Kings
+                  - generic [ref=e315]: ":"
+                  - text: 4:30
+                - paragraph [ref=e316]:
+                  - generic [ref=e317]:
+                    - text: "\"And Solomon's"
+                    - mark [ref=e318]: wisdom
+                    - text: excelled the
+                    - mark [ref=e319]: wisdom
+                    - text: of all the children of the east country, and all the
+                    - mark [ref=e320]: wisdom
+                    - text: of Egypt."
+              - generic [ref=e322] [cursor=pointer]:
+                - paragraph [ref=e323]:
+                  - generic [ref=e324]: •
+                  - generic [ref=e327]: The First Book Of The Kings, Commonly called, The Third Book Of The Kings
+                  - generic [ref=e328]: ":"
+                  - text: 4:34
+                - paragraph [ref=e329]:
+                  - generic [ref=e330]:
+                    - text: "\"And there came of all people to hear the"
+                    - mark [ref=e331]: wisdom
+                    - text: of Solomon, from all kings of the earth, which had heard of his
+                    - mark [ref=e332]: wisdom
+                    - text: ."
+              - generic [ref=e334] [cursor=pointer]:
+                - paragraph [ref=e335]:
+                  - generic [ref=e336]: •
+                  - generic [ref=e339]: The First Book Of The Kings, Commonly called, The Third Book Of The Kings
+                  - generic [ref=e340]: ":"
+                  - text: 5:12
+                - paragraph [ref=e341]:
+                  - generic [ref=e342]:
+                    - text: "\"And the LORD gave Solomon"
+                    - mark [ref=e343]: wisdom
+                    - text: ", as he promised him: and there was peace between Hiram and Solomon; and they two made a league together.\""
+              - generic [ref=e345] [cursor=pointer]:
+                - paragraph [ref=e346]:
+                  - generic [ref=e347]: •
+                  - generic [ref=e350]: The First Book Of The Kings, Commonly called, The Third Book Of The Kings
+                  - generic [ref=e351]: ":"
+                  - text: 7:14
+                - paragraph [ref=e352]:
+                  - generic [ref=e353]:
+                    - text: "\"He"
+                    - emphasis [ref=e354]: was
+                    - text: a widow's son of the tribe of Naphtali, and his father
+                    - emphasis [ref=e355]: was
+                    - text: "a man of Tyre, a worker in brass: and he was filled with"
+                    - mark [ref=e356]: wisdom
+                    - text: ", and understanding, and cunning to work all works in brass. And he came to king Solomon, and wrought all his work.\""
+              - generic [ref=e358] [cursor=pointer]:
+                - paragraph [ref=e359]:
+                  - generic [ref=e360]: •
+                  - generic [ref=e363]: The First Book Of The Kings, Commonly called, The Third Book Of The Kings
+                  - generic [ref=e364]: ":"
+                  - text: 10:4
+                - paragraph [ref=e365]:
+                  - generic [ref=e366]:
+                    - text: "\"And when the queen of Sheba had seen all Solomon's"
+                    - mark [ref=e367]: wisdom
+                    - text: ", and the house that he had built,\""
+              - generic [ref=e369] [cursor=pointer]:
+                - paragraph [ref=e370]:
+                  - generic [ref=e371]: •
+                  - generic [ref=e374]: The First Book Of The Kings, Commonly called, The Third Book Of The Kings
+                  - generic [ref=e375]: ":"
+                  - text: 10:6
+                - paragraph [ref=e376]:
+                  - generic [ref=e377]:
+                    - text: "\"And she said to the king, It was a true report that I heard in mine own land of thy acts and of thy"
+                    - mark [ref=e378]: wisdom
+                    - text: ."
+              - generic [ref=e380] [cursor=pointer]:
+                - paragraph [ref=e381]:
+                  - generic [ref=e382]: •
+                  - generic [ref=e385]: The First Book Of The Kings, Commonly called, The Third Book Of The Kings
+                  - generic [ref=e386]: ":"
+                  - text: 10:7
+                - paragraph [ref=e387]:
+                  - generic [ref=e388]:
+                    - text: "\"Howbeit I believed not the words, until I came, and mine eyes had seen"
+                    - emphasis [ref=e389]: "it:"
+                    - text: "and, behold, the half was not told me: thy"
+                    - mark [ref=e390]: wisdom
+                    - text: and prosperity exceedeth the fame which I heard."
+              - generic [ref=e392] [cursor=pointer]:
+                - paragraph [ref=e393]:
+                  - generic [ref=e394]: •
+                  - generic [ref=e397]: The First Book Of The Kings, Commonly called, The Third Book Of The Kings
+                  - generic [ref=e398]: ":"
+                  - text: 10:8
+                - paragraph [ref=e399]:
+                  - generic [ref=e400]:
+                    - text: "\"Happy"
+                    - emphasis [ref=e401]: are
+                    - text: thy men, happy
+                    - emphasis [ref=e402]: are
+                    - text: these thy servants, which stand continually before thee,
+                    - emphasis [ref=e403]: and
+                    - text: that hear thy
+                    - mark [ref=e404]: wisdom
+                    - text: ."
+              - generic [ref=e406] [cursor=pointer]:
+                - paragraph [ref=e407]:
+                  - generic [ref=e408]: •
+                  - generic [ref=e411]: The First Book Of The Kings, Commonly called, The Third Book Of The Kings
+                  - generic [ref=e412]: ":"
+                  - text: 10:23
+                - paragraph [ref=e413]:
+                  - generic [ref=e414]:
+                    - text: "\"So king Solomon exceeded all the kings of the earth for riches and for"
+                    - mark [ref=e415]: wisdom
+                    - text: ."
+              - generic [ref=e417] [cursor=pointer]:
+                - paragraph [ref=e418]:
+                  - generic [ref=e419]: •
+                  - generic [ref=e422]: The First Book Of The Kings, Commonly called, The Third Book Of The Kings
+                  - generic [ref=e423]: ":"
+                  - text: 10:24
+                - paragraph [ref=e424]:
+                  - generic [ref=e425]:
+                    - text: "\"And all the earth sought to Solomon, to hear his"
+                    - mark [ref=e426]: wisdom
+                    - text: ", which God had put in his heart.\""
+              - generic [ref=e428] [cursor=pointer]:
+                - paragraph [ref=e429]:
+                  - generic [ref=e430]: •
+                  - generic [ref=e433]: The First Book Of The Kings, Commonly called, The Third Book Of The Kings
+                  - generic [ref=e434]: ":"
+                  - text: 11:41
+                - paragraph [ref=e435]:
+                  - generic [ref=e436]:
+                    - text: "\"And the rest of the acts of Solomon, and all that he did, and his"
+                    - mark [ref=e437]: wisdom
+                    - text: ","
+                    - emphasis [ref=e438]: are
+                    - text: they not written in the book of the acts of Solomon?"
+          - generic [ref=e439]:
+            - button "1 Chronicles · 1 verse" [ref=e440] [cursor=pointer]:
+              - generic [ref=e443]: 1 Chronicles
+              - generic [ref=e444]: · 1 verse
+            - generic [ref=e447] [cursor=pointer]:
+              - paragraph [ref=e448]:
+                - generic [ref=e449]: •
+                - generic [ref=e452]: The First Book of the Chronicles
+                - generic [ref=e453]: ":"
+                - text: 22:12
+              - paragraph [ref=e454]:
+                - generic [ref=e455]:
+                  - text: "\"Only the LORD give thee"
+                  - mark [ref=e456]: wisdom
+                  - text: and understanding, and give thee charge concerning Israel, that thou mayest keep the law of the LORD thy God."
+          - generic [ref=e457]:
+            - button "2 Chronicles · 9 verses" [ref=e458] [cursor=pointer]:
+              - generic [ref=e461]: 2 Chronicles
+              - generic [ref=e462]: · 9 verses
+            - generic [ref=e463]:
+              - generic [ref=e465] [cursor=pointer]:
+                - paragraph [ref=e466]:
+                  - generic [ref=e467]: •
+                  - generic [ref=e470]: The Second Book of the Chronicles
+                  - generic [ref=e471]: ":"
+                  - text: 1:10
+                - paragraph [ref=e472]:
+                  - generic [ref=e473]:
+                    - text: "\"Give me now"
+                    - mark [ref=e474]: wisdom
+                    - text: "and knowledge, that I may go out and come in before this people: for who can judge this thy people,"
+                    - emphasis [ref=e475]: that
+                    - emphasis [ref=e476]: is
+                    - emphasis [ref=e477]: so
+                    - text: great?"
+              - generic [ref=e479] [cursor=pointer]:
+                - paragraph [ref=e480]:
+                  - generic [ref=e481]: •
+                  - generic [ref=e484]: The Second Book of the Chronicles
+                  - generic [ref=e485]: ":"
+                  - text: 1:11
+                - paragraph [ref=e486]:
+                  - generic [ref=e487]:
+                    - text: "\"And God said to Solomon, Because this was in thine heart, and thou hast not asked riches, wealth, or honour, nor the life of thine enemies, neither yet hast asked long life; but hast asked"
+                    - mark [ref=e488]: wisdom
+                    - text: and knowledge for thyself, that thou mayest judge my people, over whom I have made thee king:"
+              - generic [ref=e490] [cursor=pointer]:
+                - paragraph [ref=e491]:
+                  - generic [ref=e492]: •
+                  - generic [ref=e495]: The Second Book of the Chronicles
+                  - generic [ref=e496]: ":"
+                  - text: 1:12
+                - paragraph [ref=e497]:
+                  - generic [ref=e498]:
+                    - text: "\""
+                    - mark [ref=e499]: Wisdom
+                    - text: and knowledge
+                    - emphasis [ref=e500]: is
+                    - text: granted unto thee; and I will give thee riches, and wealth, and honour, such as none of the kings have had that
+                    - emphasis [ref=e501]: have
+                    - emphasis [ref=e502]: been
+                    - text: before thee, neither shall there any after thee have the like."
+              - generic [ref=e504] [cursor=pointer]:
+                - paragraph [ref=e505]:
+                  - generic [ref=e506]: •
+                  - generic [ref=e509]: The Second Book of the Chronicles
+                  - generic [ref=e510]: ":"
+                  - text: 9:3
+                - paragraph [ref=e511]:
+                  - generic [ref=e512]:
+                    - text: "\"And when the queen of Sheba had seen the"
+                    - mark [ref=e513]: wisdom
+                    - text: of Solomon, and the house that he had built,"
+              - generic [ref=e515] [cursor=pointer]:
+                - paragraph [ref=e516]:
+                  - generic [ref=e517]: •
+                  - generic [ref=e520]: The Second Book of the Chronicles
+                  - generic [ref=e521]: ":"
+                  - text: 9:5
+                - paragraph [ref=e522]:
+                  - generic [ref=e523]:
+                    - text: "\"And she said to the king,"
+                    - emphasis [ref=e524]: It
+                    - emphasis [ref=e525]: was
+                    - text: a true report which I heard in mine own land of thine acts, and of thy
+                    - mark [ref=e526]: wisdom
+                    - text: :"
+              - generic [ref=e528] [cursor=pointer]:
+                - paragraph [ref=e529]:
+                  - generic [ref=e530]: •
+                  - generic [ref=e533]: The Second Book of the Chronicles
+                  - generic [ref=e534]: ":"
+                  - text: 9:6
+                - paragraph [ref=e535]:
+                  - generic [ref=e536]:
+                    - text: "\"Howbeit I believed not their words, until I came, and mine eyes had seen"
+                    - emphasis [ref=e537]: "it:"
+                    - text: and, behold, the one half of the greatness of thy
+                    - mark [ref=e538]: wisdom
+                    - text: "was not told me:"
+                    - emphasis [ref=e539]: for
+                    - text: thou exceedest the fame that I heard."
+              - generic [ref=e541] [cursor=pointer]:
+                - paragraph [ref=e542]:
+                  - generic [ref=e543]: •
+                  - generic [ref=e546]: The Second Book of the Chronicles
+                  - generic [ref=e547]: ":"
+                  - text: 9:7
+                - paragraph [ref=e548]:
+                  - generic [ref=e549]:
+                    - text: "\"Happy"
+                    - emphasis [ref=e550]: are
+                    - text: thy men, and happy
+                    - emphasis [ref=e551]: are
+                    - text: these thy servants, which stand continually before thee, and hear thy
+                    - mark [ref=e552]: wisdom
+                    - text: ."
+              - generic [ref=e554] [cursor=pointer]:
+                - paragraph [ref=e555]:
+                  - generic [ref=e556]: •
+                  - generic [ref=e559]: The Second Book of the Chronicles
+                  - generic [ref=e560]: ":"
+                  - text: 9:22
+                - paragraph [ref=e561]:
+                  - generic [ref=e562]:
+                    - text: "\"And king Solomon passed all the kings of the earth in riches and"
+                    - mark [ref=e563]: wisdom
+                    - text: ."
+              - generic [ref=e565] [cursor=pointer]:
+                - paragraph [ref=e566]:
+                  - generic [ref=e567]: •
+                  - generic [ref=e570]: The Second Book of the Chronicles
+                  - generic [ref=e571]: ":"
+                  - text: 9:23
+                - paragraph [ref=e572]:
+                  - generic [ref=e573]:
+                    - text: "\"And all the kings of the earth sought the presence of Solomon, to hear his"
+                    - mark [ref=e574]: wisdom
+                    - text: ", that God had put in his heart.\""
+          - generic [ref=e575]:
+            - button "Ezra · 1 verse" [ref=e576] [cursor=pointer]:
+              - generic [ref=e579]: Ezra
+              - generic [ref=e580]: · 1 verse
+            - generic [ref=e583] [cursor=pointer]:
+              - paragraph [ref=e584]:
+                - generic [ref=e585]: •
+                - generic [ref=e588]: The Book of Ezra
+                - generic [ref=e589]: ":"
+                - text: 7:25
+              - paragraph [ref=e590]:
+                - generic [ref=e591]:
+                  - text: "\"And thou, Ezra, after the"
+                  - mark [ref=e592]: wisdom
+                  - text: of thy God, that
+                  - emphasis [ref=e593]: is
+                  - text: in thine hand, set magistrates and judges, which may judge all the people that
+                  - emphasis [ref=e594]: are
+                  - text: beyond the river, all such as know the laws of thy God; and teach ye them that know
+                  - emphasis [ref=e595]: them
+                  - text: not."
+          - generic [ref=e596]:
+            - button "Job · 23 verses" [ref=e597] [cursor=pointer]:
+              - generic [ref=e600]: Job
+              - generic [ref=e601]: · 23 verses
+            - generic [ref=e602]:
+              - generic [ref=e604] [cursor=pointer]:
+                - paragraph [ref=e605]:
+                  - generic [ref=e606]: •
+                  - generic [ref=e609]: The Book of Job
+                  - generic [ref=e610]: ":"
+                  - text: 4:21
+                - paragraph [ref=e611]:
+                  - generic [ref=e612]:
+                    - text: "\"Doth not their excellency"
+                    - emphasis [ref=e613]: which
+                    - emphasis [ref=e614]: is
+                    - text: in them go away? they die, even without
+                    - mark [ref=e615]: wisdom
+                    - text: ."
+              - generic [ref=e617] [cursor=pointer]:
+                - paragraph [ref=e618]:
+                  - generic [ref=e619]: •
+                  - generic [ref=e622]: The Book of Job
+                  - generic [ref=e623]: ":"
+                  - text: 6:13
+                - paragraph [ref=e624]:
+                  - generic [ref=e625]:
+                    - text: "\""
+                    - emphasis [ref=e626]: Is
+                    - text: not my help in me? and is
+                    - mark [ref=e627]: wisdom
+                    - text: driven quite from me?"
+              - generic [ref=e629] [cursor=pointer]:
+                - paragraph [ref=e630]:
+                  - generic [ref=e631]: •
+                  - generic [ref=e634]: The Book of Job
+                  - generic [ref=e635]: ":"
+                  - text: 11:6
+                - paragraph [ref=e636]:
+                  - generic [ref=e637]:
+                    - text: "\"And that he would shew thee the secrets of"
+                    - mark [ref=e638]: wisdom
+                    - text: ", that"
+                    - emphasis [ref=e639]: they
+                    - emphasis [ref=e640]: are
+                    - text: double to that which is! Know therefore that God exacteth of thee
+                    - emphasis [ref=e641]: less
+                    - text: than thine iniquity
+                    - emphasis [ref=e642]: deserveth
+                    - text: ."
+              - generic [ref=e644] [cursor=pointer]:
+                - paragraph [ref=e645]:
+                  - generic [ref=e646]: •
+                  - generic [ref=e649]: The Book of Job
+                  - generic [ref=e650]: ":"
+                  - text: 12:2
+                - paragraph [ref=e651]:
+                  - generic [ref=e652]:
+                    - text: "\"No doubt but ye"
+                    - emphasis [ref=e653]: are
+                    - text: the people, and
+                    - mark [ref=e654]: wisdom
+                    - text: shall die with you."
+              - generic [ref=e656] [cursor=pointer]:
+                - paragraph [ref=e657]:
+                  - generic [ref=e658]: •
+                  - generic [ref=e661]: The Book of Job
+                  - generic [ref=e662]: ":"
+                  - text: 12:12
+                - paragraph [ref=e663]:
+                  - generic [ref=e664]:
+                    - text: "\"With the ancient"
+                    - emphasis [ref=e665]: is
+                    - mark [ref=e666]: wisdom
+                    - text: ; and in length of days understanding."
+              - generic [ref=e668] [cursor=pointer]:
+                - paragraph [ref=e669]:
+                  - generic [ref=e670]: •
+                  - generic [ref=e673]: The Book of Job
+                  - generic [ref=e674]: ":"
+                  - text: 12:13
+                - paragraph [ref=e675]:
+                  - generic [ref=e676]:
+                    - text: "\"With him"
+                    - emphasis [ref=e677]: is
+                    - mark [ref=e678]: wisdom
+                    - text: and strength, he hath counsel and understanding."
+              - generic [ref=e680] [cursor=pointer]:
+                - paragraph [ref=e681]:
+                  - generic [ref=e682]: •
+                  - generic [ref=e685]: The Book of Job
+                  - generic [ref=e686]: ":"
+                  - text: 12:16
+                - paragraph [ref=e687]:
+                  - generic [ref=e688]:
+                    - text: "\"With him"
+                    - emphasis [ref=e689]: is
+                    - text: strength and
+                    - mark [ref=e690]: wisdom
+                    - text: ": the deceived and the deceiver"
+                    - emphasis [ref=e691]: are
+                    - text: his."
+              - generic [ref=e693] [cursor=pointer]:
+                - paragraph [ref=e694]:
+                  - generic [ref=e695]: •
+                  - generic [ref=e698]: The Book of Job
+                  - generic [ref=e699]: ":"
+                  - text: 13:5
+                - paragraph [ref=e700]:
+                  - generic [ref=e701]:
+                    - text: "\"O that ye would altogether hold your peace! and it should be your"
+                    - mark [ref=e702]: wisdom
+                    - text: ."
+              - generic [ref=e704] [cursor=pointer]:
+                - paragraph [ref=e705]:
+                  - generic [ref=e706]: •
+                  - generic [ref=e709]: The Book of Job
+                  - generic [ref=e710]: ":"
+                  - text: 15:8
+                - paragraph [ref=e711]:
+                  - generic [ref=e712]:
+                    - text: "\"Hast thou heard the secret of God? and dost thou restrain"
+                    - mark [ref=e713]: wisdom
+                    - text: to thyself?"
+              - generic [ref=e715] [cursor=pointer]:
+                - paragraph [ref=e716]:
+                  - generic [ref=e717]: •
+                  - generic [ref=e720]: The Book of Job
+                  - generic [ref=e721]: ":"
+                  - text: 26:3
+                - paragraph [ref=e722]:
+                  - generic [ref=e723]:
+                    - text: "\"How hast thou counselled"
+                    - emphasis [ref=e724]: him
+                    - emphasis [ref=e725]: that
+                    - emphasis [ref=e726]: hath
+                    - text: "no"
+                    - mark [ref=e727]: wisdom
+                    - text: "? and"
+                    - emphasis [ref=e728]: how
+                    - text: hast thou plentifully declared the thing as it is?"
+              - generic [ref=e730] [cursor=pointer]:
+                - paragraph [ref=e731]:
+                  - generic [ref=e732]: •
+                  - generic [ref=e735]: The Book of Job
+                  - generic [ref=e736]: ":"
+                  - text: 28:12
+                - paragraph [ref=e737]:
+                  - generic [ref=e738]:
+                    - text: "\"But where shall"
+                    - mark [ref=e739]: wisdom
+                    - text: be found? and where
+                    - emphasis [ref=e740]: is
+                    - text: the place of understanding?"
+              - generic [ref=e742] [cursor=pointer]:
+                - paragraph [ref=e743]:
+                  - generic [ref=e744]: •
+                  - generic [ref=e747]: The Book of Job
+                  - generic [ref=e748]: ":"
+                  - text: 28:18
+                - paragraph [ref=e749]:
+                  - generic [ref=e750]:
+                    - text: "\"No mention shall be made of coral, or of pearls: for the price of"
+                    - mark [ref=e751]: wisdom
+                    - emphasis [ref=e752]: is
+                    - text: above rubies."
+              - generic [ref=e754] [cursor=pointer]:
+                - paragraph [ref=e755]:
+                  - generic [ref=e756]: •
+                  - generic [ref=e759]: The Book of Job
+                  - generic [ref=e760]: ":"
+                  - text: 28:20
+                - paragraph [ref=e761]:
+                  - generic [ref=e762]:
+                    - text: "\"Whence then cometh"
+                    - mark [ref=e763]: wisdom
+                    - text: "? and where"
+                    - emphasis [ref=e764]: is
+                    - text: the place of understanding?"
+              - generic [ref=e766] [cursor=pointer]:
+                - paragraph [ref=e767]:
+                  - generic [ref=e768]: •
+                  - generic [ref=e771]: The Book of Job
+                  - generic [ref=e772]: ":"
+                  - text: 28:28
+                - paragraph [ref=e773]:
+                  - generic [ref=e774]:
+                    - text: "\"And unto man he said, Behold, the fear of the Lord, that"
+                    - emphasis [ref=e775]: is
+                    - mark [ref=e776]: wisdom
+                    - text: ; and to depart from evil
+                    - emphasis [ref=e777]: is
+                    - text: understanding."
+              - generic [ref=e779] [cursor=pointer]:
+                - paragraph [ref=e780]:
+                  - generic [ref=e781]: •
+                  - generic [ref=e784]: The Book of Job
+                  - generic [ref=e785]: ":"
+                  - text: 32:7
+                - paragraph [ref=e786]:
+                  - generic [ref=e787]:
+                    - text: "\"I said, Days should speak, and multitude of years should teach"
+                    - mark [ref=e788]: wisdom
+                    - text: ."
+              - generic [ref=e790] [cursor=pointer]:
+                - paragraph [ref=e791]:
+                  - generic [ref=e792]: •
+                  - generic [ref=e795]: The Book of Job
+                  - generic [ref=e796]: ":"
+                  - text: 32:13
+                - paragraph [ref=e797]:
+                  - generic [ref=e798]:
+                    - text: "\"Lest ye should say, We have found out"
+                    - mark [ref=e799]: wisdom
+                    - text: ": God thrusteth him down, not man.\""
+              - generic [ref=e801] [cursor=pointer]:
+                - paragraph [ref=e802]:
+                  - generic [ref=e803]: •
+                  - generic [ref=e806]: The Book of Job
+                  - generic [ref=e807]: ":"
+                  - text: 33:33
+                - paragraph [ref=e808]:
+                  - generic [ref=e809]:
+                    - text: "\"If not, hearken unto me: hold thy peace, and I shall teach thee"
+                    - mark [ref=e810]: wisdom
+                    - text: ."
+              - generic [ref=e812] [cursor=pointer]:
+                - paragraph [ref=e813]:
+                  - generic [ref=e814]: •
+                  - generic [ref=e817]: The Book of Job
+                  - generic [ref=e818]: ":"
+                  - text: 34:35
+                - paragraph [ref=e819]:
+                  - generic [ref=e820]:
+                    - text: "\"Job hath spoken without knowledge, and his words"
+                    - emphasis [ref=e821]: were
+                    - text: without
+                    - mark [ref=e822]: wisdom
+                    - text: ."
+              - generic [ref=e824] [cursor=pointer]:
+                - paragraph [ref=e825]:
+                  - generic [ref=e826]: •
+                  - generic [ref=e829]: The Book of Job
+                  - generic [ref=e830]: ":"
+                  - text: 36:5
+                - paragraph [ref=e831]:
+                  - generic [ref=e832]:
+                    - text: "\"Behold, God"
+                    - emphasis [ref=e833]: is
+                    - text: mighty, and despiseth not
+                    - emphasis [ref=e834]: "any:"
+                    - emphasis [ref=e835]: he
+                    - emphasis [ref=e836]: is
+                    - text: mighty in strength
+                    - emphasis [ref=e837]: and
+                    - mark [ref=e838]: wisdom
+                    - text: ."
+              - generic [ref=e840] [cursor=pointer]:
+                - paragraph [ref=e841]:
+                  - generic [ref=e842]: •
+                  - generic [ref=e845]: The Book of Job
+                  - generic [ref=e846]: ":"
+                  - text: 38:36
+                - paragraph [ref=e847]:
+                  - generic [ref=e848]:
+                    - text: "\"Who hath put"
+                    - mark [ref=e849]: wisdom
+                    - text: in the inward parts? or who hath given understanding to the heart?"
+              - generic [ref=e851] [cursor=pointer]:
+                - paragraph [ref=e852]:
+                  - generic [ref=e853]: •
+                  - generic [ref=e856]: The Book of Job
+                  - generic [ref=e857]: ":"
+                  - text: 38:37
+                - paragraph [ref=e858]:
+                  - generic [ref=e859]:
+                    - text: "\"Who can number the clouds in"
+                    - mark [ref=e860]: wisdom
+                    - text: "? or who can stay the bottles of heaven,\""
+              - generic [ref=e862] [cursor=pointer]:
+                - paragraph [ref=e863]:
+                  - generic [ref=e864]: •
+                  - generic [ref=e867]: The Book of Job
+                  - generic [ref=e868]: ":"
+                  - text: 39:17
+                - paragraph [ref=e869]:
+                  - generic [ref=e870]:
+                    - text: "\"Because God hath deprived her of"
+                    - mark [ref=e871]: wisdom
+                    - text: ", neither hath he imparted to her understanding.\""
+              - generic [ref=e873] [cursor=pointer]:
+                - paragraph [ref=e874]:
+                  - generic [ref=e875]: •
+                  - generic [ref=e878]: The Book of Job
+                  - generic [ref=e879]: ":"
+                  - text: 39:26
+                - paragraph [ref=e880]:
+                  - generic [ref=e881]:
+                    - text: "\"Doth the hawk fly by thy"
+                    - mark [ref=e882]: wisdom
+                    - text: ","
+                    - emphasis [ref=e883]: and
+                    - text: stretch her wings toward the south?"
+          - generic [ref=e884]:
+            - button "Psalms · 8 verses" [ref=e885] [cursor=pointer]:
+              - generic [ref=e888]: Psalms
+              - generic [ref=e889]: · 8 verses
+            - generic [ref=e890]:
+              - generic [ref=e892] [cursor=pointer]:
+                - paragraph [ref=e893]:
+                  - generic [ref=e894]: •
+                  - generic [ref=e897]: The Book of Psalms
+                  - generic [ref=e898]: ":"
+                  - text: 37:30
+                - paragraph [ref=e899]:
+                  - generic [ref=e900]:
+                    - text: "\"The mouth of the righteous speaketh"
+                    - mark [ref=e901]: wisdom
+                    - text: ", and his tongue talketh of judgment.\""
+              - generic [ref=e903] [cursor=pointer]:
+                - paragraph [ref=e904]:
+                  - generic [ref=e905]: •
+                  - generic [ref=e908]: The Book of Psalms
+                  - generic [ref=e909]: ":"
+                  - text: 49:3
+                - paragraph [ref=e910]:
+                  - generic [ref=e911]:
+                    - text: "\"My mouth shall speak of"
+                    - mark [ref=e912]: wisdom
+                    - text: ; and the meditation of my heart
+                    - emphasis [ref=e913]: shall
+                    - emphasis [ref=e914]: be
+                    - text: of understanding."
+              - generic [ref=e916] [cursor=pointer]:
+                - paragraph [ref=e917]:
+                  - generic [ref=e918]: •
+                  - generic [ref=e921]: The Book of Psalms
+                  - generic [ref=e922]: ":"
+                  - text: 51:6
+                - paragraph [ref=e923]:
+                  - generic [ref=e924]:
+                    - text: "\"Behold, thou desirest truth in the inward parts: and in the hidden"
+                    - emphasis [ref=e925]: part
+                    - text: thou shalt make me to know
+                    - mark [ref=e926]: wisdom
+                    - text: ."
+              - generic [ref=e928] [cursor=pointer]:
+                - paragraph [ref=e929]:
+                  - generic [ref=e930]: •
+                  - generic [ref=e933]: The Book of Psalms
+                  - generic [ref=e934]: ":"
+                  - text: 90:12
+                - paragraph [ref=e935]:
+                  - generic [ref=e936]:
+                    - text: "\"So teach"
+                    - emphasis [ref=e937]: us
+                    - text: to number our days, that we may apply
+                    - emphasis [ref=e938]: our
+                    - text: hearts unto
+                    - mark [ref=e939]: wisdom
+                    - text: ."
+              - generic [ref=e941] [cursor=pointer]:
+                - paragraph [ref=e942]:
+                  - generic [ref=e943]: •
+                  - generic [ref=e946]: The Book of Psalms
+                  - generic [ref=e947]: ":"
+                  - text: 104:24
+                - paragraph [ref=e948]:
+                  - generic [ref=e949]:
+                    - text: "\"O LORD, how manifold are thy works! in"
+                    - mark [ref=e950]: wisdom
+                    - text: "hast thou made them all: the earth is full of thy riches.\""
+              - generic [ref=e952] [cursor=pointer]:
+                - paragraph [ref=e953]:
+                  - generic [ref=e954]: •
+                  - generic [ref=e957]: The Book of Psalms
+                  - generic [ref=e958]: ":"
+                  - text: 105:22
+                - paragraph [ref=e959]:
+                  - generic [ref=e960]:
+                    - text: "\"To bind his princes at his pleasure; and teach his senators"
+                    - mark [ref=e961]: wisdom
+                    - text: ."
+              - generic [ref=e963] [cursor=pointer]:
+                - paragraph [ref=e964]:
+                  - generic [ref=e965]: •
+                  - generic [ref=e968]: The Book of Psalms
+                  - generic [ref=e969]: ":"
+                  - text: 111:10
+                - paragraph [ref=e970]:
+                  - generic [ref=e971]:
+                    - text: "\"The fear of the LORD"
+                    - emphasis [ref=e972]: is
+                    - text: the beginning of
+                    - mark [ref=e973]: wisdom
+                    - text: ": a good understanding have all they that do"
+                    - emphasis [ref=e974]: his
+                    - emphasis [ref=e975]: "commandments:"
+                    - text: his praise endureth for ever."
+              - generic [ref=e977] [cursor=pointer]:
+                - paragraph [ref=e978]:
+                  - generic [ref=e979]: •
+                  - generic [ref=e982]: The Book of Psalms
+                  - generic [ref=e983]: ":"
+                  - text: 136:5
+                - paragraph [ref=e984]:
+                  - generic [ref=e985]:
+                    - text: "\"To him that by"
+                    - mark [ref=e986]: wisdom
+                    - text: "made the heavens: for his mercy"
+                    - emphasis [ref=e987]: endureth
+                    - text: for ever."
+          - generic [ref=e988]:
+            - button "Proverbs · 53 verses · 54 occurrences" [ref=e989] [cursor=pointer]:
+              - generic [ref=e992]: Proverbs
+              - generic [ref=e993]: · 53 verses · 54 occurrences
+            - generic [ref=e994]:
+              - generic [ref=e996] [cursor=pointer]:
+                - paragraph [ref=e997]:
+                  - generic [ref=e998]: •
+                  - generic [ref=e1001]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1002]: ":"
+                  - text: 1:2
+                - paragraph [ref=e1003]:
+                  - generic [ref=e1004]:
+                    - text: "\"To know"
+                    - mark [ref=e1005]: wisdom
+                    - text: and instruction; to perceive the words of understanding;"
+              - generic [ref=e1007] [cursor=pointer]:
+                - paragraph [ref=e1008]:
+                  - generic [ref=e1009]: •
+                  - generic [ref=e1012]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1013]: ":"
+                  - text: 1:3
+                - paragraph [ref=e1014]:
+                  - generic [ref=e1015]:
+                    - text: "\"To receive the instruction of"
+                    - mark [ref=e1016]: wisdom
+                    - text: ", justice, and judgment, and equity;\""
+              - generic [ref=e1018] [cursor=pointer]:
+                - paragraph [ref=e1019]:
+                  - generic [ref=e1020]: •
+                  - generic [ref=e1023]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1024]: ":"
+                  - text: 1:7
+                - paragraph [ref=e1025]:
+                  - generic [ref=e1026]:
+                    - text: "\"The fear of the LORD"
+                    - emphasis [ref=e1027]: is
+                    - text: "the beginning of knowledge:"
+                    - emphasis [ref=e1028]: but
+                    - text: fools despise
+                    - mark [ref=e1029]: wisdom
+                    - text: and instruction."
+              - generic [ref=e1031] [cursor=pointer]:
+                - paragraph [ref=e1032]:
+                  - generic [ref=e1033]: •
+                  - generic [ref=e1036]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1037]: ":"
+                  - text: 1:20
+                - paragraph [ref=e1038]:
+                  - generic [ref=e1039]:
+                    - text: "\""
+                    - mark [ref=e1040]: Wisdom
+                    - text: crieth without; she uttereth her voice in the streets:"
+              - generic [ref=e1042] [cursor=pointer]:
+                - paragraph [ref=e1043]:
+                  - generic [ref=e1044]: •
+                  - generic [ref=e1047]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1048]: ":"
+                  - text: 2:2
+                - paragraph [ref=e1049]:
+                  - generic [ref=e1050]:
+                    - text: "\"So that thou incline thine ear unto"
+                    - mark [ref=e1051]: wisdom
+                    - text: ","
+                    - emphasis [ref=e1052]: and
+                    - text: apply thine heart to understanding;"
+              - generic [ref=e1054] [cursor=pointer]:
+                - paragraph [ref=e1055]:
+                  - generic [ref=e1056]: •
+                  - generic [ref=e1059]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1060]: ":"
+                  - text: 2:6
+                - paragraph [ref=e1061]:
+                  - generic [ref=e1062]:
+                    - text: "\"For the LORD giveth"
+                    - mark [ref=e1063]: wisdom
+                    - text: ": out of his mouth"
+                    - emphasis [ref=e1064]: cometh
+                    - text: knowledge and understanding."
+              - generic [ref=e1066] [cursor=pointer]:
+                - paragraph [ref=e1067]:
+                  - generic [ref=e1068]: •
+                  - generic [ref=e1071]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1072]: ":"
+                  - text: 2:7
+                - paragraph [ref=e1073]:
+                  - generic [ref=e1074]:
+                    - text: "\"He layeth up sound"
+                    - mark [ref=e1075]: wisdom
+                    - text: "for the righteous:"
+                    - emphasis [ref=e1076]: he
+                    - emphasis [ref=e1077]: is
+                    - text: a buckler to them that walk uprightly."
+              - generic [ref=e1079] [cursor=pointer]:
+                - paragraph [ref=e1080]:
+                  - generic [ref=e1081]: •
+                  - generic [ref=e1084]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1085]: ":"
+                  - text: 2:10
+                - paragraph [ref=e1086]:
+                  - generic [ref=e1087]:
+                    - text: "\"When"
+                    - mark [ref=e1088]: wisdom
+                    - text: entereth into thine heart, and knowledge is pleasant unto thy soul;"
+              - generic [ref=e1090] [cursor=pointer]:
+                - paragraph [ref=e1091]:
+                  - generic [ref=e1092]: •
+                  - generic [ref=e1095]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1096]: ":"
+                  - text: 3:13
+                - paragraph [ref=e1097]:
+                  - generic [ref=e1098]:
+                    - text: "\"Happy"
+                    - emphasis [ref=e1099]: is
+                    - text: the man
+                    - emphasis [ref=e1100]: that
+                    - text: findeth
+                    - mark [ref=e1101]: wisdom
+                    - text: ", and the man"
+                    - emphasis [ref=e1102]: that
+                    - text: getteth understanding."
+              - generic [ref=e1104] [cursor=pointer]:
+                - paragraph [ref=e1105]:
+                  - generic [ref=e1106]: •
+                  - generic [ref=e1109]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1110]: ":"
+                  - text: 3:19
+                - paragraph [ref=e1111]:
+                  - generic [ref=e1112]:
+                    - text: "\"The LORD by"
+                    - mark [ref=e1113]: wisdom
+                    - text: hath founded the earth; by understanding hath he established the heavens."
+              - generic [ref=e1115] [cursor=pointer]:
+                - paragraph [ref=e1116]:
+                  - generic [ref=e1117]: •
+                  - generic [ref=e1120]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1121]: ":"
+                  - text: 3:21
+                - paragraph [ref=e1122]:
+                  - generic [ref=e1123]:
+                    - text: "\"My son, let not them depart from thine eyes: keep sound"
+                    - mark [ref=e1124]: wisdom
+                    - text: and discretion:"
+              - generic [ref=e1126] [cursor=pointer]:
+                - paragraph [ref=e1127]:
+                  - generic [ref=e1128]: •
+                  - generic [ref=e1131]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1132]: ":"
+                  - text: 4:5
+                - paragraph [ref=e1133]:
+                  - generic [ref=e1134]:
+                    - text: "\"Get"
+                    - mark [ref=e1135]: wisdom
+                    - text: ", get understanding: forget"
+                    - emphasis [ref=e1136]: it
+                    - text: not; neither decline from the words of my mouth."
+              - generic [ref=e1138] [cursor=pointer]:
+                - paragraph [ref=e1139]:
+                  - generic [ref=e1140]: •
+                  - generic [ref=e1143]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1144]: ":"
+                  - text: 4:7
+                - paragraph [ref=e1145]:
+                  - generic [ref=e1146]:
+                    - text: "\""
+                    - mark [ref=e1147]: Wisdom
+                    - emphasis [ref=e1148]: is
+                    - text: the principal thing;
+                    - emphasis [ref=e1149]: therefore
+                    - text: get
+                    - mark [ref=e1150]: wisdom
+                    - text: ": and with all thy getting get understanding.\""
+              - generic [ref=e1152] [cursor=pointer]:
+                - paragraph [ref=e1153]:
+                  - generic [ref=e1154]: •
+                  - generic [ref=e1157]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1158]: ":"
+                  - text: 4:11
+                - paragraph [ref=e1159]:
+                  - generic [ref=e1160]:
+                    - text: "\"I have taught thee in the way of"
+                    - mark [ref=e1161]: wisdom
+                    - text: ; I have led thee in right paths."
+              - generic [ref=e1163] [cursor=pointer]:
+                - paragraph [ref=e1164]:
+                  - generic [ref=e1165]: •
+                  - generic [ref=e1168]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1169]: ":"
+                  - text: 5:1
+                - paragraph [ref=e1170]:
+                  - generic [ref=e1171]:
+                    - text: "\"MY son, attend unto my"
+                    - mark [ref=e1172]: wisdom
+                    - text: ","
+                    - emphasis [ref=e1173]: and
+                    - text: bow thine ear to my understanding:"
+              - generic [ref=e1175] [cursor=pointer]:
+                - paragraph [ref=e1176]:
+                  - generic [ref=e1177]: •
+                  - generic [ref=e1180]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1181]: ":"
+                  - text: 7:4
+                - paragraph [ref=e1182]:
+                  - generic [ref=e1183]:
+                    - text: "\"Say unto"
+                    - mark [ref=e1184]: wisdom
+                    - text: ", Thou"
+                    - emphasis [ref=e1185]: art
+                    - text: my sister; and call understanding
+                    - emphasis [ref=e1186]: thy
+                    - text: kinswoman:"
+              - generic [ref=e1188] [cursor=pointer]:
+                - paragraph [ref=e1189]:
+                  - generic [ref=e1190]: •
+                  - generic [ref=e1193]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1194]: ":"
+                  - text: 8:1
+                - paragraph [ref=e1195]:
+                  - generic [ref=e1196]:
+                    - text: "\"DOTH not"
+                    - mark [ref=e1197]: wisdom
+                    - text: cry? and understanding put forth her voice?"
+              - generic [ref=e1199] [cursor=pointer]:
+                - paragraph [ref=e1200]:
+                  - generic [ref=e1201]: •
+                  - generic [ref=e1204]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1205]: ":"
+                  - text: 8:5
+                - paragraph [ref=e1206]:
+                  - generic [ref=e1207]:
+                    - text: "\"O ye simple, understand"
+                    - mark [ref=e1208]: wisdom
+                    - text: ": and, ye fools, be ye of an understanding heart.\""
+              - generic [ref=e1210] [cursor=pointer]:
+                - paragraph [ref=e1211]:
+                  - generic [ref=e1212]: •
+                  - generic [ref=e1215]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1216]: ":"
+                  - text: 8:11
+                - paragraph [ref=e1217]:
+                  - generic [ref=e1218]:
+                    - text: "\"For"
+                    - mark [ref=e1219]: wisdom
+                    - emphasis [ref=e1220]: is
+                    - text: better than rubies; and all the things that may be desired are not to be compared to it."
+              - generic [ref=e1222] [cursor=pointer]:
+                - paragraph [ref=e1223]:
+                  - generic [ref=e1224]: •
+                  - generic [ref=e1227]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1228]: ":"
+                  - text: 8:12
+                - paragraph [ref=e1229]:
+                  - generic [ref=e1230]:
+                    - text: "\"I"
+                    - mark [ref=e1231]: wisdom
+                    - text: dwell with prudence, and find out knowledge of witty inventions."
+              - generic [ref=e1233] [cursor=pointer]:
+                - paragraph [ref=e1234]:
+                  - generic [ref=e1235]: •
+                  - generic [ref=e1238]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1239]: ":"
+                  - text: 8:14
+                - paragraph [ref=e1240]:
+                  - generic [ref=e1241]:
+                    - text: "\"Counsel"
+                    - emphasis [ref=e1242]: is
+                    - text: mine, and sound
+                    - mark [ref=e1243]: wisdom
+                    - text: ": I"
+                    - emphasis [ref=e1244]: am
+                    - text: understanding; I have strength."
+              - generic [ref=e1246] [cursor=pointer]:
+                - paragraph [ref=e1247]:
+                  - generic [ref=e1248]: •
+                  - generic [ref=e1251]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1252]: ":"
+                  - text: 9:1
+                - paragraph [ref=e1253]:
+                  - generic [ref=e1254]:
+                    - text: "\""
+                    - mark [ref=e1255]: WISDOM
+                    - text: hath builded her house, she hath hewn out her seven pillars:"
+              - generic [ref=e1257] [cursor=pointer]:
+                - paragraph [ref=e1258]:
+                  - generic [ref=e1259]: •
+                  - generic [ref=e1262]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1263]: ":"
+                  - text: 9:10
+                - paragraph [ref=e1264]:
+                  - generic [ref=e1265]:
+                    - text: "\"The fear of the LORD"
+                    - emphasis [ref=e1266]: is
+                    - text: the beginning of
+                    - mark [ref=e1267]: wisdom
+                    - text: ": and the knowledge of the holy"
+                    - emphasis [ref=e1268]: is
+                    - text: understanding."
+              - generic [ref=e1270] [cursor=pointer]:
+                - paragraph [ref=e1271]:
+                  - generic [ref=e1272]: •
+                  - generic [ref=e1275]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1276]: ":"
+                  - text: 10:13
+                - paragraph [ref=e1277]:
+                  - generic [ref=e1278]:
+                    - text: "\"In the lips of him that hath understanding"
+                    - mark [ref=e1279]: wisdom
+                    - text: "is found: but a rod"
+                    - emphasis [ref=e1280]: is
+                    - text: for the back of him that is void of understanding."
+              - generic [ref=e1282] [cursor=pointer]:
+                - paragraph [ref=e1283]:
+                  - generic [ref=e1284]: •
+                  - generic [ref=e1287]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1288]: ":"
+                  - text: 10:21
+                - paragraph [ref=e1289]:
+                  - generic [ref=e1290]:
+                    - text: "\"The lips of the righteous feed many: but fools die for want of"
+                    - mark [ref=e1291]: wisdom
+                    - text: ."
+              - generic [ref=e1293] [cursor=pointer]:
+                - paragraph [ref=e1294]:
+                  - generic [ref=e1295]: •
+                  - generic [ref=e1298]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1299]: ":"
+                  - text: 10:23
+                - paragraph [ref=e1300]:
+                  - generic [ref=e1301]:
+                    - text: "\""
+                    - emphasis [ref=e1302]: It
+                    - emphasis [ref=e1303]: is
+                    - text: "as sport to a fool to do mischief: but a man of understanding hath"
+                    - mark [ref=e1304]: wisdom
+                    - text: ."
+              - generic [ref=e1306] [cursor=pointer]:
+                - paragraph [ref=e1307]:
+                  - generic [ref=e1308]: •
+                  - generic [ref=e1311]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1312]: ":"
+                  - text: 10:31
+                - paragraph [ref=e1313]:
+                  - generic [ref=e1314]:
+                    - text: "\"The mouth of the just bringeth forth"
+                    - mark [ref=e1315]: wisdom
+                    - text: ": but the froward tongue shall be cut out.\""
+              - generic [ref=e1317] [cursor=pointer]:
+                - paragraph [ref=e1318]:
+                  - generic [ref=e1319]: •
+                  - generic [ref=e1322]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1323]: ":"
+                  - text: 11:2
+                - paragraph [ref=e1324]:
+                  - generic [ref=e1325]:
+                    - text: "\""
+                    - emphasis [ref=e1326]: When
+                    - text: "pride cometh, then cometh shame: but with the lowly"
+                    - emphasis [ref=e1327]: is
+                    - mark [ref=e1328]: wisdom
+                    - text: ."
+              - generic [ref=e1330] [cursor=pointer]:
+                - paragraph [ref=e1331]:
+                  - generic [ref=e1332]: •
+                  - generic [ref=e1335]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1336]: ":"
+                  - text: 11:12
+                - paragraph [ref=e1337]:
+                  - generic [ref=e1338]:
+                    - text: "\"He that is void of"
+                    - mark [ref=e1339]: wisdom
+                    - text: "despiseth his neighbour: but a man of understanding holdeth his peace.\""
+              - generic [ref=e1341] [cursor=pointer]:
+                - paragraph [ref=e1342]:
+                  - generic [ref=e1343]: •
+                  - generic [ref=e1346]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1347]: ":"
+                  - text: 12:8
+                - paragraph [ref=e1348]:
+                  - generic [ref=e1349]:
+                    - text: "\"A man shall be commended according to his"
+                    - mark [ref=e1350]: wisdom
+                    - text: ": but he that is of a perverse heart shall be despised.\""
+              - generic [ref=e1352] [cursor=pointer]:
+                - paragraph [ref=e1353]:
+                  - generic [ref=e1354]: •
+                  - generic [ref=e1357]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1358]: ":"
+                  - text: 13:10
+                - paragraph [ref=e1359]:
+                  - generic [ref=e1360]:
+                    - text: "\"Only by pride cometh contention: but with the well advised"
+                    - emphasis [ref=e1361]: is
+                    - mark [ref=e1362]: wisdom
+                    - text: ."
+              - generic [ref=e1364] [cursor=pointer]:
+                - paragraph [ref=e1365]:
+                  - generic [ref=e1366]: •
+                  - generic [ref=e1369]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1370]: ":"
+                  - text: 14:6
+                - paragraph [ref=e1371]:
+                  - generic [ref=e1372]:
+                    - text: "\"A scorner seeketh"
+                    - mark [ref=e1373]: wisdom
+                    - text: ", and"
+                    - emphasis [ref=e1374]: findeth
+                    - emphasis [ref=e1375]: it
+                    - text: "not: but knowledge"
+                    - emphasis [ref=e1376]: is
+                    - text: easy unto him that understandeth."
+              - generic [ref=e1378] [cursor=pointer]:
+                - paragraph [ref=e1379]:
+                  - generic [ref=e1380]: •
+                  - generic [ref=e1383]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1384]: ":"
+                  - text: 14:8
+                - paragraph [ref=e1385]:
+                  - generic [ref=e1386]:
+                    - text: "\"The"
+                    - mark [ref=e1387]: wisdom
+                    - text: of the prudent
+                    - emphasis [ref=e1388]: is
+                    - text: "to understand his way: but the folly of fools"
+                    - emphasis [ref=e1389]: is
+                    - text: deceit."
+              - generic [ref=e1391] [cursor=pointer]:
+                - paragraph [ref=e1392]:
+                  - generic [ref=e1393]: •
+                  - generic [ref=e1396]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1397]: ":"
+                  - text: 14:33
+                - paragraph [ref=e1398]:
+                  - generic [ref=e1399]:
+                    - text: "\""
+                    - mark [ref=e1400]: Wisdom
+                    - text: "resteth in the heart of him that hath understanding: but"
+                    - emphasis [ref=e1401]: that
+                    - emphasis [ref=e1402]: which
+                    - emphasis [ref=e1403]: is
+                    - text: in the midst of fools is made known."
+              - generic [ref=e1405] [cursor=pointer]:
+                - paragraph [ref=e1406]:
+                  - generic [ref=e1407]: •
+                  - generic [ref=e1410]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1411]: ":"
+                  - text: 15:21
+                - paragraph [ref=e1412]:
+                  - generic [ref=e1413]:
+                    - text: "\"Folly"
+                    - emphasis [ref=e1414]: is
+                    - text: joy to
+                    - emphasis [ref=e1415]: him
+                    - emphasis [ref=e1416]: that
+                    - emphasis [ref=e1417]: is
+                    - text: destitute of
+                    - mark [ref=e1418]: wisdom
+                    - text: ": but a man of understanding walketh uprightly.\""
+              - generic [ref=e1420] [cursor=pointer]:
+                - paragraph [ref=e1421]:
+                  - generic [ref=e1422]: •
+                  - generic [ref=e1425]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1426]: ":"
+                  - text: 15:33
+                - paragraph [ref=e1427]:
+                  - generic [ref=e1428]:
+                    - text: "\"The fear of the LORD"
+                    - emphasis [ref=e1429]: is
+                    - text: the instruction of
+                    - mark [ref=e1430]: wisdom
+                    - text: ; and before honour
+                    - emphasis [ref=e1431]: is
+                    - text: humility."
+              - generic [ref=e1433] [cursor=pointer]:
+                - paragraph [ref=e1434]:
+                  - generic [ref=e1435]: •
+                  - generic [ref=e1438]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1439]: ":"
+                  - text: 16:16
+                - paragraph [ref=e1440]:
+                  - generic [ref=e1441]:
+                    - text: "\"How much better"
+                    - emphasis [ref=e1442]: is
+                    - emphasis [ref=e1443]: it
+                    - text: to get
+                    - mark [ref=e1444]: wisdom
+                    - text: than gold! and to get understanding rather to be chosen than silver!"
+              - generic [ref=e1446] [cursor=pointer]:
+                - paragraph [ref=e1447]:
+                  - generic [ref=e1448]: •
+                  - generic [ref=e1451]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1452]: ":"
+                  - text: 17:16
+                - paragraph [ref=e1453]:
+                  - generic [ref=e1454]:
+                    - text: "\"Wherefore"
+                    - emphasis [ref=e1455]: is
+                    - emphasis [ref=e1456]: there
+                    - text: a price in the hand of a fool to get
+                    - mark [ref=e1457]: wisdom
+                    - text: ", seeing"
+                    - emphasis [ref=e1458]: he
+                    - emphasis [ref=e1459]: hath
+                    - text: no heart
+                    - emphasis [ref=e1460]: to
+                    - emphasis [ref=e1461]: it?
+                    - text: "\""
+              - generic [ref=e1463] [cursor=pointer]:
+                - paragraph [ref=e1464]:
+                  - generic [ref=e1465]: •
+                  - generic [ref=e1468]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1469]: ":"
+                  - text: 17:24
+                - paragraph [ref=e1470]:
+                  - generic [ref=e1471]:
+                    - text: "\""
+                    - mark [ref=e1472]: Wisdom
+                    - emphasis [ref=e1473]: is
+                    - text: before him that hath understanding; but the eyes of a fool
+                    - emphasis [ref=e1474]: are
+                    - text: in the ends of the earth."
+              - generic [ref=e1476] [cursor=pointer]:
+                - paragraph [ref=e1477]:
+                  - generic [ref=e1478]: •
+                  - generic [ref=e1481]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1482]: ":"
+                  - text: 18:1
+                - paragraph [ref=e1483]:
+                  - generic [ref=e1484]:
+                    - text: "\"THROUGH desire a man, having separated himself, seeketh"
+                    - emphasis [ref=e1485]: and
+                    - text: intermeddleth with all
+                    - mark [ref=e1486]: wisdom
+                    - text: ."
+              - generic [ref=e1488] [cursor=pointer]:
+                - paragraph [ref=e1489]:
+                  - generic [ref=e1490]: •
+                  - generic [ref=e1493]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1494]: ":"
+                  - text: 18:4
+                - paragraph [ref=e1495]:
+                  - generic [ref=e1496]:
+                    - text: "\"The words of a man's mouth"
+                    - emphasis [ref=e1497]: are
+                    - emphasis [ref=e1498]: as
+                    - text: deep waters,
+                    - emphasis [ref=e1499]: and
+                    - text: the wellspring of
+                    - mark [ref=e1500]: wisdom
+                    - emphasis [ref=e1501]: as
+                    - text: a flowing brook."
+              - generic [ref=e1503] [cursor=pointer]:
+                - paragraph [ref=e1504]:
+                  - generic [ref=e1505]: •
+                  - generic [ref=e1508]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1509]: ":"
+                  - text: 19:8
+                - paragraph [ref=e1510]:
+                  - generic [ref=e1511]:
+                    - text: "\"He that getteth"
+                    - mark [ref=e1512]: wisdom
+                    - text: "loveth his own soul: he that keepeth understanding shall find good.\""
+              - generic [ref=e1514] [cursor=pointer]:
+                - paragraph [ref=e1515]:
+                  - generic [ref=e1516]: •
+                  - generic [ref=e1519]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1520]: ":"
+                  - text: 21:30
+                - paragraph [ref=e1521]:
+                  - generic [ref=e1522]:
+                    - text: "\""
+                    - emphasis [ref=e1523]: There
+                    - emphasis [ref=e1524]: is
+                    - text: "no"
+                    - mark [ref=e1525]: wisdom
+                    - text: nor understanding nor counsel against the LORD."
+              - generic [ref=e1527] [cursor=pointer]:
+                - paragraph [ref=e1528]:
+                  - generic [ref=e1529]: •
+                  - generic [ref=e1532]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1533]: ":"
+                  - text: 23:4
+                - paragraph [ref=e1534]:
+                  - generic [ref=e1535]:
+                    - text: "\"Labour not to be rich: cease from thine own"
+                    - mark [ref=e1536]: wisdom
+                    - text: ."
+              - generic [ref=e1538] [cursor=pointer]:
+                - paragraph [ref=e1539]:
+                  - generic [ref=e1540]: •
+                  - generic [ref=e1543]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1544]: ":"
+                  - text: 23:9
+                - paragraph [ref=e1545]:
+                  - generic [ref=e1546]:
+                    - text: "\"Speak not in the ears of a fool: for he will despise the"
+                    - mark [ref=e1547]: wisdom
+                    - text: of thy words."
+              - generic [ref=e1549] [cursor=pointer]:
+                - paragraph [ref=e1550]:
+                  - generic [ref=e1551]: •
+                  - generic [ref=e1554]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1555]: ":"
+                  - text: 23:23
+                - paragraph [ref=e1556]:
+                  - generic [ref=e1557]:
+                    - text: "\"Buy the truth, and sell"
+                    - emphasis [ref=e1558]: it
+                    - text: not;
+                    - emphasis [ref=e1559]: also
+                    - mark [ref=e1560]: wisdom
+                    - text: ", and instruction, and understanding.\""
+              - generic [ref=e1562] [cursor=pointer]:
+                - paragraph [ref=e1563]:
+                  - generic [ref=e1564]: •
+                  - generic [ref=e1567]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1568]: ":"
+                  - text: 24:3
+                - paragraph [ref=e1569]:
+                  - generic [ref=e1570]:
+                    - text: "\"Through"
+                    - mark [ref=e1571]: wisdom
+                    - text: is an house builded; and by understanding it is established:"
+              - generic [ref=e1573] [cursor=pointer]:
+                - paragraph [ref=e1574]:
+                  - generic [ref=e1575]: •
+                  - generic [ref=e1578]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1579]: ":"
+                  - text: 24:7
+                - paragraph [ref=e1580]:
+                  - generic [ref=e1581]:
+                    - text: "\""
+                    - mark [ref=e1582]: Wisdom
+                    - emphasis [ref=e1583]: is
+                    - text: "too high for a fool: he openeth not his mouth in the gate.\""
+              - generic [ref=e1585] [cursor=pointer]:
+                - paragraph [ref=e1586]:
+                  - generic [ref=e1587]: •
+                  - generic [ref=e1590]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1591]: ":"
+                  - text: 24:14
+                - paragraph [ref=e1592]:
+                  - generic [ref=e1593]:
+                    - text: "\"So"
+                    - emphasis [ref=e1594]: shall
+                    - text: the knowledge of
+                    - mark [ref=e1595]: wisdom
+                    - emphasis [ref=e1596]: be
+                    - text: "unto thy soul: when thou hast found"
+                    - emphasis [ref=e1597]: it
+                    - text: ", then there shall be a reward, and thy expectation shall not be cut off.\""
+              - generic [ref=e1599] [cursor=pointer]:
+                - paragraph [ref=e1600]:
+                  - generic [ref=e1601]: •
+                  - generic [ref=e1604]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1605]: ":"
+                  - text: 29:3
+                - paragraph [ref=e1606]:
+                  - generic [ref=e1607]:
+                    - text: "\"Whoso loveth"
+                    - mark [ref=e1608]: wisdom
+                    - text: "rejoiceth his father: but he that keepeth company with harlots spendeth"
+                    - emphasis [ref=e1609]: his
+                    - text: substance."
+              - generic [ref=e1611] [cursor=pointer]:
+                - paragraph [ref=e1612]:
+                  - generic [ref=e1613]: •
+                  - generic [ref=e1616]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1617]: ":"
+                  - text: 29:15
+                - paragraph [ref=e1618]:
+                  - generic [ref=e1619]:
+                    - text: "\"The rod and reproof give"
+                    - mark [ref=e1620]: wisdom
+                    - text: ": but a child left"
+                    - emphasis [ref=e1621]: to
+                    - emphasis [ref=e1622]: himself
+                    - text: bringeth his mother to shame."
+              - generic [ref=e1624] [cursor=pointer]:
+                - paragraph [ref=e1625]:
+                  - generic [ref=e1626]: •
+                  - generic [ref=e1629]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1630]: ":"
+                  - text: 30:3
+                - paragraph [ref=e1631]:
+                  - generic [ref=e1632]:
+                    - text: "\"I neither learned"
+                    - mark [ref=e1633]: wisdom
+                    - text: ", nor have the knowledge of the holy.\""
+              - generic [ref=e1635] [cursor=pointer]:
+                - paragraph [ref=e1636]:
+                  - generic [ref=e1637]: •
+                  - generic [ref=e1640]: The Proverbs of Solomon the Son of David, King of Israel
+                  - generic [ref=e1641]: ":"
+                  - text: 31:26
+                - paragraph [ref=e1642]:
+                  - generic [ref=e1643]:
+                    - text: "\"She openeth her mouth with"
+                    - mark [ref=e1644]: wisdom
+                    - text: ; and in her tongue
+                    - emphasis [ref=e1645]: is
+                    - text: the law of kindness."
+          - generic [ref=e1646]:
+            - button "Ecclesiastes · 25 verses · 28 occurrences" [ref=e1647] [cursor=pointer]:
+              - generic [ref=e1650]: Ecclesiastes
+              - generic [ref=e1651]: · 25 verses · 28 occurrences
+            - generic [ref=e1652]:
+              - generic [ref=e1654] [cursor=pointer]:
+                - paragraph [ref=e1655]:
+                  - generic [ref=e1656]: •
+                  - generic [ref=e1659]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1660]: ":"
+                  - text: 1:13
+                - paragraph [ref=e1661]:
+                  - generic [ref=e1662]:
+                    - text: "\"And I gave my heart to seek and search out by"
+                    - mark [ref=e1663]: wisdom
+                    - text: concerning all
+                    - emphasis [ref=e1664]: things
+                    - text: "that are done under heaven: this sore travail hath God given to the sons of man to be exercised therewith.\""
+              - generic [ref=e1666] [cursor=pointer]:
+                - paragraph [ref=e1667]:
+                  - generic [ref=e1668]: •
+                  - generic [ref=e1671]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1672]: ":"
+                  - text: 1:16
+                - paragraph [ref=e1673]:
+                  - generic [ref=e1674]:
+                    - text: "\"I communed with mine own heart, saying, Lo, I am come to great estate, and have gotten more"
+                    - mark [ref=e1675]: wisdom
+                    - text: than all
+                    - emphasis [ref=e1676]: they
+                    - text: "that have been before me in Jerusalem: yea, my heart had great experience of"
+                    - mark [ref=e1677]: wisdom
+                    - text: and knowledge."
+              - generic [ref=e1679] [cursor=pointer]:
+                - paragraph [ref=e1680]:
+                  - generic [ref=e1681]: •
+                  - generic [ref=e1684]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1685]: ":"
+                  - text: 1:17
+                - paragraph [ref=e1686]:
+                  - generic [ref=e1687]:
+                    - text: "\"And I gave my heart to know"
+                    - mark [ref=e1688]: wisdom
+                    - text: ", and to know madness and folly: I perceived that this also is vexation of spirit.\""
+              - generic [ref=e1690] [cursor=pointer]:
+                - paragraph [ref=e1691]:
+                  - generic [ref=e1692]: •
+                  - generic [ref=e1695]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1696]: ":"
+                  - text: 1:18
+                - paragraph [ref=e1697]:
+                  - generic [ref=e1698]:
+                    - text: "\"For in much"
+                    - mark [ref=e1699]: wisdom
+                    - emphasis [ref=e1700]: is
+                    - text: "much grief: and he that increaseth knowledge increaseth sorrow.\""
+              - generic [ref=e1702] [cursor=pointer]:
+                - paragraph [ref=e1703]:
+                  - generic [ref=e1704]: •
+                  - generic [ref=e1707]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1708]: ":"
+                  - text: 2:3
+                - paragraph [ref=e1709]:
+                  - generic [ref=e1710]:
+                    - text: "\"I sought in mine heart to give myself unto wine, yet acquainting mine heart with"
+                    - mark [ref=e1711]: wisdom
+                    - text: ; and to lay hold on folly, till I might see what
+                    - emphasis [ref=e1712]: was
+                    - text: that good for the sons of men, which they should do under the heaven all the days of their life."
+              - generic [ref=e1714] [cursor=pointer]:
+                - paragraph [ref=e1715]:
+                  - generic [ref=e1716]: •
+                  - generic [ref=e1719]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1720]: ":"
+                  - text: 2:9
+                - paragraph [ref=e1721]:
+                  - generic [ref=e1722]:
+                    - text: "\"So I was great, and increased more than all that were before me in Jerusalem: also my"
+                    - mark [ref=e1723]: wisdom
+                    - text: remained with me."
+              - generic [ref=e1725] [cursor=pointer]:
+                - paragraph [ref=e1726]:
+                  - generic [ref=e1727]: •
+                  - generic [ref=e1730]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1731]: ":"
+                  - text: 2:12
+                - paragraph [ref=e1732]:
+                  - generic [ref=e1733]:
+                    - text: "\"And I turned myself to behold"
+                    - mark [ref=e1734]: wisdom
+                    - text: ", and madness, and folly: for what"
+                    - emphasis [ref=e1735]: can
+                    - text: the man
+                    - emphasis [ref=e1736]: do
+                    - text: that cometh after the king?
+                    - emphasis [ref=e1737]: even
+                    - text: that which hath been already done."
+              - generic [ref=e1739] [cursor=pointer]:
+                - paragraph [ref=e1740]:
+                  - generic [ref=e1741]: •
+                  - generic [ref=e1744]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1745]: ":"
+                  - text: 2:13
+                - paragraph [ref=e1746]:
+                  - generic [ref=e1747]:
+                    - text: "\"Then I saw that"
+                    - mark [ref=e1748]: wisdom
+                    - text: excelleth folly, as far as light excelleth darkness."
+              - generic [ref=e1750] [cursor=pointer]:
+                - paragraph [ref=e1751]:
+                  - generic [ref=e1752]: •
+                  - generic [ref=e1755]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1756]: ":"
+                  - text: 2:21
+                - paragraph [ref=e1757]:
+                  - generic [ref=e1758]:
+                    - text: "\"For there is a man whose labour"
+                    - emphasis [ref=e1759]: is
+                    - text: in
+                    - mark [ref=e1760]: wisdom
+                    - text: ", and in knowledge, and in equity; yet to a man that hath not laboured therein shall he leave it"
+                    - emphasis [ref=e1761]: for
+                    - text: his portion. This also
+                    - emphasis [ref=e1762]: is
+                    - text: vanity and a great evil."
+              - generic [ref=e1764] [cursor=pointer]:
+                - paragraph [ref=e1765]:
+                  - generic [ref=e1766]: •
+                  - generic [ref=e1769]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1770]: ":"
+                  - text: 2:26
+                - paragraph [ref=e1771]:
+                  - generic [ref=e1772]:
+                    - text: "\"For"
+                    - emphasis [ref=e1773]: God
+                    - text: giveth to a man that
+                    - emphasis [ref=e1774]: is
+                    - text: good in his sight
+                    - mark [ref=e1775]: wisdom
+                    - text: ", and knowledge, and joy: but to the sinner he giveth travail, to gather and to heap up, that he may give to"
+                    - emphasis [ref=e1776]: him
+                    - emphasis [ref=e1777]: that
+                    - emphasis [ref=e1778]: is
+                    - text: good before God. This also
+                    - emphasis [ref=e1779]: is
+                    - text: vanity and vexation of spirit."
+              - generic [ref=e1781] [cursor=pointer]:
+                - paragraph [ref=e1782]:
+                  - generic [ref=e1783]: •
+                  - generic [ref=e1786]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1787]: ":"
+                  - text: 7:11
+                - paragraph [ref=e1788]:
+                  - generic [ref=e1789]:
+                    - text: "\""
+                    - mark [ref=e1790]: Wisdom
+                    - emphasis [ref=e1791]: is
+                    - text: "good with an inheritance: and"
+                    - emphasis [ref=e1792]: by
+                    - emphasis [ref=e1793]: it
+                    - emphasis [ref=e1794]: there
+                    - emphasis [ref=e1795]: is
+                    - text: profit to them that see the sun."
+              - generic [ref=e1797] [cursor=pointer]:
+                - paragraph [ref=e1798]:
+                  - generic [ref=e1799]: •
+                  - generic [ref=e1802]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1803]: ":"
+                  - text: 7:12
+                - paragraph [ref=e1804]:
+                  - generic [ref=e1805]:
+                    - text: "\"For"
+                    - mark [ref=e1806]: wisdom
+                    - emphasis [ref=e1807]: is
+                    - text: a defence,
+                    - emphasis [ref=e1808]: and
+                    - text: money
+                    - emphasis [ref=e1809]: is
+                    - text: "a defence: but the excellency of knowledge"
+                    - emphasis [ref=e1810]: is
+                    - text: ","
+                    - emphasis [ref=e1811]: that
+                    - mark [ref=e1812]: wisdom
+                    - text: giveth life to them that have it."
+              - generic [ref=e1814] [cursor=pointer]:
+                - paragraph [ref=e1815]:
+                  - generic [ref=e1816]: •
+                  - generic [ref=e1819]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1820]: ":"
+                  - text: 7:19
+                - paragraph [ref=e1821]:
+                  - generic [ref=e1822]:
+                    - text: "\""
+                    - mark [ref=e1823]: Wisdom
+                    - text: strengtheneth the wise more than ten mighty
+                    - emphasis [ref=e1824]: men
+                    - text: which are in the city."
+              - generic [ref=e1826] [cursor=pointer]:
+                - paragraph [ref=e1827]:
+                  - generic [ref=e1828]: •
+                  - generic [ref=e1831]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1832]: ":"
+                  - text: 7:23
+                - paragraph [ref=e1833]:
+                  - generic [ref=e1834]:
+                    - text: "\"All this have I proved by"
+                    - mark [ref=e1835]: wisdom
+                    - text: ": I said, I will be wise; but it"
+                    - emphasis [ref=e1836]: was
+                    - text: far from me."
+              - generic [ref=e1838] [cursor=pointer]:
+                - paragraph [ref=e1839]:
+                  - generic [ref=e1840]: •
+                  - generic [ref=e1843]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1844]: ":"
+                  - text: 7:25
+                - paragraph [ref=e1845]:
+                  - generic [ref=e1846]:
+                    - text: "\"I applied mine heart to know, and to search, and to seek out"
+                    - mark [ref=e1847]: wisdom
+                    - text: ", and the reason"
+                    - emphasis [ref=e1848]: of
+                    - emphasis [ref=e1849]: things
+                    - text: ", and to know the wickedness of folly, even of foolishness"
+                    - emphasis [ref=e1850]: and
+                    - text: madness:"
+              - generic [ref=e1852] [cursor=pointer]:
+                - paragraph [ref=e1853]:
+                  - generic [ref=e1854]: •
+                  - generic [ref=e1857]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1858]: ":"
+                  - text: 8:1
+                - paragraph [ref=e1859]:
+                  - generic [ref=e1860]:
+                    - text: "\"WHO"
+                    - emphasis [ref=e1861]: is
+                    - text: as the wise
+                    - emphasis [ref=e1862]: man?
+                    - text: and who knoweth the interpretation of a thing? a man's
+                    - mark [ref=e1863]: wisdom
+                    - text: maketh his face to shine, and the boldness of his face shall be changed."
+              - generic [ref=e1865] [cursor=pointer]:
+                - paragraph [ref=e1866]:
+                  - generic [ref=e1867]: •
+                  - generic [ref=e1870]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1871]: ":"
+                  - text: 8:16
+                - paragraph [ref=e1872]:
+                  - generic [ref=e1873]:
+                    - text: "\"When I applied mine heart to know"
+                    - mark [ref=e1874]: wisdom
+                    - text: ", and to see the business that is done upon the earth: (for also"
+                    - emphasis [ref=e1875]: there
+                    - emphasis [ref=e1876]: is
+                    - emphasis [ref=e1877]: that
+                    - text: neither day nor night seeth sleep with his eyes:)"
+              - generic [ref=e1879] [cursor=pointer]:
+                - paragraph [ref=e1880]:
+                  - generic [ref=e1881]: •
+                  - generic [ref=e1884]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1885]: ":"
+                  - text: 9:10
+                - paragraph [ref=e1886]:
+                  - generic [ref=e1887]:
+                    - text: "\"Whatsoever thy hand findeth to do, do"
+                    - emphasis [ref=e1888]: it
+                    - text: with thy might; for
+                    - emphasis [ref=e1889]: there
+                    - emphasis [ref=e1890]: is
+                    - text: no work, nor device, nor knowledge, nor
+                    - mark [ref=e1891]: wisdom
+                    - text: ", in the grave, whither thou goest.\""
+              - generic [ref=e1893] [cursor=pointer]:
+                - paragraph [ref=e1894]:
+                  - generic [ref=e1895]: •
+                  - generic [ref=e1898]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1899]: ":"
+                  - text: 9:13
+                - paragraph [ref=e1900]:
+                  - generic [ref=e1901]:
+                    - text: "\"This"
+                    - mark [ref=e1902]: wisdom
+                    - text: have I seen also under the sun, and it
+                    - emphasis [ref=e1903]: seemed
+                    - text: great unto me:"
+              - generic [ref=e1905] [cursor=pointer]:
+                - paragraph [ref=e1906]:
+                  - generic [ref=e1907]: •
+                  - generic [ref=e1910]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1911]: ":"
+                  - text: 9:15
+                - paragraph [ref=e1912]:
+                  - generic [ref=e1913]:
+                    - text: "\"Now there was found in it a poor wise man, and he by his"
+                    - mark [ref=e1914]: wisdom
+                    - text: delivered the city; yet no man remembered that same poor man."
+              - generic [ref=e1916] [cursor=pointer]:
+                - paragraph [ref=e1917]:
+                  - generic [ref=e1918]: •
+                  - generic [ref=e1921]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1922]: ":"
+                  - text: 9:16
+                - paragraph [ref=e1923]:
+                  - generic [ref=e1924]:
+                    - text: "\"Then said I,"
+                    - mark [ref=e1925]: Wisdom
+                    - emphasis [ref=e1926]: is
+                    - text: "better than strength: nevertheless the poor man's"
+                    - mark [ref=e1927]: wisdom
+                    - emphasis [ref=e1928]: is
+                    - text: despised, and his words are not heard."
+              - generic [ref=e1930] [cursor=pointer]:
+                - paragraph [ref=e1931]:
+                  - generic [ref=e1932]: •
+                  - generic [ref=e1935]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1936]: ":"
+                  - text: 9:18
+                - paragraph [ref=e1937]:
+                  - generic [ref=e1938]:
+                    - text: "\""
+                    - mark [ref=e1939]: Wisdom
+                    - emphasis [ref=e1940]: is
+                    - text: "better than weapons of war: but one sinner destroyeth much good.\""
+              - generic [ref=e1942] [cursor=pointer]:
+                - paragraph [ref=e1943]:
+                  - generic [ref=e1944]: •
+                  - generic [ref=e1947]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1948]: ":"
+                  - text: 10:1
+                - paragraph [ref=e1949]:
+                  - generic [ref=e1950]:
+                    - text: "\"DEAD flies cause the ointment of the apothecary to send forth a stinking savour:"
+                    - emphasis [ref=e1951]: so
+                    - emphasis [ref=e1952]: doth
+                    - text: a little folly him that is in reputation for
+                    - mark [ref=e1953]: wisdom
+                    - emphasis [ref=e1954]: and
+                    - text: honour."
+              - generic [ref=e1956] [cursor=pointer]:
+                - paragraph [ref=e1957]:
+                  - generic [ref=e1958]: •
+                  - generic [ref=e1961]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1962]: ":"
+                  - text: 10:3
+                - paragraph [ref=e1963]:
+                  - generic [ref=e1964]:
+                    - text: "\"Yea also, when he that is a fool walketh by the way, his"
+                    - mark [ref=e1965]: wisdom
+                    - text: faileth
+                    - emphasis [ref=e1966]: him
+                    - text: ", and he saith to every one"
+                    - emphasis [ref=e1967]: that
+                    - text: he
+                    - emphasis [ref=e1968]: is
+                    - text: a fool."
+              - generic [ref=e1970] [cursor=pointer]:
+                - paragraph [ref=e1971]:
+                  - generic [ref=e1972]: •
+                  - generic [ref=e1975]: Ecclesiastes; or, the Preacher
+                  - generic [ref=e1976]: ":"
+                  - text: 10:10
+                - paragraph [ref=e1977]:
+                  - generic [ref=e1978]:
+                    - text: "\"If the iron be blunt, and he do not whet the edge, then must he put to more strength: but"
+                    - mark [ref=e1979]: wisdom
+                    - emphasis [ref=e1980]: is
+                    - text: profitable to direct."
+          - generic [ref=e1981]:
+            - button "Isaiah · 5 verses" [ref=e1982] [cursor=pointer]:
+              - generic [ref=e1985]: Isaiah
+              - generic [ref=e1986]: · 5 verses
+            - generic [ref=e1987]:
+              - generic [ref=e1989] [cursor=pointer]:
+                - paragraph [ref=e1990]:
+                  - generic [ref=e1991]: •
+                  - generic [ref=e1994]: The Book of Isaiah
+                  - generic [ref=e1995]: ":"
+                  - text: 10:13
+                - paragraph [ref=e1996]:
+                  - generic [ref=e1997]:
+                    - text: "\"For he saith, By the strength of my hand I have done"
+                    - emphasis [ref=e1998]: it
+                    - text: ", and by my"
+                    - mark [ref=e1999]: wisdom
+                    - text: "; for I am prudent: and I have removed the bounds of the people, and have robbed their treasures, and I have put down the inhabitants like a valiant"
+                    - emphasis [ref=e2000]: "man:"
+                    - text: "\""
+              - generic [ref=e2002] [cursor=pointer]:
+                - paragraph [ref=e2003]:
+                  - generic [ref=e2004]: •
+                  - generic [ref=e2007]: The Book of Isaiah
+                  - generic [ref=e2008]: ":"
+                  - text: 11:2
+                - paragraph [ref=e2009]:
+                  - generic [ref=e2010]:
+                    - text: "\"And the spirit of the LORD shall rest upon him, the spirit of"
+                    - mark [ref=e2011]: wisdom
+                    - text: and understanding, the spirit of counsel and might, the spirit of knowledge and of the fear of the LORD;"
+              - generic [ref=e2013] [cursor=pointer]:
+                - paragraph [ref=e2014]:
+                  - generic [ref=e2015]: •
+                  - generic [ref=e2018]: The Book of Isaiah
+                  - generic [ref=e2019]: ":"
+                  - text: 29:14
+                - paragraph [ref=e2020]:
+                  - generic [ref=e2021]:
+                    - text: "\"Therefore, behold, I will proceed to do a marvellous work among this people,"
+                    - emphasis [ref=e2022]: even
+                    - text: "a marvellous work and a wonder: for the"
+                    - mark [ref=e2023]: wisdom
+                    - text: of their wise
+                    - emphasis [ref=e2024]: men
+                    - text: shall perish, and the understanding of their prudent
+                    - emphasis [ref=e2025]: men
+                    - text: shall be hid."
+              - generic [ref=e2027] [cursor=pointer]:
+                - paragraph [ref=e2028]:
+                  - generic [ref=e2029]: •
+                  - generic [ref=e2032]: The Book of Isaiah
+                  - generic [ref=e2033]: ":"
+                  - text: 33:6
+                - paragraph [ref=e2034]:
+                  - generic [ref=e2035]:
+                    - text: "\"And"
+                    - mark [ref=e2036]: wisdom
+                    - text: and knowledge shall be the stability of thy times,
+                    - emphasis [ref=e2037]: and
+                    - text: "strength of salvation: the fear of the LORD"
+                    - emphasis [ref=e2038]: is
+                    - text: his treasure."
+              - generic [ref=e2040] [cursor=pointer]:
+                - paragraph [ref=e2041]:
+                  - generic [ref=e2042]: •
+                  - generic [ref=e2045]: The Book of Isaiah
+                  - generic [ref=e2046]: ":"
+                  - text: 47:10
+                - paragraph [ref=e2047]:
+                  - generic [ref=e2048]:
+                    - text: "\"For thou hast trusted in thy wickedness: thou hast said, None seeth me. Thy"
+                    - mark [ref=e2049]: wisdom
+                    - text: and thy knowledge, it hath perverted thee; and thou hast said in thine heart, I
+                    - emphasis [ref=e2050]: am
+                    - text: ", and none else beside me.\""
+          - generic [ref=e2051]:
+            - button "Jeremiah · 5 verses · 6 occurrences" [ref=e2052] [cursor=pointer]:
+              - generic [ref=e2055]: Jeremiah
+              - generic [ref=e2056]: · 5 verses · 6 occurrences
+            - generic [ref=e2057]:
+              - generic [ref=e2059] [cursor=pointer]:
+                - paragraph [ref=e2060]:
+                  - generic [ref=e2061]: •
+                  - generic [ref=e2064]: The Book of Jeremiah
+                  - generic [ref=e2065]: ":"
+                  - text: 8:9
+                - paragraph [ref=e2066]:
+                  - generic [ref=e2067]:
+                    - text: "\"The wise"
+                    - emphasis [ref=e2068]: men
+                    - text: "are ashamed, they are dismayed and taken: lo, they have rejected the word of the LORD; and what"
+                    - mark [ref=e2069]: wisdom
+                    - emphasis [ref=e2070]: is
+                    - text: in them?"
+              - generic [ref=e2072] [cursor=pointer]:
+                - paragraph [ref=e2073]:
+                  - generic [ref=e2074]: •
+                  - generic [ref=e2077]: The Book of Jeremiah
+                  - generic [ref=e2078]: ":"
+                  - text: 9:23
+                - paragraph [ref=e2079]:
+                  - generic [ref=e2080]:
+                    - text: "\"Thus saith the LORD, Let not the wise"
+                    - emphasis [ref=e2081]: man
+                    - text: glory in his
+                    - mark [ref=e2082]: wisdom
+                    - text: ", neither let the mighty"
+                    - emphasis [ref=e2083]: man
+                    - text: glory in his might, let not the rich
+                    - emphasis [ref=e2084]: man
+                    - text: glory in his riches:"
+              - generic [ref=e2086] [cursor=pointer]:
+                - paragraph [ref=e2087]:
+                  - generic [ref=e2088]: •
+                  - generic [ref=e2091]: The Book of Jeremiah
+                  - generic [ref=e2092]: ":"
+                  - text: 10:12
+                - paragraph [ref=e2093]:
+                  - generic [ref=e2094]:
+                    - text: "\"He hath made the earth by his power, he hath established the world by his"
+                    - mark [ref=e2095]: wisdom
+                    - text: ", and hath stretched out the heavens by his discretion.\""
+              - generic [ref=e2097] [cursor=pointer]:
+                - paragraph [ref=e2098]:
+                  - generic [ref=e2099]: •
+                  - generic [ref=e2102]: The Book of Jeremiah
+                  - generic [ref=e2103]: ":"
+                  - text: 49:7
+                - paragraph [ref=e2104]:
+                  - generic [ref=e2105]:
+                    - text: "\"Concerning Edom, thus saith the LORD of hosts;"
+                    - emphasis [ref=e2106]: Is
+                    - mark [ref=e2107]: wisdom
+                    - text: no more in Teman? is counsel perished from the prudent? is their
+                    - mark [ref=e2108]: wisdom
+                    - text: vanished?"
+              - generic [ref=e2110] [cursor=pointer]:
+                - paragraph [ref=e2111]:
+                  - generic [ref=e2112]: •
+                  - generic [ref=e2115]: The Book of Jeremiah
+                  - generic [ref=e2116]: ":"
+                  - text: 51:15
+                - paragraph [ref=e2117]:
+                  - generic [ref=e2118]:
+                    - text: "\"He hath made the earth by his power, he hath established the world by his"
+                    - mark [ref=e2119]: wisdom
+                    - text: ", and hath stretched out the heaven by his understanding.\""
+          - generic [ref=e2120]:
+            - button "Ezekiel · 5 verses" [ref=e2121] [cursor=pointer]:
+              - generic [ref=e2124]: Ezekiel
+              - generic [ref=e2125]: · 5 verses
+            - generic [ref=e2126]:
+              - generic [ref=e2128] [cursor=pointer]:
+                - paragraph [ref=e2129]:
+                  - generic [ref=e2130]: •
+                  - generic [ref=e2133]: The Book of Ezekiel
+                  - generic [ref=e2134]: ":"
+                  - text: 28:4
+                - paragraph [ref=e2135]:
+                  - generic [ref=e2136]:
+                    - text: "\"With thy"
+                    - mark [ref=e2137]: wisdom
+                    - text: and with thine understanding thou hast gotten thee riches, and hast gotten gold and silver into thy treasures:"
+              - generic [ref=e2139] [cursor=pointer]:
+                - paragraph [ref=e2140]:
+                  - generic [ref=e2141]: •
+                  - generic [ref=e2144]: The Book of Ezekiel
+                  - generic [ref=e2145]: ":"
+                  - text: 28:5
+                - paragraph [ref=e2146]:
+                  - generic [ref=e2147]:
+                    - text: "\"By thy great"
+                    - mark [ref=e2148]: wisdom
+                    - emphasis [ref=e2149]: and
+                    - text: by thy traffick hast thou increased thy riches, and thine heart is lifted up because of thy riches:"
+              - generic [ref=e2151] [cursor=pointer]:
+                - paragraph [ref=e2152]:
+                  - generic [ref=e2153]: •
+                  - generic [ref=e2156]: The Book of Ezekiel
+                  - generic [ref=e2157]: ":"
+                  - text: 28:7
+                - paragraph [ref=e2158]:
+                  - generic [ref=e2159]:
+                    - text: "\"Behold, therefore I will bring strangers upon thee, the terrible of the nations: and they shall draw their swords against the beauty of thy"
+                    - mark [ref=e2160]: wisdom
+                    - text: ", and they shall defile thy brightness.\""
+              - generic [ref=e2162] [cursor=pointer]:
+                - paragraph [ref=e2163]:
+                  - generic [ref=e2164]: •
+                  - generic [ref=e2167]: The Book of Ezekiel
+                  - generic [ref=e2168]: ":"
+                  - text: 28:12
+                - paragraph [ref=e2169]:
+                  - generic [ref=e2170]:
+                    - text: "\"Son of man, take up a lamentation upon the king of Tyrus, and say unto him, Thus saith the Lord GOD; Thou sealest up the sum, full of"
+                    - mark [ref=e2171]: wisdom
+                    - text: ", and perfect in beauty.\""
+              - generic [ref=e2173] [cursor=pointer]:
+                - paragraph [ref=e2174]:
+                  - generic [ref=e2175]: •
+                  - generic [ref=e2178]: The Book of Ezekiel
+                  - generic [ref=e2179]: ":"
+                  - text: 28:17
+                - paragraph [ref=e2180]:
+                  - generic [ref=e2181]:
+                    - text: "\"Thine heart was lifted up because of thy beauty, thou hast corrupted thy"
+                    - mark [ref=e2182]: wisdom
+                    - text: "by reason of thy brightness: I will cast thee to the ground, I will lay thee before kings, that they may behold thee.\""
+          - generic [ref=e2183]:
+            - button "Daniel · 10 verses · 11 occurrences" [ref=e2184] [cursor=pointer]:
+              - generic [ref=e2187]: Daniel
+              - generic [ref=e2188]: · 10 verses · 11 occurrences
+            - generic [ref=e2189]:
+              - generic [ref=e2191] [cursor=pointer]:
+                - paragraph [ref=e2192]:
+                  - generic [ref=e2193]: •
+                  - generic [ref=e2196]: The Book of Daniel
+                  - generic [ref=e2197]: ":"
+                  - text: 1:4
+                - paragraph [ref=e2198]:
+                  - generic [ref=e2199]:
+                    - text: "\"Children in whom"
+                    - emphasis [ref=e2200]: was
+                    - text: no blemish, but well favoured, and skilful in all
+                    - mark [ref=e2201]: wisdom
+                    - text: ", and cunning in knowledge, and understanding science, and such as"
+                    - emphasis [ref=e2202]: had
+                    - text: ability in them to stand in the king's palace, and whom they might teach the learning and the tongue of the Chaldeans."
+              - generic [ref=e2204] [cursor=pointer]:
+                - paragraph [ref=e2205]:
+                  - generic [ref=e2206]: •
+                  - generic [ref=e2209]: The Book of Daniel
+                  - generic [ref=e2210]: ":"
+                  - text: 1:17
+                - paragraph [ref=e2211]:
+                  - generic [ref=e2212]:
+                    - text: "\"As for these four children, God gave them knowledge and skill in all learning and"
+                    - mark [ref=e2213]: wisdom
+                    - text: ": and Daniel had understanding in all visions and dreams.\""
+              - generic [ref=e2215] [cursor=pointer]:
+                - paragraph [ref=e2216]:
+                  - generic [ref=e2217]: •
+                  - generic [ref=e2220]: The Book of Daniel
+                  - generic [ref=e2221]: ":"
+                  - text: 1:20
+                - paragraph [ref=e2222]:
+                  - generic [ref=e2223]:
+                    - text: "\"And in all matters of"
+                    - mark [ref=e2224]: wisdom
+                    - emphasis [ref=e2225]: and
+                    - text: understanding, that the king inquired of them, he found them ten times better than all the magicians
+                    - emphasis [ref=e2226]: and
+                    - text: astrologers that
+                    - emphasis [ref=e2227]: were
+                    - text: in all his realm."
+              - generic [ref=e2229] [cursor=pointer]:
+                - paragraph [ref=e2230]:
+                  - generic [ref=e2231]: •
+                  - generic [ref=e2234]: The Book of Daniel
+                  - generic [ref=e2235]: ":"
+                  - text: 2:14
+                - paragraph [ref=e2236]:
+                  - generic [ref=e2237]:
+                    - text: "\"Then Daniel answered with counsel and"
+                    - mark [ref=e2238]: wisdom
+                    - text: to Arioch the captain of the king's guard, which was gone forth to slay the wise
+                    - emphasis [ref=e2239]: men
+                    - text: of Babylon:"
+              - generic [ref=e2241] [cursor=pointer]:
+                - paragraph [ref=e2242]:
+                  - generic [ref=e2243]: •
+                  - generic [ref=e2246]: The Book of Daniel
+                  - generic [ref=e2247]: ":"
+                  - text: 2:20
+                - paragraph [ref=e2248]:
+                  - generic [ref=e2249]:
+                    - text: "\"Daniel answered and said, Blessed be the name of God for ever and ever: for"
+                    - mark [ref=e2250]: wisdom
+                    - text: and might are his:"
+              - generic [ref=e2252] [cursor=pointer]:
+                - paragraph [ref=e2253]:
+                  - generic [ref=e2254]: •
+                  - generic [ref=e2257]: The Book of Daniel
+                  - generic [ref=e2258]: ":"
+                  - text: 2:21
+                - paragraph [ref=e2259]:
+                  - generic [ref=e2260]:
+                    - text: "\"And he changeth the times and the seasons: he removeth kings, and setteth up kings: he giveth"
+                    - mark [ref=e2261]: wisdom
+                    - text: unto the wise, and knowledge to them that know understanding:"
+              - generic [ref=e2263] [cursor=pointer]:
+                - paragraph [ref=e2264]:
+                  - generic [ref=e2265]: •
+                  - generic [ref=e2268]: The Book of Daniel
+                  - generic [ref=e2269]: ":"
+                  - text: 2:23
+                - paragraph [ref=e2270]:
+                  - generic [ref=e2271]:
+                    - text: "\"I thank thee, and praise thee, O thou God of my fathers, who hast given me"
+                    - mark [ref=e2272]: wisdom
+                    - text: "and might, and hast made known unto me now what we desired of thee: for thou hast"
+                    - emphasis [ref=e2273]: now
+                    - text: made known unto us the king's matter."
+              - generic [ref=e2275] [cursor=pointer]:
+                - paragraph [ref=e2276]:
+                  - generic [ref=e2277]: •
+                  - generic [ref=e2280]: The Book of Daniel
+                  - generic [ref=e2281]: ":"
+                  - text: 2:30
+                - paragraph [ref=e2282]:
+                  - generic [ref=e2283]:
+                    - text: "\"But as for me, this secret is not revealed to me for"
+                    - emphasis [ref=e2284]: any
+                    - mark [ref=e2285]: wisdom
+                    - text: that I have more than any living, but for
+                    - emphasis [ref=e2286]: their
+                    - text: sakes that shall make known the interpretation to the king, and that thou mightest know the thoughts of thy heart."
+              - generic [ref=e2288] [cursor=pointer]:
+                - paragraph [ref=e2289]:
+                  - generic [ref=e2290]: •
+                  - generic [ref=e2293]: The Book of Daniel
+                  - generic [ref=e2294]: ":"
+                  - text: 5:11
+                - paragraph [ref=e2295]:
+                  - generic [ref=e2296]:
+                    - text: "\"There is a man in thy kingdom, in whom"
+                    - emphasis [ref=e2297]: is
+                    - text: the spirit of the holy gods; and in the days of thy father light and understanding and
+                    - mark [ref=e2298]: wisdom
+                    - text: ", like the"
+                    - mark [ref=e2299]: wisdom
+                    - text: of the gods, was found in him; whom the king Nebuchadnezzar thy father, the king,
+                    - emphasis [ref=e2300]: I
+                    - emphasis [ref=e2301]: say
+                    - text: ", thy father, made master of the magicians, astrologers, Chaldeans,"
+                    - emphasis [ref=e2302]: and
+                    - text: soothsayers;"
+              - generic [ref=e2304] [cursor=pointer]:
+                - paragraph [ref=e2305]:
+                  - generic [ref=e2306]: •
+                  - generic [ref=e2309]: The Book of Daniel
+                  - generic [ref=e2310]: ":"
+                  - text: 5:14
+                - paragraph [ref=e2311]:
+                  - generic [ref=e2312]:
+                    - text: "\"I have even heard of thee, that the spirit of the gods"
+                    - emphasis [ref=e2313]: is
+                    - text: in thee, and
+                    - emphasis [ref=e2314]: that
+                    - text: light and understanding and excellent
+                    - mark [ref=e2315]: wisdom
+                    - text: is found in thee."
+          - generic [ref=e2316]:
+            - button "Micah · 1 verse" [ref=e2317] [cursor=pointer]:
+              - generic [ref=e2320]: Micah
+              - generic [ref=e2321]: · 1 verse
+            - generic [ref=e2324] [cursor=pointer]:
+              - paragraph [ref=e2325]:
+                - generic [ref=e2326]: •
+                - generic [ref=e2329]: The Book of Micah
+                - generic [ref=e2330]: ":"
+                - text: 6:9
+              - paragraph [ref=e2331]:
+                - generic [ref=e2332]:
+                  - text: "\"The LORD's voice crieth unto the city, and"
+                  - emphasis [ref=e2333]: the
+                  - emphasis [ref=e2334]: man
+                  - emphasis [ref=e2335]: of
+                  - mark [ref=e2336]: wisdom
+                  - text: "shall see thy name: hear ye the rod, and who hath appointed it.\""
+          - generic [ref=e2337]:
+            - button "New Testament [50 verses, 53 occurrences]" [ref=e2338] [cursor=pointer]:
+              - text: New Testament
+              - generic [ref=e2341]: "[50 verses, 53 occurrences]"
+            - button "Jump to OT" [ref=e2342] [cursor=pointer]
+          - generic [ref=e2345]:
+            - button "Matthew · 3 verses" [ref=e2346] [cursor=pointer]:
+              - generic [ref=e2349]: Matthew
+              - generic [ref=e2350]: · 3 verses
+            - generic [ref=e2351]:
+              - generic [ref=e2353] [cursor=pointer]:
+                - paragraph [ref=e2354]:
+                  - generic [ref=e2355]: •
+                  - generic [ref=e2358]: The Gospel According to Saint Matthew
+                  - generic [ref=e2359]: ":"
+                  - text: 11:19
+                - paragraph [ref=e2360]:
+                  - generic [ref=e2361]:
+                    - text: "\"The Son of man came eating and drinking, and they say, Behold a man gluttonous, and a winebibber, a friend of publicans and sinners. But"
+                    - mark [ref=e2362]: wisdom
+                    - text: is justified of her children."
+              - generic [ref=e2364] [cursor=pointer]:
+                - paragraph [ref=e2365]:
+                  - generic [ref=e2366]: •
+                  - generic [ref=e2369]: The Gospel According to Saint Matthew
+                  - generic [ref=e2370]: ":"
+                  - text: 12:42
+                - paragraph [ref=e2371]:
+                  - generic [ref=e2372]:
+                    - text: "\"The queen of the south shall rise up in the judgment with this generation, and shall condemn it: for she came from the uttermost parts of the earth to hear the"
+                    - mark [ref=e2373]: wisdom
+                    - text: of Solomon; and, behold, a greater than Solomon
+                    - emphasis [ref=e2374]: is
+                    - text: here."
+              - generic [ref=e2376] [cursor=pointer]:
+                - paragraph [ref=e2377]:
+                  - generic [ref=e2378]: •
+                  - generic [ref=e2381]: The Gospel According to Saint Matthew
+                  - generic [ref=e2382]: ":"
+                  - text: 13:54
+                - paragraph [ref=e2383]:
+                  - generic [ref=e2384]:
+                    - text: "\"And when he was come into his own country, he taught them in their synagogue, insomuch that they were astonished, and said, Whence hath this"
+                    - emphasis [ref=e2385]: man
+                    - text: this
+                    - mark [ref=e2386]: wisdom
+                    - text: ", and"
+                    - emphasis [ref=e2387]: these
+                    - text: mighty works?"
+          - generic [ref=e2388]:
+            - button "Mark · 1 verse" [ref=e2389] [cursor=pointer]:
+              - generic [ref=e2392]: Mark
+              - generic [ref=e2393]: · 1 verse
+            - generic [ref=e2396] [cursor=pointer]:
+              - paragraph [ref=e2397]:
+                - generic [ref=e2398]: •
+                - generic [ref=e2401]: The Gospel According to Saint Mark
+                - generic [ref=e2402]: ":"
+                - text: 6:2
+              - paragraph [ref=e2403]:
+                - generic [ref=e2404]:
+                  - text: "\"And when the sabbath day was come, he began to teach in the synagogue: and many hearing"
+                  - emphasis [ref=e2405]: him
+                  - text: were astonished, saying, From whence hath this
+                  - emphasis [ref=e2406]: man
+                  - text: these things? and what
+                  - mark [ref=e2407]: wisdom
+                  - emphasis [ref=e2408]: is
+                  - text: this which is given unto him, that even such mighty works are wrought by his hands?"
+          - generic [ref=e2409]:
+            - button "Luke · 7 verses" [ref=e2410] [cursor=pointer]:
+              - generic [ref=e2413]: Luke
+              - generic [ref=e2414]: · 7 verses
+            - generic [ref=e2415]:
+              - generic [ref=e2417] [cursor=pointer]:
+                - paragraph [ref=e2418]:
+                  - generic [ref=e2419]: •
+                  - generic [ref=e2422]: The Gospel According to Saint Luke
+                  - generic [ref=e2423]: ":"
+                  - text: 1:17
+                - paragraph [ref=e2424]:
+                  - generic [ref=e2425]:
+                    - text: "\"And he shall go before him in the spirit and power of Elias, to turn the hearts of the fathers to the children, and the disobedient to the"
+                    - mark [ref=e2426]: wisdom
+                    - text: of the just; to make ready a people prepared for the Lord."
+              - generic [ref=e2428] [cursor=pointer]:
+                - paragraph [ref=e2429]:
+                  - generic [ref=e2430]: •
+                  - generic [ref=e2433]: The Gospel According to Saint Luke
+                  - generic [ref=e2434]: ":"
+                  - text: 2:40
+                - paragraph [ref=e2435]:
+                  - generic [ref=e2436]:
+                    - text: "\"And the child grew, and waxed strong in spirit, filled with"
+                    - mark [ref=e2437]: wisdom
+                    - text: ": and the grace of God was upon him.\""
+              - generic [ref=e2439] [cursor=pointer]:
+                - paragraph [ref=e2440]:
+                  - generic [ref=e2441]: •
+                  - generic [ref=e2444]: The Gospel According to Saint Luke
+                  - generic [ref=e2445]: ":"
+                  - text: 2:52
+                - paragraph [ref=e2446]:
+                  - generic [ref=e2447]:
+                    - text: "\"And Jesus increased in"
+                    - mark [ref=e2448]: wisdom
+                    - text: and stature, and in favour with God and man."
+              - generic [ref=e2450] [cursor=pointer]:
+                - paragraph [ref=e2451]:
+                  - generic [ref=e2452]: •
+                  - generic [ref=e2455]: The Gospel According to Saint Luke
+                  - generic [ref=e2456]: ":"
+                  - text: 7:35
+                - paragraph [ref=e2457]:
+                  - generic [ref=e2458]:
+                    - text: "\"But"
+                    - mark [ref=e2459]: wisdom
+                    - text: is justified of all her children."
+              - generic [ref=e2461] [cursor=pointer]:
+                - paragraph [ref=e2462]:
+                  - generic [ref=e2463]: •
+                  - generic [ref=e2466]: The Gospel According to Saint Luke
+                  - generic [ref=e2467]: ":"
+                  - text: 11:31
+                - paragraph [ref=e2468]:
+                  - generic [ref=e2469]:
+                    - text: "\"The queen of the south shall rise up in the judgment with the men of this generation, and condemn them: for she came from the utmost parts of the earth to hear the"
+                    - mark [ref=e2470]: wisdom
+                    - text: of Solomon; and, behold, a greater than Solomon
+                    - emphasis [ref=e2471]: is
+                    - text: here."
+              - generic [ref=e2473] [cursor=pointer]:
+                - paragraph [ref=e2474]:
+                  - generic [ref=e2475]: •
+                  - generic [ref=e2478]: The Gospel According to Saint Luke
+                  - generic [ref=e2479]: ":"
+                  - text: 11:49
+                - paragraph [ref=e2480]:
+                  - generic [ref=e2481]:
+                    - text: "\"Therefore also said the"
+                    - mark [ref=e2482]: wisdom
+                    - text: of God, I will send them prophets and apostles, and
+                    - emphasis [ref=e2483]: some
+                    - text: of them they shall slay and persecute:"
+              - generic [ref=e2485] [cursor=pointer]:
+                - paragraph [ref=e2486]:
+                  - generic [ref=e2487]: •
+                  - generic [ref=e2490]: The Gospel According to Saint Luke
+                  - generic [ref=e2491]: ":"
+                  - text: 21:15
+                - paragraph [ref=e2492]:
+                  - generic [ref=e2493]:
+                    - text: "\"For I will give you a mouth and"
+                    - mark [ref=e2494]: wisdom
+                    - text: ", which all your adversaries shall not be able to gainsay nor resist.\""
+          - generic [ref=e2495]:
+            - button "Acts · 4 verses" [ref=e2496] [cursor=pointer]:
+              - generic [ref=e2499]: Acts
+              - generic [ref=e2500]: · 4 verses
+            - generic [ref=e2501]:
+              - generic [ref=e2503] [cursor=pointer]:
+                - paragraph [ref=e2504]:
+                  - generic [ref=e2505]: •
+                  - generic [ref=e2508]: The Acts of the Apostles
+                  - generic [ref=e2509]: ":"
+                  - text: 6:3
+                - paragraph [ref=e2510]:
+                  - generic [ref=e2511]:
+                    - text: "\"Wherefore, brethren, look ye out among you seven men of honest report, full of the Holy Ghost and"
+                    - mark [ref=e2512]: wisdom
+                    - text: ", whom we may appoint over this business.\""
+              - generic [ref=e2514] [cursor=pointer]:
+                - paragraph [ref=e2515]:
+                  - generic [ref=e2516]: •
+                  - generic [ref=e2519]: The Acts of the Apostles
+                  - generic [ref=e2520]: ":"
+                  - text: 6:10
+                - paragraph [ref=e2521]:
+                  - generic [ref=e2522]:
+                    - text: "\"And they were not able to resist the"
+                    - mark [ref=e2523]: wisdom
+                    - text: and the spirit by which he spake."
+              - generic [ref=e2525] [cursor=pointer]:
+                - paragraph [ref=e2526]:
+                  - generic [ref=e2527]: •
+                  - generic [ref=e2530]: The Acts of the Apostles
+                  - generic [ref=e2531]: ":"
+                  - text: 7:10
+                - paragraph [ref=e2532]:
+                  - generic [ref=e2533]:
+                    - text: "\"And delivered him out of all his afflictions, and gave him favour and"
+                    - mark [ref=e2534]: wisdom
+                    - text: in the sight of Pharaoh king of Egypt; and he made him governor over Egypt and all his house."
+              - generic [ref=e2536] [cursor=pointer]:
+                - paragraph [ref=e2537]:
+                  - generic [ref=e2538]: •
+                  - generic [ref=e2541]: The Acts of the Apostles
+                  - generic [ref=e2542]: ":"
+                  - text: 7:22
+                - paragraph [ref=e2543]:
+                  - generic [ref=e2544]:
+                    - text: "\"And Moses was learned in all the"
+                    - mark [ref=e2545]: wisdom
+                    - text: of the Egyptians, and was mighty in words and in deeds."
+          - generic [ref=e2546]:
+            - button "Romans · 1 verse" [ref=e2547] [cursor=pointer]:
+              - generic [ref=e2550]: Romans
+              - generic [ref=e2551]: · 1 verse
+            - generic [ref=e2554] [cursor=pointer]:
+              - paragraph [ref=e2555]:
+                - generic [ref=e2556]: •
+                - generic [ref=e2559]: The Epistle of Paul the Apostle to the Romans
+                - generic [ref=e2560]: ":"
+                - text: 11:33
+              - paragraph [ref=e2561]:
+                - generic [ref=e2562]:
+                  - text: "\"O the depth of the riches both of the"
+                  - mark [ref=e2563]: wisdom
+                  - text: and knowledge of God! how unsearchable
+                  - emphasis [ref=e2564]: are
+                  - text: his judgments, and his ways past finding out!"
+          - generic [ref=e2565]:
+            - button "1 Corinthians · 15 verses · 18 occurrences" [ref=e2566] [cursor=pointer]:
+              - generic [ref=e2569]: 1 Corinthians
+              - generic [ref=e2570]: · 15 verses · 18 occurrences
+            - generic [ref=e2571]:
+              - generic [ref=e2573] [cursor=pointer]:
+                - paragraph [ref=e2574]:
+                  - generic [ref=e2575]: •
+                  - generic [ref=e2578]: The First Epistle of Paul the Apostle to the Corinthians
+                  - generic [ref=e2579]: ":"
+                  - text: 1:17
+                - paragraph [ref=e2580]:
+                  - generic [ref=e2581]:
+                    - text: "\"For Christ sent me not to baptize, but to preach the gospel: not with"
+                    - mark [ref=e2582]: wisdom
+                    - text: of words, lest the cross of Christ should be made of none effect."
+              - generic [ref=e2584] [cursor=pointer]:
+                - paragraph [ref=e2585]:
+                  - generic [ref=e2586]: •
+                  - generic [ref=e2589]: The First Epistle of Paul the Apostle to the Corinthians
+                  - generic [ref=e2590]: ":"
+                  - text: 1:19
+                - paragraph [ref=e2591]:
+                  - generic [ref=e2592]:
+                    - text: "\"For it is written, I will destroy the"
+                    - mark [ref=e2593]: wisdom
+                    - text: of the wise, and will bring to nothing the understanding of the prudent."
+              - generic [ref=e2595] [cursor=pointer]:
+                - paragraph [ref=e2596]:
+                  - generic [ref=e2597]: •
+                  - generic [ref=e2600]: The First Epistle of Paul the Apostle to the Corinthians
+                  - generic [ref=e2601]: ":"
+                  - text: 1:20
+                - paragraph [ref=e2602]:
+                  - generic [ref=e2603]:
+                    - text: "\"Where"
+                    - emphasis [ref=e2604]: is
+                    - text: the wise? where
+                    - emphasis [ref=e2605]: is
+                    - text: the scribe? where
+                    - emphasis [ref=e2606]: is
+                    - text: the disputer of this world? hath not God made foolish the
+                    - mark [ref=e2607]: wisdom
+                    - text: of this world?"
+              - generic [ref=e2609] [cursor=pointer]:
+                - paragraph [ref=e2610]:
+                  - generic [ref=e2611]: •
+                  - generic [ref=e2614]: The First Epistle of Paul the Apostle to the Corinthians
+                  - generic [ref=e2615]: ":"
+                  - text: 1:21
+                - paragraph [ref=e2616]:
+                  - generic [ref=e2617]:
+                    - text: "\"For after that in the"
+                    - mark [ref=e2618]: wisdom
+                    - text: of God the world by
+                    - mark [ref=e2619]: wisdom
+                    - text: knew not God, it pleased God by the foolishness of preaching to save them that believe."
+              - generic [ref=e2621] [cursor=pointer]:
+                - paragraph [ref=e2622]:
+                  - generic [ref=e2623]: •
+                  - generic [ref=e2626]: The First Epistle of Paul the Apostle to the Corinthians
+                  - generic [ref=e2627]: ":"
+                  - text: 1:22
+                - paragraph [ref=e2628]:
+                  - generic [ref=e2629]:
+                    - text: "\"For the Jews require a sign, and the Greeks seek after"
+                    - mark [ref=e2630]: wisdom
+                    - text: :"
+              - generic [ref=e2632] [cursor=pointer]:
+                - paragraph [ref=e2633]:
+                  - generic [ref=e2634]: •
+                  - generic [ref=e2637]: The First Epistle of Paul the Apostle to the Corinthians
+                  - generic [ref=e2638]: ":"
+                  - text: 1:24
+                - paragraph [ref=e2639]:
+                  - generic [ref=e2640]:
+                    - text: "\"But unto them which are called, both Jews and Greeks, Christ the power of God, and the"
+                    - mark [ref=e2641]: wisdom
+                    - text: of God."
+              - generic [ref=e2643] [cursor=pointer]:
+                - paragraph [ref=e2644]:
+                  - generic [ref=e2645]: •
+                  - generic [ref=e2648]: The First Epistle of Paul the Apostle to the Corinthians
+                  - generic [ref=e2649]: ":"
+                  - text: 1:30
+                - paragraph [ref=e2650]:
+                  - generic [ref=e2651]:
+                    - text: "\"But of him are ye in Christ Jesus, who of God is made unto us"
+                    - mark [ref=e2652]: wisdom
+                    - text: ", and righteousness, and sanctification, and redemption:\""
+              - generic [ref=e2654] [cursor=pointer]:
+                - paragraph [ref=e2655]:
+                  - generic [ref=e2656]: •
+                  - generic [ref=e2659]: The First Epistle of Paul the Apostle to the Corinthians
+                  - generic [ref=e2660]: ":"
+                  - text: 2:1
+                - paragraph [ref=e2661]:
+                  - generic [ref=e2662]:
+                    - text: "\"AND I, brethren, when I came to you, came not with excellency of speech or of"
+                    - mark [ref=e2663]: wisdom
+                    - text: ", declaring unto you the testimony of God.\""
+              - generic [ref=e2665] [cursor=pointer]:
+                - paragraph [ref=e2666]:
+                  - generic [ref=e2667]: •
+                  - generic [ref=e2670]: The First Epistle of Paul the Apostle to the Corinthians
+                  - generic [ref=e2671]: ":"
+                  - text: 2:4
+                - paragraph [ref=e2672]:
+                  - generic [ref=e2673]:
+                    - text: "\"And my speech and my preaching"
+                    - emphasis [ref=e2674]: was
+                    - text: not with enticing words of man's
+                    - mark [ref=e2675]: wisdom
+                    - text: ", but in demonstration of the Spirit and of power:\""
+              - generic [ref=e2677] [cursor=pointer]:
+                - paragraph [ref=e2678]:
+                  - generic [ref=e2679]: •
+                  - generic [ref=e2682]: The First Epistle of Paul the Apostle to the Corinthians
+                  - generic [ref=e2683]: ":"
+                  - text: 2:5
+                - paragraph [ref=e2684]:
+                  - generic [ref=e2685]:
+                    - text: "\"That your faith should not stand in the"
+                    - mark [ref=e2686]: wisdom
+                    - text: of men, but in the power of God."
+              - generic [ref=e2688] [cursor=pointer]:
+                - paragraph [ref=e2689]:
+                  - generic [ref=e2690]: •
+                  - generic [ref=e2693]: The First Epistle of Paul the Apostle to the Corinthians
+                  - generic [ref=e2694]: ":"
+                  - text: 2:6
+                - paragraph [ref=e2695]:
+                  - generic [ref=e2696]:
+                    - text: "\"Howbeit we speak"
+                    - mark [ref=e2697]: wisdom
+                    - text: "among them that are perfect: yet not the"
+                    - mark [ref=e2698]: wisdom
+                    - text: of this world, nor of the princes of this world, that come to nought:"
+              - generic [ref=e2700] [cursor=pointer]:
+                - paragraph [ref=e2701]:
+                  - generic [ref=e2702]: •
+                  - generic [ref=e2705]: The First Epistle of Paul the Apostle to the Corinthians
+                  - generic [ref=e2706]: ":"
+                  - text: 2:7
+                - paragraph [ref=e2707]:
+                  - generic [ref=e2708]:
+                    - text: "\"But we speak the"
+                    - mark [ref=e2709]: wisdom
+                    - text: of God in a mystery,
+                    - emphasis [ref=e2710]: even
+                    - text: the hidden
+                    - mark [ref=e2711]: wisdom
+                    - text: ", which God ordained before the world unto our glory:\""
+              - generic [ref=e2713] [cursor=pointer]:
+                - paragraph [ref=e2714]:
+                  - generic [ref=e2715]: •
+                  - generic [ref=e2718]: The First Epistle of Paul the Apostle to the Corinthians
+                  - generic [ref=e2719]: ":"
+                  - text: 2:13
+                - paragraph [ref=e2720]:
+                  - generic [ref=e2721]:
+                    - text: "\"Which things also we speak, not in the words which man's"
+                    - mark [ref=e2722]: wisdom
+                    - text: teacheth, but which the Holy Ghost teacheth; comparing spiritual things with spiritual."
+              - generic [ref=e2724] [cursor=pointer]:
+                - paragraph [ref=e2725]:
+                  - generic [ref=e2726]: •
+                  - generic [ref=e2729]: The First Epistle of Paul the Apostle to the Corinthians
+                  - generic [ref=e2730]: ":"
+                  - text: 3:19
+                - paragraph [ref=e2731]:
+                  - generic [ref=e2732]:
+                    - text: "\"For the"
+                    - mark [ref=e2733]: wisdom
+                    - text: of this world is foolishness with God. For it is written, He taketh the wise in their own craftiness."
+              - generic [ref=e2735] [cursor=pointer]:
+                - paragraph [ref=e2736]:
+                  - generic [ref=e2737]: •
+                  - generic [ref=e2740]: The First Epistle of Paul the Apostle to the Corinthians
+                  - generic [ref=e2741]: ":"
+                  - text: 12:8
+                - paragraph [ref=e2742]:
+                  - generic [ref=e2743]:
+                    - text: "\"For to one is given by the Spirit the word of"
+                    - mark [ref=e2744]: wisdom
+                    - text: ; to another the word of knowledge by the same Spirit;"
+          - generic [ref=e2745]:
+            - button "2 Corinthians · 1 verse" [ref=e2746] [cursor=pointer]:
+              - generic [ref=e2749]: 2 Corinthians
+              - generic [ref=e2750]: · 1 verse
+            - generic [ref=e2753] [cursor=pointer]:
+              - paragraph [ref=e2754]:
+                - generic [ref=e2755]: •
+                - generic [ref=e2758]: The Second Epistle of Paul the Apostle to the Corinthians
+                - generic [ref=e2759]: ":"
+                - text: 1:12
+              - paragraph [ref=e2760]:
+                - generic [ref=e2761]:
+                  - text: "\"For our rejoicing is this, the testimony of our conscience, that in simplicity and godly sincerity, not with fleshly"
+                  - mark [ref=e2762]: wisdom
+                  - text: ", but by the grace of God, we have had our conversation in the world, and more abundantly to you-ward.\""
+          - generic [ref=e2763]:
+            - button "Ephesians · 3 verses" [ref=e2764] [cursor=pointer]:
+              - generic [ref=e2767]: Ephesians
+              - generic [ref=e2768]: · 3 verses
+            - generic [ref=e2769]:
+              - generic [ref=e2771] [cursor=pointer]:
+                - paragraph [ref=e2772]:
+                  - generic [ref=e2773]: •
+                  - generic [ref=e2776]: The Epistle of Paul the Apostle to the Ephesians
+                  - generic [ref=e2777]: ":"
+                  - text: 1:8
+                - paragraph [ref=e2778]:
+                  - generic [ref=e2779]:
+                    - text: "\"Wherein he hath abounded toward us in all"
+                    - mark [ref=e2780]: wisdom
+                    - text: and prudence;"
+              - generic [ref=e2782] [cursor=pointer]:
+                - paragraph [ref=e2783]:
+                  - generic [ref=e2784]: •
+                  - generic [ref=e2787]: The Epistle of Paul the Apostle to the Ephesians
+                  - generic [ref=e2788]: ":"
+                  - text: 1:17
+                - paragraph [ref=e2789]:
+                  - generic [ref=e2790]:
+                    - text: "\"That the God of our Lord Jesus Christ, the Father of glory, may give unto you the spirit of"
+                    - mark [ref=e2791]: wisdom
+                    - text: and revelation in the knowledge of him:"
+              - generic [ref=e2793] [cursor=pointer]:
+                - paragraph [ref=e2794]:
+                  - generic [ref=e2795]: •
+                  - generic [ref=e2798]: The Epistle of Paul the Apostle to the Ephesians
+                  - generic [ref=e2799]: ":"
+                  - text: 3:10
+                - paragraph [ref=e2800]:
+                  - generic [ref=e2801]:
+                    - text: "\"To the intent that now unto the principalities and powers in heavenly"
+                    - emphasis [ref=e2802]: places
+                    - text: might be known by the church the manifold
+                    - mark [ref=e2803]: wisdom
+                    - text: of God,"
+          - generic [ref=e2804]:
+            - button "Colossians · 6 verses" [ref=e2805] [cursor=pointer]:
+              - generic [ref=e2808]: Colossians
+              - generic [ref=e2809]: · 6 verses
+            - generic [ref=e2810]:
+              - generic [ref=e2812] [cursor=pointer]:
+                - paragraph [ref=e2813]:
+                  - generic [ref=e2814]: •
+                  - generic [ref=e2817]: The Epistle of Paul the Apostle to the Colossians
+                  - generic [ref=e2818]: ":"
+                  - text: 1:9
+                - paragraph [ref=e2819]:
+                  - generic [ref=e2820]:
+                    - text: "\"For this cause we also, since the day we heard"
+                    - emphasis [ref=e2821]: it
+                    - text: ", do not cease to pray for you, and to desire that ye might be filled with the knowledge of his will in all"
+                    - mark [ref=e2822]: wisdom
+                    - text: and spiritual understanding;"
+              - generic [ref=e2824] [cursor=pointer]:
+                - paragraph [ref=e2825]:
+                  - generic [ref=e2826]: •
+                  - generic [ref=e2829]: The Epistle of Paul the Apostle to the Colossians
+                  - generic [ref=e2830]: ":"
+                  - text: 1:28
+                - paragraph [ref=e2831]:
+                  - generic [ref=e2832]:
+                    - text: "\"Whom we preach, warning every man, and teaching every man in all"
+                    - mark [ref=e2833]: wisdom
+                    - text: ; that we may present every man perfect in Christ Jesus:"
+              - generic [ref=e2835] [cursor=pointer]:
+                - paragraph [ref=e2836]:
+                  - generic [ref=e2837]: •
+                  - generic [ref=e2840]: The Epistle of Paul the Apostle to the Colossians
+                  - generic [ref=e2841]: ":"
+                  - text: 2:3
+                - paragraph [ref=e2842]:
+                  - generic [ref=e2843]:
+                    - text: "\"In whom are hid all the treasures of"
+                    - mark [ref=e2844]: wisdom
+                    - text: and knowledge."
+              - generic [ref=e2846] [cursor=pointer]:
+                - paragraph [ref=e2847]:
+                  - generic [ref=e2848]: •
+                  - generic [ref=e2851]: The Epistle of Paul the Apostle to the Colossians
+                  - generic [ref=e2852]: ":"
+                  - text: 2:23
+                - paragraph [ref=e2853]:
+                  - generic [ref=e2854]:
+                    - text: "\"Which things have indeed a shew of"
+                    - mark [ref=e2855]: wisdom
+                    - text: in will worship, and humility, and neglecting of the body; not in any honour to the satisfying of the flesh."
+              - generic [ref=e2857] [cursor=pointer]:
+                - paragraph [ref=e2858]:
+                  - generic [ref=e2859]: •
+                  - generic [ref=e2862]: The Epistle of Paul the Apostle to the Colossians
+                  - generic [ref=e2863]: ":"
+                  - text: 3:16
+                - paragraph [ref=e2864]:
+                  - generic [ref=e2865]:
+                    - text: "\"Let the word of Christ dwell in you richly in all"
+                    - mark [ref=e2866]: wisdom
+                    - text: ; teaching and admonishing one another in psalms and hymns and spiritual songs, singing with grace in your hearts to the Lord."
+              - generic [ref=e2868] [cursor=pointer]:
+                - paragraph [ref=e2869]:
+                  - generic [ref=e2870]: •
+                  - generic [ref=e2873]: The Epistle of Paul the Apostle to the Colossians
+                  - generic [ref=e2874]: ":"
+                  - text: 4:5
+                - paragraph [ref=e2875]:
+                  - generic [ref=e2876]:
+                    - text: "\"Walk in"
+                    - mark [ref=e2877]: wisdom
+                    - text: toward them that are without, redeeming the time."
+          - generic [ref=e2878]:
+            - button "James · 4 verses" [ref=e2879] [cursor=pointer]:
+              - generic [ref=e2882]: James
+              - generic [ref=e2883]: · 4 verses
+            - generic [ref=e2884]:
+              - generic [ref=e2886] [cursor=pointer]:
+                - paragraph [ref=e2887]:
+                  - generic [ref=e2888]: •
+                  - generic [ref=e2891]: The General Epistle of James
+                  - generic [ref=e2892]: ":"
+                  - text: 1:5
+                - paragraph [ref=e2893]:
+                  - generic [ref=e2894]:
+                    - text: "\"If any of you lack"
+                    - mark [ref=e2895]: wisdom
+                    - text: ", let him ask of God, that giveth to all"
+                    - emphasis [ref=e2896]: men
+                    - text: liberally, and upbraideth not; and it shall be given him."
+              - generic [ref=e2898] [cursor=pointer]:
+                - paragraph [ref=e2899]:
+                  - generic [ref=e2900]: •
+                  - generic [ref=e2903]: The General Epistle of James
+                  - generic [ref=e2904]: ":"
+                  - text: 3:13
+                - paragraph [ref=e2905]:
+                  - generic [ref=e2906]:
+                    - text: "\"Who"
+                    - emphasis [ref=e2907]: is
+                    - text: a wise man and endued with knowledge among you? let him shew out of a good conversation his works with meekness of
+                    - mark [ref=e2908]: wisdom
+                    - text: ."
+              - generic [ref=e2910] [cursor=pointer]:
+                - paragraph [ref=e2911]:
+                  - generic [ref=e2912]: •
+                  - generic [ref=e2915]: The General Epistle of James
+                  - generic [ref=e2916]: ":"
+                  - text: 3:15
+                - paragraph [ref=e2917]:
+                  - generic [ref=e2918]:
+                    - text: "\"This"
+                    - mark [ref=e2919]: wisdom
+                    - text: descendeth not from above, but
+                    - emphasis [ref=e2920]: is
+                    - text: earthly, sensual, devilish."
+              - generic [ref=e2922] [cursor=pointer]:
+                - paragraph [ref=e2923]:
+                  - generic [ref=e2924]: •
+                  - generic [ref=e2927]: The General Epistle of James
+                  - generic [ref=e2928]: ":"
+                  - text: 3:17
+                - paragraph [ref=e2929]:
+                  - generic [ref=e2930]:
+                    - text: "\"But the"
+                    - mark [ref=e2931]: wisdom
+                    - text: that is from above is first pure, then peaceable, gentle,
+                    - emphasis [ref=e2932]: and
+                    - text: easy to be intreated, full of mercy and good fruits, without partiality, and without hypocrisy."
+          - generic [ref=e2933]:
+            - button "2 Peter · 1 verse" [ref=e2934] [cursor=pointer]:
+              - generic [ref=e2937]: 2 Peter
+              - generic [ref=e2938]: · 1 verse
+            - generic [ref=e2941] [cursor=pointer]:
+              - paragraph [ref=e2942]:
+                - generic [ref=e2943]: •
+                - generic [ref=e2946]: The Second Epistle General of Peter
+                - generic [ref=e2947]: ":"
+                - text: 3:15
+              - paragraph [ref=e2948]:
+                - generic [ref=e2949]:
+                  - text: "\"And account"
+                  - emphasis [ref=e2950]: that
+                  - text: the longsuffering of our Lord
+                  - emphasis [ref=e2951]: is
+                  - text: salvation; even as our beloved brother Paul also according to the
+                  - mark [ref=e2952]: wisdom
+                  - text: given unto him hath written unto you;"
+          - generic [ref=e2953]:
+            - button "Revelation · 4 verses" [ref=e2954] [cursor=pointer]:
+              - generic [ref=e2957]: Revelation
+              - generic [ref=e2958]: · 4 verses
+            - generic [ref=e2959]:
+              - generic [ref=e2961] [cursor=pointer]:
+                - paragraph [ref=e2962]:
+                  - generic [ref=e2963]: •
+                  - generic [ref=e2966]: The Revelation of Saint John the Divine
+                  - generic [ref=e2967]: ":"
+                  - text: 5:12
+                - paragraph [ref=e2968]:
+                  - generic [ref=e2969]:
+                    - text: "\"Saying with a loud voice, Worthy is the Lamb that was slain to receive power, and riches, and"
+                    - mark [ref=e2970]: wisdom
+                    - text: ", and strength, and honour, and glory, and blessing.\""
+              - generic [ref=e2972] [cursor=pointer]:
+                - paragraph [ref=e2973]:
+                  - generic [ref=e2974]: •
+                  - generic [ref=e2977]: The Revelation of Saint John the Divine
+                  - generic [ref=e2978]: ":"
+                  - text: 7:12
+                - paragraph [ref=e2979]:
+                  - generic [ref=e2980]:
+                    - text: "\"Saying, Amen: Blessing, and glory, and"
+                    - mark [ref=e2981]: wisdom
+                    - text: ", and thanksgiving, and honour, and power, and might,"
+                    - emphasis [ref=e2982]: be
+                    - text: unto our God for ever and ever. Amen."
+              - generic [ref=e2984] [cursor=pointer]:
+                - paragraph [ref=e2985]:
+                  - generic [ref=e2986]: •
+                  - generic [ref=e2989]: The Revelation of Saint John the Divine
+                  - generic [ref=e2990]: ":"
+                  - text: 13:18
+                - paragraph [ref=e2991]:
+                  - generic [ref=e2992]:
+                    - text: "\"Here is"
+                    - mark [ref=e2993]: wisdom
+                    - text: ". Let him that hath understanding count the number of the beast: for it is the number of a man; and his number"
+                    - emphasis [ref=e2994]: is
+                    - text: Six hundred threescore
+                    - emphasis [ref=e2995]: and
+                    - text: six."
+              - generic [ref=e2997] [cursor=pointer]:
+                - paragraph [ref=e2998]:
+                  - generic [ref=e2999]: •
+                  - generic [ref=e3002]: The Revelation of Saint John the Divine
+                  - generic [ref=e3003]: ":"
+                  - text: 17:9
+                - paragraph [ref=e3004]:
+                  - generic [ref=e3005]:
+                    - text: "\"And here"
+                    - emphasis [ref=e3006]: is
+                    - text: the mind which hath
+                    - mark [ref=e3007]: wisdom
+                    - text: . The seven heads are seven mountains, on which the woman sitteth."
+    - contentinfo [ref=e3008]:
+      - generic [ref=e3009]:
+        - button [ref=e3011] [cursor=pointer]
+        - generic [ref=e3014]:
+          - link "Home" [ref=e3015] [cursor=pointer]:
+            - /url: /
+          - link "Contents" [ref=e3019] [cursor=pointer]:
+            - /url: /contents
+          - link "Read" [ref=e3021] [cursor=pointer]:
+            - /url: /read
+          - link "Gospel" [ref=e3024] [cursor=pointer]:
+            - /url: /gospel
+          - link "Resources" [ref=e3027] [cursor=pointer]:
+            - /url: /resources
+          - link "Saved" [ref=e3030] [cursor=pointer]:
+            - /url: /saved
+          - link "About" [ref=e3033] [cursor=pointer]:
+            - /url: /about
+          - link "Settings" [ref=e3036] [cursor=pointer]:
+            - /url: /settings
+        - paragraph [ref=e3040]:
+          - text: Bible text from
+          - link "bibleprotector.com" [ref=e3041] [cursor=pointer]:
+            - /url: https://bibleprotector.com
+          - text: · Created with
+          - link "Base44" [ref=e3042] [cursor=pointer]:
+            - /url: https://base44.com
+        - paragraph [ref=e3043]:
+          - link "Privacy" [ref=e3044] [cursor=pointer]:
+            - /url: /privacy
+          - text: ·
+          - link "Terms" [ref=e3045] [cursor=pointer]:
+            - /url: /terms
+          - text: ·
+          - link "Changelog" [ref=e3046] [cursor=pointer]:
+            - /url: /extension/change-log
+          - text: ·
+          - link "Contact" [ref=e3047] [cursor=pointer]:
+            - /url: /contact
+  - region "Notifications alt+T"
+```
+
+# Test source
+
+```ts
+  1  | /**
+  2  |  * PDF export pagination regression test.
+  3  |  *
+  4  |  * Covers the real bug: search-result entries (verse quote + reference +
+  5  |  * link) used to get split across a PDF page boundary — the quote on one
+  6  |  * page, its reference/link stranded alone at the top of the next. The fix
+  7  |  * in exportVerses.js measures each entry's total height up front and moves
+  8  |  * the WHOLE entry to a fresh page if it doesn't fit, instead of letting the
+  9  |  * renderer's line-by-line page-break check split it mid-item.
+  10 |  *
+  11 |  * This exercises the actual shipped export flow (not a reimplementation):
+  12 |  * search for a term with enough hits to span multiple PDF pages, trigger a
+  13 |  * real PDF export via the UI, and confirm the download is a valid,
+  14 |  * multi-page PDF (proves the fix doesn't crash or truncate the export).
+  15 |  * Pixel/text-position-level verification of "no entry split across a page"
+  16 |  * is covered separately by the direct jsPDF math check during development
+  17 |  * (see the git history for this fix) — full text-layout parsing of the PDF
+  18 |  * output is out of scope for this test file.
+  19 |  */
+  20 | import { test, expect } from '@playwright/test';
+  21 | import { PDFDocument } from 'pdf-lib';
+  22 | import fs from 'fs/promises';
+  23 | 
+  24 | test.describe('PDF export', () => {
+  25 |   test('multi-page search-result export produces a valid PDF', async ({ page }) => {
+  26 |     await page.goto('/search');
+  27 |     const input = page.getByPlaceholder(/study, Romans 3:25/i);
+  28 |     // "wisdom" has enough KJV occurrences to span multiple PDF pages
+  29 |     // without being so large (like "God", ~4000+ hits) that the export
+  30 |     // takes an unreasonable time to generate in a test run.
+  31 |     await input.fill('wisdom');
+  32 |     await input.press('Enter');
+  33 |     await page.waitForSelector('text=/Testament/', { timeout: 15000 });
+  34 | 
+  35 |     const exportBtn = page.locator('button[title^="Export"]').first();
+  36 |     await exportBtn.click();
+  37 |     await page.getByText('PDF (.pdf)').click();
+  38 | 
+> 39 |     const download = await page.waitForEvent('download', { timeout: 30000 });
+     |                                 ^ Error: page.waitForEvent: Test timeout of 30000ms exceeded.
+  40 |     const filePath = await download.path();
+  41 |     expect(filePath, 'PDF export did not produce a downloadable file').toBeTruthy();
+  42 | 
+  43 |     const bytes = await fs.readFile(filePath);
+  44 |     expect(bytes.length, 'exported PDF is suspiciously small/empty').toBeGreaterThan(2000);
+  45 | 
+  46 |     const pdf = await PDFDocument.load(bytes);
+  47 |     const pageCount = pdf.getPageCount();
+  48 |     expect(pageCount, 'expected a multi-page PDF for a common search term').toBeGreaterThan(1);
+  49 |   });
+  50 | });
+  51 | 
+```
