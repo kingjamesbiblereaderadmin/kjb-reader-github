@@ -234,7 +234,7 @@ export default function ResourcesPage() {
             </p>
             <div className="flex items-center gap-3 flex-wrap">
               <a
-                href="https://discord.gg/HK9Kqmg7Jh"
+                href="https://discord.gg/p8URa4JYBB"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
