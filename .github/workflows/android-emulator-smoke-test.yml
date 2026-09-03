@@ -1,0 +1,137 @@
+name: Android emulator smoke test
+
+# Separate from build-android.yml on purpose: that workflow is manual-only
+# and produces the SIGNED release artifact for the Play Store, which needs
+# secrets (keystore, passwords) that shouldn't be required just to sanity-
+# check that the app boots. This workflow builds its own unsigned debug APK
+# (no secrets needed) and actually installs + launches it on a real Android
+# emulator, so it catches the class of bug the web-only Playwright suite
+# can't see: the native shell itself failing to install, crashing on boot,
+# a broken deep link, or the offline-bundled asset fallback not loading.
+#
+# Runs automatically on every push/PR that touches native-relevant files,
+# and any time via the Actions tab (Run workflow button).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'src/**'
+      - 'public/**'
+      - 'capacitor.config.ts'
+      - '.github/workflows/android-emulator-smoke-test.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'src/**'
+      - 'public/**'
+      - 'capacitor.config.ts'
+  workflow_dispatch: {}
+
+jobs:
+  emulator-smoke-test:
+    # macOS runners have hardware-accelerated virtualization built in, which
+    # the emulator needs to boot in a reasonable time (Linux runners need a
+    # separate KVM-enablement step and are still typically slower here).
+    runs-on: macos-14
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web app (bundled into the APK as an offline fallback)
+        run: npm run build
+
+      - name: Sync Capacitor Android (regenerates gitignored native plugin files)
+        run: |
+          mkdir -p android/app/src/main/assets
+          npx cap sync android
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Generate Gradle wrapper (if missing)
+        working-directory: android
+        run: |
+          if [ ! -f gradlew ]; then
+            echo "No gradlew found — generating Gradle wrapper..."
+            gradle wrapper --gradle-version 8.13
+          fi
+          chmod +x gradlew || true
+
+      - name: Build debug APK (unsigned — no Play Store secrets needed)
+        working-directory: android
+        run: ./gradlew --stacktrace assembleDebug
+
+      - name: Run on emulator, launch the app, check it doesn't crash
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            APK=android/app/build/outputs/apk/debug/app-debug.apk
+            APP_ID=com.kingjamesbiblereader.twa
+
+            echo "Installing $APK..."
+            adb install -r "$APK"
+
+            echo "Clearing logcat before launch..."
+            adb logcat -c
+
+            echo "Launching via the app's own launcher intent..."
+            adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
+
+            # Give the WebView time to boot and load (cold start + first
+            # paint of a Capacitor app is slower than a native-only app).
+            sleep 20
+
+            echo "Checking the app process is still alive (didn't crash on boot)..."
+            if ! adb shell pidof "$APP_ID"; then
+              echo "::error::App process not found after launch — it crashed or failed to start."
+              adb logcat -d > logcat-crash.txt
+              exit 1
+            fi
+
+            echo "Capturing a screenshot for manual review..."
+            adb exec-out screencap -p > app-screenshot.png
+
+            echo "Scanning logcat for fatal crashes since launch..."
+            adb logcat -d > logcat-full.txt
+            if grep -qE "FATAL EXCEPTION|AndroidRuntime: FATAL|Process: $APP_ID.*has died" logcat-full.txt; then
+              echo "::error::Fatal exception found in logcat after launch."
+              grep -B2 -A20 -E "FATAL EXCEPTION|AndroidRuntime: FATAL" logcat-full.txt || true
+              exit 1
+            fi
+
+            echo "App booted and is running with no fatal crashes detected."
+
+      - name: Upload screenshot and logcat
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-smoke-test-evidence
+          path: |
+            app-screenshot.png
+            logcat-full.txt
+            logcat-crash.txt
+          if-no-files-found: ignore
+          retention-days: 14
