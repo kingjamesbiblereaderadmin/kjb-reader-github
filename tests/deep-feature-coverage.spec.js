@@ -27,18 +27,20 @@ function verseLocator(page, n) {
 test.describe('Saved Verses — folders', () => {
   test.use({ viewport: { width: 393, height: 900 } });
 
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
+  test('create a folder, move a saved verse into it, and see it filtered there', async ({ page }) => {
+    // Save a verse first so there's something to organize. Storage is
+    // cleared via evaluate() right after the FIRST navigation, not via
+    // addInitScript — addInitScript re-runs on every subsequent
+    // page.goto() in this test (it fires on every navigation, not just
+    // the first), which would wipe the verse right as we navigate to
+    // /saved to check it.
+    await page.goto('/read?book=JHN&chapter=3');
+    await page.evaluate(() => {
       try {
         localStorage.removeItem('kjb-saved-verses');
         localStorage.removeItem('kjb-saved-folders');
       } catch {}
     });
-  });
-
-  test('create a folder, move a saved verse into it, and see it filtered there', async ({ page }) => {
-    // Save a verse first so there's something to organize.
-    await page.goto('/read?book=JHN&chapter=3');
     await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
     await verseLocator(page, 16).click();
     await page.getByRole('button', { name: /^Save/ }).click();
