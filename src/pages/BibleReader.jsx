@@ -661,9 +661,6 @@ export default function BibleReader() {
   const columnsContainerRef = useRef(null);
   const posRef = useRef(pos);
   useEffect(() => { posRef.current = pos; }, [pos]);
-  // Set by goNext(isAutoAdvance) so loadChapter knows to keep Listen mode on
-  // across the chapter switch (it normally resets listenMode on every load).
-  const autoAdvanceRef = useRef(false);
   const book = BIBLE_BOOKS.find(b => b.abbr === pos.abbr) || BIBLE_BOOKS[0];
   // Subscript for the current chapter, honouring any admin override. Recomputed
   // when verses reload (loadOverrides populates the cache by then).
