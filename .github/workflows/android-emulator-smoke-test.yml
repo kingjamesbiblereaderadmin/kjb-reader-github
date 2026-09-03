@@ -94,6 +94,17 @@ jobs:
 
       - name: Run on emulator, launch the app, check it doesn't crash
         uses: reactivecircus/android-emulator-runner@v2
+        env:
+          # Step-level env vars, not shell variables set inside the script:
+          # this action runs each line of a multi-line `script:` block as
+          # its OWN separate shell invocation (confirmed from the actual
+          # run log — "APK=..." and the "echo $APK" that follows show up as
+          # two distinct [command] entries, and the variable was empty by
+          # the second one). A shell variable assigned on one line doesn't
+          # survive to the next; an env var set here is injected into every
+          # subprocess regardless.
+          APK: android/app/build/outputs/apk/debug/app-debug.apk
+          APP_ID: com.kingjamesbiblereader.twa
         with:
           api-level: 33
           target: google_apis
@@ -101,41 +112,24 @@ jobs:
           profile: pixel_6
           disable-animations: true
           emulator-boot-timeout: 300
+          # For the same reason, every if/then/fi below is collapsed onto a
+          # single physical line — a multi-line control structure can't
+          # survive being split across separate shell invocations either.
           script: |
-            APK=android/app/build/outputs/apk/debug/app-debug.apk
-            APP_ID=com.kingjamesbiblereader.twa
-
             echo "Installing $APK..."
             adb install -r "$APK"
-
             echo "Clearing logcat before launch..."
             adb logcat -c
-
             echo "Launching via the app's own launcher intent..."
             adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
-
-            # Give the WebView time to boot and load (cold start + first
-            # paint of a Capacitor app is slower than a native-only app).
             sleep 20
-
             echo "Checking the app process is still alive (didn't crash on boot)..."
-            if ! adb shell pidof "$APP_ID"; then
-              echo "::error::App process not found after launch — it crashed or failed to start."
-              adb logcat -d > logcat-crash.txt
-              exit 1
-            fi
-
+            if ! adb shell pidof "$APP_ID"; then echo "::error::App process not found after launch"; adb logcat -d > logcat-crash.txt; exit 1; fi
             echo "Capturing a screenshot for manual review..."
             adb exec-out screencap -p > app-screenshot.png
-
             echo "Scanning logcat for fatal crashes since launch..."
             adb logcat -d > logcat-full.txt
-            if grep -qE "FATAL EXCEPTION|AndroidRuntime: FATAL|Process: $APP_ID.*has died" logcat-full.txt; then
-              echo "::error::Fatal exception found in logcat after launch."
-              grep -B2 -A20 -E "FATAL EXCEPTION|AndroidRuntime: FATAL" logcat-full.txt || true
-              exit 1
-            fi
-
+            if grep -qE "FATAL EXCEPTION|AndroidRuntime: FATAL|Process: $APP_ID.*has died" logcat-full.txt; then echo "::error::Fatal exception found in logcat after launch."; grep -B2 -A20 -E "FATAL EXCEPTION|AndroidRuntime: FATAL" logcat-full.txt || true; exit 1; fi
             echo "App booted and is running with no fatal crashes detected."
 
       - name: Upload screenshot and logcat
