@@ -8,14 +8,10 @@
  * the WHOLE entry to a fresh page if it doesn't fit, instead of letting the
  * renderer's line-by-line page-break check split it mid-item.
  *
- * This exercises the actual shipped export flow (not a reimplementation):
- * search for a term with enough hits to span multiple PDF pages, trigger a
- * real PDF export via the UI, and confirm the download is a valid,
- * multi-page PDF (proves the fix doesn't crash or truncate the export).
- * Pixel/text-position-level verification of "no entry split across a page"
- * is covered separately by the direct jsPDF math check during development
- * (see the git history for this fix) — full text-layout parsing of the PDF
- * output is out of scope for this test file.
+ * This exercises the actual shipped export flow: search for a term with
+ * enough hits to span multiple PDF pages, trigger a real PDF export via the
+ * UI, and confirm the download is a valid, multi-page PDF (proves the fix
+ * doesn't crash or truncate the export).
  */
 import { test, expect } from '@playwright/test';
 import { PDFDocument } from 'pdf-lib';
@@ -23,6 +19,10 @@ import fs from 'fs/promises';
 
 test.describe('PDF export', () => {
   test('multi-page search-result export produces a valid PDF', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', (e) => errors.push(e.message));
+    page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
+
     await page.goto('/search');
     const input = page.getByPlaceholder(/study, Romans 3:25/i);
     // "wisdom" has enough KJV occurrences to span multiple PDF pages
@@ -32,11 +32,20 @@ test.describe('PDF export', () => {
     await input.press('Enter');
     await page.waitForSelector('text=/Testament/', { timeout: 15000 });
 
-    const exportBtn = page.locator('button[title^="Export"]').first();
+    const exportBtn = page.getByRole('button', { name: /^Export/ }).first();
     await exportBtn.click();
-    await page.getByText('PDF (.pdf)').click();
+    const pdfItem = page.getByRole('menuitem', { name: 'PDF (.pdf)' });
+    await expect(pdfItem).toBeVisible({ timeout: 5000 });
 
-    const download = await page.waitForEvent('download', { timeout: 30000 });
+    const [download] = await Promise.all([
+      page.waitForEvent('download', { timeout: 30000 }),
+      pdfItem.click(),
+    ]);
+
+    if (errors.length) {
+      console.log('Console/page errors during export:\n' + errors.join('\n'));
+    }
+
     const filePath = await download.path();
     expect(filePath, 'PDF export did not produce a downloadable file').toBeTruthy();
 
