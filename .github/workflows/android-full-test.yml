@@ -42,17 +42,19 @@ on:
 
 jobs:
   full-native-test:
-    # macos-15-intel, not macos-13: macos-13 was fully retired by GitHub in
-    # December 2025 (confirmed by this job sitting queued forever — the
-    # image no longer exists in GitHub's fleet, it's not just busy). And
-    # macos-14/macos-14-arm64 is itself mid-deprecation as of 2026 (fully
-    # gone by November 2026), on top of the HVF/nested-virtualization
-    # problem that made the Android emulator crash on launch there in the
-    # first place ("HVF error: HV_UNSUPPORTED"). macos-15-intel is GitHub's
-    # current, actively-supported label for genuine Intel x86_64 hardware —
-    # sidesteps the ARM64 nested-virtualization issue entirely, since it's
-    # real Intel silicon, not a virtualized Apple Silicon host.
-    runs-on: macos-15-intel
+    # ubuntu-latest + KVM, not any macOS runner. Tried three different macOS
+    # configurations and all three had real virtualization problems: macos-14
+    # (ARM64) crashed the emulator instantly ("HVF error: HV_UNSUPPORTED");
+    # macos-13 (Intel) doesn't exist anymore (retired Dec 2025, which is why
+    # that job just sat queued forever); macos-15-intel technically ran but
+    # never showed any hardware-acceleration confirmation in its boot log and
+    # still hadn't finished booting after 12+ minutes — consistent with
+    # unaccelerated, pure-software emulation. Ubuntu GitHub-hosted runners
+    # support real KVM acceleration directly (the enable-KVM step below is
+    # the standard, well-documented pattern — it's literally the primary
+    # example in reactivecircus/android-emulator-runner's own README), and a
+    # KVM-accelerated boot normally finishes in well under a minute.
+    runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
@@ -102,6 +104,12 @@ jobs:
         working-directory: android
         run: ./gradlew --stacktrace assembleDebug
 
+      - name: Enable KVM (hardware-accelerated emulation on the Linux runner)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
       - name: Run the full Appium spec suite on a real emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -110,7 +118,7 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          emulator-boot-timeout: 600
+          emulator-boot-timeout: 300
           # The emulator only exists for the duration of this `script` block
           # (the action tears it down after) — everything that needs the
           # device, including npm run test:android itself, has to happen in
