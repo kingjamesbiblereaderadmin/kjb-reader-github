@@ -49,14 +49,15 @@ export async function waitForReaderContent(driver, timeout = 20000) {
 }
 
 export async function goTo(driver, path) {
-  // Capacitor's WebView doesn't expose driver.url() the way a normal mobile
-  // browser session does (there's no address bar / navigation chrome to
-  // drive), but it DOES support plain DOM navigation once in WEBVIEW
-  // context, same as any other page script.
-  await driver.execute((p) => {
-    window.history.pushState({}, '', p);
-    window.dispatchEvent(new PopStateEvent('popstate'));
-  }, path);
+  // A raw pushState()+popstate hack is unreliable here: React Router's
+  // BrowserRouter owns navigation via its own history instance, and there's
+  // no guarantee a manually dispatched popstate event reaches it the same
+  // way a real navigation would. A full navigation is slower but actually
+  // reliable, and this app is a client-side-routed SPA served with a
+  // history-API fallback (any path resolves to index.html), so a direct
+  // location change works the same as a user opening a deep link.
+  const base = await driver.execute(() => window.location.origin);
+  await driver.execute((url) => { window.location.href = url; }, `${base}${path}`);
 }
 
 export { APP_PACKAGE };
