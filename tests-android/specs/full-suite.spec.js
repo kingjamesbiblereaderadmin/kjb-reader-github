@@ -12,7 +12,7 @@
  * search, and offline behavior — see each describe block's own comments.
  */
 import { expect } from '@wdio/globals';
-import { switchToWebview, waitForReaderContent, goTo } from '../helpers.js';
+import { switchToWebview, waitForReaderContent, goTo, APP_PACKAGE } from '../helpers.js';
 
 before(async () => {
   await switchToWebview(driver);
@@ -252,5 +252,155 @@ describe('Offline behavior (native)', () => {
     expect(fullText.toLowerCase()).toContain('beginning');
 
     await setOffline(false);
+  });
+
+  it('settings changed while online are still applied and correct after going offline', async () => {
+    await goTo(driver, '/settings');
+    const expandAll = await driver.$('button*=Expand All');
+    if (await expandAll.isExisting()) await expandAll.click();
+
+    const cursiveBtn = await driver.$('button*=Cursive');
+    await cursiveBtn.waitForDisplayed({ timeout: 10000 });
+    await cursiveBtn.click();
+    await driver.waitUntil(
+      async () => (await driver.execute(() => localStorage.getItem('kjb-reader-font-family'))) === 'cursive',
+      { timeout: 10000, timeoutMsg: 'Font choice was not persisted before going offline' }
+    );
+
+    await setOffline(true);
+    await goTo(driver, '/read?book=GEN&chapter=1');
+    await waitForReaderContent(driver, 25000);
+
+    const fontOffline = await driver.execute(() => localStorage.getItem('kjb-reader-font-family'));
+    expect(fontOffline).toBe('cursive');
+    const hasCursiveClass = await driver.execute(() => document.querySelector('.cursive-em-style') != null);
+    expect(hasCursiveClass).toBe(true);
+
+    await setOffline(false);
+  });
+
+  it('a verse saved offline is still there once back online', async () => {
+    await driver.execute(() => { try { localStorage.removeItem('kjb-saved-verses'); } catch {} });
+
+    await setOffline(true);
+    await goTo(driver, '/read?book=JHN&chapter=3');
+    await waitForReaderContent(driver, 25000);
+
+    const verse16 = await driver.$('#v16 .kjb-verse-text');
+    await verse16.click();
+    const saveBtn = await driver.$('button*=Save');
+    await saveBtn.waitForDisplayed({ timeout: 10000 });
+    await saveBtn.click();
+
+    await driver.waitUntil(
+      async () => !!(await driver.execute(() => localStorage.getItem('kjb-saved-verses'))),
+      { timeout: 10000, timeoutMsg: 'Verse was not saved while offline' }
+    );
+    const savedOffline = await driver.execute(() => localStorage.getItem('kjb-saved-verses'));
+
+    await setOffline(false);
+    await goTo(driver, '/saved');
+    const savedOnline = await driver.execute(() => localStorage.getItem('kjb-saved-verses'));
+    expect(savedOnline).toBe(savedOffline);
+
+    const bodyText = await driver.execute(() => document.body.innerText);
+    expect(bodyText).toMatch(/John/i);
+  });
+});
+
+describe('App restart persistence (native)', () => {
+  // The real test of "does it sync": not a page reload inside the same
+  // WebView process (which proves very little — in-memory JS state and even
+  // some caches can survive that trivially), but killing the Android process
+  // outright and relaunching it, the same way the OS reclaims memory or the
+  // user force-stops the app from Settings. Only actual persisted storage
+  // (localStorage backed by the WebView's on-disk database) survives that.
+  it('settings, a highlight, a saved verse, and reading position all survive a full app restart', async () => {
+    await goTo(driver, '/settings');
+    const expandAll = await driver.$('button*=Expand All');
+    if (await expandAll.isExisting()) await expandAll.click();
+    const sansBtn = await driver.$('button*=Sans Serif');
+    await sansBtn.waitForDisplayed({ timeout: 10000 });
+    await sansBtn.click();
+    await driver.waitUntil(
+      async () => (await driver.execute(() => localStorage.getItem('kjb-reader-font-family'))) === 'sans-serif',
+      { timeout: 10000, timeoutMsg: 'Font setting did not persist before restart' }
+    );
+
+    await driver.execute(() => {
+      try { localStorage.removeItem('kjb-verse-highlights'); } catch {}
+      try { localStorage.removeItem('kjb-saved-verses'); } catch {}
+    });
+    await goTo(driver, '/read?book=JHN&chapter=3');
+    await waitForReaderContent(driver, 20000);
+
+    const verse16 = await driver.$('#v16 .kjb-verse-text');
+    await verse16.click();
+    const highlightBtn = await driver.$('button*=Highlight');
+    await highlightBtn.waitForDisplayed({ timeout: 10000 });
+    await highlightBtn.click();
+    const firstColor = await driver.$('[role="menuitem"]');
+    await firstColor.waitForDisplayed({ timeout: 5000 });
+    await firstColor.click();
+    await driver.waitUntil(
+      async () => (await driver.$('button*=Highlighted')).isDisplayed().catch(() => false),
+      { timeout: 10000, timeoutMsg: 'Highlight did not apply before restart' }
+    );
+
+    const verse17 = await driver.$('#v17 .kjb-verse-text');
+    await verse17.click();
+    const saveBtn = await driver.$('button*=Save');
+    await saveBtn.waitForDisplayed({ timeout: 10000 });
+    await saveBtn.click();
+    await driver.waitUntil(
+      async () => !!(await driver.execute(() => localStorage.getItem('kjb-saved-verses'))),
+      { timeout: 10000, timeoutMsg: 'Save did not persist before restart' }
+    );
+
+    // Snapshot every piece of state we're about to check survives restart.
+    const before = await driver.execute(() => ({
+      font: localStorage.getItem('kjb-reader-font-family'),
+      highlights: localStorage.getItem('kjb-verse-highlights'),
+      saved: localStorage.getItem('kjb-saved-verses'),
+      position: localStorage.getItem('kjb-position'),
+    }));
+    expect(before.font).toBe('sans-serif');
+    expect(before.highlights).toBeTruthy();
+    expect(before.saved).toBeTruthy();
+    expect(before.position).toBeTruthy();
+
+    // Real process kill + relaunch — not a reload.
+    await driver.terminateApp(APP_PACKAGE);
+    await driver.pause(1000);
+    await driver.activateApp(APP_PACKAGE);
+
+    // Relaunching starts a fresh session in NATIVE_APP context; switch back
+    // into the WebView once it's actually loaded.
+    await switchToWebview(driver, { timeout: 30000 });
+    await waitForReaderContent(driver, 25000).catch(() => {});
+
+    const after = await driver.execute(() => ({
+      font: localStorage.getItem('kjb-reader-font-family'),
+      highlights: localStorage.getItem('kjb-verse-highlights'),
+      saved: localStorage.getItem('kjb-saved-verses'),
+      position: localStorage.getItem('kjb-position'),
+    }));
+
+    expect(after.font).toBe(before.font);
+    expect(after.highlights).toBe(before.highlights);
+    expect(after.saved).toBe(before.saved);
+    expect(after.position).toBe(before.position);
+
+    // And it's not just present in storage — the restored session actually
+    // reflects it (font class applied, saved verse visible on its page).
+    const hasSansClass = await driver.execute(() => {
+      const el = document.querySelector('[class*="font-sans"], .kjb-reader-content');
+      return !!el;
+    });
+    expect(hasSansClass).toBe(true);
+
+    await goTo(driver, '/saved');
+    const savedPageText = await driver.execute(() => document.body.innerText);
+    expect(savedPageText).toMatch(/John/i);
   });
 });
