@@ -110,7 +110,7 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          emulator-boot-timeout: 300
+          emulator-boot-timeout: 600
           # The emulator only exists for the duration of this `script` block
           # (the action tears it down after) — everything that needs the
           # device, including npm run test:android itself, has to happen in
