@@ -620,7 +620,7 @@ export default function LandingSetupWizard() {
               </a>
 
               <a
-                href="https://discord.gg/p8URa4JYBB"
+                href="https://discord.gg/HK9Kqmg7Jh"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2.5 p-3 rounded-xl bg-secondary/40 border border-border hover:border-accent/40 transition-all group"
