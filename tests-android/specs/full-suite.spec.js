@@ -41,11 +41,13 @@ describe('App launch and reader navigation', () => {
     await goTo(driver, '/read?book=JHN&chapter=3');
     await waitForReaderContent(driver);
 
-    let nextBtn = await driver.$('button[title="Next"]');
-    if (!(await nextBtn.isExisting())) {
-      nextBtn = await driver.$('button .lucide-chevron-right').then((el) => el.$('..'));
-    }
-    if (await nextBtn.isExisting()) {
+    // The button has a data-testid on every toolbar-layout variant
+    // (mobile/desktop, titled/untitled) — more reliable than chasing
+    // title attributes or icon classes that only exist on some variants.
+    const nextBtn = await driver.$('[data-testid="next-chapter-btn"]');
+    await nextBtn.waitForExist({ timeout: 10000 });
+    const isDisabled = await nextBtn.getAttribute('disabled');
+    if (isDisabled === null) {
       await nextBtn.click();
       await driver.waitUntil(
         async () => (await driver.execute(() => window.location.search)).includes('chapter=4'),
