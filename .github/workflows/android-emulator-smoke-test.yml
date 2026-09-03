@@ -91,6 +91,7 @@ jobs:
           arch: arm64
           profile: pixel_6
           disable-animations: true
+          emulator-boot-timeout: 300
           script: |
             APK=android/app/build/outputs/apk/debug/app-debug.apk
             APP_ID=com.kingjamesbiblereader.twa
