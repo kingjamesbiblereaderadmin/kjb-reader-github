@@ -2,6 +2,7 @@
  * Highlight persistence across offline/online — companion to the saved-verse
  * and settings persistence tests in offline-online.spec.js, specifically
  * for verse highlights (a separate localStorage key from saved verses).
+ * Uses the real VerseTapBar UI (Highlight dropdown -> color choice).
  */
 import { test, expect } from '@playwright/test';
 import { checkOverflow } from './utils/overflow.js';
@@ -15,6 +16,14 @@ async function assertNoOverflow(page, label) {
 
 function verseLocator(page, n) {
   return page.locator(`#v${n} .kjb-verse-text`);
+}
+
+async function applyFirstColorHighlight(page) {
+  await page.getByRole('button', { name: /^Highlight$/ }).click();
+  const firstColor = page.getByRole('menuitem').first();
+  await expect(firstColor).toBeVisible({ timeout: 5000 });
+  await firstColor.click();
+  await expect(page.getByRole('button', { name: /^Highlighted/ })).toBeVisible({ timeout: 10000 });
 }
 
 test.describe('Highlight persistence offline/online', () => {
@@ -31,8 +40,7 @@ test.describe('Highlight persistence offline/online', () => {
     await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
 
     await verseLocator(page, 16).click();
-    await page.getByTitle('Apply highlight').click({ timeout: 10000 });
-    await expect(page.getByTitle('Remove highlight')).toBeVisible({ timeout: 10000 });
+    await applyFirstColorHighlight(page);
 
     const storedOnline = await page.evaluate(() => localStorage.getItem('kjb-highlighted-verses'));
     expect(storedOnline, 'highlight was not persisted while online').toBeTruthy();
@@ -44,13 +52,7 @@ test.describe('Highlight persistence offline/online', () => {
     const storedOffline = await page.evaluate(() => localStorage.getItem('kjb-highlighted-verses'));
     expect(storedOffline, 'highlight lost after going offline').toBe(storedOnline);
 
-    // And it must actually render as highlighted, not just exist in storage.
-    const isHighlighted = await page.locator('#v16').evaluate((el) => !!el.querySelector('.kjb-audio-verse-active, [class*="highlight"], mark') || el.innerHTML.includes('bg-'));
-    // (Loose check: highlight styling is applied via dynamic classes, so
-    // just confirm SOME highlight-related class made it onto the verse —
-    // exact class names are an implementation detail.)
     await assertNoOverflow(page, 'highlighted verse rendered offline');
-
     await context.setOffline(false);
   });
 
@@ -60,8 +62,7 @@ test.describe('Highlight persistence offline/online', () => {
 
     await context.setOffline(true);
     await verseLocator(page, 16).click();
-    await page.getByTitle('Apply highlight').click({ timeout: 10000 });
-    await expect(page.getByTitle('Remove highlight')).toBeVisible({ timeout: 10000 });
+    await applyFirstColorHighlight(page);
 
     const storedOffline = await page.evaluate(() => localStorage.getItem('kjb-highlighted-verses'));
     expect(storedOffline, 'highlight applied offline was not saved').toBeTruthy();
@@ -72,7 +73,6 @@ test.describe('Highlight persistence offline/online', () => {
 
     const storedOnline = await page.evaluate(() => localStorage.getItem('kjb-highlighted-verses'));
     expect(storedOnline, 'highlight applied offline was lost after reconnecting').toBe(storedOffline);
-    await expect(page.getByTitle('Remove highlight').or(page.locator('#v16'))).toBeVisible();
   });
 
   test('un-highlighting offline actually removes it, not just visually', async ({ page, context }) => {
@@ -80,19 +80,17 @@ test.describe('Highlight persistence offline/online', () => {
     await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
 
     await verseLocator(page, 16).click();
-    await page.getByTitle('Apply highlight').click({ timeout: 10000 });
-    await expect(page.getByTitle('Remove highlight')).toBeVisible({ timeout: 10000 });
+    await applyFirstColorHighlight(page);
 
     await context.setOffline(true);
-    await page.getByTitle('Remove highlight').click();
-    await expect(page.getByTitle('Apply highlight')).toBeVisible({ timeout: 10000 });
+    await page.getByRole('button', { name: /^Highlighted/ }).click();
+    await page.getByRole('menuitem', { name: 'Remove Highlight' }).click();
+    await expect(page.getByRole('button', { name: /^Highlight$/ })).toBeVisible({ timeout: 10000 });
 
     const stored = await page.evaluate(() => {
       const raw = localStorage.getItem('kjb-highlighted-verses');
       return raw ? JSON.parse(raw) : null;
     });
-    // Whatever shape this storage takes (array/object), verse 16 shouldn't
-    // still be marked as highlighted for JHN 3.
     const stillThere = stored && JSON.stringify(stored).includes('"16"') && JSON.stringify(stored).includes('JHN');
     expect(stillThere, 'un-highlight while offline did not actually clear storage').toBeFalsy();
 
