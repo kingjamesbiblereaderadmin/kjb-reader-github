@@ -235,14 +235,19 @@ test.describe('About page — Statement of Faith accordions', () => {
     await page.goto('/about');
     await assertNoOverflow(page, 'about page initial');
 
-    // Any collapsible section heading — click a few and confirm the page
-    // stays healthy as content expands.
-    const headers = page.locator('button').filter({ hasText: /./ });
-    const count = Math.min(await headers.count(), 8);
-    for (let i = 0; i < count; i++) {
-      await headers.nth(i).click().catch(() => {});
-      await page.waitForTimeout(150);
+    // Named accordion sections (AccordionSection title="...") — targeted by
+    // their actual heading text rather than every button on the page, which
+    // would also hit nav links and theme toggles.
+    for (const title of ['Pagan Holidays & Traditions', 'Why I Am Not... Series']) {
+      const header = page.getByText(title, { exact: true });
+      if (await header.count()) {
+        await header.click();
+        await page.waitForTimeout(200);
+        await assertNoOverflow(page, `about page: "${title}" expanded`);
+        // Toggle closed again to leave state as found.
+        await header.click();
+        await page.waitForTimeout(200);
+      }
     }
-    await assertNoOverflow(page, 'about page with sections expanded');
   });
 });
