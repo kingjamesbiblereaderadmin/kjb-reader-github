@@ -110,6 +110,15 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* Sonner's own mobile stylesheet (@media max-width:600px) sets the
+     toaster to width:100% AND applies left/right offsets on top of that
+     100% — the offset pushes the box past the viewport edge instead of
+     being absorbed into it, overflowing narrow phones by roughly double
+     the offset. Capping the max-width here is a minimal, targeted fix that
+     doesn't fight Sonner's own positioning/animation logic. */
+  [data-sonner-toaster] {
+    max-width: calc(100vw - 32px) !important;
+  }
   body {
     @apply bg-background text-foreground;
     overscroll-behavior-y: none;
