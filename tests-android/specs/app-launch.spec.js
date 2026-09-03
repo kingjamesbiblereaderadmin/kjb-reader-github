@@ -33,7 +33,13 @@ describe('App launch and reader navigation', () => {
     await goTo(driver, '/read?book=JHN&chapter=3');
     await waitForReaderContent(driver);
 
-    const nextBtn = await driver.$('button[aria-label="Next chapter"], button[title="Next chapter"], button*=Next');
+    // Multiple toolbar layouts render depending on screen width/state, and
+    // not every variant carries an accessible title — fall back to the
+    // chevron icon itself if the titled button isn't present.
+    let nextBtn = await driver.$('button[title="Next"]');
+    if (!(await nextBtn.isExisting())) {
+      nextBtn = await driver.$('button .lucide-chevron-right').then((el) => el.$('..'));
+    }
     if (await nextBtn.isExisting()) {
       await nextBtn.click();
       await driver.waitUntil(
