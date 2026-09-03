@@ -53,7 +53,10 @@ describe('App launch and reader navigation', () => {
     for (const el of candidates) {
       if (await el.isDisplayed().catch(() => false)) { nextBtn = el; break; }
     }
-    expect(nextBtn, 'no visible next-chapter button found among the toolbar variants').not.toBeNull();
+    // expect-webdriverio's expect() takes only one argument (unlike
+    // Jest's optional message param) — assert plainly and let the
+    // candidates.length check above provide the diagnostic context instead.
+    expect(nextBtn).not.toBeNull();
 
     const isDisabled = await nextBtn.getAttribute('disabled');
     if (isDisabled === null) {
