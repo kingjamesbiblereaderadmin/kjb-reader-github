@@ -36,13 +36,11 @@ on:
 
 jobs:
   emulator-smoke-test:
-    # Intel (x86_64) runner, not macos-14 (Apple Silicon/ARM64): GitHub's
-    # ARM64 macOS runners are themselves virtualized, and nested
-    # virtualization for the Android emulator via Apple's HVF framework is
-    # unreliable there ("HVF error: HV_UNSUPPORTED", emulator dies on
-    # launch). Intel + x86_64 is the long-established, reliable combination
-    # for reactivecircus/android-emulator-runner.
-    runs-on: macos-13
+    # macos-15-intel, not macos-13 (retired Dec 2025 — that's why it queued
+    # forever) or macos-14 (mid-deprecation, plus the HVF/nested-
+    # virtualization crash we hit there). This is GitHub's current label for
+    # genuine Intel x86_64 hardware.
+    runs-on: macos-15-intel
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
