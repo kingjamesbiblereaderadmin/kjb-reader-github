@@ -2240,13 +2240,13 @@ export default function BibleReader() {
       {!loading && !error && (
         <div className="print:hidden flex flex-nowrap justify-between gap-2 mt-8 pt-6 border-t border-border pb-2">
           {!isFirstChapterFirstBook ? (
-          <button onClick={goPrev} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-colors min-h-[48px] touch-manipulation min-w-0">
+          <button onClick={goPrev} data-testid="prev-chapter-btn" className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-colors min-h-[48px] touch-manipulation min-w-0">
             <ChevronLeft className="w-4 h-4 flex-shrink-0" />
             <span className="hidden sm:inline truncate">{isViewingTitlePage ? `${getPrevBook(pos.abbr)?.shortName} ${getPrevBook(pos.abbr)?.chapters}` : pos.chapter > 1 ? `Chapter ${pos.chapter - 1}` : pos.abbr === 'MAT' ? 'New Testament Title Page' : pos.abbr === 'GEN' ? 'Old Testament Title Page' : `${getPrevBook(pos.abbr)?.shortName} ${getPrevBook(pos.abbr)?.chapters}`}</span>
           </button>
           ) : <div className="flex-1" />}
           {!isLastChapterLastBook ? (
-          <button onClick={() => goNext()} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-colors min-h-[48px] touch-manipulation min-w-0">
+          <button onClick={() => goNext()} data-testid="next-chapter-btn" className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-colors min-h-[48px] touch-manipulation min-w-0">
             <span className="hidden sm:inline truncate">{isViewingTitlePage ? `Chapter 1` : pos.chapter < book.chapters ? `Chapter ${pos.chapter + 1}` : pos.abbr === 'MAL' ? 'New Testament Title Page' : getNextBook(pos.abbr) ? `${getNextBook(pos.abbr).shortName} 1` : ''}</span>
             <ChevronRight className="w-4 h-4 flex-shrink-0" />
           </button>
