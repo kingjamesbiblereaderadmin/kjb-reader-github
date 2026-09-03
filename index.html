@@ -240,6 +240,20 @@
     <script>
       (function() {
         try {
+          // DIAGNOSTIC (temp, v20260904): dump origin + raw localStorage values
+          // at the earliest possible point (before any JS has a chance to touch
+          // them) so a cold offline launch tells us whether this is a wrong-
+          // origin/isolated-storage problem (all keys null, origin unexpected)
+          // or something narrower (only kjb-theme-mode missing). Remove once
+          // the offline-theme-reset bug is found.
+          console.log('[KJB-DEBUG] origin=' + location.origin + ' href=' + location.href);
+          console.log('[KJB-DEBUG] kjb-theme-mode=' + JSON.stringify(localStorage.getItem('kjb-theme-mode')) +
+            ' kjb-colour=' + JSON.stringify(localStorage.getItem('kjb-colour')) +
+            ' kjb-color-mode=' + JSON.stringify(localStorage.getItem('kjb-color-mode')) +
+            ' kjb-reader-font-family=' + JSON.stringify(localStorage.getItem('kjb-reader-font-family')) +
+            ' localStorage.length=' + localStorage.length);
+        } catch (e) { console.log('[KJB-DEBUG] error reading localStorage pre-mode: ' + e); }
+        try {
           var mode = localStorage.getItem('kjb-theme-mode') || 'system';
           var isDark;
           if (mode === 'dark') isDark = true;
