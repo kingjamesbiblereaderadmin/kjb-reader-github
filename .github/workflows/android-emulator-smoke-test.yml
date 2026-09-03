@@ -20,6 +20,8 @@ on:
       - 'src/**'
       - 'public/**'
       - 'capacitor.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/android-emulator-smoke-test.yml'
   pull_request:
     branches: [main]
@@ -28,6 +30,8 @@ on:
       - 'src/**'
       - 'public/**'
       - 'capacitor.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
   workflow_dispatch: {}
 
 jobs:
