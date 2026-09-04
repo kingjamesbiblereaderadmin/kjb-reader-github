@@ -347,33 +347,71 @@
             // visibly swapped to "LOOKING UP..." once React's own splash
             // rendered -- a small but noticeable mismatched flash.
             var bootText = document.getElementById('kjb-boot-text');
-            // DIAGNOSTIC (temp, v20260904): also show it on-screen for a beat,
-            // since a phone offline test has no easy access to devtools console.
+            // DIAGNOSTIC: gated behind Settings > App Info > "Startup
+            // Diagnostics" (kjb-debug-diagnostics). Off by default -- a
+            // small tappable button instead of a full-width box, since the
+            // box was covering the reader/splash on small screens. Tapping
+            // copies the diagnostic text to the clipboard rather than
+            // displaying it all on screen.
             try {
-              var dbgEl = document.createElement('div');
-              dbgEl.id = 'kjb-debug-overlay';
-              dbgEl.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9999999;background:rgba(0,0,0,0.85);color:#0f0;font-family:monospace;font-size:10px;line-height:1.4;padding:8px;word-break:break-all;max-height:40vh;overflow:auto;';
-              var renderDbg = function(tag) {
-                var carryParam = (location.search || '').indexOf('__kjb_carry=') !== -1;
-                dbgEl.textContent = '[' + tag + '] origin=' + location.origin +
-                  ' | hasCarryParam=' + carryParam +
-                  ' | search=' + location.search +
-                  ' | mode=' + JSON.stringify(localStorage.getItem('kjb-theme-mode')) +
-                  ' | colour=' + JSON.stringify(localStorage.getItem('kjb-colour')) +
-                  ' | color-mode=' + JSON.stringify(localStorage.getItem('kjb-color-mode')) +
-                  ' | font=' + JSON.stringify(localStorage.getItem('kjb-reader-font-family')) +
-                  ' | hasVisited=' + JSON.stringify(localStorage.getItem('kjb-has-visited-app')) +
-                  ' | ls.length=' + localStorage.length +
-                  ' | online=' + navigator.onLine;
-              };
-              // Pre-main.jsx snapshot (this point) is EXPECTED to show
-              // ls.length=0 even when the carry param is present -- main.jsx
-              // hasn't decoded/applied it yet at this point in the file. The
-              // post-mount snapshot 800ms later is the one that actually
-              // proves whether the carry applied in time.
-              renderDbg('pre-main');
-              document.body.appendChild(dbgEl);
-              setTimeout(function () { renderDbg('post-main+800ms'); }, 800);
+              if (localStorage.getItem('kjb-debug-diagnostics') === 'true') {
+                var buildDbgText = function(tag) {
+                  var carryParam = (location.search || '').indexOf('__kjb_carry=') !== -1;
+                  return '[' + tag + '] origin=' + location.origin +
+                    ' | hasCarryParam=' + carryParam +
+                    ' | search=' + location.search +
+                    ' | mode=' + JSON.stringify(localStorage.getItem('kjb-theme-mode')) +
+                    ' | colour=' + JSON.stringify(localStorage.getItem('kjb-colour')) +
+                    ' | color-mode=' + JSON.stringify(localStorage.getItem('kjb-color-mode')) +
+                    ' | font=' + JSON.stringify(localStorage.getItem('kjb-reader-font-family')) +
+                    ' | hasVisited=' + JSON.stringify(localStorage.getItem('kjb-has-visited-app')) +
+                    ' | ls.length=' + localStorage.length +
+                    ' | online=' + navigator.onLine;
+                };
+                var dbgLines = [buildDbgText('pre-main')];
+                // Pre-main.jsx is EXPECTED to show ls.length=0 even when the
+                // carry param is present -- main.jsx hasn't decoded/applied
+                // it yet at this point in the file. The post-mount line
+                // 800ms later is the one that actually proves whether the
+                // carry applied in time.
+                setTimeout(function () { dbgLines.push(buildDbgText('post-main+800ms')); }, 800);
+
+                var fallbackCopy = function (text) {
+                  try {
+                    var ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.focus();
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                  } catch (e) {}
+                };
+
+                var dbgBtn = document.createElement('button');
+                dbgBtn.id = 'kjb-debug-btn';
+                dbgBtn.textContent = 'DBG';
+                dbgBtn.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:9999999;background:rgba(0,0,0,0.75);color:#0f0;font-family:monospace;font-size:11px;font-weight:bold;padding:8px 12px;border-radius:20px;border:1px solid #0f0;opacity:0.85;';
+                dbgBtn.addEventListener('click', function () {
+                  var text = dbgLines.join('\n');
+                  var showCopied = function () {
+                    dbgBtn.textContent = 'Copied!';
+                    setTimeout(function () { dbgBtn.textContent = 'DBG'; }, 1200);
+                  };
+                  if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(showCopied).catch(function () {
+                      fallbackCopy(text);
+                      showCopied();
+                    });
+                  } else {
+                    fallbackCopy(text);
+                    showCopied();
+                  }
+                });
+                document.body.appendChild(dbgBtn);
+              }
             } catch (e) {}
             if (bootText) {
               var hasVisited = localStorage.getItem('kjb-has-visited-app') === 'true';
