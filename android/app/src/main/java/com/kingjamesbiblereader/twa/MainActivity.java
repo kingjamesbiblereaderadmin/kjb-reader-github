@@ -647,34 +647,6 @@ public class MainActivity extends BridgeActivity {
             return new ByteArrayInputStream(injected.getBytes(StandardCharsets.UTF_8));
         }
 
-        // Capacitor's own default shouldOverrideUrlLoading (inherited from
-        // BridgeWebViewClient, otherwise unmodified here) only treats
-        // navigations to server.url's own host or the configured
-        // allowNavigation list as "internal" -- anything else gets handed to
-        // bridge.launchIntent() and opened in a REAL external browser.
-        // FALLBACK_DOMAIN is neither of those, so a JS-triggered navigation
-        // there (handleIncomingIntent's evaluateJavascript("window.location.
-        // href = ...") path, used when the app's already running) got routed
-        // straight out to Chrome instead of staying in the WebView --
-        // "Look Up" would open the app, then immediately hand off to an
-        // external browser showing the fallback URL. Programmatic loadUrl()
-        // calls (onReceivedError's initial fallback, the cold-start path in
-        // handleIncomingIntent) aren't affected the same way, since
-        // Android doesn't route app-initiated loadUrl() through this
-        // callback -- only navigations the WEB CONTENT itself triggers,
-        // which is exactly what window.location.href assignment looks like
-        // from the WebView's perspective. Explicitly keep FALLBACK_DOMAIN
-        // in-app; defer to Capacitor's own logic for everything else
-        // (OAuth, real external links, etc.), unchanged.
-        @Override
-        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-            Uri url = request.getUrl();
-            if (url != null && FALLBACK_DOMAIN.equals(url.getHost())) {
-                return false;
-            }
-            return super.shouldOverrideUrlLoading(view, request);
-        }
-
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
             Uri url = request.getUrl();
