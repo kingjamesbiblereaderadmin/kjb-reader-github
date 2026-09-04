@@ -268,8 +268,8 @@ public class MainActivity extends BridgeActivity {
         // Serves (a) the bundled Bible text for BUNDLED_BIBLE_PATH -- see
         // bibleCache.js, requested only when Capacitor.isNativePlatform() --
         // and (b) the entire bundled site (android/app/src/main/assets/public/,
-        // copied there by `cap sync` from a real `npm run build`) for anything
-        // requested at FALLBACK_DOMAIN, used below when there's no connectivity.
+        // copied there by `cap sync` from a real `npm run build`) under this
+        // same live host, used below when there's no connectivity.
         webView.setWebViewClient(new OfflineCapableWebViewClient(getBridge(), this));
 
         // Deliberately NOT checking connectivity here and jumping straight to
