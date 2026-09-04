@@ -601,49 +601,6 @@ public class MainActivity extends BridgeActivity {
             this.activity = activity;
         }
 
-        // True when a CARRY_READ_SCRIPT result carried nothing -- either the
-        // evaluateJavascript call itself failed/returned null, or it
-        // succeeded but found an empty localStorage (a blank/uninitialized
-        // document, not the real origin's storage -- see the call site's own
-        // comment for when this happens). Used to tell "the live page
-        // genuinely has nothing saved yet" apart from "this read never
-        // actually reached the real origin's storage", so the caller knows
-        // when it's safe to trust an empty result versus when it should fall
-        // back to the last known-good SharedPreferences snapshot instead.
-        private static boolean isEmptyCarryResult(String result) {
-            if (result == null || "null".equals(result)) return true;
-            try {
-                org.json.JSONObject obj = new org.json.JSONObject(result);
-                org.json.JSONObject data = obj.optJSONObject("data");
-                return data == null || data.length() == 0;
-            } catch (Exception e) {
-                return true;
-            }
-        }
-
-        // Shared tail end of the "no trustworthy live localStorage to carry"
-        // path: use persistStateSnapshot()'s last known-good copy from
-        // SharedPreferences if one exists, otherwise fall back to the plain
-        // (no-carry) target. Called from two places -- the no-live-page
-        // branch, and the live-page branch when that read turns out to be
-        // empty -- that would otherwise have to duplicate this same
-        // read-and-decide logic.
-        private static void loadWithSavedSnapshotOrPlain(MainActivity activity, WebView view, String finalTarget) {
-            String savedSnapshot = null;
-            try {
-                savedSnapshot = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                    .getString(PREF_LAST_STATE, null);
-            } catch (Exception e) {
-                // Fall through -- finalTarget (plain fallback, no carry) below.
-            }
-            if (savedSnapshot != null) {
-                final String carryTarget = buildCarryTarget(savedSnapshot, FALLBACK_ORIGIN, false);
-                view.loadUrl(carryTarget);
-            } else {
-                view.loadUrl(finalTarget);
-            }
-        }
-
         private static String guessMimeType(String path) {
             String lower = path.toLowerCase();
             if (lower.endsWith(".html")) return "text/html";
