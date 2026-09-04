@@ -1029,11 +1029,6 @@ public class MainActivity extends BridgeActivity {
                 activity.scheduleReconnectAttempt();
             }
         }
-
-        @Override
-        public void onPageFinished(WebView view, String url) {
-            super.onPageFinished(view, url);
-        }
     }
 
     // Exposed to JS as window.kjbDownloadBridge (see the addJavascriptInterface
