@@ -768,11 +768,21 @@ export default function BibleReader() {
     if (urlBookObj && urlChapter) {
       const chapterNum = parseInt(urlChapter, 10);
       const verseNum = urlVerse ? parseInt(urlVerse, 10) : null;
-      let verseEnd = null;
-      try {
-        const p = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-        if (p.abbr === urlBookObj.abbr && p.chapter === chapterNum && p.verseEnd) verseEnd = p.verseEnd;
-      } catch {}
+      // Read verseEnd from the URL itself FIRST -- a cold-started deep link
+      // (a shared "Acts 11:6-9" link tapped from outside the app, e.g.) has
+      // the range right there in its own query string, and trusting it
+      // directly is far more reliable than the localStorage fallback below,
+      // which only happens to be correct when the device was ALREADY on this
+      // exact book/chapter for some unrelated reason -- for a genuine fresh
+      // cold start it's almost always empty or about a different passage
+      // entirely, silently truncating the shared range down to one verse.
+      let verseEnd = initParams.get('verseEnd') ? parseInt(initParams.get('verseEnd'), 10) : null;
+      if (!verseEnd) {
+        try {
+          const p = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+          if (p.abbr === urlBookObj.abbr && p.chapter === chapterNum && p.verseEnd) verseEnd = p.verseEnd;
+        } catch {}
+      }
       const isRange = verseNum && verseEnd && verseEnd > verseNum;
       if (isRange) {
         const range = new Set();
