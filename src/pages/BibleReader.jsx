@@ -1007,7 +1007,16 @@ export default function BibleReader() {
       // saved for this chapter a moment later, silently undoing this scrollTo.
       if (!verseNum) freshNavRef.current = true;
       (document.getElementById('kjb-scroll') || window).scrollTo({ top: 0 });
-      loadChapter(urlBookObj.abbr, chapterNum, verseNum);
+      // Pass the SAME verseEnd already computed above (from the URL, or
+      // carried over from kjb-position when the URL didn't have one) --
+      // without this, loadChapter's own savePosition() call re-saves
+      // kjb-position with verseEnd defaulted back to null, silently wiping
+      // the range that was JUST correctly shown a moment ago (via the
+      // setSelectedVerses/setHighlightedVerses/setFilterMode calls above).
+      // The session still looked right (nothing re-renders wrong THIS visit)
+      // but what's actually persisted for the next launch/reboot was already
+      // reduced to a single verse.
+      loadChapter(urlBookObj.abbr, chapterNum, verseNum, (verseNum && verseEnd && verseEnd > verseNum) ? verseEnd : null);
       return;
     }
 
