@@ -309,26 +309,18 @@ public class MainActivity extends BridgeActivity {
         // attempt) was tried and confirmed, via on-device trace logging, to
         // be the actual regression that broke cold-start lookups. Restored.
         //
-        // Skipped when carriedNavigation is true: maybeCarryStateFromColdStart()
-        // already resolved this SAME intent's destination and is navigating
-        // there itself (asynchronously, once its hidden-WebView carry-read
-        // finishes) -- calling this too would just be a second, redundant
-        // navigation attempt racing the first, the exact pattern already
-        // confirmed to cause problems elsewhere in this file.
-        if (!carriedNavigation) {
-            handleIncomingIntent(getIntent(), true);
-        }
+        handleIncomingIntent(getIntent(), true);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        // Came back online since we fell back to the bundled copy (e.g. user
+        // Came back online since we fell back to bundled assets (e.g. user
         // opened the app offline, then reconnected and returned to it) --
-        // switch to the live site now rather than waiting for the next
+        // switch to the live network now rather than waiting for the next
         // scheduled retry (see scheduleReconnectAttempt()).
         if (usingOfflineFallback && isNetworkAvailable()) {
-            reconnectPreservingState();
+            clearOfflineFallbackAndReload();
         }
     }
 
@@ -342,160 +334,6 @@ public class MainActivity extends BridgeActivity {
             return capabilities != null && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
         } catch (Exception e) {
             return true; // fail open
-        }
-    }
-
-    // A genuinely fresh app restart (not the same running process
-    // reconnecting -- see reconnectPreservingState() for that case) after
-    // this device previously fell back to the bundled offline snapshot at
-    // some earlier point (PREF_USED_FALLBACK, set in onReceivedError below).
-    // Capacitor's own bridge always tries the REAL site first on a normal
-    // cold start, deliberately, so a returning user gets the live,
-    // self-updating site immediately whenever possible. But that means THIS
-    // specific case -- someone who has ONLY ever seen the bundled fallback
-    // (its own separate virtual origin), now reconnecting for the first time
-    // via a genuine app restart rather than staying in the same running
-    // session -- had no chance to carry state across the origin switch:
-    // there's no "current page" within a FRESH process to read
-    // FALLBACK_DOMAIN's storage from, unlike reconnectPreservingState()'s
-    // same-process case.
-    //
-    // Android's WebView actually PERSISTS per-origin storage across app
-    // restarts (it's tied to the WebView's on-disk profile, not the process
-    // lifetime) -- so FALLBACK_DOMAIN's old data is still sitting there; this
-    // just needs to briefly read it. Uses a SEPARATE, never-attached,
-    // never-shown WebView purely to load FALLBACK_URL and read its storage
-    // in the background -- the same disposable-WebView pattern PrintBridge
-    // below already uses for HTML printing. An earlier version of this
-    // navigated the MAIN, VISIBLE WebView to FALLBACK_URL and back instead,
-    // which worked but was visibly noticeable (a brief but real "the app
-    // just restarted" flash) -- reading through a hidden WebView instead
-    // means the user never sees anything except the eventual real-site
-    // destination; the main WebView's own view is never navigated away from.
-    //
-    // Also makes the main WebView actually INVISIBLE (not just stopped)
-    // while the hidden WebView does its work, revealing it again only once
-    // the carried-state navigation actually finishes (see
-    // pendingRevealAfterCarry / OfflineCapableWebViewClient's
-    // onPageFinished). A plain stopLoading() call was tried first and isn't
-    // reliable enough alone: modern WebViews progressively RENDER content as
-    // bytes arrive, well before onPageFinished (or even a completed load)
-    // fires -- on a fast connection, Capacitor's own default page load could
-    // already have visually painted the "new visitor" welcome screen before
-    // stopLoading() was ever called, even when that call happens as early as
-    // technically possible in onCreate(). Hiding the VIEW itself sidesteps
-    // that race entirely: it doesn't matter how far the underlying load
-    // progressed, since nothing it renders is actually visible until we
-    // explicitly reveal it again. A safety timeout guards against ever
-    // leaving the WebView hidden indefinitely if something in the carry
-    // process fails silently.
-    //
-    // Runs at most ONCE per fallback use (the persisted flag is cleared
-    // immediately before triggering) -- every launch after that is a
-    // completely ordinary live-site load, identical to any other returning
-    // user.
-    private boolean maybeCarryStateFromColdStart() {
-        try {
-            boolean usedFallbackBefore = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .getBoolean(PREF_USED_FALLBACK, false);
-            if (!usedFallbackBefore) return false;
-            if (!isNetworkAvailable()) return false; // nothing to reconnect to yet -- try again next launch
-            getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .edit().putBoolean(PREF_USED_FALLBACK, false).apply();
-
-            // Resolved ONCE, up front: this cold start's launching intent
-            // might ALSO be a share/process-text/deep-link, which has its own
-            // specific destination independent of whatever the offline
-            // session was last showing. Previously this whole method was
-            // skipped entirely for that case (see the isSpecialDestinationIntent
-            // check that used to gate the call to this method in onCreate),
-            // meaning a lookup-triggered reopen right after an offline
-            // session with unsaved changes silently lost them -- "sync" only
-            // worked for a plain, ordinary app-icon tap. Carrying the
-            // localStorage data is unconditional either way (see
-            // CARRY_READ_SCRIPT); only the NAVIGATION target depends on
-            // whether this is set.
-            final String specialDestination = resolveDestinationUrl(getIntent());
-            if (specialDestination != null) {
-                pendingDestination = specialDestination;
-                specialIntentHandled = true;
-            }
-
-            WebView mainWebView = getBridge().getWebView();
-            mainWebView.setVisibility(View.INVISIBLE);
-            mainWebView.stopLoading();
-            pendingRevealAfterCarry = true;
-
-            // Safety net: reveal the WebView regardless after a few seconds
-            // even if the carry never completes (a network hiccup mid-way,
-            // an unexpected exception, etc.) -- leaving it invisible
-            // indefinitely would be far worse than the flash this whole fix
-            // exists to prevent.
-            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                if (pendingRevealAfterCarry) {
-                    pendingRevealAfterCarry = false;
-                    mainWebView.setVisibility(View.VISIBLE);
-                }
-            }, 5000);
-
-            WebView hidden = new WebView(this);
-            hidden.getSettings().setJavaScriptEnabled(true);
-            hidden.getSettings().setDomStorageEnabled(true); // required for localStorage access
-            hidden.setWebViewClient(new WebViewClient() {
-                // FALLBACK_URL is a virtual domain (see FALLBACK_DOMAIN's own
-                // comment) that only resolves through OfflineCapableWebViewClient's
-                // custom interception -- a plain WebViewClient like this one
-                // has no such handling, so without this override the request
-                // would just fail outright (nothing real to actually connect
-                // to over the network). Only index.html itself needs to be
-                // served: localStorage is available on the page as soon as
-                // its document/origin context exists, independent of
-                // whether any OTHER resource (fonts, images, the JS bundle)
-                // successfully loads afterward -- since this hidden page is
-                // never actually rendered or interacted with, none of those
-                // secondary resources matter here the way they do for the
-                // real bundled-fallback experience.
-                @Override
-                public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                    Uri url = request.getUrl();
-                    if (url != null && FALLBACK_DOMAIN.equals(url.getHost())
-                        && ("/".equals(url.getPath()) || url.getPath() == null)) {
-                        try {
-                            InputStream stream = getAssets().open("public/index.html");
-                            stream = OfflineCapableWebViewClient.injectNativeMarker(stream);
-                            return new WebResourceResponse("text/html", "UTF-8", stream);
-                        } catch (IOException e) {
-                            // Fall through -- onPageFinished below won't fire
-                            // usefully, but the safety timeout above still
-                            // reveals the main WebView regardless, so this
-                            // just results in the ordinary "new visitor" flow,
-                            // not a stuck hidden screen.
-                        }
-                    }
-                    return super.shouldInterceptRequest(view, request);
-                }
-
-                @Override
-                public void onPageFinished(WebView view, String url) {
-                    view.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> {
-                        String target = buildCarryTarget(result, REMOTE_URL, true, specialDestination);
-                        mainWebView.loadUrl(target);
-                        view.destroy();
-                    });
-                }
-            });
-            hidden.loadUrl(FALLBACK_URL);
-            return true;
-        } catch (Exception e) {
-            // Non-fatal -- worst case, this one launch shows the "new
-            // visitor" flow again, same as before this fix, or (if there was
-            // a special destination) falls through to onCreate()'s own
-            // ordinary handleIncomingIntent(getIntent(), true) call instead
-            // -- either way the user still ends up somewhere reasonable, just
-            // without the carried offline-session data.
-            // If we'd already hidden the main WebView before this exception,
-            // the safety timeout above still reveals it a few seconds later.
-            return false;
         }
     }
 
