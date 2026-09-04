@@ -126,6 +126,18 @@ export default function SettingsPage() {
     persistAutoRotate(checked);
   };
 
+  // Startup diagnostics toggle (Advanced) -- gates the small on-screen debug
+  // button index.html's boot script shows before React mounts. Off by
+  // default; a copy-paste-friendly aid for chasing native/offline-carry
+  // bugs, not something a normal user needs to see.
+  const [debugDiagnostics, setDebugDiagnosticsState] = useState(() => {
+    try { return localStorage.getItem('kjb-debug-diagnostics') === 'true'; } catch { return false; }
+  });
+  const toggleDebugDiagnostics = (checked) => {
+    setDebugDiagnosticsState(checked);
+    try { localStorage.setItem('kjb-debug-diagnostics', String(checked)); } catch {}
+  };
+
   const VERSE_FONTS = [
     { value: 'serif', label: 'Serif (Merriweather)' },
     { value: 'sans-serif', label: 'Sans Serif (Inter)' },
