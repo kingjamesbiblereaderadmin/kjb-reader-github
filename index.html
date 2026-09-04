@@ -415,10 +415,7 @@
             } catch (e) {}
             if (bootText) {
               var hasVisited = localStorage.getItem('kjb-has-visited-app') === 'true';
-              var isReconnect = new URLSearchParams(location.search).get('__kjb_reconnect') === '1';
-              bootText.textContent = isReconnect
-                ? 'Reconnecting\u2026'
-                : (location.pathname === '/search')
+              bootText.textContent = (location.pathname === '/search')
                 ? 'Looking up\u2026'
                 : (hasVisited ? 'Welcome back to KJB Reader.' : 'Welcome to KJB Reader.');
             }
