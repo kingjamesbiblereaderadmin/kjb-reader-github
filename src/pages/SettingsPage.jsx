@@ -997,7 +997,24 @@ export default function SettingsPage() {
               )}
             </div>
 
+            {/* Advanced */}
+            <div className="pt-4 mt-2 border-t border-border">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <Wrench className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="font-sans text-sm text-foreground font-medium">Startup Diagnostics</p>
+                    <p className="font-sans text-xs text-muted-foreground mt-0.5">Shows a small on-screen debug button at launch, for troubleshooting</p>
+                  </div>
+                </div>
+                <Switch checked={debugDiagnostics} onCheckedChange={toggleDebugDiagnostics} />
+              </div>
+            </div>
+
             <div className="flex gap-3 pt-2">
+              <button
+                onClick={async () => {
+                  if (confirm('Reset all settings to default? This cannot be undone.')) {
                     // Reset all localStorage settings.
                     localStorage.removeItem('kjb-verse-text-color');
                     localStorage.removeItem('kjb-verse-text-opacity');
