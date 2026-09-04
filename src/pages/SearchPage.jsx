@@ -895,7 +895,8 @@ export default function SearchPage() {
       localStorage.setItem('kjb-position', JSON.stringify({ abbr: first.abbr, chapter: first.chapter, verse: first.vStart, verseEnd: first.vEnd }));
       localStorage.removeItem('kjb-last-reading');
     } catch {}
-    navigate(`/read?book=${first.abbr}&chapter=${first.chapter}&verse=${first.vStart}&from=search`);
+    const vEndParam = first.vEnd && first.vEnd > first.vStart ? `&verseEnd=${first.vEnd}` : '';
+    navigate(`/read?book=${first.abbr}&chapter=${first.chapter}&verse=${first.vStart}${vEndParam}&from=search`);
     setTimeout(() => { try { window.dispatchEvent(new Event('kjb-navigate')); } catch {} }, 0);
   }, [navigate]);
 
