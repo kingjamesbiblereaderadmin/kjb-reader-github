@@ -90,56 +90,23 @@ public class MainActivity extends BridgeActivity {
     // localStorage cache, which is preferred over this whenever it exists.
     static final String BUNDLED_DEFENCE_PATH = "/__native/defence-resources.json";
 
-    // Persists (via SharedPreferences, which survives a full app restart --
-    // unlike usingOfflineFallback below, an in-memory field reset every time
-    // a fresh process starts) whether this device has EVER fallen back to the
-    // bundled snapshot. Used on the NEXT cold start (see
-    // maybeCarryStateFromColdStart() below) to decide whether it's worth
-    // briefly checking FALLBACK_DOMAIN's own storage for state to carry
-    // forward before committing to the live site load.
-    private static final String PREFS_NAME = "kjb_prefs";
-    private static final String PREF_USED_FALLBACK = "used_fallback";
-    // Snapshot of CARRY_READ_SCRIPT's result from the last successful
-    // REMOTE_URL page load -- see persistStateSnapshot() below. This is what
-    // lets a cold start that goes straight to FALLBACK_DOMAIN with no live
-    // REMOTE_URL page open THIS session (nothing to read localStorage from)
-    // still recover the real reading position/settings instead of resetting
-    // to Genesis 1 / defaults.
-    private static final String PREF_LAST_STATE = "last_state_snapshot";
-
+    // True once this session has proven the network doesn't actually work,
+    // even if the OS still reports a connection as "available" (e.g. a
+    // captive portal, a DNS hiccup, the server itself being briefly down).
+    // isNetworkAvailable() alone only checks whether an interface is up --
+    // it can't tell us a REQUEST actually succeeded, so this sticky flag is
+    // what keeps shouldInterceptRequest serving bundled assets consistently
+    // for the rest of the session once a real request has already failed,
+    // instead of flapping between network and bundled assets on every
+    // individual resource request.
     private boolean usingOfflineFallback = false;
-    // Set true the first time the main WebView's page load actually finishes.
-    // Needed because of a documented Android quirk with singleTask activities:
-    // when the app's process was killed but its task still exists in Recents,
-    // launching via a "Process text"/share/deep-link intent delivers the STALE
-    // original launcher intent to onCreate() first (so handleIncomingIntent's
-    // cold-start branch sees a plain launch, not the lookup, and does nothing),
-    // then immediately redelivers the REAL intent via onNewIntent() -- while the
-    // WebView is still mid-way through its very first (default, home-page) load
-    // from onCreate. onNewIntent()'s normal warm-resume path uses
-    // evaluateJavascript() to redirect the CURRENT page, which is unreliable
-    // against a page whose JS context hasn't finished initializing yet -- the
-    // exact same class of problem the comment on that call already describes for
-    // a backgrounded WebView, just triggered here by "still loading" instead of
-    // "paused". Tracking whether the initial load has actually finished lets
-    // onNewIntent() fall back to the more forceful loadUrl() (the same one
-    // onCreate's own genuine cold-start path uses) in that window instead.
-    private volatile boolean mainPageEverFinishedLoading = false;
-    // Set true the moment handleIncomingIntent() actually resolves and acts on
-    // a share/process-text/deep-link destination -- lets the onPageFinished
-    // safety net below know whether it still needs to step in.
-    private volatile boolean specialIntentHandled = false;
     // Retries a live-site reload a few times with backoff after falling back
     // to the bundled snapshot, instead of only checking again on onResume().
     // Without this, a purely TRANSIENT failure right at cold start (a slow
     // DNS lookup, a flaky first packet -- network was fine the whole time)
     // left the app stuck showing the frozen bundled copy for the entire
     // session unless the user happened to background and re-foreground it,
-    // even though it was never actually offline. Every link/share/copy built
-    // from the current page's URL would then carry FALLBACK_DOMAIN instead of
-    // the real site (see getPublicOrigin() on the JS side, which corrects for
-    // this in shared text, but the WebView itself stays on the wrong origin
-    // until a reload actually happens).
+    // even though it was never actually offline.
     private final android.os.Handler reconnectHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private int reconnectAttempts = 0;
     private static final long[] RECONNECT_DELAYS_MS = {3000, 8000, 20000};
