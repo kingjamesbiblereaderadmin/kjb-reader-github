@@ -1014,116 +1014,18 @@ public class MainActivity extends BridgeActivity {
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
             super.onReceivedError(view, request, error);
             // A failure loading the top-level page itself (not some
-            // sub-resource like an image or an analytics script) while we
-            // were trying to show the live site -- e.g. connectivity dropped
-            // between the launch-time check and now, or the site is
-            // temporarily unreachable. Fall back to the bundled copy instead
-            // of leaving the WebView on its default ugly error page.
+            // sub-resource like an image or an analytics script) -- e.g.
+            // connectivity dropped between the launch-time check and now, or
+            // the site is temporarily unreachable. Mark this session as
+            // offline and retry the SAME url: shouldInterceptRequest above
+            // will now serve it from bundled assets instead of the network,
+            // since usingOfflineFallback is set. Because bundled assets are
+            // served under this exact same host, this is a plain reload --
+            // no origin to switch to, no localStorage to carry, nothing that
+            // can go missing in transit.
             if (request.isForMainFrame() && !activity.usingOfflineFallback) {
                 activity.usingOfflineFallback = true;
-                // Hide the WebView immediately so Android's own default
-                // "webpage not available" error page never has a chance to
-                // render/flash on screen -- it would otherwise show for the
-                // instant between this failure and whichever redirect below
-                // finishes loading. Reusing the exact same hide-until-ready
-                // mechanism maybeCarryStateFromColdStart() already uses for
-                // its own state-carry transition: onPageFinished (below)
-                // reveals the view again once pendingRevealAfterCarry is set
-                // and ANY subsequent page finishes loading. Includes the same
-                // safety-timeout pattern that flow uses too, in case the
-                // fallback/redirect somehow never actually finishes loading
-                // (e.g. a corrupted bundled asset) -- leaving the view hidden
-                // indefinitely would be far worse than the flash this exists
-                // to prevent.
-                view.setVisibility(View.INVISIBLE);
-                activity.pendingRevealAfterCarry = true;
-                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                    if (activity.pendingRevealAfterCarry) {
-                        activity.pendingRevealAfterCarry = false;
-                        view.setVisibility(View.VISIBLE);
-                    }
-                }, 5000);
-                try {
-                    activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                        .edit().putBoolean(PREF_USED_FALLBACK, true).apply();
-                } catch (Exception e) {
-                    // Non-fatal -- worst case, a future cold start just won't
-                    // know to check for carried state, same as before this
-                    // existed.
-                }
-                String target = FALLBACK_URL;
-                if (activity.pendingDestination != null) {
-                    try {
-                        Uri live = Uri.parse(activity.pendingDestination);
-                        target = live.buildUpon().scheme("https").authority(FALLBACK_DOMAIN).build().toString();
-                    } catch (Exception e) {
-                        target = FALLBACK_URL;
-                    }
-                }
-                final String finalTarget = target;
-                // If the WebView is currently showing an already-loaded
-                // REMOTE_URL page (a mid-session connectivity drop, not a
-                // fresh cold start with nothing loaded yet), carry its real
-                // localStorage -- settings, highlights, saved verses,
-                // everything -- forward into the fallback origin before
-                // switching, mirroring reconnectPreservingState()'s own
-                // carry in the opposite direction. Without this, the
-                // offline session starts from a blank localStorage (i.e.
-                // defaults), and worse: when connectivity returns,
-                // reconnectPreservingState() would carry those blank
-                // defaults back and overwrite the user's real settings on
-                // REMOTE_URL too. Uses the LIVE page's own current path
-                // (via buildCarryTarget) rather than finalTarget/
-                // pendingDestination -- it reflects where the user actually
-                // was, which pendingDestination only approximates for the
-                // no-live-content case handled in the else branch below.
-                //
-                // NOTE: previously gated on activity.mainPageEverFinishedLoading
-                // too, on the theory that view.getUrl() can reflect an
-                // in-progress/attempted navigation rather than only a
-                // successfully committed one, and that this branch could
-                // therefore fire wrongly on a cold start. That gate is
-                // confirmed to have been a REGRESSION: 1.14 (before it
-                // existed) had offline cold-start lookups working; the gate
-                // broke that. Reverted -- whatever this branch's actual
-                // reliability characteristics are, they're better than the
-                // gated version's, at least for this exact scenario.
-                String currentUrl = view.getUrl();
-                if (currentUrl != null && currentUrl.startsWith(REMOTE_URL)) {
-                    view.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> {
-                        // view.getUrl() can report REMOTE_URL as the ATTEMPTED
-                        // target even when the page never actually committed
-                        // (see the NOTE above) -- e.g. a genuinely fresh cold
-                        // start that failed before ever loading anything. In
-                        // that case this evaluateJavascript ran against a
-                        // blank/uninitialized document, never the real
-                        // origin's storage, so its result carries nothing
-                        // (empty data) even though the user's real settings
-                        // are sitting untouched on REMOTE_URL's actual
-                        // localStorage. Carrying that empty result forward
-                        // would silently reset the offline session to
-                        // defaults/landing -- fall back to the last known-good
-                        // snapshot (same one the no-live-page branch below
-                        // uses) instead of trusting an empty live read.
-                        if (isEmptyCarryResult(result)) {
-                            view.post(() -> loadWithSavedSnapshotOrPlain(activity, view, finalTarget));
-                        } else {
-                            String carryTarget = buildCarryTarget(result, FALLBACK_ORIGIN, false);
-                            view.post(() -> view.loadUrl(carryTarget));
-                        }
-                    });
-                } else {
-                    // No live REMOTE_URL page loaded THIS session to read
-                    // localStorage from -- a cold start that failed before
-                    // ever successfully showing the real site (e.g. the
-                    // SW-served offline attempt described above didn't pan
-                    // out this time). Fall back to whatever
-                    // persistStateSnapshot() saved from the LAST successful
-                    // REMOTE_URL load, so the offline session still opens on
-                    // the right book/chapter with the right settings instead
-                    // of silently resetting to Genesis 1 / defaults.
-                    view.post(() -> loadWithSavedSnapshotOrPlain(activity, view, finalTarget));
-                }
+                view.loadUrl(request.getUrl().toString());
                 activity.scheduleReconnectAttempt();
             }
         }
@@ -1131,33 +1033,6 @@ public class MainActivity extends BridgeActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
-            activity.mainPageEverFinishedLoading = true;
-            activity.specialIntentHandled = true;
-
-            // Snapshot the real site's state on every successful load -- see
-            // persistStateSnapshot() for why. Skipped for FALLBACK_DOMAIN
-            // itself: that origin's storage is recovered a different way
-            // (maybeCarryStateFromColdStart()'s hidden WebView), and
-            // snapshotting it here would overwrite the real site's own
-            // last-known-good state with the fallback's.
-            if (url != null && url.startsWith(REMOTE_URL)) {
-                activity.persistStateSnapshot(view);
-            }
-
-            // maybeCarryStateFromColdStart() hid the main WebView (this one)
-            // while a separate hidden WebView recovered state from the old
-            // fallback origin, then navigated THIS WebView to the final,
-            // carried-state destination -- this onPageFinished is that
-            // destination actually finishing loading. Reveal it now, since
-            // whatever's about to be shown is the fully correct, final state
-            // (not the earlier default page that was never actually visible
-            // in the first place). No-op for every other ordinary page load,
-            // since pendingRevealAfterCarry only gets set true in that one
-            // specific situation.
-            if (activity.pendingRevealAfterCarry) {
-                activity.pendingRevealAfterCarry = false;
-                view.setVisibility(View.VISIBLE);
-            }
         }
     }
 
