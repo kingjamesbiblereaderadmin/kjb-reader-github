@@ -998,9 +998,6 @@ export default function SettingsPage() {
             </div>
 
             <div className="flex gap-3 pt-2">
-              <button
-                onClick={async () => {
-                  if (confirm('Reset all settings to default? This cannot be undone.')) {
                     // Reset all localStorage settings.
                     localStorage.removeItem('kjb-verse-text-color');
                     localStorage.removeItem('kjb-verse-text-opacity');
