@@ -154,6 +154,24 @@ public class MainActivity extends BridgeActivity {
 
         WebView webView = getBridge().getWebView();
 
+        // Attached FIRST, before any other setup below -- and immediately
+        // followed by stopLoading() -- specifically to win a race against
+        // Capacitor's own bridge initialization. Capacitor's BridgeActivity
+        // (super.onCreate() above) already queues/starts its OWN default
+        // page load (server.url) using ITS OWN default WebViewClient before
+        // we ever get a chance to attach OfflineCapableWebViewClient here --
+        // if that happens first, an offline cold start fails under
+        // Capacitor's own plain error handling (no bundled-asset fallback,
+        // no usingOfflineFallback bookkeeping) instead of ours, and our
+        // client only finds out once it's too late to matter. Attaching our
+        // client as early as technically possible, then cancelling whatever
+        // Capacitor's default one may have already started, means every
+        // load from here on -- including the one handleIncomingIntent()
+        // below is about to explicitly (re)trigger -- goes through OUR
+        // offline-aware handling from the very first byte.
+        webView.setWebViewClient(new OfflineCapableWebViewClient(getBridge(), this));
+        webView.stopLoading();
+
         // Edge-to-edge (above) stops the system from automatically reserving
         // space for the status/nav bars, so without this the page content
         // renders underneath them and gets clipped at the top/bottom. Pad the
