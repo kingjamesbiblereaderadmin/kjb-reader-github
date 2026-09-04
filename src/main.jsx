@@ -90,6 +90,32 @@ if (!rootElement) {
     return;
   }
 
+  // Skip entirely on the native Android app. The Service Worker exists to
+  // give the BROWSER/PWA context offline support -- but the native app
+  // already has its own, better mechanism for that: the whole site is
+  // bundled straight into the APK and served via MainActivity.java's
+  // shouldInterceptRequest whenever there's no connectivity, rebuilt fresh
+  // with every version, so it can never go stale the way a browser cache
+  // can. Letting the SW run here too, on the SAME origin the native
+  // fallback also uses, means its own cache-first strategy can end up
+  // "in the way": a cache MISS against an OLDER build's hashed asset
+  // filenames falls through to fetch(), which fails offline, and the SW's
+  // own fallback for that (a synthetic broken placeholder response for
+  // anything that isn't a navigation) breaks the page instead of ever
+  // letting the always-fresh native bundle actually serve it. Also
+  // unregisters any SW a device may already have picked up from an EARLIER
+  // version of the app before this guard existed, so upgrading doesn't
+  // leave a stale, still-active SW controlling the page indefinitely.
+  if (isNativeAndroid()) {
+    console.log('[SW] Skipping registration on native Android -- offline is handled natively instead');
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach(reg => reg.unregister());
+      });
+    }
+    return;
+  }
+
   // Cache the splash logo as base64 in localStorage for offline use (the
   // cross-origin logo URL is unreliable to cache via SW alone).
   cacheSplashLogo().catch(() => {});
