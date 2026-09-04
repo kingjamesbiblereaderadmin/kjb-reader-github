@@ -917,40 +917,56 @@ public class MainActivity extends BridgeActivity {
                 }
             }
 
-            if (FALLBACK_DOMAIN.equals(url.getHost())) {
-                // Serves android/app/src/main/assets/public/<path> for any
-                // request to FALLBACK_DOMAIN/<path> -- the entire bundled site
-                // (copied to assets/public/ by `cap sync` from a real `npm run
-                // build`), used as a last resort when the live site can't be
-                // reached at all (see onReceivedError below).
-                //
-                // Direct getAssets() lookup by path instead of androidx.webkit's
-                // WebViewAssetLoader: that library's PathHandler prefix-matching
-                // doesn't reliably match a root-only "/" prefix across
-                // androidx.webkit versions -- it silently returned null for
-                // every request here, falling through to a real (failing)
-                // network request for the fake FALLBACK_DOMAIN and showing a
-                // "page not found" error. A non-root prefix like "/app/"
-                // matches fine, but then breaks the OTHER way: the built
-                // index.html references its JS/CSS with root-relative paths
-                // like "/assets/xxxx.js", which resolve against the domain
-                // root regardless of index.html's own path -- so a subpath
-                // prefix leaves every asset AFTER index.html unmatched. Doing
-                // the lookup directly, the same way the Bible text and fonts
-                // above already are, sidesteps both problems at once.
-                //
-                // "/" itself, and any path with no file extension in its last
-                // segment (an SPA client-side route like "/search", reached via
-                // a hard navigation rather than in-app routing), both serve
-                // index.html -- this mirrors the live site's own service
-                // worker fallback (public/sw.js) so client-side routing can
-                // take over regardless of which URL the fallback was entered
-                // from. Without this, loading FALLBACK_URL's exact path
-                // ("/") worked, but React Router's location.pathname would be
-                // literally "/index.html" if we'd pointed FALLBACK_URL there
-                // instead -- which matches none of the app's routes and shows
-                // its own "Page Not Found" (PageNotFound.jsx renders the raw
-                // pathname as the missing page's name).
+            // Serves android/app/src/main/assets/public/<path> under the
+            // SAME host as the live site -- the entire bundled site (copied
+            // to assets/public/ by `cap sync` from a real `npm run build`),
+            // used as a last resort when the network can't be reached at all
+            // (see onReceivedError below, and the sticky usingOfflineFallback
+            // flag it sets). Because this is the real host rather than a
+            // separate virtual domain, localStorage here is EXACTLY the same
+            // store the live site uses -- there is nothing to carry across
+            // when connectivity drops or returns, so no origin-switch
+            // machinery is needed at all.
+            //
+            // Gated on REMOTE_HOST.equals(...) AND (already known offline OR
+            // isNetworkAvailable() says so right now): a genuinely-online
+            // request for this host falls through to normal network handling
+            // below instead, same as any ordinary page load. isNetworkAvailable()
+            // alone only reflects whether an interface is up, not whether a
+            // request will actually succeed (a captive portal, a DNS hiccup,
+            // the server being briefly down) -- usingOfflineFallback is what
+            // keeps this branch active for the REST of the session once a
+            // real request has already proven the network doesn't work, so
+            // things don't flap between network and bundled assets on every
+            // individual resource request.
+            //
+            // Direct getAssets() lookup by path instead of androidx.webkit's
+            // WebViewAssetLoader: that library's PathHandler prefix-matching
+            // doesn't reliably match a root-only "/" prefix across
+            // androidx.webkit versions -- it silently returned null for
+            // every request here in an earlier attempt at this. A non-root
+            // prefix like "/app/" matches fine, but then breaks the OTHER
+            // way: the built index.html references its JS/CSS with
+            // root-relative paths like "/assets/xxxx.js", which resolve
+            // against the domain root regardless of index.html's own path --
+            // so a subpath prefix leaves every asset AFTER index.html
+            // unmatched. Doing the lookup directly, the same way the Bible
+            // text and fonts above already are, sidesteps both problems at
+            // once.
+            //
+            // "/" itself, and any path with no file extension in its last
+            // segment (an SPA client-side route like "/search", reached via
+            // a hard navigation rather than in-app routing), both serve
+            // index.html -- this mirrors the live site's own service
+            // worker fallback (public/sw.js) so client-side routing can
+            // take over regardless of which URL the fallback was entered
+            // from. Without this, React Router's location.pathname would be
+            // literally "/index.html" for a route reached this way -- which
+            // matches none of the app's routes and shows its own "Page Not
+            // Found" (PageNotFound.jsx renders the raw pathname as the
+            // missing page's name).
+            if (REMOTE_HOST.equals(url.getHost())
+                && (activity.usingOfflineFallback || !activity.isNetworkAvailable())) {
                 String path = url.getPath(); // already starts with "/"
                 if (path != null) {
                     String lastSegment = path.substring(path.lastIndexOf('/') + 1);
@@ -982,7 +998,11 @@ public class MainActivity extends BridgeActivity {
                         }
                         return new WebResourceResponse(guessMimeType(assetPath), looksLikeRoute ? "UTF-8" : null, stream);
                     } catch (IOException e) {
-                        // Fall through to normal (network) handling below.
+                        // Fall through to normal (network) handling below --
+                        // lets a request for a path with no local asset match
+                        // (e.g. a backend function endpoint that has no
+                        // offline snapshot) still attempt the real network
+                        // rather than dead-ending here.
                     }
                 }
             }
