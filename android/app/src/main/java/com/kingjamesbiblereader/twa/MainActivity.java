@@ -1016,18 +1016,38 @@ public class MainActivity extends BridgeActivity {
             // A failure loading the top-level page itself (not some
             // sub-resource like an image or an analytics script) -- e.g.
             // connectivity dropped between the launch-time check and now, or
-            // the site is temporarily unreachable. Mark this session as
-            // offline and retry the SAME url: shouldInterceptRequest above
-            // will now serve it from bundled assets instead of the network,
-            // since usingOfflineFallback is set. Because bundled assets are
-            // served under this exact same host, this is a plain reload --
-            // no origin to switch to, no localStorage to carry, nothing that
-            // can go missing in transit.
+            // the OS reports a connection as "available" but the actual
+            // request still fails (weak signal, captive portal, DNS hiccup).
+            // Mark this session as offline and retry the SAME url:
+            // shouldInterceptRequest above will now serve it from bundled
+            // assets instead of the network, since usingOfflineFallback is
+            // set. Because bundled assets are served under this exact same
+            // host, this is a plain reload -- no origin to switch to, no
+            // localStorage to carry, nothing that can go missing in transit.
+            //
+            // Briefly hides the WebView across the retry so Android's own
+            // default "webpage not available" error page never gets a
+            // chance to flash on screen for the instant between this
+            // failure and the retry finishing -- reveals itself again the
+            // moment ANY page finishes loading (see onPageFinished below),
+            // with a safety timeout in case that somehow never happens (a
+            // corrupted bundled asset, etc.) so the view is never left
+            // hidden indefinitely.
             if (request.isForMainFrame() && !activity.usingOfflineFallback) {
                 activity.usingOfflineFallback = true;
+                view.setVisibility(View.INVISIBLE);
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    if (view.getVisibility() != View.VISIBLE) view.setVisibility(View.VISIBLE);
+                }, 5000);
                 view.loadUrl(request.getUrl().toString());
                 activity.scheduleReconnectAttempt();
             }
+        }
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            super.onPageFinished(view, url);
+            if (view.getVisibility() != View.VISIBLE) view.setVisibility(View.VISIBLE);
         }
     }
 
