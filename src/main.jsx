@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from '@/App.jsx'
 import '@/index.css'
 import { cacheSplashLogo } from '@/lib/splashLogo'
+import { isNativeAndroid } from '@/lib/isNativeAndroid'
 import { toast } from 'sonner'
 
 // Swallow the harmless, transient "Failed to update a ServiceWorker ... Not
