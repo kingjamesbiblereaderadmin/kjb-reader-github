@@ -913,7 +913,8 @@ export default function SearchPage() {
       localStorage.removeItem('kjb-last-reading');
     } catch {}
     const vParam = first.verse ? `&verse=${first.verse}` : '';
-    navigate(`/read?book=${first.abbr}&chapter=${first.chapter}${vParam}&from=search`);
+    const vEndParam = first.verse && first.verseEnd && first.verseEnd > first.verse ? `&verseEnd=${first.verseEnd}` : '';
+    navigate(`/read?book=${first.abbr}&chapter=${first.chapter}${vParam}${vEndParam}&from=search`);
     setTimeout(() => { try { window.dispatchEvent(new Event('kjb-navigate')); } catch {} }, 0);
   }, [navigate]);
 
