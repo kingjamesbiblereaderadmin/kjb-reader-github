@@ -117,8 +117,8 @@ public class MainActivity extends BridgeActivity {
         reconnectHandler.postDelayed(() -> {
             if (!usingOfflineFallback) return; // already recovered another way
             if (isNetworkAvailable()) {
-                reconnectPreservingState();
-                // If this load itself fails, onReceivedError sets
+                clearOfflineFallbackAndReload();
+                // If this reload itself fails, onReceivedError sets
                 // usingOfflineFallback back to true and this whole retry
                 // sequence starts over from attempt 0.
             } else {
@@ -127,226 +127,24 @@ public class MainActivity extends BridgeActivity {
         }, delay);
     }
 
-    // Carries state across the reconnect from the bundled offline snapshot
-    // (FALLBACK_DOMAIN) back to the real site (REMOTE_URL). Browser storage
-    // (localStorage) is strictly
-    // per-origin -- anything saved while showing the bundled copy is
-    // completely invisible once the app reloads the real site, which
-    // otherwise looks EXACTLY like a brand-new install even to a user who's
-    // been using the app for a while: it re-triggers the full "first visit"
-    // download/welcome flow and the '/' -> '/landing' redirect (see App.jsx's
-    // splashMode / "first-time visitors" logic, both keyed off
-    // localStorage['kjb-has-visited-app']).
-    //
-    // Carries the WHOLE of localStorage across (every key EXCEPT the few
-    // known-large, easily-re-derived caches excluded below), plus the
-    // CURRENT page's own path+query (e.g. "/search?q=romans"), so a
-    // reconnect while on a search-results page lands back on those same
-    // results instead of the bare home page. This covers every feature that
-    // uses localStorage automatically -- saved verses, highlights, reading
-    // position/progress, every setting/preference, the Defence-resources
-    // cache, etc. -- without this list needing to know each one by name or
-    // be kept in sync as new features add new keys. Only the actual Bible
-    // text cache (several MB across many keys) and a couple of large,
-    // trivially-re-fetchable derived caches (the splash logo image, the
-    // server-side text-override cache) are excluded, since none of those are
-    // user-authored data and all regenerate themselves within moments of
-    // being back online regardless.
-    //
-    // MAX_CARRY_BYTES is a blanket safety cap on the total payload (not
-    // per-key): if a user's REALISTIC total (even a large saved-verses/
-    // highlights collection) somehow exceeds it, this falls back to carrying
-    // just the path with no state -- losing that state ONLY for this narrow
-    // reconnect path is a far smaller cost than risking an oversized URL the
-    // WebView or server might reject outright.
-    private static final int MAX_CARRY_BYTES = 200000; // ~200KB
-
-    private void reconnectPreservingState() {
+    // Clears the sticky offline flag and reloads the CURRENT url. Since the
+    // bundled offline copy is served under the exact same origin as the live
+    // site (see REMOTE_URL/REMOTE_HOST above), a reload is all reconnecting
+    // ever needs to do -- there's no separate origin's localStorage to read
+    // or carry across, no navigation target to rebuild, nothing that can go
+    // out of sync. Whatever page the user was on (reader, search results,
+    // gospel) just re-fetches over the network instead of from bundled
+    // assets, with all of its state already exactly where it left off.
+    private void clearOfflineFallbackAndReload() {
         usingOfflineFallback = false;
         reconnectAttempts = 0;
         reconnectHandler.removeCallbacksAndMessages(null);
-        WebView webView = getBridge().getWebView();
-        webView.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> webView.loadUrl(buildCarryTarget(result, REMOTE_URL, true)));
+        getBridge().getWebView().reload();
     }
-
-    // Snapshots the real site's own state (reading position, settings,
-    // highlights -- exactly what CARRY_READ_SCRIPT collects, so it's already
-    // in the shape buildCarryTarget() expects) to SharedPreferences every
-    // time a REMOTE_URL page finishes loading. The mid-session disconnect
-    // path (onReceivedError below) can read this straight off the live
-    // WebView when it has one open -- but a cold start that goes offline
-    // before ever loading REMOTE_URL this session has no live page to read
-    // from at all. This persisted copy is what that path falls back to, so
-    // "close the app online, go offline, reopen" doesn't silently reset the
-    // reader to Genesis 1 and drop every setting.
-    private void persistStateSnapshot(WebView view) {
-        view.evaluateJavascript(CARRY_READ_SCRIPT, (result) -> {
-            if (result == null || "null".equals(result)) return;
-            try {
-                getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                    .edit().putString(PREF_LAST_STATE, result).apply();
-            } catch (Exception e) {
-                // Non-fatal -- worst case, the next offline cold start just
-                // has nothing to fall back on, same as before this existed.
-            }
-        });
-    }
-
-    // The script run against a page to collect what reconnectPreservingState()
-    // (and, differently, maybeCarryStateFromColdStart()'s hidden WebView)
-    // needs: the page's own localStorage (minus a few known-large,
-    // easily-re-derived caches) plus its current path+query. Shared as one
-    // constant so both call sites -- reading from two DIFFERENT WebView
-    // instances -- stay in exact agreement on what "carry" means.
-    // PER_KEY_MAX_CHARS skips any SINGLE oversized value (custom background /
-    // notification images and daily-verse-cache entries are stored as base64
-    // data URLs and can easily run to hundreds of KB or more) rather than
-    // letting one large key sink the ENTIRE carry via MAX_CARRY_BYTES below.
-    // Before this, a user with e.g. a custom background image would silently
-    // lose everything on a reconnect/fallback -- highlights, saved verses,
-    // every setting -- because the one oversized image pushed the total
-    // payload over the cap and buildCarryTarget's overflow branch drops the
-    // WHOLE thing, not just the offending key. Small, high-value data
-    // (highlights, settings, saved verses, reading position) now always
-    // survives even when a large image is present and gets left behind.
-    private static final String CARRY_READ_SCRIPT =
-        "(function(){try{" +
-        "var EXCLUDE_PREFIXES=['bible_data'];" +
-        "var EXCLUDE_EXACT=['kjb-splash-logo-dataurl','kjb-overrides-cache'];" +
-        "var PER_KEY_MAX_CHARS=50000;" +
-        "var data={};" +
-        "for(var i=0;i<localStorage.length;i++){" +
-        "var k=localStorage.key(i);if(!k)continue;" +
-        "if(EXCLUDE_EXACT.indexOf(k)!==-1)continue;" +
-        "var skip=false;" +
-        "for(var j=0;j<EXCLUDE_PREFIXES.length;j++){if(k.indexOf(EXCLUDE_PREFIXES[j])===0){skip=true;break;}}" +
-        "if(skip)continue;" +
-        "var v=localStorage.getItem(k);" +
-        "if(v&&v.length>PER_KEY_MAX_CHARS)continue;" +
-        "data[k]=v;" +
-        "}" +
-        "return {data:data,path:location.pathname+location.search};" +
-        "}catch(e){return {};}})();";
-
-    // Turns a CARRY_READ_SCRIPT result (evaluateJavascript's callback value --
-    // the JSON-serialized form of whatever the script returned, a plain
-    // object here, so this parses directly with no extra unwrap needed)
-    // into a navigation target on the given base origin, with the collected
-    // state encoded as a query param. Used for BOTH directions of the
-    // origin switch -- FALLBACK_DOMAIN -> REMOTE_URL on reconnect (base =
-    // REMOTE_URL), and REMOTE_URL -> FALLBACK_DOMAIN when connectivity is
-    // lost mid-session (base = FALLBACK_ORIGIN) -- so real user
-    // settings/highlights/saved verses survive the switch either way
-    // instead of the destination origin starting from a blank
-    // localStorage. addReconnectFlag controls whether the distinct
-    // "Reconnecting..." splash wording (see below) applies -- only
-    // meaningful for the FALLBACK_DOMAIN -> REMOTE_URL direction.
-    private static String buildCarryTarget(String result, String baseTarget, boolean addReconnectFlag) {
-        return buildCarryTarget(result, baseTarget, addReconnectFlag, null);
-    }
-
-    // forcedDestination: when non-null, used as the base URL INSTEAD of
-    // baseTarget+carried-path -- for the case where the cold start that
-    // triggered this carry was ALSO a share/process-text/deep-link intent,
-    // which has its own specific destination that has nothing to do with
-    // whatever page the offline session happened to be showing when it was
-    // last used. The carried localStorage DATA still applies either way --
-    // only the navigation target differs.
-    private static String buildCarryTarget(String result, String baseTarget, boolean addReconnectFlag, String forcedDestination) {
-        String target = baseTarget;
-        try {
-            org.json.JSONObject obj = new org.json.JSONObject(result);
-            org.json.JSONObject data = obj.optJSONObject("data");
-            String base;
-            if (forcedDestination != null) {
-                base = forcedDestination;
-            } else {
-                String path = obj.optString("path", "");
-                // Only carry the current path if it's a REAL in-app route
-                // (starts with "/"), never the origin's own root "/" with
-                // nothing meaningful after it -- in that case the plain
-                // base URL is exactly right already.
-                boolean carryPath = path.startsWith("/") && !path.equals("/");
-                base = carryPath ? (baseTarget + path) : baseTarget;
-            }
-            if (data != null && data.length() > 0) {
-                String dataStr = data.toString();
-                if (dataStr.getBytes(StandardCharsets.UTF_8).length <= MAX_CARRY_BYTES) {
-                    String encoded = Base64.encodeToString(
-                        dataStr.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
-                    String sep = base.contains("?") ? "&" : "?";
-                    target = base + sep + "__kjb_carry=" + Uri.encode(encoded);
-                } else {
-                    target = base;
-                }
-            } else {
-                target = base;
-            }
-            // The user was already looking at a live, loaded app a moment
-            // ago (this is a same-session reconnect, not a fresh cold
-            // start) -- the full "Welcome"/"Welcome back" wording doesn't
-            // fit here. Tell the JS side (see main.jsx / App.jsx /
-            // SplashScreen.jsx) to show a distinct "Reconnecting..." splash
-            // instead for this one navigation -- the splash itself still
-            // shows (the page reload this origin-switch requires is real),
-            // just with wording that matches what's actually happening.
-            // Only applies to the FALLBACK_DOMAIN -> REMOTE_URL direction --
-            // when falling BACK to the offline copy the plain first-load
-            // splash is already correct.
-            if (addReconnectFlag) {
-                String skipSep = target.contains("?") ? "&" : "?";
-                target = target + skipSep + "__kjb_reconnect=1";
-            }
-        } catch (Exception e) {
-            // Fall back to the plain base target -- losing this state just
-            // means the destination starts from defaults, same as before
-            // this fix existed, not a crash or a stuck state.
-        }
-        return target;
-    }
-    // The last live-site URL handleIncomingIntent() tried to navigate to
-    // (search from a share/process-text intent, or an App Link deep link).
-    // If that load fails and onReceivedError falls back to the bundled
-    // snapshot, it's rewritten onto FALLBACK_DOMAIN and used instead of the
-    // bare FALLBACK_URL -- otherwise the fallback always lands on the plain
-    // home page and the search/verse the user was taken here for is lost.
-    private String pendingDestination = null;
-
-    // Set by maybeCarryStateFromColdStart() while the main WebView is hidden
-    // (see that method for why) -- tells OfflineCapableWebViewClient's
-    // onPageFinished to reveal it again once the carried-state navigation
-    // actually completes, instead of leaving it hidden indefinitely.
-    private boolean pendingRevealAfterCarry = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Checked and acted on IMMEDIATELY after super.onCreate() -- before
-        // any of the setup below -- specifically to keep the window where
-        // Capacitor's own already-queued default page load could progress
-        // as short as possible. maybeCarryStateFromColdStart() calls
-        // stopLoading() on the main WebView as its first real action, but
-        // stopLoading() only stops an IN-PROGRESS load; it can't undo
-        // anything already rendered. Calling this any later (after the
-        // edge-to-edge/cookie/JS-bridge/WebViewClient setup that used to sit
-        // between super.onCreate() and this call) gave that default load
-        // enough time on a fast connection to actually render the "new
-        // visitor" welcome screen before we ever got a chance to stop it --
-        // producing a brief but real "welcome, then welcome back" flash even
-        // though the carried state ultimately arrived correctly afterward.
-        //
-        // Called unconditionally now (previously skipped entirely for a
-        // share/process-text/deep-link launch) -- it resolves that
-        // destination itself now and uses it as the carry's navigation
-        // target, so a lookup-triggered reopen right after an offline
-        // session still restores whatever settings/highlights changed then,
-        // instead of silently losing them. carriedNavigation being true means
-        // it's already taken care of navigating the WebView (async, via the
-        // hidden-WebView carry read) -- skip the ordinary direct
-        // handleIncomingIntent() call below in that case so the two don't
-        // race each other.
-        boolean carriedNavigation = maybeCarryStateFromColdStart();
 
         // Modern edge-to-edge replacement for the deprecated
         // Window.setStatusBarColor()/setNavigationBarColor() APIs flagged on
