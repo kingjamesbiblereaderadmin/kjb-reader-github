@@ -1491,9 +1491,15 @@ export default function BibleReader() {
         if (!resolveBook(p.abbr)) return;
         const cur = posRef.current;
         if (p.abbr === cur.abbr && p.chapter === cur.chapter) return;
+        const isRange = p.verse && p.verseEnd && p.verseEnd > p.verse;
+        if (isRange) {
+          const range = new Set();
+          for (let v = p.verse; v <= p.verseEnd; v++) range.add(v);
+          setSelectedVerses(range); setHighlightedVerses(range); setFilterMode(true);
+        }
         setPos({ abbr: p.abbr, chapter: p.chapter, verse: p.verse || null });
         setHighlightVerse(p.verse || null);
-        loadChapter(p.abbr, p.chapter, p.verse || null);
+        loadChapter(p.abbr, p.chapter, p.verse || null, isRange ? p.verseEnd : null);
       } catch {}
     };
     window.addEventListener('kjb-settings-synced', handler);
