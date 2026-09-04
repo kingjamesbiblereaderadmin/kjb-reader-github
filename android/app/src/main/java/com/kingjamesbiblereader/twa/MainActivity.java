@@ -47,17 +47,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MainActivity extends BridgeActivity {
 
-    // Domain the bundled offline copy is served at (androidx.webkit's
-    // conventional placeholder domain for WebViewAssetLoader -- it doesn't
-    // resolve on the real internet, it's just a virtual https origin so the
-    // bundled copy behaves like a normal secure page instead of the legacy,
-    // less-safe file:// scheme).
-    private static final String FALLBACK_DOMAIN = "appassets.androidplatform.net";
-    private static final String FALLBACK_URL = "https://" + FALLBACK_DOMAIN + "/";
-    // Bare origin (no trailing slash), for composing a carried-path target
-    // the same way REMOTE_URL is used below -- see buildCarryTarget().
-    private static final String FALLBACK_ORIGIN = "https://" + FALLBACK_DOMAIN;
+    // The app's one and only origin, online or offline. Bundled-asset
+    // fallback content (see OfflineCapableWebViewClient.shouldInterceptRequest
+    // below) is served under THIS SAME host rather than a separate virtual
+    // domain -- browser storage (localStorage) is strictly per-origin, so
+    // keeping everything on one origin means there is nothing to carry
+    // across when connectivity drops or returns: the live site and the
+    // bundled offline copy share the exact same storage automatically.
     private static final String REMOTE_URL = "https://kingjamesbiblereader.com";
+    private static final String REMOTE_HOST = "kingjamesbiblereader.com";
 
     // Path bibleCache.js requests (only on native Android) instead of the
     // real remote Bible-text URL. Kept as a constant here since the Java side
