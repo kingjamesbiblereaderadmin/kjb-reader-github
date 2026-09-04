@@ -353,14 +353,27 @@
               var dbgEl = document.createElement('div');
               dbgEl.id = 'kjb-debug-overlay';
               dbgEl.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9999999;background:rgba(0,0,0,0.85);color:#0f0;font-family:monospace;font-size:10px;line-height:1.4;padding:8px;word-break:break-all;max-height:40vh;overflow:auto;';
-              dbgEl.textContent = 'origin=' + location.origin +
-                ' | mode=' + JSON.stringify(localStorage.getItem('kjb-theme-mode')) +
-                ' | colour=' + JSON.stringify(localStorage.getItem('kjb-colour')) +
-                ' | color-mode=' + JSON.stringify(localStorage.getItem('kjb-color-mode')) +
-                ' | font=' + JSON.stringify(localStorage.getItem('kjb-reader-font-family')) +
-                ' | ls.length=' + localStorage.length +
-                ' | online=' + navigator.onLine;
+              var renderDbg = function(tag) {
+                var carryParam = (location.search || '').indexOf('__kjb_carry=') !== -1;
+                dbgEl.textContent = '[' + tag + '] origin=' + location.origin +
+                  ' | hasCarryParam=' + carryParam +
+                  ' | search=' + location.search +
+                  ' | mode=' + JSON.stringify(localStorage.getItem('kjb-theme-mode')) +
+                  ' | colour=' + JSON.stringify(localStorage.getItem('kjb-colour')) +
+                  ' | color-mode=' + JSON.stringify(localStorage.getItem('kjb-color-mode')) +
+                  ' | font=' + JSON.stringify(localStorage.getItem('kjb-reader-font-family')) +
+                  ' | hasVisited=' + JSON.stringify(localStorage.getItem('kjb-has-visited-app')) +
+                  ' | ls.length=' + localStorage.length +
+                  ' | online=' + navigator.onLine;
+              };
+              // Pre-main.jsx snapshot (this point) is EXPECTED to show
+              // ls.length=0 even when the carry param is present -- main.jsx
+              // hasn't decoded/applied it yet at this point in the file. The
+              // post-mount snapshot 800ms later is the one that actually
+              // proves whether the carry applied in time.
+              renderDbg('pre-main');
               document.body.appendChild(dbgEl);
+              setTimeout(function () { renderDbg('post-main+800ms'); }, 800);
             } catch (e) {}
             if (bootText) {
               var hasVisited = localStorage.getItem('kjb-has-visited-app') === 'true';
