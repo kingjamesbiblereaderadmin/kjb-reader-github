@@ -83,8 +83,8 @@ public class MainActivity extends BridgeActivity {
     // admin can add/edit/delete entries at any time), unlike the Bible
     // text/fonts/images bundled elsewhere in the app, which are effectively
     // static -- so this snapshot WILL drift out of date the moment an admin
-    // makes a change, same as the offline-fallback site snapshot at
-    // FALLBACK_DOMAIN already does. It exists purely so that very first
+    // makes a change, same as the offline-fallback site snapshot
+    // (shouldInterceptRequest's bundled-assets branch) already does. It exists purely so that very first
     // offline launch shows SOMETHING instead of an empty page; every
     // subsequent successful online load refreshes the real (non-bundled)
     // localStorage cache, which is preferred over this whenever it exists.
