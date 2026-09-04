@@ -414,85 +414,28 @@ public class MainActivity extends BridgeActivity {
         // onResume() (a background/foreground transition) or the scheduled
         // retry (scheduleReconnectAttempt -- backs off over ~31s, then gives
         // up entirely), neither of which necessarily gets a chance to run
-        // before a share/process-text/deep-link intent arrives. Without this,
-        // a single earlier transient failure could leave "Look Up" routing to
-        // the frozen bundled snapshot indefinitely even after the connection
-        // came back, since nothing forced a fresh check at the moment it
-        // actually mattered. Re-verifying real connectivity right here means
-        // routing always reflects the ACTUAL current network state for this
-        // specific action, not a potentially outdated flag from the past.
+        // before a share/process-text/deep-link intent arrives. Re-verifying
+        // real connectivity right here means routing always reflects the
+        // ACTUAL current network state for this specific action, not a
+        // potentially outdated flag from the past.
         if (usingOfflineFallback && isNetworkAvailable()) {
             usingOfflineFallback = false;
             reconnectAttempts = 0;
             reconnectHandler.removeCallbacksAndMessages(null);
         }
 
-        String target = url;
-        // Proactively check real connectivity, not just the (possibly still
-        // default-false, on a fresh cold start) usingOfflineFallback flag --
-        // without this, a genuinely offline cold-start lookup still attempted
-        // the real network request first, which then had to actually fail
-        // (a real timeout) before onReceivedError's own fallback logic ever
-        // got a chance to run -- producing a brief flash of the WebView's
-        // default network-error page before the correct offline content
-        // finally appeared a moment later. Checking here skips straight to
-        // the bundled/fallback destination when we already know there's no
-        // connection, instead of attempting and waiting to fail first.
-        boolean shouldUseFallback = usingOfflineFallback || !isNetworkAvailable();
-        if (shouldUseFallback) {
-            // Still showing the bundled snapshot -- rewrite onto
-            // FALLBACK_DOMAIN (same transform onReceivedError uses below)
-            // instead of abandoning the navigation entirely. Search and
-            // verse lookups still work fully offline (the Bible text is
-            // bundled natively, independent of which origin is showing), so
-            // there's no real reason to give up on it here -- doing so just
-            // meant "Look Up" from another app silently did nothing while
-            // offline, only bringing the existing app to the foreground on
-            // whatever page it happened to already be on.
-            //
-            // Also mirrors onReceivedError's OWN bookkeeping here
-            // (usingOfflineFallback + the persisted PREF_USED_FALLBACK flag),
-            // which this branch used to skip entirely since it never actually
-            // goes through onReceivedError (that's the whole point -- this
-            // check exists specifically to avoid the real network attempt
-            // that would otherwise fail and trigger it). Without this, a
-            // lookup-triggered offline session left both flags at their
-            // default false: usingOfflineFallback being wrong meant later
-            // in-session checks (onResume, scheduleReconnectAttempt) didn't
-            // know the app was actually showing fallback content, and
-            // PREF_USED_FALLBACK never getting persisted meant
-            // maybeCarryStateFromColdStart() had nothing to trigger on the
-            // NEXT cold start -- so anything changed while offline (a theme,
-            // a setting) silently never made it back once the app
-            // reconnected, since the one mechanism that carries state across
-            // that origin switch never even knew it needed to run.
-            usingOfflineFallback = true;
-            try {
-                getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(PREF_USED_FALLBACK, true).apply();
-            } catch (Exception e) {
-                // Non-fatal -- worst case, the eventual reconnect just shows
-                // the "new visitor" flow again instead of carrying state.
-            }
-            try {
-                Uri live = Uri.parse(url);
-                target = live.buildUpon().scheme("https").authority(FALLBACK_DOMAIN).build().toString();
-            } catch (Exception e) {
-                target = url;
-            }
-        }
-
-        // Keep the ORIGINAL (real-domain) URL here regardless of the rewrite
-        // above, so that if/when the app reconnects, onReceivedError's own
-        // rewrite (and the plain reconnect in onResume/scheduleReconnectAttempt)
-        // still has the correct live destination to work from.
-        pendingDestination = url;
-        specialIntentHandled = true;
+        // The target is always the real URL, online or offline -- there's no
+        // separate fallback domain to rewrite onto anymore. If we're offline,
+        // shouldInterceptRequest below serves this exact URL from bundled
+        // assets instead of hitting the network, without a real network
+        // attempt ever being made (and so without ever having to wait for
+        // one to time out first).
         if (isInitialLaunch) {
             // Bridge already queued the normal server.url load -- override it
             // with the shared-text/deep-link destination instead. loadUrl()
             // is correct here: no page has actually started rendering yet
             // for this fresh process to "drop" the call.
-            webView.loadUrl(target);
+            webView.loadUrl(url);
         } else {
             // A warm resume (app already running in the background, this
             // intent just brought it to the foreground) -- evaluateJavascript
@@ -512,7 +455,7 @@ public class MainActivity extends BridgeActivity {
             // loadUrl() introduced this regression. The brief flash this
             // reintroduces is a real but much smaller cost than navigation
             // sometimes not happening at all.
-            webView.evaluateJavascript("window.location.href = " + org.json.JSONObject.quote(target) + ";", null);
+            webView.evaluateJavascript("window.location.href = " + org.json.JSONObject.quote(url) + ";", null);
         }
     }
 
