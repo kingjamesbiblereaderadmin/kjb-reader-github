@@ -21,54 +21,16 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
   const chapterText = `Chapter ${chapter}`;
 
   // Track the container's actual rendered width so rotation, window resize,
-  // and split-screen all trigger a re-measure below -- without this, only
-  // a bookName/chapter change did, so rotating the device left whatever
-  // scale/stacked layout was already chosen for the OLD width in place
-  // (causing overlap) until something else happened to also change
-  // bookName/chapter and force a re-measure as a side effect.
+  // and split-screen all trigger a re-measure below.
   useLayoutEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
-
-    // Android WebView can report a stale/intermediate width from
-    // ResizeObserver mid-rotation-animation (before the layout has actually
-    // settled into the new orientation). Waiting a couple of animation
-    // frames wasn't enough for the wide-to-narrow direction specifically
-    // (rotating back) -- the WebView's rotation/system-bar animation can
-    // still be running well past 2 frames. Instead, keep re-reading the
-    // width for a full second after any orientationchange/resize; each
-    // reading that differs re-triggers the measure-and-stack effects below,
-    // so even if early readings catch a mid-animation value, the later ones
-    // correct it once things actually settle.
-    const readWidth = () => {
-      const width = container.getBoundingClientRect().width;
-      if (width > 0) setContainerWidth(width);
-    };
-    const settleDelaysMs = [0, 50, 100, 200, 350, 500, 750, 1000];
-    let timeoutIds = [];
-    const readWidthSettled = () => {
-      timeoutIds.forEach(clearTimeout);
-      timeoutIds = settleDelaysMs.map((ms) => setTimeout(readWidth, ms));
-    };
-
-    let observer = null;
-    if (typeof ResizeObserver !== 'undefined') {
-      observer = new ResizeObserver((entries) => {
-        const width = entries[0]?.contentRect?.width;
-        if (width != null) setContainerWidth(width);
-      });
-      observer.observe(container);
-    }
-
-    window.addEventListener('orientationchange', readWidthSettled);
-    window.addEventListener('resize', readWidthSettled);
-
-    return () => {
-      observer?.disconnect();
-      timeoutIds.forEach(clearTimeout);
-      window.removeEventListener('orientationchange', readWidthSettled);
-      window.removeEventListener('resize', readWidthSettled);
-    };
+    if (!container || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect?.width;
+      if (width != null) setContainerWidth(width);
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
   }, []);
 
   // Reset to full size / inline layout when inputs OR the container's width
@@ -86,6 +48,11 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
   // — so measure the combined width against the container instead.
   // If we hit the floor scale and it's still overflowing, give up on
   // shrinking further and switch to stacked layout instead.
+  // Depends on containerWidth DIRECTLY (not just via the reset effect above)
+  // -- rotating to a size where scale/stacked happen to already be at their
+  // current values (e.g. still inline, still scale 1) makes the reset
+  // effect's setState calls no-ops that React doesn't re-render for, which
+  // would otherwise skip this measurement entirely on that resize.
   useLayoutEffect(() => {
     if (stacked) return;
     const container = containerRef.current;
@@ -102,12 +69,13 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
       setStacked(true);
       setScale(1);
     }
-  }, [scale, stacked, bookName, chapter, baseFontRem]);
+  }, [scale, stacked, bookName, chapter, baseFontRem, containerWidth]);
 
   // Phase 2: stacked layout. The book name is now allowed to wrap onto
   // multiple lines, so it no longer needs to shrink to avoid overlap — only
   // shrink a little on very narrow containers where even a single word
-  // (or "Chapter N") would otherwise overflow.
+  // (or "Chapter N") would otherwise overflow. Also depends on
+  // containerWidth directly, for the same reason as Phase 1 above.
   useLayoutEffect(() => {
     if (!stacked) return;
     const container = containerRef.current;
@@ -120,7 +88,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
     if (overflowing && scale > MIN_STACKED_SCALE) {
       setScale((s) => Math.max(MIN_STACKED_SCALE, s - 0.05));
     }
-  }, [scale, stacked, bookName, chapter, baseFontRem]);
+  }, [scale, stacked, bookName, chapter, baseFontRem, containerWidth]);
 
   const fontSize = `${baseFontRem * scale}rem`;
 
