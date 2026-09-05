@@ -652,13 +652,6 @@ async function buildPdf(opts, bible, onProgress) {
   });
 
   onProgress(98, 'Finalising PDF…');
-  // opts.returnDoc lets a caller (Node PDF-generation script) get the raw
-  // jsPDF document back instead of triggering a browser download, since
-  // triggerDownload()'s DOM APIs (document.createElement etc.) don't exist
-  // outside a browser.
-  if (opts.returnDoc) {
-    return doc;
-  }
   await triggerDownload(doc.output('blob'), fileName(opts, 'pdf'));
 }
 
