@@ -146,6 +146,18 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Lets Appium (and Chrome's chrome://inspect) see and interact with
+        // the page inside the WebView -- without this, WebView content is an
+        // opaque box to any automation/debugging tool. Gated on BuildConfig.DEBUG
+        // so it's automatically OFF in the signed release build produced by
+        // build-android.yml (assembleRelease/bundleRelease) -- exposing this in
+        // a shipped Play Store build would let any app on the device attach a
+        // remote debugger to it. Use a debug build (`./gradlew assembleDebug`)
+        // for Appium testing instead of the signed release APK/AAB.
+        if (BuildConfig.DEBUG) {
+            WebView.setWebContentsDebuggingEnabled(true);
+        }
+
         // Modern edge-to-edge replacement for the deprecated
         // Window.setStatusBarColor()/setNavigationBarColor() APIs flagged on
         // Android 15 -- the WebView draws behind the system bars and its own
