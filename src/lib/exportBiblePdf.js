@@ -318,6 +318,22 @@ async function buildPdf(opts, bible, onProgress) {
     });
     if (line.length) lines.push({ words: line, width: lineW });
 
+    // Orphan control: don't let the final line be a single lone word (e.g.
+    // "church at Cenchrea." splitting off alone at the top of a new page) —
+    // pull the previous line's last word down to join it, recomputing both
+    // lines' widths so centering stays correct.
+    if (lines.length > 1 && lines[lines.length - 1].words.length === 1 && lines[lines.length - 2].words.length > 1) {
+      const prev = lines[lines.length - 2];
+      const last = lines[lines.length - 1];
+      const moved = prev.words.pop();
+      doc.setFont(F, moved.italic ? 'italic' : 'normal');
+      const movedW = doc.getTextWidth(moved.w);
+      const sw = spaceW();
+      prev.width -= movedW + sw;
+      last.words.unshift(moved);
+      last.width += movedW + sw;
+    }
+
     // Render each line centered within the column.
     lines.forEach(ln => {
       ensureSpace(ctx, size + 4);
