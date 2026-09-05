@@ -122,6 +122,114 @@ function measureTocPages(doc, pageW, pageH, margin, F = 'times', books = BIBLE_B
 // ─────────────────────────────────────────────────────────────
 // PDF
 // ─────────────────────────────────────────────────────────────
+// ── Static "How To Be Saved" gospel text, mirroring GospelContent.jsx's
+// buildGospelText() but with a fixed production origin (this runs outside the
+// browser at PDF-generation time, so getPublicOrigin() isn't available). ──
+const GOSPEL_TEXT = `✝ HOW TO BE SAVED
+
+The Gospel is the glad tidings of the Lord Jesus Christ:
+
+Trust he is God, died, shed his blood, buried and rose again on the third day for our sins according to the scriptures.
+
+───
+
+1. Believe you are a sinner that deserves hell:
+
+"Therefore by the deeds of the law there shall no flesh be justified in his sight: for by the law is the knowledge of sin."
+— Romans 3:20
+
+"The wicked shall be turned into hell, and all the nations that forget God."
+— Psalm 9:17
+
+───
+
+2. Believe that Jesus is God manifested in the flesh:
+
+"And without controversy great is the mystery of godliness: God was manifest in the flesh, justified in the Spirit, seen of angels, preached unto the Gentiles, believed on in the world, received up into glory."
+— 1 Timothy 3:16
+
+───
+
+3. Believe he died, shed his blood, was buried and rose again for our sins according to the scriptures:
+
+"Moreover, brethren, I declare unto you the gospel which I preached unto you, which also ye have received, and wherein ye stand; By which also ye are saved, if ye keep in memory what I preached unto you, unless ye have believed in vain. For I delivered unto you first of all that which I also received, how that Christ died for our sins according to the scriptures; And that he was buried, and that he rose again the third day according to the scriptures."
+— 1 Corinthians 15:1-4
+
+"Whom God hath set forth to be a propitiation through faith in his blood, to declare his righteousness for the remission of sins that are past, through the forbearance of God;"
+— Romans 3:25
+
+───
+
+These do NOT make you a Christian:
+
+• Repenting of sins
+• Making Jesus Lord
+• Being a member of a church
+• Tithing
+• Being baptised (water)
+• Saying a sinner's prayer
+• Confessing with your mouth
+• Lordship Salvation
+
+───
+
+Once Saved, Always Saved:
+
+A believer who has trusted the gospel cannot lose salvation, no matter what happens in their life. God's gift of eternal life is just that — eternal.
+
+"In whom ye also trusted, after that ye heard the word of truth, the gospel of your salvation: in whom also after that ye believed, ye were sealed with that holy Spirit of promise."
+— Ephesians 1:13
+
+───
+
+Trust Jesus died, shed his blood, buried and rose again on the third day for your sins according to the scriptures.
+
+Read the full gospel and watch "THE GOSPEL THAT SAVES" by Robert Breaker at kingjamesbiblereader.com/gospel`;
+
+// Renders GOSPEL_TEXT as simple wrapped paragraphs on however many pages it
+// needs, starting on the CURRENT (already-added) page. Kept deliberately
+// plain — bold title, smaller indented citation lines, indented bullets, a
+// thin rule for the ─── separators — rather than mirroring the site's full
+// rich styling, since embedded decorative fonts only register a 'normal'
+// variant (no italic) in embedPdfFont().
+function writeGospelAppendix(doc, pageW, pageH, margin, F) {
+  const maxWidth = pageW - margin * 2;
+  let y = margin;
+  const ensureSpace = (h) => {
+    if (y + h > pageH - margin) { doc.addPage(); y = margin; }
+  };
+  const paragraphs = GOSPEL_TEXT.split('\n\n');
+  paragraphs.forEach((para, pi) => {
+    para.split('\n').forEach((line, li) => {
+      const trimmed = line.trim();
+      if (/^\u2500+$/.test(trimmed)) {
+        ensureSpace(20);
+        doc.setDrawColor(150);
+        doc.line(margin, y + 6, pageW - margin, y + 6);
+        doc.setDrawColor(0);
+        y += 20;
+        return;
+      }
+      const isHeading = pi === 0 && li === 0;
+      const isCitation = trimmed.startsWith('—');
+      const isBullet = trimmed.startsWith('•');
+      doc.setFont(F, isHeading ? 'bold' : 'normal');
+      doc.setFontSize(isHeading ? 18 : (isCitation ? 9 : 10.5));
+      if (isCitation) doc.setTextColor(110); else doc.setTextColor(0);
+      const indent = isBullet ? margin + 14 : margin;
+      const wrapped = doc.splitTextToSize(trimmed, maxWidth - (indent - margin));
+      wrapped.forEach((wl) => {
+        ensureSpace(14);
+        if (isHeading) doc.text(wl, pageW / 2, y, { align: 'center' });
+        else doc.text(wl, indent, y);
+        y += isHeading ? 22 : 14;
+      });
+    });
+    y += 8;
+  });
+  doc.setTextColor(0);
+}
+
 async function buildPdf(opts, bible, onProgress) {
   const { twoColumn, paragraph, subscripts, colophons, shortNames, scope = 'whole' } = opts;
   const nameOf = (b) => (shortNames ? b.shortName : b.name);
