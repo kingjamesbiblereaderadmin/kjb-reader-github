@@ -32,17 +32,23 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
 
     // Android WebView can report a stale/intermediate width from
     // ResizeObserver mid-rotation-animation (before the layout has actually
-    // settled into the new orientation), which measured fine going to a
-    // WIDER layout (nothing needed to fit) but silently failed to detect
-    // overflow going back to a NARROWER one (needs to correctly re-stack).
-    // Re-reading the width a couple of frames later, after orientationchange
-    // specifically, guards against acting on that stale number.
+    // settled into the new orientation). Waiting a couple of animation
+    // frames wasn't enough for the wide-to-narrow direction specifically
+    // (rotating back) -- the WebView's rotation/system-bar animation can
+    // still be running well past 2 frames. Instead, keep re-reading the
+    // width for a full second after any orientationchange/resize; each
+    // reading that differs re-triggers the measure-and-stack effects below,
+    // so even if early readings catch a mid-animation value, the later ones
+    // correct it once things actually settle.
     const readWidth = () => {
       const width = container.getBoundingClientRect().width;
       if (width > 0) setContainerWidth(width);
     };
+    const settleDelaysMs = [0, 50, 100, 200, 350, 500, 750, 1000];
+    let timeoutIds = [];
     const readWidthSettled = () => {
-      requestAnimationFrame(() => requestAnimationFrame(readWidth));
+      timeoutIds.forEach(clearTimeout);
+      timeoutIds = settleDelaysMs.map((ms) => setTimeout(readWidth, ms));
     };
 
     let observer = null;
@@ -59,6 +65,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
 
     return () => {
       observer?.disconnect();
+      timeoutIds.forEach(clearTimeout);
       window.removeEventListener('orientationchange', readWidthSettled);
       window.removeEventListener('resize', readWidthSettled);
     };
