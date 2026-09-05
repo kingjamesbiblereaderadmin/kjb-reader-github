@@ -328,11 +328,17 @@ async function buildPdf(opts, bible, onProgress) {
     });
     if (line.length) lines.push({ words: line, width: lineW });
 
-    // Orphan control: don't let the final line be a single lone word (e.g.
-    // "church at Cenchrea." splitting off alone at the top of a new page) —
-    // pull the previous line's last word down to join it, recomputing both
-    // lines' widths so centering stays correct.
-    if (lines.length > 1 && lines[lines.length - 1].words.length === 1 && lines[lines.length - 2].words.length > 1) {
+    // Orphan control: don't let the final line strand just a few words alone
+    // (e.g. "church at Cenchrea." splitting off alone at the top of a new
+    // page) — pull words from the end of the previous line down to join it
+    // until the last line has a reasonable minimum, recomputing widths as we
+    // go so centering stays correct. Never fully empties the previous line.
+    const MIN_LAST_LINE_WORDS = 4;
+    while (
+      lines.length > 1 &&
+      lines[lines.length - 1].words.length < MIN_LAST_LINE_WORDS &&
+      lines[lines.length - 2].words.length > 1
+    ) {
       const prev = lines[lines.length - 2];
       const last = lines[lines.length - 1];
       const moved = prev.words.pop();
