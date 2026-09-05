@@ -17,6 +17,14 @@ if (typeof globalThis.window === 'undefined') {
     history: { replaceState: noop },
     addEventListener: noop,
     removeEventListener: noop,
+    // jsPDF's Node build still picks `window` (once it exists) over `global`
+    // for atob/btoa/console — forward to Node's own globals rather than the
+    // browser-only versions this plain object otherwise wouldn't have.
+    atob: globalThis.atob,
+    btoa: globalThis.btoa,
+    console: globalThis.console,
+    navigator: { userAgent: 'node' },
+    Blob: globalThis.Blob,
   };
   globalThis.document = {
     title: '',
