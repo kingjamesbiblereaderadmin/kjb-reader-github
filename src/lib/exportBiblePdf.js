@@ -662,6 +662,7 @@ async function buildPdf(opts, bible, onProgress) {
     writeBookRow(book, page, bookIndex++);
     if (chapters.length > 1) writeChapterGrid(chapters);
   });
+  if (gospelPage) writeLinkRow('The Gospel', gospelPage);
 
   onProgress(98, 'Finalising PDF…');
   // opts.returnDoc lets a caller (Node PDF-generation script) get the raw
