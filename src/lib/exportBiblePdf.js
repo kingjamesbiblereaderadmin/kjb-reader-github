@@ -532,7 +532,6 @@ async function buildPdf(opts, bible, onProgress) {
     // below the last book (Revelation) and can scroll all the way down to it.
     const lastPage = bookPages.length ? bookPages[bookPages.length - 1].endPage : doc.internal.getNumberOfPages();
     doc.outline.add(null, 'The End', { pageNumber: lastPage });
-    if (gospelPage) doc.outline.add(null, 'The Gospel', { pageNumber: gospelPage });
   }
 
   // ── Fill in the reserved Table of Contents pages: OT/NT headers, each book
