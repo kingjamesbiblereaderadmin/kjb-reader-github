@@ -16,14 +16,33 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
   const rightRef = useRef(null);
   const [scale, setScale] = useState(1);
   const [stacked, setStacked] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(null);
 
   const chapterText = `Chapter ${chapter}`;
 
-  // Reset to full size / inline layout when inputs change so we re-measure cleanly.
+  // Track the container's actual rendered width so rotation, window resize,
+  // and split-screen all trigger a re-measure below -- without this, only
+  // a bookName/chapter change did, so rotating the device left whatever
+  // scale/stacked layout was already chosen for the OLD width in place
+  // (causing overlap) until something else happened to also change
+  // bookName/chapter and force a re-measure as a side effect.
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect?.width;
+      if (width != null) setContainerWidth(width);
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
+  // Reset to full size / inline layout when inputs OR the container's width
+  // change so we re-measure cleanly.
   useLayoutEffect(() => {
     setScale(1);
     setStacked(false);
-  }, [bookName, chapter, baseFontRem]);
+  }, [bookName, chapter, baseFontRem, containerWidth]);
 
   // Phase 1: while inline (side-by-side), shrink the shared font size
   // step-by-step until both halves fit on one line WITH room between them.
