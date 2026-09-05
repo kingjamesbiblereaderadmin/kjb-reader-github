@@ -257,7 +257,17 @@ async function buildPdf(opts, bible, onProgress) {
     });
     if (line.length) lines.push(line);
 
-    if (lines.length > 1 && lines[lines.length - 1].length === 1 && lines[lines.length - 2].length > 1) {
+    // Orphan control: don't let the final line strand just a few words alone
+    // (e.g. "church at Cenchrea." landing by itself at the top of a new
+    // page). Pull words from the end of the previous line until the last
+    // line has a reasonable minimum, without ever fully emptying the
+    // previous line.
+    const MIN_LAST_LINE_WORDS = 4;
+    while (
+      lines.length > 1 &&
+      lines[lines.length - 1].length < MIN_LAST_LINE_WORDS &&
+      lines[lines.length - 2].length > 1
+    ) {
       lines[lines.length - 1].unshift(lines[lines.length - 2].pop());
     }
 
