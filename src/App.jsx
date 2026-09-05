@@ -311,6 +311,7 @@ const AuthenticatedApp = () => {
             <Route path="/extension-license" element={<Suspense fallback={<RouteLoader />}><ExtensionLicensePage /></Suspense>} />
             <Route path="/landing" element={<Suspense fallback={<RouteLoader />}><LandingPage /></Suspense>} />
             <Route path="/espanol-evangelio" element={<Suspense fallback={<RouteLoader />}><SpanishGospelPage /></Suspense>} />
+            <Route path="/pdf-test" element={<Suspense fallback={<RouteLoader />}><PdfReaderPage /></Suspense>} />
             <Route element={<AppLayout />}>
               <Route path="/" element={<Suspense fallback={<RouteLoader />}><FadeIn><HomePage /></FadeIn></Suspense>} />
               <Route path="/read" element={<Suspense fallback={<RouteLoader />}><FadeIn><BibleReader /></FadeIn></Suspense>} />
