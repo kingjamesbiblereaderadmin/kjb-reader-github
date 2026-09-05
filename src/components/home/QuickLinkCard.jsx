@@ -16,15 +16,15 @@ export default function QuickLinkCard({ to, onClick, icon: Icon, label, desc, ic
         <Icon className="w-6 h-6" />
       </div>
       <div className="relative min-w-0 flex-1">
-        <p className="font-serif font-bold text-base sm:text-lg leading-tight text-foreground break-words">{label}</p>
-        <p className="font-sans text-xs text-muted-foreground mt-0.5 break-words">{desc}</p>
+        <p className="font-serif font-bold text-base sm:text-lg leading-tight text-foreground break-words line-clamp-2">{label}</p>
+        <p className="font-sans text-xs text-muted-foreground mt-0.5 break-words line-clamp-2">{desc}</p>
       </div>
       <ChevronRight className="relative w-4 h-4 text-muted-foreground/60 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
     </>
   );
 
   const className =
-    `group relative flex items-center gap-4 p-4 sm:p-5 rounded-3xl bg-card/70 backdrop-blur-xl border-2 border-border/60 shadow-sm hover:shadow-xl hover:border-accent/60 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 h-full overflow-hidden ${extraClassName}`;
+    `group relative flex items-center gap-4 p-4 sm:p-5 rounded-3xl bg-card/70 backdrop-blur-xl border-2 border-border/60 shadow-sm hover:shadow-xl hover:border-accent/60 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 min-h-[6.75rem] sm:min-h-[7.25rem] overflow-hidden ${extraClassName}`;
 
   if (onClick) {
     return (
