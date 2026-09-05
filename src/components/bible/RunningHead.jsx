@@ -28,13 +28,40 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
   // bookName/chapter and force a re-measure as a side effect.
   useLayoutEffect(() => {
     const container = containerRef.current;
-    if (!container || typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver((entries) => {
-      const width = entries[0]?.contentRect?.width;
-      if (width != null) setContainerWidth(width);
-    });
-    observer.observe(container);
-    return () => observer.disconnect();
+    if (!container) return;
+
+    // Android WebView can report a stale/intermediate width from
+    // ResizeObserver mid-rotation-animation (before the layout has actually
+    // settled into the new orientation), which measured fine going to a
+    // WIDER layout (nothing needed to fit) but silently failed to detect
+    // overflow going back to a NARROWER one (needs to correctly re-stack).
+    // Re-reading the width a couple of frames later, after orientationchange
+    // specifically, guards against acting on that stale number.
+    const readWidth = () => {
+      const width = container.getBoundingClientRect().width;
+      if (width > 0) setContainerWidth(width);
+    };
+    const readWidthSettled = () => {
+      requestAnimationFrame(() => requestAnimationFrame(readWidth));
+    };
+
+    let observer = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver((entries) => {
+        const width = entries[0]?.contentRect?.width;
+        if (width != null) setContainerWidth(width);
+      });
+      observer.observe(container);
+    }
+
+    window.addEventListener('orientationchange', readWidthSettled);
+    window.addEventListener('resize', readWidthSettled);
+
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('orientationchange', readWidthSettled);
+      window.removeEventListener('resize', readWidthSettled);
+    };
   }, []);
 
   // Reset to full size / inline layout when inputs OR the container's width
