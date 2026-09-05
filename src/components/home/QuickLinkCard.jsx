@@ -11,9 +11,9 @@ export default function QuickLinkCard({ to, onClick, icon: Icon, label, desc, ic
           sitting under the content so each quick link reads as its own colour. */}
       <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${iconGradient} opacity-[0.06] dark:opacity-[0.12]`} />
       <div
-        className={`relative flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-2xl text-white shadow-md bg-gradient-to-br ring-2 ring-black/10 dark:ring-white/25 dark:shadow-lg ${iconGradient}`}
+        className={`relative flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-2xl text-white shadow-md bg-gradient-to-br ring-2 ring-black/10 dark:ring-white/25 dark:shadow-lg ${iconGradient}`}
       >
-        <Icon className="w-6 h-6" />
+        <Icon className="w-5 h-5" />
       </div>
       <div className="relative min-w-0 flex-1">
         <p className="font-serif font-bold text-base sm:text-lg leading-tight text-foreground break-words line-clamp-2">{label}</p>
