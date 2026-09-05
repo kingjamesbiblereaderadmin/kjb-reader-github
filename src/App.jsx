@@ -52,6 +52,7 @@ const loaders = {
   Spanish: () => import('@/pages/SpanishResourcesPage.jsx').catch((err) => { console.error('Failed to load SpanishResourcesPage:', err); throw err; }),
   SpanishGospel: () => import('@/pages/SpanishGospelPage.jsx').catch((err) => { console.error('Failed to load SpanishGospelPage:', err); throw err; }),
   Changelog: () => import('@/pages/ChangelogPage').catch((err) => { console.error('Failed to load ChangelogPage:', err); throw err; }),
+  PdfReader: () => import('@/pages/PdfReaderPage.jsx').catch((err) => { console.error('Failed to load PdfReaderPage:', err); throw err; }),
 
 };
 const HomePage = lazy(loaders.Home);
