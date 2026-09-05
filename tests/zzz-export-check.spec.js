@@ -4,8 +4,6 @@ import fs from 'fs/promises';
 test('export whole bible pdf, two-column, with colophons', async ({ page }) => {
   test.setTimeout(180000);
   await page.goto('/settings');
-  const header = page.getByText('Download Bible', { exact: false }).first();
-  await header.click().catch(() => {});
   const twoBtn = page.getByRole('button', { name: /^Two$/ });
   await twoBtn.waitFor({ timeout: 15000 });
   await twoBtn.click();
