@@ -397,7 +397,8 @@ public class MainActivity extends BridgeActivity {
             // another app or a search result) and it opened directly here
             // instead of a browser.
             Uri data = intent.getData();
-            if (data.getHost() != null && data.getHost().endsWith("kingjamesbiblereader.com")) {
+            if (data.getHost() != null
+                && (data.getHost().equals(REMOTE_HOST) || data.getHost().equals("www." + REMOTE_HOST))) {
                 url = data.toString();
             }
         }
@@ -970,7 +971,15 @@ public class MainActivity extends BridgeActivity {
                 String path = url.getPath(); // already starts with "/"
                 if (path != null) {
                     String lastSegment = path.substring(path.lastIndexOf('/') + 1);
-                    boolean looksLikeRoute = path.equals("/") || !lastSegment.contains(".");
+                    // Backend function/API calls (e.g. /functions/manifest,
+                    // /api/apps/.../entities/...) have no file extension in
+                    // their last path segment either, same as an SPA route
+                    // like /search -- without this exclusion they'd wrongly
+                    // get the bundled index.html served back (200 OK,
+                    // text/html) instead of falling through to a real (and,
+                    // while offline, cleanly failing) network attempt.
+                    boolean isBackendCall = path.startsWith("/functions/") || path.startsWith("/api/");
+                    boolean looksLikeRoute = !isBackendCall && (path.equals("/") || !lastSegment.contains("."));
                     String assetPath = "public" + (looksLikeRoute ? "/index.html" : path);
                     try {
                         InputStream stream = activity.getAssets().open(assetPath);
