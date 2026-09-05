@@ -90,7 +90,6 @@ const CreditsPage = lazy(loaders.Credits);
 const SpanishResourcesPage = lazy(loaders.Spanish);
 const SpanishGospelPage = lazy(loaders.SpanishGospel);
 const ChangelogPage = lazy(loaders.Changelog);
-const PdfReaderPage = lazy(loaders.PdfReader);
 
 
 const getLoaderForPath = (pathname) => {
