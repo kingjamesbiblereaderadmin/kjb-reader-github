@@ -505,17 +505,6 @@ async function buildPdf(opts, bible, onProgress) {
     }
   });
 
-  // ── Optional Gospel appendix, appended after all scripture pages so it
-  // gets its own outline bookmark + Contents entry (used by the PDF-reader
-  // feature, which folds "extra" site pages into the generated PDF's own
-  // table of contents instead of them being separate app pages). ──
-  let gospelPage = 0;
-  if (opts.appendGospel) {
-    doc.addPage();
-    gospelPage = doc.internal.getNumberOfPages();
-    writeGospelAppendix(doc, pageW, pageH, margin, F);
-  }
-
   // ── Collapsible PDF outline bookmarks: Testament ▸ Book ▸ Chapter ──
   // These appear as an expandable tree in the PDF reader's bookmarks/contents panel.
   if (doc.outline?.add) {
