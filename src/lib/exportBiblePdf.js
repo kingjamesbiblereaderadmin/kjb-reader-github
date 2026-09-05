@@ -162,7 +162,7 @@ async function buildPdf(opts, bible, onProgress) {
 
   function stampHeader(ctx) {
     if (!ctx.runningHead || ctx.dry) return;
-    doc.setFont(F, 'italic');
+    doc.setFont(F, 'normal');
     doc.setFontSize(9);
     doc.text(ctx.runningHead, pageW / 2, margin - 6, { align: 'center', baseline: 'top' });
   }
@@ -211,33 +211,68 @@ async function buildPdf(opts, bible, onProgress) {
   }
 
   // Word-wrap a list of {text,italic} segments within the active column.
+  // Two-phase: (1) flatten to a word stream and greedily group into lines
+  // using the column width in effect right now, (2) apply orphan control —
+  // if the LAST line would strand a single lone word (worst when that line
+  // lands alone at the top of a new page/column, e.g. "...an hundred and
+  // fifty" / "days." split across a page break), pull the previous line's
+  // last word down so the final line reads as two words instead of one.
+  // Then render line-by-line as before, still calling ensureSpace() per line
+  // so real page/column breaks are decided at render time.
+  // Note: this assumes the column width doesn't change partway through a
+  // single verse/paragraph (true except for the rare per-book last-page
+  // full-width fallback) — an acceptable trade-off for a fix that mainly
+  // targets the common case.
   function writeSegments(ctx, segments, { size = bodySize, indentFirst = 0 } = {}) {
     doc.setFontSize(size);
     const spaceW = () => { doc.setFont(F, 'normal'); return doc.getTextWidth(' '); };
-    // Reserve space FIRST — this may switch to column 2, so capture x/startX
-    // afterwards using the final column position (otherwise wrapping uses the
-    // wrong column width and breaks one word per line).
-    ensureSpace(ctx, size + 4);
-    let x = colX(ctx) + indentFirst;
-    let startX = colX(ctx);
-    let lineHasContent = false;
 
-    const wrap = () => { ctx.y += size + 3.5; ensureSpace(ctx, size + 4); x = colX(ctx); startX = colX(ctx); lineHasContent = false; };
-
+    const words = [];
     segments.forEach(seg => {
-      doc.setFont(F, seg.italic ? 'italic' : 'normal');
-      const words = seg.text.split(/(\s+)/).filter(w => w.length);
-      words.forEach(w => {
-        if (/^\s+$/.test(w)) { if (lineHasContent) x += spaceW(); return; }
-        const wWidth = doc.getTextWidth(w);
-        if (x + wWidth > startX + colWidth(ctx) && lineHasContent) wrap();
-        doc.setFont(F, seg.italic ? 'italic' : 'normal');
-        if (!ctx.dry) doc.text(w, x, ctx.y, { baseline: 'top' });
-        x += wWidth;
-        lineHasContent = true;
+      seg.text.split(/(\s+)/).filter(w => w.length).forEach(w => {
+        if (/^\s+$/.test(w)) return;
+        words.push({ w, italic: seg.italic });
       });
     });
-    ctx.y += size + 3.5;
+    if (!words.length) { ctx.y += size + 3.5; return; }
+
+    // Reserve space for the first line before measuring — this may switch to
+    // column 2, so width measurements below use the FINAL column position.
+    ensureSpace(ctx, size + 4);
+    const startX0 = colX(ctx);
+    const colW = colWidth(ctx);
+    const firstLineW = colW - indentFirst;
+
+    const lines = [];
+    let line = [];
+    let lineW = 0;
+    words.forEach(word => {
+      doc.setFont(F, word.italic ? 'italic' : 'normal');
+      const ww = doc.getTextWidth(word.w);
+      const avail = lines.length === 0 ? firstLineW : colW;
+      const add = (line.length ? spaceW() : 0) + ww;
+      if (line.length && lineW + add > avail) { lines.push(line); line = []; lineW = 0; }
+      line.push(word);
+      lineW += (line.length > 1 ? spaceW() : 0) + ww;
+    });
+    if (line.length) lines.push(line);
+
+    if (lines.length > 1 && lines[lines.length - 1].length === 1 && lines[lines.length - 2].length > 1) {
+      lines[lines.length - 1].unshift(lines[lines.length - 2].pop());
+    }
+
+    lines.forEach((ln, i) => {
+      if (i === 0) { doc.setFont(F, ln[0].italic ? 'italic' : 'normal'); }
+      else ensureSpace(ctx, size + 4);
+      let x = (i === 0 ? startX0 : colX(ctx)) + (i === 0 ? indentFirst : 0);
+      ln.forEach((word, wi) => {
+        if (wi > 0) { doc.setFont(F, 'normal'); x += spaceW(); }
+        doc.setFont(F, word.italic ? 'italic' : 'normal');
+        if (!ctx.dry) doc.text(word.w, x, ctx.y, { baseline: 'top' });
+        x += doc.getTextWidth(word.w);
+      });
+      ctx.y += size + 3.5;
+    });
   }
 
   function writeCentered(ctx, text, { size = bodySize, font = 'italic', gapAfter = 4 } = {}) {
