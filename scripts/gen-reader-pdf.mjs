@@ -1,13 +1,38 @@
 import { createServer } from 'vite';
 import fs from 'fs';
 
+// Minimal browser-global polyfills so app modules that reference window/document
+// at import time (rather than only when actually run in a browser) don't crash
+// when SSR-loaded here in plain Node.
+if (typeof globalThis.window === 'undefined') {
+  const noop = () => {};
+  const lsStore = new Map();
+  globalThis.window = {
+    location: { href: 'https://kingjamesbiblereader.com/', search: '', pathname: '/', hash: '' },
+    localStorage: {
+      getItem: (k) => (lsStore.has(k) ? lsStore.get(k) : null),
+      setItem: (k, v) => { lsStore.set(k, String(v)); },
+      removeItem: (k) => { lsStore.delete(k); },
+    },
+    history: { replaceState: noop },
+    addEventListener: noop,
+    removeEventListener: noop,
+  };
+  globalThis.document = {
+    title: '',
+    createElement: () => ({ style: {}, setAttribute: noop, appendChild: noop, remove: noop }),
+    body: { appendChild: noop },
+    fonts: { add: noop },
+  };
+}
+
 const BIBLE_TXT_URL = 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/dabab1ba3_recovered-pce-bible.txt';
 
 async function main() {
   const server = await createServer({
     configFile: '/app/vite.config.js',
     root: '/app',
-    server: { middlewareMode: true },
+    server: { middlewareMode: true, hmr: false },
     appType: 'custom',
   });
 
