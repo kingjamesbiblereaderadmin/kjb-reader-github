@@ -26,11 +26,15 @@ function loadPdfjs() {
   return _pdfjsPromise;
 }
 
-// The two generated variants (see scripts/gen-reader-pdf.mjs), hosted as
-// GitHub release assets — same hosting pattern as the 1611 facsimile PDF.
+// The two generated variants (see scripts/gen-reader-pdf.mjs), hosted on a
+// dedicated `pdf-assets` branch of kjb-reader-github and served via
+// raw.githubusercontent.com. NOTE: GitHub *release* assets do NOT send
+// Access-Control-Allow-Origin, so pdf.js's cross-origin range-request fetches
+// fail there ("Failed to fetch") — raw.githubusercontent.com does send it
+// (verified), which is why these live on a branch instead.
 const PDF_URLS = {
-  '1col': 'https://github.com/kingjamesbiblereaderadmin/kjb-reader-github/releases/download/reader-pdf-v1/kjb-reader-1col.pdf',
-  '2col': 'https://github.com/kingjamesbiblereaderadmin/kjb-reader-github/releases/download/reader-pdf-v1/kjb-reader-2col.pdf',
+  '1col': 'https://raw.githubusercontent.com/kingjamesbiblereaderadmin/kjb-reader-github/pdf-assets/kjb-reader-1col.pdf',
+  '2col': 'https://raw.githubusercontent.com/kingjamesbiblereaderadmin/kjb-reader-github/pdf-assets/kjb-reader-2col.pdf',
 };
 
 const MIN_SCALE = 0.5;
