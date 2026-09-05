@@ -18,6 +18,16 @@ tasks.withType(JavaCompile).configureEach {
 android {
     namespace "com.kingjamesbiblereader.twa"
     compileSdk rootProject.ext.compileSdkVersion
+    buildFeatures {
+        // AGP 8+ disables BuildConfig generation by default -- required here
+        // since MainActivity.java references BuildConfig.DEBUG (used to gate
+        // WebView.setWebContentsDebuggingEnabled to debug builds only, for
+        // Appium/chrome://inspect testing without exposing it in the signed
+        // release build). Without this, BuildConfig.DEBUG fails to compile
+        // entirely -- it's not an import problem, the class simply isn't
+        // generated unless this is turned on.
+        buildConfig true
+    }
     defaultConfig {
         applicationId "com.kingjamesbiblereader.twa"
         minSdkVersion rootProject.ext.minSdkVersion
