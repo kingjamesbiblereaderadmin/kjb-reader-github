@@ -1164,15 +1164,10 @@ function fileName(opts, ext) {
  */
 export async function exportBiblePdf(opts, onProgress = () => {}) {
   onProgress(2, 'Loading Bible text…');
-  // opts.bibleData lets a caller (e.g. a Node script generating the reader PDFs)
-  // supply pre-fetched Bible data instead of going through the browser-only
-  // IndexedDB/localStorage cache path in getBibleData().
-  const bible = opts.bibleData || await getBibleData();
+  const bible = await getBibleData();
   const format = opts.format || 'pdf';
-  let result;
-  if (format === 'pdf') result = await buildPdf(opts, bible, onProgress);
+  if (format === 'pdf') await buildPdf(opts, bible, onProgress);
   else if (format === 'rtf') await buildRtf(opts, bible, onProgress);
   else await buildText(opts, bible, onProgress, format);
   onProgress(100, 'Done!');
-  return result;
 }
