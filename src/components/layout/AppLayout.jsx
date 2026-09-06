@@ -401,7 +401,7 @@ export default function AppLayout() {
                 to="/"
                 onClick={() => {
                   setMenuOpen(false);
-                  scrollMainToTop();
+                  scrollMainToTop(pathname);
                 }}
                 className="flex items-center justify-center w-10 h-12 rounded-xl hover:bg-secondary/50 active:bg-secondary transition-colors text-foreground touch-manipulation cursor-pointer"
                 title="Home"
