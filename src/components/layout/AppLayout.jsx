@@ -698,7 +698,7 @@ function BottomNav({ pathname, navigate }) {
                   
                   if (active) {
                     if (isScrolled) {
-                      scrollMainToTop();
+                      scrollMainToTop(pathname);
                     } else {
                       // Already at top + active tab re-clicked → reset to the
                       // tab's root path (e.g. /read → default Genesis 1) and
@@ -707,7 +707,7 @@ function BottomNav({ pathname, navigate }) {
                       navigate(item.path);
                     }
                   } else {
-                    scrollMainToTop();
+                    scrollMainToTop(pathname);
                     setTimeout(() => navigate(tabHistoryRef.current[item.path] || item.path), 150);
                   }
                 }}
@@ -752,7 +752,7 @@ function BottomNav({ pathname, navigate }) {
                     
                     if (active) {
                       if (isScrolled) {
-                        scrollMainToTop();
+                        scrollMainToTop(pathname);
                       } else {
                         // Already at top + active tab re-clicked → reset to the
                         // tab's root path and clear the stashed sub-path.
@@ -760,7 +760,7 @@ function BottomNav({ pathname, navigate }) {
                         navigate(item.path);
                       }
                     } else {
-                      scrollMainToTop();
+                      scrollMainToTop(pathname);
                       setTimeout(() => navigate(tabHistoryRef.current[item.path] || item.path), 150);
                     }
                   }}
