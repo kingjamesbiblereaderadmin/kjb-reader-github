@@ -698,7 +698,9 @@ function BottomNav({ pathname, navigate }) {
                   
                   if (active) {
                     if (isScrolled) {
-                      scrollMainToTop(pathname);
+                      // Deliberate "tap active tab to jump to top" while staying
+                      // on the same route — always allowed, even on /read.
+                      scrollMainToTop();
                     } else {
                       // Already at top + active tab re-clicked → reset to the
                       // tab's root path (e.g. /read → default Genesis 1) and
@@ -752,7 +754,9 @@ function BottomNav({ pathname, navigate }) {
                     
                     if (active) {
                       if (isScrolled) {
-                        scrollMainToTop(pathname);
+                        // Deliberate "tap active tab to jump to top" while staying
+                        // on the same route — always allowed, even on /read.
+                        scrollMainToTop();
                       } else {
                         // Already at top + active tab re-clicked → reset to the
                         // tab's root path and clear the stashed sub-path.
