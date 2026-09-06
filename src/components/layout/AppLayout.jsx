@@ -20,11 +20,20 @@ import { toast } from 'sonner';
 import { useSoftReload } from '@/lib/SoftReloadContext';
 import { getAccessibilityFont, applyAccessibilityFont } from '@/lib/accessibilityFont';
 
-const scrollMainToTop = () => {
+const scrollMainToTop = (fromPathname) => {
   // Instant, not smooth: this fires right before the page unmounts and the
   // next route's slide-in transition plays, so an animated scroll here just
   // gets cut off mid-motion by the swap -- looks like a jump/flash rather
   // than a smooth scroll.
+  //
+  // Skip entirely when leaving the Reader: BibleReader's own scroll listener
+  // is still mounted at this point and immediately persists whatever we
+  // scroll to as the saved position for the current chapter -- forcing this
+  // to 0 here was silently zeroing out kjb-scroll-{book}-{chapter} every
+  // time you navigated away from /read via a menu/tab, so returning to Read
+  // always landed back at the top instead of where you left off. The Reader
+  // restores its own scroll position on mount, so it doesn't need this.
+  if (fromPathname === '/read') return;
   const el = document.getElementById('kjb-scroll');
   if (el) el.scrollTo({ top: 0, behavior: 'auto' });
   else window.scrollTo({ top: 0, behavior: 'auto' });
