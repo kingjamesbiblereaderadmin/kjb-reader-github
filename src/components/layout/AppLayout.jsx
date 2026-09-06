@@ -500,7 +500,7 @@ export default function AppLayout() {
                       to={item.path}
                       onClick={() => {
                         setMenuOpen(false);
-                        scrollMainToTop();
+                        scrollMainToTop(pathname);
                         navigate(item.path);
                       }}
                       className={`relative flex items-center gap-2.5 px-3.5 py-3 rounded-lg border font-sans text-sm font-medium leading-snug transition-all duration-200 hover:z-10 hover:shadow-md active:scale-95 ${
