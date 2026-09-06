@@ -539,7 +539,7 @@ export default function AppLayout() {
 
       <ProgressBar />
 
-      <DesktopFooter navigate={navigate} setMenuOpen={setMenuOpen} />
+      <DesktopFooter navigate={navigate} setMenuOpen={setMenuOpen} pathname={pathname} />
 
       {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
     </div>
@@ -547,7 +547,7 @@ export default function AppLayout() {
   );
 }
 
-function DesktopFooter({ navigate, setMenuOpen }) {
+function DesktopFooter({ navigate, setMenuOpen, pathname }) {
   const [open, setOpen] = useState(() => {
     try { return localStorage.getItem('kjb-desktop-footer-open') !== 'false'; } catch { return true; }
   });
@@ -581,7 +581,7 @@ function DesktopFooter({ navigate, setMenuOpen }) {
                   to={item.path}
                   onClick={() => {
                     setMenuOpen(false);
-                    scrollMainToTop();
+                    scrollMainToTop(pathname);
                     navigate(item.path);
                   }}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-sans text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
