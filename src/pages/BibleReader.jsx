@@ -541,7 +541,7 @@ export default function BibleReader() {
     // a single verse moves it to the end with a dash, matching the
     // paragraph-copy citation style.
     const isMultiVerse = selectedVersesList.length > 1;
-    if (isMultiVerse) parts.push(centerLine(book.shortName) + '\n' + centerLine(`${pos.chapter}:${range}`));
+    if (isMultiVerse) parts.push(centerLine(book.name) + '\n' + centerLine(`${pos.chapter}:${range}`));
     if (chapterSub && (selectedSections.has('subscript') || (!anySectionToggled && includesV1))) {
       parts.push(`¶ ${cleanVerseText(chapterSub).replace(/^[\u00B6\uFFFD¶]\s*/, '')}`);
     }
