@@ -63,7 +63,7 @@ export default function ThemeColorPicker({ compact = false }) {
               hasChosen && colourId === p.id ? 'border-foreground' : 'border-border hover:border-accent'
             }`}
           >
-            <span className="w-5 h-5 rounded-full border border-black/10 flex-shrink-0 mt-px" style={{ backgroundColor: p.swatch }} />
+            <span className="w-5 h-5 rounded-full border border-black/10 flex-shrink-0" style={{ backgroundColor: p.swatch }} />
             <span className="font-sans text-xs font-medium text-foreground text-left leading-tight break-words">{p.name}</span>
           </button>
         ))}
@@ -75,7 +75,7 @@ export default function ThemeColorPicker({ compact = false }) {
           }`}
           title="Custom colour"
         >
-          <span className="relative w-5 h-5 rounded-full border border-black/10 overflow-hidden flex-shrink-0 mt-px" style={{ backgroundColor: customHex }}>
+          <span className="relative w-5 h-5 rounded-full border border-black/10 overflow-hidden flex-shrink-0" style={{ backgroundColor: customHex }}>
             <input
               type="color"
               value={customHex}
