@@ -2173,7 +2173,7 @@ export default function BibleReader() {
           </div>
           )}
 
-          {hideHeader && <MinimizedHeaderBar fullscreen={fullscreen} toggleFullscreen={toggleFullscreen} setHideHeader={setHideHeader} />}
+          {hideHeader && <MinimizedHeaderBar setHideHeader={setHideHeader} />}
 
       {/* Desktop-only backdrop for the inline popovers. On mobile the selectors
           use the bottom sheet (SelectorSheet), which has its own overlay — rendering
