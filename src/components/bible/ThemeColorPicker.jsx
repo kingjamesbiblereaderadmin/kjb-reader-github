@@ -75,7 +75,7 @@ export default function ThemeColorPicker({ compact = false }) {
           }`}
           title="Custom colour"
         >
-          <span className="relative w-5 h-5 rounded-full border border-black/10 overflow-hidden flex-shrink-0" style={{ backgroundColor: customHex }}>
+          <span className="relative w-5 h-5 rounded-full border border-black/10 overflow-hidden flex-shrink-0 mt-px" style={{ backgroundColor: customHex }}>
             <input
               type="color"
               value={customHex}
@@ -83,7 +83,7 @@ export default function ThemeColorPicker({ compact = false }) {
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
           </span>
-          <span className="font-sans text-xs font-medium text-foreground truncate">Custom</span>
+          <span className="font-sans text-xs font-medium text-foreground text-left leading-tight break-words">Custom</span>
         </label>
       </div>
     </div>
