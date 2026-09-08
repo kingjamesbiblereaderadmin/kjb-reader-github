@@ -155,7 +155,6 @@ export default function BibleReader() {
   });
   const paragraphMode = flowMode === 'paragraph';
   const columnMode = columnOn;
-  const [fullscreen, setFullscreen] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(() => {
     try { return parseInt(localStorage.getItem('kjb-zoom') || '100'); } catch { return 100; }
   });
