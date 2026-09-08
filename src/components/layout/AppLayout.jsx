@@ -283,7 +283,7 @@ export default function AppLayout() {
   }, [menuOpen]);
   const [autoRotate, setAutoRotateState] = useState(getAutoRotate);
   useEffect(() => {
-    applyAutoRotate(getAutoRotate());
+    applyAutoRotate(getAutoRotate(), false);
     const sync = () => setAutoRotateState(getAutoRotate());
     window.addEventListener('storage', sync);
     window.addEventListener('kjb-auto-rotate-changed', sync);
