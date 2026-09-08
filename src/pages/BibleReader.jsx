@@ -283,35 +283,6 @@ export default function BibleReader() {
 
   useReadingProgressTracker(pos, loading);
 
-  const toggleFullscreen = async () => {
-    try {
-      if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen?.();
-        setFullscreen(true);
-        setHideHeader(true);
-      } else {
-        await document.exitFullscreen?.();
-        setFullscreen(false);
-        setHideHeader(false);
-      }
-    } catch {}
-  };
-
-  useEffect(() => {
-    const handler = () => {
-      const apiFull = !!document.fullscreenElement;
-      const browserFull = Math.abs(window.innerHeight - window.screen.height) < 2;
-      setFullscreen(apiFull || browserFull);
-    };
-    handler();
-    document.addEventListener('fullscreenchange', handler);
-    window.addEventListener('resize', handler);
-    return () => {
-      document.removeEventListener('fullscreenchange', handler);
-      window.removeEventListener('resize', handler);
-    };
-  }, []);
-
   useEffect(() => {
     return () => {
       setShowBookPicker(false); setShowChapterPicker(false); setShowVersePicker(false);
