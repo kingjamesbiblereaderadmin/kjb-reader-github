@@ -63,8 +63,8 @@ export default function ThemeColorPicker({ compact = false }) {
               hasChosen && colourId === p.id ? 'border-foreground' : 'border-border hover:border-accent'
             }`}
           >
-            <span className="w-5 h-5 rounded-full border border-black/10 flex-shrink-0" style={{ backgroundColor: p.swatch }} />
-            <span className="font-sans text-xs font-medium text-foreground truncate">{p.name}</span>
+            <span className="w-5 h-5 rounded-full border border-black/10 flex-shrink-0 mt-px" style={{ backgroundColor: p.swatch }} />
+            <span className="font-sans text-xs font-medium text-foreground text-left leading-tight break-words">{p.name}</span>
           </button>
         ))}
 
