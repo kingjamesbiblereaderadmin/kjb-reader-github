@@ -30,6 +30,7 @@ import { getGospelResults } from '@/lib/gospelVerses';
 import { getOccurrenceLabel, scrollToOccurrence, emphasizeOccurrence } from '@/lib/occurrenceLabel';
 import { useReaderUrlSync } from '@/lib/useReaderUrlSync';
 import { useReaderNavigation } from '@/lib/useReaderNavigation';
+import { readScrollCache, saveScrollCache, saveScrollY } from '@/lib/scrollCache';
 import { useToolbarState } from '@/lib/useToolbarState';
 import { useSearchAndGospelResults } from '@/lib/useSearchAndGospelResults';
 import { resolveBook, formatVerseRange } from '@/lib/readerHelpers';
@@ -1231,9 +1232,9 @@ export default function BibleReader() {
     // have its full height yet right after a fresh mount/navigation, so we retry
     // across several frames AND observe the content for layout changes — this
     // prevents the scroll from collapsing to the top before the page is laid out.
-    let saved = 0;
-    try { saved = parseInt(localStorage.getItem(`kjb-scroll-${pos.abbr}-${pos.chapter}`) || '0', 10); } catch {}
-    if (!saved || saved <= 0) return;
+    const cached = readScrollCache(`kjb-scroll-${pos.abbr}-${pos.chapter}`);
+    if (!cached || cached.y <= 0) return;
+    const saved = cached.y;
     const restore = () => {
       const scroller = document.getElementById('kjb-scroll');
       const target = scroller || window;
@@ -1241,7 +1242,25 @@ export default function BibleReader() {
         ? scroller.scrollHeight - scroller.clientHeight
         : document.documentElement.scrollHeight - window.innerHeight;
       // Only restore once the page is tall enough to actually reach the saved Y.
-      if (maxY >= saved - 4) { target.scrollTo({ top: saved }); return true; }
+      if (maxY >= saved - 4) {
+        // Reopened in a DIFFERENT orientation / viewport height: the saved
+        // pixel offset points at the wrong place, because a different number
+        // of text lines fits on screen. Re-anchor on the verse the reader was
+        // actually on instead of trusting the raw pixel offset. (Small
+        // innerHeight changes like the mobile URL bar hiding are below the
+        // threshold and still restore by pixel.)
+        if (cached.verse && cached.vh && Math.abs(window.innerHeight - cached.vh) > 80) {
+          const el = document.getElementById(`v${cached.verse}`);
+          if (el && scroller) {
+            const toolbarH = topRef.current ? topRef.current.getBoundingClientRect().height : 0;
+            const anchor = el.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - (toolbarH + 48);
+            target.scrollTo({ top: Math.min(Math.max(anchor, 0), Math.max(maxY, 0)) });
+            return true;
+          }
+        }
+        target.scrollTo({ top: saved });
+        return true;
+      }
       return false;
     };
     const timers = [60, 200, 500, 1000, 1800, 3000].map(ms => setTimeout(restore, ms));
@@ -1300,9 +1319,10 @@ export default function BibleReader() {
       } catch {}
     }
 
+    let cached = readScrollCache(key);
     const flush = () => {
       if (raf) { cancelAnimationFrame(raf); raf = null; }
-      try { localStorage.setItem(key, String(Math.round(getY()))); } catch {}
+      cached = saveScrollCache(key, scroller, cached) || cached;
       // ONLY save prev-reading-session for normal reading (not search/gospel/daily/random)
       const isSpecialMode = searchTerm || gospelMode || lastReadingPos;
       if (!isSpecialMode && pos.abbr && pos.chapter) {
@@ -1319,10 +1339,15 @@ export default function BibleReader() {
       // away before the throttled frame ever ran. This write is cheap and the
       // exact same value is written again on flush()/onHide(), so there's no
       // real downside to doing it every event instead of once per frame.
-      try { localStorage.setItem(key, String(Math.round(getY()))); } catch {}
+      // This cheap write does NO DOM reads — it refreshes y/vh and keeps the
+      // last captured verse anchor; a full re-capture runs once per frame below.
+      cached = saveScrollY(key, scroller, cached);
       if (raf) return;
       raf = requestAnimationFrame(() => {
         raf = null;
+        // Re-capture the top-verse anchor once per frame so a close/rotate
+        // right after scrolling still has an accurate verse to re-anchor on.
+        cached = saveScrollCache(key, scroller, cached) || cached;
         // Save prev-reading-session only for NORMAL reading. Use URL params
         // (reliable/synchronous) plus highlightVerse, so a daily/search/random
         // chapter never overwrites the real previous session.
