@@ -138,6 +138,24 @@
     hyphens: auto;
   }
 
+  /* Reading text (verses): avoid a single short word, letter, or lone piece
+     of punctuation getting stranded alone at the start of the next line.
+     text-wrap: pretty is the purpose-built fix for this (Chromium 117+; a
+     harmless no-op on browsers that don't support it yet, so this is a pure
+     progressive enhancement). Hyphenation is also turned OFF here (unlike
+     the body-wide safety net above, which exists for long URLs/titles) --
+     ordinary verse prose in the single-column view has plenty of room to
+     wrap at real word boundaries, and mid-word hyphenation was itself
+     producing the "orphaned last letter" look by splitting the final word of
+     a line. The two-column printed layout (.kjb-two-col) is intentionally
+     excluded — its columns are genuinely narrow enough to need hyphens:auto
+     to avoid overflow, as already noted above. */
+  .kjb-reader-content:not(.kjb-two-col) {
+    text-wrap: pretty;
+    -webkit-hyphens: none;
+    hyphens: none;
+  }
+
   button, a, nav, header {
     -webkit-user-select: none;
     user-select: none;
