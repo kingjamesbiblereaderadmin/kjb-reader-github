@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, BookOpen, Type, Server, Info, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Heart, BookOpen, Type, Server, Info, ArrowLeft, ExternalLink, Scale } from 'lucide-react';
 
 // A simple, static credits / acknowledgements page.
 // Linked from Settings (the "About & Credits" card).
