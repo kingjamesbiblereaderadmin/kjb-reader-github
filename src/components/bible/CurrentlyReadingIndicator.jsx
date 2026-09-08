@@ -92,14 +92,14 @@ export default function CurrentlyReadingIndicator({
       <div className="flex flex-col leading-snug gap-0.5 min-w-0 justify-center">
         {typeLabel ? (
           <>
-            <span className="font-semibold text-[10px] uppercase tracking-wide opacity-75 truncate max-w-full block">{typeLabel}</span>
+            <span className="font-semibold text-[10px] uppercase tracking-wide opacity-75 break-words">{typeLabel}</span>
             {searchedRefs && (
-              <span className="text-[10px] opacity-60 truncate max-w-full block">Searched: {searchedRefs}</span>
+              <span className="text-[10px] opacity-60 break-words">Searched: {searchedRefs}</span>
             )}
-            <span className="font-bold text-sm truncate max-w-full block">{reference}</span>
+            <span className="font-bold text-sm break-words">{reference}</span>
           </>
         ) : (
-          <span className="font-bold text-sm truncate max-w-full block">{reference}</span>
+          <span className="font-bold text-sm break-words">{reference}</span>
         )}
       </div>
       {(showNavigation || onClear) && (
