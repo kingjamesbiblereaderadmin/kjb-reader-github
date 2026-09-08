@@ -117,8 +117,8 @@ export default function AboutPage() {
               <Youtube className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate" translate="no">King James Bible Playlist</p>
-              <p className="font-sans text-xs text-muted-foreground truncate">YouTube playlist</p>
+              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors break-words" translate="no">King James Bible Playlist</p>
+              <p className="font-sans text-xs text-muted-foreground break-words">YouTube playlist</p>
             </div>
             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground ml-auto flex-shrink-0" />
           </a>
@@ -130,8 +130,8 @@ export default function AboutPage() {
               <ShieldAlert className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate" translate="no">KJB Defence</p>
-              <p className="font-sans text-xs text-muted-foreground truncate">Resources defending the King James Bible</p>
+              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors break-words" translate="no">KJB Defence</p>
+              <p className="font-sans text-xs text-muted-foreground break-words">Resources defending the King James Bible</p>
             </div>
             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground ml-auto flex-shrink-0" />
           </Link>
@@ -155,8 +155,8 @@ export default function AboutPage() {
               <Youtube className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate" translate="no">Satan & Hell Playlist</p>
-              <p className="font-sans text-xs text-muted-foreground truncate">YouTube playlist</p>
+              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors break-words" translate="no">Satan & Hell Playlist</p>
+              <p className="font-sans text-xs text-muted-foreground break-words">YouTube playlist</p>
             </div>
             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground ml-auto flex-shrink-0" />
           </a>
@@ -181,8 +181,8 @@ export default function AboutPage() {
               <Heart className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate" translate="no">How to be Saved</p>
-              <p className="font-sans text-xs text-muted-foreground truncate">The Gospel of Jesus Christ</p>
+              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors break-words" translate="no">How to be Saved</p>
+              <p className="font-sans text-xs text-muted-foreground break-words">The Gospel of Jesus Christ</p>
             </div>
             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground ml-auto flex-shrink-0" />
           </Link>
@@ -196,8 +196,8 @@ export default function AboutPage() {
               <Youtube className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate" translate="no">Pre-Tribulation Rapture Playlist</p>
-              <p className="font-sans text-xs text-muted-foreground truncate">YouTube playlist</p>
+              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors break-words" translate="no">Pre-Tribulation Rapture Playlist</p>
+              <p className="font-sans text-xs text-muted-foreground break-words">YouTube playlist</p>
             </div>
             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground ml-auto flex-shrink-0" />
           </a>
@@ -211,8 +211,8 @@ export default function AboutPage() {
               <Youtube className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate" translate="no">Salvation Playlist</p>
-              <p className="font-sans text-xs text-muted-foreground truncate">YouTube playlist</p>
+              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors break-words" translate="no">Salvation Playlist</p>
+              <p className="font-sans text-xs text-muted-foreground break-words">YouTube playlist</p>
             </div>
             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground ml-auto flex-shrink-0" />
           </a>
@@ -237,8 +237,8 @@ export default function AboutPage() {
               <Youtube className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate" translate="no">Pagan Holidays Playlist</p>
-              <p className="font-sans text-xs text-muted-foreground truncate">YouTube playlist &middot; <span className="notranslate" translate="no">Robert Breaker</span></p>
+              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors break-words" translate="no">Pagan Holidays Playlist</p>
+              <p className="font-sans text-xs text-muted-foreground break-words">YouTube playlist &middot; <span className="notranslate" translate="no">Robert Breaker</span></p>
             </div>
             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground ml-auto flex-shrink-0" />
           </a>
@@ -258,8 +258,8 @@ export default function AboutPage() {
               <Youtube className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors truncate" translate="no">Why I Am Not... Series</p>
-              <p className="font-sans text-xs text-muted-foreground truncate">7-video playlist &middot; <span className="notranslate" translate="no">Robert Breaker</span></p>
+              <p className="notranslate font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors break-words" translate="no">Why I Am Not... Series</p>
+              <p className="font-sans text-xs text-muted-foreground break-words">7-video playlist &middot; <span className="notranslate" translate="no">Robert Breaker</span></p>
             </div>
             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground ml-auto flex-shrink-0" />
           </a>
