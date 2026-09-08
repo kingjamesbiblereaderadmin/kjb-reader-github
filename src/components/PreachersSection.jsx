@@ -201,7 +201,7 @@ export default function PreachersSection({
                       <span className="text-muted-foreground group-hover:text-accent transition-colors">
                         {getLinkIcon(url)}
                       </span>
-                      <span className="font-sans text-sm font-medium text-foreground group-hover:text-accent transition-colors flex-1 truncate">
+                      <span className="font-sans text-sm font-medium text-foreground group-hover:text-accent transition-colors flex-1 break-words">
                         {getLinkLabel(url)}
                       </span>
                       <CopyButton text={url} className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors flex-shrink-0" />
