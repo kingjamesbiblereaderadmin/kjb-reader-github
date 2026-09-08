@@ -375,7 +375,11 @@ Deno.serve(async (req) => {
               ? rawText
               : rawText.replace(/\[/g, '').replace(/\]/g, '').replace(/¶/g, '');
 
-            if (!matcher.test(visibleText)) continue;
+            // An exact multi-word phrase is preferred when it has hits;
+            // otherwise falls back to AND matching (every term must occur).
+            const phraseHit = phraseMatcher.test(visibleText);
+            const andHit = multiTerm && termMatchers.every((m) => m.test(visibleText));
+            if (!phraseHit && !andHit) continue;
 
             const processed = processVerse(vo, { book: bookName, chapter: parseInt(chapterNum) });
             const abbrEntry = Object.entries(ABBR_TO_NAME).find(([k, v]) => v === bookName);
