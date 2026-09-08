@@ -57,6 +57,16 @@ const applyCssLock = (lockLandscape) => {
   document.head.appendChild(style);
 };
 
+// attemptRealLock: whether to try the real Fullscreen+Orientation Lock API
+// path below (vs. just the CSS fallback, which alone keeps the orientation
+// visually locked in a plain browser tab). Pass false for calls that aren't a
+// direct, fresh user gesture -- e.g. AppLayout's mount-time re-sync, which
+// fires on every remount (including navigating back from a standalone route
+// like /credits) and would otherwise unexpectedly drop the user into
+// fullscreen just from that navigation, since a Back-button click still
+// counts as a valid gesture even though the user never asked to lock
+// anything just now. The explicit Auto Rotate toggle switch is a genuine
+// fresh gesture and keeps attemptRealLock at its default of true.
 export const applyAutoRotate = async (enabled, attemptRealLock = true) => {
   // Talk to our own native bridge directly instead of the
   // @capacitor/screen-orientation plugin -- that plugin's native-vs-web
