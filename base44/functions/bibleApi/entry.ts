@@ -330,22 +330,32 @@ Deno.serve(async (req) => {
         booksToSearch = BOOK_ORDER;
       }
 
-      // Build a single RegExp matcher for all modes. wildcard=true supports
-      // ? (one char) and * (any run of chars); every other char is escaped.
+      // Build regex matchers. wildcard=true supports ? (one char) and * (any
+      // run of chars); every other char is escaped. wholeWord wraps in \b.
       const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      let pattern;
-      if (wildcard) {
-        pattern = '';
-        for (const ch of query) {
-          if (ch === '*') pattern += '.*';
-          else if (ch === '?') pattern += '.';
-          else pattern += escapeRegex(ch);
+      const buildMatcher = (text) => {
+        let pattern;
+        if (wildcard) {
+          pattern = '';
+          for (const ch of text) {
+            if (ch === '*') pattern += '.*';
+            else if (ch === '?') pattern += '.';
+            else pattern += escapeRegex(ch);
+          }
+        } else {
+          pattern = escapeRegex(text);
         }
-      } else {
-        pattern = escapeRegex(query);
-      }
-      if (wholeWord) pattern = `\\b${pattern}\\b`;
-      const matcher = new RegExp(pattern, caseSensitive ? '' : 'i');
+        if (wholeWord) pattern = `\\b${pattern}\\b`;
+        return new RegExp(pattern, caseSensitive ? '' : 'i');
+      };
+
+      // Terms separated by commas or whitespace are AND-matched (every term
+      // must occur in the verse, in any order). An exact multi-word phrase is
+      // preferred when it has hits; otherwise falls back to AND matching.
+      const terms = query.split(/[,\s]+/).filter(Boolean);
+      const multiTerm = terms.length > 1;
+      const phraseMatcher = buildMatcher(multiTerm ? terms.join(' ') : query);
+      const termMatchers = multiTerm ? terms.map((t) => buildMatcher(t)) : null;
 
       const matches = [];
       for (const bookName of booksToSearch) {
