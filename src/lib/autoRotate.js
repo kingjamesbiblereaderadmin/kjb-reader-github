@@ -114,6 +114,7 @@ export const applyAutoRotate = async (enabled, attemptRealLock = true) => {
   try { isLandscape = window.matchMedia('(orientation: landscape)').matches; } catch {}
   // Always apply the CSS fallback immediately — it works in a plain tab too.
   applyCssLock(isLandscape);
+  if (!attemptRealLock) return;
   if (typeof screen === 'undefined' || !screen.orientation) return;
   const current = screen.orientation.type || (isLandscape ? 'landscape-primary' : 'portrait-primary');
   try {
