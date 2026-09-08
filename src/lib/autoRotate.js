@@ -57,7 +57,7 @@ const applyCssLock = (lockLandscape) => {
   document.head.appendChild(style);
 };
 
-export const applyAutoRotate = async (enabled) => {
+export const applyAutoRotate = async (enabled, attemptRealLock = true) => {
   // Talk to our own native bridge directly instead of the
   // @capacitor/screen-orientation plugin -- that plugin's native-vs-web
   // routing goes through Capacitor's own PluginHeaders mechanism, a
