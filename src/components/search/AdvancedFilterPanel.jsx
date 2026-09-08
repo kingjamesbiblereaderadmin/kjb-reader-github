@@ -214,7 +214,7 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
             const unavailable = metricRanges && dr === null && !hasOwnValue;
             return (
             <div key={m.key} className={`grid grid-cols-[1fr_auto_auto] items-center gap-2 ${unavailable ? 'opacity-40' : ''}`}>
-              <span className="font-sans text-xs text-foreground truncate">{m.label}</span>
+              <span className="font-sans text-xs text-foreground break-words">{m.label}</span>
               <input
                 type="number"
                 inputMode="numeric"
