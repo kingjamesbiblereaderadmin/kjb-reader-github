@@ -105,6 +105,41 @@ export default function CreditsPage() {
           </ul>
         </section>
 
+        {/* Trademarks */}
+        <section className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
+              <Scale className="w-5 h-5" />
+            </div>
+            <h2 className="font-serif text-xl font-semibold text-foreground">Trademarks</h2>
+          </div>
+          <p className="font-sans text-sm text-foreground/85 leading-relaxed mb-3">
+            This app and its browser extension mention the product and company names below only to describe browser
+            compatibility, sign-in options, social links, or development tools used — not to claim any affiliation
+            with, sponsorship by, or endorsement from their owners. All product names, logos, and brands are the
+            property of their respective owners.
+          </p>
+          <p className="font-sans text-xs text-muted-foreground leading-relaxed">
+            <span className="notranslate" translate="no">Google, Google Play, Chrome,</span> and{' '}
+            <span className="notranslate" translate="no">Android</span> and <span className="notranslate" translate="no">YouTube</span> are trademarks of{' '}
+            <span className="notranslate" translate="no">Google LLC</span>. <span className="notranslate" translate="no">Microsoft, Edge, Windows,</span> and{' '}
+            <span className="notranslate" translate="no">Internet Explorer</span> are trademarks of{' '}
+            <span className="notranslate" translate="no">Microsoft Corporation</span>. <span className="notranslate" translate="no">Firefox</span> is a trademark of the{' '}
+            <span className="notranslate" translate="no">Mozilla Foundation</span>. <span className="notranslate" translate="no">Safari, iPhone, iPad,</span> and{' '}
+            <span className="notranslate" translate="no">iOS</span> are trademarks of <span className="notranslate" translate="no">Apple Inc.</span>{' '}
+            <span className="notranslate" translate="no">Opera</span> is a trademark of <span className="notranslate" translate="no">Opera Software</span>.{' '}
+            <span className="notranslate" translate="no">Brave</span> is a trademark of <span className="notranslate" translate="no">Brave Software, Inc.</span>{' '}
+            <span className="notranslate" translate="no">Kiwi Browser</span> is a trademark of its respective owner.{' '}
+            <span className="notranslate" translate="no">Discord</span> is a trademark of <span className="notranslate" translate="no">Discord Inc.</span>{' '}
+            <span className="notranslate" translate="no">TikTok</span> is a trademark of <span className="notranslate" translate="no">ByteDance Ltd.</span>{' '}
+            <span className="notranslate" translate="no">Instagram</span> and <span className="notranslate" translate="no">Facebook</span> are trademarks of{' '}
+            <span className="notranslate" translate="no">Meta Platforms, Inc.</span> <span className="notranslate" translate="no">Rumble</span> is a trademark of{' '}
+            <span className="notranslate" translate="no">Rumble Inc.</span> <span className="notranslate" translate="no">Linktree</span> is a trademark of{' '}
+            <span className="notranslate" translate="no">Linktree Pty Ltd.</span> <span className="notranslate" translate="no">Claude</span> is a trademark of{' '}
+            <span className="notranslate" translate="no">Anthropic PBC</span>. <span className="notranslate" translate="no">Base44</span> is a trademark of its respective owner.
+          </p>
+        </section>
+
         {/* Disclaimers */}
         <section className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
           <div className="flex items-center gap-3 mb-3">
