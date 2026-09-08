@@ -115,7 +115,7 @@ export default function CreditsPage() {
           </div>
           <p className="font-sans text-sm text-foreground/85 leading-relaxed mb-3">
             This app and its browser extension mention the product and company names below only to describe browser
-            compatibility, sign-in options, social links, or development tools used — not to claim any affiliation
+            compatibility, social links, fonts, or development tools used — not to claim any affiliation
             with, sponsorship by, or endorsement from their owners. All product names, logos, and brands are the
             property of their respective owners.
           </p>
