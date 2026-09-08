@@ -12,18 +12,6 @@ import { Capacitor } from '@capacitor/core';
 
 const KEY = 'kjb-auto-rotate';
 const STYLE_ID = 'kjb-orientation-lock-style';
-// AppLayout re-runs its init effect every time it mounts, which happens on
-// every navigation into/out of a standalone route (e.g. /credits, which sits
-// outside AppLayout by design) -- not just once per real page load. Without
-// this guard, each such remount re-attempted the real Fullscreen+Orientation
-// Lock API below. The very first attempt on initial page load is silently
-// blocked (no user gesture yet), but a remount triggered by clicking a Back
-// button IS a genuine gesture, so the browser allowed it -- unexpectedly
-// dropping the user into fullscreen just from navigating. The CSS fallback
-// lock (applied unconditionally, below) already keeps the orientation locked
-// visually either way, so it's safe to only ever try the real API path once
-// per browser session.
-let attemptedRealLockThisSession = false;
 
 export const getAutoRotate = () => {
   try { return localStorage.getItem(KEY) !== 'false'; } catch { return true; }
