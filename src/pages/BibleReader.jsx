@@ -111,7 +111,12 @@ export default function BibleReader() {
   // Settings, Credits, etc. — looking full-screen with no header. Always show
   // the header again once the Reader itself unmounts.
   useEffect(() => {
-    return () => setHideHeader(false);
+    return () => {
+      setHideHeader(false);
+      if (document.fullscreenElement) {
+        document.exitFullscreen?.().catch(() => {});
+      }
+    };
   }, [setHideHeader]);
   const routerLocation = useLocation();
   const routerNavigate = useNavigate();
