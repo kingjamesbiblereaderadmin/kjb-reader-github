@@ -105,11 +105,12 @@ async function copyToClipboard(text) {
 export default function BibleReader() {
   const { hideHeader, setHideHeader } = useHeaderHide();
   // hideHeader is app-wide context, not scoped to this page (it's also read by
-  // AppLayout's own <header> and by the Fullscreen toggle below). Nothing else
-  // ever resets it, so leaving the Reader with the header hidden (or via
-  // Fullscreen, which also sets it) previously left every other page —
+  // AppLayout's own <header>). Nothing else ever resets it, so leaving the
+  // Reader with the header manually hidden previously left every other page —
   // Settings, Credits, etc. — looking full-screen with no header. Always show
-  // the header again once the Reader itself unmounts.
+  // the header again once the Reader itself unmounts. Also exits real browser
+  // Fullscreen if the Auto Rotate orientation lock (autoRotate.js) put the app
+  // into it, since there's no Fullscreen toggle in this page anymore to do so.
   useEffect(() => {
     return () => {
       setHideHeader(false);
