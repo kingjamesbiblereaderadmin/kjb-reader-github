@@ -1342,10 +1342,16 @@ export default function BibleReader() {
       }
     };
     const onScroll = () => {
+      // Write the scroll position synchronously on every scroll event, not
+      // batched to the next animation frame -- a quick scroll immediately
+      // followed by leaving the page (Home/Back) could otherwise navigate
+      // away before the throttled frame ever ran. This write is cheap and the
+      // exact same value is written again on flush()/onHide(), so there's no
+      // real downside to doing it every event instead of once per frame.
+      try { localStorage.setItem(key, String(Math.round(getY()))); } catch {}
       if (raf) return;
       raf = requestAnimationFrame(() => {
         raf = null;
-        try { localStorage.setItem(key, String(Math.round(getY()))); } catch {}
         // Save prev-reading-session only for NORMAL reading. Use URL params
         // (reliable/synchronous) plus highlightVerse, so a daily/search/random
         // chapter never overwrites the real previous session.
