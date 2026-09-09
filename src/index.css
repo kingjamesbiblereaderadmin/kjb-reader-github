@@ -209,8 +209,12 @@
     font-size: 0.92em;
     word-spacing: normal;
     text-align: left;
-    -webkit-hyphens: auto;
-    hyphens: auto;
+    /* Never let the browser hyphenate scripture mid-word — its dictionary
+       mangles proper names (e.g. "Jehoshaphat" split with a lone "t" stranded
+       on the next line in 2 Kings 8:16). overflow-wrap: break-word below
+       remains as the safety net for a word genuinely wider than the column. */
+    -webkit-hyphens: manual;
+    hyphens: manual;
     /* Safety net for any word hyphens can't find a break point for (browser
        hyphenation dictionaries don't cover every word/name). Without this, an
        unbreakable word that's wider than the column just overflows straight
