@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.235', date: 'September 9, 2026', items: ['Fixed Copy (and Copy All) on a search result that only turned up one verse in a chapter — it copied a full chapter-style header (book title stacked over "Chapter N") as if the whole chapter were included; a single-verse result now copies as a quoted line with its reference, matching the individual verse copy button'] },
   { version: 'v0.4.234', date: 'September 7, 2026', items: ['Fixed copying an individual verse (or verses via Copy Selected) dropping the [bracket] italics that Copy Chapter always kept — both used a text-cleanup step meant for internal search matching that happened to strip brackets as a side effect; single-verse and multi-verse copy now match Copy Chapter\u2019s output exactly'] },
   { version: 'v0.4.233', date: 'September 6, 2026', items: ['Fixed keyword search silently cutting off long result lists with no indication anything was missing — search results were capped well below the true match count (e.g. searching "chariot" without Whole Word also matches every "chariots" verse, pushing the combined total past the old cap and stopping the list at 2 Chronicles even though later matches exist); search now returns every match with nothing held back'] },
   { version: 'v0.4.232', date: 'September 5, 2026', items: ['Version bump for Edge Add-ons resubmission (no functional changes)'] },
