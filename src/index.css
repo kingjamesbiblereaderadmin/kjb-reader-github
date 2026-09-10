@@ -387,6 +387,10 @@
   html[data-reader-font="sans-serif"] .kjb-reader-content:not(.cursive-em-style),
   html[data-reader-font="sans-serif"] .kjb-reader-content:not(.cursive-em-style) *:not(sup):not(.font-sans):not(svg):not(svg *) {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    /* Slight tracking so Inter's very narrow adjacent stems (e.g. the "il"
+       in "gilead") don't visually fuse into one thick stroke on dark themes,
+       where antialiasing glow fills sub-pixel gaps between glyphs. */
+    letter-spacing: 0.02em;
   }
   html[data-reader-font="monospace"] .kjb-reader-content:not(.cursive-em-style),
   html[data-reader-font="monospace"] .kjb-reader-content:not(.cursive-em-style) *:not(sup):not(.font-sans):not(svg):not(svg *) {
