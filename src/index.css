@@ -387,10 +387,6 @@
   html[data-reader-font="sans-serif"] .kjb-reader-content:not(.cursive-em-style),
   html[data-reader-font="sans-serif"] .kjb-reader-content:not(.cursive-em-style) *:not(sup):not(.font-sans):not(svg):not(svg *) {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    /* Slight tracking so Inter's very narrow adjacent stems (e.g. the "il"
-       in "gilead") don't visually fuse into one thick stroke on dark themes,
-       where antialiasing glow fills sub-pixel gaps between glyphs. */
-    letter-spacing: 0.02em;
   }
   html[data-reader-font="monospace"] .kjb-reader-content:not(.cursive-em-style),
   html[data-reader-font="monospace"] .kjb-reader-content:not(.cursive-em-style) *:not(sup):not(.font-sans):not(svg):not(svg *) {
@@ -410,6 +406,11 @@
      (UI + scripture). Cursive scripture styling is intentionally left intact. */
   html[data-a11y-font="dyslexic"] *:not(.cursive-em-style):not(.cursive-em-style *):not(.kjb-font-preview) {
     font-family: 'OpenDyslexic', 'Comic Sans MS', sans-serif !important;
+    /* OpenDyslexic's heavy rounded stems sit very close together, so pairs
+       like the "il" in "gilead" visually fuse into one thick stroke (worst
+       on dark themes, where antialiasing glow fills the sub-pixel gap).
+       Slight tracking keeps adjacent letters separable. */
+    letter-spacing: 0.03em;
   }
   html[data-a11y-font="hyperlegible"] *:not(.cursive-em-style):not(.cursive-em-style *):not(.kjb-font-preview) {
     font-family: 'Atkinson Hyperlegible', system-ui, sans-serif !important;
