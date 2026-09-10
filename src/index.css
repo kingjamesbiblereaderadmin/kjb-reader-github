@@ -209,12 +209,15 @@
     font-size: 0.92em;
     word-spacing: normal;
     text-align: left;
-    /* Never let the browser hyphenate scripture mid-word — its dictionary
-       mangles proper names (e.g. "Jehoshaphat" split with a lone "t" stranded
-       on the next line in 2 Kings 8:16). overflow-wrap: break-word below
-       remains as the safety net for a word genuinely wider than the column. */
-    -webkit-hyphens: manual;
-    hyphens: manual;
+    /* Hyphenation ON for the narrow two-column layout, matching a printed
+       Bible. This is what guarantees the user's rule: any word that must
+       break mid-word ALWAYS shows a visible hyphen at the break. Without
+       hyphenation, the overflow-wrap/word-break fallbacks below broke words
+       BARE (no hyphen), producing orphaned fragments like "Jehospha" + "t"
+       in 2 Kings 8:16. Those fallbacks stay only as the last resort for a
+       word with no dictionary break point that's wider than the column. */
+    -webkit-hyphens: auto;
+    hyphens: auto;
     /* Safety net for any word hyphens can't find a break point for (browser
        hyphenation dictionaries don't cover every word/name). Without this, an
        unbreakable word that's wider than the column just overflows straight
