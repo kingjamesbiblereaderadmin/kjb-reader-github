@@ -61,7 +61,7 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
     <div className="space-y-4">
       {/* Scope + text */}
       <Section title="Scope & text" open={openSections.scope} onToggle={() => toggleSection('scope')}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           <div>
             <label className="block font-sans text-xs text-muted-foreground mb-1">Testament</label>
             <select
@@ -178,7 +178,7 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
 
       {/* Sort */}
       <Section title="Sort by" icon={ArrowUpDown} open={openSections.sort} onToggle={() => toggleSection('sort')}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           <select
             value={filters.sortKey}
             onChange={(e) => set({ sortKey: e.target.value })}
