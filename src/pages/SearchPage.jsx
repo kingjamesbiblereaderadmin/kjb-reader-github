@@ -1159,7 +1159,7 @@ export default function SearchPage() {
             : testamentValue === 'old' ? 'Old Testament' : 'New Testament';
           return (
             <Select value={testamentValue} onValueChange={(val) => setTestamentFilter(new Set([val]))}>
-              <SelectTrigger className="h-7 w-[132px] rounded-lg font-sans text-xs font-medium border-border bg-secondary px-2.5 py-1 gap-1">
+              <SelectTrigger className="h-7 min-w-[132px] w-auto rounded-lg font-sans text-xs font-medium border-border bg-secondary px-2.5 py-1 gap-1">
                 <SelectValue>{triggerLabel}</SelectValue>
               </SelectTrigger>
               <SelectContent>
