@@ -903,7 +903,14 @@ async function buildText(opts, bible, onProgress, format) {
         `<h2 style="text-align:center">${escapeHtml(nameOf(book))}</h2>`
       );
     } else {
-      push(''); push(''); push('');
+      // Blank-line separator between books. Skip it where a title block was just
+      // emitted (start of file after front matter, or the NT title above Matthew)
+      // — that block already ends with a blank line, and stacking them left a
+      // big run of empty lines above Genesis and Matthew.
+      const justTitled =
+        bi === 0 ||
+        (coverPage && book.apiName === 'Matthew' && scope === 'whole');
+      if (!justTitled) { push(''); push(''); push(''); }
       push(nameOf(book), 'h1', anchorFor(book));
     }
 
