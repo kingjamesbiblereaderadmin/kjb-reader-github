@@ -67,9 +67,9 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
             <select
               value={filters.testament}
               onChange={(e) => set({ testament: e.target.value, book: 'all' })}
-              className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground"
+              className="w-full px-3 pr-8 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground"
             >
-              <option value="all" disabled={availability && !availability.testaments.all}>All (Old + New)</option>
+              <option value="all" disabled={availability && !availability.testaments.all}>All (OT + NT)</option>
               <option value="old" disabled={availability && !availability.testaments.old}>Old Testament</option>
               <option value="new" disabled={availability && !availability.testaments.new}>New Testament</option>
             </select>
@@ -79,7 +79,7 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
             <select
               value={filters.book}
               onChange={(e) => set({ book: e.target.value })}
-              className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground"
+              className="w-full px-3 pr-8 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground"
             >
               <option value="all" disabled={availability && !availability.books.all}>All books</option>
               {books.map(b => (
@@ -186,13 +186,13 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
           >
             <option value="none">None (no sorting)</option>
             <option value="canonical">Book order (canonical)</option>
-            {NUMERIC_METRICS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
+            {NUMERIC_METRICS.map(m => <option key={m.key} value={m.key}>{m.short || m.label}</option>)}
           </select>
           <select
             value={filters.sortDir}
             onChange={(e) => set({ sortDir: e.target.value })}
             disabled={noSort}
-            className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground disabled:opacity-40"
+            className="w-full px-3 pr-8 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground disabled:opacity-40"
           >
             {isCanonical ? (
               <>
