@@ -40,13 +40,15 @@ export default function CreditsPage() {
             </div>
             <h2 className="font-serif text-xl font-semibold text-foreground">Bible Text</h2>
           </div>
-          <p className="font-sans text-sm text-foreground/85 leading-relaxed">
-            King James Bible (KJB) — public domain text, sourced from{' '}
-            <a href="https://bibleprotector.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">bibleprotector.com</a>,
-            the authoritative electronic text of the Pure Cambridge Edition, which offers free PDF, ePub, and TXT downloads.
+          <p className="font-sans text-sm text-foreground/85 leading-relaxed notranslate" translate="no">
+            King James Bible (KJB) — Pure Cambridge Edition. Our master text file is generated directly from our
+            authoritative <span className="notranslate" translate="no">Pure Cambridge Edition</span> source document
+            (kindly made available by <a href="https://bibleprotector.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">bibleprotector.com</a>),
+            then verified word-for-word, verse-by-verse, against an independent <span className="notranslate" translate="no">Pure Cambridge Edition</span> reference —
+            all 66 books, 1,189 chapters, and 31,102 verses, with italics, paragraph marks, and small-caps <span className="notranslate" translate="no">LORD</span> and <span className="notranslate" translate="no">GOD</span> preserved exactly as printed.
           </p>
           <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-3">
-            This app uses the King James Bible: Pure Cambridge Edition (Wharton Text Format). The KJB text is public
+            The KJB text is public
             domain worldwide. In the United Kingdom, it is protected by a perpetual Crown Copyright administered by
             the King&apos;s Printer; this app is for personal, non-commercial use only. For commercial use within the UK,
             a licence from Cambridge University Press or the King&apos;s Printer may be required.
