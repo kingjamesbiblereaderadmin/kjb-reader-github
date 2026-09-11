@@ -932,7 +932,8 @@ export default function SearchPage() {
   const clearSelection = () => { setSelected(new Set()); setSelectMode(false); };
 
   // Format selected verses — each verse on its own line with its own reference.
-  // Brackets are converted to nothing (plain text) for clean copy/export.
+  // [Italic] brackets are KEPT so copied text preserves the KJB's supplied
+  // words, matching the reader's copy/share (cleanVerseText) and Export.
   const formatVerses = (indices) => {
     const sorted = [...indices].sort((a, b) => a - b);
     const lines = sorted.map((i, idx) => {
@@ -943,8 +944,7 @@ export default function SearchPage() {
       const hasPilcrow = /^\s*¶/.test(r.text || '');
       const text = r.text
         .replace(/¶\s*/g, '')
-        .replace(/^<<[^>]*>>\s*/, '')
-        .replace(/\[([^\]]+)\]/g, '$1');
+        .replace(/^<<[^>]*>>\s*/, '');
       const bookEntry = BIBLE_BOOKS.find(b => b.apiName === r.book);
       const bookName = bookEntry ? bookEntry.shortName : r.book;
       const isColophon = r.isColophon || (r.verse === 0 && !r.isSubscript && !r.isHeading);
