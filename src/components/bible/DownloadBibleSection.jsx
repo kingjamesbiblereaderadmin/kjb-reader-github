@@ -37,6 +37,8 @@ export default function DownloadBibleSection() {
   const [paragraph, setParagraph] = useState(false);
   const [subscripts, setSubscripts] = useState(true);
   const [colophons, setColophons] = useState(true);
+  const [coverPage, setCoverPage] = useState(true);
+  const [contents, setContents] = useState(true);
   const [shortNames, setShortNames] = useState(false);
   const [format, setFormat] = useState('pdf');
   const [font, setFont] = useState(DEFAULT_EXPORT_FONT);
@@ -52,7 +54,7 @@ export default function DownloadBibleSection() {
     setProgress(0);
     setStatus('Preparing…');
     try {
-      await exportBiblePdf({ scope, twoColumn, paragraph, subscripts, colophons, shortNames, format, font }, (pct, msg) => {
+      await exportBiblePdf({ scope, twoColumn, paragraph, subscripts, colophons, shortNames, format, font, coverPage, toc: contents }, (pct, msg) => {
         setProgress(pct);
         setStatus(msg);
       });
@@ -130,6 +132,20 @@ export default function DownloadBibleSection() {
 
       {/* Includes — subscripts are OT-only (Psalms), colophons are NT-only (Epistles) */}
       <div className="space-y-3 pt-2 border-t border-border">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="font-sans text-sm text-foreground font-medium">Include Cover Page</p>
+            <p className="font-sans text-xs text-muted-foreground">The Holy Bible / New Testament title page</p>
+          </div>
+          <Switch checked={coverPage} onCheckedChange={setCoverPage} className="shrink-0" />
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="font-sans text-sm text-foreground font-medium">Include Contents</p>
+            <p className="font-sans text-xs text-muted-foreground">Table of contents listing every book</p>
+          </div>
+          <Switch checked={contents} onCheckedChange={setContents} className="shrink-0" />
+        </div>
         {scope !== 'new' && (
           <div className="flex items-center justify-between gap-4">
             <div>

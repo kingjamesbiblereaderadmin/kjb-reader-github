@@ -123,7 +123,7 @@ function measureTocPages(doc, pageW, pageH, margin, F = 'times', books = BIBLE_B
 // PDF
 // ─────────────────────────────────────────────────────────────
 async function buildPdf(opts, bible, onProgress) {
-  const { twoColumn, paragraph, subscripts, colophons, shortNames, scope = 'whole' } = opts;
+  const { twoColumn, paragraph, subscripts, colophons, shortNames, scope = 'whole', coverPage = true, toc = true } = opts;
   const nameOf = (b) => (shortNames ? b.shortName : b.name);
   // Which books to include based on the selected scope.
   const BOOKS = scope === 'old' ? BIBLE_BOOKS.filter(b => b.testament === 'old')
@@ -493,26 +493,30 @@ async function buildPdf(opts, bible, onProgress) {
 
   // Front title page: Holy Bible for whole/OT, New Testament for NT-only.
   const frontTitlePage = doc.internal.getNumberOfPages();
-  if (scope === 'new') {
-    ntTitlePageNum = frontTitlePage;
-    titlePage(ctx, TITLE_NT);
-  } else {
-    holyBiblePage = frontTitlePage;
-    titlePage(ctx, TITLE_WHOLE);
+  if (coverPage) {
+    if (scope === 'new') {
+      ntTitlePageNum = frontTitlePage;
+      titlePage(ctx, TITLE_NT);
+    } else {
+      holyBiblePage = frontTitlePage;
+      titlePage(ctx, TITLE_WHOLE);
+    }
   }
 
   const total = BOOKS.length;
-  const tocPagesNeeded = measureTocPages(doc, pageW, pageH, margin, F, BOOKS);
+  const tocPagesNeeded = toc ? measureTocPages(doc, pageW, pageH, margin, F, BOOKS) : 0;
   // titlePage() (above) already left us on a fresh blank page — use THAT as the
   // first TOC listing page, and only add the REMAINING (tocPagesNeeded - 1)
   // pages. This avoids an orphan blank page between the title page and Contents.
-  const tocStartPage = doc.internal.getNumberOfPages();
+  const tocStartPage = toc ? doc.internal.getNumberOfPages() : 0;
   for (let i = 0; i < tocPagesNeeded - 1; i++) doc.addPage();
   // Genesis must begin on a brand-new page right after the reserved TOC pages.
   // Force atPageTop() === false so the first book adds exactly ONE new page.
+  // With no Contents pages reserved, the first book starts directly on the fresh
+  // page the title page left behind (or page 1 if there is no cover either).
   ctx.runningHead = '';
   ctx.col = 0;
-  ctx.y = pageH;
+  ctx.y = toc ? pageH : margin;
 
   // Track where each book begins (+ each chapter) for the TOC + PDF outline bookmarks
   const bookPages = []; // { book, page, chapters: [{ ch, page }] }
@@ -531,7 +535,7 @@ async function buildPdf(opts, bible, onProgress) {
 
     // NT title page before Matthew — only when both testaments are present
     // (for NT-only export the front page already IS the NT title).
-    if (book.apiName === 'Matthew' && scope === 'whole') {
+    if (coverPage && book.apiName === 'Matthew' && scope === 'whole') {
       ntTitlePageNum = doc.internal.getNumberOfPages();
       titlePage(ctx, TITLE_NT);
     }
@@ -577,7 +581,7 @@ async function buildPdf(opts, bible, onProgress) {
   if (doc.outline?.add) {
     // Front-matter title pages at the top of the outline panel.
     if (holyBiblePage) doc.outline.add(null, 'Cover Page', { pageNumber: holyBiblePage });
-    doc.outline.add(null, 'Contents', { pageNumber: tocStartPage });
+    if (toc) doc.outline.add(null, 'Contents', { pageNumber: tocStartPage });
 
     let otNode = null, ntNode = null;
     const otFirst = bookPages.find(b => b.book.testament === 'old');
@@ -603,6 +607,7 @@ async function buildPdf(opts, bible, onProgress) {
 
   // ── Fill in the reserved Table of Contents pages: OT/NT headers, each book
   //    name (links to the book), and a grid of clickable chapter numbers. ──
+  if (toc) {
   onProgress(96, 'Building contents…');
   ctx.runningHead = ''; // no running header on contents pages
   let tocPage = tocStartPage;
@@ -717,6 +722,7 @@ async function buildPdf(opts, bible, onProgress) {
     writeBookRow(book, page, bookIndex++);
     if (chapters.length > 1) writeChapterGrid(chapters);
   });
+  } // end Contents fill
 
   onProgress(98, 'Finalising PDF…');
   await triggerDownload(doc.output('blob'), fileName(opts, 'pdf'));
@@ -726,7 +732,7 @@ async function buildPdf(opts, bible, onProgress) {
 // TXT (keeps [brackets] for italics) & DOCX
 // ─────────────────────────────────────────────────────────────
 async function buildText(opts, bible, onProgress, format) {
-  const { twoColumn, paragraph, subscripts, colophons, shortNames, scope = 'whole' } = opts;
+  const { twoColumn, paragraph, subscripts, colophons, shortNames, scope = 'whole', coverPage = true, toc = true } = opts;
   const nameOf = (b) => (shortNames ? b.shortName : b.name);
   const BOOKS = scope === 'old' ? BIBLE_BOOKS.filter(b => b.testament === 'old')
     : scope === 'new' ? BIBLE_BOOKS.filter(b => b.testament === 'new')
@@ -772,11 +778,13 @@ async function buildText(opts, bible, onProgress, format) {
 
   // Title pages — Holy Bible for whole/OT, New Testament for NT-only.
   // Anchor the cover so the Contents "Cover Page" entry can link back to it (DOCX).
-  if (isDocx) out.push('<a name="cover_page"></a>');
-  (scope === 'new' ? TITLE_NT : TITLE_WHOLE).forEach((b, i) => push(b.t, i === 1 ? 'title-main' : 'title-line'));
-  push('');
-  // Contents starts on its own page (DOCX), separate from the title page.
-  if (isDocx) out.push('<br style="page-break-after:always" />');
+  if (coverPage) {
+    if (isDocx) out.push('<a name="cover_page"></a>');
+    (scope === 'new' ? TITLE_NT : TITLE_WHOLE).forEach((b, i) => push(b.t, i === 1 ? 'title-main' : 'title-line'));
+    push('');
+    // Contents starts on its own page (DOCX), separate from the title page.
+    if (isDocx) out.push('<br style="page-break-after:always" />');
+  }
 
   const total = BOOKS.length;
 
@@ -786,6 +794,7 @@ async function buildText(opts, bible, onProgress, format) {
   const coverBeforeTestament = scope === 'new' ? 'new' : 'old';
 
   // Table of Contents (Word: clickable links to in-doc anchors; TXT: plain list)
+  if (toc) {
   if (isDocx) {
     out.push('<p style="text-align:center;font-size:20pt;font-weight:bold;margin:6px 0">CONTENTS</p>');
     let lastT = null;
@@ -793,10 +802,10 @@ async function buildText(opts, bible, onProgress, format) {
     BOOKS.forEach(book => {
       if (book.testament !== lastT) {
         lastT = book.testament;
-        if (book.testament === coverBeforeTestament) {
+        if (coverPage && book.testament === coverBeforeTestament) {
           out.push(`<p style="margin:1px 0 1px 28px;text-indent:-10px"><a href="#cover_page">&bull;&nbsp;Cover Page</a></p>`);
         }
-        if (book.testament === 'new' && scope === 'whole') {
+        if (coverPage && book.testament === 'new' && scope === 'whole') {
           out.push(`<p style="margin:1px 0 1px 28px;text-indent:-10px"><a href="#nt_title">&bull;&nbsp;The New Testament</a></p>`);
         }
         out.push(`<p style="margin:8px 0 2px"><b>${book.testament === 'old' ? 'THE OLD TESTAMENT' : 'THE NEW TESTAMENT'}</b></p>`);
@@ -813,8 +822,8 @@ async function buildText(opts, bible, onProgress, format) {
       if (book.testament !== lastT) {
         lastT = book.testament;
         push('');
-        if (book.testament === coverBeforeTestament) { push('  \u2022 Cover Page'); push(''); }
-        if (book.testament === 'new' && scope === 'whole') { push('\u2022 The New Testament'); push(''); }
+        if (coverPage && book.testament === coverBeforeTestament) { push('  \u2022 Cover Page'); push(''); }
+        if (coverPage && book.testament === 'new' && scope === 'whole') { push('\u2022 The New Testament'); push(''); }
         push(book.testament === 'old' ? 'THE OLD TESTAMENT' : 'THE NEW TESTAMENT');
       }
       push('');
@@ -824,13 +833,14 @@ async function buildText(opts, bible, onProgress, format) {
     push('');
     push('');
   }
+  }
 
   let lastBodyTestament = null;
   for (let bi = 0; bi < total; bi++) {
     const book = BOOKS[bi];
     const bookData = bible[book.apiName] || {};
 
-    if (book.apiName === 'Matthew' && scope === 'whole') {
+    if (coverPage && book.apiName === 'Matthew' && scope === 'whole') {
       if (isDocx) {
         out.push('<br style="page-break-before:always" /><a name="nt_title"></a>');
         // Navigation Heading 1 for the New Testament lives ON the title page so
@@ -1061,7 +1071,7 @@ function rtfInline(text) {
 }
 
 async function buildRtf(opts, bible, onProgress) {
-  const { twoColumn, paragraph, subscripts, colophons, shortNames, scope = 'whole' } = opts;
+  const { twoColumn, paragraph, subscripts, colophons, shortNames, scope = 'whole', coverPage = true, toc = true } = opts;
   const nameOf = (b) => (shortNames ? b.shortName : b.name);
   const BOOKS = scope === 'old' ? BIBLE_BOOKS.filter(b => b.testament === 'old')
     : scope === 'new' ? BIBLE_BOOKS.filter(b => b.testament === 'new')
@@ -1087,11 +1097,14 @@ async function buildRtf(opts, bible, onProgress) {
   // Uses a unique token so the later \cols2 swap doesn't touch it.
   lines.push('\\sectdFRONT ');
   // Title page — centered, generously spaced. Holy Bible for whole/OT, NT for NT-only.
-  spacer(1800);
-  (scope === 'new' ? TITLE_NT : TITLE_WHOLE).forEach((b, i) => para(rtfEscape(b.t), { center: true, bold: !!b.bold, size: i === 1 ? 64 : 26, sb: i === 1 ? 120 : 60, sa: i === 1 ? 200 : 120 }));
-  lines.push('\\page ');
+  if (coverPage) {
+    spacer(1800);
+    (scope === 'new' ? TITLE_NT : TITLE_WHOLE).forEach((b, i) => para(rtfEscape(b.t), { center: true, bold: !!b.bold, size: i === 1 ? 64 : 26, sb: i === 1 ? 120 : 60, sa: i === 1 ? 200 : 120 }));
+    lines.push('\\page ');
+  }
 
   // Contents — numbered list grouped by testament
+  if (toc) {
   para('CONTENTS', { center: true, bold: true, size: 34, sa: 240 });
   const coverBeforeTestament = scope === 'new' ? 'new' : 'old';
   const bulletRow = (text) => lines.push(`{\\pard\\fi-180\\li360\\sa40\\fs20 \\bullet\\tab ${rtfEscape(text)}\\par}`);
@@ -1102,11 +1115,12 @@ async function buildRtf(opts, bible, onProgress) {
     if (book.testament !== lastT) {
       lastT = book.testament;
       // Title-page entries before their testament (matches PDF)
-      if (book.testament === coverBeforeTestament) bulletRow('Cover Page');
+      if (coverPage && book.testament === coverBeforeTestament) bulletRow('Cover Page');
       para(book.testament === 'old' ? 'THE OLD TESTAMENT' : 'THE NEW TESTAMENT', { bold: true, size: 26, sb: 160, sa: 80 });
     }
     numberRow(nameOf(book), bookIndex++);
   });
+  }
 
   const total = BOOKS.length;
   for (let bi = 0; bi < total; bi++) {
@@ -1115,7 +1129,7 @@ async function buildRtf(opts, bible, onProgress) {
 
     // NT title page: its own section (no header), then Matthew starts a new section.
     // Only for whole-Bible export — for NT-only the front page already IS the NT title.
-    if (book.apiName === 'Matthew' && scope === 'whole') {
+    if (coverPage && book.apiName === 'Matthew' && scope === 'whole') {
       // Clear the running header (otherwise Word inherits "Malachi" from the
       // previous section). \titlepg + empty headers blanks the header here.
       lines.push('\\sect \\sectdFRONT\\titlepg{\\headerf \\pard\\par}{\\header \\pard\\par} ');
