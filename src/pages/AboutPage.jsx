@@ -95,6 +95,31 @@ export default function AboutPage() {
         </ul>
       </div>
 
+      {/* The Bible Text source */}
+      <div className="notranslate bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-7 mb-8 shadow-lg shadow-black/[0.03]" translate="no">
+        <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">The Bible Text</h2>
+        <p className="font-sans text-foreground/85 leading-relaxed mb-4">
+          This app uses the <span className="notranslate" translate="no">King James Bible (Pure Cambridge Edition)</span> — the standard text of the
+          preserved King James Bible. The text is taken directly from our authoritative
+          <span className="notranslate" translate="no"> PCE</span> source document, with every word verified against the original: all 66 books,
+          1,189 chapters, and 31,102 verses, with italics and paragraph marks preserved exactly as printed.
+        </p>
+        <ul className="space-y-2 font-sans text-sm text-foreground/80">
+          <li className="flex items-start gap-2">
+            <span className="text-accent mt-1">•</span>
+            <span>Verified word-for-word, verse-by-verse, against an independent <span className="notranslate" translate="no">Pure Cambridge Edition</span> reference text.</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-accent mt-1">•</span>
+            <span>Italics shown as they appear in print, paragraph marks (pilcrows) preserved, and small-caps <span className="notranslate" translate="no">LORD</span> and <span className="notranslate" translate="no">GOD</span> kept intact.</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-accent mt-1">•</span>
+            <span>The same verified text is used everywhere — the reader, search, daily verses, exports, the browser extension, and the Android app.</span>
+          </li>
+        </ul>
+      </div>
+
       {/* Statement of Faith — expandable sections */}
       <div className="notranslate mb-8" translate="no">
         <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">Statement of Faith</h2>
