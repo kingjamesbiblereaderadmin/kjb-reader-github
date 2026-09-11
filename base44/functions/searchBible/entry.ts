@@ -60,7 +60,15 @@ function buildMatcher(query, { wholeWord, caseSensitive, wildcard }) {
   } else {
     pattern = escapeRegex(query);
   }
-  if (wholeWord) pattern = `\\b${pattern}\\b`;
+  // Whole word: use lookarounds that treat apostrophes (straight ' and
+  // typographic \u2019) as part of a word, NOT as a boundary. A plain \b would
+  // match "day" inside "day's", counting possessives as hits — unlike the
+  // in-app search and concordance tools (e.g. PureBibleSearch), which
+  // exclude them. The backend verse text keeps typographic apostrophes, so
+  // both forms must be excluded here.
+  if (wholeWord) {
+    pattern = `(?<![A-Za-z'\\u2019])${pattern}(?![A-Za-z'\\u2019])`;
+  }
   return new RegExp(pattern, caseSensitive ? "" : "i");
 }
 
