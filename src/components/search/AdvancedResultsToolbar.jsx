@@ -30,12 +30,12 @@ function toExportItem(r) {
   };
 }
 
-// Plain-text (no brackets, no pilcrow) for clipboard copy.
+// Plain-text for clipboard copy. [Italic] brackets are KEPT (they mark the
+// KJB's supplied words), matching the reader's copy/share (cleanVerseText),
+// the main search page's copy, and the raw text used in exports.
 function plainForCopy(text) {
   return mergeAdjacentBrackets(text || '')
     .replace(/¶\s*/g, '')
-    .replace(/\[([^\]]*)\]/g, '$1')
-    .replace(/[[\]]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
 }
