@@ -273,6 +273,19 @@
     scroll-padding-bottom: 6.5rem;
   }
 
+  /* Advanced Search numeric range inputs: hide the native number spinners.
+     On Android/dark WebKit the spin buttons render inside the small input box
+     and overlap the value, making the right-hand boxes look clipped/cramped. */
+  .kjb-num-input::-webkit-outer-spin-button,
+  .kjb-num-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .kjb-num-input {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
   /* Hide scrollbar for horizontal scrolling nav */
   .scrollbar-hide {
     -ms-overflow-style: none;

@@ -16,7 +16,7 @@ function Section({ title, icon: Icon, open, onToggle, children }) {
           {Icon && <Icon className="w-4 h-4 text-muted-foreground" />}
           <span className="font-sans text-sm font-semibold text-foreground">{title}</span>
         </span>
-        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-muted-foreground dark:text-white transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && <div className="px-4 pb-4 space-y-3">{children}</div>}
     </div>
@@ -176,7 +176,10 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
 
       {/* Sort */}
       <Section title="Sort by" icon={ArrowUpDown} open={openSections.sort} onToggle={() => toggleSection('sort')}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Sort labels (e.g. "Revelation → Matthew", "Book order (canonical)")
+            are too long for a half-width column in the narrow filter sidebar /
+            mobile drawer, so these always stack full-width and never clip. */}
+        <div className="grid grid-cols-1 gap-3">
           <select
             value={filters.sortKey}
             onChange={(e) => set({ sortKey: e.target.value })}
@@ -230,7 +233,7 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
                 value={filters.ranges[m.key].min}
                 onChange={(e) => setRange(m.key, 'min', e.target.value)}
                 placeholder={dr ? String(dr.min) : 'min'}
-                className="w-20 px-2 py-1.5 rounded-lg bg-secondary border border-border text-xs text-foreground disabled:cursor-not-allowed"
+                className="kjb-num-input w-20 px-2 py-1.5 rounded-lg bg-secondary border border-border text-xs text-foreground disabled:cursor-not-allowed"
               />
               <input
                 type="number"
@@ -239,7 +242,7 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
                 value={filters.ranges[m.key].max}
                 onChange={(e) => setRange(m.key, 'max', e.target.value)}
                 placeholder={dr ? String(dr.max) : 'max'}
-                className="w-20 px-2 py-1.5 rounded-lg bg-secondary border border-border text-xs text-foreground disabled:cursor-not-allowed"
+                className="kjb-num-input w-20 px-2 py-1.5 rounded-lg bg-secondary border border-border text-xs text-foreground disabled:cursor-not-allowed"
               />
             </div>
             );
