@@ -49,11 +49,13 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
 
   // Canonical sort labels adapt to the selected testament — sorting only the
   // Old Testament runs Genesis → Malachi (not Genesis → Revelation), etc.
+  // Uses standard book abbreviations (Gen, Mal, Matt, Rev) so the labels fit
+  // side-by-side in the narrow filter sidebar / mobile drawer without clipping.
   const canonicalLabels = filters.testament === 'old'
-    ? { asc: 'Genesis → Malachi', desc: 'Malachi → Genesis' }
+    ? { asc: 'Gen → Mal', desc: 'Mal → Gen' }
     : filters.testament === 'new'
-      ? { asc: 'Matthew → Revelation', desc: 'Revelation → Matthew' }
-      : { asc: 'Genesis → Revelation', desc: 'Revelation → Genesis' };
+      ? { asc: 'Matt → Rev', desc: 'Rev → Matt' }
+      : { asc: 'Gen → Rev', desc: 'Rev → Gen' };
 
   return (
     <div className="space-y-4">
@@ -176,10 +178,7 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
 
       {/* Sort */}
       <Section title="Sort by" icon={ArrowUpDown} open={openSections.sort} onToggle={() => toggleSection('sort')}>
-        {/* Sort labels (e.g. "Revelation → Matthew", "Book order (canonical)")
-            are too long for a half-width column in the narrow filter sidebar /
-            mobile drawer, so these always stack full-width and never clip. */}
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <select
             value={filters.sortKey}
             onChange={(e) => set({ sortKey: e.target.value })}
