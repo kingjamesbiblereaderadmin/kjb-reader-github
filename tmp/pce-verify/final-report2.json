@@ -1,0 +1,16 @@
+{
+ "mismatch": [
+  {
+   "key": "Exodus|32|32",
+   "clean": "yet now, if thou wilt forgive their sin—; and if not, blot me, i pray thee, out of thy book which thou hast written.",
+   "wharton": "yet now, if thou wilt forgive their sin; and if not, blot me, i pray thee, out of thy book which thou hast written."
+  },
+  {
+   "key": "1 John|2|23",
+   "clean": "whosoever denieth the son, the same hath not the father: but he that acknowledgeth the son hath the father also.",
+   "wharton": "whosoever denieth the son, the same hath not the father: (but) he that acknowledgeth the son hath the father also."
+  }
+ ],
+ "onlyInClean": [],
+ "onlyInWharton": []
+}
