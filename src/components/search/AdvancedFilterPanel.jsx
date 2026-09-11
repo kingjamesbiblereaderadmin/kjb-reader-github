@@ -47,6 +47,14 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
   const noSort = filters.sortKey === 'none';
   const isCanonical = filters.sortKey === 'canonical';
 
+  // Canonical sort labels adapt to the selected testament — sorting only the
+  // Old Testament runs Genesis → Malachi (not Genesis → Revelation), etc.
+  const canonicalLabels = filters.testament === 'old'
+    ? { asc: 'Genesis → Malachi', desc: 'Malachi → Genesis' }
+    : filters.testament === 'new'
+      ? { asc: 'Matthew → Revelation', desc: 'Revelation → Matthew' }
+      : { asc: 'Genesis → Revelation', desc: 'Revelation → Genesis' };
+
   return (
     <div className="space-y-4">
       {/* Scope + text */}
@@ -186,8 +194,8 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
           >
             {isCanonical ? (
               <>
-                <option value="asc">Genesis → Revelation</option>
-                <option value="desc">Revelation → Genesis</option>
+                <option value="asc">{canonicalLabels.asc}</option>
+                <option value="desc">{canonicalLabels.desc}</option>
               </>
             ) : (
               <>
@@ -246,7 +254,7 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
             const isActive = filters.bools[m.key] !== 'any';
             return (
             <div key={m.key} className={`flex items-center justify-between gap-3 rounded-lg px-2 -mx-2 py-1 transition-colors ${isActive ? 'bg-primary/10 ring-1 ring-primary/30' : ''}`}>
-              <span className={`font-sans text-xs flex-1 ${isActive ? 'text-foreground font-semibold' : 'text-foreground'}`}>{m.label}</span>
+              <span className={`font-sans text-xs flex-1 min-w-0 break-words ${isActive ? 'text-foreground font-semibold' : 'text-foreground'}`}>{m.label}</span>
               <div className="flex rounded-lg overflow-hidden border border-border shrink-0">
                 {['any', 'yes', 'no'].map(opt => {
                   const active = filters.bools[m.key] === opt;
@@ -256,7 +264,7 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
                     key={opt}
                     disabled={unavailable}
                     onClick={() => setBool(m.key, opt)}
-                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                    className={`px-2.5 sm:px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors ${
                       active
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-secondary text-muted-foreground hover:text-foreground'

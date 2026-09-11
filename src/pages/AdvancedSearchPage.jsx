@@ -207,6 +207,19 @@ export default function AdvancedSearchPage() {
     [records, filters]
   );
 
+  // Total occurrence counts per testament/book across ALL matching results —
+  // not just the paged-in slice — so the section headers always show the true
+  // occurrence count even before "Show more" pages the verses in.
+  const totalCounts = useMemo(() => {
+    const t = new Map();
+    const b = new Map();
+    for (const r of results) {
+      t.set(r.testament, (t.get(r.testament) || 0) + 1);
+      b.set(r.abbr, (b.get(r.abbr) || 0) + 1);
+    }
+    return { t, b };
+  }, [results]);
+
   // Group the currently-visible results by Testament, then book — preserving
   // the order results already come in (canonical or by whatever sort is active).
   const groupedVisible = useMemo(() => {
@@ -346,7 +359,7 @@ export default function AdvancedSearchPage() {
               <div className="space-y-8">
                 {groupedVisible.map(t => {
                   const tCollapsed = collapsedGroups.has(t.key);
-                  const tCount = t.books.reduce((n, b) => n + b.rows.length, 0);
+                  const tCount = totalCounts.t.get(t.key) || 0;
                   return (
                   <div key={t.key} className="space-y-5">
                     <button
@@ -361,6 +374,7 @@ export default function AdvancedSearchPage() {
                     {!tCollapsed && t.books.map(b => {
                       const bKey = `${t.key}:${b.key}`;
                       const bCollapsed = collapsedGroups.has(bKey);
+                      const bCount = totalCounts.b.get(b.key) || 0;
                       return (
                       <div key={b.key} className="space-y-3">
                         <button
@@ -368,7 +382,7 @@ export default function AdvancedSearchPage() {
                           className="w-full flex items-center justify-between gap-2 sticky top-0 bg-background/90 backdrop-blur-sm py-1 z-10 text-left"
                         >
                           <h3 className="font-serif text-lg font-semibold text-primary">
-                            <span className="notranslate">{b.label}</span> <span className="font-sans text-xs font-normal text-muted-foreground">({b.rows.length})</span>
+                            <span className="notranslate">{b.label}</span> <span className="font-sans text-xs font-normal text-muted-foreground">({bCount.toLocaleString()})</span>
                           </h3>
                           <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${bCollapsed ? '-rotate-90' : ''}`} />
                         </button>
