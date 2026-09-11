@@ -2,6 +2,7 @@
 // No client-side JavaScript required - navigation uses plain forms and links
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { loadPceBible } from "../../shared/biblePceData.ts";
 
 const ABBR_TO_NAME = {
   'Ge':'Genesis','Ex':'Exodus','Le':'Leviticus','Nu':'Numbers','De':'Deuteronomy',
@@ -223,37 +224,37 @@ const formatCache = {};
 
 async function loadBible() {
   if (bibleData) return bibleData;
-  const TEXT_URL = 'https://media.base44.com/files/public/6a05d76723afe58d80c589e8/91ec9491e_WHARTON_PCE.txt';
-  const res = await fetch(TEXT_URL, { timeout: 10000 });
-  if (!res.ok) throw new Error('Failed to fetch Bible text: ' + res.status);
-  const text = await res.text();
+  // Verified-clean PCE source — the exact same file as the main reader and
+  // every other backend API, loaded via the shared parser. Replaces the old
+  // WHARTON_PCE.txt line-per-verse file, which was never part of the
+  // word-for-word verification. Parsed text keeps original PCE casing (incl.
+  // the ALL-CAPS opening word of each chapter's verse 1), [bracketed] italics,
+  // and the leading ¶ paragraph mark that renderVerse() and the format
+  // exporters already know how to render. Psalm 119 Hebrew-letter headings
+  // are kept as a `heading` field, which the txt/rtf/doc/pdf exporters emit.
+  const pce = await loadPceBible();
   const data = {};
-  const lines = text.split('\n');
-  for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
-    if (!trimmed) continue;
-    const spaceIdx = trimmed.indexOf(' ');
-    if (spaceIdx === -1) continue;
-    const abbr = trimmed.slice(0, spaceIdx);
-    const rest = trimmed.slice(spaceIdx + 1);
-    const colonIdx = rest.indexOf(':');
-    if (colonIdx === -1) continue;
-    const chapter = parseInt(rest.slice(0, colonIdx), 10);
-    if (isNaN(chapter)) continue;
-    const spaceIdx2 = rest.indexOf(' ', colonIdx);
-    if (spaceIdx2 === -1) continue;
-    const verse = parseInt(rest.slice(colonIdx + 1, spaceIdx2), 10);
-    let verseText = rest.slice(spaceIdx2 + 1);
-    if (isNaN(verse) || !verseText) continue;
-    const bookName = ABBR_TO_NAME[abbr];
-    if (!bookName) continue;
-    verseText = verseText.replace(/\s*¶\s*\[.*?\]\s*$/, '').trim();
-    verseText = verseText.replace(/\s*made\s+in\s+australia\.?\s*$/i, '').trim();
-    verseText = verseText.replace(/\s*[\u00B6\uFFFD]\s*THE END\.?\s*$/i, '').trim();
-    if (!verseText) continue;
-    if (!data[bookName]) data[bookName] = {};
-    if (!data[bookName][chapter]) data[bookName][chapter] = [];
-    data[bookName][chapter].push({ verse, text: verseText });
+  for (const bName of BOOK_ORDER) {
+    const chapters = pce[bName];
+    if (!chapters) continue;
+    data[bName] = {};
+    const chapterKeys = Object.keys(chapters).map(Number).sort((a, b) => a - b);
+    for (const ch of chapterKeys) {
+      const verses = chapters[ch];
+      if (!Array.isArray(verses) || !verses.length) continue;
+      const list = [];
+      for (const v of verses) {
+        const verseText = String(v.text || '')
+          .replace(/\s*[\u00B6\uFFFD]\s*THE END\.?\s*$/i, '')
+          .replace(/\s*[\u00B6\uFFFD]\s*END OF THE PROPHETS\.?\s*$/i, '')
+          .trim();
+        if (!verseText) continue;
+        const entry = { verse: v.verse, text: verseText };
+        if (v.heading) entry.heading = v.heading;
+        list.push(entry);
+      }
+      if (list.length) data[bName][ch] = list;
+    }
   }
   bibleData = data;
   return data;

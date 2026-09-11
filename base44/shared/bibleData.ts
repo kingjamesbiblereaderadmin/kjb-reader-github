@@ -5,6 +5,8 @@
 // This is a plain module — no Deno.serve. Import from functions via:
 //   import { loadBible, verseFromRef, ... } from "../../shared/bibleData.ts";
 
+import { loadPceBible } from "./biblePceData.ts";
+
 export const ABBR_TO_NAME = {
   'Ge':'Genesis','Ex':'Exodus','Le':'Leviticus','Nu':'Numbers','De':'Deuteronomy',
   'Jos':'Joshua','Jg':'Judges','Ru':'Ruth','1Sa':'1 Samuel','2Sa':'2 Samuel',
@@ -341,7 +343,9 @@ export const PSALM_VERSE_1: Record<number, string> = {
   145: 'I WILL extol thee, my God, O king; and I will bless thy name for ever and ever.',
 };
 
-export const TEXT_URL = 'https://media.base44.com/files/public/6a05d76723afe58d80c589e8/91ec9491e_WHARTON_PCE.txt';
+// Source: the verified-clean PCE file, loaded via biblePceData.loadPceBible()
+// (see loadBible below). The old TEXT_URL (WHARTON_PCE.txt) is gone — nothing
+// should read that unverified file anymore.
 
 // In-memory cache (per-function isolate). Keyed without colophons so all
 // callers share the same cached object.
@@ -352,103 +356,19 @@ let bibleData = null;
 // can serve them; other callers simply ignore the extra property.
 export async function loadBible() {
   if (bibleData) return bibleData;
-
-  const res = await fetch(TEXT_URL);
-  if (!res.ok) throw new Error('Failed to fetch Bible text');
-  const text = await res.text();
-
-  const data = {};
-  const colophons = {};
-  const lines = text.split('\n');
-
-  // Psalm 119 acrostic: the Wharton format has standalone "Ps ALEPH.", "Ps BETH."
-  // etc. lines before each 8-verse stanza. We capture the heading and stamp it
-  // onto the next verse parsed, so the API can return it like the frontend does.
-  const HEBREW_LETTERS = new Set([
-    'ALEPH','BETH','GIMEL','DALETH','HE','VAU','ZAIN','CHETH','TETH','JOD',
-    'CAPH','LAMED','MEM','NUN','SAMECH','AIN','PE','TZADDI','KOPH','RESH','SCHIN','TAU',
-  ]);
-  let pendingHeading: string | null = null;
-
-  for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
-    if (!trimmed) continue;
-
-    const spaceIdx = trimmed.indexOf(' ');
-    if (spaceIdx === -1) continue;
-    const abbr = trimmed.slice(0, spaceIdx);
-    const rest = trimmed.slice(spaceIdx + 1);
-
-    // Psalm 119 Hebrew letter acrostic heading: "Ps ALEPH." etc.
-    if (abbr === 'Ps') {
-      const letterMatch = rest.match(/^([A-Z]+)\.$/);
-      if (letterMatch && HEBREW_LETTERS.has(letterMatch[1])) {
-        pendingHeading = letterMatch[1];
-        continue;
-      }
-    }
-
-    // Standalone colophon (epistle subscription) line: "<abbr> ¶ [text]"
-    const colophonLineMatch = rest.match(/^\ufffd\s*\[(.*)\]\s*$/);
-    if (colophonLineMatch) {
-      const cBook = ABBR_TO_NAME[abbr];
-      if (cBook && data[cBook]) {
-        const chs = Object.keys(data[cBook]).map(Number).filter(n => !isNaN(n));
-        if (chs.length) {
-          const lastCh = Math.max(...chs);
-          colophons[`${cBook}:${lastCh}`] = colophonLineMatch[1];
-        }
-      }
-      continue;
-    }
-
-    const colonIdx = rest.indexOf(':');
-    if (colonIdx === -1) continue;
-
-    const chapter = parseInt(rest.slice(0, colonIdx), 10);
-    if (isNaN(chapter)) continue;
-
-    const spaceIdx2 = rest.indexOf(' ', colonIdx);
-    if (spaceIdx2 === -1) continue;
-
-    const verse = parseInt(rest.slice(colonIdx + 1, spaceIdx2), 10);
-    let verseText = rest.slice(spaceIdx2 + 1);
-
-    if (isNaN(verse) || !verseText) continue;
-
-    const bookName = ABBR_TO_NAME[abbr];
-    if (!bookName) continue;
-
-    // Extract colophon markers: ¶ [text] at end of verse
-    const colophonMatch = verseText.match(/¶\s*\[(.*?)\]\s*$/);
-    if (colophonMatch) {
-      const colophonKey = `${bookName}:${chapter}`;
-      if (!colophons[colophonKey]) {
-        colophons[colophonKey] = colophonMatch[1];
-      }
-      verseText = verseText.replace(/\s*¶\s*\[.*?\]\s*$/, '').trim();
-    }
-
-    if (!verseText.trim()) continue;
-
-    // Fix 1 John 2:23 PCE syntax
-    if (bookName === '1 John' && chapter === 2 && verse === 23) {
-      verseText = verseText.replace('[(but)', '[but');
-      verseText = verseText.replace('[[but]]', '[but]');
-    }
-
-    if (!data[bookName]) data[bookName] = {};
-    if (!data[bookName][chapter]) data[bookName][chapter] = [];
-    const entry: { verse: number; text: string; heading?: string } = { verse, text: verseText };
-    if (pendingHeading) {
-      entry.heading = pendingHeading;
-      pendingHeading = null;
-    }
-    data[bookName][chapter].push(entry);
-  }
-
+  // Verified-clean PCE source — the exact same file the reader, the offline
+  // download, and every other backend API use, parsed by the shared
+  // biblePceData parser. Replaces the old WHARTON_PCE.txt line-per-verse
+  // format (plain sentence-case text, \uFFFD apostrophes, trailing pilcrows,
+  // colophons inline, "made in australia" watermark), which was never part of
+  // the word-for-word verification. The clean file already carries the
+  // ALL-CAPS chapter-opening word, leading ¶ paragraph marks, [bracketed]
+  // italics, proper typographic apostrophes, Psalm 119 headings, and
+  // __colophons — so the WHARTON-era compensations further down this module
+  // (normalizePilcrows, capitalizeChapterOpening, extractSuperscription,
+  // PSALM_VERSE_1) are harmless no-ops on the new text and keep working.
+  const data = await loadPceBible();
   bibleData = data;
-  bibleData.__colophons = colophons;
   return data;
 }
 
