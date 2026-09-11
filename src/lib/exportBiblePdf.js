@@ -535,7 +535,7 @@ async function buildPdf(opts, bible, onProgress) {
 
     // NT title page before Matthew — only when both testaments are present
     // (for NT-only export the front page already IS the NT title).
-    if (book.apiName === 'Matthew' && scope === 'whole') {
+    if (coverPage && book.apiName === 'Matthew' && scope === 'whole') {
       ntTitlePageNum = doc.internal.getNumberOfPages();
       titlePage(ctx, TITLE_NT);
     }
@@ -807,7 +807,7 @@ async function buildText(opts, bible, onProgress, format) {
         if (coverPage && book.testament === coverBeforeTestament) {
           out.push(`<p style="margin:1px 0 1px 28px;text-indent:-10px"><a href="#cover_page">&bull;&nbsp;Cover Page</a></p>`);
         }
-        if (book.testament === 'new' && scope === 'whole') {
+        if (coverPage && book.testament === 'new' && scope === 'whole') {
           out.push(`<p style="margin:1px 0 1px 28px;text-indent:-10px"><a href="#nt_title">&bull;&nbsp;The New Testament</a></p>`);
         }
         out.push(`<p style="margin:8px 0 2px"><b>${book.testament === 'old' ? 'THE OLD TESTAMENT' : 'THE NEW TESTAMENT'}</b></p>`);
@@ -826,7 +826,7 @@ async function buildText(opts, bible, onProgress, format) {
         lastT = book.testament;
         push('');
         if (coverPage && book.testament === coverBeforeTestament) { push('  \u2022 Cover Page'); push(''); }
-        if (book.testament === 'new' && scope === 'whole') { push('\u2022 The New Testament'); push(''); }
+        if (coverPage && book.testament === 'new' && scope === 'whole') { push('\u2022 The New Testament'); push(''); }
         push(book.testament === 'old' ? 'THE OLD TESTAMENT' : 'THE NEW TESTAMENT');
       }
       push('');
@@ -843,7 +843,7 @@ async function buildText(opts, bible, onProgress, format) {
     const book = BOOKS[bi];
     const bookData = bible[book.apiName] || {};
 
-    if (book.apiName === 'Matthew' && scope === 'whole') {
+    if (coverPage && book.apiName === 'Matthew' && scope === 'whole') {
       if (isDocx) {
         out.push('<br style="page-break-before:always" /><a name="nt_title"></a>');
         // Navigation Heading 1 for the New Testament lives ON the title page so
@@ -1137,7 +1137,7 @@ async function buildRtf(opts, bible, onProgress) {
 
     // NT title page: its own section (no header), then Matthew starts a new section.
     // Only for whole-Bible export — for NT-only the front page already IS the NT title.
-    if (book.apiName === 'Matthew' && scope === 'whole') {
+    if (coverPage && book.apiName === 'Matthew' && scope === 'whole') {
       // Clear the running header (otherwise Word inherits "Malachi" from the
       // previous section). \titlepg + empty headers blanks the header here.
       lines.push('\\sect \\sectdFRONT\\titlepg{\\headerf \\pard\\par}{\\header \\pard\\par} ');

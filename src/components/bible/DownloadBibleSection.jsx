@@ -135,7 +135,7 @@ export default function DownloadBibleSection() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="font-sans text-sm text-foreground font-medium">Include Cover Page</p>
-            <p className="font-sans text-xs text-muted-foreground">The title page at the front of the file</p>
+            <p className="font-sans text-xs text-muted-foreground">The front title page and the New Testament title page above Matthew</p>
           </div>
           <Switch checked={coverPage} onCheckedChange={setCoverPage} className="shrink-0" />
         </div>
