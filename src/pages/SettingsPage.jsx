@@ -52,7 +52,7 @@ const isBookmarkBrowser = () => {
   return !isMobile && (isFirefox || (isMac && isSafari));
 };
 
-const LAST_REVISED = 'September 4th, 2026';
+const LAST_REVISED = 'September 11th, 2026';
 const WORKER_VERSION = 'v20260911_2031';
 
 export default function SettingsPage() {
@@ -912,8 +912,11 @@ export default function SettingsPage() {
             <div className="space-y-2">
               <div className="flex justify-between items-center font-sans text-sm gap-4">
                 <span className="text-muted-foreground shrink-0">Bible Text</span>
-                <span className="text-foreground font-medium text-right">King James Bible (PCE)</span>
+                <span className="text-foreground font-medium text-right notranslate" translate="no">King James Bible (Pure Cambridge Edition)</span>
               </div>
+              <p className="font-sans text-xs text-muted-foreground leading-relaxed">
+                Taken directly from our authoritative PCE source document and verified word-for-word — all 66 books, 1,189 chapters, and 31,102 verses, with italics and paragraph marks preserved.
+              </p>
               <div className="flex justify-between items-center font-sans text-sm gap-4">
                 <span className="text-muted-foreground shrink-0">Last Updated</span>
                 <span className="text-foreground font-medium text-right">{LAST_REVISED}</span>
