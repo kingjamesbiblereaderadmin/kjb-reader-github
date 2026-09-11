@@ -438,7 +438,10 @@ export function parsePceText(text: string): BibleData {
   return data;
 }
 
-const PCE_TEXT_FILE_URL = 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/dabab1ba3_recovered-pce-bible.txt';
+// Clean PCE source generated from the authoritative KJB-PCE-RTF.rtf (see
+// src/lib/bibleCache.js for the full lineage note). Verified 1,189 chapters /
+// 31,102 verses.
+const PCE_TEXT_FILE_URL = 'https://base44.app/api/apps/6a8011c360ff52dad38eb2f3/files/mp/public/6a8011c360ff52dad38eb2f3/77b2417cd_pce-bible-clean.txt';
 
 let cachedData: BibleData | null = null;
 

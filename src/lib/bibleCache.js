@@ -11,17 +11,19 @@ import { isNativeAndroid } from '@/lib/isNativeAndroid';
 // Bump this version string whenever the Bible text file changes — every client
 // will then re-download and re-parse fresh. Replaces the old remote VERSION.txt
 // check (which 404'd/403'd and broke auto-updates).
-export const CACHE_VERSION = 'v20260815_copy_repair';
+export const CACHE_VERSION = 'v20260911_pce_rtf_clean';
 const CACHE_KEY = 'bible_data_pce_v100_SINGLE_FILE';
 // Single clean PCE source file: book titles, CHAPTER headings, [bracketed] italics,
-// and double-space paragraph (pilcrow) markers. No separate italics file needed.
-// Primary PCE Bible text source. The original file lived on the deleted old
-// app's media storage (6a05d76723afe58d80c589e8); this is the recovered and
-// verified complete 4,335,413-byte copy (same PureCambridgeEditionTextfile2
-// format: book titles, CHAPTER headings, [bracketed] italics, double-space
-// pilcrow markers). Bumping CACHE_VERSION forces every device to invalidate
+// and ¶ pilcrow markers. No separate italics file needed.
+// Primary PCE Bible text source: generated from the user's authoritative
+// "KJB-PCE-RTF.rtf" (Pure Cambridge Edition Word document) — converted to the
+// plain-text format this parser expects (book titles, CHAPTER headings,
+// [bracketed] italics, ¶ pilcrow markers). Verified complete: 1,189 chapters,
+// exactly 31,102 verses, all small-caps LORD/GOD preserved. Replaces the old
+// recovered copy, which had source corruption (e.g. Genesis 1:8 missing its
+// second sentence). Bumping CACHE_VERSION forces every device to invalidate
 // stale IndexedDB/localStorage Bible data and re-fetch from this source.
-const REMOTE_PCE_TEXT_FILE_URL = 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/dabab1ba3_recovered-pce-bible.txt';
+const REMOTE_PCE_TEXT_FILE_URL = 'https://base44.app/api/apps/6a8011c360ff52dad38eb2f3/files/mp/public/6a8011c360ff52dad38eb2f3/77b2417cd_pce-bible-clean.txt';
 // In the native Android app, this exact same file is bundled into the APK
 // (android/app/src/main/assets/bible/pce-bible.txt) and served locally by a
 // WebViewClient.shouldInterceptRequest override in MainActivity.java for
