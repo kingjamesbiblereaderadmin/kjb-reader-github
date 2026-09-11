@@ -8,6 +8,7 @@ import { parseReference, resolveBook } from '@/lib/parseReference';
 import { expandPassage } from '@/lib/expandPassage';
 import { isMultiReference, expandMultiReference } from '@/lib/multiReference';
 import SearchResultsList from '@/components/bible/SearchResultsList';
+import renderWithItalics from '@/components/bible/renderWithItalics';
 import GhostInput from '@/components/bible/GhostInput';
 import { setSearchNav, clearSearchNav } from '@/lib/searchNav';
 import ExportMenu from '@/components/bible/ExportMenu';
@@ -1490,7 +1491,7 @@ export default function SearchPage() {
                       <span className="text-accent font-serif text-lg leading-none">&bull;</span>
                       <span className="notranslate" translate="no">{BIBLE_BOOKS.find(b => b.apiName === results[i].book)?.name || results[i].book}</span>: {results[i].chapter}:{results[i].verse}
                     </span>
-                    <span className="notranslate font-serif text-foreground leading-relaxed" translate="no">{results[i].text}</span>
+                    <span className="notranslate font-serif text-foreground leading-relaxed" translate="no">{renderWithItalics(results[i].text)}</span>
                   </div>
                 ))}
               </div>
