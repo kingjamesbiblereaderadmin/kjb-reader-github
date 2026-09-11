@@ -1156,11 +1156,16 @@ export default function SearchPage() {
             : testamentFilter.has('new') ? 'new' : 'all';
           const triggerLabel = testamentValue === 'all'
             ? (otDisabled && !ntDisabled ? 'All (NT only)' : (!otDisabled && ntDisabled ? 'All (OT only)' : 'All'))
-            : testamentValue === 'old' ? 'OT' : 'NT';
+            : testamentValue === 'old' ? 'Old Testament' : 'New Testament';
+          const triggerAbbr = testamentValue === 'old' ? 'OT' : 'NT';
           return (
             <Select value={testamentValue} onValueChange={(val) => setTestamentFilter(new Set([val]))}>
-              <SelectTrigger className="h-7 w-[132px] rounded-lg font-sans text-xs font-medium border-border bg-secondary px-2.5 py-1 gap-1">
-                <SelectValue>{triggerLabel}</SelectValue>
+              <SelectTrigger className="h-7 w-auto rounded-lg font-sans text-xs font-medium border-border bg-secondary px-2.5 py-1 gap-1">
+                <SelectValue>
+                  {/* Full name when there's room (auto width), NT/OT on narrow phones */}
+                  <span className="hidden sm:inline">{triggerLabel}</span>
+                  <span className="sm:hidden">{triggerAbbr}</span>
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all" className="font-sans text-xs">All</SelectItem>
