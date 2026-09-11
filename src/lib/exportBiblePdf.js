@@ -535,7 +535,7 @@ async function buildPdf(opts, bible, onProgress) {
 
     // NT title page before Matthew — only when both testaments are present
     // (for NT-only export the front page already IS the NT title).
-    if (coverPage && book.apiName === 'Matthew' && scope === 'whole') {
+    if (book.apiName === 'Matthew' && scope === 'whole') {
       ntTitlePageNum = doc.internal.getNumberOfPages();
       titlePage(ctx, TITLE_NT);
     }
@@ -783,7 +783,9 @@ async function buildText(opts, bible, onProgress, format) {
     (scope === 'new' ? TITLE_NT : TITLE_WHOLE).forEach((b, i) => push(b.t, i === 1 ? 'title-main' : 'title-line'));
     push('');
     // Contents starts on its own page (DOCX), separate from the title page.
-    if (isDocx) out.push('<br style="page-break-after:always" />');
+    // When no Contents follows, the first book's section div already carries
+    // page-break-before — an extra break here would leave a blank gap page.
+    if (isDocx && toc) out.push('<br style="page-break-after:always" />');
   }
 
   const total = BOOKS.length;
@@ -805,14 +807,15 @@ async function buildText(opts, bible, onProgress, format) {
         if (coverPage && book.testament === coverBeforeTestament) {
           out.push(`<p style="margin:1px 0 1px 28px;text-indent:-10px"><a href="#cover_page">&bull;&nbsp;Cover Page</a></p>`);
         }
-        if (coverPage && book.testament === 'new' && scope === 'whole') {
+        if (book.testament === 'new' && scope === 'whole') {
           out.push(`<p style="margin:1px 0 1px 28px;text-indent:-10px"><a href="#nt_title">&bull;&nbsp;The New Testament</a></p>`);
         }
         out.push(`<p style="margin:8px 0 2px"><b>${book.testament === 'old' ? 'THE OLD TESTAMENT' : 'THE NEW TESTAMENT'}</b></p>`);
       }
       out.push(`<p style="margin:1px 0 1px 28px;text-indent:-20px"><a href="#${anchorFor(book)}">${bookIndex++}.&nbsp;&nbsp;${escapeHtml(nameOf(book))}</a></p>`);
     });
-    out.push('<br style="page-break-after:always" />');
+    // No trailing page break — the first book's section div carries
+    // page-break-before:always, and an extra break leaves a blank gap page.
   } else {
     push('CONTENTS');
     push('');
@@ -823,7 +826,7 @@ async function buildText(opts, bible, onProgress, format) {
         lastT = book.testament;
         push('');
         if (coverPage && book.testament === coverBeforeTestament) { push('  \u2022 Cover Page'); push(''); }
-        if (coverPage && book.testament === 'new' && scope === 'whole') { push('\u2022 The New Testament'); push(''); }
+        if (book.testament === 'new' && scope === 'whole') { push('\u2022 The New Testament'); push(''); }
         push(book.testament === 'old' ? 'THE OLD TESTAMENT' : 'THE NEW TESTAMENT');
       }
       push('');
@@ -840,7 +843,7 @@ async function buildText(opts, bible, onProgress, format) {
     const book = BOOKS[bi];
     const bookData = bible[book.apiName] || {};
 
-    if (coverPage && book.apiName === 'Matthew' && scope === 'whole') {
+    if (book.apiName === 'Matthew' && scope === 'whole') {
       if (isDocx) {
         out.push('<br style="page-break-before:always" /><a name="nt_title"></a>');
         // Navigation Heading 1 for the New Testament lives ON the title page so
@@ -851,7 +854,8 @@ async function buildText(opts, bible, onProgress, format) {
       }
       TITLE_NT.forEach((b, i) => push(b.t, i === 1 ? 'title-main' : 'title-line'));
       push('');
-      if (isDocx) out.push('<br style="page-break-after:always" />');
+      // No trailing page break — Matthew's section div carries
+      // page-break-before:always, and an extra break leaves a blank gap page.
     }
 
     // Word: each book is its own section so the running header shows the current
@@ -1095,12 +1099,16 @@ async function buildRtf(opts, bible, onProgress) {
 
   // Front matter (title + contents) — its own headerless, SINGLE-column section.
   // Uses a unique token so the later \cols2 swap doesn't touch it.
-  lines.push('\\sectdFRONT ');
+  // Skipped entirely when neither is included — an empty section would
+  // render as a blank gap page in Word.
+  if (coverPage || toc) lines.push('\\sectdFRONT ');
   // Title page — centered, generously spaced. Holy Bible for whole/OT, NT for NT-only.
   if (coverPage) {
     spacer(1800);
     (scope === 'new' ? TITLE_NT : TITLE_WHOLE).forEach((b, i) => para(rtfEscape(b.t), { center: true, bold: !!b.bold, size: i === 1 ? 64 : 26, sb: i === 1 ? 120 : 60, sa: i === 1 ? 200 : 120 }));
-    lines.push('\\page ');
+    // Only break here when Contents follows; otherwise the first book's \sect
+    // already starts a new page and the extra break leaves a blank gap page.
+    if (toc) lines.push('\\page ');
   }
 
   // Contents — numbered list grouped by testament
@@ -1129,7 +1137,7 @@ async function buildRtf(opts, bible, onProgress) {
 
     // NT title page: its own section (no header), then Matthew starts a new section.
     // Only for whole-Bible export — for NT-only the front page already IS the NT title.
-    if (coverPage && book.apiName === 'Matthew' && scope === 'whole') {
+    if (book.apiName === 'Matthew' && scope === 'whole') {
       // Clear the running header (otherwise Word inherits "Malachi" from the
       // previous section). \titlepg + empty headers blanks the header here.
       lines.push('\\sect \\sectdFRONT\\titlepg{\\headerf \\pard\\par}{\\header \\pard\\par} ');
