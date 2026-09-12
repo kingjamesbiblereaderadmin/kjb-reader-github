@@ -45,3 +45,16 @@ console.log('TOTAL_VERSES', totalVerses);
 console.log('ISSUE_COUNT', issues.length);
 fs.writeFileSync('./issues.txt', issues.join('\n'));
 fs.writeFileSync('./books.txt', books.join('\n'));
+
+const plain = {};
+for (const book of books) {
+  plain[book] = {};
+  for (const ch of Object.keys(data[book])) {
+    plain[book][ch] = {};
+    for (const v of data[book][ch]) {
+      let t = v.text.replace(/^\u00b6\s*/, '').replace(/\[|\]/g, '').trim();
+      plain[book][ch][v.verse] = t;
+    }
+  }
+}
+fs.writeFileSync('./parsed_export.json', JSON.stringify(plain));
