@@ -28,7 +28,7 @@ function cleanText(t) {
   return t
     .toLowerCase()
     .replace(/\[|\]/g, '') // italic/supplied-word brackets
-    .replace(/[\u2018\u2019']/g, '') // apostrophes (PCE omits them; ref db might include)
+    .replace(/[\u2018\u2019'\u0092\u2032-]/g, '') // apostrophes/hyphens (PCE omits apostrophes; ref db might include; also strip hyphens for Tubal-cain-style variants)
     .replace(/[.,;:!?]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
