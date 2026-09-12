@@ -296,4 +296,4 @@ const PSALM_119_SECTIONS = {
   153: 'RESH',
   161: 'SCHIN',
   169: 'TAU',
-};
+};export { SUBSCRIPTS, PSALM_VERSE_1, COLOPHONS };
