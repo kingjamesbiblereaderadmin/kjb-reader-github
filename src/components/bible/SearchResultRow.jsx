@@ -54,6 +54,11 @@ function SearchResultRow({ r, i, thisIndex, isFocused, isSelected, selectMode, h
             ¶ {renderWithItalics(r.attachedSubscript, highlightTerm, highlightCaseSensitive, highlightWholeWord)}
           </p>
         )}
+        {r.attachedHeading && (
+          <p className="notranslate font-bold tracking-wide text-sm text-muted-foreground mb-1.5 print:text-black" style={fontStyle}>
+            {renderWithItalics(r.attachedHeading.toUpperCase(), highlightTerm, highlightCaseSensitive, highlightWholeWord)}
+          </p>
+        )}
         <p className="notranslate text-base text-foreground leading-relaxed print:text-black" style={fontStyle}>
           {isHeading ? (
             <span className="font-bold tracking-wide">{renderWithItalics(r.text, highlightTerm, highlightCaseSensitive, highlightWholeWord)}</span>
