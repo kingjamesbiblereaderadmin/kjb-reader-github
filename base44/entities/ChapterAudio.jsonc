@@ -4,7 +4,7 @@
   "properties": {
     "book": {
       "type": "string",
-      "description": "Full canonical book title matching the `name` field of the book in bibleData.js (e.g. 'The First Book of Moses, called Genesis', 'The Book of Amos', 'The Revelation of Saint John the Divine')"
+      "description": "Full canonical book title matching the `name` field of the book in bibleData.js (e.g. 'The First Book of Moses, called Genesis', 'The Book of Amos', 'The Revelation of St. John the Divine')"
     },
     "book_order": {
       "type": "number",

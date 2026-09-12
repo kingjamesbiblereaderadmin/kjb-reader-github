@@ -96,7 +96,7 @@ export const FULL_BOOK_NAMES = {
   '2 John':'The Second General Epistle of John',
   '3 John':'The Third General Epistle of John',
   'Jude':'The General Epistle of Jude',
-  'Revelation':'The Revelation of Saint John the Divine'
+  'Revelation':'The Revelation of St. John the Divine'
 };
 
 export const CHAPTER_COUNTS = {

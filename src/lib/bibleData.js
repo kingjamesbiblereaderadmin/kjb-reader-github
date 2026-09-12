@@ -42,10 +42,10 @@ export const BIBLE_BOOKS = [
   { name: "The Book of Zechariah", shortName: "Zechariah", apiName: "Zechariah", abbr: "ZEC", chapters: 14, testament: "old" },
   { name: "The Book of Malachi", shortName: "Malachi", apiName: "Malachi", abbr: "MAL", chapters: 4, testament: "old" },
   // New Testament
-  { name: "The Gospel According to Saint Matthew", shortName: "Matthew", apiName: "Matthew", abbr: "MAT", chapters: 28, testament: "new" },
-  { name: "The Gospel According to Saint Mark", shortName: "Mark", apiName: "Mark", abbr: "MRK", chapters: 16, testament: "new" },
-  { name: "The Gospel According to Saint Luke", shortName: "Luke", apiName: "Luke", abbr: "LUK", chapters: 24, testament: "new" },
-  { name: "The Gospel According to Saint John", shortName: "John", apiName: "John", abbr: "JHN", chapters: 21, testament: "new" },
+  { name: "The Gospel According to St. Matthew", shortName: "Matthew", apiName: "Matthew", abbr: "MAT", chapters: 28, testament: "new" },
+  { name: "The Gospel According to St. Mark", shortName: "Mark", apiName: "Mark", abbr: "MRK", chapters: 16, testament: "new" },
+  { name: "The Gospel According to St. Luke", shortName: "Luke", apiName: "Luke", abbr: "LUK", chapters: 24, testament: "new" },
+  { name: "The Gospel According to St. John", shortName: "John", apiName: "John", abbr: "JHN", chapters: 21, testament: "new" },
   { name: "The Acts of the Apostles", shortName: "Acts", apiName: "Acts", abbr: "ACT", chapters: 28, testament: "new" },
   { name: "The Epistle of Paul the Apostle to the Romans", shortName: "Romans", apiName: "Romans", abbr: "ROM", chapters: 16, testament: "new" },
   { name: "The First Epistle of Paul the Apostle to the Corinthians", shortName: "1 Corinthians", apiName: "1 Corinthians", abbr: "1CO", chapters: 16, testament: "new" },
@@ -68,7 +68,7 @@ export const BIBLE_BOOKS = [
   { name: "The Second Epistle of John", shortName: "2 John", apiName: "2 John", abbr: "2JN", chapters: 1, testament: "new" },
   { name: "The Third Epistle of John", shortName: "3 John", apiName: "3 John", abbr: "3JN", chapters: 1, testament: "new" },
   { name: "The General Epistle of Jude", shortName: "Jude", apiName: "Jude", abbr: "JDE", chapters: 1, testament: "new" },
-  { name: "The Revelation of Saint John the Divine", shortName: "Revelation", apiName: "Revelation", abbr: "REV", chapters: 22, testament: "new" },
+  { name: "The Revelation of St. John the Divine", shortName: "Revelation", apiName: "Revelation", abbr: "REV", chapters: 22, testament: "new" },
 ];
 
 export const OLD_TESTAMENT = BIBLE_BOOKS.filter(b => b.testament === "old");

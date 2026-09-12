@@ -66,10 +66,10 @@ export const NAME_TO_FULL: Record<string, string> = {
   'Haggai': 'Haggai',
   'Zechariah': 'Zechariah',
   'Malachi': 'Malachi',
-  'Matthew': 'The Gospel According to Saint Matthew',
-  'Mark': 'The Gospel According to Saint Mark',
-  'Luke': 'The Gospel According to Saint Luke',
-  'John': 'The Gospel According to Saint John',
+  'Matthew': 'The Gospel According to St. Matthew',
+  'Mark': 'The Gospel According to St. Mark',
+  'Luke': 'The Gospel According to St. Luke',
+  'John': 'The Gospel According to St. John',
   'Acts': 'The Acts of the Apostles',
   'Romans': 'The Epistle of Paul the Apostle to the Romans',
   '1 Corinthians': 'The First Epistle of Paul the Apostle to the Corinthians',
@@ -92,7 +92,7 @@ export const NAME_TO_FULL: Record<string, string> = {
   '2 John': 'The Second Epistle of John',
   '3 John': 'The Third Epistle of John',
   'Jude': 'The General Epistle of Jude',
-  'Revelation': 'The Revelation of Saint John the Divine',
+  'Revelation': 'The Revelation of St. John the Divine',
 };
 
 export const BOOK_ORDER = ["Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth","1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra","Nehemiah","Esther","Job","Psalms","Proverbs","Ecclesiastes","Song of Solomon","Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos","Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi","Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians","1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon","Hebrews","James","1 Peter","2 Peter","1 John","2 John","3 John","Jude","Revelation"];
