@@ -16,6 +16,7 @@
 import { getBibleData } from '@/lib/bibleCache';
 import { BOOK_BY_API_NAME, BIBLE_BOOKS } from '@/lib/bibleData';
 import { normalizeApostrophes, normalizeQueryApostrophes, normalizeLigatures } from '@/lib/bibleApi';
+import { SUBSCRIPTS } from '@/lib/bibleSubscripts';
 
 // Strip the leading pilcrow and its space.
 function stripPilcrow(t) {
@@ -149,12 +150,14 @@ export async function buildVerseIndex(force = false) {
       for (const chapter of chapterNums) {
         const verses = chapters[chapter];
         if (!Array.isArray(verses)) continue;
-        for (const v of verses) {
-          if (!v || typeof v.text !== 'string' || v.verse == null) continue;
-          // Apostrophes are stored as a replacement char after a letter
-          // (e.g. "God\uFFFDs") — normalize before computing metrics/plain
-          // text so text search and the apostrophe metrics work correctly.
-          const text = normalizeApostrophes(v.text);
+
+        // Push one record. kind: null (a real verse) | 'subscript' (Psalm
+        // superscription, sits above verse 1) | 'heading' (Psalm 119 Hebrew
+        // acrostic stanza heading) | 'colophon' (chapter-end ending line).
+        // Superscriptions/colophons/stanzas are included so Advanced Search
+        // covers them the same way the main search does.
+        const addRecord = (rawText, verse, kind, ref) => {
+          const text = normalizeApostrophes(rawText);
           const metrics = computeMetrics(text);
           // plainText is used for text-search matching ONLY (display uses
           // rawText) — also normalize æ/Æ ligatures here so typing "Caesar" or
@@ -166,12 +169,36 @@ export async function buildVerseIndex(force = false) {
             shortName: bookEntry.shortName,
             testament: bookEntry.testament,
             chapter,
-            verse: v.verse,
-            ref: `${bookEntry.shortName} ${chapter}:${v.verse}`,
+            verse,
+            kind,
+            ref,
             rawText: text,
             plainText: plain,
             metrics,
           });
+        };
+
+        // Psalm superscription — its own record before verse 1.
+        const subscript = SUBSCRIPTS[`${book}:${chapter}`];
+        if (subscript) {
+          addRecord(subscript.replace(/¶\s*/g, ''), 0, 'subscript', `${bookEntry.shortName} ${chapter} superscription`);
+        }
+
+        for (const v of verses) {
+          if (!v || typeof v.text !== 'string' || v.verse == null) continue;
+          // Psalm 119 acrostic stanza heading (ALEPH, BETH, …) — its own record,
+          // listed just before the verse it introduces.
+          if (v.heading) {
+            addRecord(String(v.heading).replace(/¶\s*/g, ''), v.verse, 'heading', `${bookEntry.shortName} ${chapter}:${v.verse} (stanza)`);
+          }
+          addRecord(v.text, v.verse, null, `${bookEntry.shortName} ${chapter}:${v.verse}`);
+        }
+
+        // Chapter colophon ("The end of…" / "Written to the Romans…" etc.) —
+        // its own record after the last verse.
+        const colophon = data.__colophons?.[`${book}:${chapter}`];
+        if (colophon) {
+          addRecord(String(colophon).replace(/¶\s*/g, ''), 0, 'colophon', `${bookEntry.shortName} ${chapter} colophon`);
         }
       }
     }

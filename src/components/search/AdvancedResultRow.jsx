@@ -237,7 +237,11 @@ const BOOL_CHIP_LABELS = {
 // chips relevant to the current sort/filters. Tapping opens it in the reader.
 export default function AdvancedResultRow({ record, sortKey, sortLabel, filters }) {
   const m = record.metrics;
-  const to = `/read?book=${record.abbr}&chapter=${record.chapter}&verse=${record.verse}`;
+  // Superscriptions and colophons aren't verses — link to the chapter with the
+  // highlight param so the reader scrolls to and highlights that section.
+  const to = record.kind === 'subscript' || record.kind === 'colophon'
+    ? `/read?book=${record.abbr}&chapter=${record.chapter}&highlight=${record.kind}`
+    : `/read?book=${record.abbr}&chapter=${record.chapter}&verse=${record.verse}`;
   const terms = parseSearchTerms(filters?.textContains);
 
   // Build the chip list ONLY from what the user is actually filtering/sorting on,

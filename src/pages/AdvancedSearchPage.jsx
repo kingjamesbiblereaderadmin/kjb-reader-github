@@ -144,7 +144,9 @@ export default function AdvancedSearchPage() {
     };
   }, [showFilters]);
 
-  const keyOf = (r) => `${r.abbr}-${r.chapter}-${r.verse}`;
+  // Superscriptions/colophons share verse 0 (and stanza headings share their
+  // verse number), so the kind suffix keeps every record's key unique.
+  const keyOf = (r) => `${r.abbr}-${r.chapter}-${r.verse}${r.kind ? `-${r.kind}` : ''}`;
 
   const toggleSelect = useCallback((r) => {
     setSelectedKeys(prev => {
@@ -269,7 +271,7 @@ export default function AdvancedSearchPage() {
       {records === null && !error && (
         <div className="flex flex-col items-center justify-center py-24 gap-3">
           <Loader2 className="w-6 h-6 animate-spin text-primary/70" />
-          <p className="font-sans text-sm text-muted-foreground">Analysing all 31,102 verses…</p>
+          <p className="font-sans text-sm text-muted-foreground">Analysing every verse, superscription & colophon…</p>
         </div>
       )}
 

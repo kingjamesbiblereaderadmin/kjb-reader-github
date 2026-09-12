@@ -11,7 +11,9 @@ import { isNativeAndroid } from '@/lib/isNativeAndroid';
 function recordUrl(r) {
   try {
     const origin = getPublicOrigin().replace(/^https?:\/\/preview-sandbox--/, 'https://');
-    return `${origin}/read?book=${r.abbr}&chapter=${r.chapter}&verse=${r.verse}`;
+    // Superscriptions/colophons aren't verses — link to the chapter, no verse param.
+    const vParam = (r.kind || !r.verse) ? '' : `&verse=${r.verse}`;
+    return `${origin}/read?book=${r.abbr}&chapter=${r.chapter}${vParam}`;
   } catch {
     return '';
   }
