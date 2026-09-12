@@ -537,6 +537,8 @@ export default function SearchPage() {
                 verse: parseInt(verseObj.verse, 10),
                 text: verseObj.text,
                 attachedColophon: chapterColophon && parseInt(verseObj.verse, 10) === lastVerseNum ? chapterColophon : undefined,
+                attachedSubscript: chapterSubscript && parseInt(verseObj.verse, 10) === 1 ? chapterSubscript : undefined,
+                attachedHeading: verseObj.heading || undefined,
                 abbr: bookEntry ? bookEntry.abbr : bookName.slice(0, 3).toUpperCase(),
               });
             }
