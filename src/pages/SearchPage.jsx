@@ -988,12 +988,23 @@ export default function SearchPage() {
         : `${bookName} ${r.chapter}:${r.verse}`;
       const q = getQueryFromUrl() || query;
       const url = buildVerseUrl({ abbr: r.abbr, chapter: r.chapter, verse: (isColophon || r.isSubscript) ? null : r.verse, from: 'search' }) + (q ? `&q=${encodeURIComponent(q)}` : '');
+      // Attached non-verse sections (Psalm superscription, Hebrew stanza
+      // heading, chapter colophon) are copied INSIDE the quote block, in the
+      // same order the reader shows/copies them — heading plain, superscription
+      // and colophon with a pilcrow — so the copied text matches what's on
+      // screen instead of silently dropping them. [Brackets] stay intact.
+      const quoteInner = [];
+      if (r.attachedHeading) quoteInner.push(r.attachedHeading.toUpperCase());
+      if (r.attachedSubscript) quoteInner.push(`¶ ${r.attachedSubscript}`);
+      quoteInner.push(text);
+      if (r.attachedColophon) quoteInner.push(`¶ ${r.attachedColophon}`);
+      const quoted = quoteInner.join('\n\n');
       // Wrap the link in <> so chat apps don't render a link embed/preview.
       // Copying more than one verse puts each reference at the top (no dash);
       // a single verse keeps the reference at the end with a dash.
       const bullet = sorted.length > 1
-        ? `${ref} (KJB)\n"${text}"\n  Read: <${url}>`
-        : `• "${text}"\n  — ${ref} (KJB)\n  Read: <${url}>`;
+        ? `${ref} (KJB)\n"${quoted}"\n  Read: <${url}>`
+        : `• "${quoted}"\n  — ${ref} (KJB)\n  Read: <${url}>`;
       return (hasPilcrow && idx > 0) ? `\n${bullet}` : bullet;
     });
     return lines.join('\n\n');

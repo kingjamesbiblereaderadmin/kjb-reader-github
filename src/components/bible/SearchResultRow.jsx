@@ -50,12 +50,12 @@ function SearchResultRow({ r, i, thisIndex, isFocused, isSelected, selectMode, h
           {isSubscript ? ' (Superscription)' : isColophon ? ' (Colophon)' : isHeading ? `:${r.verse} (Stanza)` : `:${r.verse}`}
         </p>
         {r.attachedSubscript && (
-          <p className="notranslate kjb-subscript mb-1.5 text-sm text-muted-foreground leading-relaxed print:text-black" style={fontStyle}>
+          <p className="notranslate kjb-subscript mb-1.5 text-sm text-muted-foreground leading-relaxed text-center print:text-black" style={fontStyle}>
             ¶ {renderWithItalics(r.attachedSubscript, highlightTerm, highlightCaseSensitive, highlightWholeWord)}
           </p>
         )}
         {r.attachedHeading && (
-          <p className="notranslate font-bold tracking-wide text-sm text-muted-foreground mb-1.5 print:text-black" style={fontStyle}>
+          <p className="notranslate font-bold tracking-wide text-sm text-muted-foreground mb-1.5 text-center print:text-black" style={fontStyle}>
             {renderWithItalics(r.attachedHeading.toUpperCase(), highlightTerm, highlightCaseSensitive, highlightWholeWord)}
           </p>
         )}
@@ -69,7 +69,7 @@ function SearchResultRow({ r, i, thisIndex, isFocused, isSelected, selectMode, h
           )}
         </p>
         {r.attachedColophon && (
-          <p className="notranslate kjb-colophon mt-1.5 text-sm text-muted-foreground leading-relaxed print:text-black" style={fontStyle}>
+          <p className="notranslate kjb-colophon mt-1.5 text-sm text-muted-foreground leading-relaxed text-center print:text-black" style={fontStyle}>
             ¶ {renderWithItalics(r.attachedColophon, highlightTerm, highlightCaseSensitive, highlightWholeWord)}
           </p>
         )}
