@@ -3,6 +3,33 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.246', date: 'September 12, 2026', items: [
+    { tag: 'ui', text: 'Copied verses now keep Psalm 119 Hebrew letter names and Psalm titles inside the quotation marks, matching how epistle colophons already copied \u2014 a copied Psalm now reads as one quoted passage instead of a heading floating above the quote' },
+  ] },
+  { version: 'v0.4.245', date: 'September 12, 2026', items: [
+    { tag: 'fix', text: 'Fixed Read mode showing no text at all \u2014 choosing a book appeared to do nothing and the arrow keys moved the selection with nothing ever appearing, because chapter requests stopped returning the joined chapter text that the reader checks for before rendering; all 1,189 chapters have been verified to render' },
+  ] },
+  { version: 'v0.4.244', date: 'September 12, 2026', items: [
+    { tag: 'fix', text: 'Fixed \u201CThe End of the Psalms.\u201D appearing at the end of Psalm 1 instead of Psalm 150' },
+    { tag: 'improved', text: 'Verified every chapter\u2019s verse count and all 116 Psalm titles against the authoritative Pure Cambridge Edition text' },
+  ] },
+  { version: 'v0.4.243', date: 'September 12, 2026', items: [
+    { tag: 'fix', text: 'Search is now hyphen-insensitive \u2014 \u201CBethel\u201D and \u201CBeth-el\u201D both find all 61 verses, and \u201CBeersheba\u201D, \u201CAbednego\u201D and \u201Cson-in-law\u201D now return results where they previously found nothing; no search that worked before returns fewer results' },
+  ] },
+  { version: 'v0.4.242', date: 'September 12, 2026', items: [
+    { tag: 'fix', text: 'Fixed Psalm 145 losing its first verse \u2014 a curly apostrophe in the Psalm title was mis-decoded, so the title was read as verse 1 and the real verse 1 was dropped' },
+    { tag: 'improved', text: 'Bible text is now decoded with an explicit Windows-1252 table so results are identical in every browser' },
+  ] },
+  { version: 'v0.4.241', date: 'September 12, 2026', items: [
+    { tag: 'fix', text: 'Genesis 1:8 restored in full \u2014 \u201CAnd God called the firmament Heaven. And the evening and the morning were the second day.\u201D \u2014 corrected in the bundled Bible text itself' },
+    { tag: 'improved', text: 'Full verification against the authoritative source: 66 books, 1,189 chapters, 31,102 verses' },
+  ] },
+  { version: 'v0.4.240', date: 'September 12, 2026', items: [
+    { tag: 'fix', text: 'Added a repair for Genesis 1:8, which was truncated in the bundled text and ended early at \u201CAnd God called the firmament Heaven.\u201D' },
+  ] },
+  { version: 'v0.4.239', date: 'September 12, 2026', items: [
+    { tag: 'fix', text: 'Fixed missing Psalm titles and end-of-book lines \u2014 a Psalm title now appears whenever the passage includes verse 1, and an end-of-book line whenever the passage reaches the chapter\u2019s final verse, instead of both being suppressed by a guess about the text\u2019s structure' },
+  ] },
   { version: 'v0.4.238', date: 'September 11, 2026', items: ['Added a bundled offline Bible-text engine — lookups and searches are now served locally and instantly, with the remote API only as a fallback', 'Merged in every fix from v0.4.228–v0.4.236 (colophon placement, Facebook/TikTok click and typing issues, "Genesis 1:0"-style bad references, uncapped search results, and copy-formatting fixes) that had been missed in a prior build'] },
   { version: 'v0.4.236', date: 'September 10, 2026', items: ['Fixed copied text showing back-to-back italic words as separate bracket pairs (e.g. "[Lord] [thy] [God]") instead of one continuous span ("[Lord thy God]") — applies everywhere verse text is copied: single verse, Copy Selected, Copy Chapter, and Copy All, on both the Results and Read tabs'] },
   { version: 'v0.4.235', date: 'September 9, 2026', items: ['Fixed Copy (and Copy All) on a search result that only turned up one verse in a chapter — it copied a full chapter-style header (book title stacked over "Chapter N") as if the whole chapter were included; a single-verse result now copies as a quoted line with its reference, matching the individual verse copy button'] },
@@ -193,7 +220,7 @@ function classifyItem(item) {
 
 function dominantCategory(items) {
   const counts = { new: 0, fix: 0, improved: 0, ui: 0 };
-  items.forEach((it) => { counts[classifyItem(it)]++; });
+  items.forEach((it) => { counts[typeof it === 'object' ? it.tag : classifyItem(it)]++; });
   let best = 'ui', max = -1;
   for (const k of Object.keys(counts)) {
     if (counts[k] > max) { max = counts[k]; best = k; }
@@ -236,7 +263,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.238
+            Current Version: v0.4.246
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
@@ -274,12 +301,12 @@ export default function ChangelogPage() {
                 </div>
                 <ul className="space-y-2.5">
                   {entry.items.map((item, i) => {
-                    const itemCat = classifyItem(item);
+                    const itemCat = typeof item === 'object' ? item.tag : classifyItem(item);
                     const itemStyle = CATEGORIES[itemCat];
                     return (
                       <li key={i} className="flex items-start gap-2.5 font-sans text-sm leading-relaxed text-foreground/90">
                         <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-accent mt-[0.55em]" />
-                        <span className="flex-1 min-w-0">{item}</span>
+                        <span className="flex-1 min-w-0">{typeof item === 'object' ? item.text : item}</span>
                         <span className={`flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-md font-sans text-[10px] font-semibold uppercase tracking-wide ${itemStyle.chip}`}>
                           {itemStyle.label}
                         </span>
