@@ -93,20 +93,6 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
               ))}
             </select>
           </div>
-          <div>
-            <label className="block font-sans text-xs text-muted-foreground mb-1">Record type</label>
-            <select
-              value={filters.section || 'all'}
-              onChange={(e) => set({ section: e.target.value })}
-              className="w-full px-3 pr-8 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground"
-            >
-              <option value="all" disabled={availability && !availability.sections.all}>All records</option>
-              <option value="verse" disabled={availability && !availability.sections.verse}>Verses only</option>
-              <option value="subscript" disabled={availability && !availability.sections.subscript}>Psalm superscriptions</option>
-              <option value="colophon" disabled={availability && !availability.sections.colophon}>Chapter colophons</option>
-              <option value="heading" disabled={availability && !availability.sections.heading}>Hebrew stanza names (Psalm 119)</option>
-            </select>
-          </div>
         </div>
         <div>
           <label className="block font-sans text-xs text-muted-foreground mb-1">Text contains (optional)</label>
@@ -266,6 +252,35 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
       {/* Boolean toggles */}
       <Section title="Property filters" open={openSections.property} onToggle={() => toggleSection('property')}>
         <div className="space-y-2.5">
+          {/* Record type — multi-select chips (verses, superscriptions, colophons, stanza names) */}
+          <div className={`rounded-lg px-2 -mx-2 py-1.5 ${filters.sections.length !== 4 ? 'bg-primary/10 ring-1 ring-primary/30' : ''}`}>
+            <p className="font-sans text-xs text-foreground mb-1.5">Record type</p>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { key: 'verse', label: 'Verses' },
+                { key: 'subscript', label: 'Superscriptions' },
+                { key: 'colophon', label: 'Colophons' },
+                { key: 'heading', label: 'Stanza names' },
+              ].map(t => {
+                const active = filters.sections.includes(t.key);
+                const unavailable = !active && availability && !availability.sections[t.key];
+                return (
+                  <button
+                    key={t.key}
+                    disabled={unavailable}
+                    onClick={() => set({ sections: active ? filters.sections.filter(s => s !== t.key) : [...filters.sections, t.key] })}
+                    className={`px-2.5 py-1 rounded-lg font-sans text-xs font-medium whitespace-nowrap transition-colors ${
+                      active
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-secondary text-muted-foreground hover:text-foreground'
+                    } ${unavailable ? 'opacity-30 cursor-not-allowed' : ''}`}
+                  >
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           {BOOLEAN_METRICS.map(m => {
             const isActive = filters.bools[m.key] !== 'any';
             return (

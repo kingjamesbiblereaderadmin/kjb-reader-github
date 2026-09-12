@@ -18,11 +18,11 @@ export function describeFilters(filters) {
     out.push({ label: 'Book', value: b ? b.shortName : filters.book });
   }
 
-  // Record type (verses only / superscriptions / colophons / stanza names)
-  if (filters.section === 'verse') out.push({ label: 'Record type', value: 'Verses only' });
-  else if (filters.section === 'subscript') out.push({ label: 'Record type', value: 'Psalm superscriptions' });
-  else if (filters.section === 'colophon') out.push({ label: 'Record type', value: 'Chapter colophons' });
-  else if (filters.section === 'heading') out.push({ label: 'Record type', value: 'Hebrew stanza names (Psalm 119)' });
+  // Record type (multi-select: verses / superscriptions / colophons / stanza names)
+  const SEC_LABELS = { verse: 'Verses', subscript: 'Superscriptions', colophon: 'Colophons', heading: 'Stanza names' };
+  if (filters.sections && filters.sections.length !== 4) {
+    out.push({ label: 'Record type', value: filters.sections.length ? filters.sections.map(s => SEC_LABELS[s] || s).join(', ') : 'None' });
+  }
 
   // Text search + its matching mode
   const text = (filters.textContains || '').trim();
