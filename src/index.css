@@ -263,7 +263,7 @@
     .kjb-mockup-light { display: none; }
   }
 
-  /* The reader's sticky toolbar (top) and the fixed bottom nav / audio bar
+  /* The reader's sticky toolbar (top) and the fixed bottom nav
      overlap the scroll container. Without scroll-padding, scrollIntoView /
      anchor scrolls land verses UNDER those bars — so the verse (or its
      neighbours) gets partially clipped at the top or bottom. This reserves

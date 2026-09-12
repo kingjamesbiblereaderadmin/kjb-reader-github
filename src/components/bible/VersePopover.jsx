@@ -20,8 +20,8 @@ export default function VersePopover({ children, point }) {
       const vh = window.innerHeight;
       const margin = 8;
 
-      // The sticky toolbar covers the top of the screen and the footer nav /
-      // audio bar covers the bottom — keep the popover clear of both. The
+      // The sticky toolbar covers the top of the screen and the footer nav
+      // covers the bottom — keep the popover clear of both. The
       // toolbar's real height varies (it wraps into multiple rows on narrow
       // screens, plus the select/reading-range bar), so measure it directly
       // instead of assuming a fixed height — a hardcoded value was too short
