@@ -680,6 +680,47 @@ export default function SearchPage() {
     setLoading(false);
   }, [testamentFilter, wholeWord, caseSensitive, selectedBooks, numberedBookFilter]);
 
+  // ── Session restore ──────────────────────────────────────────────────
+  // Remember the last submitted search (term + filters) so returning to the
+  // Search page — via the header Back button, which drops the ?q= URL, or any
+  // plain /search visit — brings the user back to their results instead of a
+  // fully reset page. The ?q= URL path (hardware/browser back) already
+  // restores the term, and takes priority here.
+  useEffect(() => {
+    if (getQueryFromUrl().trim()) return;
+    let saved = null;
+    try { saved = JSON.parse(sessionStorage.getItem('kjb-search-session') || 'null'); } catch {}
+    if (!saved || !saved.query) return;
+    setQuery(saved.query);
+    lastQueryRef.current = saved.query;
+    if (Array.isArray(saved.testamentFilter)) setTestamentFilter(new Set(saved.testamentFilter));
+    setWholeWord(!!saved.wholeWord);
+    setCaseSensitive(!!saved.caseSensitive);
+    if (Array.isArray(saved.selectedBooks)) setSelectedBooks(new Set(saved.selectedBooks));
+    setSearched(true);
+    setLoading(true);
+    // runSearch runs with the still-default filter state; the filter-change
+    // effects below immediately re-run it once the restored filters apply.
+    runSearch(saved.query);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist the current submitted search (term + filters) after every render,
+  // so the restore above always sees the latest state.
+  useEffect(() => {
+    try {
+      const q = (lastQueryRef.current || '').trim();
+      if (!q) return;
+      sessionStorage.setItem('kjb-search-session', JSON.stringify({
+        query: q,
+        testamentFilter: [...testamentFilter],
+        wholeWord,
+        caseSensitive,
+        selectedBooks: [...selectedBooks],
+      }));
+    } catch {}
+  });
+
   // Re-run the search whenever filters change (after an initial search has been done)
   // Note: selectedBooks is NOT included - book selection filters results without re-searching
   useEffect(() => {
