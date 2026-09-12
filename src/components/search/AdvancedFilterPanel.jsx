@@ -7,7 +7,6 @@ import { BIBLE_BOOKS } from '@/lib/bibleData';
 // Any = no restriction · Yes = results are only this kind (multiple Yes =
 // multiple kinds) · No = exclude this kind.
 const SECTION_ROWS = [
-  { key: 'verse', label: 'Verses' },
   { key: 'subscript', label: 'Psalm superscriptions (the title above verse 1)' },
   { key: 'colophon', label: 'Chapter colophons (Pauline Epistle subscriptions)' },
   { key: 'heading', label: 'Hebrew stanza names (Psalm 119: ALEPH, BETH…)' },
