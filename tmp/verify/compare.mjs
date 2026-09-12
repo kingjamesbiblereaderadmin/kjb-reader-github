@@ -27,8 +27,10 @@ let missingInRef = [];
 function cleanText(t) {
   return t
     .toLowerCase()
+    .replace(/<<[^>]*>>/g, '') // Psalm superscriptions - stored separately in our app, not in verse-1 text
     .replace(/\[|\]/g, '') // italic/supplied-word brackets
-    .replace(/[\u2018\u2019'\u0092\u2032-]/g, '') // apostrophes/hyphens (PCE omits apostrophes; ref db might include; also strip hyphens for Tubal-cain-style variants)
+    .replace(/[\u2014\u2013]/g, '--') // em/en dash -> double hyphen
+    .replace(/[\u2018\u2019'\u0092\u2032-]/g, '') // apostrophes/hyphens
     .replace(/[.,;:!?]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
