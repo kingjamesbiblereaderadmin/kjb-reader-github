@@ -99,13 +99,3 @@ export function getPrevBook(abbr) {
   const idx = getBookIndex(abbr);
   return idx > 0 ? BIBLE_BOOKS[idx - 1] : null;
 }
-
-// Build the audio-key form expected by the getAudioUrls backend function:
-// "01_The First Book of Moses, called Genesis", ... (zero-padded canonical
-// order + the book's full canonical title, which is what ChapterAudio records
-// now store in their `book` field).
-export function getBookAudioKey(book) {
-  const idx = BIBLE_BOOKS.findIndex(b => b.abbr === book.abbr);
-  if (idx < 0) return null;
-  return `${String(idx + 1).padStart(2, '0')}_${book.name}`;
-}
