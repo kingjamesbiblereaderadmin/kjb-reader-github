@@ -27,6 +27,7 @@ let missingInRef = [];
 function cleanText(t) {
   return t
     .toLowerCase()
+    .replace(/\[|\]/g, '') // italic/supplied-word brackets
     .replace(/[\u2018\u2019']/g, '') // apostrophes (PCE omits them; ref db might include)
     .replace(/[.,;:!?]/g, '')
     .replace(/\s+/g, ' ')
