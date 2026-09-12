@@ -318,6 +318,36 @@ export default function SearchPage() {
       const seen = new Set();
       const searchTermLower = searchTerm.toLowerCase();
 
+      // Section matcher (Psalm 119 stanza headings, chapter colophons, Psalm
+      // superscriptions) — same semantics as verse matching, INCLUDING
+      // multi-keyword AND. Previously these sections were only matched against
+      // the raw single-term query, so a multi-keyword search ("a, b") could
+      // never find them (the literal comma-joined string never occurs in text).
+      const sectionMatches = (cleanText) => {
+        if (isMultiKeyword) {
+          return multiTerms.every(term => {
+            const tl = term.toLowerCase();
+            if (effectiveWholeWord) {
+              const esc = tl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              return new RegExp(`(^|[^a-z'])${esc}($|[^a-z'])`, 'i').test(cleanText);
+            }
+            return cleanText.toLowerCase().includes(tl);
+          });
+        }
+        if (effectiveCaseSensitive) {
+          if (effectiveWholeWord) {
+            const esc = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            return new RegExp(`(^|[^A-Za-z'])${esc}($|[^A-Za-z'])`).test(cleanText);
+          }
+          return cleanText.includes(searchTerm);
+        }
+        if (effectiveWholeWord) {
+          const esc = searchTermLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          return new RegExp(`(^|[^a-z'])${esc}($|[^a-z'])`, 'i').test(cleanText);
+        }
+        return cleanText.toLowerCase().includes(searchTermLower);
+      };
+
       // Special keyword: "colophon(s)" lists every book colophon; "subscript(s)"
       // / "superscription(s)" lists every Psalm superscription.
       const listAllColophons = !isQuotedPhrase && ['colophon', 'colophons'].includes(kwLower);
@@ -500,24 +530,7 @@ export default function SearchPage() {
           for (const verseObj of processedVerses) {
             if (!verseObj.heading) continue;
             const headingClean = verseObj.heading.trim();
-            const headingLower = headingClean.toLowerCase();
-            let headingFound = false;
-
-            if (effectiveCaseSensitive) {
-              if (effectiveWholeWord) {
-                const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                headingFound = new RegExp(`(^|[^A-Za-z'])${escapedTerm}($|[^A-Za-z'])`).test(headingClean);
-              } else {
-                headingFound = headingClean.includes(searchTerm);
-              }
-            } else {
-              if (effectiveWholeWord) {
-                const escapedTerm = searchTermLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                headingFound = new RegExp(`(^|[^a-z'])${escapedTerm}($|[^a-z'])`, 'i').test(headingClean);
-              } else {
-                headingFound = headingLower.includes(searchTermLower);
-              }
-            }
+            const headingFound = sectionMatches(headingClean);
 
             if (headingFound) {
               const key = `${bookName}-${chapterNum}-${verseObj.verse}-heading`;
@@ -541,26 +554,7 @@ export default function SearchPage() {
           const colophon = bible.__colophons?.[`${bookName}:${chapterNum}`];
           if (colophon) {
             const colophonText = normalizeApostrophes(colophon.replace(/¶\s*/g, ''));
-            const colophonLower = colophonText.toLowerCase();
-            let colophonFound = false;
-            
-            if (effectiveCaseSensitive) {
-              if (effectiveWholeWord) {
-                const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const wordRegex = new RegExp(`(^|[^A-Za-z'])${escapedTerm}($|[^A-Za-z'])`);
-                colophonFound = wordRegex.test(colophonText);
-              } else {
-                colophonFound = colophonText.includes(searchTerm);
-              }
-            } else {
-              if (effectiveWholeWord) {
-                const escapedTerm = searchTermLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const wordRegex = new RegExp(`(^|[^a-z'])${escapedTerm}($|[^a-z'])`);
-                colophonFound = wordRegex.test(colophonLower);
-              } else {
-                colophonFound = colophonLower.includes(searchTermLower);
-              }
-            }
+            const colophonFound = sectionMatches(colophonText);
             
             if (colophonFound) {
               const key = `${bookName}-${chapterNum}-colophon`;
@@ -583,27 +577,7 @@ export default function SearchPage() {
           const subscript = SUBSCRIPTS[`${bookName}:${chapterNum}`];
           if (subscript) {
             const subscriptText = normalizeApostrophes(subscript.replace(/¶\s*/g, ''));
-            const subscriptClean = subscriptText.replace(/[[\]]/g, '');
-            const subscriptLower = subscriptClean.toLowerCase();
-            let subscriptFound = false;
-
-            if (effectiveCaseSensitive) {
-              if (effectiveWholeWord) {
-                const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const wordRegex = new RegExp(`(^|[^A-Za-z'])${escapedTerm}($|[^A-Za-z'])`);
-                subscriptFound = wordRegex.test(subscriptClean);
-              } else {
-                subscriptFound = subscriptClean.includes(searchTerm);
-              }
-            } else {
-              if (effectiveWholeWord) {
-                const escapedTerm = searchTermLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const wordRegex = new RegExp(`(^|[^a-z'])${escapedTerm}($|[^a-z'])`, 'i');
-                subscriptFound = wordRegex.test(subscriptClean);
-              } else {
-                subscriptFound = subscriptLower.includes(searchTermLower);
-              }
-            }
+            const subscriptFound = sectionMatches(subscriptText.replace(/[[\]]/g, ''));
 
             if (subscriptFound) {
               const key = `${bookName}-${chapterNum}-subscript`;
