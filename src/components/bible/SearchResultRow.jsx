@@ -41,18 +41,15 @@ function SearchResultRow({ r, i, thisIndex, isFocused, isSelected, selectMode, h
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <div className="mb-1 flex items-start justify-between gap-3 print:text-black">
-          <p className="font-sans text-xs text-accent font-semibold flex items-center gap-1 min-w-0">
-            <span className="mr-1 text-accent print:text-black font-serif text-lg leading-none">&bull;</span>
-            <BookOpen className="w-3 h-3 shrink-0 print:hidden" />
-            <span className="notranslate print:hidden">{BOOK_BY_API_NAME[r.book]?.name || r.book}</span>
-            <span className="notranslate hidden print:inline">{BOOK_BY_API_NAME[r.book]?.shortName || r.book}</span>
-          </p>
-          <span className="notranslate font-sans text-xs text-accent font-semibold whitespace-nowrap shrink-0 print:text-black">
-            – {r.chapter}
+        <p className="font-sans text-xs text-accent font-semibold mb-1 flex items-start gap-1 flex-wrap print:text-black">
+          <span className="mr-1 text-accent print:text-black font-serif text-lg leading-none">&bull;</span>
+          <BookOpen className="w-3 h-3 shrink-0 mt-0.5 print:hidden" />
+          <span className="notranslate print:hidden">{BOOK_BY_API_NAME[r.book]?.name || r.book}</span>
+          <span className="notranslate hidden print:inline">{BOOK_BY_API_NAME[r.book]?.shortName || r.book}</span>
+          <span className="notranslate whitespace-nowrap">&ndash; {r.chapter}
             {isSubscript ? ' (Superscription)' : isColophon ? ' (Colophon)' : isHeading ? `:${r.verse} (Stanza)` : `:${r.verse}`}
           </span>
-        </div>
+        </p>
         {r.attachedSubscript && (
           <p className="notranslate kjb-subscript mb-1.5 text-sm text-muted-foreground leading-relaxed text-center print:text-black" style={fontStyle}>
             ¶ {renderWithItalics(r.attachedSubscript, highlightTerm, highlightCaseSensitive, highlightWholeWord)}
