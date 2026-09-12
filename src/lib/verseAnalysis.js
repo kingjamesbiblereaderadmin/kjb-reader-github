@@ -256,7 +256,7 @@ export function defaultFilters() {
   return {
     testament: 'all',          // 'all' | 'old' | 'new'
     book: 'all',               // 'all' | apiName
-    sections: ['verse', 'subscript', 'colophon', 'heading'], // record types to include (multi-select)
+    sectionStates: { verse: 'any', subscript: 'any', colophon: 'any', heading: 'any' }, // record type tri-states
     textContains: '',          // substring in plain text (matching honours the flags below)
     textCaseSensitive: false,  // match the exact letter case
     textWholeWord: false,      // match whole words only (not substrings)
@@ -276,7 +276,7 @@ export function defaultFilters() {
 export function isDefaultFilters(f) {
   if (f.testament !== 'all') return false;
   if (f.book !== 'all') return false;
-  if (f.sections && f.sections.length !== 4) return false;
+  if (f.sectionStates && Object.values(f.sectionStates).some(v => v !== 'any')) return false;
   if (f.textContains.trim() !== '') return false;
   for (const m of NUMERIC_METRICS) {
     if (f.ranges[m.key].min !== '' || f.ranges[m.key].max !== '') return false;
@@ -299,13 +299,19 @@ export function parseSearchTerms(text) {
   return normalizeQueryApostrophes(text || '').trim().split(/[\s,]+/).filter(Boolean);
 }
 
-// Record type filter: multi-select of kinds ('verse', 'subscript',
-// 'colophon', 'heading'). A record matches when its kind is selected; plain
-// verses match when 'verse' is selected. A missing list = no restriction.
-export function matchesSections(r, sections) {
-  if (!sections) return true;
-  if (sections.includes('verse') && r.kind == null) return true;
-  return sections.includes(r.kind);
+// Record type filter: per-kind tri-state ('any' | 'yes' | 'no') for verses,
+// Psalm superscriptions, chapter colophons, and Hebrew stanza headings.
+// 'yes' on one or more kinds restricts results to ONLY those kinds (so
+// multiple Yes = multiple types); otherwise 'no' excludes its kind.
+// All 'any' = no restriction (every record matches).
+export function matchesSections(r, states) {
+  if (!states) return true;
+  const kind = r.kind || 'verse';
+  const yesKinds = Object.keys(states).filter(k => states[k] === 'yes');
+  if (yesKinds.length) return yesKinds.includes(kind);
+  const noKinds = Object.keys(states).filter(k => states[k] === 'no');
+  if (!noKinds.length) return true;
+  return !noKinds.includes(kind);
 }
 
 // Max number of unrelated words allowed between consecutive terms in "In order"
@@ -435,7 +441,7 @@ function matchesNonRange(r, f, skipKey) {
   const terms = parseSearchTerms(f.textContains);
   if (f.testament !== 'all' && r.testament !== f.testament) return false;
   if (f.book !== 'all' && r.book !== f.book) return false;
-  if (!matchesSections(r, f.sections)) return false;
+  if (!matchesSections(r, f.sectionStates)) return false;
   if (terms.length && !matchesTerms(r.plainText, terms, f.textCaseSensitive, f.textWholeWord, f.textInOrder, f.textAdjacent, f.textWildcard)) return false;
   for (const m of NUMERIC_METRICS) {
     if (m.key === skipKey) continue;
@@ -461,7 +467,7 @@ function countMatches(records, f) {
   for (const r of records) {
     if (f.testament !== 'all' && r.testament !== f.testament) continue;
     if (f.book !== 'all' && r.book !== f.book) continue;
-    if (!matchesSections(r, f.sections)) continue;
+    if (!matchesSections(r, f.sectionStates)) continue;
     if (terms.length && !matchesTerms(r.plainText, terms, f.textCaseSensitive, f.textWholeWord, f.textInOrder, f.textAdjacent, f.textWildcard)) continue;
     let ok = true;
     for (const m of NUMERIC_METRICS) {
@@ -503,12 +509,17 @@ export function computeOptionAvailability(records, f) {
     books[b.apiName] = countMatches(records, { ...f, book: b.apiName }) > 0;
   }
 
-  // Record type options — one availability flag per record kind ('verse',
-  // 'subscript', 'colophon', 'heading'): true when picking ONLY that kind
-  // (with the other filters) still yields at least one record.
+  // Record type options — per kind ('verse', 'subscript', 'colophon',
+  // 'heading'): whether Yes (only that kind) or No (exclude it) still yields
+  // at least one record given the other filters.
   const sections = {};
+  const anyStates = { verse: 'any', subscript: 'any', colophon: 'any', heading: 'any' };
   for (const s of ['verse', 'subscript', 'colophon', 'heading']) {
-    sections[s] = countMatches(records, { ...f, sections: [s] }) > 0;
+    sections[s] = {
+      any: true,
+      yes: countMatches(records, { ...f, sectionStates: { ...anyStates, [s]: 'yes' } }) > 0,
+      no: countMatches(records, { ...f, sectionStates: { ...(f.sectionStates || anyStates), [s]: 'no' } }) > 0,
+    };
   }
 
   // Property (boolean) options: for each metric, which of any/yes/no still match.
@@ -530,7 +541,7 @@ export function applyFilters(records, f) {
   let out = records.filter(r => {
     if (f.testament !== 'all' && r.testament !== f.testament) return false;
     if (f.book !== 'all' && r.book !== f.book) return false;
-    if (!matchesSections(r, f.sections)) return false;
+    if (!matchesSections(r, f.sectionStates)) return false;
     if (terms.length && !matchesTerms(r.plainText, terms, f.textCaseSensitive, f.textWholeWord, f.textInOrder, f.textAdjacent, f.textWildcard)) return false;
 
     for (const m of NUMERIC_METRICS) {

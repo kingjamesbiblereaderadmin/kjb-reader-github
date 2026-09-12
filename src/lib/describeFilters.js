@@ -18,10 +18,13 @@ export function describeFilters(filters) {
     out.push({ label: 'Book', value: b ? b.shortName : filters.book });
   }
 
-  // Record type (multi-select: verses / superscriptions / colophons / stanza names)
-  const SEC_LABELS = { verse: 'Verses', subscript: 'Superscriptions', colophon: 'Colophons', heading: 'Stanza names' };
-  if (filters.sections && filters.sections.length !== 4) {
-    out.push({ label: 'Record type', value: filters.sections.length ? filters.sections.map(s => SEC_LABELS[s] || s).join(', ') : 'None' });
+  // Record type (per-kind: Yes = only that kind, No = exclude it)
+  const SEC_LABELS = { verse: 'Verses', subscript: 'Psalm superscriptions', colophon: 'Chapter colophons', heading: 'Hebrew stanza names' };
+  if (filters.sectionStates) {
+    const yesKinds = Object.keys(filters.sectionStates).filter(k => filters.sectionStates[k] === 'yes');
+    const noKinds = Object.keys(filters.sectionStates).filter(k => filters.sectionStates[k] === 'no');
+    if (yesKinds.length) out.push({ label: 'Record type', value: `Only ${yesKinds.map(k => SEC_LABELS[k] || k).join(', ')}` });
+    else if (noKinds.length) out.push({ label: 'Record type', value: `Excluding ${noKinds.map(k => SEC_LABELS[k] || k).join(', ')}` });
   }
 
   // Text search + its matching mode

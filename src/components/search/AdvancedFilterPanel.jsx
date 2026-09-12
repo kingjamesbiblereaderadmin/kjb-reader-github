@@ -3,6 +3,16 @@ import { RotateCcw, ArrowUpDown, ChevronDown } from 'lucide-react';
 import { NUMERIC_METRICS, BOOLEAN_METRICS } from '@/lib/verseAnalysis';
 import { BIBLE_BOOKS } from '@/lib/bibleData';
 
+// Record type rows — description-labelled like the boolean property rows.
+// Any = no restriction · Yes = results are only this kind (multiple Yes =
+// multiple kinds) · No = exclude this kind.
+const SECTION_ROWS = [
+  { key: 'verse', label: 'Verses (the scripture text itself)' },
+  { key: 'subscript', label: 'Psalm superscriptions (the title above verse 1)' },
+  { key: 'colophon', label: 'Chapter colophons (the note at a chapter’s end)' },
+  { key: 'heading', label: 'Hebrew stanza names (Psalm 119: ALEPH, BETH…)' },
+];
+
 // A collapsible section wrapper so users can hide/show ("deselect") each group
 // of filters to keep the panel tidy.
 function Section({ title, icon: Icon, open, onToggle, children }) {
@@ -252,35 +262,37 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
       {/* Boolean toggles */}
       <Section title="Property filters" open={openSections.property} onToggle={() => toggleSection('property')}>
         <div className="space-y-2.5">
-          {/* Record type — multi-select chips (verses, superscriptions, colophons, stanza names) */}
-          <div className={`rounded-lg px-2 -mx-2 py-1.5 ${filters.sections.length !== 4 ? 'bg-primary/10 ring-1 ring-primary/30' : ''}`}>
-            <p className="font-sans text-xs text-foreground mb-1.5">Record type</p>
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                { key: 'verse', label: 'Verses' },
-                { key: 'subscript', label: 'Superscriptions' },
-                { key: 'colophon', label: 'Colophons' },
-                { key: 'heading', label: 'Stanza names' },
-              ].map(t => {
-                const active = filters.sections.includes(t.key);
-                const unavailable = !active && availability && !availability.sections[t.key];
-                return (
+          {/* Record type — one Any/Yes/No row per kind, like the property rows */}
+          {SECTION_ROWS.map(m => {
+            const val = filters.sectionStates[m.key] || 'any';
+            const isActive = val !== 'any';
+            return (
+            <div key={m.key} className={`flex items-center justify-between gap-3 rounded-lg px-2 -mx-2 py-1 transition-colors ${isActive ? 'bg-primary/10 ring-1 ring-primary/30' : ''}`}>
+              <span className={`font-sans text-xs flex-1 min-w-0 break-words ${isActive ? 'text-foreground font-semibold' : 'text-foreground'}`}>{m.label}</span>
+              <div className="flex rounded-lg overflow-hidden border border-border shrink-0">
+                {['any', 'yes', 'no'].map(opt => {
+                  const active = val === opt;
+                  const unavailable = availability && !active && availability.sections[m.key]?.[opt] === false;
+                  return (
                   <button
-                    key={t.key}
+                    key={opt}
                     disabled={unavailable}
-                    onClick={() => set({ sections: active ? filters.sections.filter(s => s !== t.key) : [...filters.sections, t.key] })}
-                    className={`px-2.5 py-1 rounded-lg font-sans text-xs font-medium whitespace-nowrap transition-colors ${
+                    onClick={() => set({ sectionStates: { ...filters.sectionStates, [m.key]: opt } })}
+                    className={`px-2.5 sm:px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors ${
                       active
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-secondary text-muted-foreground hover:text-foreground'
-                    } ${unavailable ? 'opacity-30 cursor-not-allowed' : ''}`}
+                    } ${unavailable ? 'opacity-30 cursor-not-allowed hover:text-muted-foreground' : ''}`}
                   >
-                    {t.label}
+                    {opt === 'any' ? 'Any' : opt === 'yes' ? 'Yes' : 'No'}
                   </button>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
+            );
+          })}
+          <p className="font-sans text-[11px] text-muted-foreground">Yes = show only that record type (pick several) · No = exclude it.</p>
           {BOOLEAN_METRICS.map(m => {
             const isActive = filters.bools[m.key] !== 'any';
             return (

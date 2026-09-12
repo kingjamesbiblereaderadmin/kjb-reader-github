@@ -1010,7 +1010,7 @@ export default function SearchPage() {
       const isSubscript = r.isSubscript;
       const isHeading = r.isHeading;
       const ref = isSubscript
-        ? `${bookName}: ${r.chapter} superscription`
+        ? `${bookName} ${r.chapter} superscription`
         : isHeading
         ? `${bookName}: ${r.chapter}:${r.verse} (stanza)`
         : isColophon
@@ -1507,15 +1507,29 @@ export default function SearchPage() {
                 </p>
               </div>
               <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                {selectedList.map(i => (
+                {selectedList.map(i => {
+                  const r = results[i];
+                  const bookEntry = BIBLE_BOOKS.find(b => b.apiName === r.book);
+                  const fullName = bookEntry?.name || r.book;
+                  const shortName = bookEntry?.shortName || r.book;
+                  // Non-verse sections get a plain-word label (no stray "23:0").
+                  const ref = r.isSubscript
+                    ? `${shortName} ${r.chapter} superscription`
+                    : r.isHeading
+                    ? `${shortName} ${r.chapter}:${r.verse} (stanza)`
+                    : (r.isColophon || r.verse === 0)
+                    ? `${shortName} ${r.chapter} colophon`
+                    : `${fullName} ${r.chapter}:${r.verse}`;
+                  return (
                   <div key={i} className="text-sm">
                     <span className="font-sans text-xs text-accent font-semibold mr-2 flex items-center gap-1">
                       <span className="text-accent font-serif text-lg leading-none">&bull;</span>
-                      <span className="notranslate" translate="no">{BIBLE_BOOKS.find(b => b.apiName === results[i].book)?.name || results[i].book}</span>: {results[i].chapter}:{results[i].verse}
+                      <span className="notranslate" translate="no">{ref}</span>
                     </span>
-                    <span className="notranslate font-serif text-foreground leading-relaxed" translate="no">{renderWithItalics(results[i].text)}</span>
+                    <span className="notranslate font-serif text-foreground leading-relaxed" translate="no">{renderWithItalics(r.text)}</span>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
