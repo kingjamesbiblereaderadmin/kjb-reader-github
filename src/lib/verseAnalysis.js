@@ -256,6 +256,7 @@ export function defaultFilters() {
   return {
     testament: 'all',          // 'all' | 'old' | 'new'
     book: 'all',               // 'all' | apiName
+    section: 'all',            // 'all' | 'verse' | 'subscript' | 'colophon' | 'heading'
     textContains: '',          // substring in plain text (matching honours the flags below)
     textCaseSensitive: false,  // match the exact letter case
     textWholeWord: false,      // match whole words only (not substrings)
@@ -275,6 +276,7 @@ export function defaultFilters() {
 export function isDefaultFilters(f) {
   if (f.testament !== 'all') return false;
   if (f.book !== 'all') return false;
+  if (f.section !== 'all') return false;
   if (f.textContains.trim() !== '') return false;
   for (const m of NUMERIC_METRICS) {
     if (f.ranges[m.key].min !== '' || f.ranges[m.key].max !== '') return false;
@@ -295,6 +297,16 @@ export function parseSearchTerms(text) {
   // curly apostrophe (mobile "smart punctuation") to a plain one so the term
   // matches verse text either way.
   return normalizeQueryApostrophes(text || '').trim().split(/[\s,]+/).filter(Boolean);
+}
+
+// Section (record type) filter: 'all' matches everything; 'verse' matches real
+// verses only; 'subscript'/'colophon'/'heading' match only that non-verse
+// record kind (Psalm superscriptions, chapter colophons, Hebrew acrostic
+// stanza names in Psalm 119).
+export function matchesSection(r, section) {
+  if (!section || section === 'all') return true;
+  if (section === 'verse') return r.kind == null;
+  return r.kind === section;
 }
 
 // Max number of unrelated words allowed between consecutive terms in "In order"
@@ -424,6 +436,7 @@ function matchesNonRange(r, f, skipKey) {
   const terms = parseSearchTerms(f.textContains);
   if (f.testament !== 'all' && r.testament !== f.testament) return false;
   if (f.book !== 'all' && r.book !== f.book) return false;
+  if (!matchesSection(r, f.section)) return false;
   if (terms.length && !matchesTerms(r.plainText, terms, f.textCaseSensitive, f.textWholeWord, f.textInOrder, f.textAdjacent, f.textWildcard)) return false;
   for (const m of NUMERIC_METRICS) {
     if (m.key === skipKey) continue;
@@ -449,6 +462,7 @@ function countMatches(records, f) {
   for (const r of records) {
     if (f.testament !== 'all' && r.testament !== f.testament) continue;
     if (f.book !== 'all' && r.book !== f.book) continue;
+    if (!matchesSection(r, f.section)) continue;
     if (terms.length && !matchesTerms(r.plainText, terms, f.textCaseSensitive, f.textWholeWord, f.textInOrder, f.textAdjacent, f.textWildcard)) continue;
     let ok = true;
     for (const m of NUMERIC_METRICS) {
@@ -490,6 +504,12 @@ export function computeOptionAvailability(records, f) {
     books[b.apiName] = countMatches(records, { ...f, book: b.apiName }) > 0;
   }
 
+  // Record type options: 'all' | 'verse' | 'subscript' | 'colophon' | 'heading'.
+  const sections = {};
+  for (const s of ['all', 'verse', 'subscript', 'colophon', 'heading']) {
+    sections[s] = countMatches(records, { ...f, section: s }) > 0;
+  }
+
   // Property (boolean) options: for each metric, which of any/yes/no still match.
   const bools = {};
   for (const m of BOOLEAN_METRICS) {
@@ -500,7 +520,7 @@ export function computeOptionAvailability(records, f) {
     };
   }
 
-  return { testaments, books, bools };
+  return { testaments, books, sections, bools };
 }
 
 // Apply filters + sort to the built records. Returns a new array.
@@ -509,6 +529,7 @@ export function applyFilters(records, f) {
   let out = records.filter(r => {
     if (f.testament !== 'all' && r.testament !== f.testament) return false;
     if (f.book !== 'all' && r.book !== f.book) return false;
+    if (!matchesSection(r, f.section)) return false;
     if (terms.length && !matchesTerms(r.plainText, terms, f.textCaseSensitive, f.textWholeWord, f.textInOrder, f.textAdjacent, f.textWildcard)) return false;
 
     for (const m of NUMERIC_METRICS) {

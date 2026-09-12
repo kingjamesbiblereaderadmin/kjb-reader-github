@@ -93,6 +93,20 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
               ))}
             </select>
           </div>
+          <div>
+            <label className="block font-sans text-xs text-muted-foreground mb-1">Record type</label>
+            <select
+              value={filters.section || 'all'}
+              onChange={(e) => set({ section: e.target.value })}
+              className="w-full px-3 pr-8 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground"
+            >
+              <option value="all" disabled={availability && !availability.sections.all}>All records (verses + superscriptions, colophons, stanza names)</option>
+              <option value="verse" disabled={availability && !availability.sections.verse}>Verses only</option>
+              <option value="subscript" disabled={availability && !availability.sections.subscript}>Psalm superscriptions</option>
+              <option value="colophon" disabled={availability && !availability.sections.colophon}>Chapter colophons</option>
+              <option value="heading" disabled={availability && !availability.sections.heading}>Hebrew stanza names (Psalm 119)</option>
+            </select>
+          </div>
         </div>
         <div>
           <label className="block font-sans text-xs text-muted-foreground mb-1">Text contains (optional)</label>

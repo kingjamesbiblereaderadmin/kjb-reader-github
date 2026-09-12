@@ -18,6 +18,12 @@ export function describeFilters(filters) {
     out.push({ label: 'Book', value: b ? b.shortName : filters.book });
   }
 
+  // Record type (verses only / superscriptions / colophons / stanza names)
+  if (filters.section === 'verse') out.push({ label: 'Record type', value: 'Verses only' });
+  else if (filters.section === 'subscript') out.push({ label: 'Record type', value: 'Psalm superscriptions' });
+  else if (filters.section === 'colophon') out.push({ label: 'Record type', value: 'Chapter colophons' });
+  else if (filters.section === 'heading') out.push({ label: 'Record type', value: 'Hebrew stanza names (Psalm 119)' });
+
   // Text search + its matching mode
   const text = (filters.textContains || '').trim();
   if (text) {
