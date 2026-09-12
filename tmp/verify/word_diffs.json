@@ -1,0 +1,200 @@
+[
+  {
+    "ref": "Psalms 119:1",
+    "ourCount": 15,
+    "refCount": 16,
+    "missingWords": [
+      "aleph"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:9",
+    "ourCount": 16,
+    "refCount": 17,
+    "missingWords": [
+      "beth"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:17",
+    "ourCount": 13,
+    "refCount": 14,
+    "missingWords": [
+      "gimel"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:25",
+    "ourCount": 13,
+    "refCount": 14,
+    "missingWords": [
+      "daleth"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:33",
+    "ourCount": 17,
+    "refCount": 18,
+    "missingWords": [
+      "he"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:41",
+    "ourCount": 16,
+    "refCount": 17,
+    "missingWords": [
+      "vau"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:49",
+    "ourCount": 14,
+    "refCount": 15,
+    "missingWords": [
+      "zain"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:57",
+    "ourCount": 15,
+    "refCount": 16,
+    "missingWords": [
+      "cheth"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:65",
+    "ourCount": 13,
+    "refCount": 14,
+    "missingWords": [
+      "teth"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:73",
+    "ourCount": 17,
+    "refCount": 18,
+    "missingWords": [
+      "jod"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:81",
+    "ourCount": 12,
+    "refCount": 13,
+    "missingWords": [
+      "caph"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:89",
+    "ourCount": 10,
+    "refCount": 11,
+    "missingWords": [
+      "lamed"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:97",
+    "ourCount": 13,
+    "refCount": 14,
+    "missingWords": [
+      "mem"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:105",
+    "ourCount": 14,
+    "refCount": 15,
+    "missingWords": [
+      "nun"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:113",
+    "ourCount": 10,
+    "refCount": 11,
+    "missingWords": [
+      "samech"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:121",
+    "ourCount": 12,
+    "refCount": 13,
+    "missingWords": [
+      "ain"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:129",
+    "ourCount": 10,
+    "refCount": 11,
+    "missingWords": [
+      "pe"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:137",
+    "ourCount": 10,
+    "refCount": 11,
+    "missingWords": [
+      "tzaddi"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:145",
+    "ourCount": 15,
+    "refCount": 16,
+    "missingWords": [
+      "koph"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:153",
+    "ourCount": 13,
+    "refCount": 14,
+    "missingWords": [
+      "resh"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:161",
+    "ourCount": 16,
+    "refCount": 17,
+    "missingWords": [
+      "schin"
+    ],
+    "extraWords": []
+  },
+  {
+    "ref": "Psalms 119:169",
+    "ourCount": 16,
+    "refCount": 17,
+    "missingWords": [
+      "tau"
+    ],
+    "extraWords": []
+  }
+]
