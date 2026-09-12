@@ -466,6 +466,11 @@ export default function SearchPage() {
           const lastVerseNum = processedVerses.reduce(
             (max, v) => Math.max(max, parseInt(v.verse, 10) || 0), 0
           );
+          // This chapter's Psalm superscription (if any), attached to verse 1's
+          // result — mirroring how the reader shows it directly above verse 1.
+          const chapterSubscript = SUBSCRIPTS[`${bookName}:${chapterNum}`]
+            ? normalizeApostrophes(SUBSCRIPTS[`${bookName}:${chapterNum}`].replace(/¶\s*/g, ''))
+            : null;
           
           // Search in verses
           for (const verseObj of processedVerses) {
@@ -497,6 +502,7 @@ export default function SearchPage() {
                   verse: parseInt(verseObj.verse, 10),
                   text: verseObj.text,
                   attachedColophon: chapterColophon && parseInt(verseObj.verse, 10) === lastVerseNum ? chapterColophon : undefined,
+                  attachedSubscript: chapterSubscript && parseInt(verseObj.verse, 10) === 1 ? chapterSubscript : undefined,
                   abbr: bookEntry ? bookEntry.abbr : bookName.slice(0, 3).toUpperCase(),
                 });
               }
