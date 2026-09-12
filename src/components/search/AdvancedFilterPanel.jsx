@@ -7,9 +7,9 @@ import { BIBLE_BOOKS } from '@/lib/bibleData';
 // Any = no restriction · Yes = results are only this kind (multiple Yes =
 // multiple kinds) · No = exclude this kind.
 const SECTION_ROWS = [
-  { key: 'verse', label: 'Verses (the scripture text itself)' },
+  { key: 'verse', label: 'Verses' },
   { key: 'subscript', label: 'Psalm superscriptions (the title above verse 1)' },
-  { key: 'colophon', label: 'Chapter colophons (the note at a chapter’s end)' },
+  { key: 'colophon', label: 'Chapter colophons (Pauline Epistle subscriptions)' },
   { key: 'heading', label: 'Hebrew stanza names (Psalm 119: ALEPH, BETH…)' },
 ];
 
@@ -292,7 +292,7 @@ export default function AdvancedFilterPanel({ filters, onChange, onReset, availa
             </div>
             );
           })}
-          <p className="font-sans text-[11px] text-muted-foreground">Yes = show only that record type (pick several) · No = exclude it.</p>
+
           {BOOLEAN_METRICS.map(m => {
             const isActive = filters.bools[m.key] !== 'any';
             return (
