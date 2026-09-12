@@ -27,7 +27,7 @@ const isEdgeMobile = () => {
   return /EdgA|EdgiOS/i.test(ua) || (/edg/i.test(ua) && /iphone|ipad|ipod|android/i.test(ua));
 };
 
-export default function InstallAppSection({ expanded, isIncognito }) {
+export function InstallAppSection({ expanded, isIncognito }) {
   const { isInstallable, isInstalled: hookIsInstalled, isSamsung, promptInstall } = useInstallPrompt();
   const [isInstalled, setIsInstalled] = useState(false);
   const [showInstallHint, setShowInstallHint] = useState(false);
@@ -271,3 +271,5 @@ export default function InstallAppSection({ expanded, isIncognito }) {
     </div>
   );
 }
+
+export default InstallAppSection;
