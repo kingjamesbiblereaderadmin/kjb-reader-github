@@ -4,6 +4,7 @@ import {
   loadBible,
   processVerse,
   normalizePilcrows,
+  PSALM_SUPERSCRIPTIONS,
 } from "../../shared/bibleData.ts";
 
 // Public, no-auth Bible search endpoint for the KJB Reader browser extension.
@@ -116,7 +117,26 @@ export default async function (req) {
       for (const chapterNum of Object.keys(bible[bookName])) {
         const verses = bible[bookName][chapterNum];
         if (!verses || !verses.length) continue;
+
+        // Push a non-verse section result (superscription / colophon / stanza
+        // heading), mirroring the site's Search page so the extension finds
+        // them too. Brackets ([italics]) are kept for context, pilcrows removed.
+        const pushSection = (rawText: string, verse: number, ref: string, type: string) => {
+          const text = normalizePilcrows(rawText).replace(/¶\s*/g, "").trim();
+          results.push({ book: bookName, chapter: parseInt(chapterNum), verse, text, ref, type });
+        };
+
+        // Psalm superscription (title above verse 1).
+        const sup = PSALM_SUPERSCRIPTIONS[`${bookName}:${chapterNum}`];
+        if (sup && matcher.test(visibleText(sup))) {
+          pushSection(sup, 0, `${bookName} ${chapterNum} Superscription`, "superscription");
+        }
+
         for (const vo of verses) {
+          // Psalm 119 acrostic stanza heading (ALEPH, BETH, …) — its own result.
+          if (vo.heading && matcher.test(visibleText(vo.heading))) {
+            pushSection(vo.heading, vo.verse, `${bookName} ${chapterNum}:${vo.verse} (${vo.heading})`, "heading");
+          }
           if (!matcher.test(visibleText(vo.text))) continue;
           const processed = processVerse(vo, { book: bookName, chapter: parseInt(chapterNum) });
           results.push({
@@ -125,7 +145,14 @@ export default async function (req) {
             verse: vo.verse,
             text: processed.text,
             ref: `${bookName} ${chapterNum}:${vo.verse}`,
+            type: "verse",
           });
+        }
+
+        // Chapter colophon (e.g. "Written to the Romans…") — after the last verse.
+        const colophon = (bible as any).__colophons?.[`${bookName}:${chapterNum}`];
+        if (colophon && matcher.test(visibleText(colophon))) {
+          pushSection(colophon, 0, `${bookName} ${chapterNum} Colophon`, "colophon");
         }
       }
     }
