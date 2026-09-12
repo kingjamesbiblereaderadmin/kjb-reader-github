@@ -455,6 +455,16 @@ export default function SearchPage() {
             text: normalizeApostrophes(v.text.replace(/¶\s*/g, '').replace(/^<<[^>]*>>\s*/, '')),
             heading: v.heading || null
           }));
+
+          // This chapter's colophon (if any) and its final verse number — used
+          // to attach the colophon to last-verse search results, mirroring how
+          // the reader shows it directly after the chapter's final verse.
+          const chapterColophon = bible.__colophons?.[`${bookName}:${chapterNum}`]
+            ? normalizeApostrophes(bible.__colophons[`${bookName}:${chapterNum}`].replace(/¶\s*/g, ''))
+            : null;
+          const lastVerseNum = processedVerses.reduce(
+            (max, v) => Math.max(max, parseInt(v.verse, 10) || 0), 0
+          );
           
           // Search in verses
           for (const verseObj of processedVerses) {
@@ -487,6 +497,7 @@ export default function SearchPage() {
                   chapter: parseInt(chapterNum, 10),
                   verse: parseInt(verseObj.verse, 10),
                   text: verseObj.text,
+                  attachedColophon: chapterColophon && parseInt(verseObj.verse, 10) === lastVerseNum ? chapterColophon : undefined,
                   abbr: bookEntry ? bookEntry.abbr : bookName.slice(0, 3).toUpperCase(),
                 });
               }
@@ -521,6 +532,7 @@ export default function SearchPage() {
                 chapter: parseInt(chapterNum, 10),
                 verse: parseInt(verseObj.verse, 10),
                 text: verseObj.text,
+                attachedColophon: chapterColophon && parseInt(verseObj.verse, 10) === lastVerseNum ? chapterColophon : undefined,
                 abbr: bookEntry ? bookEntry.abbr : bookName.slice(0, 3).toUpperCase(),
               });
             }
@@ -551,10 +563,8 @@ export default function SearchPage() {
           }
 
           // Search in colophons for this chapter (keyed flat as "BookName:chapter")
-          const colophon = bible.__colophons?.[`${bookName}:${chapterNum}`];
-          if (colophon) {
-            const colophonText = normalizeApostrophes(colophon.replace(/¶\s*/g, ''));
-            const colophonFound = sectionMatches(colophonText);
+          if (chapterColophon) {
+            const colophonFound = sectionMatches(chapterColophon);
             
             if (colophonFound) {
               const key = `${bookName}-${chapterNum}-colophon`;
@@ -565,7 +575,7 @@ export default function SearchPage() {
                   book: bookName,
                   chapter: parseInt(chapterNum),
                   verse: 0, // Mark as colophon
-                  text: colophonText,
+                  text: chapterColophon,
                   isColophon: true,
                   abbr: bookEntry ? bookEntry.abbr : bookName.slice(0, 3).toUpperCase(),
                 });

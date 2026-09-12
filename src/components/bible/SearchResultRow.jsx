@@ -58,6 +58,11 @@ function SearchResultRow({ r, i, thisIndex, isFocused, isSelected, selectMode, h
             <span>"{renderWithItalics(r.text, highlightTerm, highlightCaseSensitive, highlightWholeWord)}"</span>
           )}
         </p>
+        {r.attachedColophon && (
+          <p className="notranslate kjb-colophon mt-1.5 text-sm text-muted-foreground leading-relaxed print:text-black" style={fontStyle}>
+            ¶ {renderWithItalics(r.attachedColophon, highlightTerm, highlightCaseSensitive, highlightWholeWord)}
+          </p>
+        )}
       </div>
     </div>
   );
