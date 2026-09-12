@@ -66,4 +66,4 @@ const RTF_TITLE_MAP = {
   'THE THIRD EPISTLE OF JOHN': '3 John',
   'THE GENERAL EPISTLE OF JUDE': 'Jude',
   'THE REVELATION OF ST JOHN THE DIVINE': 'Revelation',
-};
+};export { RTF_TITLE_MAP };

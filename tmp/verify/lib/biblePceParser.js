@@ -267,4 +267,4 @@ function parsePceText(text) {
   console.log('[PCE-PARSE] Colophons:', colophonCount, 'entries');
   
   return data;
-}
+}export { parsePceText };
