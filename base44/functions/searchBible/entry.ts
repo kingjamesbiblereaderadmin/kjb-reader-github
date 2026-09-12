@@ -47,6 +47,12 @@ function visibleText(raw) {
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+// Hyphen-tolerant pattern: strip hyphens from the query, escape each remaining
+// char, join with "-?" so "Beersheba" matches the PCE's hyphenated
+// "Beer-sheba" (and vice versa) — same behaviour as the website's in-app search.
+const hyphenTolerant = (s: string) =>
+  s.replace(/-/g, "").split("").map((ch) => ch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("-?");
+
 // Build a RegExp matcher from the query + options.
 // wildcard=true supports ? (one char) and * (any run of chars).
 function buildMatcher(query, { wholeWord, caseSensitive, wildcard }) {
@@ -56,10 +62,11 @@ function buildMatcher(query, { wholeWord, caseSensitive, wildcard }) {
     for (const ch of query) {
       if (ch === "*") pattern += ".*";
       else if (ch === "?") pattern += ".";
+      else if (ch === "-") pattern += "-?";
       else pattern += escapeRegex(ch);
     }
   } else {
-    pattern = escapeRegex(query);
+    pattern = hyphenTolerant(query);
   }
   // Whole word: use lookarounds that treat apostrophes (straight ' and
   // typographic \u2019) as part of a word, NOT as a boundary. A plain \b would

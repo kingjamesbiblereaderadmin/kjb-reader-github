@@ -62,6 +62,21 @@ export function normalizeLigatures(text = '') {
   return String(text).replace(/æ/g, 'ae').replace(/Æ/g, 'Ae');
 }
 
+// Hyphen-tolerant regex pattern for a search term. The PCE text hyphenates
+// proper names ("Beer-sheba", "Kirjath-arba"), but users may type the modern
+// unhyphenated spelling ("Beersheba") or vice versa. Strip hyphens from the
+// term, escape each remaining character, and join with "-?" so an optional
+// hyphen may appear between any two characters — matching the term with or
+// without hyphens in either direction. Used wherever a search term becomes
+// a regex for matching or highlighting (search, reader highlight, exports).
+export function hyphenTolerantPattern(term) {
+  return String(term)
+    .replace(/-/g, '')
+    .split('')
+    .map(ch => ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('-?');
+}
+
 // Strip trailing end markers and "Made in Australia" from verse text
 function stripEndMarker(text) {
   return text
@@ -186,7 +201,7 @@ export function renderVerseText(text, searchTerm = null) {
       ? [inner.trim()].filter(Boolean)
       : inner.split(',').map(t => t.trim()).filter(Boolean);
     const list = terms.length ? terms : [inner.trim()].filter(Boolean);
-    const escapedTerms = list.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const escapedTerms = list.map(hyphenTolerantPattern);
     const termRegex = new RegExp(`(${escapedTerms.join('|')})`, 'gi');
     let occ = 0;
     // Split the HTML string into tag and text segments, only replace in text segments

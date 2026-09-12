@@ -15,7 +15,7 @@
 
 import { getBibleData } from '@/lib/bibleCache';
 import { BOOK_BY_API_NAME, BIBLE_BOOKS } from '@/lib/bibleData';
-import { normalizeApostrophes, normalizeQueryApostrophes, normalizeLigatures } from '@/lib/bibleApi';
+import { normalizeApostrophes, normalizeQueryApostrophes, normalizeLigatures, hyphenTolerantPattern } from '@/lib/bibleApi';
 import { SUBSCRIPTS } from '@/lib/bibleSubscripts';
 
 // Strip the leading pilcrow and its space.
@@ -309,7 +309,6 @@ export const IN_ORDER_MAX_GAP = 1;
 //  - adjacent:      terms must be directly adjacent (a phrase, in order)
 export function matchesTerms(plainText, terms, caseSensitive, wholeWord, inOrder = false, adjacent = false, wildcard = false) {
   if (!terms.length) return true;
-  const haystack = caseSensitive ? plainText : plainText.toLowerCase();
 
   // Build a regex fragment for a single term, respecting whole-word. When
   // wildcard is on, '*' → any run of chars and '?' → exactly one char (every
@@ -322,11 +321,12 @@ export function matchesTerms(plainText, terms, caseSensitive, wholeWord, inOrder
       for (const ch of t) {
         if (ch === '*') pattern += '.*';
         else if (ch === '?') pattern += '.';
+        else if (ch === '-') pattern += '-?'; // hyphen-optional: "Beer-sheba" ≈ "Beersheba"
         else pattern += ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       }
       return pattern;
     }
-    return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return hyphenTolerantPattern(t);
   };
   const flags = caseSensitive ? '' : 'i';
   // Word boundaries as non-consuming look-arounds, so a match never eats the
@@ -371,13 +371,9 @@ export function matchesTerms(plainText, terms, caseSensitive, wholeWord, inOrder
 
   // Default → every term appears somewhere, any order (AND matching).
   return terms.every(term => {
-    const t = caseSensitive ? term : term.toLowerCase();
-    if (wholeWord) {
-      const esc = frag(term);
-      const re = new RegExp(`${before}${esc}${after}`, flags);
-      return re.test(plainText);
-    }
-    return haystack.includes(t);
+    const esc = frag(term);
+    const re = new RegExp(`${before}${esc}${after}`, flags);
+    return re.test(plainText);
   });
 }
 

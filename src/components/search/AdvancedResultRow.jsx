@@ -2,8 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { parseSearchTerms } from '@/lib/verseAnalysis';
-
-const escapeRe = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+import { hyphenTolerantPattern as escapeRe } from '@/lib/bibleApi';
 
 // Distinct colour per result pill — cycled by chip index so each count chip
 // reads as a different colour.

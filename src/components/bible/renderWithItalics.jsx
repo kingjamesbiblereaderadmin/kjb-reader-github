@@ -1,4 +1,5 @@
 import React from 'react';
+import { hyphenTolerantPattern } from '@/lib/bibleApi';
 
 // Render [bracketed] words as <em> italics, with optional search-term highlighting.
 //
@@ -28,7 +29,8 @@ export default function renderWithItalics(text, searchTerm, caseSensitive, whole
   if (searchTerm) {
     const terms = searchTerm.split(',').map(t => t.trim()).filter(Boolean);
     for (const term of terms) {
-      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Hyphen-tolerant: "Beersheba" matches "Beer-sheba" (and vice versa).
+      const escaped = hyphenTolerantPattern(term);
       // Whole-word: capture the term in a group with non-word boundaries around it,
       // so only the term itself (not the surrounding char) gets highlighted.
       const regex = wholeWord

@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import { mergeAdjacentBrackets } from '@/lib/bibleApi';
+import { mergeAdjacentBrackets, hyphenTolerantPattern } from '@/lib/bibleApi';
 import { triggerDownload } from '@/lib/nativeDownload';
 import { nativePrintHtml } from '@/lib/nativePrint';
 
@@ -141,7 +141,7 @@ function countTermOccurrences(text, query, filters) {
   const clean = (text || '').replace(/[[\]]/g, '');
   let total = 0;
   for (const term of terms) {
-    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escaped = hyphenTolerantPattern(term);
     const re = ww
       ? new RegExp(`(^|[^a-zA-Z'])(${escaped})(?=[^a-zA-Z']|$)`, cs ? 'g' : 'gi')
       : new RegExp(`(${escaped})`, cs ? 'g' : 'gi');
@@ -278,7 +278,7 @@ function highlightTermText(text, query, filters) {
 
   const hlMask = new Array(plainStr.length).fill(false);
   for (const term of terms) {
-    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escaped = hyphenTolerantPattern(term);
     const re = ww
       ? new RegExp(`(^|[^a-zA-Z'])(${escaped})(?=[^a-zA-Z']|$)`, cs ? 'g' : 'gi')
       : new RegExp(`(${escaped})`, cs ? 'g' : 'gi');
@@ -329,7 +329,7 @@ function buildRunsHighlightMask(runs, query, filters) {
   const plainStr = runs.map(r => r.str).join('');
   const mask = new Array(plainStr.length).fill(false);
   for (const term of terms) {
-    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escaped = hyphenTolerantPattern(term);
     const re = ww
       ? new RegExp(`(^|[^a-zA-Z'])(${escaped})(?=[^a-zA-Z']|$)`, cs ? 'g' : 'gi')
       : new RegExp(`(${escaped})`, cs ? 'g' : 'gi');
@@ -373,7 +373,7 @@ function highlightTermHtml(html, query, filters) {
   const flags = caseSensitive ? 'g' : 'gi';
   const hlMask = new Array(plainStr.length).fill(false);
   for (const term of terms) {
-    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escaped = hyphenTolerantPattern(term);
     const re = wholeWord
       ? new RegExp(`(^|[^a-zA-Z'])(${escaped})(?=[^a-zA-Z']|$)`, flags)
       : new RegExp(`(${escaped})`, flags);

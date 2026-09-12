@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, BookOpen, Loader2, Filter, Copy, Download, CheckSquare, Square, X, BookMarked, ChevronDown, Share2, ChevronUp, ChevronDown as ChevronDownIcon, ChevronRight, Printer, FlaskConical } from 'lucide-react';
 import { getBibleData } from '@/lib/bibleCache';
-import { normalizeApostrophes, normalizeQueryApostrophes, normalizeLigatures } from '@/lib/bibleApi';
+import { normalizeApostrophes, normalizeQueryApostrophes, normalizeLigatures, hyphenTolerantPattern } from '@/lib/bibleApi';
 import { BIBLE_BOOKS, OLD_TESTAMENT, NEW_TESTAMENT, BOOK_BY_API_NAME } from '@/lib/bibleData';
 import { parseReference, resolveBook } from '@/lib/parseReference';
 import { expandPassage } from '@/lib/expandPassage';
@@ -323,29 +323,30 @@ export default function SearchPage() {
       // multi-keyword AND. Previously these sections were only matched against
       // the raw single-term query, so a multi-keyword search ("a, b") could
       // never find them (the literal comma-joined string never occurs in text).
+      // Hyphen-tolerant everywhere: "Beersheba" matches "Beer-sheba" and
+      // vice versa, in every match mode (whole word, match case, multi-term).
       const sectionMatches = (cleanText) => {
         if (isMultiKeyword) {
           return multiTerms.every(term => {
-            const tl = term.toLowerCase();
+            const esc = hyphenTolerantPattern(term);
             if (effectiveWholeWord) {
-              const esc = tl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
               return new RegExp(`(^|[^a-z'])${esc}($|[^a-z'])`, 'i').test(cleanText);
             }
-            return cleanText.toLowerCase().includes(tl);
+            return new RegExp(esc, 'i').test(cleanText);
           });
         }
         if (effectiveCaseSensitive) {
+          const esc = hyphenTolerantPattern(searchTerm);
           if (effectiveWholeWord) {
-            const esc = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             return new RegExp(`(^|[^A-Za-z'])${esc}($|[^A-Za-z'])`).test(cleanText);
           }
-          return cleanText.includes(searchTerm);
+          return new RegExp(esc).test(cleanText);
         }
+        const esc = hyphenTolerantPattern(searchTermLower);
         if (effectiveWholeWord) {
-          const esc = searchTermLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
           return new RegExp(`(^|[^a-z'])${esc}($|[^a-z'])`, 'i').test(cleanText);
         }
-        return cleanText.toLowerCase().includes(searchTermLower);
+        return new RegExp(esc, 'i').test(cleanText);
       };
 
       // Special keyword: "colophon(s)" lists every book colophon; "subscript(s)"
@@ -474,18 +475,16 @@ export default function SearchPage() {
             // matching only — typing "Caesar" or "Judea" still finds them — the
             // displayed match text below uses the original verseObj.text untouched.
             const searchText = normalizeLigatures(verseObj.text.replace(/[[\]]/g, ''));
-            const searchTextLower = searchText.toLowerCase();
 
             // Multi-keyword AND: verse must contain EVERY term (case-insensitive,
             // honouring whole-word when enabled).
             if (isMultiKeyword) {
               found = multiTerms.every(term => {
-                const tl = term.toLowerCase();
+                const esc = hyphenTolerantPattern(term);
                 if (effectiveWholeWord) {
-                  const esc = tl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                   return new RegExp(`(^|[^a-z'])${esc}($|[^a-z'])`, 'i').test(searchText);
                 }
-                return searchTextLower.includes(tl);
+                return new RegExp(esc, 'i').test(searchText);
               });
               if (found) {
                 const key = `${bookName}-${chapterNum}-${verseObj.verse}`;
@@ -505,20 +504,18 @@ export default function SearchPage() {
             }
 
             if (effectiveCaseSensitive) {
+              const esc = hyphenTolerantPattern(searchTerm);
               if (effectiveWholeWord) {
-                const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const wordRegex = new RegExp(`(^|[^A-Za-z'])${escapedTerm}($|[^A-Za-z'])`);
-                found = wordRegex.test(searchText);
+                found = new RegExp(`(^|[^A-Za-z'])${esc}($|[^A-Za-z'])`).test(searchText);
               } else {
-                found = searchText.includes(searchTerm);
+                found = new RegExp(esc).test(searchText);
               }
             } else {
+              const esc = hyphenTolerantPattern(searchTermLower);
               if (effectiveWholeWord) {
-                const escapedTerm = searchTermLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const wordRegex = new RegExp(`(^|[^a-z'])${escapedTerm}($|[^a-z'])`, 'i');
-                found = wordRegex.test(searchText);
+                found = new RegExp(`(^|[^a-z'])${esc}($|[^a-z'])`, 'i').test(searchText);
               } else {
-                found = searchTextLower.includes(searchTermLower);
+                found = new RegExp(esc, 'i').test(searchText);
               }
             }
 
@@ -622,7 +619,7 @@ export default function SearchPage() {
       // searches, count every term's hits across each verse.
       const occTerms = isMultiKeyword ? multiTerms : [searchTerm];
       const occRes = occTerms.map(t => {
-        const esc = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const esc = hyphenTolerantPattern(t);
         return effectiveWholeWord
           ? new RegExp(`(?<![A-Za-z'])${esc}(?![A-Za-z'])`, effectiveCaseSensitive ? 'g' : 'gi')
           : new RegExp(esc, effectiveCaseSensitive ? 'g' : 'gi');
@@ -847,7 +844,7 @@ export default function SearchPage() {
         : cleaned.split(',').map(t => t.trim()).filter(t => t.length >= 2);
       const list = terms.length ? terms : [cleaned.trim()].filter(Boolean);
       return list.map(t => {
-        const esc = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const esc = hyphenTolerantPattern(t);
         try { return new RegExp(esc, highlightCaseSensitive ? 'g' : 'gi'); } catch { return null; }
       }).filter(Boolean);
     })();
