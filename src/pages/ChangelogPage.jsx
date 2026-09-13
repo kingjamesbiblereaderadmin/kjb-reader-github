@@ -3,6 +3,12 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.249', date: 'September 13, 2026', items: [
+    'Searching for a word that is also a book name (\u201CJoshua\u201D, \u201CDaniel\u201D, \u201CJob\u201D) now runs a text search of every verse, matching the website \u2014 previously typing a book name always jumped to that book\u2019s first chapter, so the 197 verses mentioning Joshua were unreachable from the search box',
+    'One-chapter books (Jude, Philemon, 2 John, 3 John, Obadiah) still open directly when typed, since chapter 1 is the whole book',
+    'When the search term is a multi-chapter book name, a shortcut appears above the results (\u201Copen The Book of Joshua 1\u201D) for readers who did want the book itself',
+    'Reference lookups with a chapter or verse (\u201CJoshua 1\u201D, \u201CRomans 3:25\u201D) and page-click detection are unchanged',
+  ] },
   { version: 'v0.4.248', date: 'September 13, 2026', items: [
     { tag: 'fix', text: 'Fixed book titles being cut off after their first line \u2014 Genesis showed as \u201CThe First Book of Moses,\u201D with a dangling comma instead of \u201CThe First Book of Moses, called Genesis\u201D. The text prints these titles across up to three lines and only the first was being read, which also shortened Revelation, Ecclesiastes, Samuel and Kings.' },
     { tag: 'fix', text: 'Removed the trailing full stop from book titles \u2014 \u201CThe Book of Joshua.\u201D now reads \u201CThe Book of Joshua\u201D \u2014 while keeping inner points such as \u201CSt. John\u201D intact' },
@@ -268,7 +274,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.248
+            Current Version: v0.4.249
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
