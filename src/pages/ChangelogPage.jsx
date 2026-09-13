@@ -3,6 +3,11 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.248', date: 'September 13, 2026', items: [
+    { tag: 'fix', text: 'Fixed book titles being cut off after their first line \u2014 Genesis showed as \u201CThe First Book of Moses,\u201D with a dangling comma instead of \u201CThe First Book of Moses, called Genesis\u201D. The text prints these titles across up to three lines and only the first was being read, which also shortened Revelation, Ecclesiastes, Samuel and Kings.' },
+    { tag: 'fix', text: 'Removed the trailing full stop from book titles \u2014 \u201CThe Book of Joshua.\u201D now reads \u201CThe Book of Joshua\u201D \u2014 while keeping inner points such as \u201CSt. John\u201D intact' },
+    { tag: 'improved', text: 'Book titles now follow the text exactly, using \u201CSt.\u201D rather than \u201CSaint\u201D, and Read mode, printing and copied text all draw from the same titles so they can no longer disagree' },
+  ] },
   { version: 'v0.4.246', date: 'September 12, 2026', items: [
     { tag: 'ui', text: 'Copied verses now keep Psalm 119 Hebrew letter names and Psalm titles inside the quotation marks, matching how epistle colophons already copied \u2014 a copied Psalm now reads as one quoted passage instead of a heading floating above the quote' },
   ] },
@@ -263,7 +268,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.246
+            Current Version: v0.4.248
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
