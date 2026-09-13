@@ -3,6 +3,11 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.250', date: 'September 13, 2026', items: [
+    'Typing a book name in the search box now ALWAYS runs a text search of every verse \u2014 including one-chapter books like Jude and Obadiah, whose names also appear elsewhere in Scripture (Obadiah is mentioned throughout 1 Kings 18), so those verses are no longer hidden behind an automatic book jump',
+    'A shortcut appears above the results (\u201Copen The Book of Joshua 1\u201D) for readers who did want the book itself',
+    'Typing a reference with a chapter or verse (\u201CJoshua 1\u201D, \u201CJude 1\u201D, \u201CRomans 3:25\u201D) still opens the book directly, and page-click scripture detection is unchanged',
+  ] },
   { version: 'v0.4.249', date: 'September 13, 2026', items: [
     'Searching for a word that is also a book name (\u201CJoshua\u201D, \u201CDaniel\u201D, \u201CJob\u201D) now runs a text search of every verse, matching the website \u2014 previously typing a book name always jumped to that book\u2019s first chapter, so the 197 verses mentioning Joshua were unreachable from the search box',
     'One-chapter books (Jude, Philemon, 2 John, 3 John, Obadiah) still open directly when typed, since chapter 1 is the whole book',
@@ -274,7 +279,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.249
+            Current Version: v0.4.250
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
