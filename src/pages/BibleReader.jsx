@@ -682,7 +682,16 @@ export default function BibleReader() {
 
   useEffect(() => {
     getBibleData().catch(err => console.error('[BibleReader] Cache preload failed:', err));
-    // Restore toolbar state from localStorage on mount (persists across app restarts)
+    // Restore toolbar state from localStorage on mount (persists across app restarts).
+    // SKIP this when the URL is a plain chapter return (book+chapter, no
+    // from/verse/q) — e.g. pressing Back from the Search page. Resurrecting a
+    // stale search session here makes useReaderUrlSync re-flag the URL with
+    // from=search, and the nav effect then jumps to a stale search result (or
+    // lands at the top) instead of letting the scroll-restore effect put the
+    // user back where they were reading.
+    const mountParams = new URLSearchParams(window.location.search);
+    const isPlainChapterReturn = !!mountParams.get('book') && !!mountParams.get('chapter') && !mountParams.get('from') && !mountParams.get('verse') && !mountParams.get('q');
+    if (!isPlainChapterReturn) {
     try {
       const savedState = localStorage.getItem('kjb-reader-toolbar-state');
       if (savedState) {
@@ -718,6 +727,7 @@ export default function BibleReader() {
         }
       }
     } catch {}
+    }
     try {
       const saved = localStorage.getItem('kjb-last-reading');
       if (saved) {
@@ -996,6 +1006,26 @@ export default function BibleReader() {
         }
       }
       setPos({ abbr: urlBookObj.abbr, chapter: chapterNum, verse: verseNum });
+      // RETURNING to the full view of the chapter we're already showing (e.g.
+      // browser Back out of a verse/search/filtered view of this same chapter):
+      // this is not a fresh whole-chapter jump, so don't land at the top — put
+      // the user back where they were last reading normally. The chapter is
+      // already loaded, so there's nothing to refetch either.
+      if (!verseNum &&
+          posRef.current.abbr === urlBookObj.abbr &&
+          posRef.current.chapter === chapterNum &&
+          (posRef.current.verse || searchTerm || gospelMode || filterMode)) {
+        savePosition(urlBookObj.abbr, chapterNum, null);
+        let backY = 0;
+        try {
+          const stash = JSON.parse(localStorage.getItem('kjb-prev-reading-session') || localStorage.getItem('kjb-pre-search') || 'null');
+          if (stash && stash.abbr === urlBookObj.abbr && stash.chapter === chapterNum && typeof stash.scrollY === 'number') {
+            backY = Math.max(0, Math.round(stash.scrollY));
+          }
+        } catch {}
+        (document.getElementById('kjb-scroll') || window).scrollTo({ top: backY });
+        return;
+      }
       // Force scroll-to-top so the subsequent scroll-to-verse works reliably.
       // For whole-chapter jumps (no verseNum) there's no scroll-to-verse effect
       // to take over afterward, so without marking this a "fresh nav" the
@@ -1234,7 +1264,19 @@ export default function BibleReader() {
     // prevents the scroll from collapsing to the top before the page is laid out.
     const cached = readScrollCache(`kjb-scroll-${pos.abbr}-${pos.chapter}`);
     if (!cached || cached.y <= 0) return;
-    const saved = cached.y;
+    // Prefer the last NORMAL-reading position for this chapter when available:
+    // the chapter's own scroll cache keeps updating while a search/gospel/
+    // daily/filtered view of it is open, so after returning from one of those
+    // it points at that view's offset instead of where the user was actually
+    // reading. kjb-prev-reading-session is only written during normal reading,
+    // so it is the accurate anchor in exactly those cases.
+    let saved = cached.y;
+    try {
+      const stash = JSON.parse(localStorage.getItem('kjb-prev-reading-session') || 'null');
+      if (stash && stash.abbr === pos.abbr && stash.chapter === pos.chapter && typeof stash.scrollY === 'number' && stash.scrollY > 0) {
+        saved = Math.round(stash.scrollY);
+      }
+    } catch {}
     const restore = () => {
       const scroller = document.getElementById('kjb-scroll');
       const target = scroller || window;
