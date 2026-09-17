@@ -209,15 +209,15 @@
     font-size: 0.92em;
     word-spacing: normal;
     text-align: left;
-    /* Hyphenation OFF in the two-column layout. The browser's hyphenation
-       dictionary broke proper names mid-word with an inserted hyphen
-       (e.g. "Benjam-" / "in" for Benjamin in 1 Chronicles 8:1), which
-       corrupts the scripture text visually — the KJB must never appear
-       edited. Text wraps at real word boundaries instead; only a word
-       genuinely wider than the column (rare) falls through to the
-       overflow-wrap fallback below. */
-    -webkit-hyphens: none;
-    hyphens: none;
+    /* Hyphenation ON for the narrow two-column layout, matching a printed
+       Bible. This is what guarantees the user's rule: any word that must
+       break mid-word ALWAYS shows a visible hyphen at the break. Without
+       hyphenation, the overflow-wrap/word-break fallbacks below broke words
+       BARE (no hyphen), producing orphaned fragments like "Jehospha" + "t"
+       in 2 Kings 8:16. Those fallbacks stay only as the last resort for a
+       word with no dictionary break point that's wider than the column. */
+    -webkit-hyphens: auto;
+    hyphens: auto;
     /* Safety net for any word hyphens can't find a break point for (browser
        hyphenation dictionaries don't cover every word/name). Without this, an
        unbreakable word that's wider than the column just overflows straight
@@ -241,9 +241,10 @@
   }
   /* Dancing Script's connected letterforms and swashes extend visibly past
      their own layout box, so cursive mode gets extra column-gap (set inline)
-     for breathing room. Hyphenation is off (see .kjb-two-col above) —
-     long words wrap at real word boundaries, with the overflow-wrap
-     fallback catching anything genuinely wider than the column. */
+     for breathing room. Hyphenation itself stays on (see .kjb-two-col above)
+     — turning it off for cursive let long words that hyphenation would have
+     broken overflow straight past the column edge instead, which leaked
+     worse than the original swash overhang did. */
   /* First verse of each column starts flush at the top (no leading gap),
      so the left & right columns align at the same height */
   .kjb-two-col > span:first-child {
