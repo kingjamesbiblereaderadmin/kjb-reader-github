@@ -7,6 +7,7 @@ import { HIGHLIGHT_COLORS } from '@/lib/highlightColors';
 import { BIBLE_BOOKS } from '@/lib/bibleData';
 import { formatVerseShare, buildVerseUrl } from '@/lib/formatDailyVerse';
 import { nativeShare } from '@/lib/nativeShare';
+import { ensureShyMap, getShyMap, injectShyHtml, installShyCopySanitizer } from '@/lib/softHyphens';
 import VersePopover from '@/components/bible/VersePopover';
 import SaveFolderPicker from '@/components/bible/SaveFolderPicker';
 
@@ -33,10 +34,23 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   const [currentText, setCurrentText] = useState(verse.text);
   const [showFolderPicker, setShowFolderPicker] = useState(false);
   const [clickPos, setClickPos] = useState(null);
+  // Ticks a re-render once the soft-hyphen map finishes loading (below).
+  const [, setShyTick] = useState(0);
 
   useEffect(() => {
     setCurrentText(verse.text);
   }, [verse.text]);
+
+  // Two-column printed layout: install the clipboard sanitizer (strips soft
+  // hyphens from manually-copied selections) and load the app's own
+  // hyphenation points once, re-rendering when they arrive.
+  useEffect(() => {
+    installShyCopySanitizer();
+    if (!columnMode || getShyMap()) return;
+    let alive = true;
+    ensureShyMap().then(() => { if (alive) setShyTick(t => t + 1); });
+    return () => { alive = false; };
+  }, [columnMode]);
 
   useEffect(() => {
     const handleUpdate = async () => {
@@ -69,6 +83,15 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
 
   // renderVerseText handles [italics] and ¶ pilcrow styling, plus search term highlighting
   let html = renderVerseText(displayVerseText, searchTerm);
+
+  // Two-column printed layout: inject the app's own hyphenation points as
+  // soft hyphens (see softHyphens.js). Each point is invisible unless the
+  // line actually breaks there — then a visible hyphen renders, matching a
+  // printed Bible instead of a bare mid-word break.
+  if (columnMode) {
+    const shy = getShyMap();
+    if (shy) html = injectShyHtml(html, shy);
+  }
 
   // Shared click handler: toggles the verse action menu (selects in select
   // mode, or applies/removes the highlighter directly in highlight mode).

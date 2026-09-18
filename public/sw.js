@@ -1,7 +1,7 @@
-// KJB Reader Service Worker v20260918_0826
+// KJB Reader Service Worker v20260918_0915
 // Cache-first loading for offline support
 
-const CACHE_NAME = 'kjb-reader-v20260918_0826';
+const CACHE_NAME = 'kjb-reader-v20260918_0915';
 const LEGACY_CACHE_NAME = 'kjb-legacy-v11';
 
 // Core app shell resources to cache immediately
@@ -23,6 +23,8 @@ const PRECACHE_ASSETS = [
   '/functions/pwaIcon?size=192',
   '/functions/pwaIcon?size=512',
   '/functions/pwaIcon?size=maskable',
+  // Soft-hyphen points for the two-column printed layout (src/lib/softHyphens.js)
+  '/hyphenation.json',
   // Self-hosted OpenDyslexic fonts — precache at install so they're available
   // offline immediately, not just after the first page that uses them.
   '/fonts/OpenDyslexic-regular.woff',
