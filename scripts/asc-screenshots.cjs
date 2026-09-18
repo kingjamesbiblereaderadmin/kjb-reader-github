@@ -61,6 +61,13 @@ const PAGES = [
           // capture browser as installed: the setup wizard's Install step then
           // shows its green "App installed!" state instead of install buttons.
           localStorage.setItem('kjb-is-installed', 'true');
+          // Keep '/' a true first visit (it redirects to the /landing setup
+          // wizard, which is the shot we want), but mark every other page as
+          // a returning visitor so the boot splash takes its short
+          // "welcome back" path instead of downloading the offline Bible.
+          if (window.location.pathname !== '/') {
+            localStorage.setItem('kjb-has-visited-app', 'true');
+          }
           // Use a realistic disk-backed quota (a large fraction of free disk,
           // e.g. 200 GiB). Note: the app's heuristic flags incognito when the
           // quota is below ~2x the JS heap limit — in headless Chrome that
@@ -94,8 +101,15 @@ const PAGES = [
       } catch {
         // fall through — capture whatever rendered
       }
+      // Wait for the app's boot splash to hand off. It sets
+      // window.kjbSplashDone exactly when the overlay is removed; on a
+      // first-load ('/') it downloads the offline Bible first, which takes
+      // far longer than any fixed wait — capturing mid-splash otherwise.
+      try {
+        await page.waitForFunction(() => window.kjbSplashDone === true, null, { timeout: 80000, polling: 500 });
+      } catch {}
       // Give lazy UI (fonts, bible text fetches) a moment to settle.
-      await page.waitForTimeout(4000);
+      await page.waitForTimeout(2500);
       const file = `${device.label}_${++n}_${target.name}.png`;
       const outDir = device.asc ? ASC_OUT : MAC_OUT;
       await page.screenshot({ path: path.join(outDir, file), fullPage: false });
