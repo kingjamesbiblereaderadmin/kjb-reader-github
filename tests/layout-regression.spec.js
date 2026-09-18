@@ -188,3 +188,70 @@ for (const viewport of VIEWPORTS) {
     }
   });
 }
+
+// ── App Zoom regression ─────────────────────────────────────────────────
+// The matrix above covers the READER's own text zoom (kjb-zoom), which flows
+// through props and re-triggers RunningHead's measurement. App Zoom
+// (kjb-layout-zoom) is a different path: it scales the root font-size —
+// every rem size — without changing any container's pixel width, so before
+// the fix neither RunningHead nor the drop cap adapted: the book title ran
+// into "Chapter N", and the floated drop-cap letter grew wider than its
+// column and sank below the first line, stranding the rest of the first word
+// ABOVE the cap ("OW" over the big "N" in 1 Chronicles 8).
+for (const viewport of VIEWPORTS) {
+  test.describe(`[${viewport.name} ${viewport.width}x${viewport.height}] App Zoom 200%`, () => {
+    test.use({ viewport: { width: viewport.width, height: viewport.height } });
+
+    test(`1 Chronicles 8 — header & drop cap @ App Zoom 200%`, async ({ page }) => {
+      await page.addInitScript(() => {
+        try {
+          localStorage.setItem('kjb-reader-font-family', 'serif');
+          localStorage.setItem('kjb-zoom', '100');
+          localStorage.setItem('kjb-layout-zoom', '200');
+          localStorage.setItem('kjb-column', 'true');
+          localStorage.setItem('kjb-has-visited-app', 'true');
+          localStorage.setItem('kjb-prompt-dismissed', 'true');
+        } catch {}
+      });
+      await page.goto('/read?book=1CH&chapter=8');
+      await page.waitForSelector('.kjb-verse-text', { timeout: 15000 });
+
+      // Header: same non-overlap contract as the matrix above.
+      const head = page.getByTestId('kjb-running-head');
+      const bookBox = await page.getByTestId('kjb-running-head-book').boundingBox();
+      const chapterBox = await page.getByTestId('kjb-running-head-chapter').boundingBox();
+      const stacked = (await head.getAttribute('data-stacked')) === 'true';
+      expect(bookBox).toBeTruthy();
+      expect(chapterBox).toBeTruthy();
+      if (!stacked) {
+        expect(bookBox.x + bookBox.width).toBeLessThanOrEqual(
+          chapterBox.x + OVERFLOW_TOLERANCE_PX
+        );
+      } else {
+        expect(bookBox.y + bookBox.height).toBeLessThanOrEqual(
+          chapterBox.y + OVERFLOW_TOLERANCE_PX
+        );
+      }
+
+      // Drop cap: the floated letter must sit ON the first line of its verse.
+      // If it doesn't fit beside the gutter, CSS pushes the float below the
+      // first line — the rest of the first word then renders ABOVE the cap.
+      const letter = page.locator('.kjb-dropcap-letter');
+      if (await letter.count()) {
+        const check = await letter.evaluate((el) => {
+          const verse = el.closest('.kjb-verse-text');
+          if (!verse) return null;
+          return {
+            letterTop: el.getBoundingClientRect().top,
+            textTop: verse.getBoundingClientRect().top,
+          };
+        });
+        expect(check).toBeTruthy();
+        expect(
+          check.letterTop,
+          'App Zoom 200%: drop-cap letter sank below the first line — the rest of the first word rendered above the cap'
+        ).toBeLessThanOrEqual(check.textTop + 8);
+      }
+    });
+  });
+}

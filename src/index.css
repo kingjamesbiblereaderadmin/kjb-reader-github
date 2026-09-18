@@ -480,12 +480,27 @@
        when verse 1 was short (one line), creating an awkward gap before
        verse 2. Letting it clear naturally removes that gap. */
   }
+  /* The verse's text column in the drop-cap layout (line mode). Establishing
+     a container here lets the cap size below react to the REAL available
+     width — zoom settings scale every em/rem size without widening this
+     pixel-fixed column. */
+  .kjb-dropcap-col {
+    container-type: inline-size;
+  }
   .kjb-dropcap-letter {
     /* Sized so the letter box spans exactly two body text lines
        (2 × leading-relaxed 1.625 = 3.25em), making the drop cap's bottom
        align flush with the top of the next verse down. Use em instead of the
-       poorly-supported `lh` unit so the cap renders at full size everywhere. */
-    font-size: 3.4em;
+       poorly-supported `lh` unit so the cap renders at full size everywhere.
+       The 55cqw cap: at high zoom the floated letter grew wider than the
+       whole column, and a float that doesn't fit is pushed BELOW the first
+       line — leaving the rest of the word stranded ABOVE the cap ("OW" over
+       the big "N" in 1 Chronicles 8). Capping the letter at 55% of the
+       actual column width keeps it floating on line one with the rest of
+       the word beside it, at any zoom. Engines without container support
+       resolve cqw against the viewport, where the cap never binds — the old
+       3.4em behavior is preserved there. */
+    font-size: min(3.4em, 55cqw);
     line-height: 1;
     font-weight: 700;
     color: inherit;

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useLayoutEffect } from 'react';
+import React, { useRef, useState, useEffect, useLayoutEffect } from 'react';
 
 // Renders the two-column split underline with the book name aligned to the
 // left split-line edge and "Chapter N" aligned to the right split-line edge.
@@ -10,6 +10,24 @@ import React, { useRef, useState, useLayoutEffect } from 'react';
 const MIN_INLINE_SCALE = 0.6;
 const MIN_STACKED_SCALE = 0.5;
 
+// The live app-wide zoom factor (App Zoom / browser zoom). These scale the
+// root font-size — every rem size — WITHOUT changing the header container's
+// pixel width, so no ResizeObserver or prop change re-triggers the
+// shrink/stack measurement below when the user changes zoom. At 200% the
+// book title doubles in size against the same header width and runs straight
+// into "Chapter N". Reading the factor here and using it as a measurement
+// dependency makes every zoom change re-measure.
+function readZoomScale() {
+  try {
+    const v = parseFloat(
+      window.getComputedStyle(document.documentElement).getPropertyValue('--kjb-zoom-scale')
+    );
+    return Number.isFinite(v) && v > 0 ? v : 1;
+  } catch {
+    return 1;
+  }
+}
+
 export default function RunningHead({ bookName, chapter, baseFontRem, isCursive }) {
   const containerRef = useRef(null);
   const leftRef = useRef(null);
@@ -19,6 +37,19 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
   const [containerWidth, setContainerWidth] = useState(null);
 
   const chapterText = `Chapter ${chapter}`;
+
+  const [zoomScale, setZoomScale] = useState(readZoomScale);
+  useEffect(() => {
+    const read = () => setZoomScale(readZoomScale());
+    window.addEventListener('kjb-layout-zoom-changed', read);
+    window.addEventListener('resize', read);
+    window.addEventListener('storage', read);
+    return () => {
+      window.removeEventListener('kjb-layout-zoom-changed', read);
+      window.removeEventListener('resize', read);
+      window.removeEventListener('storage', read);
+    };
+  }, []);
 
   // Track the container's actual rendered width so rotation, window resize,
   // and split-screen all trigger a re-measure below.
@@ -38,7 +69,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
   useLayoutEffect(() => {
     setScale(1);
     setStacked(false);
-  }, [bookName, chapter, baseFontRem, containerWidth]);
+  }, [bookName, chapter, baseFontRem, containerWidth, zoomScale]);
 
   // Phase 1: while inline (side-by-side), shrink the shared font size
   // step-by-step until both halves fit on one line WITH room between them.
@@ -61,7 +92,12 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
     if (!container || !l || !r) return;
     const gapPx = parseFloat(getComputedStyle(container).columnGap) || 16;
     const combined = l.scrollWidth + r.scrollWidth + gapPx;
-    const overflowing = combined > container.clientWidth + 0.5;
+    // Second overflow signal, purely geometric: the container wraps (see
+    // flex-wrap below), so labels that no longer fit on one line land on TWO
+    // lines — different vertical offsets — instead of shrinking into each
+    // other. This is immune to any scrollWidth reporting quirk.
+    const wrapped = Math.abs(l.offsetTop - r.offsetTop) > 4;
+    const overflowing = combined > container.clientWidth + 0.5 || wrapped;
     if (!overflowing) return;
     if (scale > MIN_INLINE_SCALE) {
       setScale((s) => Math.max(MIN_INLINE_SCALE, s - 0.05));
@@ -69,7 +105,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
       setStacked(true);
       setScale(1);
     }
-  }, [scale, stacked, bookName, chapter, baseFontRem, containerWidth]);
+  }, [scale, stacked, bookName, chapter, baseFontRem, containerWidth, zoomScale]);
 
   // Phase 2: stacked layout. The book name is now allowed to wrap onto
   // multiple lines, so it no longer needs to shrink to avoid overlap — only
@@ -88,7 +124,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
     if (overflowing && scale > MIN_STACKED_SCALE) {
       setScale((s) => Math.max(MIN_STACKED_SCALE, s - 0.05));
     }
-  }, [scale, stacked, bookName, chapter, baseFontRem, containerWidth]);
+  }, [scale, stacked, bookName, chapter, baseFontRem, containerWidth, zoomScale]);
 
   const fontSize = `${baseFontRem * scale}rem`;
 
@@ -101,7 +137,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
         className={
           stacked
             ? 'flex flex-col items-center text-center gap-1 min-w-0'
-            : 'flex justify-between items-baseline gap-4 min-w-0'
+            : 'flex flex-wrap justify-between items-baseline gap-4 min-w-0'
         }
       >
         <div className={stacked ? 'min-w-0 max-w-full' : 'min-w-0 max-w-full'}>

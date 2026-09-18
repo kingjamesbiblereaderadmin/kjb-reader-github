@@ -544,7 +544,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
           {/* Spacer matching the verse-number column so verse 1's text column
               lines up with verses 2+. The actual number lives in the drop-cap. */}
           <sup className="text-accent font-sans font-bold text-[0.6em] shrink-0 select-none mt-[0.2em] mr-[0.3em] inline-block text-right w-[1.6em]">{verse.verse}</sup>
-          <span className="flex-1 min-w-0 leading-relaxed break-words text-left">
+          <span className="kjb-dropcap-col flex-1 min-w-0 leading-relaxed break-words text-left">
             <span
               className={`kjb-verse-text notranslate inline [&_em]:italic [&_em]:text-foreground/75 box-decoration-clone rounded transition-colors duration-200 py-[0.1em] ${isHighlighted ? hlPadX : 'px-[0.3em]'} ${isCursive ? 'cursive-em-style' : ''} ${isHighlighted ? highlightBg : 'hover:bg-secondary/60'}`}
               style={{ display: 'inline', ...(isCursive ? { fontSize: `${zoomLevel / 100 * 1.125}rem` } : textStyle) }}
