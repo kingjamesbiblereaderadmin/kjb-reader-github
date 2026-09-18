@@ -222,9 +222,16 @@
        hyphenation dictionaries don't cover every word/name). Without this, an
        unbreakable word that's wider than the column just overflows straight
        through the column-rule divider instead of wrapping — worse than an
-       imperfect hyphen. */
+       imperfect hyphen.
+       NOTE: this must be overflow-wrap ONLY — never word-break: break-word.
+       The legacy `word-break: break-word` value made Chromium break words at
+       arbitrary points WITHOUT ever consulting the hyphenation dictionary,
+       so `hyphens: auto` never produced a single visible hyphen in the
+       two-column view ("Benjam" + "in" in 1 Chronicles 8). overflow-wrap:
+       break-word is the true last resort — hyphenation opportunities are
+       always tried first, and only a word with no break point at all that is
+       wider than the column falls through to it. */
     overflow-wrap: break-word;
-    word-break: break-word;
   }
   /* Verses are allowed to split across the column break (like a real
      printed two-column Bible) so the browser can fill each column all the
