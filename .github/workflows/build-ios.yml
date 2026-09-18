@@ -76,15 +76,20 @@ jobs:
           </plist>
           EOF
           find build/App.xcarchive -maxdepth 3
+      - name: Generate export options (with team ID)
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          sed 's|</dict>|<key>teamID</key><string>'"$APPLE_TEAM_ID"'</string></dict>|' ios/ci/ExportOptions.plist > ios/ci/ExportOptions-runtime.plist
+          plutil -lint ios/ci/ExportOptions-runtime.plist
       - name: Export IPA (signs with Apple Distribution)
         run: |
           xcodebuild -exportArchive -archivePath build/App.xcarchive \
-            -exportOptionsPlist ios/ci/ExportOptions.plist \
+            -exportOptionsPlist ios/ci/ExportOptions-runtime.plist \
             -exportPath build/ipa \
             -allowProvisioningUpdates \
             -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8 \
             -authenticationKeyID ${{ secrets.ASC_KEY_ID }} \
             -authenticationKeyIssuerID ${{ secrets.ASC_ISSUER_ID }} \
-            DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }}
       - name: Upload to App Store Connect
         run: fastlane deliver --api_key_path ios/ci/asc_key_runtime.json --ipa build/ipa/App.ipa --skip_screenshots --skip_metadata
