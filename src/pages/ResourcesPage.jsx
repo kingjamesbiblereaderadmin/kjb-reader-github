@@ -359,7 +359,7 @@ export default function ResourcesPage() {
             rel="noopener noreferrer"
             className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-red-500 to-rose-600">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50">
               <Youtube className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
@@ -377,7 +377,7 @@ export default function ResourcesPage() {
             rel="noopener noreferrer"
             className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-emerald-500 to-green-600">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/50">
               <PlayCircle className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
@@ -395,7 +395,7 @@ export default function ResourcesPage() {
             rel="noopener noreferrer"
             className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-green-500 to-emerald-600">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/50">
               <Link2 className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
@@ -411,7 +411,7 @@ export default function ResourcesPage() {
             href="mailto:kingjamesbiblereader@outlook.sg"
             className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-emerald-500 to-teal-600">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-700/50">
               <Mail className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
