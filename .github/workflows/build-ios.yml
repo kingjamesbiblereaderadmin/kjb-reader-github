@@ -34,18 +34,48 @@ jobs:
           jq -n --arg key_id "$ASC_KEY_ID" --arg issuer "$ASC_ISSUER_ID" \
             --rawfile p8 ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
             '{key_id:$key_id, issuer_id:$issuer, key:$p8, in_house:false}' > ios/ci/asc_key_runtime.json
-      # Development signing cannot work here: the account has no registered
-      # devices, so xcodebuild cannot mint a development profile ("Your team
-      # has no devices..."). Archive unsigned instead; the export step below
-      # signs with an Apple Distribution certificate + App Store profile
-      # created via the App Store Connect API key (-allowProvisioningUpdates).
-      - name: Archive (unsigned)
+      # Development signing cannot work here (no registered devices on the
+      # account), and `xcodebuild archive` with CODE_SIGNING_ALLOWED=NO does a
+      # plain build without creating an .xcarchive. So: build unsigned into a
+      # known DerivedData path, then assemble the .xcarchive by hand. The export
+      # step below re-signs it with an Apple Distribution certificate + App
+      # Store profile created via the ASC API key (-allowProvisioningUpdates).
+      - name: Build (unsigned) and assemble xcarchive
         run: |
+          set -euxo pipefail
           xcodebuild -workspace ios/App/App.xcworkspace -scheme App \
             -configuration Release -sdk iphoneos \
             -destination 'generic/platform=iOS' \
-            -archivePath build/App.xcarchive \
+            -derivedDataPath build/derived \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+          APP=build/derived/Build/Products/Release-iphoneos/App.app
+          VER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Info.plist")"
+          BUILD="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Info.plist")"
+          mkdir -p build/App.xcarchive/Products/Applications
+          cp -R "$APP" build/App.xcarchive/Products/Applications/
+          cat > build/App.xcarchive/Info.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>ApplicationProperties</key>
+            <dict>
+              <key>ApplicationPath</key><string>Applications/App.app</string>
+              <key>CFBundleIdentifier</key><string>com.kingjamesbiblereader.twa</string>
+              <key>CFBundleShortVersionString</key><string>$VER</string>
+              <key>CFBundleVersion</key><string>$BUILD</string>
+              <key>SigningIdentity</key><string></string>
+              <key>Team</key><string>${{ secrets.APPLE_TEAM_ID }}</string>
+            </dict>
+            <key>ArchiveVersion</key><integer>2</integer>
+            <key>CreationDate</key><date>$(date -u +%Y-%m-%dT%H:%M:%SZ)</date>
+            <key>Name</key><string>App</string>
+            <key>SchemeName</key><string>App</string>
+            <key>Project</key><dict><key>Name</key><string>App</string></dict>
+          </dict>
+          </plist>
+          EOF
+          find build/App.xcarchive -maxdepth 3
       - name: Export IPA (signs with Apple Distribution)
         run: |
           xcodebuild -exportArchive -archivePath build/App.xcarchive \
