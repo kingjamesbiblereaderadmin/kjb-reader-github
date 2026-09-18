@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, ArrowLeft } from 'lucide-react';
 
-const LAST_UPDATED = 'September 1st, 2026';
+const LAST_UPDATED = 'September 18th, 2026';
 
 function AIDisclaimer() {
   return (
@@ -68,10 +68,11 @@ export default function PrivacyPolicyPage() {
 
       <Section title="Information I Collect">
         <p>
-          I do not collect any personal information. No account is needed to use the App,
-          and I do not ask for your name, email address, location, contacts, device files,
-          or any tracking identifiers. The App is fully functional without signing in. No Bible
-          content or reading data is stored on my servers.
+          No account is needed to use the App, and I do not ask for your name, location,
+          contacts, device files, or any tracking identifiers. The App is fully functional
+          without signing in. No Bible content or reading data is stored on my servers. The
+          only personal information ever collected is your email address, and only if you
+          choose to sign in with an optional account (see "Optional Sign-In" below).
         </p>
       </Section>
 
@@ -93,12 +94,24 @@ export default function PrivacyPolicyPage() {
         </p>
       </Section>
 
+      <Section title="Optional Sign-In">
+        <p>
+          No account is needed to read, search, highlight, or save verses — everything works
+          without signing in. An optional sign-in exists for administrative use (for example,
+          managing content on my behalf). If you do sign in, your email address and
+          authentication data are stored by the app's hosting platform (Base44) purely to
+          authenticate you — they are not used for marketing or profiling. Signed-in users
+          can delete their account and all associated data at any time from
+          Settings &rarr; Delete Account.
+        </p>
+      </Section>
+
       <Section title="No Cloud Sync">
         <p>
-          The core Bible-reading App does not sync any data to the cloud. There are no
-          accounts, no sign-in, and no cloud storage. Everything you do in the App — your
-          saved verses, reading progress, settings, and preferences — exists only on the
-          device you are using. (The optional Discord bot integration, described below, is
+          The core Bible-reading App does not sync your reading data to the cloud. No
+          account is required, and nothing you do in the App is uploaded anywhere by default.
+          Everything you do in the App — your saved verses, reading progress, settings, and
+          preferences — exists only on the device you are using. (The optional Discord bot integration, described below, is
           a separate feature that stores minimal server configuration on my servers.)
         </p>
       </Section>
@@ -150,6 +163,29 @@ export default function PrivacyPolicyPage() {
           information (such as your IP address) may be processed by my hosting provider purely
           to deliver the app, as is normal for any website.
         </p>
+      </Section>
+
+      <Section title="Native Mobile Apps (iOS & Android)">
+        <p>
+          The KJB Reader apps available on the Apple App Store and Google Play run this
+          same published web app inside a native wrapper. The native apps do not add any
+          additional data collection — every statement in this Privacy Policy applies
+          equally to the mobile apps. Apple and Google process standard installation and
+          delivery information (such as your App Store or Play Store account details) under
+          their own privacy policies.
+        </p>
+      </Section>
+
+      <Section title="Device Permissions">
+        <p>
+          The mobile apps do not request access to your camera, microphone, location,
+          contacts, photos, or personal files. The only device capabilities used are:
+        </p>
+        <ul className="space-y-2 list-disc pl-5">
+          <li>Network access — to load the app and Bible text and to apply updates (an offline copy can also be downloaded to your device).</li>
+          <li>The system share sheet — opened only when you choose Share on a verse or passage; you control what is shared and with whom.</li>
+          <li>Screen orientation — to support the Auto Rotate setting while reading.</li>
+        </ul>
       </Section>
 
       <Section title="Cookies & Analytics">

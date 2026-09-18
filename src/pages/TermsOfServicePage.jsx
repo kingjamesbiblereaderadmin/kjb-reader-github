@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, ArrowLeft } from 'lucide-react';
 
-const LAST_UPDATED = 'September 1st, 2026';
+const LAST_UPDATED = 'September 18th, 2026';
 
 function AIDisclaimer() {
   return (
@@ -71,6 +71,17 @@ export default function TermsOfServicePage() {
             works offline, offers daily verses, search, bookmarks, and customisable reading
             settings. A browser extension is also available, providing the same Bible
             reading and search functionality as a sidebar panel.
+          </p>
+        </Section>
+
+        <Section title="Native Mobile Apps">
+          <p>
+            KJB Reader is also available as native apps on the Apple App Store and Google
+            Play. The mobile apps run this same published web app inside a native wrapper
+            and provide the same reading features described above. Your use of the App Store
+            and Google Play versions is additionally governed by Apple's and Google's own
+            terms and policies. The apps are provided free of charge and contain no
+            in-app purchases.
           </p>
         </Section>
 
