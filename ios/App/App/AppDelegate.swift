@@ -7,7 +7,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // Install the offline-fallback navigation delegate on Capacitor's
+        // bridge view controller before it loads (see OfflineFallback.swift).
+        CAPBridgeViewController.enableOfflineFallback()
         return true
     }
 

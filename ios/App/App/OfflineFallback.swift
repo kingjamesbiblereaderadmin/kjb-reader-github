@@ -2,42 +2,69 @@ import UIKit
 import WebKit
 import Capacitor
 import Network
+import ObjectiveC
 
-// Root view controller (see Base.lproj/Main.storyboard) that adds the
-// offline-fallback behaviour to the remote-URL shell — the iOS counterpart
-// of MainActivity.java's WebViewClient in the Android app.
+// Offline-fallback for the iOS remote-URL shell — the iOS counterpart of
+// MainActivity.java's WebViewClient in the Android app.
 //
 // The shell normally loads https://kingjamesbiblereader.com live. WKWebView
 // has no shouldInterceptRequest equivalent, so when that site can't be
-// reached this controller loads the web build bundled inside the app
+// reached this code loads the web build bundled inside the app
 // (ios/App/App/public, populated by scripts/prepare-ios-offline.js) through
 // Capacitor's own local scheme handler at capacitor://localhost. Because
 // the offline copy runs on the capacitor:// origin, the app's /__native/*
 // asset fetches (Bible text, fonts, defence snapshot, legacy notice)
-// resolve same-origin against the bundled files, and SPA routes are
-// served by Capacitor's index.html fallback. localStorage on the https
-// origin isn't visible on the capacitor:// origin, so the offline copy
-// starts from the app's defaults — the full bundled Bible is always
-// readable, and live state returns as soon as the site is reachable
-// again (a reconnect is attempted periodically while offline and every
-// time the app comes to the foreground).
-class AppBridgeViewController: CAPBridgeViewController {
+// resolve same-origin against the bundled files, and SPA routes are served
+// by Capacitor's index.html fallback. localStorage on the https origin
+// isn't visible on the capacitor:// origin, so the offline copy starts
+// from the app's defaults — the full bundled Bible is always readable, and
+// live state returns as soon as the site is reachable again (a reconnect
+// is attempted periodically while offline and whenever the app becomes
+// active).
+//
+// The fallback delegate is installed by swizzling
+// CAPBridgeViewController.viewDidLoad (see below) rather than by pointing
+// Main.storyboard at a custom subclass: Xcode 26's ibtool fails to compile
+// a storyboard whose customClass lives in the app's own Swift module,
+// which isn't built yet when storyboards compile.
 
-    private var offlineFallback: OfflineFallbackDelegate?
+private var kjbOfflineFallbackKey: UInt8 = 0
 
-    override open func capacitorDidLoad() {
-        guard let webView = webView, let bridge = bridge else { return }
-        let fallback = OfflineFallbackDelegate(webView: webView,
-                                               remoteURL: bridge.config.serverURL,
-                                               localURL: bridge.config.localURL)
-        fallback.original = webView.navigationDelegate
-        webView.navigationDelegate = fallback
-        offlineFallback = fallback
+extension CAPBridgeViewController {
+
+    /// Call once at launch (AppDelegate) before the bridge view controller
+    /// loads. Idempotent.
+    @objc public static func enableOfflineFallback() {
+        _ = kjbOfflineFallbackSwizzle
     }
+}
 
-    override open func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        offlineFallback?.retryIfOffline()
+private let kjbOfflineFallbackSwizzle: Void = {
+    let original = class_getInstanceMethod(CAPBridgeViewController.self, #selector(viewDidLoad))
+    let swizzled = class_getInstanceMethod(CAPBridgeViewController.self, #selector(kjb_viewDidLoad))
+    guard let original = original, let swizzled = swizzled else { return }
+    method_exchangeImplementations(original, swizzled)
+}()
+
+extension CAPBridgeViewController {
+
+    // Runs in place of viewDidLoad (implementations are exchanged): wraps
+    // the webview's navigation delegate BEFORE the original implementation
+    // starts the first load, so even the cold-launch failure goes through
+    // the fallback. loadView has already run at this point, so the webView
+    // and bridge exist.
+    @objc private func kjb_viewDidLoad() {
+        if let webView = webView, let bridge = bridge,
+           objc_getAssociatedObject(self, &kjbOfflineFallbackKey) == nil {
+            let fallback = OfflineFallbackDelegate(webView: webView,
+                                                   remoteURL: bridge.config.serverURL,
+                                                   localURL: bridge.config.localURL)
+            fallback.original = webView.navigationDelegate
+            webView.navigationDelegate = fallback
+            objc_setAssociatedObject(self, &kjbOfflineFallbackKey, fallback,
+                                     .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        }
+        self.kjb_viewDidLoad() // exchanged — invokes the original viewDidLoad
     }
 }
 
@@ -52,8 +79,8 @@ final class OfflineFallbackDelegate: NSObject, WKNavigationDelegate {
     private let localURL: URL
 
     // Capacitor's WebViewDelegationHandler. It is retained by the bridge;
-    // WKWebView's navigationDelegate is itself weak, so AppBridgeViewController
-    // retains us instead.
+    // WKWebView's navigationDelegate is itself weak, so the associated
+    // object on the view controller retains us instead.
     weak var original: WKNavigationDelegate?
 
     private var offline = false
@@ -62,6 +89,7 @@ final class OfflineFallbackDelegate: NSObject, WKNavigationDelegate {
     private var lastAttempt: Date?
     private let monitor = NWPathMonitor()
     private var pathIsSatisfied = true
+    private var didBecomeActiveObserver: NSObjectProtocol?
 
     init(webView: WKWebView, remoteURL: URL, localURL: URL) {
         self.webView = webView
@@ -73,11 +101,19 @@ final class OfflineFallbackDelegate: NSObject, WKNavigationDelegate {
             DispatchQueue.main.async { self?.pathIsSatisfied = satisfied }
         }
         monitor.start(queue: DispatchQueue(label: "kjb.offline.pathmonitor"))
+        didBecomeActiveObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.didBecomeActiveNotification,
+            object: nil, queue: .main) { [weak self] _ in
+                self?.retryIfOffline()
+        }
     }
 
     deinit {
         monitor.cancel()
         reconnectTimer?.invalidate()
+        if let observer = didBecomeActiveObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
 
     // MARK: - Offline fallback
@@ -89,7 +125,7 @@ final class OfflineFallbackDelegate: NSObject, WKNavigationDelegate {
         webView?.load(URLRequest(url: localURL))
     }
 
-    // Attempt to go back to the live site. Called from viewWillAppear and
+    // Attempt to go back to the live site. Called on didBecomeActive and
     // every few seconds by the reconnect timer while the fallback is
     // active. Only runs when the network reports a usable path; if the
     // site is still unreachable WKWebView fails the navigation, the
