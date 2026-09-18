@@ -48,7 +48,7 @@ jobs:
         run: npx playwright install chromium
 
       - name: Capture screenshots of the live site
-        run: node scripts/asc-screenshots.js
+        run: node scripts/asc-screenshots.cjs
 
       - name: Write metadata files
         env:
