@@ -34,19 +34,19 @@ jobs:
           jq -n --arg key_id "$ASC_KEY_ID" --arg issuer "$ASC_ISSUER_ID" \
             --rawfile p8 ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
             '{key_id:$key_id, issuer_id:$issuer, key:$p8, in_house:false}' > ios/ci/asc_key_runtime.json
-      - name: Archive
+      # Development signing cannot work here: the account has no registered
+      # devices, so xcodebuild cannot mint a development profile ("Your team
+      # has no devices..."). Archive unsigned instead; the export step below
+      # signs with an Apple Distribution certificate + App Store profile
+      # created via the App Store Connect API key (-allowProvisioningUpdates).
+      - name: Archive (unsigned)
         run: |
           xcodebuild -workspace ios/App/App.xcworkspace -scheme App \
             -configuration Release -sdk iphoneos \
             -destination 'generic/platform=iOS' \
             -archivePath build/App.xcarchive \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8 \
-            -authenticationKeyID ${{ secrets.ASC_KEY_ID }} \
-            -authenticationKeyIssuerID ${{ secrets.ASC_ISSUER_ID }} \
-            DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
-            CODE_SIGN_STYLE=Automatic
-      - name: Export IPA
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+      - name: Export IPA (signs with Apple Distribution)
         run: |
           xcodebuild -exportArchive -archivePath build/App.xcarchive \
             -exportOptionsPlist ios/ci/ExportOptions.plist \
@@ -54,6 +54,7 @@ jobs:
             -allowProvisioningUpdates \
             -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8 \
             -authenticationKeyID ${{ secrets.ASC_KEY_ID }} \
-            -authenticationKeyIssuerID ${{ secrets.ASC_ISSUER_ID }}
+            -authenticationKeyIssuerID ${{ secrets.ASC_ISSUER_ID }} \
+            DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }}
       - name: Upload to App Store Connect
         run: fastlane deliver --api_key_path ios/ci/asc_key_runtime.json --ipa build/ipa/App.ipa --skip_screenshots --skip_metadata
