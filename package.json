@@ -25,6 +25,7 @@
     "@capacitor/app": "^6.0.3",
     "@capacitor/cli": "^6.2.1",
     "@capacitor/core": "^6.2.1",
+    "@capacitor/ios": "^6.2.2",
     "@capacitor/screen-orientation": "^6.0.4",
     "@capacitor/share": "^6.0.4",
     "@hello-pangea/dnd": "^17.0.0",
