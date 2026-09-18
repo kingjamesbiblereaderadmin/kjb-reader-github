@@ -54,6 +54,16 @@ const loaders = {
   Changelog: () => import('@/pages/ChangelogPage').catch((err) => { console.error('Failed to load ChangelogPage:', err); throw err; }),
 
 };
+// Pads standalone (non-AppLayout) routes below the iOS status bar and above
+// the home indicator. On native iOS the WKWebView is full-bleed and
+// index.html sets viewport-fit=cover, so env(safe-area-inset-*) reports the
+// real insets; in plain browsers (web PWA, screenshot captures) env() is 0
+// and this wrapper is a no-op. AppLayout pages don't need it — their header
+// already pads itself with env(safe-area-inset-top).
+const SafeAreaPad = ({ children }) => (
+  <div style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>{children}</div>
+);
+
 const HomePage = lazy(loaders.Home);
 const BibleReader = lazy(loaders.BibleReader);
 const GospelPage = lazy(loaders.Gospel);
@@ -289,26 +299,26 @@ const AuthenticatedApp = () => {
       />
       <ChunkErrorBoundary>
         <Routes location={location}>
-            <Route path="/login" element={<Suspense fallback={<RouteLoader />}><LoginPage /></Suspense>} />
-            <Route path="/forgot-password" element={<Suspense fallback={<RouteLoader />}><ForgotPasswordPage /></Suspense>} />
-            <Route path="/reset-password" element={<Suspense fallback={<RouteLoader />}><ResetPasswordPage /></Suspense>} />
-            <Route path="/register" element={<Suspense fallback={<RouteLoader />}><RegisterPage /></Suspense>} />
-            <Route path="/oauth/consent" element={<Suspense fallback={<RouteLoader />}><OAuthConsentPage /></Suspense>} />
-            <Route path="/credits" element={<Suspense fallback={<RouteLoader />}><CreditsPage /></Suspense>} />
-            <Route path="/changelog" element={<Suspense fallback={<RouteLoader />}><ChangelogPage /></Suspense>} />
-            <Route path="/extension/change-log" element={<Suspense fallback={<RouteLoader />}><ChangelogPage /></Suspense>} />
-            <Route path="/terms" element={<Suspense fallback={<RouteLoader />}><TermsOfServicePage /></Suspense>} />
-            <Route path="/privacy" element={<Suspense fallback={<RouteLoader />}><PrivacyPolicyPage /></Suspense>} />
-            <Route path="/contact" element={<Suspense fallback={<RouteLoader />}><ContactPage /></Suspense>} />
-            <Route path="/salvation" element={<Suspense fallback={<RouteLoader />}><SalvationPage /></Suspense>} />
-            <Route path="/discord" element={<Suspense fallback={<RouteLoader />}><DiscordInvitePage /></Suspense>} />
-            <Route path="/extension" element={<Suspense fallback={<RouteLoader />}><ExtensionPage /></Suspense>} />
-            <Route path="/extension-privacy" element={<Suspense fallback={<RouteLoader />}><ExtensionPrivacyPage /></Suspense>} />
-            <Route path="/extension/privacy" element={<Suspense fallback={<RouteLoader />}><ExtensionPrivacyPage /></Suspense>} />
-            <Route path="/extension-terms" element={<Suspense fallback={<RouteLoader />}><ExtensionTermsPage /></Suspense>} />
-            <Route path="/extension-license" element={<Suspense fallback={<RouteLoader />}><ExtensionLicensePage /></Suspense>} />
-            <Route path="/landing" element={<Suspense fallback={<RouteLoader />}><LandingPage /></Suspense>} />
-            <Route path="/espanol-evangelio" element={<Suspense fallback={<RouteLoader />}><SpanishGospelPage /></Suspense>} />
+            <Route path="/login" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><LoginPage /></SafeAreaPad></Suspense>} />
+            <Route path="/forgot-password" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><ForgotPasswordPage /></SafeAreaPad></Suspense>} />
+            <Route path="/reset-password" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><ResetPasswordPage /></SafeAreaPad></Suspense>} />
+            <Route path="/register" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><RegisterPage /></SafeAreaPad></Suspense>} />
+            <Route path="/oauth/consent" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><OAuthConsentPage /></SafeAreaPad></Suspense>} />
+            <Route path="/credits" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><CreditsPage /></SafeAreaPad></Suspense>} />
+            <Route path="/changelog" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><ChangelogPage /></SafeAreaPad></Suspense>} />
+            <Route path="/extension/change-log" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><ChangelogPage /></SafeAreaPad></Suspense>} />
+            <Route path="/terms" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><TermsOfServicePage /></SafeAreaPad></Suspense>} />
+            <Route path="/privacy" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><PrivacyPolicyPage /></SafeAreaPad></Suspense>} />
+            <Route path="/contact" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><ContactPage /></SafeAreaPad></Suspense>} />
+            <Route path="/salvation" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><SalvationPage /></SafeAreaPad></Suspense>} />
+            <Route path="/discord" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><DiscordInvitePage /></SafeAreaPad></Suspense>} />
+            <Route path="/extension" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><ExtensionPage /></SafeAreaPad></Suspense>} />
+            <Route path="/extension-privacy" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><ExtensionPrivacyPage /></SafeAreaPad></Suspense>} />
+            <Route path="/extension/privacy" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><ExtensionPrivacyPage /></SafeAreaPad></Suspense>} />
+            <Route path="/extension-terms" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><ExtensionTermsPage /></SafeAreaPad></Suspense>} />
+            <Route path="/extension-license" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><ExtensionLicensePage /></SafeAreaPad></Suspense>} />
+            <Route path="/landing" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><LandingPage /></SafeAreaPad></Suspense>} />
+            <Route path="/espanol-evangelio" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><SpanishGospelPage /></SafeAreaPad></Suspense>} />
             <Route element={<AppLayout />}>
               <Route path="/" element={<Suspense fallback={<RouteLoader />}><FadeIn><HomePage /></FadeIn></Suspense>} />
               <Route path="/read" element={<Suspense fallback={<RouteLoader />}><FadeIn><BibleReader /></FadeIn></Suspense>} />

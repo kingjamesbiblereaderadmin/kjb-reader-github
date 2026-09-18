@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ExternalLink, CheckCircle, Users, ChevronDown, Youtube, Facebook, Instagram, Link as LinkIcon, Copy, Globe } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ExternalLink, CheckCircle, Users, ChevronDown, ChevronLeft, ChevronRight, Youtube, Facebook, Instagram, Link as LinkIcon, Copy, Globe } from 'lucide-react';
 
 function CopyButton({ text, className }) {
   const [copied, setCopied] = useState(false);
@@ -123,23 +123,23 @@ export const PREACHERS = [
   },
 ];
 
+const initials = (name) =>
+  name.trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+
 export default function PreachersSection({
-  openPreachers: externalOpen,
-  togglePreacher: externalToggle,
   groupOpen: externalGroupOpen,
   onToggleGroup: externalToggleGroup,
 }) {
-  const [internalOpen, setInternalOpen] = useState(() =>
-    Object.fromEntries(PREACHERS.map((p) => [p.name, true]))
-  );
   const [internalGroupOpen, setInternalGroupOpen] = useState(true);
+  const [selected, setSelected] = useState(null);
 
-  const openPreachers = externalOpen || internalOpen;
-  const togglePreacher = externalToggle || ((name) => {
-    setInternalOpen((prev) => ({ ...prev, [name]: !prev[name] }));
-  });
   const groupOpen = externalGroupOpen !== undefined ? externalGroupOpen : internalGroupOpen;
   const toggleGroup = externalToggleGroup || (() => setInternalGroupOpen((o) => !o));
+
+  // Collapsing the group resets back to the directory view for next time.
+  useEffect(() => {
+    if (!groupOpen) setSelected(null);
+  }, [groupOpen]);
 
   return (
     <div className="mb-8 bg-card border border-border rounded-2xl overflow-hidden">
@@ -164,57 +164,66 @@ export default function PreachersSection({
           <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${groupOpen ? 'rotate-180' : ''}`} />
         </div>
       </button>
-      {groupOpen &&
-      <div className="p-5 pt-0 space-y-2">
-        {PREACHERS.map((preacher) => {
-          const isOpen = !!openPreachers[preacher.name];
-          return (
-            <div key={preacher.name} className="bg-card border border-border rounded-xl overflow-hidden transition-all">
-              <button
-                onClick={() => togglePreacher(preacher.name)}
-                className="w-full flex items-center gap-3 p-4 hover:bg-accent/5 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left">
-                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="notranslate font-sans text-sm font-semibold text-foreground" translate="no">{preacher.name}</p>
-                  {!isOpen &&
-                    <p className="font-sans text-xs text-muted-foreground truncate">{preacher.desc}</p>
-                  }
-                </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <CopyButton
-                    text={`${preacher.name}\n${preacher.desc}\n\n${preacher.links.join('\n')}`}
-                    className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors cursor-pointer"
-                  />
-                  <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                </div>
-              </button>
-              {isOpen &&
-                <div className="border-t border-border px-4 pb-4 pt-3 bg-background/40 space-y-2">
-                  <p className="font-sans text-xs text-muted-foreground mb-3">{preacher.desc}</p>
-                  {preacher.links.map((url) =>
-                    <a
-                      key={url}
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 bg-card border border-border rounded-lg hover:border-accent/50 transition-colors group">
-                      <span className="text-muted-foreground group-hover:text-accent transition-colors">
-                        {getLinkIcon(url)}
-                      </span>
-                      <span className="font-sans text-sm font-medium text-foreground group-hover:text-accent transition-colors flex-1 break-words">
-                        {getLinkLabel(url)}
-                      </span>
-                      <CopyButton text={url} className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors flex-shrink-0" />
-                      <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors flex-shrink-0" />
-                    </a>
-                  )}
-                </div>
-              }
+      {groupOpen && !selected && (
+        <div className="p-5 pt-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {PREACHERS.map((preacher) => (
+            <button
+              key={preacher.name}
+              onClick={() => setSelected(preacher)}
+              className="flex items-center gap-3 p-4 bg-card border border-border rounded-xl text-left hover:border-accent/50 hover:bg-accent/5 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+            >
+              <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 font-sans font-semibold text-xs">
+                {initials(preacher.name)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="notranslate font-sans text-sm font-semibold text-foreground truncate" translate="no">{preacher.name}</p>
+                <p className="font-sans text-xs text-muted-foreground truncate">{preacher.desc}</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            </button>
+          ))}
+        </div>
+      )}
+      {groupOpen && selected && (
+        <div className="p-5 pt-0 space-y-2">
+          <button
+            onClick={() => setSelected(null)}
+            className="inline-flex items-center gap-1.5 mb-4 px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" /> All preachers
+          </button>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 font-sans font-semibold text-sm">
+              {initials(selected.name)}
             </div>
-          );
-        })}
-      </div>
-      }
+            <div className="min-w-0">
+              <p className="notranslate font-sans text-sm font-semibold text-foreground truncate" translate="no">{selected.name}</p>
+              <p className="font-sans text-xs text-muted-foreground flex items-center gap-1">
+                <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+                Verified · {selected.links.length} {selected.links.length === 1 ? 'link' : 'links'}
+              </p>
+            </div>
+          </div>
+          <p className="font-sans text-xs text-muted-foreground mb-3">{selected.desc}</p>
+          {selected.links.map((url) =>
+            <a
+              key={url}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 p-3 bg-card border border-border rounded-lg hover:border-accent/50 transition-colors group">
+              <span className="text-muted-foreground group-hover:text-accent transition-colors">
+                {getLinkIcon(url)}
+              </span>
+              <span className="font-sans text-sm font-medium text-foreground group-hover:text-accent transition-colors flex-1 break-words">
+                {getLinkLabel(url)}
+              </span>
+              <CopyButton text={url} className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors flex-shrink-0" />
+              <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors flex-shrink-0" />
+            </a>
+          )}
+        </div>
+      )}
     </div>
   );
 }

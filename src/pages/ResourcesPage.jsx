@@ -56,7 +56,6 @@ export default function ResourcesPage() {
     spanish: true,
     defence: true,
     resources: Object.fromEntries(RESOURCES.map((_, idx) => [idx, true])),
-    preacherLinks: Object.fromEntries(PREACHERS.map((p) => [p.name, true])),
   }));
 
   // Tracks whether the last toggleAll set everything to expanded.
@@ -70,18 +69,13 @@ export default function ResourcesPage() {
     expandedSections.sidepanel &&
     expandedSections.spanish &&
     expandedSections.defence &&
-    RESOURCES.every((_, idx) => expandedSections.resources[idx] === true) &&
-    PREACHERS.every((p) => expandedSections.preacherLinks[p.name] === true);
+    RESOURCES.every((_, idx) => expandedSections.resources[idx] === true);
 
   const toggleAll = () => {
     const newState = !allExpanded;
     const newResourcesState = {};
     RESOURCES.forEach((_, idx) => {
       newResourcesState[idx] = newState;
-    });
-    const newPreacherLinksState = {};
-    PREACHERS.forEach((p) => {
-      newPreacherLinksState[p.name] = newState;
     });
     setExpandedSections(prev => ({
       ...prev,
@@ -94,14 +88,6 @@ export default function ResourcesPage() {
       spanish: newState,
       defence: newState,
       resources: newResourcesState,
-      preacherLinks: newPreacherLinksState,
-    }));
-  };
-
-  const togglePreacher = (name) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      preacherLinks: { ...prev.preacherLinks, [name]: !prev.preacherLinks[name] },
     }));
   };
 
@@ -324,8 +310,6 @@ export default function ResourcesPage() {
       <PreachersSection
         groupOpen={expandedSections.preachers}
         onToggleGroup={() => toggleSection('preachers')}
-        openPreachers={expandedSections.preacherLinks}
-        togglePreacher={togglePreacher}
       />
 
       {/* Ministry Links */}
