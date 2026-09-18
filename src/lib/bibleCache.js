@@ -6,7 +6,7 @@
 import { saveToIndexedDB, loadFromIndexedDB, clearIndexedDB } from '@/lib/bibleIndexedDB';
 import { COLOPHONS } from '@/lib/bibleSubscripts';
 import { parsePceText } from '@/lib/biblePceParser';
-import { isNativeAndroid } from '@/lib/isNativeAndroid';
+import { canUseNativeBundledAssets } from '@/lib/nativeOfflineAssets';
 
 // Bump this version string whenever the Bible text file changes — every client
 // will then re-download and re-parse fresh. Replaces the old remote VERSION.txt
@@ -32,9 +32,9 @@ const REMOTE_PCE_TEXT_FILE_URL = 'https://base44.app/api/apps/6a8011c360ff52dad3
 // one-time download required. Must match MainActivity's BUNDLED_BIBLE_PATH
 // exactly. Falls back to the remote URL on web/iOS or if interception isn't
 // wired up for some reason.
-let isNative = false;
-try { isNative = isNativeAndroid(); } catch {}
-const PCE_TEXT_FILE_URL = isNative ? '/__native/pce-bible.txt' : REMOTE_PCE_TEXT_FILE_URL;
+let useBundledAssets = false;
+try { useBundledAssets = canUseNativeBundledAssets(); } catch {}
+const PCE_TEXT_FILE_URL = useBundledAssets ? '/__native/pce-bible.txt' : REMOTE_PCE_TEXT_FILE_URL;
 
 const EXPECTED_BOOK_COUNT = 66;
 

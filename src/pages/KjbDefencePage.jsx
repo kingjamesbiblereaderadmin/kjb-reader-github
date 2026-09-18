@@ -10,7 +10,7 @@ import DefenceCategoryList from '@/components/defence/DefenceCategoryList';
 import CopyButton from '@/components/defence/CopyButton';
 import { Copy } from 'lucide-react';
 import { toast } from 'sonner';
-import { isNativeAndroid } from '@/lib/isNativeAndroid';
+import { canUseNativeBundledAssets } from '@/lib/nativeOfflineAssets';
 
 // Normalizes whatever the .list() SDK call (or a cached/localStorage value)
 // hands back into a guaranteed real array, regardless of its exact shape.
@@ -114,15 +114,16 @@ export default function KjbDefencePage() {
       if (Array.isArray(cached) && cached.length > 0) {
         setItems(cached);
         toast.error('Showing saved copy — could not reach the server for the latest resources.');
-      } else if (isNativeAndroid()) {
+      } else if (canUseNativeBundledAssets()) {
         // No localStorage cache yet either -- a genuinely first-ever launch
         // with zero prior connectivity, the one case the cache above can't
         // help with (nothing's ever been successfully fetched to cache).
-        // Fall back to the build-time snapshot bundled in the APK (see
-        // BUNDLED_DEFENCE_PATH / defence-resources-snapshot.json in
-        // MainActivity.java) so this shows the resources as they stood at
-        // build time instead of an empty page. Not attempted on web, since
-        // there's nothing bundled to fall back to there.
+        // Fall back to the build-time snapshot bundled in the app (Android APK
+        // assets via MainActivity.java; iOS offline copy via Capacitor's local
+        // server — see nativeOfflineAssets.js) so this shows the resources as
+        // they stood at build time instead of an empty page. Not attempted on
+        // web or the iOS live site, since there's nothing bundled to fall back
+        // to there.
         try {
           const res = await fetch('/__native/defence-resources.json');
           const snapshot = toArray(await res.json());

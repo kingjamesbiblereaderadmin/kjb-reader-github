@@ -3,6 +3,7 @@ import { Download, FileCode, HardDrive, Loader2, CheckCircle2, AlertCircle } fro
 import { appParams } from '@/lib/app-params';
 import { triggerDownload } from '@/lib/nativeDownload';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
+import { canUseNativeBundledAssets } from '@/lib/nativeOfflineAssets';
 
 // The standalone, single-file HTML version of the entire KJB (all 66 books +
 // Gospel, Resources, About). 100% self-contained, no JavaScript, works on any
@@ -51,9 +52,11 @@ export default function OfflineHtmlSection() {
         // download is generated live and would need the Bible text baked
         // in, which this small fallback doesn't carry) -- it's a short
         // page explaining that and linking back once the person is online.
-        // Only meaningful on native Android; on web there's nothing bundled
-        // to fall back to, so just surface the original error there.
-        if (!isNativeAndroid()) throw fetchErr;
+        // Only meaningful on native (Android always; iOS on the offline-fallback
+        // copy — see nativeOfflineAssets.js); on web / the iOS live site there's
+        // nothing bundled to fall back to, so just surface the original error
+        // there.
+        if (!canUseNativeBundledAssets()) throw fetchErr;
         res = await fetch('/__native/legacy.html');
         if (!res.ok) throw fetchErr;
         fellBack = true;
