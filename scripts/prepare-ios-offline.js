@@ -57,12 +57,35 @@ for (const name of fs.readdirSync(fontsDir)) {
 }
 
 // 4. WKWebView can't intercept https, so the offline copy's Google Fonts
-//    <link> would fail — point it at the bundled CSS instead. (The Atkinson
-//    accessibility font is requested at runtime and isn't available
-//    offline on iOS; the UI falls back to the default font.)
+//    <link> would fail — point it at the bundled CSS instead.
 const indexPath = path.join(iosPublic, 'index.html');
 let html = fs.readFileSync(indexPath, 'utf8');
 html = html.replace(/https:\/\/fonts\.googleapis\.com\/css2[^"']*/g, '/fonts/main-fonts.css');
 fs.writeFileSync(indexPath, html);
+
+// 5. The Atkinson accessibility font's Google Fonts @import lives inside the
+//    compiled CSS (src/index.css); offline that fetch fails and the UI
+//    falls back to the default font. Swap the import for the bundled
+//    atkinson.css (served from /fonts/, which points at the bundled woff2
+//    files in /__native/fonts/) so the accessibility font works offline.
+function rewriteCssFonts(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      rewriteCssFonts(p);
+    } else if (entry.name.endsWith('.css')) {
+      let css = fs.readFileSync(p, 'utf8');
+      const patched = css.replace(
+        /@import[^;]*Atkinson[^;]*;/gi,
+        '@import url("/fonts/atkinson.css");'
+      );
+      if (patched !== css) {
+        fs.writeFileSync(p, patched);
+        console.log(`  Atkinson @import rewritten in ${path.relative(iosPublic, p)}`);
+      }
+    }
+  }
+}
+rewriteCssFonts(iosPublic);
 
 console.log('iOS offline bundle prepared.');

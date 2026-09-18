@@ -4,6 +4,8 @@ import App from '@/App.jsx'
 import '@/index.css'
 import { cacheSplashLogo } from '@/lib/splashLogo'
 import { isNativeAndroid } from '@/lib/isNativeAndroid'
+import { isNativeIos } from '@/lib/isNativeIos'
+import { hydrateNativeStateMirror } from '@/lib/nativeStateSync'
 import { toast } from 'sonner'
 
 // Swallow the harmless, transient "Failed to update a ServiceWorker ... Not
@@ -65,11 +67,18 @@ const rootElement = document.getElementById('root');
 if (!rootElement) {
   console.error('[KJB] #root element not found — cannot mount app.');
 } else {
-  createRoot(rootElement).render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  );
+  const mountApp = () => {
+    createRoot(rootElement).render(
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>
+    );
+  };
+  // In the native iOS shell, wait for the cross-origin state mirror to
+  // hydrate localStorage first (see src/lib/nativeStateSync.js), so the
+  // app mounts with the user's live-site state even on the offline copy.
+  // Everywhere else this resolves immediately.
+  hydrateNativeStateMirror().catch(() => {}).then(mountApp);
 }
 
 // Service worker registration for offline support and notifications.
@@ -107,8 +116,8 @@ if (!rootElement) {
   // unregisters any SW a device may already have picked up from an EARLIER
   // version of the app before this guard existed, so upgrading doesn't
   // leave a stale, still-active SW controlling the page indefinitely.
-  if (isNativeAndroid()) {
-    console.log('[SW] Skipping registration on native Android -- offline is handled natively instead');
+  if (isNativeAndroid() || isNativeIos()) {
+    console.log('[SW] Skipping registration on the native app -- offline is handled natively instead');
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(registrations => {
         registrations.forEach(reg => reg.unregister());

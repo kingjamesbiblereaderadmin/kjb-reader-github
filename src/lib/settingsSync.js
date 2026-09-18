@@ -2,7 +2,7 @@
 // so same-tab writes to preference keys still dispatch 'storage' events for
 // immediate UI updates (theme, fonts, zoom, etc.).
 
-const SYNC_KEYS = [
+export const SYNC_KEYS = [
   'kjb-zoom',
   'kjb-reader-font-family',
   'kjb-verse-font-family',
