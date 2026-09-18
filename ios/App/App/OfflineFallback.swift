@@ -40,8 +40,10 @@ extension CAPBridgeViewController {
 }
 
 private let kjbOfflineFallbackSwizzle: Void = {
-    let original = class_getInstanceMethod(CAPBridgeViewController.self, #selector(viewDidLoad))
-    let swizzled = class_getInstanceMethod(CAPBridgeViewController.self, #selector(kjb_viewDidLoad))
+    // Plain selector strings: #selector(...) can't resolve these members from
+    // global scope in an extension of an imported class.
+    let original = class_getInstanceMethod(CAPBridgeViewController.self, Selector("viewDidLoad"))
+    let swizzled = class_getInstanceMethod(CAPBridgeViewController.self, Selector("kjb_viewDidLoad"))
     guard let original = original, let swizzled = swizzled else { return }
     method_exchangeImplementations(original, swizzled)
 }()
