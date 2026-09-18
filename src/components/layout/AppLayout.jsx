@@ -13,6 +13,7 @@ import ScrollToTop from '@/components/ScrollToTop';
 import AutoUpdateHandler from '@/components/AutoUpdateHandler';
 import ProgressBar from '@/components/ProgressBar';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
+import { isNativeIos } from '@/lib/isNativeIos';
 
 import { getBibleData, isBibleCached, initPeriodicCacheRefresh, downloadBibleForOffline, refreshCacheIfDue, CACHE_VERSION } from '@/lib/bibleCache';
 import { prefetchAllBackgroundCaches } from '@/lib/backgroundCache';
@@ -418,7 +419,7 @@ export default function AppLayout() {
 
           {/* Actions - responsive button sizes with visible square touch targets */}
           <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 shrink-0">
-            {!isNativeAndroid() && (
+            {!isNativeAndroid() && !isNativeIos() && (
               <button
                 type="button"
                 onClick={toggleFullscreen}

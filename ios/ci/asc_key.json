@@ -1,0 +1,7 @@
+{
+  "_comment": "Template for the fastlane `deliver` upload in the CI workflow. The workflow copies this file and fills the three values from repository secrets (ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8) at run time: KEY_ID, ISSUER_ID, and KEY (the .p8 content itself, multi-line).",
+  "key_id": "KEY_ID_PLACEHOLDER",
+  "issuer_id": "ISSUER_ID_PLACEHOLDER",
+  "key": "-----BEGIN PRIVATE KEY-----\nKEY_P8_PLACEHOLDER\n-----END PRIVATE KEY-----\n",
+  "in_house": false
+}

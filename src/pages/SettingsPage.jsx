@@ -22,6 +22,7 @@ import { detectIncognito } from '@/lib/incognito';
 import { getLiveWorkerVersion, getDeployedWorkerVersion } from '@/lib/liveWorkerVersion';
 import { isMobileDevice } from '@/lib/isMobileDevice';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
+import { isNativeIos } from '@/lib/isNativeIos';
 
 const A11Y_FONTS = [
   { value: 'dyslexic', label: 'OpenDyslexic', desc: 'Designed for readers with dyslexia', preview: "'OpenDyslexic', 'Comic Sans MS', sans-serif" },
@@ -942,7 +943,7 @@ export default function SettingsPage() {
                   )}
                 </span>
               </div>
-              {!isNativeAndroid() && (
+              {!isNativeAndroid() && !isNativeIos() && (
                 <div className="flex justify-between items-center font-sans text-sm gap-4">
                   <span className="text-muted-foreground shrink-0">PWA Status</span>
                   <span className="text-foreground font-medium text-right flex items-center gap-1">

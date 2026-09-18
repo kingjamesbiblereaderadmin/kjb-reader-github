@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { isNativeIos } from '@/lib/isNativeIos';
 
 const DISMISSED_KEY = 'kjb-install-dismissed';
 const INSTALLED_KEY = 'kjb-is-installed';
@@ -115,8 +116,10 @@ const checkInstalled = () => {
   
   // 0. Native Android app (WebView wrapper) — already installed. The native
   // app's UA carries a "KJBReader" token (or the generic Android "wv" marker),
-  // so we can tell it apart from a plain Chrome-on-Android browser.
-  if (isNativeAndroidApp()) {
+  // so we can tell it apart from a plain Chrome-on-Android browser. The iOS
+  // shell (WKWebView) has no UA marker, so it's detected via the Capacitor
+  // bridge injected into the page instead.
+  if (isNativeAndroidApp() || isNativeIos()) {
     localStorage.setItem(INSTALLED_KEY, 'true');
     return true;
   }
@@ -309,6 +312,7 @@ export function useInstallPrompt() {
     playStoreUrl: PLAY_STORE_URL,
     isAndroidDevice: isAndroidUA(),
     isNativeAndroid: isNativeAndroidApp(),
+    isNativeIos: isNativeIos(),
     promptInstall, dismiss, wasDismissed, handleInstall, handleDismiss,
   };
 }

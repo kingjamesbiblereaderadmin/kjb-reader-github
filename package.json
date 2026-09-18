@@ -16,6 +16,8 @@
     "cap:sync": "cap sync",
     "cap:add:android": "cap add android",
     "cap:open:android": "cap open android",
+    "cap:add:ios": "cap add ios",
+    "cap:open:ios": "cap open ios",
     "cap:copy": "cap copy"
   },
   "dependencies": {
