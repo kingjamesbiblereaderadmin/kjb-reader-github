@@ -57,6 +57,10 @@ const PAGES = [
       // experience, not a CI sandboxing artifact.
       await context.addInitScript(() => {
         try {
+          // These shots market the INSTALLED native iOS app, so present the
+          // capture browser as installed: the setup wizard's Install step then
+          // shows its green "App installed!" state instead of install buttons.
+          localStorage.setItem('kjb-is-installed', 'true');
           if (window.navigator.storage && window.navigator.storage.estimate) {
             window.navigator.storage.estimate = async () => ({
               quota: 4 * 1024 * 1024 * 1024, // 4 GiB — well above the incognito ceiling
