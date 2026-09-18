@@ -30,6 +30,7 @@ const PAGES = [
   { name: 'read_romans325', url: `${BASE}/read?book=ROM&chapter=3&verse=25`, a11y: true },
   { name: 'read_1cor151', url: `${BASE}/read?book=1CO&chapter=15&verse=1&verseEnd=4`, a11y: true },
   { name: 'gospel', url: `${BASE}/gospel` },
+  { name: 'resources', url: `${BASE}/resources` },
   { name: 'search', url: `${BASE}/search` },
   { name: 'settings', url: `${BASE}/settings` },
 ];
@@ -47,6 +48,28 @@ const PAGES = [
         deviceScaleFactor: device.scale,
         isMobile: device.isMobile,
         hasTouch: device.touch,
+      });
+      // Headless Chromium in CI reports a tiny temporary-storage quota (no
+      // real disk backing it), which the app's incognito heuristic
+      // (src/lib/incognito.js) misreads as a private/incognito window,
+      // showing the "You're in a private window" banner in screenshots.
+      // Spoof a normal-sized quota so captures reflect the real logged-out
+      // experience, not a CI sandboxing artifact.
+      await context.addInitScript(() => {
+        try {
+          if (window.navigator.storage && window.navigator.storage.estimate) {
+            window.navigator.storage.estimate = async () => ({
+              quota: 4 * 1024 * 1024 * 1024, // 4 GiB — well above the incognito ceiling
+              usage: 0,
+            });
+          }
+          if (window.navigator.webkitTemporaryStorage &&
+              window.navigator.webkitTemporaryStorage.queryUsageAndQuota) {
+            window.navigator.webkitTemporaryStorage.queryUsageAndQuota = (success) => {
+              success(0, 4 * 1024 * 1024 * 1024);
+            };
+          }
+        } catch {}
       });
       if (target.a11y) {
         // Set before any app script runs: OpenDyslexic font + column mode.
