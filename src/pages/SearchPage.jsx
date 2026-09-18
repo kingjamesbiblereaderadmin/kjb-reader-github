@@ -68,8 +68,8 @@ const SEARCH_PLACEHOLDER_LADDER = [
   'e.g. study, Romans 3:25, 1 Corinthians 15:1-4',
   'e.g. study, Romans 3:25, 1 Cor 15:1-4',
   'e.g. Romans 3:25, 1 Cor 15:1-4',
-  'e.g. John 3:16, faith',
-  'e.g. John 3:16',
+  'e.g. Romans 3:25, faith',
+  'e.g. Romans 3:25',
   'Search Bible',
 ];
 
