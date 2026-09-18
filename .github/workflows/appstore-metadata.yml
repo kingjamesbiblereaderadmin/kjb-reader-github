@@ -1,0 +1,104 @@
+# Fills the App Store Connect listing requirements that block review
+# submission: screenshots (6.5" iPhone + 13" iPad), copyright, age rating
+# answers, and App Review contact info. Manual dispatch only.
+#
+# Screenshots are real captures of the live site taken with Playwright
+# Chromium at the exact ASC resolutions; everything else is pushed with
+# fastlane deliver using the same ASC API key as the build workflow.
+
+name: App Store metadata
+
+on:
+  workflow_dispatch:
+    inputs:
+      copyright:
+        description: 'Copyright line (e.g. 2026 King James Bible Reader)'
+        required: true
+      first_name:
+        description: 'App Review contact first name'
+        required: true
+      last_name:
+        description: 'App Review contact last name'
+        required: true
+      email:
+        description: 'App Review contact email'
+        required: true
+      phone:
+        description: 'App Review contact phone (optional)'
+        required: false
+        default: ''
+
+concurrency:
+  group: appstore-metadata
+  cancel-in-progress: false
+
+jobs:
+  metadata:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install chromium
+
+      - name: Capture screenshots of the live site
+        run: node scripts/asc-screenshots.js
+
+      - name: Write metadata files
+        env:
+          COPYRIGHT: ${{ github.event.inputs.copyright }}
+          FIRST_NAME: ${{ github.event.inputs.first_name }}
+          LAST_NAME: ${{ github.event.inputs.last_name }}
+          EMAIL: ${{ github.event.inputs.email }}
+          PHONE: ${{ github.event.inputs.phone }}
+        run: |
+          set -euxo pipefail
+          mkdir -p fastlane/metadata/review_information
+          printf '%s\n' "$COPYRIGHT" > fastlane/metadata/copyright.txt
+          printf '%s\n' "$FIRST_NAME" > fastlane/metadata/review_information/first_name.txt
+          printf '%s\n' "$LAST_NAME" > fastlane/metadata/review_information/last_name.txt
+          printf '%s\n' "$EMAIL" > fastlane/metadata/review_information/email_address.txt
+          if [ -n "$PHONE" ]; then
+            printf '%s\n' "$PHONE" > fastlane/metadata/review_information/phone_number.txt
+          fi
+          cp scripts/asc-age-rating.json fastlane/metadata/age_rating.json
+
+      - name: Write ASC API key
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          set -euxo pipefail
+          mkdir -p ~/.appstoreconnect/private_keys ios/ci
+          if printf '%s' "$ASC_KEY_P8" | head -c 5 | grep -q 'BEGIN'; then
+            printf '%s\n' "$ASC_KEY_P8" > ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
+          else
+            printf '%s' "$ASC_KEY_P8" | base64 -d > ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
+          fi
+          jq -n --arg key_id "$ASC_KEY_ID" --arg issuer "$ASC_ISSUER_ID" \
+            --rawfile p8 ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
+            '{key_id:$key_id, issuer_id:$issuer, key:$p8, in_house:false}' > ios/ci/asc_key_runtime.json
+
+      - name: Upload metadata, age rating and screenshots
+        run: |
+          fastlane deliver \
+            --api_key_path ios/ci/asc_key_runtime.json \
+            --app_identifier com.kingjamesbiblereader.twa \
+            --skip_binary_upload --skip_app_version_update \
+            --screenshots_path fastlane/screenshots \
+            --metadata_path fastlane/metadata \
+            --app_rating_config_path fastlane/metadata/age_rating.json \
+            --force --run_precheck_before_submit false
+
+      - name: Cleanup runtime key
+        if: always()
+        run: rm -f ios/ci/asc_key_runtime.json ~/.appstoreconnect/private_keys/*.p8
