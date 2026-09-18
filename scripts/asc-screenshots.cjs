@@ -61,16 +61,20 @@ const PAGES = [
           // capture browser as installed: the setup wizard's Install step then
           // shows its green "App installed!" state instead of install buttons.
           localStorage.setItem('kjb-is-installed', 'true');
+          // Use a realistic disk-backed quota (a large fraction of free disk,
+          // e.g. 200 GiB). Note: the app's heuristic flags incognito when the
+          // quota is below ~2x the JS heap limit — in headless Chrome that
+          // limit is 4 GiB, so a smaller spoof (e.g. 4 GiB) still trips it.
           if (window.navigator.storage && window.navigator.storage.estimate) {
             window.navigator.storage.estimate = async () => ({
-              quota: 4 * 1024 * 1024 * 1024, // 4 GiB — well above the incognito ceiling
+              quota: 200 * 1024 * 1024 * 1024,
               usage: 0,
             });
           }
           if (window.navigator.webkitTemporaryStorage &&
               window.navigator.webkitTemporaryStorage.queryUsageAndQuota) {
             window.navigator.webkitTemporaryStorage.queryUsageAndQuota = (success) => {
-              success(0, 4 * 1024 * 1024 * 1024);
+              success(0, 200 * 1024 * 1024 * 1024);
             };
           }
         } catch {}
