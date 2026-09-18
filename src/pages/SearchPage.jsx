@@ -10,6 +10,7 @@ import { isMultiReference, expandMultiReference } from '@/lib/multiReference';
 import SearchResultsList from '@/components/bible/SearchResultsList';
 import renderWithItalics from '@/components/bible/renderWithItalics';
 import GhostInput from '@/components/bible/GhostInput';
+import useAdaptivePlaceholder from '@/hooks/useAdaptivePlaceholder';
 import { setSearchNav, clearSearchNav } from '@/lib/searchNav';
 import ExportMenu from '@/components/bible/ExportMenu';
 import {
@@ -58,6 +59,20 @@ function parsePassage(input) {
 const OT_BOOKS = new Set(BIBLE_BOOKS.filter(b => b.testament === 'old').map(b => b.apiName));
 const NT_BOOKS = new Set(BIBLE_BOOKS.filter(b => b.testament === 'new').map(b => b.apiName));
 
+// Example-hint ladder, longest → shortest. The search box picks the longest one
+// that actually fits its width (measured, not guessed by breakpoint), so the
+// placeholder never gets clipped mid-word into a misleading hint like
+// "…1 Corinthians" — it steps down through shortened examples instead and only
+// ellipsizes at the very end as a last resort.
+const SEARCH_PLACEHOLDER_LADDER = [
+  'e.g. study, Romans 3:25, 1 Corinthians 15:1-4',
+  'e.g. study, Romans 3:25, 1 Cor 15:1-4',
+  'e.g. Romans 3:25, 1 Cor 15:1-4',
+  'e.g. John 3:16, faith',
+  'e.g. John 3:16',
+  'Search Bible',
+];
+
 // Strip surrounding quotes from a display query (for "results for" labels)
 function stripQuotes(s) {
   if (!s) return s;
@@ -102,6 +117,8 @@ export default function SearchPage() {
   // Tracks the last query text we searched, so we only reset the book selection
   // on a genuinely new query (not when re-running to apply the book filter).
   const lastQueryRef = useRef(getQueryFromUrl());
+  const searchInputRef = useRef(null);
+  const searchPlaceholder = useAdaptivePlaceholder(SEARCH_PLACEHOLDER_LADDER, searchInputRef);
 
   // Measures the sticky header block's rendered height (title + search box +
   // filters + results count/toolbar/keyboard hint — all one physical sticky
@@ -1139,6 +1156,7 @@ export default function SearchPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
           <GhostInput
+            ref={searchInputRef}
             type="text"
             value={query}
             onChange={e => { setQuery(e.target.value); setFocusedIndex(-1); }}
@@ -1169,9 +1187,9 @@ export default function SearchPage() {
               }
             }}
             enterKeyHint="search"
-            placeholder="e.g. study, Romans 3:25, 1 Corinthians 15:1-4"
+            placeholder={searchPlaceholder}
             leftPadClass="pl-9"
-            inputClassName="w-full pl-9 pr-4 py-2 rounded-lg bg-secondary border border-border text-sm font-sans text-foreground placeholder:text-muted-foreground placeholder:text-xs sm:placeholder:text-sm focus:outline-none focus:border-accent transition-colors"
+            inputClassName="w-full pl-9 pr-4 py-2 rounded-lg bg-secondary border border-border text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors"
             autoFocus={!getQueryFromUrl()}
           />
         </div>
