@@ -84,74 +84,48 @@ template splash is accepted.
 **From Xcode (simplest):** `Product → Archive`, then
 `Window → Organizer → Distribute App → App Store Connect → Upload`.
 
-**From CI (GitHub Actions):** the workflow below mirrors
-`build-android.yml`. Because agent tooling can't write to `.github/workflows/`,
-add this manually as `.github/workflows/build-ios.yml` (copy from
-`ios/ci/build-ios.yml` in this repo, same content):
+**From CI (GitHub Actions):** `.github/workflows/build-ios.yml` is committed in
+this repo and runs on every push to `main` or manually (*Actions → Build iOS App
+→ Run workflow*). It produces an App Store upload with no Mac and no registered
+devices, using the repository secrets:
 
-- **Repository secrets to set:**
-  - `APPLE_TEAM_ID` — found at https://developer.apple.com/account → Membership
-  - `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8` (base64 of the .p8) — an App
-    Store Connect **API key** (App Store Connect → Users and Access →
-    Integrations → Team keys, role *App Manager* or higher). Xcode uses this
-    key for `-allowProvisioningUpdates` (fully-automatic signing, no cert
-    files to manage) and `fastlane` uses it to upload.
+- `APPLE_TEAM_ID` — found at https://developer.apple.com/account → Membership
+- `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8` (base64 of the .p8) — an App Store
+  Connect **API key** (App Store Connect → Users and Access → Integrations →
+  Team keys, role *App Manager* or higher)
 
-```yaml
-name: Build iOS App
-on:
-  workflow_dispatch:
-  push:
-    branches: [main]
+How the CI signing works (important — do not "simplify" it back to the naive
+approach; each step below fixed a real failure):
 
-jobs:
-  build:
-    runs-on: macos-14
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - uses: maxim-lobanov/setup-xcode@v1
-        with: { xcode-version: '16.1' }
-      - name: Install deps
-        run: npm install
-      - name: Build web + sync
-        run: npm run build && npx cap sync ios
-      - name: Install pods
-        run: cd ios/App && pod install
-      - name: Write signing key
-        run: |
-          mkdir -p ~/.appstoreconnect/private_keys
-          echo "${{ secrets.ASC_KEY_P8 }}" | base64 -d > ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8
-      - name: Archive
-        run: |
-          xcodebuild -workspace ios/App/App.xcworkspace -scheme App \
-            -configuration Release -sdk iphoneos \
-            -destination 'generic/platform=iOS' \
-            -archivePath build/App.xcarchive \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8 \
-            -authenticationKeyID ${{ secrets.ASC_KEY_ID }} \
-            -authenticationKeyIssuerID ${{ secrets.ASC_ISSUER_ID }} \
-            DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
-            CODE_SIGN_STYLE=Automatic
-      - name: Export IPA
-        run: |
-          xcodebuild -exportArchive -archivePath build/App.xcarchive \
-            -exportOptionsPlist ios/ci/ExportOptions.plist \
-            -exportPath build/ipa \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8 \
-            -authenticationKeyID ${{ secrets.ASC_KEY_ID }} \
-            -authenticationKeyIssuerID ${{ secrets.ASC_ISSUER_ID }}
-      - name: Upload to App Store Connect
-        run: fastlane deliver --api_key_path ios/ci/asc_key.json --ipa build/ipa/App.ipa --skip_screenshots --skip_metadata
-```
+1. **Development signing is impossible on CI here**: the account has no
+   registered devices, so xcodebuild cannot create a development provisioning
+   profile ("Your team has no devices from which to generate a provisioning
+   profile"). And each ephemeral runner would burn one of the two allowed
+   Apple Development certificates per run.
+2. So the workflow **builds unsigned** (`CODE_SIGNING_ALLOWED=NO`) into a known
+   DerivedData path. Note `xcodebuild archive` with signing disabled does *not*
+   produce an .xcarchive — it does a plain build — so the workflow then
+   **assembles the .xcarchive by hand** (copies `App.app` into
+   `Products/Applications/` and writes the archive `Info.plist`).
+3. The **export step does the real signing**: `-exportArchive
+   -allowProvisioningUpdates` + the ASC API key creates the Apple Distribution
+   certificate and App Store provisioning profile via the App Store Connect API.
+   The team ID must be passed **inside the export options plist** (`teamID` key,
+   generated at run time from `APPLE_TEAM_ID` — `exportArchive` ignores
+   `DEVELOPMENT_TEAM=` overrides and otherwise fails with "No Team Found in
+   Archive").
+4. `fastlane deliver` uploads the IPA (`--run_precheck_before_submit false` —
+   precheck cannot run with API-key auth and would otherwise exit 1 after a
+   *successful* upload).
+5. The runner image must ship the **iOS 26 SDK or later** (currently
+   `macos-26`, default Xcode 26.6) — App Store Connect rejects uploads built
+   with older SDKs.
 
-Supporting files created in `ios/ci/`:
-- `ExportOptions.plist` (App Store export, automatic signing)
-- `asc_key.json` template for the fastlane upload step (fill from the same
-  secrets during the run — see the file's comments)
+Supporting files in `ios/ci/`:
+- `ExportOptions.plist` (App Store export, automatic signing; the workflow
+  appends the `teamID` key at run time)
+- `asc_key.json` — historical template; the workflow now writes
+  `asc_key_runtime.json` directly from the secrets
 
 ## 6. Per-release checklist
 
