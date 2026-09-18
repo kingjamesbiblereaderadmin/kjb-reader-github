@@ -134,17 +134,23 @@
        wide for its line. */
     overflow-wrap: break-word;
     word-break: normal;
-    -webkit-hyphens: auto;
-    hyphens: auto;
+    /* Hyphenation is OFF app-wide: mid-word splits ("sin-ner", "resur-rection")
+       made mobile headings/body copy feel cramped, and hyphens: auto is only
+       a fallback anyway — words too wide for their line still wrap cleanly via
+       overflow-wrap: break-word above (just without a visible hyphen). The ONE
+       deliberate exception is the two-column printed-Bible reading view
+       (.kjb-two-col below), whose genuinely narrow columns need it. Headings
+       inherit this none. */
+    -webkit-hyphens: none;
+    hyphens: none;
   }
 
   /* Reading text (verses): avoid a single short word, letter, or lone piece
      of punctuation getting stranded alone at the start of the next line.
      text-wrap: pretty is the purpose-built fix for this (Chromium 117+; a
      harmless no-op on browsers that don't support it yet, so this is a pure
-     progressive enhancement). Hyphenation is also turned OFF here (unlike
-     the body-wide safety net above, which exists for long URLs/titles) --
-     ordinary verse prose in the single-column view has plenty of room to
+     progressive enhancement). Hyphenation is also turned OFF here, like
+     the body-wide rule above -- ordinary verse prose in the single-column view has plenty of room to
      wrap at real word boundaries, and mid-word hyphenation was itself
      producing the "orphaned last letter" look by splitting the final word of
      a line. The two-column printed layout (.kjb-two-col) is intentionally
