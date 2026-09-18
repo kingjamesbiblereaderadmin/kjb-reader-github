@@ -28,7 +28,7 @@ const DEVICES = [
 const PAGES = [
   { name: 'home', url: `${BASE}/` },
   { name: 'read_romans325', url: `${BASE}/read?book=ROM&chapter=3&verse=25`, a11y: true },
-  { name: 'read_1cor151', url: `${BASE}/read?book=1CO&chapter=15&verse=1`, a11y: true },
+  { name: 'read_1cor151', url: `${BASE}/read?book=1CO&chapter=15&verse=1&verseEnd=4`, a11y: true },
   { name: 'gospel', url: `${BASE}/gospel` },
   { name: 'search', url: `${BASE}/search` },
   { name: 'settings', url: `${BASE}/settings` },
