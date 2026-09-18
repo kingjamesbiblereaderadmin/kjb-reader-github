@@ -109,6 +109,7 @@ jobs:
             --screenshots_path fastlane/screenshots \
             --metadata_path fastlane/metadata \
             --app_rating_config_path fastlane/metadata/age_rating.json \
+            --overwrite_screenshots \
             --force --run_precheck_before_submit false
 
       - name: Cleanup runtime key

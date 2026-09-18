@@ -2,6 +2,7 @@
 // exact resolutions App Store Connect expects, using Playwright's Chromium.
 //   - iPhone 6.5"  : 1284 x 2778  (428 x 926 logical @3x)
 //   - iPad 13"     : 2064 x 2752  (1032 x 1376 logical @2x)
+//   - Mac          : 2560 x 1600  (ASC-accepted Mac screenshot size)
 // Output: fastlane/screenshots/en-US/<device>_<n>_<name>.png
 // fastlane deliver auto-detects the device family from the image resolution.
 
@@ -15,6 +16,7 @@ const BASE = 'https://kingjamesbiblereader.com';
 const DEVICES = [
   { label: 'iphone65', width: 428, height: 926, scale: 3, touch: true, isMobile: true },
   { label: 'ipad13', width: 1032, height: 1376, scale: 2, touch: true, isMobile: false },
+  { label: 'mac', width: 2560, height: 1600, scale: 1, touch: false, isMobile: false },
 ];
 
 const PAGES = [
