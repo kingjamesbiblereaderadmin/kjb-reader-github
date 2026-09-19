@@ -1,9 +1,80 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, BookOpen, Type, Server, Info, ArrowLeft, ExternalLink, Scale } from 'lucide-react';
+import { Heart, BookOpen, Type, Wrench, Info, ArrowLeft, Scale } from 'lucide-react';
 
 // A simple, static credits / acknowledgements page.
 // Linked from Settings (the "About & Credits" card).
+//
+// Layout notes: every section uses the same card pattern — a thin
+// section-specific coloured top edge (matching the app-wide hierarchy
+// system), an eyebrow label, a serif heading, and the content. The
+// trademark grid is deliberately compact: cards hug their text with
+// small paddings so the grid stays even.
+
+const TM_CARDS = [
+  { owner: 'Apple Inc.', slug: 'apple', marks: 'Apple, App Store, Xcode, WebKit, Safari, iPhone, iPad, iOS', extra: 'registered in the U.S. and other countries.', use: 'iOS development tools (Xcode, WebKit) and App Store distribution.' },
+  { owner: 'Google LLC', slug: 'google', marks: 'Google, Google Play, Google Play Console, Chrome, Android, Android Studio, YouTube', use: 'Android tooling and Play Store distribution; Google Fonts; browser-compatibility references.' },
+  { owner: 'Microsoft Corporation', slug: null, marks: 'Microsoft, Edge, Windows, Internet Explorer', use: 'Browser-compatibility references for the web app and extension.' },
+  { owner: 'Oracle', slug: 'oracle', marks: 'Java', extra: 'Java is a registered trademark of Oracle and/or its affiliates.', use: 'The Java toolchain inside the Android app build.' },
+  { owner: 'Gradle, Inc.', slug: 'gradle', marks: 'Gradle', use: 'Build tool that compiles and signs the Android app.' },
+  { owner: 'Anthropic PBC', slug: 'anthropic', marks: 'Claude', use: 'AI assistance used to help generate the app code.' },
+  { owner: 'Base44', slug: null, marks: 'Base44', use: 'Web app hosting, backend, and optional user authentication.' },
+  { owner: 'The Document Foundation', slug: 'libreoffice', marks: 'LibreOffice', use: 'en-US Liang hyphenation patterns for the two-column reading layout.' },
+  { owner: 'Mozilla Foundation', slug: 'firefoxbrowser', marks: 'Firefox', use: 'Browser-compatibility reference.' },
+  { owner: 'Opera Software', slug: 'opera', marks: 'Opera', use: 'Browser-compatibility reference.' },
+  { owner: 'Brave Software, Inc.', slug: 'brave', marks: 'Brave', use: 'Browser-compatibility reference.' },
+  { owner: 'Kiwi Browser', slug: null, marks: 'Kiwi Browser', extra: 'trademark of its respective owner.', use: 'Browser-compatibility reference for the browser extension.' },
+  { owner: 'Meta Platforms, Inc.', slug: 'meta', marks: 'Instagram, Facebook', use: 'Ministry and preacher social links opened in the device browser.' },
+  { owner: 'ByteDance Ltd.', slug: 'bytedance', marks: 'TikTok', use: 'Ministry social links opened in the device browser.' },
+  { owner: 'Discord Inc.', slug: 'discord', marks: 'Discord', use: 'Community server invite links.' },
+  { owner: 'Rumble Inc.', slug: 'rumble', marks: 'Rumble', use: 'Ministry video links opened in the device browser.' },
+  { owner: 'Linktree Pty Ltd', slug: 'linktree', marks: 'Linktree', use: 'Ministry link pages opened in the device browser.' }
+];
+
+function OwnerLogo({ slug, owner }) {
+  const [failed, setFailed] = useState(false);
+  if (!slug || failed) {
+    return (
+      <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-secondary border border-border flex items-center justify-center font-sans text-[13px] font-semibold text-muted-foreground notranslate" translate="no">
+        {owner.replace(/[^A-Za-z0-9]/g, '')[0]}
+      </span>
+    );
+  }
+  return (
+    <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-secondary border border-border flex items-center justify-center">
+      <img
+        src={`https://cdn.jsdelivr.net/npm/simple-icons@13/icons/${slug}.svg`}
+        alt=""
+        loading="lazy"
+        onError={() => setFailed(true)}
+        className="w-3.5 h-3.5 dark:invert opacity-80"
+      />
+    </span>
+  );
+}
+
+const SECTION = 'bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl mb-5 shadow-lg shadow-black/[0.03] overflow-hidden';
+
+function Section({ edge, icon, eyebrow, title, children }) {
+  return (
+    <section className={SECTION}>
+      <div className={`h-1 w-full bg-gradient-to-r ${edge}`} />
+      <div className="p-5 sm:p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
+            {icon}
+          </div>
+          <div>
+            <p className="font-sans text-[10px] font-semibold text-muted-foreground uppercase tracking-widest leading-none mb-1">{eyebrow}</p>
+            <h2 className="font-serif text-xl font-semibold text-foreground leading-tight">{title}</h2>
+          </div>
+        </div>
+        {children}
+      </div>
+    </section>
+  );
+}
+
 export default function CreditsPage() {
   const navigate = useNavigate();
   const goBack = () => {
@@ -13,13 +84,35 @@ export default function CreditsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
       <div className="w-full max-w-3xl mx-auto px-5 sm:px-8 lg:px-12 py-10 pb-24">
+
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/30 mb-4">
             <Heart className="w-7 h-7 text-white" />
           </div>
-          <h1 className="font-serif text-4xl font-bold text-foreground mb-3">About &amp; Credits</h1>
-          <div className="mt-4 w-16 h-px bg-accent mx-auto" />
+          <h1 className="font-serif text-4xl font-bold text-foreground mb-2">About &amp; Credits</h1>
+          <p className="font-sans text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+            What KJB Reader is made of, the tools and people behind it, and the legal notices that come with it.
+          </p>
+        </div>
+
+        {/* Facts strip */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-6">
+          <div className="rounded-xl border border-border bg-card px-4 py-3">
+            <p className="font-sans text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-1">Bible Text</p>
+            <p className="font-sans text-sm font-medium text-foreground notranslate" translate="no">Pure Cambridge Edition</p>
+            <p className="font-sans text-[11px] text-muted-foreground mt-0.5">public domain worldwide</p>
+          </div>
+          <div className="rounded-xl border border-border bg-card px-4 py-3">
+            <p className="font-sans text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-1">Copyright</p>
+            <p className="font-sans text-sm font-medium text-foreground">© 2026 <span className="notranslate" translate="no">Shawn Poh Hanlin</span></p>
+            <p className="font-sans text-[11px] text-muted-foreground mt-0.5">public domain, freely shareable</p>
+          </div>
+          <div className="rounded-xl border border-border bg-card px-4 py-3">
+            <p className="font-sans text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-1">Platforms</p>
+            <p className="font-sans text-sm font-medium text-foreground">Web · Android · iOS</p>
+            <p className="font-sans text-[11px] text-muted-foreground mt-0.5">free, ad-free, no paywalls</p>
+          </div>
         </div>
 
         <div className="text-center mb-6">
@@ -33,13 +126,7 @@ export default function CreditsPage() {
         </div>
 
         {/* Bible Text */}
-        <section className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
-              <BookOpen className="w-5 h-5" />
-            </div>
-            <h2 className="font-serif text-xl font-semibold text-foreground">Bible Text</h2>
-          </div>
+        <Section edge="from-amber-500 to-amber-400" eyebrow="The text" icon={<BookOpen className="w-5 h-5" />} title="Bible Text">
           <p className="font-sans text-sm text-foreground/85 leading-relaxed notranslate" translate="no">
             King James Bible (KJB) — Pure Cambridge Edition. Our master text file is generated directly from our
             authoritative <span className="notranslate" translate="no">Pure Cambridge Edition</span> source document
@@ -53,101 +140,90 @@ export default function CreditsPage() {
             the King&apos;s Printer; this app is for personal, non-commercial use only. For commercial use within the UK,
             a licence from Cambridge University Press or the King&apos;s Printer may be required.
           </p>
-        </section>
+        </Section>
 
         {/* Fonts */}
-        <section className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
-              <Type className="w-5 h-5" />
-            </div>
-            <h2 className="font-serif text-xl font-semibold text-foreground">Fonts</h2>
+        <Section edge="from-purple-500 to-purple-400" eyebrow="Typography" icon={<Type className="w-5 h-5" />} title="Fonts">
+          <p className="font-sans text-xs font-semibold text-foreground/70 uppercase tracking-wide mb-2.5">Reading &amp; Decorative</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 mb-3">
+            {[
+              ['Cormorant Garamond', 'long-form reading font option'],
+              ['Merriweather', 'long-form reading font option'],
+              ['Inter', 'interface text throughout the app'],
+              ['Caveat, Dancing Script, Great Vibes', 'handwritten-style fonts for shareable verse cards'],
+              ['Comic Neue', 'a friendly, rounded font option for verse cards'],
+              ['Serif, Sans, Mono, Cursive', "your device's own built-in fonts — no download or attribution needed"]
+            ].map(([name, purpose]) => (
+              <p key={name} className="font-sans text-sm text-foreground/85 leading-snug">
+                <strong className="text-foreground notranslate" translate="no">{name}</strong>
+                <span className="text-muted-foreground"> — {purpose}</span>
+              </p>
+            ))}
           </div>
-
-          <p className="font-sans text-xs font-semibold text-foreground/70 uppercase tracking-wide mb-1.5">Reading &amp; Decorative</p>
-          <ul className="space-y-1.5 font-sans text-sm text-foreground/85 mb-4">
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Cormorant Garamond</strong> — reading font option</span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Merriweather</strong> — reading font option</span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Inter</strong> — interface text</span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Caveat, Dancing Script, Great Vibes</strong> — handwritten-style fonts for shareable verse cards</span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Comic Neue</strong> — a friendly, rounded font option for verse cards</span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Serif, Sans, Mono, Cursive</strong> reading-font options use your device's own built-in fonts — no download or separate attribution needed.</span></li>
-          </ul>
           <p className="font-sans text-xs text-muted-foreground leading-relaxed mb-4">
             All of the above are Google Fonts, released under the{' '}
             <a href="https://scripts.sil.org/OFL" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">SIL Open Font License</a>.
           </p>
 
-          <p className="font-sans text-xs font-semibold text-foreground/70 uppercase tracking-wide mb-1.5">Accessibility</p>
-          <ul className="space-y-1.5 font-sans text-sm text-foreground/85">
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Atkinson Hyperlegible</strong> — designed by the{' '}
-              <a href="https://brailleinstitute.org/freefont" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Braille Institute of America</a>{' '}
-              for readers with low vision. SIL Open Font License.</span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">OpenDyslexic</strong> — designed by{' '}
-              <a href="https://opendyslexic.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Abbie Gonzalez</a>{' '}
-              to increase readability for readers with dyslexia. SIL Open Font License.</span></li>
-          </ul>
+          <p className="font-sans text-xs font-semibold text-foreground/70 uppercase tracking-wide mb-2.5">Accessibility</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
+            <p className="font-sans text-sm text-foreground/85 leading-snug">
+              <strong className="text-foreground notranslate" translate="no">Atkinson Hyperlegible</strong>
+              <span className="text-muted-foreground"> — designed by the{' '}
+                <a href="https://brailleinstitute.org/freefont" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Braille Institute of America</a>{' '}
+                for readers with low vision. SIL Open Font License.</span>
+            </p>
+            <p className="font-sans text-sm text-foreground/85 leading-snug">
+              <strong className="text-foreground notranslate" translate="no">OpenDyslexic</strong>
+              <span className="text-muted-foreground"> — designed by{' '}
+                <a href="https://opendyslexic.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Abbie Gonzalez</a>{' '}
+                to increase readability for readers with dyslexia. SIL Open Font License.</span>
+            </p>
+          </div>
 
           <p className="font-sans text-[11px] text-muted-foreground leading-relaxed mt-4">In the Android app (Google Play), these fonts are bundled with the app itself so they're available offline from first launch, instead of being downloaded from Google Fonts.</p>
-        </section>
+        </Section>
 
-        {/* App Platform & Thanks */}
-        <section className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
-              <Server className="w-5 h-5" />
-            </div>
-            <h2 className="font-serif text-xl font-semibold text-foreground">App Platform &amp; Thanks</h2>
+        {/* Built With & Thanks */}
+        <Section edge="from-blue-600 to-blue-500" eyebrow="How it's made" icon={<Wrench className="w-5 h-5" />} title="Built With &amp; Thanks">
+          <div className="space-y-2.5">
+            {[
+              [<span key="b"><strong className="text-foreground">Base44</strong></span>, 'the web app platform — hosting, backend, and optional user authentication.'],
+              [<span key="c"><strong className="text-foreground">Capacitor</strong></span>, 'open source (MIT License) — wraps the web app into the native Android and iOS apps.'],
+              [<span key="g"><strong className="text-foreground">Gradle + Android SDK</strong></span>, 'compile and sign the Android app.'],
+              [<span key="p"><strong className="text-foreground">Google Play Console</strong></span>, 'distributes the Android app on Google Play.'],
+              [<span key="x"><strong className="text-foreground">Xcode + WebKit (WKWebView)</strong></span>, "Apple's tools — compile, sign, and render the iOS app."],
+              [<span key="a"><strong className="text-foreground">App Store Connect</strong></span>, 'distributes the iOS app on the App Store.'],
+              [<span key="l"><strong className="text-foreground">Lucide</strong></span>, 'open source (ISC License) — the interface icons.'],
+              [<span key="h"><strong className="text-foreground">LibreOffice hyphenation patterns</strong></span>, "open source (LGPL/MPL) — break points for long words in the two-column printed layout; they derive from Franklin Liang's algorithm created for Donald Knuth's TeX typesetting system."],
+              [<span key="s"><strong className="text-foreground">Special thanks</strong></span>, 'to Elvish Ishaan for fixing bugs and issues.']
+            ].map(([name, purpose], i) => (
+              <p key={i} className="font-sans text-sm text-foreground/85 leading-relaxed flex items-start gap-2">
+                <span className="text-accent mt-1">•</span>
+                <span>{name} <span className="text-muted-foreground">— {purpose}</span></span>
+              </p>
+            ))}
           </div>
-          <ul className="space-y-1.5 font-sans text-sm text-foreground/85">
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">App Platform:</strong> Built with <a href="https://base44.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-0.5">Base44<ExternalLink className="w-3 h-3" /></a></span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Android App (Google Play):</strong> Built with <a href="https://capacitorjs.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-0.5">Capacitor<ExternalLink className="w-3 h-3" /></a> (open source, MIT License), compiled and signed with <span className="notranslate" translate="no">Gradle</span> and the <span className="notranslate" translate="no">Android SDK</span>, distributed via the <span className="notranslate" translate="no">Google Play Console</span>, generated with the help of Claude</span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">iOS App (App Store):</strong> Also built with <span className="notranslate" translate="no">Capacitor</span>, compiled and signed with Apple&apos;s <span className="notranslate" translate="no">Xcode</span>, rendered by Apple&apos;s <span className="notranslate" translate="no">WebKit</span> (WKWebView), and distributed via <span className="notranslate" translate="no">App Store Connect</span>, generated with the help of Claude</span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Icons:</strong> <a href="https://lucide.dev" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-0.5">Lucide<ExternalLink className="w-3 h-3" /></a> (open source, ISC License)</span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Hyphenation:</strong> Break points for long words in the two-column printed layout are computed from{' '} <span className="notranslate" translate="no"><a href="https://www.libreoffice.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-0.5">LibreOffice<ExternalLink className="w-3 h-3" /></a></span>&apos;s en-US Liang hyphenation patterns (open source, LGPL/MPL dual licence), which derive from Franklin Liang&apos;s hyphenation algorithm created for Donald Knuth&apos;s TeX typesetting system.</span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">Special Thanks:</strong> <span className="notranslate" translate="no">Elvish Ishaan</span> for fixing bugs and issues.</span></li>
-          </ul>
-        </section>
+        </Section>
 
-        {/* Trademarks */}
-        <section className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
-              <Scale className="w-5 h-5" />
-            </div>
-            <h2 className="font-serif text-xl font-semibold text-foreground">Trademarks &amp; Legal Notices</h2>
-          </div>
+        {/* Trademarks & Legal Notices */}
+        <Section edge="from-teal-500 to-teal-400" eyebrow="Legal" icon={<Scale className="w-5 h-5" />} title="Trademarks &amp; Legal Notices">
           <p className="font-sans text-sm text-foreground/85 leading-relaxed mb-4">
-            This app and its browser extension mention the product and company names below only to describe browser
-            compatibility, social links, fonts, or development and distribution tools used — not to claim any
-            affiliation with, sponsorship by, or endorsement from their owners. All product names, logos, and brands
-            are the property of their respective owners.
+            KJB Reader mentions the product and company names below only to describe browser compatibility, social
+            links, fonts, or development and distribution tools used — not to claim any affiliation with, sponsorship
+            by, or endorsement from their owners. All product names, logos, and brands are the property of their
+            respective owners.
           </p>
 
-          {/* Owner-grouped trademark grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-4">
-            {[
-              { owner: 'Apple Inc.', marks: 'Apple, App Store, Xcode, WebKit, Safari, iPhone, iPad, iOS', note: 'registered in the U.S. and other countries.' },
-              { owner: 'Google LLC', marks: 'Google, Google Play, Google Play Console, Chrome, Android, Android Studio, YouTube' },
-              { owner: 'Microsoft Corporation', marks: 'Microsoft, Edge, Windows, Internet Explorer' },
-              { owner: 'Oracle', marks: 'Java', note: 'Java is a registered trademark of Oracle and/or its affiliates.' },
-              { owner: 'Gradle, Inc.', marks: 'Gradle' },
-              { owner: 'Mozilla Foundation', marks: 'Firefox' },
-              { owner: 'Opera Software', marks: 'Opera' },
-              { owner: 'Brave Software, Inc.', marks: 'Brave' },
-              { owner: 'Discord Inc.', marks: 'Discord' },
-              { owner: 'ByteDance Ltd.', marks: 'TikTok' },
-              { owner: 'Meta Platforms, Inc.', marks: 'Instagram, Facebook' },
-              { owner: 'Rumble Inc.', marks: 'Rumble' },
-              { owner: 'Linktree Pty Ltd', marks: 'Linktree' },
-              { owner: 'Anthropic PBC', marks: 'Claude' },
-              { owner: 'The Document Foundation', marks: 'LibreOffice' },
-              { owner: 'Kiwi Browser', marks: 'Kiwi Browser', note: 'trademark of its respective owner.' },
-              { owner: 'Base44', marks: 'Base44', note: 'trademark of its respective owner.' }
-            ].map((t) => (
-              <div key={t.owner} className="rounded-xl bg-secondary/60 border border-border px-4 py-3">
-                <p className="font-sans text-sm font-semibold text-foreground notranslate" translate="no">{t.owner}</p>
-                <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-0.5 notranslate" translate="no">{t.marks}{t.note ? <span className="block mt-0.5">{t.note}</span> : null}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+            {TM_CARDS.map((t) => (
+              <div key={t.owner} className="rounded-xl bg-secondary/60 border border-border px-3 py-2.5 flex items-start gap-2.5">
+                <OwnerLogo slug={t.slug} owner={t.owner} />
+                <div className="min-w-0">
+                  <p className="font-sans text-sm font-semibold text-foreground leading-tight notranslate" translate="no">{t.owner}</p>
+                  <p className="font-sans text-xs text-foreground/75 leading-snug mt-0.5 notranslate" translate="no">{t.marks}{t.extra ? '.' : ''}{t.extra && <span className="block text-muted-foreground">{t.extra}</span>}</p>
+                  <p className="font-sans text-[11px] text-muted-foreground leading-snug mt-1"><span className="font-medium text-foreground/60">Used for:</span> {t.use}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -158,22 +234,21 @@ export default function CreditsPage() {
             <span className="notranslate" translate="no">Google LLC</span>, or any other company or trademark owner
             listed above.
           </p>
-        </section>
+        </Section>
 
-        {/* Disclaimers */}
-        <section className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 mb-5 shadow-lg shadow-black/[0.03]">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
-              <Info className="w-5 h-5" />
-            </div>
-            <h2 className="font-serif text-xl font-semibold text-foreground">Disclaimers</h2>
+        {/* Disclaimers & Legal */}
+        <Section edge="from-rose-500 to-rose-400" eyebrow="Good to know" icon={<Info className="w-5 h-5" />} title="Disclaimers &amp; Legal">
+          <div className="space-y-2.5">
+            <p className="font-sans text-sm text-foreground/85 leading-relaxed flex items-start gap-2">
+              <span className="text-accent mt-1">•</span>
+              <span><strong className="text-foreground">AI Disclaimer:</strong> This app was built with the assistance of artificial intelligence (AI). AI-generated code and content may contain errors. The King James Bible text itself is not AI-generated. Please report any issues so we can correct them.</span>
+            </p>
           </div>
-          <ul className="space-y-2 font-sans text-sm text-foreground/85">
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">AI Disclaimer:</strong> This app was built with the assistance of artificial intelligence (AI). AI-generated code and content may contain errors. The King James Bible text itself is not AI-generated. Please report any issues so we can correct them.</span></li>
-          </ul>
-          <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-3">© 2026 <span className="notranslate" translate="no">Shawn Poh Hanlin</span>. This app is public domain and freely shareable.</p>
-          <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-1.5">The Android (Google Play) and iOS (App Store) apps use only standard, operating-system-provided HTTPS encryption for all network communication. Neither app contains proprietary encryption, proprietary algorithms, or any encryption requiring an export-compliance declaration.</p>
-        </section>
+          <div className="rounded-xl bg-secondary/60 border border-border px-4 py-3 mt-4">
+            <p className="font-sans text-xs text-muted-foreground leading-relaxed">© 2026 <span className="notranslate" translate="no">Shawn Poh Hanlin</span>. This app is public domain and freely shareable.</p>
+            <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-1.5">The Android (Google Play) and iOS (App Store) apps use only standard, operating-system-provided HTTPS encryption for all network communication. Neither app contains proprietary encryption, proprietary algorithms, or any encryption requiring an export-compliance declaration.</p>
+          </div>
+        </Section>
       </div>
     </div>
   );
