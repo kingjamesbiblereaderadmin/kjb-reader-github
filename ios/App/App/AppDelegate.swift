@@ -10,7 +10,50 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Install the offline-fallback navigation delegate on Capacitor's
         // bridge view controller before it loads (see OfflineFallback.swift).
         CAPBridgeViewController.enableOfflineFallback()
+        // Consume text sent over from the KJBShare share extension ("Look up
+        // in KJB Reader" from the system share sheet) whenever the app
+        // becomes active — both on warm resumes and on cold launches.
+        NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification,
+                                               object: nil, queue: .main) { [weak self] _ in
+            self?.consumePendingLookup()
+        }
         return true
+    }
+
+    // MARK: - Share-extension hand-off
+
+    /// The KJBShare extension writes the text the user shared (e.g. a verse
+    /// reference typed in Notes: "Romans 3:25") into the shared app-group
+    /// UserDefaults. On the next didBecomeActive the app loads it through
+    /// the app's own search route, which parses verse references and jumps
+    /// straight to the passage — the same destination the Android app uses
+    /// for ACTION_SEND / ACTION_PROCESS_TEXT. The key is removed on read so
+    /// the lookup is consumed exactly once.
+    private func consumePendingLookup() {
+        guard let defaults = UserDefaults(suiteName: "group.com.kingjamesbiblereader.twa") else { return }
+        guard let text = defaults.string(forKey: "pendingLookupText") else { return }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        defaults.removeObject(forKey: "pendingLookupText")
+        guard !trimmed.isEmpty,
+              let encoded = trimmed.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let url = URL(string: "https://kingjamesbiblereader.com/search?q=" + encoded) else { return }
+        loadWhenWebViewReady(url: url, attempt: 0)
+    }
+
+    /// The bridge's webview may not exist yet on a cold launch when
+    /// didBecomeActive fires; retry briefly until it does, then load the
+    /// lookup URL over whatever initial load is in flight (mirrors the
+    /// Android handleIncomingIntent(isInitialLaunch:) override behavior).
+    private func loadWhenWebViewReady(url: URL, attempt: Int) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + (attempt == 0 ? 0.4 : 1.0)) { [weak self] in
+            guard let self else { return }
+            guard let bridgeVC = self.window?.rootViewController as? CAPBridgeViewController,
+                  let webView = bridgeVC.bridge?.webView else {
+                if attempt < 4 { self.loadWhenWebViewReady(url: url, attempt: attempt + 1) }
+                return
+            }
+            webView.load(URLRequest(url: url))
+        }
     }
 
     func applicationWillResignActive(_ application: UIApplication) {

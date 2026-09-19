@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { WifiOff, Wifi, RefreshCw, AlertTriangle, CheckCircle2, X } from 'lucide-react';
 import { isBibleCached, checkForUpdates, downloadBibleForOffline } from '@/lib/bibleCache';
+import { canUseNativeBundledAssets } from '@/lib/nativeOfflineAssets';
 import { useNavigate } from 'react-router-dom';
 
 export default function OfflineStatusBanner() {
@@ -42,10 +43,15 @@ export default function OfflineStatusBanner() {
               setTimeout(() => setDone(false), 2000);
             }).catch(() => setUpdating(false));
           }
-        } else if (navigator.onLine && !didAutoDownload.current) {
+        } else if ((navigator.onLine || canUseNativeBundledAssets()) && !didAutoDownload.current) {
           // No cache at all yet (fresh install, or cleared some other way) --
           // silently populate it in the background instead of just leaving the
           // "not downloaded" state for the user to discover later in Settings.
+          // On native the Bible text is bundled in the app itself
+          // (capacitor:// origin serves /__native/pce-bible.txt locally), so
+          // this hydration ALSO runs while offline — the old online-only gate
+          // left offline sessions stuck on "Bible not downloaded" even though
+          // the data was sitting right there inside the app bundle.
           didAutoDownload.current = true;
           setUpdating(true);
           downloadBibleForOffline().then(() => {
@@ -108,12 +114,15 @@ export default function OfflineStatusBanner() {
     return null; // Silently update in background, no banner
   }
 
-  // Offline + no Bible cache = can't read
+  // Offline + no Bible cache = can't read. On native the Bible is bundled
+  // in the app, so this state is only ever the few seconds while the local
+  // hydration runs — say what's actually happening, not "connect to the
+  // internet" (there is nothing to download from the network).
   if (!isOnline && !bibleReady) {
     return (
       <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 text-red-800 dark:text-red-300 mb-4 relative">
         <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-        <p className="font-sans text-xs font-medium flex-1 pr-6">Offline & Bible not downloaded. Connect to the internet to download it.</p>
+        <p className="font-sans text-xs font-medium flex-1 pr-6">{canUseNativeBundledAssets() ? 'Preparing offline Bible data from the app bundle…' : 'Offline & Bible not downloaded. Connect to the internet to download it.'}</p>
         <button onClick={() => setDismissed(true)} className="absolute right-3 p-1 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-md transition-colors">
           <X className="w-4 h-4 opacity-70 hover:opacity-100" />
         </button>

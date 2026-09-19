@@ -40,6 +40,14 @@ const EXPLICIT_KEYS = [
   'kjb-reading-progress', // reading history ("continue reading")
   'kjb-saved-verses',
   'kjb-defence-cache',
+  // Setup wizard state. Without mirroring these, the https origin and the
+  // capacitor:// offline origin keep SEPARATE wizard states: setup finished
+  // during an offline session never marks the online app as set up (and vice
+  // versa), so the app routes one session to /landing and the other straight
+  // to Home depending on which origin loads. Mirroring keeps the two
+  // origins consistent: finish setup once, it's finished everywhere.
+  'kjb-has-visited-app',
+  'kjb-is-installed',
 ];
 
 function isMirroredKey(key) {

@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as SonnerToaster } from "@/components/ui/sonner"
+import { toast } from 'sonner';
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, useLocation, Navigate, Outlet } from 'react-router-dom';
@@ -347,7 +348,36 @@ const AuthenticatedApp = () => {
   );
 };
 
+
+// Toasts sit at the BOTTOM, above the app's fixed bottom nav (and the iOS
+// home-indicator inset). The offset must be computed at mount: Sonner takes a
+// static pixel offset, while the nav height and safe-area inset are only
+// available from the live DOM/env().
+function measureToastOffset() {
+  try {
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position:fixed;bottom:0;height:env(safe-area-inset-bottom);visibility:hidden;pointer-events:none';
+    document.body.appendChild(probe);
+    const inset = probe.getBoundingClientRect().height || 0;
+    probe.remove();
+    const nav = document.querySelector('nav.fixed.bottom-0');
+    const navH = nav ? nav.getBoundingClientRect().height : 56;
+    return Math.round(navH + inset + 12);
+  } catch { return 72; }
+}
+
+// A page switch means whatever toast is on screen is stale (it was feedback
+// about the previous screen's action) — dismiss it instead of letting it
+// linger into the new page until its timer expires.
+function ToastRouteSync() {
+  const location = useLocation();
+  useEffect(() => { toast.dismiss(); }, [location.pathname]);
+  return null;
+}
+
 function App() {
+  const [toastOffset, setToastOffset] = useState(72);
+  useEffect(() => { setToastOffset(measureToastOffset()); }, []);
   return (
     <ThemeProvider>
       <AuthProvider>
@@ -356,9 +386,10 @@ function App() {
             <QueryClientProvider client={queryClientInstance}>
               <Router>
                 <AuthenticatedApp />
+                <ToastRouteSync />
               </Router>
               <Toaster />
-              <SonnerToaster position="top-center" offset={70} expand={false} visibleToasts={1} />
+              <SonnerToaster position="bottom-center" offset={toastOffset} mobileOffset={toastOffset} expand={false} visibleToasts={1} />
             </QueryClientProvider>
           </SoftReloadProvider>
         </HeaderHideProvider>

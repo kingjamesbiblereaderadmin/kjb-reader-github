@@ -177,10 +177,27 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
           // download is just local cache hydration, run in the background
           // without gating the splash on it.
           if (canUseNativeBundledAssets()) {
-            setStep('OFFLINE BIBLE DATA READY.');
-            import('@/lib/bibleCache')
-              .then(({ downloadBibleForOffline }) => downloadBibleForOffline().catch(() => {}))
-              .catch(() => {});
+            // The Bible text is bundled inside the app, so hydration reads a
+            // LOCAL file (/__native/pce-bible.txt) — it works identically
+            // online and offline. But only say "READY" and skip the wait when
+            // the cache is ALREADY populated. A fresh origin (e.g. the
+            // capacitor:// offline copy after WKWebView fails over to it, or
+            // a fresh Android install) has an EMPTY IndexedDB here — the old
+            // fire-and-forget let the user reach the app (or close it) before
+            // the hydration finished, leaving "Bible not downloaded" behind.
+            // Gate the splash on the one-time local hydration instead: it's
+            // a few seconds, shows real progress, and guarantees the offline
+            // session actually has the data before the hand-off.
+            const { isBibleCached, downloadBibleForOffline } = await import('@/lib/bibleCache');
+            const alreadyCached = await isBibleCached().catch(() => false);
+            if (alreadyCached) {
+              setStep('OFFLINE BIBLE DATA READY.');
+              downloadBibleForOffline().catch(() => {}); // background refresh
+            } else {
+              const got = await downloadWithProgress('PREPARING OFFLINE BIBLE DATA...');
+              setStep(got ? 'OFFLINE BIBLE DATA READY.' : 'OFFLINE DATA INTERRUPTED — RETRYING IN BACKGROUND.');
+              if (!got) downloadBibleForOffline().catch(() => {});
+            }
           } else {
             // 2. Downloading offline data (real-time % progress)
             const gotOfflineData = await downloadWithProgress('DOWNLOADING OFFLINE DATA...');
