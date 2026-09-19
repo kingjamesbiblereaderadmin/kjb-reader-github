@@ -491,7 +491,7 @@ export default function AppLayout() {
                 </span>
                 <Switch checked={autoRotate} onCheckedChange={toggleAutoRotate} />
               </div>
-              <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 pt-4 grid grid-cols-[repeat(auto-fit,minmax(9.5rem,1fr))] gap-2.5" style={{ paddingBottom: 'calc(2.5rem + env(safe-area-inset-bottom))' }}>
+              <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 pt-4 flex flex-wrap gap-2.5" style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}>
                 {NAV_ITEMS.map(item => {
                   const Icon = item.icon;
                   const active = item.path === '/' ? pathname === '/' : pathname === item.path;
@@ -505,7 +505,7 @@ export default function AppLayout() {
                         scrollMainToTop(pathname);
                         navigate(item.path);
                       }}
-                      className={`relative flex items-center gap-2.5 px-3.5 py-3 rounded-lg border font-sans text-sm font-medium leading-snug transition-all duration-200 hover:z-10 hover:shadow-md active:scale-95 ${
+                      className={`relative flex flex-1 min-w-[9.5rem] items-center gap-2.5 px-3.5 py-3 rounded-lg border font-sans text-sm font-medium leading-snug transition-all duration-200 hover:z-10 hover:shadow-md active:scale-95 ${
                         active
                           ? 'bg-gradient-to-br from-primary to-accent text-primary-foreground border-transparent shadow-md shadow-primary/20'
                           : 'bg-card/60 text-foreground border-border hover:bg-secondary hover:border-accent/40'
