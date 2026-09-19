@@ -175,7 +175,7 @@ export default function PreachersSection({
     <div className="mb-8 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-2xl overflow-hidden">
       <button
         onClick={toggleGroup}
-        className="w-full flex items-start justify-between gap-4 p-5 hover:bg-accent/5 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left"
+        className="w-full flex items-start justify-between gap-4 p-5 bg-white/50 dark:bg-white/[0.04] hover:bg-white/70 dark:hover:bg-white/[0.07] transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left"
       >
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700/60 mb-2">

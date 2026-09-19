@@ -179,11 +179,11 @@ export default function ResourcesPage() {
       <div className="mb-6">
         <CollapsibleCard
           icon={
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400">
               <DiscordIcon className="w-5 h-5" />
             </div>
           }
-          accent="purple"
+          accent="indigo"
           title="Discord"
           open={expandedSections.discord}
           onToggle={() => toggleSection('discord')}
@@ -321,7 +321,7 @@ export default function ResourcesPage() {
       <div className="bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900/60 rounded-2xl mb-6 overflow-hidden">
         <button
           onClick={() => toggleSection('ministry')}
-          className="w-full flex items-center justify-between p-5 hover:bg-accent/5 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left"
+          className="w-full flex items-center justify-between p-5 bg-white/50 dark:bg-white/[0.04] hover:bg-white/70 dark:hover:bg-white/[0.07] transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left"
         >
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-300 dark:border-purple-700/60 mb-2">

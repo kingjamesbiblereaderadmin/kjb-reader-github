@@ -8,6 +8,7 @@ const ACCENTS = {
   sky: 'bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60',
   emerald: 'bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60',
   red: 'bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60',
+  indigo: 'bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/60',
 };
 
 export default function CollapsibleCard({ icon, title, children, defaultOpen = false, open: openProp, onToggle, accent }) {
@@ -23,7 +24,7 @@ export default function CollapsibleCard({ icon, title, children, defaultOpen = f
       <button
         type="button"
         onClick={handleToggle}
-        className="w-full flex items-center gap-3 p-5 hover:bg-secondary/40 transition-colors"
+        className={`w-full flex items-center gap-3 p-5 transition-colors ${ACCENTS[accent] ? 'bg-white/50 dark:bg-white/[0.04] hover:bg-white/70 dark:hover:bg-white/[0.07]' : 'hover:bg-secondary/40'}`}
       >
         {icon}
         <span className="flex-1 text-left font-serif text-lg font-semibold text-foreground">{title}</span>

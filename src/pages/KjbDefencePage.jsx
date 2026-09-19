@@ -37,7 +37,7 @@ const CATEGORY_STYLES = {
   'KJB Defence': { color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
   'Why Modern Versions Are Corrupt': { color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20' },
   '1 John 5:7 Defence': { color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
-  'Westcott & Hort Heresies': { color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
+  'Westcott & Hort Heresies': { color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-900/20' },
   'NKJV Exposed': { color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20' },
   'Living Bible Exposed': { color: 'text-pink-600', bg: 'bg-pink-50 dark:bg-pink-900/20' },
   'ESV & NIV Exposed': { color: 'text-cyan-600', bg: 'bg-cyan-50 dark:bg-cyan-900/20' },
@@ -360,7 +360,7 @@ export default function KjbDefencePage() {
               <div key={cat.name} className={`${cat.style.bg} border border-border rounded-2xl overflow-hidden`}>
                 <button
                   onClick={() => toggle(cat.name)}
-                  className={`w-full border-b rounded-t-xl p-4 hover:opacity-90 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left`}
+                  className={`w-full bg-white/50 dark:bg-white/[0.04] border-b rounded-t-xl p-4 hover:opacity-90 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left`}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">

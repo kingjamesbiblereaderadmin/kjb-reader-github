@@ -341,7 +341,7 @@ export default function SettingsPage() {
       <div className="bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('text')}
-          className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/50 dark:bg-white/[0.04] hover:bg-white/70 dark:hover:bg-white/[0.07] transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">Display</h2>
@@ -493,10 +493,10 @@ export default function SettingsPage() {
       </div>
 
       {/* Accessibility */}
-      <div id="kjb-accessibility-section" className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-6 overflow-hidden shadow-lg shadow-black/[0.03] scroll-mt-4">
+      <div id="kjb-accessibility-section" className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-2xl mb-6 overflow-hidden shadow-lg shadow-black/[0.03] scroll-mt-4">
         <button
           onClick={() => toggleSection('accessibility')}
-          className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/50 dark:bg-white/[0.04] hover:bg-white/70 dark:hover:bg-white/[0.07] transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">Accessibility</h2>
@@ -559,7 +559,7 @@ export default function SettingsPage() {
       <div className="hidden sm:block bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('shortcuts')}
-          className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/50 dark:bg-white/[0.04] hover:bg-white/70 dark:hover:bg-white/[0.07] transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">Keyboard Shortcuts</h2>
@@ -586,7 +586,7 @@ export default function SettingsPage() {
       <div className="bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('appearance')}
-          className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/50 dark:bg-white/[0.04] hover:bg-white/70 dark:hover:bg-white/[0.07] transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">Appearance</h2>
@@ -643,7 +643,7 @@ export default function SettingsPage() {
       <div className="bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('offline')}
-          className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/50 dark:bg-white/[0.04] hover:bg-white/70 dark:hover:bg-white/[0.07] transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">Offline Library</h2>
@@ -836,10 +836,10 @@ export default function SettingsPage() {
       </div>
 
       {/* Download Bible as PDF */}
-      <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('downloadPdf')}
-          className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/50 dark:bg-white/[0.04] hover:bg-white/70 dark:hover:bg-white/[0.07] transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">Download Bible</h2>
@@ -851,10 +851,10 @@ export default function SettingsPage() {
       </div>
 
       {/* Offline HTML Bible & Legacy Reader — for old browsers / no-JS environments */}
-      <div className="bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="bg-lime-50 dark:bg-lime-950/40 border border-lime-200 dark:border-lime-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('offlineHtml')}
-          className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/50 dark:bg-white/[0.04] hover:bg-white/70 dark:hover:bg-white/[0.07] transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">Old Browser & Offline Options</h2>
@@ -889,7 +889,7 @@ export default function SettingsPage() {
       <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('info')}
-          className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/50 dark:bg-white/[0.04] hover:bg-white/70 dark:hover:bg-white/[0.07] transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">App Info</h2>
@@ -1077,10 +1077,10 @@ localStorage.removeItem('kjb-daily-verse-cache-v17');
       </Link>
 
       {/* Contact & Feedback */}
-      <div className="bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="bg-pink-50 dark:bg-pink-950/40 border border-pink-200 dark:border-pink-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('contact')}
-          className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/50 dark:bg-white/[0.04] hover:bg-white/70 dark:hover:bg-white/[0.07] transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">Contact & Feedback</h2>
