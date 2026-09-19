@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Download, FileCode, HardDrive, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { appParams } from '@/lib/app-params';
 import { triggerDownload } from '@/lib/nativeDownload';
-import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { canUseNativeBundledAssets } from '@/lib/nativeOfflineAssets';
 
 // The standalone, single-file HTML version of the entire KJB (all 66 books +
@@ -108,7 +107,7 @@ export default function OfflineHtmlSection() {
       )}
       {!busy && status === 'Done!' && !usedFallback && (
         <p className="font-sans text-sm text-green-600 dark:text-green-400 flex items-center gap-1.5">
-          <CheckCircle2 className="w-4 h-4" /> {isNativeAndroid() ? 'Saved to your Downloads folder!' : 'File downloaded successfully!'}
+          <CheckCircle2 className="w-4 h-4" /> Downloaded! Check your downloads folder.
         </p>
       )}
       {error && (

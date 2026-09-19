@@ -31,7 +31,6 @@ import { exportVerses } from '@/lib/exportVerses';
 import { buildVerseUrl } from '@/lib/formatDailyVerse';
 import { getPublicOrigin } from '@/lib/publicOrigin';
 import { nativeShare } from '@/lib/nativeShare';
-import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { toast } from 'sonner';
 import { SUBSCRIPTS } from '@/lib/bibleSubscripts';
 
@@ -1079,7 +1078,7 @@ export default function SearchPage() {
       bookCount: selectedBooks.size > 0 && selectedBooks.size < 66 ? selectedBooks.size : 0,
     };
     exportVerses(format, items, q, filters, { showQuery: true })
-      .then(() => toast.success(isNativeAndroid() ? 'Saved to your Downloads folder!' : 'File downloaded successfully!'))
+      .then(() => toast.success('Downloaded! Check your downloads folder.'))
       .catch((err) => { console.error('Export failed:', err); toast.error('Export failed. Please try again.'); });
   };
 

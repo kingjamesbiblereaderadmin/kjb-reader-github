@@ -4,7 +4,6 @@ import { printHtml } from '@/lib/printHelpers';
 import { triggerDownload } from '@/lib/nativeDownload';
 import { nativeShare } from '@/lib/nativeShare';
 import { getPublicOrigin } from '@/lib/publicOrigin';
-import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -214,7 +213,7 @@ function GospelActions() {
 
   const handleDownloadTxt = () => {
     triggerDownload(new Blob([buildGospelTextPlain()], { type: 'text/plain;charset=utf-8' }), 'the-gospel.txt')
-      .then(() => toast.success(isNativeAndroid() ? 'Saved to your Downloads folder!' : 'File downloaded successfully!'))
+      .then(() => toast.success('Downloaded! Check your downloads folder.'))
       .catch((err) => { console.error('Download failed:', err); toast.error('Download failed. Please try again.'); });
   };
 
@@ -241,7 +240,7 @@ function GospelActions() {
       y += 16;
     });
     triggerDownload(doc.output('blob'), 'the-gospel.pdf')
-      .then(() => toast.success(isNativeAndroid() ? 'Saved to your Downloads folder!' : 'File downloaded successfully!'))
+      .then(() => toast.success('Downloaded! Check your downloads folder.'))
       .catch((err) => { console.error('Download failed:', err); toast.error('Download failed. Please try again.'); });
   };
 
@@ -268,7 +267,7 @@ function GospelActions() {
     }).join('');
     const html = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>The Gospel</title></head><body style="font-family:Georgia,serif;font-size:12pt;color:#000">${body}</body></html>`;
     triggerDownload(new Blob(['\ufeff', html], { type: 'application/msword' }), 'the-gospel.doc')
-      .then(() => toast.success(isNativeAndroid() ? 'Saved to your Downloads folder!' : 'File downloaded successfully!'))
+      .then(() => toast.success('Downloaded! Check your downloads folder.'))
       .catch((err) => { console.error('Download failed:', err); toast.error('Download failed. Please try again.'); });
   };
 
@@ -326,14 +325,22 @@ const VERSE_TEXTS = {
 // Copied/shared plain text keeps the same words but without the [brackets].
 const plain = (t) => t.replace(/\[([^\]]+)\]/g, '$1');
 
-function StepCard({ number, icon, iconBg, title, copyText, children, defaultOpen = false, collapsible = false }) {
+// Panel tint per step, matched to each card's icon gradient — so the three
+// gospel steps are visually distinct instead of all reading as red.
+const STEP_ACCENTS = {
+  rose: 'bg-rose-100/60 dark:bg-rose-950/50 border-rose-200 dark:border-rose-900/60',
+  blue: 'bg-blue-100/60 dark:bg-blue-950/50 border-blue-200 dark:border-blue-900/60',
+  amber: 'bg-amber-100/60 dark:bg-amber-950/50 border-amber-200 dark:border-amber-900/60',
+};
+
+function StepCard({ number, icon, iconBg, title, copyText, children, defaultOpen = false, collapsible = false, accent = 'rose' }) {
   const [open, setOpen] = useState(defaultOpen || !collapsible);
   const headerClass = collapsible
     ? "flex items-center gap-4 w-full text-left cursor-pointer"
     : "flex items-start justify-between gap-4 mb-2";
 
   return (
-    <div className="bg-rose-100/60 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900/60 rounded-2xl p-6 shadow-lg shadow-black/[0.03]">
+    <div className={`border rounded-2xl p-6 shadow-lg shadow-black/[0.03] ${STEP_ACCENTS[accent]}`}>
       <div className={headerClass} onClick={collapsible ? () => setOpen(!open) : undefined}>
         <div className="flex-shrink-0 w-10 h-10 rounded-2xl shadow-md flex items-center justify-center" style={{ backgroundImage: iconBg }}>
           {icon}
@@ -422,6 +429,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
       <div className="space-y-4 mb-8">
         <StepCard
           number={1}
+          accent="rose"
           collapsible={collapsible}
           icon={<AlertCircle className="w-5 h-5 text-white" />}
           iconBg="linear-gradient(to bottom right, #f43f5e, #dc2626)"
@@ -442,6 +450,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
 
         <StepCard
           number={2}
+          accent="blue"
           collapsible={collapsible}
           icon={<CheckCircle className="w-5 h-5 text-white" />}
           iconBg="linear-gradient(to bottom right, #3b82f6, #4f46e5)"
@@ -458,6 +467,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
 
         <StepCard
           number={3}
+          accent="amber"
           collapsible={collapsible}
           icon={<CheckCircle className="w-5 h-5 text-white" />}
           iconBg="linear-gradient(to bottom right, #fbbf24, #eab308)"

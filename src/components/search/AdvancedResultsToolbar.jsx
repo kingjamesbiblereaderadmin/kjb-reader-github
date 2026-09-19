@@ -5,7 +5,6 @@ import { mergeAdjacentBrackets } from '@/lib/bibleApi';
 import { describeFilters } from '@/lib/describeFilters';
 import { getPublicOrigin } from '@/lib/publicOrigin';
 import { toast } from 'sonner';
-import { isNativeAndroid } from '@/lib/isNativeAndroid';
 
 // Build the public reader URL for a record so exports can link back to it.
 function recordUrl(r) {
@@ -139,7 +138,7 @@ export default function AdvancedResultsToolbar({ records, selectedRecords, filte
     // already shown in the Applied Filters block, so don't append the
     // comma/quote-normalised highlight query to the heading.
     exportVerses(format, items, hlQuery, hlFilters, { ...exportOptions, showQuery: false })
-      .then(() => toast.success(isNativeAndroid() ? 'Saved to your Downloads folder!' : 'File downloaded successfully!'))
+      .then(() => toast.success('Downloaded! Check your downloads folder.'))
       .catch((err) => { console.error('Export failed:', err); toast.error('Export failed. Please try again.'); });
   };
 

@@ -3,7 +3,6 @@ import { Download, Loader2, Columns2, AlignLeft, AlignJustify, List, CheckCircle
 import { Switch } from '@/components/ui/switch';
 import { exportBiblePdf } from '@/lib/exportBiblePdf';
 import { DEFAULT_EXPORT_FONT } from '@/lib/exportFonts';
-import { isNativeAndroid } from '@/lib/isNativeAndroid';
 
 function Toggle({ active, onClick, icon: Icon, label }) {
   return (
@@ -187,7 +186,7 @@ export default function DownloadBibleSection() {
       )}
       {!busy && status === 'Done!' && (
         <p className="font-sans text-sm text-green-600 dark:text-green-400 flex items-center gap-1.5">
-          <CheckCircle2 className="w-4 h-4" /> {isNativeAndroid() ? 'Saved to your Downloads folder!' : 'File downloaded successfully!'}
+          <CheckCircle2 className="w-4 h-4" /> Downloaded! Check your downloads folder.
         </p>
       )}
       {error && (
