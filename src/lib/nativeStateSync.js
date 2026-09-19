@@ -39,6 +39,19 @@ const EXPLICIT_KEYS = [
   ...SYNC_KEYS,
   'kjb-reading-progress', // reading history ("continue reading")
   'kjb-saved-verses',
+  'kjb-saved-folders', // saved-verses folder list — without it, verses saved
+  // into a custom folder while offline are invisible (the folder doesn't
+  // exist on the other origin) even though the verses themselves synced.
+  'kjb-verse-highlights', // persisted per-verse highlighter colours
+  // Search session ("back to results" stepper state):
+  'kjb-search-term',
+  'kjb-search-results',
+  'kjb-search-total',
+  'kjb-search-index',
+  'kjb-pre-search', // pre-search reading position to return to
+  'kjb-pre-jump',
+  'kjb-last-reading', // BibleReader's resume-reading position
+  'kjb-last-route', // AppLayout's resume-route on open
   'kjb-defence-cache',
   // Setup wizard state. Without mirroring these, the https origin and the
   // capacitor:// offline origin keep SEPARATE wizard states: setup finished
