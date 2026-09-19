@@ -92,8 +92,8 @@
     --accent-foreground: 250 30% 8%;
     --destructive: 0 62.8% 45%;
     --destructive-foreground: 0 0% 98%;
-    --border: 250 18% 34%;
-    --input: 250 18% 34%;
+    --border: 250 18% 43%;
+    --input: 250 18% 43%;
     --ring: 255 80% 68%;
     --sidebar-background: 250 30% 9%;
     --sidebar-foreground: 245 25% 88%;
@@ -683,6 +683,18 @@ html.kjb-native-ios.dark a.dark\:border-border {
    original 1px edges. */
 .dark .dark\:border-border {
   border-width: 1.5px;
+}
+/* Full-bordered elements in dark mode (buttons, cards, inputs, chips) also
+   draw a slightly thicker outline so edges stay clearly visible on the dark
+   background. Only elements carrying the explicit full-border utility are
+   touched — elements using side-only utilities (border-t/border-b) keep
+   their other sides at 0. */
+.dark .border.border-border,
+.dark .border.dark\:border-border {
+  border-width: 1.5px;
+}
+.dark .border-b.border-border {
+  border-bottom-width: 1.5px;
 }
 /* Inner dividing lines inside the collapsible sections (the border-t
    separators between sub-settings like App Zoom / Auto Rotate / Font
