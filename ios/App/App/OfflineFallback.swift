@@ -559,8 +559,9 @@ private let kjbStatusBarSwizzle: Void = {
     let sel = Selector("preferredStatusBarStyle")
     if class_getInstanceMethod(CAPBridgeViewController.self, sel) != nil { return }
     guard let method = class_getInstanceMethod(
-            CAPBridgeViewController.self, Selector("kjb_preferredStatusBarStyle")),
-          let imp = method_getImplementation(method),
-          let types = method_getTypeEncoding(method) else { return }
+            CAPBridgeViewController.self, Selector("kjb_preferredStatusBarStyle")) else { return }
+    // method_getImplementation returns a non-optional IMP in this SDK.
+    let imp = method_getImplementation(method)
+    guard let types = method_getTypeEncoding(method) else { return }
     class_addMethod(CAPBridgeViewController.self, sel, imp, types)
 }()
