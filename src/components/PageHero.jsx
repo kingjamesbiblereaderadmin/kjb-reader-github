@@ -4,7 +4,7 @@ import React from 'react';
 // gradient headline, an optional subtitle and a gradient hairline divider.
 // `iconGradient` takes the full gradient fragment, e.g.
 // 'from-amber-500 to-orange-600 shadow-amber-500/30'.
-export default function PageHero({ icon, iconGradient, title, subtitle, children }) {
+export default function PageHero({ icon, iconGradient, headlineGradient, title, subtitle, children }) {
   return (
     <div className="text-center mb-8">
       {icon && (
@@ -12,7 +12,7 @@ export default function PageHero({ icon, iconGradient, title, subtitle, children
           {icon}
         </div>
       )}
-      <h1 className="font-serif text-4xl font-bold bg-gradient-to-r from-indigo-600 via-fuchsia-500 to-rose-500 dark:from-indigo-400 dark:via-fuchsia-400 dark:to-rose-400 bg-clip-text text-transparent">
+      <h1 className={`font-serif text-4xl font-bold bg-gradient-to-r ${headlineGradient || 'from-indigo-600 via-fuchsia-500 to-rose-500 dark:from-indigo-400 dark:via-fuchsia-400 dark:to-rose-400'} bg-clip-text text-transparent`}>
         {title}
       </h1>
       {subtitle && (

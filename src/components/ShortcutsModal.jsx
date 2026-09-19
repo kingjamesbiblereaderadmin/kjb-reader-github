@@ -17,10 +17,10 @@ export default function ShortcutsModal({ onClose }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
+        className="w-full max-w-sm bg-card border-2 border-accent/50 rounded-2xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+        <div className="flex items-center justify-between px-5 py-4 border-b-2 border-accent/50">
           <div className="flex items-center gap-2">
             <Keyboard className="w-5 h-5 text-accent" />
             <h2 className="font-serif text-lg font-semibold text-foreground">Keyboard Shortcuts</h2>
