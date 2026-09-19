@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, BookOpen, Type, Wrench, Info, ArrowLeft, Scale } from 'lucide-react';
+import FontsSection from '@/components/credits/FontsSection';
 
 // A simple, static credits / acknowledgements page.
 // Linked from Settings (the "About & Credits" card).
@@ -55,13 +56,13 @@ function OwnerLogo({ slug, owner }) {
 
 const SECTION = 'bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl mb-5 shadow-lg shadow-black/[0.03] overflow-hidden';
 
-function Section({ edge, icon, eyebrow, title, children }) {
+function Section({ edge, icon, iconBg, eyebrow, title, children }) {
   return (
     <section className={SECTION}>
       <div className={`h-1 w-full bg-gradient-to-r ${edge}`} />
       <div className="p-5 sm:p-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
+          <div className={`flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br ${iconBg || 'from-blue-500 to-indigo-600'}`}>
             {icon}
           </div>
           <div>
@@ -90,7 +91,7 @@ export default function CreditsPage() {
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/30 mb-4">
             <Heart className="w-7 h-7 text-white" />
           </div>
-          <h1 className="font-serif text-4xl font-bold text-foreground mb-2">About &amp; Credits</h1>
+          <h1 className="font-serif text-4xl font-bold mb-2 bg-gradient-to-r from-indigo-600 via-fuchsia-500 to-rose-500 dark:from-indigo-400 dark:via-fuchsia-400 dark:to-rose-400 bg-clip-text text-transparent">About &amp; Credits</h1>
           <p className="font-sans text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
             What KJB Reader is made of, the tools and people behind it, and the legal notices that come with it.
           </p>
@@ -98,18 +99,18 @@ export default function CreditsPage() {
 
         {/* Facts strip */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-6">
-          <div className="rounded-xl border border-border bg-card px-4 py-3">
-            <p className="font-sans text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-1">Bible Text</p>
+          <div className="rounded-xl border border-amber-300/60 dark:border-amber-800/50 bg-amber-100/50 dark:bg-amber-950/30 px-4 py-3">
+            <p className="font-sans text-[10px] font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-widest mb-1">Bible Text</p>
             <p className="font-sans text-sm font-medium text-foreground notranslate" translate="no">Pure Cambridge Edition</p>
             <p className="font-sans text-[11px] text-muted-foreground mt-0.5">public domain worldwide</p>
           </div>
-          <div className="rounded-xl border border-border bg-card px-4 py-3">
-            <p className="font-sans text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-1">Copyright</p>
+          <div className="rounded-xl border border-purple-300/60 dark:border-purple-800/50 bg-purple-100/50 dark:bg-purple-950/30 px-4 py-3">
+            <p className="font-sans text-[10px] font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-widest mb-1">Copyright</p>
             <p className="font-sans text-sm font-medium text-foreground">© 2026 <span className="notranslate" translate="no">Shawn Poh Hanlin</span></p>
             <p className="font-sans text-[11px] text-muted-foreground mt-0.5">public domain, freely shareable</p>
           </div>
-          <div className="rounded-xl border border-border bg-card px-4 py-3">
-            <p className="font-sans text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-1">Platforms</p>
+          <div className="rounded-xl border border-sky-300/60 dark:border-sky-800/50 bg-sky-100/50 dark:bg-sky-950/30 px-4 py-3">
+            <p className="font-sans text-[10px] font-semibold text-sky-700 dark:text-sky-400 uppercase tracking-widest mb-1">Platforms</p>
             <p className="font-sans text-sm font-medium text-foreground">Web · Android · iOS</p>
             <p className="font-sans text-[11px] text-muted-foreground mt-0.5">free, ad-free, no paywalls</p>
           </div>
@@ -126,7 +127,7 @@ export default function CreditsPage() {
         </div>
 
         {/* Bible Text */}
-        <Section edge="from-amber-500 to-amber-400" eyebrow="The text" icon={<BookOpen className="w-5 h-5" />} title="Bible Text">
+        <Section edge="from-amber-500 to-amber-400" iconBg="from-amber-500 to-orange-500" eyebrow="The text" icon={<BookOpen className="w-5 h-5" />} title="Bible Text">
           <p className="font-sans text-sm text-foreground/85 leading-relaxed notranslate" translate="no">
             King James Bible (KJB) — Pure Cambridge Edition. Our master text file is generated directly from our
             authoritative <span className="notranslate" translate="no">Pure Cambridge Edition</span> source document
@@ -143,49 +144,12 @@ export default function CreditsPage() {
         </Section>
 
         {/* Fonts */}
-        <Section edge="from-purple-500 to-purple-400" eyebrow="Typography" icon={<Type className="w-5 h-5" />} title="Fonts">
-          <p className="font-sans text-xs font-semibold text-foreground/70 uppercase tracking-wide mb-2.5">Reading &amp; Decorative</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 mb-3">
-            {[
-              ['Cormorant Garamond', 'long-form reading font option'],
-              ['Merriweather', 'long-form reading font option'],
-              ['Inter', 'interface text throughout the app'],
-              ['Caveat, Dancing Script, Great Vibes', 'handwritten-style fonts for shareable verse cards'],
-              ['Comic Neue', 'a friendly, rounded font option for verse cards'],
-              ['Serif, Sans, Mono, Cursive', "your device's own built-in fonts — no download or attribution needed"]
-            ].map(([name, purpose]) => (
-              <p key={name} className="font-sans text-sm text-foreground/85 leading-snug">
-                <strong className="text-foreground notranslate" translate="no">{name}</strong>
-                <span className="text-muted-foreground"> — {purpose}</span>
-              </p>
-            ))}
-          </div>
-          <p className="font-sans text-xs text-muted-foreground leading-relaxed mb-4">
-            All of the above are Google Fonts, released under the{' '}
-            <a href="https://scripts.sil.org/OFL" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">SIL Open Font License</a>.
-          </p>
-
-          <p className="font-sans text-xs font-semibold text-foreground/70 uppercase tracking-wide mb-2.5">Accessibility</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
-            <p className="font-sans text-sm text-foreground/85 leading-snug">
-              <strong className="text-foreground notranslate" translate="no">Atkinson Hyperlegible</strong>
-              <span className="text-muted-foreground"> — designed by the{' '}
-                <a href="https://brailleinstitute.org/freefont" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Braille Institute of America</a>{' '}
-                for readers with low vision. SIL Open Font License.</span>
-            </p>
-            <p className="font-sans text-sm text-foreground/85 leading-snug">
-              <strong className="text-foreground notranslate" translate="no">OpenDyslexic</strong>
-              <span className="text-muted-foreground"> — designed by{' '}
-                <a href="https://opendyslexic.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Abbie Gonzalez</a>{' '}
-                to increase readability for readers with dyslexia. SIL Open Font License.</span>
-            </p>
-          </div>
-
-          <p className="font-sans text-[11px] text-muted-foreground leading-relaxed mt-4">In the Android app (Google Play), these fonts are bundled with the app itself so they're available offline from first launch, instead of being downloaded from Google Fonts.</p>
+        <Section edge="from-purple-500 to-fuchsia-400" iconBg="from-purple-500 to-fuchsia-500" eyebrow="Typography" icon={<Type className="w-5 h-5" />} title="Fonts">
+          <FontsSection />
         </Section>
 
         {/* Built With & Thanks */}
-        <Section edge="from-blue-600 to-blue-500" eyebrow="How it's made" icon={<Wrench className="w-5 h-5" />} title="Built With &amp; Thanks">
+        <Section edge="from-blue-600 to-blue-500" iconBg="from-blue-600 to-indigo-500" eyebrow="How it's made" icon={<Wrench className="w-5 h-5" />} title="Built With &amp; Thanks">
           <div className="space-y-2.5">
             {[
               [<span key="b"><strong className="text-foreground">Base44</strong></span>, 'the web app platform — hosting, backend, and optional user authentication.'],
@@ -207,7 +171,7 @@ export default function CreditsPage() {
         </Section>
 
         {/* Trademarks & Legal Notices */}
-        <Section edge="from-teal-500 to-teal-400" eyebrow="Legal" icon={<Scale className="w-5 h-5" />} title="Trademarks &amp; Legal Notices">
+        <Section edge="from-teal-500 to-teal-400" iconBg="from-teal-500 to-cyan-500" eyebrow="Legal" icon={<Scale className="w-5 h-5" />} title="Trademarks &amp; Legal Notices">
           <p className="font-sans text-sm text-foreground/85 leading-relaxed mb-4">
             KJB Reader mentions the product and company names below only to describe browser compatibility, social
             links, fonts, or development and distribution tools used — not to claim any affiliation with, sponsorship
@@ -237,7 +201,7 @@ export default function CreditsPage() {
         </Section>
 
         {/* Disclaimers & Legal */}
-        <Section edge="from-rose-500 to-rose-400" eyebrow="Good to know" icon={<Info className="w-5 h-5" />} title="Disclaimers &amp; Legal">
+        <Section edge="from-rose-500 to-rose-400" iconBg="from-rose-500 to-red-500" eyebrow="Good to know" icon={<Info className="w-5 h-5" />} title="Disclaimers &amp; Legal">
           <div className="space-y-2.5">
             <p className="font-sans text-sm text-foreground/85 leading-relaxed flex items-start gap-2">
               <span className="text-accent mt-1">•</span>
