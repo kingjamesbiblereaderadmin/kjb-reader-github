@@ -45,6 +45,17 @@ export async function triggerDownload(blob, name) {
     throw new Error('Could not save the file.');
   }
 
+  // Native iOS last-resort guard: WKWebView cannot perform the
+  // blob-URL-plus-<a download> trick — it navigates to the blob and RENDERS
+  // the raw file as a page (no way back, and for the standalone HTML export
+  // that's a full rendered "web site" instead of a saved file). The download
+  // bridge above handles saves on every current build; if it's missing
+  // (older installed build, or the shim failed to inject), fail with a
+  // clear message instead of silently navigating away.
+  if (isNativeIos()) {
+    throw new Error('Saving files needs the latest app version — please update and try again.');
+  }
+
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = name;

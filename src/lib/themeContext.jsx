@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
+import { syncNativeChrome } from '@/lib/nativeChromeSync';
 import { applyDailyAccent } from '@/lib/dailyVerseTheme';
 import { getAccessibilityFont, applyAccessibilityFont, applyReaderFont } from '@/lib/accessibilityFont';
 
@@ -224,6 +225,8 @@ export function ThemeProvider({ children }) {
   // Apply dark class to <html> - run immediately on mount
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark);
+    // Keep the native notch/home-indicator strips in sync with the theme.
+    syncNativeChrome();
   }, [isDark]);
 
   // Force theme application on mount to prevent flicker

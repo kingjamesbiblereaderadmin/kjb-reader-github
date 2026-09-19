@@ -119,6 +119,28 @@
   [data-sonner-toaster] {
     max-width: calc(100vw - 32px) !important;
   }
+  /* Sonner's top-center toaster pins to the raw viewport top via its offset
+     prop (70px here) — on notch iPhones that can land the toast in the
+     status-bar/notch zone. Add the safe-area inset on top of the same 70px
+     so the toast always sits below the notch (0px everywhere without a
+     notch, e.g. desktop/web, so nothing changes there). */
+  [data-sonner-toaster][data-y-position='top'] {
+    top: calc(env(safe-area-inset-top, 0px) + 70px) !important;
+  }
+  /* Toasts must be fully opaque. Sonner's own runtime stylesheet paints the
+     toast with theme colors layered over whatever the page shows, and the
+     app theme's surface colors can read as translucent on iOS — result:
+     text behind the toast (buttons, headers, page content) visibly leaks
+     through it. Force the solid themed background and kill any backdrop
+     blur so nothing can ever show through a toast. */
+  [data-sonner-toaster] [data-sonner-toast] {
+    background: hsl(var(--background)) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  [data-sonner-toaster] [data-sonner-toast] [data-button] {
+    background: hsl(var(--primary)) !important;
+  }
   body {
     @apply bg-background text-foreground;
     overscroll-behavior-y: none;

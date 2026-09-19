@@ -36,6 +36,7 @@ extension CAPBridgeViewController {
     /// loads. Idempotent.
     @objc public static func enableOfflineFallback() {
         _ = kjbOfflineFallbackSwizzle
+        _ = kjbStatusBarSwizzle
     }
 }
 
@@ -56,6 +57,7 @@ extension CAPBridgeViewController {
     // the fallback. loadView has already run at this point, so the webView
     // and bridge exist.
     @objc private func kjb_viewDidLoad() {
+        kjb_installNotchChrome()
         if let webView = webView, let bridge = bridge,
            objc_getAssociatedObject(self, &kjbOfflineFallbackKey) == nil {
             let fallback = OfflineFallbackDelegate(webView: webView,
@@ -190,9 +192,11 @@ final class OfflineFallbackDelegate: NSObject, WKNavigationDelegate {
         // download — it renders the raw file in place with no way back.
         // Cancel the navigation and fetch the file natively instead, then
         // offer it through the share sheet like the JS download bridge.
+        // (?format=txt/rtf/doc variants carry the flag differently — cover
+        // them too so none of the legacy download links ever render raw.)
         if let url = navigationAction.request.url,
            url.path.contains("legacy"),
-           url.absoluteString.contains("download=1") {
+           url.absoluteString.contains("download=1") || url.absoluteString.contains("format=") {
             decisionHandler(.cancel)
             KJBNativeBridges.shared.downloadLegacyFile(url: url)
             return
@@ -259,6 +263,12 @@ try {
         window.webkit.messageHandlers.kjbShare.postMessage({ title: String(title || ''), text: String(text || '') });
       }
     };
+    window.kjbChromeBridge = {
+      // Paints the native notch/home-indicator strips (see KjbChrome below).
+      setColor: function (r, g, b) {
+        window.webkit.messageHandlers.kjbChrome.postMessage({ r: Number(r) || 0, g: Number(g) || 0, b: Number(b) || 0 });
+      }
+    };
     window.kjbPrintBridge = {
       printCurrent: function () {
         window.webkit.messageHandlers.kjbPrint.postMessage({ kind: 'current' });
@@ -311,8 +321,18 @@ final class KJBNativeBridges: NSObject, WKScriptMessageHandler {
         case "kjbShare": handleShare(body)
         case "kjbPrint": handlePrint(body)
         case "kjbDownload": handleDownload(body)
+        case "kjbChrome": handleChrome(body)
         default: break
         }
+    }
+
+    // Theme color for the native chrome strips (notch / home indicator).
+    // JS syncs the computed page background whenever the theme resolves.
+    private func handleChrome(_ body: [String: Any]) {
+        guard let r = body["r"] as? Double,
+              let g = body["g"] as? Double,
+              let b = body["b"] as? Double else { return }
+        KjbChrome.shared.setBackgroundColor(r, g, b)
     }
 
     // Share sheet (matches Android's Intent.ACTION_SEND chooser).
@@ -432,7 +452,7 @@ func kjbInstallNativeBridges(on webView: WKWebView) {
     let bridges = KJBNativeBridges.shared
     bridges.webView = webView
     let ucc = webView.configuration.userContentController
-    for name in ["kjbShare", "kjbPrint", "kjbDownload"] {
+    for name in ["kjbShare", "kjbPrint", "kjbDownload", "kjbChrome"] {
         ucc.removeScriptMessageHandler(forName: name)
         ucc.add(bridges, name: name)
     }
@@ -440,3 +460,107 @@ func kjbInstallNativeBridges(on webView: WKWebView) {
                                   injectionTime: .atDocumentStart,
                                   forMainFrameOnly: true))
 }
+
+// MARK: - Notch chrome (full-bleed -> safe-area shell)
+//
+// By default Capacitor makes the WKWebView the view controller's root view,
+// so the page extends edge-to-edge under the notch and every top-positioned
+// element has to defend itself with env(safe-area-inset-*). Instead of that
+// whack-a-mole, the webview is re-rooted into a plain container pinned to
+// the safe-area layout guides: the PAGE physically cannot render in the
+// notch/home-indicator zones, on any screen and for any element (existing
+// or future, fixed or otherwise). env(safe-area-inset-*) then reads 0
+// inside the webview, the same as in a plain browser, so the web code's
+// safe-area padding quietly becomes inert in the shell while still working
+// for the PWA. The exposed strips are painted from the synced theme color,
+// so the notch area is just dark or light with the theme and the whole
+// screen reads as one flowing surface.
+
+final class KjbChrome: NSObject {
+    static let shared = KjbChrome()
+    private var isDark = false
+
+    // The container view behind the webview (weak: the view controller owns
+    // it via self.view).
+    weak var hostView: UIView?
+
+    func setBackgroundColor(_ r: Double, _ g: Double, _ b: Double) {
+        let dark = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255.0 < 0.5
+        let changed = dark != isDark
+        isDark = dark
+        let color = UIColor(red: r / 255.0, green: g / 255.0, blue: b / 255.0, alpha: 1)
+        DispatchQueue.main.async { [weak self] in
+            self?.hostView?.backgroundColor = color
+            if changed {
+                // Status bar text must contrast the strip (light text on a
+                // dark strip, dark text on a light one).
+                if let vc = self?.topMostViewController() {
+                    vc.setNeedsStatusBarAppearanceUpdate()
+                }
+            }
+        }
+    }
+
+    var prefersDarkContent: Bool { !isDark }
+
+    private func topMostViewController() -> UIViewController? {
+        var base = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow }?.rootViewController
+        while let presented = base?.presentedViewController { base = presented }
+        return base
+    }
+}
+
+private var kjbChromeKey: UInt8 = 0
+
+extension CAPBridgeViewController {
+
+    // Runs first inside the swizzled viewDidLoad: loadView has already made
+    // the WKWebView the root view, and the view has not been added to the
+    // window yet, so this is the only safe moment to swap in a container.
+    @objc private func kjb_installNotchChrome() {
+        guard objc_getAssociatedObject(self, &kjbChromeKey) == nil,
+              let webView = self.view as? WKWebView else { return }
+
+        let container = UIView()
+        // Sensible pre-JS-sync default: follows the system appearance, then
+        // the app's own theme syncs in moments later via the chrome bridge.
+        container.backgroundColor = UIColor.systemBackground
+        KjbChrome.shared.hostView = container
+        objc_setAssociatedObject(self, &kjbChromeKey, container,
+                                 .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+
+        self.view = container
+        container.addSubview(webView)
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            webView.topAnchor.constraint(
+                equalTo: container.safeAreaLayoutGuide.topAnchor),
+            webView.leadingAnchor.constraint(
+                equalTo: container.safeAreaLayoutGuide.leadingAnchor),
+            webView.bottomAnchor.constraint(
+                equalTo: container.safeAreaLayoutGuide.bottomAnchor),
+            webView.trailingAnchor.constraint(
+                equalTo: container.safeAreaLayoutGuide.trailingAnchor),
+        ])
+    }
+
+    // Status bar text color follows the synced strip color. CAPBridgeViewController
+    // does not override preferredStatusBarStyle, so the selector is added
+    // directly to the class rather than exchanged.
+    @objc private func kjb_preferredStatusBarStyle() -> UIStatusBarStyle {
+        return KjbChrome.shared.prefersDarkContent ? .darkContent : .lightContent
+    }
+}
+
+private let kjbStatusBarSwizzle: Void = {
+    let sel = Selector("preferredStatusBarStyle")
+    if class_getInstanceMethod(CAPBridgeViewController.self, sel) != nil { return }
+    guard let method = class_getInstanceMethod(
+            CAPBridgeViewController.self, Selector("kjb_preferredStatusBarStyle")),
+          let imp = method_getImplementation(method),
+          let types = method_getTypeEncoding(method) else { return }
+    class_addMethod(CAPBridgeViewController.self, sel, imp, types)
+}()
