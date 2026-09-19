@@ -396,8 +396,8 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
         title="How to be Saved?"
         subtitle={
           <>
-            <p className="font-sans text-sm text-muted-foreground">The Gospel is the glad tidings of the Lord Jesus Christ:</p>
-            <p className="font-serif text-base sm:text-lg text-foreground leading-relaxed max-w-xl mx-auto mt-3 px-4 py-2.5 rounded-xl bg-rose-100/60 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60">
+            <p className="font-sans text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">The Gospel is the glad tidings of the Lord Jesus Christ</p>
+            <p className="font-serif text-base sm:text-lg text-foreground leading-relaxed">
               Trust he is God, died, shed his blood, buried and rose again on the third day for our sins according to the scriptures.
             </p>
           </>
