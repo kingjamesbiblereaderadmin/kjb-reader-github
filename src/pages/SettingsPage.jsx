@@ -16,6 +16,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import ContactLinks from '@/components/ContactLinks';
 import { useAuth } from '@/lib/AuthContext';
 import { downloadBibleForOffline, downloadBibleForOfflineWithRetry, clearBibleCache, isBibleCached, CACHE_VERSION } from '@/lib/bibleCache';
+import { exportBiblePdf } from '@/lib/exportBiblePdf';
+import { DEFAULT_EXPORT_FONT } from '@/lib/exportFonts';
+import { downloadSuccessMessage } from '@/lib/nativeDownload';
 import { getAccessibilityFont, setAccessibilityFont } from '@/lib/accessibilityFont';
 import { getAutoRotate, setAutoRotate as persistAutoRotate } from '@/lib/autoRotate';
 import { detectIncognito } from '@/lib/incognito';
@@ -235,7 +238,11 @@ export default function SettingsPage() {
   }, []);
 
 
-  const handleDownload = async (e, withRetry = false) => {
+  // offerFile: also hand the user the whole-Bible .txt as a file (Save to
+  // Files sheet on iOS) after the offline cache finishes. Only the manual
+  // Settings button passes true — the automatic re-download paths
+  // (kjb-auto-redownload) never prompt.
+  const handleDownload = async (e, withRetry = false, offerFile = false) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -252,6 +259,23 @@ export default function SettingsPage() {
       });
       setCached(true);
       setDlStatus('All 66 books downloaded successfully!');
+      if (offerFile) {
+        // The cache above is for in-app offline reading; also give the user
+        // the actual Bible as a .txt file, same defaults as the export
+        // section's txt option (share sheet / Save to Files on iOS).
+        try {
+          setDlStatus('Preparing Bible file…');
+          await exportBiblePdf({
+            format: 'txt', scope: 'whole', twoColumn: false, paragraph: false,
+            subscripts: true, colophons: true, coverPage: true, toc: true,
+            shortNames: false, font: DEFAULT_EXPORT_FONT,
+          });
+          toast.success(downloadSuccessMessage());
+        } catch (err) {
+          console.error('Bible file export failed:', err);
+        }
+        setDlStatus('All 66 books downloaded successfully!');
+      }
       // Dispatch storage event to sync FirstLoadPrompt
       window.dispatchEvent(new Event('storage'));
       // Also update localStorage to prevent prompt from reappearing
@@ -798,8 +822,8 @@ export default function SettingsPage() {
                   </div>
                 )}
                 <button
-                  onClick={handleDownload}
-                  onTouchEnd={(e) => { e.preventDefault(); handleDownload(e); }}
+                  onClick={(e) => handleDownload(e, false, true)}
+                  onTouchEnd={(e) => { e.preventDefault(); handleDownload(e, false, true); }}
                   disabled={downloading}
                   className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary border border-primary text-primary-foreground font-sans text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100 disabled:active:scale-100 disabled:opacity-60"
                 >
