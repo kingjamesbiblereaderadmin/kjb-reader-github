@@ -1,6 +1,13 @@
 name: Build iOS App
 on:
   workflow_dispatch:
+    inputs:
+      upload:
+        description: 'Override the .github/asc-upload-mode repo toggle'
+        required: false
+        default: 'auto'
+        type: choice
+        options: [auto, upload, skip]
   push:
     branches: [main]
 
@@ -105,5 +112,25 @@ jobs:
             -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8 \
             -authenticationKeyID ${{ secrets.ASC_KEY_ID }} \
             -authenticationKeyIssuerID ${{ secrets.ASC_ISSUER_ID }} \
+      - name: Resolve upload mode
+        id: uploadmode
+        run: |
+          MODE="$(head -1 .github/asc-upload-mode 2>/dev/null | tr -d '[:space:]')"
+          DISPATCH="${{ inputs.upload }}"
+          if [ "$DISPATCH" = "upload" ] || [ "$DISPATCH" = "skip" ]; then
+            MODE="$DISPATCH"
+          fi
+          echo "Repo toggle: $(head -1 .github/asc-upload-mode 2>/dev/null || echo '<missing>'); dispatch input: $DISPATCH -> mode=$MODE"
+          if [ "$MODE" = "skip" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Upload mode: SKIP (build-only run)"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "Upload mode: UPLOAD"
+          fi
       - name: Upload to App Store Connect
+        if: steps.uploadmode.outputs.skip != 'true'
         run: fastlane deliver --api_key_path ios/ci/asc_key_runtime.json --ipa build/ipa/App.ipa --skip_screenshots --skip_metadata --run_precheck_before_submit false
+      - name: Upload skipped (build-only)
+        if: steps.uploadmode.outputs.skip == 'true'
+        run: echo "Skipped the App Store Connect upload per .github/asc-upload-mode (or the dispatch input). The build+export still validated this commit."
