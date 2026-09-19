@@ -16,10 +16,10 @@ import VerseQuote from '@/components/gospel/VerseQuote';
 
 function CopyButton({ text, className }) {
   const [copied, setCopied] = useState(false);
-  const handleCopy = (e) => {
+  const handleCopy = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    try { navigator.clipboard.writeText(text); } catch {
+    try { await navigator.clipboard.writeText(text); } catch {
       const ta = document.createElement('textarea');
       ta.value = text;
       ta.style.position = 'fixed';
