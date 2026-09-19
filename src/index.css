@@ -135,9 +135,12 @@
     overflow-wrap: break-word;
     word-break: normal;
     /* Hyphenation is OFF app-wide: mid-word splits ("sin-ner", "resur-rection")
-       made mobile headings/body copy feel cramped. The ONE deliberate exception
-       is the two-column printed-Bible reading view (.kjb-two-col below), whose
-       genuinely narrow columns need it. Headings inherit this none. */
+       made mobile headings/body copy feel cramped, and hyphens: auto is only
+       a fallback anyway — words too wide for their line still wrap cleanly via
+       overflow-wrap: break-word above (just without a visible hyphen). The ONE
+       deliberate exception is the two-column printed-Bible reading view
+       (.kjb-two-col below), whose genuinely narrow columns need it. Headings
+       inherit this none. */
     -webkit-hyphens: none;
     hyphens: none;
   }

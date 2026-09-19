@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ExternalLink, CheckCircle, Users, ChevronDown, ChevronLeft, ChevronRight, Youtube, Facebook, Instagram, Link as LinkIcon, Copy, Globe } from 'lucide-react';
 
 function CopyButton({ text, className }) {
@@ -57,12 +57,6 @@ function getLinkLabel(url) {
   if (url.includes('univer.se')) return 'Joyfully Church';
   if (url.includes('mission1611.com')) return 'Mission 1611';
   try { return new URL(url).hostname.replace('www.', ''); } catch { return 'Website'; }
-}
-
-// Compact directory-card initials ("Robert Breaker" -> "RB").
-function initialsFor(name) {
-  const parts = name.replace(/[()]/g, '').split(/\s+/).filter(Boolean);
-  return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'K';
 }
 
 export const PREACHERS = [
@@ -167,15 +161,23 @@ export default function PreachersSection({
   onToggleGroup: externalToggleGroup,
 }) {
   const [internalGroupOpen, setInternalGroupOpen] = useState(true);
+  // Directory pattern: null = compact card grid; a preacher name = detail view
+  // for that preacher. Keeps the section compact no matter how many preachers
+  // or links are added — expansion is one level deep instead of accordion-wide.
   const [selected, setSelected] = useState(null);
 
   const groupOpen = externalGroupOpen !== undefined ? externalGroupOpen : internalGroupOpen;
   const toggleGroup = externalToggleGroup || (() => setInternalGroupOpen((o) => !o));
 
-  // Collapsing the group resets back to the directory view for next time.
+  // Collapsing the group should reset back to the directory list, so reopening
+  // always shows the compact view.
+  const wasOpenRef = useRef(groupOpen);
   useEffect(() => {
-    if (!groupOpen) setSelected(null);
+    if (wasOpenRef.current && !groupOpen) setSelected(null);
+    wasOpenRef.current = groupOpen;
   }, [groupOpen]);
+
+  const preacher = selected ? PREACHERS.find((p) => p.name === selected) : null;
 
   return (
     <div className="mb-8 bg-amber-100/60 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/60 rounded-2xl overflow-hidden">
@@ -200,62 +202,71 @@ export default function PreachersSection({
           <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${groupOpen ? 'rotate-180' : ''}`} />
         </div>
       </button>
-      {groupOpen && !selected && (
+      {groupOpen && (preacher ? (
+        /* ---- Detail view: one preacher, full description + links ---- */
+        <div className="p-5 pt-4">
+          <button
+            onClick={() => setSelected(null)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary border border-border font-sans text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-colors"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" /> All preachers
+          </button>
+          <div className="flex items-start gap-3 mt-4">
+            <PreacherAvatar preacher={preacher} size="w-10 h-10" textClass="text-sm" />
+            <div className="flex-1 min-w-0">
+              <p className="notranslate font-sans text-base font-semibold text-foreground" translate="no">{preacher.name}</p>
+              <p className="font-sans text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5 text-green-500" /> Verified</span>
+                <span className="mx-1.5">·</span>
+                {preacher.links.length} {preacher.links.length === 1 ? 'link' : 'links'}
+              </p>
+            </div>
+            <CopyButton
+              text={`${preacher.name}\n${preacher.desc}\n\n${preacher.links.join('\n')}`}
+              className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-amber-600 transition-colors cursor-pointer"
+            />
+          </div>
+          <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-3 mb-3">{preacher.desc}</p>
+          <div className="space-y-2">
+            {preacher.links.map((url) =>
+              <a
+                key={url}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3 bg-card border border-border rounded-lg hover:border-amber-300/60 transition-colors group"
+              >
+                <span className="text-muted-foreground group-hover:text-amber-600 transition-colors">
+                  {getLinkIcon(url)}
+                </span>
+                <span className="font-sans text-sm font-medium text-foreground group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors flex-1 break-words">
+                  {getLinkLabel(url)}
+                </span>
+                <CopyButton text={url} className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-amber-600 transition-colors flex-shrink-0" />
+                <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-amber-600 transition-colors flex-shrink-0" />
+              </a>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* ---- Directory view: compact cards, one per preacher ---- */
         <div className="p-5 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {PREACHERS.map((preacher) => (
+          {PREACHERS.map((p) => (
             <button
-              key={preacher.name}
-              onClick={() => setSelected(preacher)}
-              className="flex items-center gap-3 p-4 bg-card border border-border rounded-xl text-left hover:border-accent/50 hover:bg-accent/5 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+              key={p.name}
+              onClick={() => setSelected(p.name)}
+              className="group flex items-center gap-3 p-3.5 bg-card border border-border rounded-xl text-left hover:border-amber-300/60 hover:bg-amber-50/40 dark:hover:bg-amber-900/10 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
             >
-              <PreacherAvatar preacher={preacher} />
-              <div className="flex-1 min-w-0">
-                <p className="notranslate font-sans text-sm font-semibold text-foreground truncate" translate="no">{preacher.name}</p>
-                <p className="font-sans text-xs text-muted-foreground truncate">{preacher.desc}</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              <PreacherAvatar preacher={p} />
+              <span className="flex-1 min-w-0">
+                <span className="notranslate block font-sans text-sm font-semibold text-foreground truncate" translate="no">{p.name}</span>
+                <span className="block font-sans text-xs text-muted-foreground truncate">{p.desc}</span>
+              </span>
+              <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-amber-600 transition-colors flex-shrink-0" />
             </button>
           ))}
         </div>
-      )}
-      {groupOpen && selected && (
-        <div className="p-5 pt-4 space-y-2">
-          <button
-            onClick={() => setSelected(null)}
-            className="inline-flex items-center gap-1.5 mb-4 px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" /> All preachers
-          </button>
-          <div className="flex items-center gap-3 mb-3">
-            <PreacherAvatar preacher={selected} size="w-10 h-10" textClass="text-sm" />
-            <div className="min-w-0">
-              <p className="notranslate font-sans text-sm font-semibold text-foreground truncate" translate="no">{selected.name}</p>
-              <p className="font-sans text-xs text-muted-foreground flex items-center gap-1">
-                <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-                Verified · {selected.links.length} {selected.links.length === 1 ? 'link' : 'links'}
-              </p>
-            </div>
-          </div>
-          <p className="font-sans text-xs text-muted-foreground mb-3">{selected.desc}</p>
-          {selected.links.map((url) =>
-            <a
-              key={url}
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 p-3 bg-card border border-border rounded-lg hover:border-accent/50 transition-colors group">
-              <span className="text-muted-foreground group-hover:text-accent transition-colors">
-                {getLinkIcon(url)}
-              </span>
-              <span className="font-sans text-sm font-medium text-foreground group-hover:text-accent transition-colors flex-1 break-words">
-                {getLinkLabel(url)}
-              </span>
-              <CopyButton text={url} className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors flex-shrink-0" />
-              <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors flex-shrink-0" />
-            </a>
-          )}
-        </div>
-      )}
+      ))}
     </div>
   );
 }
