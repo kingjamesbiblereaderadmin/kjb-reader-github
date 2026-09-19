@@ -26,8 +26,9 @@ jobs:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
-          pip install --quiet pyjwt requests cryptography
-          NEXT=$(python3 scripts/asc-next-build.py)
+          python3 -m venv /tmp/ascvenv
+          /tmp/ascvenv/bin/pip install pyjwt requests cryptography
+          NEXT=$(/tmp/ascvenv/bin/python scripts/asc-next-build.py)
           echo "next=$NEXT" >> "$GITHUB_OUTPUT"
           echo "Next build number: $NEXT"
 
