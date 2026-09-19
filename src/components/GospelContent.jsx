@@ -13,6 +13,7 @@ import { BIBLE_BOOKS } from '@/lib/bibleData';
 import { setGospelNav } from '@/lib/searchNav';
 import { getGospelResults } from '@/lib/gospelVerses';
 import PreachersSection from '@/components/PreachersSection';
+import VerseQuote from '@/components/gospel/VerseQuote';
 
 function CopyButton({ text, className }) {
   const [copied, setCopied] = useState(false);
@@ -424,10 +425,10 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
           copyText={`1. Believe you are a sinner that deserves hell\n\n${VERSE_TEXTS['Rom3:20']}\n\n${VERSE_TEXTS['Psa9:17']}`}
         >
           <blockquote className="notranslate border-l-2 border-accent pl-4 font-serif text-foreground/80 text-sm mb-3" translate="no">
-            {VERSE_TEXTS['Rom3:20']}
+            <VerseQuote text={VERSE_TEXTS['Rom3:20']} />
           </blockquote>
           <blockquote className="notranslate border-l-2 border-accent pl-4 font-serif text-foreground/80 text-sm mb-3" translate="no">
-            {VERSE_TEXTS['Psa9:17']}
+            <VerseQuote text={VERSE_TEXTS['Psa9:17']} />
           </blockquote>
           <div className="flex flex-wrap gap-2">
             <VerseLink book="Romans" chapter={3} verse={20}>Romans 3:20</VerseLink>
@@ -444,7 +445,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
           copyText={`2. Believe that Jesus is God manifested in the flesh\n\n${VERSE_TEXTS['1Tim3:16']}`}
         >
           <blockquote className="notranslate border-l-2 border-accent pl-4 font-serif text-foreground/80 text-sm mb-3" translate="no">
-            {VERSE_TEXTS['1Tim3:16']}
+            <VerseQuote text={VERSE_TEXTS['1Tim3:16']} />
           </blockquote>
           <div className="flex flex-wrap gap-2">
             <VerseLink book="1 Timothy" chapter={3} verse={16}>1 Timothy 3:16</VerseLink>
@@ -460,10 +461,10 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
           copyText={`3. Believe he died, shed his blood, was buried and rose again for our sins according to the scriptures\n\n"Moreover, brethren, I declare unto you the gospel which I preached unto you... how that Christ died for our sins according to the scriptures; And that he was buried, and that he rose again the third day according to the scriptures." — 1 Corinthians 15:1–4\n\n${VERSE_TEXTS['Rom3:25']}`}
         >
           <blockquote className="notranslate border-l-2 border-accent pl-4 font-serif text-foreground/80 text-sm mb-3" translate="no">
-            "Moreover, brethren, I declare unto you the gospel which I preached unto you, which also ye have received, and wherein ye stand; By which also ye are saved, if ye keep in memory what I preached unto you, unless ye have believed in vain. For I delivered unto you first of all that which I also received, how that Christ died for our sins according to the scriptures; And that he was buried, and that he rose again the third day according to the scriptures." — 1 Corinthians 15:1–4
+            "Moreover, brethren, I declare unto you the gospel which I preached unto you, which also ye have received, and wherein ye stand; By which also ye are saved, if ye keep in memory what I preached unto you, unless ye have believed in vain. For I delivered unto you first of all that which I also received, how that Christ died for our sins according to the scriptures; And that he was buried, and that he rose again the third day according to the scriptures." <span className="whitespace-nowrap">— 1 Corinthians 15:1–4</span>
           </blockquote>
           <blockquote className="notranslate border-l-2 border-accent pl-4 font-serif text-foreground/80 text-sm mb-3" translate="no">
-            {VERSE_TEXTS['Rom3:25']}
+            <VerseQuote text={VERSE_TEXTS['Rom3:25']} />
           </blockquote>
           <div className="flex flex-wrap gap-2">
             <VerseLink book="1 Corinthians" chapter={15} verse={1} verseEnd={4}>1 Corinthians 15:1–4</VerseLink>
@@ -523,7 +524,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
               A believer who has trusted the gospel cannot lose salvation, no matter what happens in their life. God's gift of eternal life is just that — eternal.
             </p>
             <blockquote className="border-l-2 border-accent pl-4 font-serif text-foreground/75 text-sm mb-2">
-              <span className="notranslate" translate="no">"In whom ye also trusted, after that ye heard the word of truth, the gospel of your salvation: in whom also after that ye believed, ye were sealed with that holy Spirit of promise."</span> — <VerseLink book="Ephesians" chapter={1} verse={13}>Ephesians 1:13</VerseLink>
+              <span className="notranslate" translate="no">"In whom ye also trusted, after that ye heard the word of truth, the gospel of your salvation: in whom also after that ye believed, ye were sealed with that holy Spirit of promise."</span> <span className="whitespace-nowrap">— <VerseLink book="Ephesians" chapter={1} verse={13}>Ephesians 1:13</VerseLink></span>
             </blockquote>
           </div>
         )}
