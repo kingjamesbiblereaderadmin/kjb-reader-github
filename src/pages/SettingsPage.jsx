@@ -709,11 +709,16 @@ export default function SettingsPage() {
                 )}
 
                 {downloading && (
-                  <div className="w-full bg-secondary/70 rounded-full h-2 overflow-hidden">
-                    <div
-                      className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${dlProgress}%` }}
-                    />
+                  <div className="space-y-2">
+                    <p className="font-sans text-sm text-muted-foreground flex items-center gap-1.5">
+                      <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" /> {dlStatus || 'Checking for updates...'}
+                    </p>
+                    <div className="w-full bg-secondary/70 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${dlProgress}%` }}
+                      />
+                    </div>
                   </div>
                 )}
                 {!downloading && (
@@ -762,11 +767,11 @@ export default function SettingsPage() {
                         }
 
                         if (!hasCodeUpdates && !hasBibleUpdates) {
-                          setDlStatus('App & Bible data are up to date. Reloading to ensure latest version...');
-                          sessionStorage.setItem('kjb_sw_updated', 'up_to_date');
-                          setTimeout(() => {
-                            window.location.href = window.location.pathname + '?refresh=' + Date.now();
-                          }, 1500);
+                          // Nothing to reload — the running page already matches
+                          // the deployed app and Bible data. Forcing a reload
+                          // here only flashed the splash screen for no reason.
+                          setDownloading(false);
+                          setDlStatus('App & Bible data are up to date');
                           return;
                         }
 
