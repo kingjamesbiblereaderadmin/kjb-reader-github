@@ -30,12 +30,25 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
   const stepsLog = useRef([]);
 
   // The static HTML boot splash lives outside #root so React doesn't remove it
-  // on mount (which caused a logo flash). Hide it once the React splash has
-  // rendered — they look identical, so the swap is seamless.
-  useEffect(() => {
+  // on mount. The two splashes look identical, but hiding the placeholder the
+  // instant React renders still flashed the logo away: the React logo is gated
+  // on its own load, so for a beat the placeholder was gone while the real
+  // logo hadn't decoded yet — on every launch, cache or not. The placeholder
+  // now stays up until the React logo has actually loaded (hideBootSplash is
+  // passed to KjbLogo's onLoad), with a short safety timeout, and an
+  // immediate hide when this splash isn't shown at all.
+  const bootHiddenRef = useRef(false);
+  const hideBootSplash = () => {
+    if (bootHiddenRef.current) return;
+    bootHiddenRef.current = true;
     const el = document.getElementById('kjb-boot-splash');
-    if (el) requestAnimationFrame(() => { el.style.display = 'none'; });
-  }, []);
+    if (el) el.style.display = 'none';
+  };
+  useEffect(() => {
+    if (!isVisible) { hideBootSplash(); return; }
+    const t = setTimeout(hideBootSplash, 2500);
+    return () => clearTimeout(t);
+  }, [isVisible]);
 
   // Lock page scroll while the splash is up. The overlay is position:fixed
   // and covers the viewport, but the page underneath is still scrollable —
@@ -308,6 +321,7 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
     >
       <div className="flex flex-col items-center -mt-16" style={{ gap: '48px' }}>
         <KjbLogo
+          onLoad={hideBootSplash}
           alt="KJB Reader Logo"
           width={176}
           height={176}

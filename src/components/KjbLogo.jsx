@@ -7,7 +7,7 @@ import { getLogoCandidates } from '@/lib/splashLogo';
 // on the splash before the fallback loaded — so the <img> stays invisible
 // until a source actually decodes (onLoad), and steps to the next candidate
 // on error. It hides itself only if every source fails.
-export default function KjbLogo({ className, style, ...rest }) {
+export default function KjbLogo({ className, style, onLoad, ...rest }) {
   // Candidates are captured ONCE per mount: recomputing them from
   // localStorage on every render let a mid-session re-cache (cacheSplashLogo
   // storing a fresh data URL) swap the src — remounting the <img>, dropping it
@@ -23,7 +23,7 @@ export default function KjbLogo({ className, style, ...rest }) {
       key={src}
       src={src}
       onError={() => setFailedIdx((i) => i + 1)}
-      onLoad={() => setLoaded(true)}
+      onLoad={() => { setLoaded(true); onLoad?.(); }}
       className={className}
       style={{ ...style, opacity: loaded ? 1 : 0 }}
       {...rest}
