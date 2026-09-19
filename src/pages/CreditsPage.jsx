@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, BookOpen, Type, Wrench, Info, ArrowLeft, Scale } from 'lucide-react';
 import FontsSection from '@/components/credits/FontsSection';
@@ -13,43 +13,72 @@ import FontsSection from '@/components/credits/FontsSection';
 // small paddings so the grid stays even.
 
 const TM_CARDS = [
-  { owner: 'Apple Inc.', slug: 'apple', marks: 'Apple, App Store, Xcode, WebKit, Safari, iPhone, iPad, iOS', extra: 'registered in the U.S. and other countries.', use: 'iOS development tools (Xcode, WebKit) and App Store distribution.' },
-  { owner: 'Google LLC', slug: 'google', marks: 'Google, Google Play, Google Play Console, Chrome, Android, Android Studio, YouTube', use: 'Android tooling and Play Store distribution; Google Fonts; browser-compatibility references.' },
-  { owner: 'Microsoft Corporation', slug: null, marks: 'Microsoft, Edge, Windows, Internet Explorer', use: 'Browser-compatibility references for the web app and extension.' },
-  { owner: 'Oracle', slug: 'oracle', marks: 'Java', extra: 'Java is a registered trademark of Oracle and/or its affiliates.', use: 'The Java toolchain inside the Android app build.' },
-  { owner: 'Gradle, Inc.', slug: 'gradle', marks: 'Gradle', use: 'Build tool that compiles and signs the Android app.' },
-  { owner: 'Anthropic PBC', slug: 'anthropic', marks: 'Claude', use: 'AI assistance used to help generate the app code.' },
-  { owner: 'Base44', slug: null, marks: 'Base44', use: 'Web app hosting, backend, and optional user authentication.' },
-  { owner: 'The Document Foundation', slug: 'libreoffice', marks: 'LibreOffice', use: 'en-US Liang hyphenation patterns for the two-column reading layout.' },
-  { owner: 'Mozilla Foundation', slug: 'firefoxbrowser', marks: 'Firefox', use: 'Browser-compatibility reference.' },
-  { owner: 'Opera Software', slug: 'opera', marks: 'Opera', use: 'Browser-compatibility reference.' },
-  { owner: 'Brave Software, Inc.', slug: 'brave', marks: 'Brave', use: 'Browser-compatibility reference.' },
-  { owner: 'Kiwi Browser', slug: null, marks: 'Kiwi Browser', extra: 'trademark of its respective owner.', use: 'Browser-compatibility reference for the browser extension.' },
-  { owner: 'Meta Platforms, Inc.', slug: 'meta', marks: 'Instagram, Facebook', use: 'Ministry and preacher social links opened in the device browser.' },
-  { owner: 'ByteDance Ltd.', slug: 'bytedance', marks: 'TikTok', use: 'Ministry social links opened in the device browser.' },
-  { owner: 'Discord Inc.', slug: 'discord', marks: 'Discord', use: 'Community server invite links.' },
-  { owner: 'Rumble Inc.', slug: 'rumble', marks: 'Rumble', use: 'Ministry video links opened in the device browser.' },
-  { owner: 'Linktree Pty Ltd', slug: 'linktree', marks: 'Linktree', use: 'Ministry link pages opened in the device browser.' }
+  { owner: 'Apple Inc.', slug: 'apple', color: '#000000', darkColor: '#FFFFFF', marks: 'Apple, App Store, Xcode, WebKit, Safari, iPhone, iPad, iOS', extra: 'registered in the U.S. and other countries.', use: 'iOS development tools (Xcode, WebKit) and App Store distribution.' },
+  { owner: 'Google LLC', slug: 'google', color: '#4285F4', marks: 'Google, Google Play, Google Play Console, Chrome, Android, Android Studio, YouTube', use: 'Android tooling and Play Store distribution; Google Fonts; browser-compatibility references.' },
+  { owner: 'Microsoft Corporation', logo: 'microsoft', marks: 'Microsoft, Edge, Windows, Internet Explorer', use: 'Browser-compatibility references for the web app and extension.' },
+  { owner: 'Oracle', slug: 'oracle', color: '#F80000', marks: 'Java', extra: 'Java is a registered trademark of Oracle and/or its affiliates.', use: 'The Java toolchain inside the Android app build.' },
+  { owner: 'Gradle, Inc.', slug: 'gradle', color: '#02303A', darkColor: '#5FC8CE', marks: 'Gradle', use: 'Build tool that compiles and signs the Android app.' },
+  { owner: 'Anthropic PBC', slug: 'anthropic', color: '#191919', darkColor: '#D4A27F', marks: 'Claude', use: 'AI assistance used to help generate the app code.' },
+  { owner: 'Base44', slug: null, badge: 'bg-gradient-to-br from-indigo-500 to-violet-600', marks: 'Base44', use: 'Web app hosting, backend, and optional user authentication.' },
+  { owner: 'The Document Foundation', slug: 'libreoffice', color: '#18A303', marks: 'LibreOffice', use: 'en-US Liang hyphenation patterns for the two-column reading layout.' },
+  { owner: 'Mozilla Foundation', slug: 'firefoxbrowser', color: '#FF7139', marks: 'Firefox', use: 'Browser-compatibility reference.' },
+  { owner: 'Opera Software', slug: 'opera', color: '#FF1B2D', marks: 'Opera', use: 'Browser-compatibility reference.' },
+  { owner: 'Brave Software, Inc.', slug: 'brave', color: '#FB542B', marks: 'Brave', use: 'Browser-compatibility reference.' },
+  { owner: 'Kiwi Browser', slug: null, badge: 'bg-gradient-to-br from-lime-500 to-green-600', marks: 'Kiwi Browser', extra: 'trademark of its respective owner.', use: 'Browser-compatibility reference for the browser extension.' },
+  { owner: 'Meta Platforms, Inc.', slug: 'meta', color: '#0467D1', marks: 'Instagram, Facebook', use: 'Ministry and preacher social links opened in the device browser.' },
+  { owner: 'ByteDance Ltd.', slug: 'bytedance', color: '#3255D4', marks: 'TikTok', use: 'Ministry social links opened in the device browser.' },
+  { owner: 'Discord Inc.', slug: 'discord', color: '#5865F2', marks: 'Discord', use: 'Community server invite links.' },
+  { owner: 'Rumble Inc.', slug: 'rumble', color: '#85C742', marks: 'Rumble', use: 'Ministry video links opened in the device browser.' },
+  { owner: 'Linktree Pty Ltd', slug: 'linktree', color: '#43E559', wide: true, marks: 'Linktree', use: 'Ministry link pages opened in the device browser.' }
 ];
 
-function OwnerLogo({ slug, owner }) {
-  const [failed, setFailed] = useState(false);
-  if (!slug || failed) {
+function OwnerLogo({ card }) {
+  // Microsoft isn't in simple-icons (their trademark policy) — render its
+  // four-square logo inline, in full colour.
+  if (card.logo === 'microsoft') {
     return (
-      <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-secondary border border-border flex items-center justify-center font-sans text-[13px] font-semibold text-muted-foreground notranslate" translate="no">
-        {owner.replace(/[^A-Za-z0-9]/g, '')[0]}
+      <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-secondary/60 border border-border flex items-center justify-center">
+        <svg viewBox="0 0 23 23" className="w-4 h-4" aria-hidden="true">
+          <rect x="1" y="1" width="10.5" height="10.5" fill="#F25022" />
+          <rect x="11.5" y="1" width="10.5" height="10.5" fill="#7FBA00" />
+          <rect x="1" y="11.5" width="10.5" height="10.5" fill="#00A4EF" />
+          <rect x="11.5" y="11.5" width="10.5" height="10.5" fill="#FFB900" />
+        </svg>
       </span>
     );
   }
+  // No simple-icons entry — a brand-coloured letter badge instead of grey.
+  if (!card.slug) {
+    return (
+      <span className={`flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-sm font-sans text-[13px] font-semibold notranslate ${card.badge}`} translate="no">
+        {card.owner.replace(/[^A-Za-z0-9]/g, '')[0]}
+      </span>
+    );
+  }
+  // simple-icons glyphs are monochrome — mask the SVG shape and fill it
+  // with the brand's own colour so every logo is instantly recognisable.
+  // Brands that are black (Apple, ByteDance) get white in dark mode.
+  const url = `https://cdn.jsdelivr.net/npm/simple-icons@13/icons/${card.slug}.svg`;
+  const mask = {
+    maskImage: `url("${url}")`,
+    WebkitMaskImage: `url("${url}")`,
+    maskSize: 'contain',
+    WebkitMaskSize: 'contain',
+    maskRepeat: 'no-repeat',
+    WebkitMaskRepeat: 'no-repeat',
+    maskPosition: 'center',
+    WebkitMaskPosition: 'center',
+  };
   return (
-    <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-secondary border border-border flex items-center justify-center">
-      <img
-        src={`https://cdn.jsdelivr.net/npm/simple-icons@13/icons/${slug}.svg`}
-        alt=""
-        loading="lazy"
-        onError={() => setFailed(true)}
-        className="w-3.5 h-3.5 dark:invert opacity-80"
-      />
+    <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-secondary/60 border border-border flex items-center justify-center">
+      {card.darkColor ? (
+        <>
+          <span className="w-4 h-4 dark:hidden" style={{ ...mask, backgroundColor: card.color }} />
+          <span className="w-4 h-4 hidden dark:block" style={{ ...mask, backgroundColor: card.darkColor }} />
+        </>
+      ) : (
+        <span className="w-4 h-4" style={{ ...mask, backgroundColor: card.color }} />
+      )}
     </span>
   );
 }
@@ -181,8 +210,8 @@ export default function CreditsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
             {TM_CARDS.map((t) => (
-              <div key={t.owner} className="rounded-xl bg-secondary/60 border border-border px-3 py-2.5 flex items-start gap-2.5">
-                <OwnerLogo slug={t.slug} owner={t.owner} />
+              <div key={t.owner} className={`rounded-xl bg-secondary/60 border border-border px-3 py-2.5 flex items-start gap-2.5${t.wide ? ' sm:col-span-2' : ''}`}>
+                <OwnerLogo card={t} />
                 <div className="min-w-0">
                   <p className="font-sans text-sm font-semibold text-foreground leading-tight notranslate" translate="no">{t.owner}</p>
                   <p className="font-sans text-xs text-foreground/75 leading-snug mt-0.5 notranslate" translate="no">{t.marks}{t.extra ? '.' : ''}{t.extra && <span className="block text-muted-foreground">{t.extra}</span>}</p>
