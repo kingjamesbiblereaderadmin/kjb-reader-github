@@ -1,0 +1,29 @@
+APP PURPOSE & AUDIENCE
+KJB Reader is a free, ad-free King James Bible reading app. It gives English-speaking Christians a clean, distraction-free reader for the King James Bible (Pure Cambridge Edition) with fast search, daily verses, bookmarks, two-column reading mode, accessibility fonts, and full offline use. It also curates trusted gospel and Bible-defence resources. Problem solved: reading and sharing the KJV without ads, tracking, or paywalls.
+
+SETUP & ACCESS — NO LOGIN REQUIRED
+The app opens directly into the Bible reader. After an automatic one-time download of the Bible text, every core feature works fully offline: reading, search, saved verses, bookmarks, daily verse, settings, and resources. Account registration (email or Google) is strictly optional and only used to sync reading progress/saved verses across devices; the app is fully functional without any account.
+
+MAIN FEATURES DEMO FLOW
+1. Launch → home screen → open a Bible book/chapter and read.
+2. Adjust display: font (including Atkinson Hyperlegible accessibility font), size, two-column mode.
+3. Search the Bible text.
+4. Save/bookmark verses; view saved verses.
+5. Resources page: verified preacher directory, ministry links, Bible defence materials, Spanish resources.
+6. Optional: Settings → register/login with email/Google (account is optional; in-app account deletion is available in Settings).
+7. Offline mode: enable airplane mode and keep reading — the Bible is stored on-device.
+
+ACCOUNT DELETION
+Available in-app: Settings → Account → Delete Account. Permanently deletes the account and all server-side data.
+
+EXTERNAL SERVICES & TOOLS
+- Base44 (app hosting/backend; optional user authentication only)
+- Google Fonts (Atkinson Hyperlegible typeface, bundled in the app for offline use)
+- External hyperlinks to third-party ministry pages (YouTube, TikTok, Facebook, Instagram, church websites) — opened in the device browser; no embedded third-party content
+- No payment processors, no ads, no analytics SDKs, no AI services, no third-party data providers.
+
+REGIONAL DIFFERENCES
+None. The app functions identically in all regions; all content is bundled and available offline after first launch. No region-specific features or restrictions.
+
+PROTECTED MATERIAL
+The Bible text is the King James Bible (Pure Cambridge Edition), which is in the public domain worldwide. No copyrighted or licensed third-party material is included.
