@@ -316,11 +316,15 @@ function GospelActions() {
 }
 
 const VERSE_TEXTS = {
-  'Rom3:20': '"Therefore by the deeds of the law there shall no flesh be justified in his sight: for by the law is the knowledge of sin." — Romans 3:20',
-  'Psa9:17': '"The wicked shall be turned into hell, and all the nations that forget God." — Psalm 9:17',
+  // [bracketed] words are KJB italics — VerseQuote renders them as <em>.
+  'Rom3:20': '"Therefore by the deeds of the law there shall no flesh be justified in his sight: for by the law [is] the knowledge of sin." — Romans 3:20',
+  'Psa9:17': '"The wicked shall be turned into hell, [and] all the nations that forget God." — Psalm 9:17',
   '1Tim3:16': '"And without controversy great is the mystery of godliness: God was manifest in the flesh, justified in the Spirit, seen of angels, preached unto the Gentiles, believed on in the world, received up into glory." — 1 Timothy 3:16',
-  'Rom3:25': '"Whom God hath set forth to be a propitiation through faith in his blood, to declare his righteousness for the remission of sins that are past, through the forbearance of God;" — Romans 3:25',
+  'Rom3:25': '"Whom God hath set forth [to] [be] a propitiation through faith in his blood, to declare his righteousness for the remission of sins that are past, through the forbearance of God;" — Romans 3:25',
 };
+
+// Copied/shared plain text keeps the same words but without the [brackets].
+const plain = (t) => t.replace(/\[([^\]]+)\]/g, '$1');
 
 function StepCard({ number, icon, iconBg, title, copyText, children, defaultOpen = false, collapsible = false }) {
   const [open, setOpen] = useState(defaultOpen || !collapsible);
@@ -422,7 +426,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
           icon={<AlertCircle className="w-5 h-5 text-white" />}
           iconBg="linear-gradient(to bottom right, #f43f5e, #dc2626)"
           title="Believe you are a sinner that deserves hell"
-          copyText={`1. Believe you are a sinner that deserves hell\n\n${VERSE_TEXTS['Rom3:20']}\n\n${VERSE_TEXTS['Psa9:17']}`}
+          copyText={`1. Believe you are a sinner that deserves hell\n\n${plain(VERSE_TEXTS['Rom3:20'])}\n\n${plain(VERSE_TEXTS['Psa9:17'])}`}
         >
           <blockquote className="notranslate border-l-2 border-accent pl-4 font-serif text-foreground/80 text-sm mb-3" translate="no">
             <VerseQuote text={VERSE_TEXTS['Rom3:20']} />
@@ -442,7 +446,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
           icon={<CheckCircle className="w-5 h-5 text-white" />}
           iconBg="linear-gradient(to bottom right, #3b82f6, #4f46e5)"
           title="Believe that Jesus is God manifested in the flesh"
-          copyText={`2. Believe that Jesus is God manifested in the flesh\n\n${VERSE_TEXTS['1Tim3:16']}`}
+          copyText={`2. Believe that Jesus is God manifested in the flesh\n\n${plain(VERSE_TEXTS['1Tim3:16'])}`}
         >
           <blockquote className="notranslate border-l-2 border-accent pl-4 font-serif text-foreground/80 text-sm mb-3" translate="no">
             <VerseQuote text={VERSE_TEXTS['1Tim3:16']} />
@@ -458,7 +462,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
           icon={<CheckCircle className="w-5 h-5 text-white" />}
           iconBg="linear-gradient(to bottom right, #fbbf24, #eab308)"
           title="Believe he died, shed his blood, was buried and rose again for our sins according to the scriptures"
-          copyText={`3. Believe he died, shed his blood, was buried and rose again for our sins according to the scriptures\n\n"Moreover, brethren, I declare unto you the gospel which I preached unto you... how that Christ died for our sins according to the scriptures; And that he was buried, and that he rose again the third day according to the scriptures." — 1 Corinthians 15:1–4\n\n${VERSE_TEXTS['Rom3:25']}`}
+          copyText={`3. Believe he died, shed his blood, was buried and rose again for our sins according to the scriptures\n\n"Moreover, brethren, I declare unto you the gospel which I preached unto you... how that Christ died for our sins according to the scriptures; And that he was buried, and that he rose again the third day according to the scriptures." — 1 Corinthians 15:1–4\n\n${plain(VERSE_TEXTS['Rom3:25'])}`}
         >
           <blockquote className="notranslate border-l-2 border-accent pl-4 font-serif text-foreground/80 text-sm mb-3" translate="no">
             "Moreover, brethren, I declare unto you the gospel which I preached unto you, which also ye have received, and wherein ye stand; By which also ye are saved, if ye keep in memory what I preached unto you, unless ye have believed in vain. For I delivered unto you first of all that which I also received, how that Christ died for our sins according to the scriptures; And that he was buried, and that he rose again the third day according to the scriptures." <span className="whitespace-nowrap">— 1 Corinthians 15:1–4</span>
@@ -524,7 +528,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
               A believer who has trusted the gospel cannot lose salvation, no matter what happens in their life. God's gift of eternal life is just that — eternal.
             </p>
             <blockquote className="border-l-2 border-accent pl-4 font-serif text-foreground/75 text-sm mb-2">
-              <span className="notranslate" translate="no">"In whom ye also trusted, after that ye heard the word of truth, the gospel of your salvation: in whom also after that ye believed, ye were sealed with that holy Spirit of promise."</span> <span className="whitespace-nowrap">— <VerseLink book="Ephesians" chapter={1} verse={13}>Ephesians 1:13</VerseLink></span>
+              <span className="notranslate" translate="no"><VerseQuote text={'"In whom ye also [trusted], after that ye heard the word of truth, the gospel of your salvation: in whom also after that ye believed, ye were sealed with that holy Spirit of promise." '} citation={<>— <VerseLink book="Ephesians" chapter={1} verse={13}>Ephesians 1:13</VerseLink></>} /></span>
             </blockquote>
           </div>
         )}
