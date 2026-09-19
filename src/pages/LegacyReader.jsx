@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { appParams } from '@/lib/app-params';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
+import { isNativeIos } from '@/lib/isNativeIos';
 
 // The legacy reader is a 100% server-rendered HTML page (no React, no JS),
 // served by the `legacy` backend function so it works on ancient browsers
@@ -30,7 +31,12 @@ function legacyUrl(extraParams = []) {
 }
 
 export default function LegacyReader() {
-  const native = isNativeAndroid();
+  // Wrapper applies on native iOS too — without it, iOS would
+  // window.location.replace() the whole WKWebView away from the app to the
+  // raw legacy page (no safe-area handling, no way back except killing the
+  // app; its 'Download HTML' link also navigates somewhere a WKWebView
+  // can't handle, see OfflineFallback.swift).
+  const native = isNativeAndroid() || isNativeIos();
   // Two distinct URLs: the iframe gets native=1 (asks the backend to omit its
   // own "Back to KJB Reader" link on native, since the wrapper's own button
   // below already does that job with proper in-app back-history -- one back
@@ -69,7 +75,7 @@ export default function LegacyReader() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: '#f7f7fb' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#2d2a6e', color: '#fff', fontFamily: 'Arial, sans-serif', fontSize: 13, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', paddingTop: 'calc(10px + env(safe-area-inset-top))', background: '#2d2a6e', color: '#fff', fontFamily: 'Arial, sans-serif', fontSize: 13, flexShrink: 0 }}>
         <button onClick={goBack} style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#fff', textDecoration: 'none', background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer' }}>
           <ArrowLeft size={16} /> Back to App
         </button>

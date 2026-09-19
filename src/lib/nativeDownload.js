@@ -51,3 +51,25 @@ export async function triggerDownload(blob, name) {
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+// Success message for a completed file export/download. On native iOS the
+// file is NOT dropped into a downloads folder — the WKWebView download
+// bridge writes it to a temp file and presents the share sheet (Save to
+// Files, AirDrop, etc.), so the copy should point at that sheet instead of
+// a folder that doesn't exist on iOS.
+import { isNativeIos } from './isNativeIos';
+
+export function downloadSuccessMessage() {
+  if (isNativeIos()) {
+    return 'Export ready — tap "Save to Files" in the sheet that opened to keep it.';
+  }
+  return 'Downloaded! Check your downloads folder.';
+}
+
+// Spanish counterpart (Spanish Gospel page exports).
+export function downloadSuccessMessageEs() {
+  if (isNativeIos()) {
+    return '¡Listo! Toca "Guardar en Archivos" en la hoja que se abrió para conservarlo.';
+  }
+  return '¡Descargado! Revisa tu carpeta de Descargas.';
+}

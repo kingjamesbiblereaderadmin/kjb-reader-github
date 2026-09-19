@@ -3,6 +3,7 @@ import { Download, FileCode, HardDrive, Loader2, CheckCircle2, AlertCircle } fro
 import { appParams } from '@/lib/app-params';
 import { triggerDownload } from '@/lib/nativeDownload';
 import { canUseNativeBundledAssets } from '@/lib/nativeOfflineAssets';
+import { downloadSuccessMessage } from '@/lib/nativeDownload';
 
 // The standalone, single-file HTML version of the entire KJB (all 66 books +
 // Gospel, Resources, About). 100% self-contained, no JavaScript, works on any
@@ -107,7 +108,7 @@ export default function OfflineHtmlSection() {
       )}
       {!busy && status === 'Done!' && !usedFallback && (
         <p className="font-sans text-sm text-green-600 dark:text-green-400 flex items-center gap-1.5">
-          <CheckCircle2 className="w-4 h-4" /> Downloaded! Check your downloads folder.
+          <CheckCircle2 className="w-4 h-4" /> {downloadSuccessMessage()}
         </p>
       )}
       {error && (

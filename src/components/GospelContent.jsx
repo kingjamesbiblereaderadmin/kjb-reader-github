@@ -13,6 +13,7 @@ import { setGospelNav } from '@/lib/searchNav';
 import { getGospelResults } from '@/lib/gospelVerses';
 import PreachersSection from '@/components/PreachersSection';
 import VerseQuote from '@/components/gospel/VerseQuote';
+import { downloadSuccessMessage } from '@/lib/nativeDownload';
 
 function CopyButton({ text, className }) {
   const [copied, setCopied] = useState(false);
@@ -213,7 +214,7 @@ function GospelActions() {
 
   const handleDownloadTxt = () => {
     triggerDownload(new Blob([buildGospelTextPlain()], { type: 'text/plain;charset=utf-8' }), 'the-gospel.txt')
-      .then(() => toast.success('Downloaded! Check your downloads folder.'))
+      .then(() => toast.success(downloadSuccessMessage()))
       .catch((err) => { console.error('Download failed:', err); toast.error('Download failed. Please try again.'); });
   };
 
@@ -240,7 +241,7 @@ function GospelActions() {
       y += 16;
     });
     triggerDownload(doc.output('blob'), 'the-gospel.pdf')
-      .then(() => toast.success('Downloaded! Check your downloads folder.'))
+      .then(() => toast.success(downloadSuccessMessage()))
       .catch((err) => { console.error('Download failed:', err); toast.error('Download failed. Please try again.'); });
   };
 
@@ -267,7 +268,7 @@ function GospelActions() {
     }).join('');
     const html = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>The Gospel</title></head><body style="font-family:Georgia,serif;font-size:12pt;color:#000">${body}</body></html>`;
     triggerDownload(new Blob(['\ufeff', html], { type: 'application/msword' }), 'the-gospel.doc')
-      .then(() => toast.success('Downloaded! Check your downloads folder.'))
+      .then(() => toast.success(downloadSuccessMessage()))
       .catch((err) => { console.error('Download failed:', err); toast.error('Download failed. Please try again.'); });
   };
 

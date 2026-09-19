@@ -33,6 +33,7 @@ import { getPublicOrigin } from '@/lib/publicOrigin';
 import { nativeShare } from '@/lib/nativeShare';
 import { toast } from 'sonner';
 import { SUBSCRIPTS } from '@/lib/bibleSubscripts';
+import { downloadSuccessMessage } from '@/lib/nativeDownload';
 
 // Parse a cross-chapter / cross-book passage like "John 3:16-4:2" (same book,
 // spans chapters) or "Matthew 28:1-Mark 1:5" (spans books). Returns
@@ -1078,7 +1079,7 @@ export default function SearchPage() {
       bookCount: selectedBooks.size > 0 && selectedBooks.size < 66 ? selectedBooks.size : 0,
     };
     exportVerses(format, items, q, filters, { showQuery: true })
-      .then(() => toast.success('Downloaded! Check your downloads folder.'))
+      .then(() => toast.success(downloadSuccessMessage()))
       .catch((err) => { console.error('Export failed:', err); toast.error('Export failed. Please try again.'); });
   };
 

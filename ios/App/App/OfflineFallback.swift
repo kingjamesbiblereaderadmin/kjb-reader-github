@@ -184,6 +184,19 @@ final class OfflineFallbackDelegate: NSObject, WKNavigationDelegate {
     // MARK: - WKNavigationDelegate (forwarded, with failure interception)
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        // The legacy reader page's "Download HTML File" (and txt/rtf/doc/pdf
+        // variants) are plain links to the legacy function with
+        // Content-Disposition: attachment. WKWebView can't perform that
+        // download — it renders the raw file in place with no way back.
+        // Cancel the navigation and fetch the file natively instead, then
+        // offer it through the share sheet like the JS download bridge.
+        if let url = navigationAction.request.url,
+           url.path.contains("legacy"),
+           url.absoluteString.contains("download=1") {
+            decisionHandler(.cancel)
+            KJBNativeBridges.shared.downloadLegacyFile(url: url)
+            return
+        }
         if navigationAction.targetFrame?.isMainFrame ?? true {
             pendingMainURL = navigationAction.request.url
         }
@@ -343,6 +356,41 @@ final class KJBNativeBridges: NSObject, WKScriptMessageHandler {
                 controller.present(animated: true)
             }
         }
+    }
+
+    // Server-side legacy downloads (?download=1 links from the legacy reader
+    // page) — fetched natively with URLSession and offered via the share sheet.
+    func downloadLegacyFile(url: URL) {
+        var request = URLRequest(url: url)
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        let task = URLSession.shared.downloadTask(with: request) { [weak self] tempUrl, response, error in
+            guard let self, let tempUrl = tempUrl, error == nil else { return }
+            var name = "kjb-bible.html"
+            if let http = response as? HTTPURLResponse,
+               let disp = http.value(forHTTPHeaderField: "Content-Disposition"),
+               let start = disp.range(of: "filename=\"") {
+                let rest = disp[start.upperBound...]
+                if let end = rest.range(of: "\"") {
+                    let parsed = String(rest[..<end.lowerBound])
+                    if !parsed.isEmpty { name = parsed }
+                }
+            }
+            let dest = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+            try? FileManager.default.removeItem(at: dest)
+            do {
+                try FileManager.default.moveItem(at: tempUrl, to: dest)
+            } catch {
+                try? FileManager.default.copyItem(at: tempUrl, to: dest)
+            }
+            DispatchQueue.main.async {
+                let sheet = UIActivityViewController(activityItems: [dest], applicationActivities: nil)
+                sheet.completionWithItemsHandler = { _, _, _, _ in
+                    try? FileManager.default.removeItem(at: dest)
+                }
+                self.topViewController?.present(sheet, animated: true)
+            }
+        }
+        task.resume()
     }
 
     // Save-to-Files export: chunks arrive as ordered messages; on 'finish'
