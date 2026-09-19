@@ -4,7 +4,7 @@ import { downloadBibleForOfflineWithRetry } from '@/lib/bibleCache';
 
 import { checkForUpdates, isBibleCached } from '@/lib/bibleCache';
 import { Info } from 'lucide-react';
-import { getSplashLogo } from '@/lib/splashLogo';
+import KjbLogo from '@/components/KjbLogo';
 
 export default function RefreshCache() {
   const [status, setStatus] = useState('checking'); // checking, updating, success, no_update
@@ -130,9 +130,8 @@ export default function RefreshCache() {
       <div className="flex flex-col items-center justify-center -mt-16 w-full max-w-sm px-6">
         <div className="relative mb-12">
           <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full scale-150 animate-pulse"></div>
-          <img 
-            src={getSplashLogo()} 
-            alt="KJB Reader" 
+          <KjbLogo
+            alt="KJB Reader"
             className="relative w-32 h-32 object-contain drop-shadow-xl"
           />
         </div>

@@ -50,6 +50,23 @@ function resizeDataUrl(dataUrl, size) {
   });
 }
 
+// Ordered list of logo sources for <img> fallback chains: the primary (per
+// getSplashLogo()), then the bundled native path (when this context can serve
+// it), then the remote URL — deduped. Used by KjbLogo so a failing source
+// steps to the next instead of rendering a broken-image icon.
+export function getLogoCandidates() {
+  const out = [];
+  try {
+    const primary = getSplashLogo();
+    if (primary) out.push(primary);
+  } catch {}
+  try {
+    if (canUseNativeBundledAssets() && !out.includes(BUNDLED_LOGO_PATH)) out.push(BUNDLED_LOGO_PATH);
+  } catch {}
+  if (!out.includes(LOGO_URL)) out.push(LOGO_URL);
+  return out;
+}
+
 export async function cacheSplashLogo() {
   try {
     if (navigator.onLine === false) return;

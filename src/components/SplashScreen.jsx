@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { detectIncognito } from '@/lib/incognito';
-import { getSplashLogo } from '@/lib/splashLogo';
+import KjbLogo from '@/components/KjbLogo';
 import { canUseNativeBundledAssets } from '@/lib/nativeOfflineAssets';
 
 const STEP_PAUSE_MS = 1500;
@@ -296,7 +296,6 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
   // matching the boot placeholder in index.html so there's no flash/white box.
   const isDarkSplash = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
   const splashBg = isDarkSplash ? '#0f1117' : '#fef9f3';
-  const logoSrc = getSplashLogo();
   const trackBg = isDarkSplash ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
   const textColor = isDarkSplash ? '#c8cdd8' : '#5a6472';
 
@@ -308,8 +307,7 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
       style={{ background: splashBg }}
     >
       <div className="flex flex-col items-center -mt-16" style={{ gap: '48px' }}>
-        <img
-          src={logoSrc}
+        <KjbLogo
           alt="KJB Reader Logo"
           width={176}
           height={176}

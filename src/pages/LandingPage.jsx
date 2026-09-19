@@ -4,7 +4,7 @@ import { Shield, FileText, Mail, Globe, Youtube, ArrowRight, Heart, MonitorSmart
 import LandingSetupWizard from '@/components/LandingSetupWizard';
 import ScriptureBanner from '@/components/ScriptureBanner';
 import CollapsibleCard from '@/components/landing/CollapsibleCard';
-import { getSplashLogo } from '@/lib/splashLogo';
+import KjbLogo from '@/components/KjbLogo';
 
 function TikTokIcon({ className }) {
   return (
@@ -31,11 +31,7 @@ export default function LandingPage() {
         {/* Header */}
         <div className="text-center mb-10">
           <Link to="/" className="inline-flex items-center justify-center w-14 h-14 rounded-2xl overflow-hidden shadow-lg shadow-blue-500/30 mb-4 hover:scale-105 active:scale-95 transition-transform">
-            <img
-              src={getSplashLogo()}
-              alt="KJB Reader Logo"
-              className="w-full h-full object-cover"
-            />
+            <KjbLogo alt="KJB Reader Logo" className="w-full h-full object-cover" />
           </Link>
           <h1 className="font-serif text-4xl font-bold text-foreground mb-2">Welcome to <span className="notranslate" translate="no">KJB Reader</span></h1>
           <p className="notranslate font-sans text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed" translate="no">
