@@ -172,7 +172,7 @@ export default function PreachersSection({
   }, [groupOpen]);
 
   return (
-    <div className="mb-8 bg-card border border-border rounded-2xl overflow-hidden">
+    <div className="mb-8 bg-card border border-border rounded-2xl overflow-hidden border-t-4 border-t-amber-300 dark:border-t-amber-700/60">
       <button
         onClick={toggleGroup}
         className="w-full flex items-start justify-between gap-4 p-5 hover:bg-accent/5 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left"

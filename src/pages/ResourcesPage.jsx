@@ -153,6 +153,7 @@ export default function ResourcesPage() {
       <div className="mb-6">
         <CollapsibleCard
           icon={<CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />}
+          accent="green"
           title="KJBI.org — Free Online Bible College"
           open={expandedSections.kjbi}
           onToggle={() => toggleSection('kjbi')}
@@ -178,10 +179,11 @@ export default function ResourcesPage() {
       <div className="mb-6">
         <CollapsibleCard
           icon={
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-violet-500 to-purple-700">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400">
               <DiscordIcon className="w-5 h-5" />
             </div>
           }
+          accent="purple"
           title="Discord"
           open={expandedSections.discord}
           onToggle={() => toggleSection('discord')}
@@ -236,10 +238,11 @@ export default function ResourcesPage() {
       <div className="mb-6">
         <CollapsibleCard
           icon={
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-cyan-600">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400">
               <Globe className="w-5 h-5" />
             </div>
           }
+          accent="sky"
           title="KJB SidePanel"
           open={expandedSections.sidepanel}
           onToggle={() => toggleSection('sidepanel')}
@@ -262,10 +265,11 @@ export default function ResourcesPage() {
       <div className="mb-6">
         <CollapsibleCard
           icon={
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-sky-500 to-blue-600">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400">
               <Globe className="w-5 h-5" />
             </div>
           }
+          accent="emerald"
           title="Bible Resources (Español)"
           open={expandedSections.spanish}
           onToggle={() => toggleSection('spanish')}
@@ -286,10 +290,11 @@ export default function ResourcesPage() {
       <div className="mb-6">
         <CollapsibleCard
           icon={
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400">
               <ShieldAlert className="w-5 h-5" />
             </div>
           }
+          accent="red"
           title="KJB Defence"
           open={expandedSections.defence}
           onToggle={() => toggleSection('defence')}
@@ -313,7 +318,7 @@ export default function ResourcesPage() {
       />
 
       {/* Ministry Links */}
-      <div className="bg-card border border-border rounded-2xl mb-6 overflow-hidden">
+      <div className="bg-card border border-border rounded-2xl mb-6 overflow-hidden border-t-4 border-t-purple-300 dark:border-t-purple-700/60">
         <button
           onClick={() => toggleSection('ministry')}
           className="w-full flex items-center justify-between p-5 bg-card hover:bg-accent/5 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left"
@@ -339,9 +344,9 @@ export default function ResourcesPage() {
             href="https://godisgracious1031ministriescom.odoo.com/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-sky-500 to-blue-600">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400">
               <Globe className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
@@ -357,9 +362,9 @@ export default function ResourcesPage() {
             href="https://youtube.com/@shawnr325av"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-red-500 to-rose-600">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400">
               <Youtube className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
@@ -375,9 +380,9 @@ export default function ResourcesPage() {
             href="https://rumble.com/user/Godisgracious1031"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-emerald-500 to-green-600">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400">
               <PlayCircle className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
@@ -393,9 +398,9 @@ export default function ResourcesPage() {
             href="https://linktr.ee/shawnr325av"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-green-500 to-emerald-600">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400">
               <Link2 className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
@@ -409,9 +414,9 @@ export default function ResourcesPage() {
           </a>
           <a
             href="mailto:kingjamesbiblereader@outlook.sg"
-            className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-emerald-500 to-teal-600">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400">
               <Mail className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">

@@ -338,7 +338,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Text Settings */}
-      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03] border-t-4 border-t-sky-300 dark:border-t-sky-700/60">
         <button
           onClick={() => toggleSection('text')}
           className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
@@ -556,7 +556,7 @@ export default function SettingsPage() {
           no physical keyboard. isMobileDevice() checks the real device type
           instead, regardless of current orientation/viewport size. */}
       {!isMobileDevice() && (
-      <div className="hidden sm:block bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="hidden sm:block bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03] border-t-4 border-t-emerald-300 dark:border-t-emerald-700/60">
         <button
           onClick={() => toggleSection('shortcuts')}
           className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
@@ -583,7 +583,7 @@ export default function SettingsPage() {
       )}
 
       {/* Appearance */}
-      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03] border-t-4 border-t-violet-300 dark:border-t-violet-700/60">
         <button
           onClick={() => toggleSection('appearance')}
           className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
@@ -640,7 +640,7 @@ export default function SettingsPage() {
       <InstallAppSection expanded={expandedSections.install} isIncognito={isIncognito} />
 
       {/* Offline Library — shows disabled state in private/incognito windows and iframes */}
-      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03] border-t-4 border-t-teal-300 dark:border-t-teal-700/60">
         <button
           onClick={() => toggleSection('offline')}
           className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
@@ -836,7 +836,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Download Bible as PDF */}
-      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03] border-t-4 border-t-blue-300 dark:border-t-blue-700/60">
         <button
           onClick={() => toggleSection('downloadPdf')}
           className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
@@ -851,7 +851,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Offline HTML Bible & Legacy Reader — for old browsers / no-JS environments */}
-      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03] border-t-4 border-t-cyan-300 dark:border-t-cyan-700/60">
         <button
           onClick={() => toggleSection('offlineHtml')}
           className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
@@ -886,7 +886,7 @@ export default function SettingsPage() {
       </div>
 
       {/* App Info */}
-      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03] border-t-4 border-t-amber-300 dark:border-t-amber-700/60">
         <button
           onClick={() => toggleSection('info')}
           className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
@@ -1077,7 +1077,7 @@ localStorage.removeItem('kjb-daily-verse-cache-v17');
       </Link>
 
       {/* Contact & Feedback */}
-      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03] border-t-4 border-t-purple-300 dark:border-t-purple-700/60">
         <button
           onClick={() => toggleSection('contact')}
           className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-accent/5 transition-colors text-left"
