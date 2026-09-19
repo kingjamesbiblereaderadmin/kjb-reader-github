@@ -19,7 +19,7 @@ const TM_CARDS = [
   { owner: 'Oracle', slug: 'oracle', color: '#F80000', marks: 'Java', extra: 'Java is a registered trademark of Oracle and/or its affiliates.', use: 'The Java toolchain inside the Android app build.' },
   { owner: 'Gradle, Inc.', slug: 'gradle', color: '#02303A', darkColor: '#5FC8CE', marks: 'Gradle', use: 'Build tool that compiles and signs the Android app.' },
   { owner: 'Anthropic PBC', slug: 'anthropic', color: '#191919', darkColor: '#D4A27F', marks: 'Claude', use: 'AI assistance used to help generate the app code.' },
-  { owner: 'Base44', slug: null, badge: 'bg-gradient-to-br from-indigo-500 to-violet-600', marks: 'Base44', use: 'Web app hosting, backend, and optional user authentication.' },
+  { owner: 'Base44', logo: 'base44', marks: 'Base44', use: 'Web app hosting, backend, and optional user authentication.' },
   { owner: 'The Document Foundation', slug: 'libreoffice', color: '#18A303', marks: 'LibreOffice', use: 'en-US Liang hyphenation patterns for the two-column reading layout.' },
   { owner: 'Mozilla Foundation', slug: 'firefoxbrowser', color: '#FF7139', marks: 'Firefox', use: 'Browser-compatibility reference.' },
   { owner: 'Opera Software', slug: 'opera', color: '#FF1B2D', marks: 'Opera', use: 'Browser-compatibility reference.' },
@@ -43,6 +43,25 @@ function OwnerLogo({ card }) {
           <rect x="11.5" y="1" width="10.5" height="10.5" fill="#7FBA00" />
           <rect x="1" y="11.5" width="10.5" height="10.5" fill="#00A4EF" />
           <rect x="11.5" y="11.5" width="10.5" height="10.5" fill="#FFB900" />
+        </svg>
+      </span>
+    );
+  }
+  // Base44 isn't in simple-icons either — render its orange circle mark
+  // (divided by three thin white stripes) inline, in full colour.
+  if (card.logo === 'base44') {
+    return (
+      <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-secondary/60 border border-border flex items-center justify-center">
+        <svg viewBox="0 0 24 24" className="w-4 h-4" aria-hidden="true">
+          <defs>
+            <clipPath id="b44-logo-clip"><circle cx="12" cy="12" r="11" /></clipPath>
+          </defs>
+          <g clipPath="url(#b44-logo-clip)">
+            <rect width="24" height="24" fill="#FF773C" />
+            <rect y="7" width="24" height="1.6" fill="#fff" />
+            <rect y="11.2" width="24" height="1.6" fill="#fff" />
+            <rect y="15.4" width="24" height="1.6" fill="#fff" />
+          </g>
         </svg>
       </span>
     );
