@@ -17,7 +17,6 @@
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */; };
 		5A1000000000000000000B01 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1000000000000000000A01 /* ShareViewController.swift */; };
-		5A1000000000000000000B02 /* Share/Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A1000000000000000000A02 /* Share/Info.plist */; };
 		5A1000000000000000000B03 /* KJBShare.appex in Embed Foundation */ = {isa = PBXBuildFile; fileRef = 5A1000000000000000000A03 /* KJBShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -245,7 +244,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5A1000000000000000000B02 /* Share/Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
