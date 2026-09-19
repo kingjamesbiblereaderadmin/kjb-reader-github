@@ -339,7 +339,7 @@ final class KJBNativeBridges: NSObject, WKScriptMessageHandler {
     private func handleShare(_ body: [String: Any]) {
         let title = (body["title"] as? String) ?? ""
         let text = (body["text"] as? String) ?? ""
-        let payload = title.isEmpty ? text : (text.isEmpty ? title : title + "\n\n" + text)
+        let payload = text.isEmpty ? title : text
         guard !payload.isEmpty else { return }
         let sheet = UIActivityViewController(activityItems: [payload], applicationActivities: nil)
         topViewController?.present(sheet, animated: true)

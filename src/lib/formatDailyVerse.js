@@ -47,7 +47,7 @@ function withPilcrow(text = '') {
 //
 //   “<subscript>
 //
-//   <text> - <Reference> (KJB)
+//   <text> - <Reference>
 //
 //   <colophon>”
 //
@@ -80,7 +80,7 @@ export function formatVerseShare({ text, ref, url, title, subscript, heading, co
   if (subscript) quoteInner.push(withPilcrow(subscript));
   quoteInner.push(clean);
   if (colophon) quoteInner.push(withPilcrow(colophon));
-  parts.push(`“${quoteInner.join('\n\n')}” - ${ref} (KJB)`);
+  parts.push(`“${quoteInner.join('\n\n')}” - ${ref}`);
   if (url) parts.push(`Read more: <${url}>`);
   return parts.join('\n\n');
 }

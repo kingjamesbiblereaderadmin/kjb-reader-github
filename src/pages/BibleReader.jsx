@@ -535,7 +535,7 @@ export default function BibleReader() {
     if (colophon && (selectedSections.has('colophon') || (!anySectionToggled && includesLast))) {
       parts.push(`¶ ${cleanVerseText(colophon).replace(/^[\u00B6\uFFFD¶]\s*/, '')}`);
     }
-    if (!isMultiVerse) parts.push(`— ${ref} (KJB)`);
+    if (!isMultiVerse) parts.push(`— ${ref}`);
     parts.push(`Read more: <${url}>`);
     return parts.join('\n\n');
   };
@@ -592,9 +592,9 @@ export default function BibleReader() {
     const shareText = generateShareText();
     const hasSel = selectedVerses.size > 0;
     const ref = hasSel ? `${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}` : `${book.shortName} ${pos.chapter}`;
-    if (nativeShare({ title: `${ref} — KJB Reader`, text: shareText })) return;
+    if (nativeShare({ title: `${ref}`, text: shareText })) return;
     try {
-      if (navigator.share) return await navigator.share({ title: `${ref} — KJB Reader`, text: shareText });
+      if (navigator.share) return await navigator.share({ title: `${ref}`, text: shareText });
     } catch (err) { if (err?.name === 'AbortError') return; }
     try {
       await navigator.clipboard.writeText(shareText);
@@ -607,9 +607,9 @@ export default function BibleReader() {
     const shareText = generatePerVerseText();
     const hasSel = selectedVerses.size > 0;
     const ref = hasSel ? `${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}` : `${book.shortName} ${pos.chapter}`;
-    if (nativeShare({ title: `${ref} — KJB Reader`, text: shareText })) return;
+    if (nativeShare({ title: `${ref}`, text: shareText })) return;
     try {
-      if (navigator.share) return await navigator.share({ title: `${ref} — KJB Reader`, text: shareText });
+      if (navigator.share) return await navigator.share({ title: `${ref}`, text: shareText });
     } catch (err) { if (err?.name === 'AbortError') return; }
     try {
       await navigator.clipboard.writeText(shareText);
@@ -624,10 +624,10 @@ export default function BibleReader() {
     const ref = hasSel ? `${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}` : `${book.shortName} ${pos.chapter}`;
     const url = buildVerseUrl({ abbr: pos.abbr, chapter: pos.chapter, verse: hasSel ? Math.min(...selectedVerses) : null, verseEnd: hasSel ? Math.max(...selectedVerses) : null });
     // Wrap the link in <> so chat apps don't render a link embed/preview.
-    const shareText = `${ref} (KJB)\n\n<${url}>`;
-    if (nativeShare({ title: `${ref} — KJB Reader`, text: shareText })) return;
+    const shareText = `${ref}\n\n<${url}>`;
+    if (nativeShare({ title: `${ref}`, text: shareText })) return;
     try {
-      if (navigator.share) return await navigator.share({ title: `${ref} — KJB Reader`, text: shareText, url });
+      if (navigator.share) return await navigator.share({ title: `${ref}`, text: shareText, url });
     } catch (err) { if (err?.name === 'AbortError') return; }
     try {
       await navigator.clipboard.writeText(shareText);

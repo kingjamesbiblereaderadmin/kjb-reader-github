@@ -104,10 +104,10 @@ export default function SavedVersesPage() {
 
   const handleShare = async (entry) => {
     const shareText = buildShareText(entry);
-    if (nativeShare({ title: `${entry.ref} — KJB Reader`, text: shareText })) return;
+    if (nativeShare({ title: `${entry.ref}`, text: shareText })) return;
     try {
       if (navigator.share) {
-        await navigator.share({ title: `${entry.ref} — KJB Reader`, text: shareText });
+        await navigator.share({ title: `${entry.ref}`, text: shareText });
         return;
       }
     } catch (err) {
@@ -145,10 +145,10 @@ export default function SavedVersesPage() {
   const handleBulkShare = async () => {
     if (selectedEntries.length === 0) return;
     const text = selectedEntries.map(buildShareText).join('\n\n');
-    if (nativeShare({ title: 'Saved Verses — KJB Reader', text })) return;
+    if (nativeShare({ title: 'Saved Verses', text })) return;
     try {
       if (navigator.share) {
-        await navigator.share({ title: 'Saved Verses — KJB Reader', text });
+        await navigator.share({ title: 'Saved Verses', text });
         return;
       }
     } catch (err) {
