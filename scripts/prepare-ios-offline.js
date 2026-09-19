@@ -11,7 +11,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const iosPublic = path.join('ios', 'App', 'public');
+// IMPORTANT: the Xcode app target lives at ios/App/App, and the 'public'
+// folder reference the .app packages (and `npx cap sync ios` fills) is
+// ios/App/App/public — NOT ios/App/public. Writing one level up silently
+// shipped a .app WITHOUT the Bible text (this exact bug shipped builds
+// 77-97: the app worked online, but a first open with no wifi found no
+// Bible data because /__native/pce-bible.txt 404'd).
+const iosPublic = path.join('ios', 'App', 'App', 'public');
 const androidAssets = path.join('android', 'app', 'src', 'main', 'assets');
 
 if (!fs.existsSync('dist')) {
@@ -90,3 +96,30 @@ function rewriteCssFonts(dir) {
 rewriteCssFonts(iosPublic);
 
 console.log('iOS offline bundle prepared.');
+
+// 6. Hard verification — the bundle is only useful if the files the app
+// requests at runtime actually ship in the .app. Verify the Bible text
+// byte-for-byte (MD5 vs the Android source) plus the other /__native/*
+// files. CI fails loudly instead of shipping an app that silently 404s.
+import crypto from 'node:crypto';
+const mustExist = [
+  '__native/pce-bible.txt',
+  '__native/logo.png',
+  '__native/legacy.html',
+  '__native/defence-resources.json',
+  'index.html',
+];
+for (const rel of mustExist) {
+  const p = path.join(iosPublic, rel);
+  if (!fs.existsSync(p)) {
+    console.error(`[verify] MISSING: ${p}`);
+    process.exit(1);
+  }
+}
+const srcMd5 = crypto.createHash('md5').update(fs.readFileSync(path.join(androidAssets, 'bible', 'pce-bible.txt'))).digest('hex');
+const dstMd5 = crypto.createHash('md5').update(fs.readFileSync(path.join(iosPublic, '__native', 'pce-bible.txt'))).digest('hex');
+if (srcMd5 !== dstMd5) {
+  console.error(`[verify] Bible MD5 mismatch: src=${srcMd5} dst=${dstMd5}`);
+  process.exit(1);
+}
+console.log(`[verify] OK — bundle at ${iosPublic} ships the full Bible (md5 ${dstMd5}).`);
