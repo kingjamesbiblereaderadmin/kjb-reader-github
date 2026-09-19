@@ -334,8 +334,8 @@ final class KJBNativeBridges: NSObject, WKScriptMessageHandler {
             controller.printPageRenderer = renderer
             controller.present(animated: true)
         } else if let webView = self.webView {
-            webView.createPDF { [weak self] data in
-                guard let self, let data else { return }
+            webView.createPDF { [weak self] result in
+                guard let self, case .success(let data) = result else { return }
                 let url = FileManager.default.temporaryDirectory
                     .appendingPathComponent("KJB-Reader-Page.pdf")
                 do { try data.write(to: url) } catch { return }
