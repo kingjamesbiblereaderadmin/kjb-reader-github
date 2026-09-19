@@ -73,7 +73,7 @@ export const PREACHERS = [
   {
     name: 'Robert Potthoff',
     desc: 'Big Red Preacher — KJB soul winner.',
-    photo: 'https://lh7-us.googleusercontent.com/sitesv-images-rt/AMxu72svkyrhxvES2i0AeQapty7ehNHKSb3DzDZwW3xzNmccrRwYtM8Q_O0L8krOeXJGnYO3m75l3nk8LwFnDFzdO03qtQB5iRfyqcjshhWH8SOH3PevCUbG4enEfmEWKbiNofMlhwRsyds3A-Ask3g-3U9xN4KABLq0q8QSNoSlM5M0vmPiaOTylrzAnZJKkYY=w16383',
+    photo: 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/92d0ffb05_unnamed.png',
     links: [
       'https://www.instagram.com/robert.potthoff/',
       'https://www.facebook.com/potthoff87',
