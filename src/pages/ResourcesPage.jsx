@@ -318,10 +318,10 @@ export default function ResourcesPage() {
       />
 
       {/* Ministry Links */}
-      <div className="bg-card border border-border rounded-2xl mb-6 overflow-hidden border-t-4 border-t-purple-300 dark:border-t-purple-700/60">
+      <div className="bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900/60 rounded-2xl mb-6 overflow-hidden">
         <button
           onClick={() => toggleSection('ministry')}
-          className="w-full flex items-center justify-between p-5 bg-card hover:bg-accent/5 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left"
+          className="w-full flex items-center justify-between p-5 hover:bg-accent/5 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left"
         >
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-300 dark:border-purple-700/60 mb-2">

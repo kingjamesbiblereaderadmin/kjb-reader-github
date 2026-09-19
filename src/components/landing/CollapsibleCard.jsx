@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 const ACCENTS = {
-  green: 'border-t-4 border-t-green-300 dark:border-t-green-700/60',
-  purple: 'border-t-4 border-t-purple-300 dark:border-t-purple-700/60',
-  violet: 'border-t-4 border-t-violet-300 dark:border-t-violet-700/60',
-  sky: 'border-t-4 border-t-sky-300 dark:border-t-sky-700/60',
-  emerald: 'border-t-4 border-t-emerald-300 dark:border-t-emerald-700/60',
-  red: 'border-t-4 border-t-red-300 dark:border-t-red-700/60',
+  green: 'bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900/60',
+  purple: 'bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900/60',
+  violet: 'bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-900/60',
+  sky: 'bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60',
+  emerald: 'bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60',
+  red: 'bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60',
 };
 
 export default function CollapsibleCard({ icon, title, children, defaultOpen = false, open: openProp, onToggle, accent }) {
@@ -19,7 +19,7 @@ export default function CollapsibleCard({ icon, title, children, defaultOpen = f
     else setInternalOpen((o) => !o);
   };
   return (
-    <div className={`bg-card border border-border/60 rounded-2xl shadow-sm overflow-hidden ${ACCENTS[accent] || ''}`}>
+    <div className={`rounded-2xl shadow-sm overflow-hidden ${ACCENTS[accent] || 'bg-card border border-border/60'}`}>
       <button
         type="button"
         onClick={handleToggle}
