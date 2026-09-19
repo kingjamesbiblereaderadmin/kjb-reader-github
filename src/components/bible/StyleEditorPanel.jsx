@@ -61,12 +61,12 @@ export default function StyleEditorPanel({
         </div>
       </div>
 
-      {/* Text Color */}
+      {/* Text Colour */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
           <label className="flex items-center gap-2 font-sans text-xs font-medium text-slate-700 dark:text-slate-300">
             <Palette className="w-3.5 h-3.5" />
-            Text Color
+            Text Colour
           </label>
         </div>
         <div className="flex flex-wrap gap-2 mb-2">

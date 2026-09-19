@@ -77,9 +77,9 @@ export default function SavedVersesPage() {
   };
 
   const handleDeleteFolder = (name) => {
-    if (window.confirm(`Are you sure you want to delete the folder "${name}"? Verses will be moved to Favorites.`)) {
+    if (window.confirm(`Are you sure you want to delete the folder "${name}"? Verses will be moved to Favourites.`)) {
       setFolders(prev => prev.filter(f => f !== name));
-      setSaved(prev => prev.map(v => v.folder === name ? { ...v, folder: 'Favorites' } : v));
+      setSaved(prev => prev.map(v => v.folder === name ? { ...v, folder: 'Favourites' } : v));
       deleteFolder(name);
       setActiveFolder('All');
     }
@@ -127,7 +127,7 @@ export default function SavedVersesPage() {
   };
 
   const visibleVerses = useMemo(() => saved
-    .filter(entry => activeFolder === 'All' || (entry.folder || 'Favorites') === activeFolder)
+    .filter(entry => activeFolder === 'All' || (entry.folder || 'Favourites') === activeFolder)
     .filter(entry => !searchQuery || entry.text.toLowerCase().includes(searchQuery.toLowerCase()) || entry.ref.toLowerCase().includes(searchQuery.toLowerCase())),
     [saved, activeFolder, searchQuery]);
 
@@ -342,7 +342,7 @@ export default function SavedVersesPage() {
               <Folder className="w-3.5 h-3.5" />
               {folder}
             </button>
-            {activeFolder === folder && folder !== 'Favorites' && (
+            {activeFolder === folder && folder !== 'Favourites' && (
               <button 
                 onClick={() => handleDeleteFolder(folder)}
                 className="ml-1 p-2 text-muted-foreground hover:text-destructive transition-colors rounded-full"
@@ -378,7 +378,7 @@ export default function SavedVersesPage() {
       ) : (
         <div className="space-y-3">
           {saved
-            .filter(entry => activeFolder === 'All' || (entry.folder || 'Favorites') === activeFolder)
+            .filter(entry => activeFolder === 'All' || (entry.folder || 'Favourites') === activeFolder)
             .filter(entry => !searchQuery || entry.text.toLowerCase().includes(searchQuery.toLowerCase()) || entry.ref.toLowerCase().includes(searchQuery.toLowerCase()))
             .map((entry, i) => (
             <div
@@ -404,7 +404,7 @@ export default function SavedVersesPage() {
                 disabled={selectMode}
               >
                 <p className="font-sans text-xs font-semibold text-accent tracking-wide uppercase mb-2">
-                  {entry.ref} {activeFolder === 'All' && <span className="ml-2 px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground text-[10px] lowercase tracking-normal">{entry.folder || 'Favorites'}</span>}
+                  {entry.ref} {activeFolder === 'All' && <span className="ml-2 px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground text-[10px] lowercase tracking-normal">{entry.folder || 'Favourites'}</span>}
                 </p>
                 <blockquote className="font-serif text-lg text-foreground leading-relaxed">
                   "{entry.text}"
@@ -428,7 +428,7 @@ export default function SavedVersesPage() {
                       <DropdownMenuItem 
                         key={f}
                         onClick={() => handleMoveVerse(entry, f)}
-                        className={`py-3 sm:py-1.5 ${(entry.folder || 'Favorites') === f ? 'bg-secondary' : ''}`}
+                        className={`py-3 sm:py-1.5 ${(entry.folder || 'Favourites') === f ? 'bg-secondary' : ''}`}
                       >
                         <Folder className="w-4 h-4 mr-2" />
                         <span className="font-sans text-sm sm:text-xs">{f}</span>
@@ -467,7 +467,7 @@ export default function SavedVersesPage() {
               )}
             </div>
           ))}
-          {saved.filter(entry => activeFolder === 'All' || (entry.folder || 'Favorites') === activeFolder).filter(entry => !searchQuery || entry.text.toLowerCase().includes(searchQuery.toLowerCase()) || entry.ref.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+          {saved.filter(entry => activeFolder === 'All' || (entry.folder || 'Favourites') === activeFolder).filter(entry => !searchQuery || entry.text.toLowerCase().includes(searchQuery.toLowerCase()) || entry.ref.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
             <div className="text-center py-12">
               <p className="font-sans text-sm text-muted-foreground">
                 {searchQuery ? "No verses match your search." : "No verses in this folder."}

@@ -327,7 +327,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setShowColorPicker(!showColorPicker); }}
             onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setShowColorPicker(!showColorPicker); }}
             className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-secondary hover:bg-accent/20 text-foreground font-sans text-xs font-medium transition-colors"
-            title="Highlight color"
+            title="Highlight colour"
           >
             <Highlighter className="w-3.5 h-3.5" />
             <ChevronDown className="w-2.5 h-2.5" />
@@ -341,7 +341,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
               />
               <div className="absolute top-full left-0 mt-1.5 z-50 flex flex-col gap-1.5 bg-card border border-border rounded-xl p-3 shadow-xl min-w-[140px]">
                 <div className="flex items-center justify-between mb-0.5">
-                  <p className="font-sans text-xs font-medium text-muted-foreground">Choose color</p>
+                  <p className="font-sans text-xs font-medium text-muted-foreground">Choose colour</p>
                   <button
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setShowColorPicker(false); }}
                     onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); setShowColorPicker(false); }}

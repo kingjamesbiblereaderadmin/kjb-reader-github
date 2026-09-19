@@ -656,7 +656,7 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        {/* Theme Color */}
+        {/* Theme Colour */}
         <div className="pt-4 border-t border-border">
           <ThemeColorPicker />
         </div>

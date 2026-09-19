@@ -378,7 +378,7 @@ export default function BibleReader() {
     } else {
       tappedVerseObjs.forEach(v => {
         const n = parseInt(v.verse, 10);
-        saveVerse({ abbr: pos.abbr, chapter: pos.chapter, verse: n, ref: `${book.shortName} ${pos.chapter}:${n}`, text: cleanVerseText(v.text), folder: 'Favorites' });
+        saveVerse({ abbr: pos.abbr, chapter: pos.chapter, verse: n, ref: `${book.shortName} ${pos.chapter}:${n}`, text: cleanVerseText(v.text), folder: 'Favourites' });
       });
       setTapSaveFeedback(true);
       setTimeout(() => setTapSaveFeedback(false), 1800);
@@ -552,7 +552,7 @@ export default function BibleReader() {
     [...selectedVerses].sort((a, b) => a - b).forEach((vNum) => {
       const v = verses.find(vv => parseInt(vv.verse, 10) === vNum);
       if (!v) return;
-      saveVerse({ abbr: pos.abbr, chapter: pos.chapter, verse: vNum, ref: `${book.shortName} ${pos.chapter}:${vNum}`, text: cleanVerseText(v.text), folder: 'Favorites' });
+      saveVerse({ abbr: pos.abbr, chapter: pos.chapter, verse: vNum, ref: `${book.shortName} ${pos.chapter}:${vNum}`, text: cleanVerseText(v.text), folder: 'Favourites' });
     });
     setSaveFeedback(true);
     setTimeout(() => setSaveFeedback(false), 1800);

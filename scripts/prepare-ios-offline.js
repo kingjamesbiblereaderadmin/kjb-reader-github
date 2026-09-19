@@ -82,10 +82,28 @@ function rewriteCssFonts(dir) {
       rewriteCssFonts(p);
     } else if (entry.name.endsWith('.css')) {
       let css = fs.readFileSync(p, 'utf8');
+      // Match the FULL @import statement — the Google Fonts URL contains
+      // semicolons inside its query string (ital,wght@0,400;0,700;…), so a
+      // [^;]* pattern cuts the statement mid-URL and leaves garbage like
+      // '0,700;1,400;1,700&display=swap");' at the top of the file. The
+      // browser then discards the ENTIRE stylesheet after the garbage —
+      // the offline copy rendered as unstyled raw HTML (buttons stacked
+      // everywhere, default Times font). Match to the statement's real end:
+      // url(...) contains no parentheses, so \)...; spans the whole URL.
       const patched = css.replace(
-        /@import[^;]*Atkinson[^;]*;/gi,
+        /@import\s*(?:url\()?["']?[^"')]*Atkinson[^"')]*["']?\)?\s*;?/gi,
         '@import url("/fonts/atkinson.css");'
       );
+      // Hard check: the rewrite must not leave any Google Fonts import or
+      // query-string garbage behind in a bundled stylesheet.
+      if (/@import\s+url\(['"]?https?:\/\/fonts\.googleapis/i.test(patched)) {
+        console.error(`[verify] Unrewritten Google Fonts @import left in ${p}`);
+        process.exit(1);
+      }
+      if (/display=swap"?\);?\s*(@font-face|:root|html|\/\*|[.#\[])/.test(patched)) {
+        console.error(`[verify] Leftover @import fragment (mangled CSS) in ${p}`);
+        process.exit(1);
+      }
       if (patched !== css) {
         fs.writeFileSync(p, patched);
         console.log(`  Atkinson @import rewritten in ${path.relative(iosPublic, p)}`);
