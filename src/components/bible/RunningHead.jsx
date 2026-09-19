@@ -144,7 +144,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
           <span
             ref={leftRef}
             data-testid="kjb-running-head-book"
-            className={`notranslate inline-block max-w-full font-semibold tracking-wide bg-gradient-to-r from-emerald-500 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent ${
+            className={`notranslate inline-block max-w-full font-semibold tracking-wide text-foreground ${
               stacked ? 'whitespace-normal break-words' : 'whitespace-nowrap'
             }`}
             style={{ fontSize, fontStyle: 'normal' }}
@@ -156,7 +156,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
           <span
             ref={rightRef}
             data-testid="kjb-running-head-chapter"
-            className="notranslate kjb-running-chapter inline-block max-w-full whitespace-nowrap font-semibold tracking-wide bg-gradient-to-r from-emerald-500 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent"
+            className="notranslate kjb-running-chapter inline-block max-w-full whitespace-nowrap font-semibold tracking-wide text-foreground"
             style={{ fontSize, fontStyle: 'normal' }}
           >
             {chapterText}
