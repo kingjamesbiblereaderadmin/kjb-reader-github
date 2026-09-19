@@ -52,17 +52,12 @@ function OwnerLogo({ card }) {
   if (card.logo === 'base44') {
     return (
       <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-secondary/60 border border-border flex items-center justify-center">
-        <svg viewBox="0 0 24 24" className="w-4 h-4" aria-hidden="true">
-          <defs>
-            <clipPath id="b44-logo-clip"><circle cx="12" cy="12" r="11" /></clipPath>
-          </defs>
-          <g clipPath="url(#b44-logo-clip)">
-            <rect width="24" height="24" fill="#FF773C" />
-            <rect y="7" width="24" height="1.6" fill="#fff" />
-            <rect y="11.2" width="24" height="1.6" fill="#fff" />
-            <rect y="15.4" width="24" height="1.6" fill="#fff" />
-          </g>
-        </svg>
+        <img
+          src="https://th.bing.com/th/id/ODF.b6FGRlYQnu_En6XxvnNFjg?w=32&h=32&qlt=90&pcl=fffffa&o=6&pid=1.2"
+          alt="Base44"
+          loading="lazy"
+          className="w-4 h-4 object-contain"
+        />
       </span>
     );
   }
@@ -233,8 +228,8 @@ export default function CreditsPage() {
                 <OwnerLogo card={t} />
                 <div className="min-w-0">
                   <p className="font-sans text-sm font-semibold text-foreground leading-tight notranslate" translate="no">{t.owner}</p>
-                  <p className="font-sans text-xs text-foreground/75 leading-snug mt-0.5 notranslate" translate="no">{t.marks}{t.extra ? '.' : ''}{t.extra && <span className="block text-muted-foreground">{t.extra}</span>}</p>
-                  <p className="font-sans text-[11px] text-muted-foreground leading-snug mt-0.5"><span className="font-medium text-foreground/60">Used for:</span> {t.use}</p>
+                  <p className="font-sans text-xs text-foreground/75 leading-snug mt-0.5 notranslate" translate="no"><span className="text-muted-foreground">–</span> {t.marks}{t.extra ? '.' : ''}{t.extra && <span className="block text-muted-foreground">{t.extra}</span>}</p>
+                  <p className="font-sans text-[11px] text-muted-foreground leading-snug mt-0.5"><span className="text-accent">–</span> <span className="font-medium text-foreground/60">Used for:</span> {t.use}</p>
                 </div>
               </div>
             ))}
