@@ -6,8 +6,192 @@ import { cacheSplashLogo } from '@/lib/splashLogo'
 import { Capacitor } from '@capacitor/core'
 import { isNativeAndroid } from '@/lib/isNativeAndroid'
 import { isNativeIos } from '@/lib/isNativeIos'
-import { hydrateNativeStateMirror } from '@/lib/stateSyncMirror'
 import { toast } from 'sonner'
+import { Preferences } from '@capacitor/preferences'
+import { SYNC_KEYS } from '@/lib/settingsSync'
+
+// ---------------------------------------------------------------------------
+// Cross-origin state mirror (inlined on purpose).
+//
+// The Base44 builder kept a stale local copy of every dedicated module this
+// implementation lived in (nativeStateSync.js, stateSyncMirror.js) and won
+// every conflict resolution, so the LIVE SITE kept compiling the old sync
+// key list and offline-saved highlights/search/folders/position never
+// appeared on the online origin. Inlining the mirror here puts it in a file
+// the builder has never conflicted on, so the published bundle is guaranteed
+// to carry this exact implementation. Mirrors the app's small state keys
+// into Capacitor's native Preferences (UserDefaults), shared by both the
+// https and capacitor:// origins. Do NOT extract it back into its own
+// module while the builder/GitHub sync conflicts remain unresolved.
+// ---------------------------------------------------------------------------
+
+const PREFIX = 'kjbmirror:';
+const MARKER_KEY = '__kjb-native-state-mirror';
+
+const EXPLICIT_KEYS = [
+  ...SYNC_KEYS,
+  'kjb-reading-progress', // reading history ("continue reading")
+  'kjb-saved-verses',
+  'kjb-saved-folders', // saved-verses folder list — without it, verses saved
+  // into a custom folder while offline are invisible (the folder doesn't
+  // exist on the other origin) even though the verses themselves synced.
+  'kjb-verse-highlights', // persisted per-verse highlighter colours
+  // Search session ("back to results" stepper state):
+  'kjb-search-term',
+  'kjb-search-results',
+  'kjb-search-total',
+  'kjb-search-index',
+  'kjb-pre-search', // pre-search reading position to return to
+  'kjb-pre-jump',
+  'kjb-last-reading', // BibleReader's resume-reading position
+  'kjb-prev-reading-session', // "return to previous reading" anchor
+  'kjb-last-route', // AppLayout's resume-route on open
+  'kjb-highlight-color', // persisted highlighter tool colour
+  'kjb-dyslexic-font', // OpenDyslexic toggle
+  'kjb-auto-redownload', // auto re-download toggle
+  'kjb-layout', // paragraph/line reading layout
+  'kjb-layout-zoom', // layout zoom level
+  // Gospel search stepper (parallel to the search stepper):
+  'kjb-gospel-results',
+  'kjb-gospel-index',
+  'kjb-defence-cache',
+  // Setup wizard state. Without mirroring these, the https origin and the
+  // capacitor:// offline origin keep SEPARATE wizard states: setup finished
+  // during an offline session never marks the online app as set up (and vice
+  // versa), so the app routes one session to /landing and the other straight
+  // to Home depending on which origin loads. Mirroring keeps the two
+  // origins consistent: finish setup once, it's finished everywhere.
+  'kjb-has-visited-app',
+  'kjb-is-installed',
+];
+
+function isMirroredKey(key) {
+  return EXPLICIT_KEYS.includes(key) || (typeof key === 'string' && key.startsWith('kjb-scroll-'));
+}
+
+const isNativeIosShell = isNativeIos;
+
+async function prefSet(key, value) {
+  try {
+    await Preferences.set({ key: PREFIX + key, value });
+  } catch (e) {
+    recordStatus({ lastWriteError: String(e && e.message ? e.message : e), lastWriteKey: key });
+  }
+}
+
+async function prefGet(key) {
+  try {
+    const { value } = await Preferences.get({ key: PREFIX + key });
+    return value ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// On-device diagnostics for the mirror. Written to plain (unmirrored)
+// localStorage so the Settings > App Info > "Startup Diagnostics" DBG
+// button can show exactly what the mirror did on THIS origin — which
+// side (online/offline) a reported sync bug lives on, and whether the
+// Preferences bridge is working at all.
+const STATUS_KEY = 'kjb-mirror-status';
+function recordStatus(fields) {
+  try {
+    let cur = {};
+    try { cur = JSON.parse(localStorage.getItem(STATUS_KEY) || '{}') || {}; } catch {}
+    localStorage.setItem(STATUS_KEY, JSON.stringify({
+      ...cur,
+      ...fields,
+      at: new Date().toISOString(),
+      origin: (typeof location !== 'undefined' && location.origin) || '',
+    }));
+  } catch {}
+}
+
+// Patched localStorage — captured so hydration can write through the
+// originals without re-triggering the mirror (which would be harmless but
+// wasteful).
+let _patched = false;
+const _origSetItem = typeof localStorage !== 'undefined' ? localStorage.setItem.bind(localStorage) : null;
+const _origRemoveItem = typeof localStorage !== 'undefined' ? localStorage.removeItem.bind(localStorage) : null;
+
+function patchLocalStorageForMirror() {
+  if (_patched) return;
+  _patched = true;
+  localStorage.setItem = function (key, value) {
+    _origSetItem(key, value);
+    if (isMirroredKey(key)) prefSet(key, String(value));
+  };
+  localStorage.removeItem = function (key) {
+    _origRemoveItem(key);
+    if (isMirroredKey(key)) prefSet(key, ''); // tombstone
+  };
+}
+
+// main.jsx calls (and awaits) this before mounting the app. Resolves
+// immediately outside the native iOS shell.
+async function hydrateNativeStateMirror() {
+  if (!isNativeIosShell()) {
+    try {
+      let platform = 'unknown';
+      try { platform = Capacitor.getPlatform(); } catch {}
+      recordStatus({ native: false, platform, hydrated: false, reason: 'not native iOS' });
+    } catch {}
+    return;
+  }
+  patchLocalStorageForMirror();
+
+  let prefKeys = [];
+  try {
+    const { keys } = await Preferences.keys();
+    prefKeys = (keys || []).filter((k) => typeof k === 'string' && k.startsWith(PREFIX));
+    recordStatus({ native: true, keysOk: true, mirroredKeys: prefKeys.length, hydrated: true });
+  } catch (e) {
+    recordStatus({ native: true, keysOk: false, hydrated: false,
+                   reason: 'Preferences bridge failed: ' + String(e && e.message ? e.message : e) });
+    return; // bridge not ready — mount with this origin's own state
+  }
+
+  const localKeys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (isMirroredKey(k)) localKeys.push(k);
+  }
+
+  if (!prefKeys.includes(PREFIX + MARKER_KEY)) {
+    // First run of the state mirror on this device: seed Preferences with
+    // the live origin's existing state so the offline copy can start from
+    // it. Never wipes Preferences again afterwards.
+    for (const k of localKeys) await prefSet(k, localStorage.getItem(k));
+    await prefSet(MARKER_KEY, '1');
+    recordStatus({ mode: 'seeded-first-run', seeded: localKeys.length });
+    return;
+  }
+
+  // Pull the freshest mirrored state into this origin's localStorage
+  // before any component reads it.
+  const mirroredNames = new Set();
+  for (const pk of prefKeys) {
+    const key = pk.slice(PREFIX.length);
+    if (key === MARKER_KEY || !isMirroredKey(key)) continue;
+    mirroredNames.add(key);
+    const value = await prefGet(key);
+    if (value === null) continue;
+    try {
+      if (value === '') _origRemoveItem(key); // tombstone: removed on the other origin
+      else _origSetItem(key, value);
+    } catch {}
+  }
+
+  // Local mirrored keys that Preferences has never heard of (e.g. keys
+  // added to the whitelist by a newer build): seed them so the other
+  // origin can see them too.
+  for (const k of localKeys) {
+    if (!mirroredNames.has(k)) await prefSet(k, localStorage.getItem(k));
+  }
+  recordStatus({ mode: 'pulled', pulled: mirroredNames.size - 1 < 0 ? 0 : mirroredNames.size });
+}
+
+
 
 // Swallow the harmless, transient "Failed to update a ServiceWorker ... Not
 // found" rejection that the preview sandbox throws when /sw.js momentarily
