@@ -1,5 +1,7 @@
 import React from 'react';
 import { Download } from 'lucide-react';
+import { triggerDownload, downloadSuccessMessage } from '@/lib/nativeDownload';
+import { toast } from 'sonner';
 
 // These are the real, local, same-origin icon files that back the manifest.
 // (Previously this page rendered a cross-origin logo to a <canvas> and called
@@ -49,14 +51,20 @@ export default function ManifestIcons() {
               <p className="font-sans text-sm font-semibold text-foreground">{icon.size}×{icon.size}</p>
               <p className="font-sans text-xs text-muted-foreground">Purpose: {icon.purpose}</p>
             </div>
-            <a
-              href={icon.src}
-              download={`kjb-icon-${icon.size}-${icon.purpose}.png`}
+            <button
+              type="button"
+              onClick={() => {
+                fetch(icon.src)
+                  .then((r) => r.blob())
+                  .then((b) => triggerDownload(b, `kjb-icon-${icon.size}-${icon.purpose}.png`))
+                  .then(() => toast.success(downloadSuccessMessage()))
+                  .catch((err) => { console.error('Icon download failed:', err); toast.error('Download failed. Please try again.'); });
+              }}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-sans text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
               <Download className="w-4 h-4" />
               Download {icon.size}px
-            </a>
+            </button>
           </div>
         ))}
       </div>
