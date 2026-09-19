@@ -684,3 +684,11 @@ html.kjb-native-ios.dark a.dark\:border-border {
 .dark .dark\:border-border {
   border-width: 1.5px;
 }
+/* Inner dividing lines inside the collapsible sections (the border-t
+   separators between sub-settings like App Zoom / Auto Rotate / Font
+   Family) get the same thicker treatment in dark mode. These use the plain
+   border-border token class rather than the dark: variant, so they need
+   their own rule; light mode keeps its original 1px lines. */
+.dark .border-t.border-border {
+  border-top-width: 1.5px;
+}
