@@ -28,6 +28,7 @@ const isEdgeMobile = () => {
 };
 
 export function InstallAppSection({ expanded, isIncognito }) {
+  // (Settings imports the named export; a default export also exists below.)
   const { isInstallable, isInstalled: hookIsInstalled, isSamsung, promptInstall } = useInstallPrompt();
   const [isInstalled, setIsInstalled] = useState(false);
   const [showInstallHint, setShowInstallHint] = useState(false);
