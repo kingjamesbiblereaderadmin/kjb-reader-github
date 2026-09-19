@@ -1,33 +1,34 @@
 import React from 'react';
 import FontPreviewCard from './FontPreviewCard';
 
-// Colourful font specimen grid — every entry is tinted and shows its own
-// "Aa" preview in the live typeface (with a graceful fallback stack).
+// Colourful font specimen grid — every entry keeps its pastel tint in light
+// mode; in dark mode the surfaces use the neutral card/border tokens so the
+// grid reads as one calm dark theme instead of competing colour washes.
 
 const READING_INTERFACE = [
   {
     name: 'Cormorant Garamond',
     cssFamily: "'Cormorant Garamond', Georgia, serif",
     purpose: 'long-form reading font option',
-    tint: 'bg-amber-100/50 dark:bg-amber-950/40 border-amber-300/60 dark:border-amber-800/40',
+    tint: 'bg-amber-100/50 dark:bg-card border-amber-300/60 dark:border-border',
   },
   {
     name: 'Merriweather',
     cssFamily: "'Merriweather', Georgia, serif",
     purpose: 'long-form reading font option',
-    tint: 'bg-orange-100/50 dark:bg-orange-950/40 border-orange-300/60 dark:border-orange-800/40',
+    tint: 'bg-orange-100/50 dark:bg-card border-orange-300/60 dark:border-border',
   },
   {
     name: 'Inter',
     cssFamily: "'Inter', system-ui, sans-serif",
     purpose: 'interface text throughout the app',
-    tint: 'bg-indigo-100/50 dark:bg-indigo-950/40 border-indigo-300/60 dark:border-indigo-800/40',
+    tint: 'bg-indigo-100/50 dark:bg-card border-indigo-300/60 dark:border-border',
   },
   {
     name: 'System',
     cssFamily: 'system-ui, -apple-system, sans-serif',
     purpose: "your device's own built-in Serif, Sans, Mono and Cursive fonts — no download or attribution needed",
-    tint: 'bg-sky-100/50 dark:bg-sky-950/40 border-sky-300/60 dark:border-sky-800/40',
+    tint: 'bg-sky-100/50 dark:bg-card border-sky-300/60 dark:border-border',
   },
 ];
 
@@ -36,25 +37,25 @@ const DECORATIVE = [
     name: 'Caveat',
     cssFamily: "'Caveat', cursive",
     purpose: 'handwritten-style font for shareable verse cards',
-    tint: 'bg-pink-100/50 dark:bg-pink-950/40 border-pink-300/60 dark:border-pink-800/40',
+    tint: 'bg-pink-100/50 dark:bg-card border-pink-300/60 dark:border-border',
   },
   {
     name: 'Dancing Script',
     cssFamily: "'Dancing Script', cursive",
     purpose: 'handwritten-style font for shareable verse cards',
-    tint: 'bg-fuchsia-100/50 dark:bg-fuchsia-950/40 border-fuchsia-300/60 dark:border-fuchsia-800/40',
+    tint: 'bg-fuchsia-100/50 dark:bg-card border-fuchsia-300/60 dark:border-border',
   },
   {
     name: 'Great Vibes',
     cssFamily: "'Great Vibes', cursive",
     purpose: 'handwritten-style font for shareable verse cards',
-    tint: 'bg-violet-100/50 dark:bg-violet-950/40 border-violet-300/60 dark:border-violet-800/40',
+    tint: 'bg-violet-100/50 dark:bg-card border-violet-300/60 dark:border-border',
   },
   {
     name: 'Comic Neue',
     cssFamily: "'Comic Neue', 'Comic Sans MS', cursive",
     purpose: 'a friendly, rounded font option for verse cards',
-    tint: 'bg-emerald-100/50 dark:bg-emerald-950/40 border-emerald-300/60 dark:border-emerald-800/40',
+    tint: 'bg-emerald-100/50 dark:bg-card border-emerald-300/60 dark:border-border',
   },
 ];
 
@@ -62,7 +63,7 @@ const ACCESSIBILITY = [
   {
     name: 'Atkinson Hyperlegible',
     cssFamily: "'Atkinson Hyperlegible', sans-serif",
-    tint: 'bg-teal-100/50 dark:bg-teal-950/40 border-teal-300/60 dark:border-teal-800/40',
+    tint: 'bg-teal-100/50 dark:bg-card border-teal-300/60 dark:border-border',
     purpose: (
       <>
         designed by the{' '}
@@ -74,7 +75,7 @@ const ACCESSIBILITY = [
   {
     name: 'OpenDyslexic',
     cssFamily: "'OpenDyslexic', 'Comic Sans MS', sans-serif",
-    tint: 'bg-rose-100/50 dark:bg-rose-950/40 border-rose-300/60 dark:border-rose-800/40',
+    tint: 'bg-rose-100/50 dark:bg-card border-rose-300/60 dark:border-border',
     purpose: (
       <>
         designed by{' '}

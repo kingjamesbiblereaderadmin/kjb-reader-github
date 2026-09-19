@@ -330,9 +330,9 @@ const plain = (t) => t.replace(/\[([^\]]+)\]/g, '$1');
 // Panel tint per step, matched to each card's icon gradient — so the three
 // gospel steps are visually distinct instead of all reading as red.
 const STEP_ACCENTS = {
-  rose: 'bg-rose-100/60 dark:bg-rose-950/50 border-rose-200 dark:border-rose-900/60',
-  blue: 'bg-blue-100/60 dark:bg-blue-950/50 border-blue-200 dark:border-blue-900/60',
-  amber: 'bg-amber-100/60 dark:bg-amber-950/50 border-amber-200 dark:border-amber-900/60',
+  rose: 'bg-rose-100/60 dark:bg-card border-rose-200 dark:border-border',
+  blue: 'bg-blue-100/60 dark:bg-card border-blue-200 dark:border-border',
+  amber: 'bg-amber-100/60 dark:bg-card border-amber-200 dark:border-border',
 };
 
 function StepCard({ number, icon, iconBg, title, copyText, children, defaultOpen = false, collapsible = false, accent = 'rose' }) {

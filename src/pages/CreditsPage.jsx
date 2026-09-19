@@ -142,17 +142,17 @@ export default function CreditsPage() {
 
         {/* Facts strip */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-6">
-          <div className="rounded-xl border border-amber-300/60 dark:border-amber-800/50 bg-amber-100/50 dark:bg-amber-950/30 px-4 py-3">
+          <div className="rounded-xl border border-amber-300/60 dark:border-border bg-amber-100/50 dark:bg-card px-4 py-3">
             <p className="font-sans text-[10px] font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-widest mb-1">Bible Text</p>
             <p className="font-sans text-sm font-medium text-foreground notranslate" translate="no">Pure Cambridge Edition</p>
             <p className="font-sans text-[11px] text-muted-foreground mt-0.5">public domain worldwide</p>
           </div>
-          <div className="rounded-xl border border-purple-300/60 dark:border-purple-800/50 bg-purple-100/50 dark:bg-purple-950/30 px-4 py-3">
+          <div className="rounded-xl border border-purple-300/60 dark:border-border bg-purple-100/50 dark:bg-card px-4 py-3">
             <p className="font-sans text-[10px] font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-widest mb-1">Copyright</p>
             <p className="font-sans text-sm font-medium text-foreground">© 2026 <span className="notranslate" translate="no">Shawn Poh Hanlin</span></p>
             <p className="font-sans text-[11px] text-muted-foreground mt-0.5">public domain, freely shareable</p>
           </div>
-          <div className="rounded-xl border border-sky-300/60 dark:border-sky-800/50 bg-sky-100/50 dark:bg-sky-950/30 px-4 py-3">
+          <div className="rounded-xl border border-sky-300/60 dark:border-border bg-sky-100/50 dark:bg-card px-4 py-3">
             <p className="font-sans text-[10px] font-semibold text-sky-700 dark:text-sky-400 uppercase tracking-widest mb-1">Platforms</p>
             <p className="font-sans text-sm font-medium text-foreground">Web · Android · iOS</p>
             <p className="font-sans text-[11px] text-muted-foreground mt-0.5">free, ad-free, no paywalls</p>

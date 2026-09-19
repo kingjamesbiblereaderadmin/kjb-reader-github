@@ -367,10 +367,10 @@ export default function SettingsPage() {
       </PageHero>
 
       {/* Text Settings */}
-      <div className="bg-sky-100/60 dark:bg-sky-950/50 border border-sky-200 dark:border-sky-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="bg-sky-100/60 dark:bg-card border border-sky-200 dark:border-border rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('text')}
-          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-white/[0.06] hover:bg-white/80 dark:hover:bg-white/[0.09] transition-colors text-left"
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-secondary/50 hover:bg-white/80 dark:hover:bg-secondary/80 transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">Display</h2>
@@ -522,10 +522,10 @@ export default function SettingsPage() {
       </div>
 
       {/* Accessibility */}
-      <div id="kjb-accessibility-section" className="bg-rose-100/60 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900/60 rounded-2xl mb-6 overflow-hidden shadow-lg shadow-black/[0.03] scroll-mt-4">
+      <div id="kjb-accessibility-section" className="bg-rose-100/60 dark:bg-card border border-rose-200 dark:border-border rounded-2xl mb-6 overflow-hidden shadow-lg shadow-black/[0.03] scroll-mt-4">
         <button
           onClick={() => toggleSection('accessibility')}
-          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-white/[0.06] hover:bg-white/80 dark:hover:bg-white/[0.09] transition-colors text-left"
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-secondary/50 hover:bg-white/80 dark:hover:bg-secondary/80 transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">Accessibility</h2>
@@ -585,10 +585,10 @@ export default function SettingsPage() {
           no physical keyboard. isMobileDevice() checks the real device type
           instead, regardless of current orientation/viewport size. */}
       {!isMobileDevice() && (
-      <div className="hidden sm:block bg-emerald-100/60 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="hidden sm:block bg-emerald-100/60 dark:bg-card border border-emerald-200 dark:border-border rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('shortcuts')}
-          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-white/[0.06] hover:bg-white/80 dark:hover:bg-white/[0.09] transition-colors text-left"
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-secondary/50 hover:bg-white/80 dark:hover:bg-secondary/80 transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">Keyboard Shortcuts</h2>
@@ -612,10 +612,10 @@ export default function SettingsPage() {
       )}
 
       {/* Appearance */}
-      <div className="bg-violet-100/60 dark:bg-violet-950/50 border border-violet-200 dark:border-violet-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="bg-violet-100/60 dark:bg-card border border-violet-200 dark:border-border rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('appearance')}
-          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-white/[0.06] hover:bg-white/80 dark:hover:bg-white/[0.09] transition-colors text-left"
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-secondary/50 hover:bg-white/80 dark:hover:bg-secondary/80 transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">Appearance</h2>
@@ -669,10 +669,10 @@ export default function SettingsPage() {
       <InstallAppSection expanded={expandedSections.install} isIncognito={isIncognito} />
 
       {/* Offline Library — shows disabled state in private/incognito windows and iframes */}
-      <div className="bg-teal-100/60 dark:bg-teal-950/50 border border-teal-200 dark:border-teal-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="bg-teal-100/60 dark:bg-card border border-teal-200 dark:border-border rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('offline')}
-          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-white/[0.06] hover:bg-white/80 dark:hover:bg-white/[0.09] transition-colors text-left"
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-secondary/50 hover:bg-white/80 dark:hover:bg-secondary/80 transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">Offline Library</h2>
@@ -870,10 +870,10 @@ export default function SettingsPage() {
       </div>
 
       {/* Download Bible as PDF */}
-      <div className="bg-indigo-100/60 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="bg-indigo-100/60 dark:bg-card border border-indigo-200 dark:border-border rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('downloadPdf')}
-          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-white/[0.06] hover:bg-white/80 dark:hover:bg-white/[0.09] transition-colors text-left"
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-secondary/50 hover:bg-white/80 dark:hover:bg-secondary/80 transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">Download Bible</h2>
@@ -885,10 +885,10 @@ export default function SettingsPage() {
       </div>
 
       {/* Offline HTML Bible & Legacy Reader — for old browsers / no-JS environments */}
-      <div className="bg-lime-100/60 dark:bg-lime-950/50 border border-lime-200 dark:border-lime-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="bg-lime-100/60 dark:bg-card border border-lime-200 dark:border-border rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('offlineHtml')}
-          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-white/[0.06] hover:bg-white/80 dark:hover:bg-white/[0.09] transition-colors text-left"
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-secondary/50 hover:bg-white/80 dark:hover:bg-secondary/80 transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">Old Browser & Offline Options</h2>
@@ -920,10 +920,10 @@ export default function SettingsPage() {
       </div>
 
       {/* App Info */}
-      <div className="bg-amber-100/60 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="bg-amber-100/60 dark:bg-card border border-amber-200 dark:border-border rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('info')}
-          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-white/[0.06] hover:bg-white/80 dark:hover:bg-white/[0.09] transition-colors text-left"
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-secondary/50 hover:bg-white/80 dark:hover:bg-secondary/80 transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">App Info</h2>
@@ -1111,10 +1111,10 @@ localStorage.removeItem('kjb-daily-verse-cache-v17');
       </Link>
 
       {/* Contact & Feedback */}
-      <div className="bg-pink-100/60 dark:bg-pink-950/50 border border-pink-200 dark:border-pink-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+      <div className="bg-pink-100/60 dark:bg-card border border-pink-200 dark:border-border rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('contact')}
-          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-white/[0.06] hover:bg-white/80 dark:hover:bg-white/[0.09] transition-colors text-left"
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-secondary/50 hover:bg-white/80 dark:hover:bg-secondary/80 transition-colors text-left"
         >
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-lg font-semibold text-foreground">Contact & Feedback</h2>
