@@ -181,7 +181,7 @@ export default function ExtensionPage() {
             className="block mx-auto w-16 h-16 rounded-2xl shadow-lg mb-5"
           />
           <h1 className="font-serif text-4xl sm:text-5xl font-bold text-foreground mb-4">
-            KJB Reader - SidePanel
+            KJB Reader -&nbsp;SidePanel
           </h1>
 
           {/* Version badge */}

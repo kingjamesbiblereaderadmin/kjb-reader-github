@@ -38,7 +38,7 @@ export default function ExtensionTermsPage() {
             <FileText className="w-7 h-7 text-primary-foreground" />
           </div>
           <h1 className="font-serif text-3xl sm:text-4xl font-bold text-foreground mb-2">
-            KJB Reader Extension — Terms of Service
+            KJB Reader Extension —&nbsp;Terms of Service
           </h1>
           <p className="font-sans text-sm text-muted-foreground">Last updated: {LAST_UPDATED}</p>
           <div className="mt-4 w-16 h-px bg-accent mx-auto" />

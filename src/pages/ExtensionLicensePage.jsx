@@ -12,7 +12,7 @@ export default function ExtensionLicensePage() {
             <Scale className="w-7 h-7 text-primary-foreground" />
           </div>
           <h1 className="font-serif text-3xl sm:text-4xl font-bold text-foreground mb-2">
-            KJB Reader Extension — MIT License
+            KJB Reader Extension —&nbsp;MIT License
           </h1>
           <p className="font-sans text-sm text-muted-foreground">Copyright (c) 2026 KJB Reader</p>
           <div className="mt-4 w-16 h-px bg-accent mx-auto" />
