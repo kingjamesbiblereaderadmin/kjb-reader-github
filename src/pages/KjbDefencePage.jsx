@@ -357,10 +357,10 @@ export default function KjbDefencePage() {
           {filtered.map((cat) => {
             const isOpen = expanded[cat.name] !== false;
             return (
-              <div key={cat.name} className="bg-card border border-border rounded-2xl overflow-hidden">
+              <div key={cat.name} className={`${cat.style.bg} border border-border rounded-2xl overflow-hidden`}>
                 <button
                   onClick={() => toggle(cat.name)}
-                  className={`w-full ${cat.style.bg} border-b rounded-t-xl p-4 hover:opacity-90 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left`}
+                  className={`w-full border-b rounded-t-xl p-4 hover:opacity-90 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left`}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
