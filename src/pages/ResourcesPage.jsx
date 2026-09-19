@@ -153,8 +153,8 @@ export default function ResourcesPage() {
       <div className="mb-6">
         <CollapsibleCard
           icon={<CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />}
-          accent="green"
           title="KJBI.org — Free Online Bible College"
+          accent="green"
           open={expandedSections.kjbi}
           onToggle={() => toggleSection('kjbi')}
         >
@@ -179,12 +179,12 @@ export default function ResourcesPage() {
       <div className="mb-6">
         <CollapsibleCard
           icon={
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/50 text-purple-600 dark:text-purple-400">
               <DiscordIcon className="w-5 h-5" />
             </div>
           }
-          accent="indigo"
           title="Discord"
+          accent="purple"
           open={expandedSections.discord}
           onToggle={() => toggleSection('discord')}
         >
@@ -238,12 +238,12 @@ export default function ResourcesPage() {
       <div className="mb-6">
         <CollapsibleCard
           icon={
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-700/50 text-sky-600 dark:text-sky-400">
               <Globe className="w-5 h-5" />
             </div>
           }
-          accent="sky"
           title="KJB SidePanel"
+          accent="sky"
           open={expandedSections.sidepanel}
           onToggle={() => toggleSection('sidepanel')}
         >
@@ -265,12 +265,12 @@ export default function ResourcesPage() {
       <div className="mb-6">
         <CollapsibleCard
           icon={
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/50 text-emerald-600 dark:text-emerald-400">
               <Globe className="w-5 h-5" />
             </div>
           }
-          accent="emerald"
           title="Bible Resources (Español)"
+          accent="emerald"
           open={expandedSections.spanish}
           onToggle={() => toggleSection('spanish')}
         >
@@ -290,12 +290,12 @@ export default function ResourcesPage() {
       <div className="mb-6">
         <CollapsibleCard
           icon={
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50 text-red-600 dark:text-red-400">
               <ShieldAlert className="w-5 h-5" />
             </div>
           }
-          accent="red"
           title="KJB Defence"
+          accent="red"
           open={expandedSections.defence}
           onToggle={() => toggleSection('defence')}
         >
@@ -318,10 +318,10 @@ export default function ResourcesPage() {
       />
 
       {/* Ministry Links */}
-      <div className="bg-purple-100/60 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-900/60 rounded-2xl mb-6 overflow-hidden">
+      <div className="bg-card border border-border border-t-4 border-t-purple-300 dark:border-t-purple-700/60 rounded-2xl mb-6 overflow-hidden">
         <button
           onClick={() => toggleSection('ministry')}
-          className="w-full flex items-center justify-between p-5 bg-white/70 dark:bg-white/[0.06] hover:bg-white/80 dark:hover:bg-white/[0.09] transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left"
+          className="w-full flex items-center justify-between p-5 bg-card hover:bg-accent/5 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left"
         >
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-300 dark:border-purple-700/60 mb-2">
@@ -339,14 +339,14 @@ export default function ResourcesPage() {
           </div>
         </button>
         {expandedSections.ministry && (
-        <div className="p-5 pt-4 space-y-2">
+        <div className="p-5 pt-0 space-y-2">
           <a
             href="https://godisgracious1031ministriescom.odoo.com/"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/50 text-emerald-600 dark:text-emerald-400">
               <Globe className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
@@ -364,7 +364,7 @@ export default function ResourcesPage() {
             rel="noopener noreferrer"
             className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50">
               <Youtube className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
@@ -382,7 +382,7 @@ export default function ResourcesPage() {
             rel="noopener noreferrer"
             className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/50">
               <PlayCircle className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
@@ -400,7 +400,7 @@ export default function ResourcesPage() {
             rel="noopener noreferrer"
             className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/50">
               <Link2 className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
@@ -416,7 +416,7 @@ export default function ResourcesPage() {
             href="mailto:kingjamesbiblereader@outlook.sg"
             className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-700/50">
               <Mail className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
