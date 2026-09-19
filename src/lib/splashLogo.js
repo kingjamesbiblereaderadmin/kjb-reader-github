@@ -12,7 +12,9 @@ const BUNDLED_LOGO_PATH = '/__native/logo.png';
 const STORAGE_KEY = 'kjb-splash-logo-dataurl';
 const VERSION_KEY = 'kjb-splash-logo-version';
 // Bump when the caching logic changes so existing users re-cache.
-const CACHE_VERSION = 'v3';
+// v4: some devices ended up with a corrupt cached data URL (rendered as a
+// broken image before the fallback loaded) — the bump forces one re-cache.
+const CACHE_VERSION = 'v4';
 
 export function getSplashLogo() {
   try {
@@ -45,7 +47,7 @@ function resizeDataUrl(dataUrl, size) {
         resolve(dataUrl);
       }
     };
-    img.onerror = () => resolve(dataUrl);
+    img.onerror = () => resolve(null);
     img.src = dataUrl;
   });
 }
@@ -97,8 +99,12 @@ export async function cacheSplashLogo() {
       } catch {}
     }
 
-    if (dataUrl) {
+    // Only store a real, decodable image — a corrupt cached copy is what
+    // previously left the splash flashing a broken logo. resizeDataUrl
+    // resolves null when the image fails to decode.
+    if (dataUrl && typeof dataUrl === 'string' && dataUrl.startsWith('data:image/')) {
       const smallDataUrl = await resizeDataUrl(dataUrl, 192);
+      if (!smallDataUrl) return;
       try {
         localStorage.setItem(STORAGE_KEY, smallDataUrl);
         localStorage.setItem(VERSION_KEY, CACHE_VERSION);
