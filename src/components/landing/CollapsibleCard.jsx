@@ -30,7 +30,7 @@ export default function CollapsibleCard({ icon, title, children, defaultOpen = f
         <span className="flex-1 min-w-0 text-left font-serif text-lg font-semibold text-foreground">{title}</span>
         <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
-      {open && <div className="px-5 sm:px-6 pb-6">{children}</div>}
+      {open && <div className="px-5 sm:px-6 pt-4 pb-6">{children}</div>}
     </div>
   );
 }

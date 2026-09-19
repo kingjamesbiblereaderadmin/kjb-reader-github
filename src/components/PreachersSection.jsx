@@ -201,7 +201,7 @@ export default function PreachersSection({
         </div>
       </button>
       {groupOpen && !selected && (
-        <div className="p-5 pt-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="p-5 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
           {PREACHERS.map((preacher) => (
             <button
               key={preacher.name}
@@ -219,7 +219,7 @@ export default function PreachersSection({
         </div>
       )}
       {groupOpen && selected && (
-        <div className="p-5 pt-0 space-y-2">
+        <div className="p-5 pt-4 space-y-2">
           <button
             onClick={() => setSelected(null)}
             className="inline-flex items-center gap-1.5 mb-4 px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-colors"

@@ -339,7 +339,7 @@ export default function ResourcesPage() {
           </div>
         </button>
         {expandedSections.ministry && (
-        <div className="p-5 pt-0 space-y-2">
+        <div className="p-5 pt-4 space-y-2">
           <a
             href="https://godisgracious1031ministriescom.odoo.com/"
             target="_blank"
