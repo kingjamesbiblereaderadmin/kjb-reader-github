@@ -73,8 +73,7 @@ export const PREACHERS = [
   {
     name: 'Robert Potthoff',
     desc: 'Big Red Preacher — KJB soul winner.',
-    // No usable public photo found (TikTok/Instagram block image access) —
-    // falls back to initials automatically.
+    photo: 'https://lh7-us.googleusercontent.com/sitesv-images-rt/AMxu72uxcEWGQv18shKEOYqvsZThItOEShMdY44jxSfj5OBq2Vq3seVZHNsDq2SoaS3TOtefuiNWijzRX9gnmpAXMZXd9ETkbX1kL0F6lK8AIB74AR7hWH_IxivmtLnVcfQwG2iyehaljgHE1zHHZBY_nOMj-U4mxzJnNaqtaTiJL5APJoxpAFBtLbxSnISt3co=w400',
     links: [
       'https://www.instagram.com/robert.potthoff/',
       'https://www.facebook.com/potthoff87',
