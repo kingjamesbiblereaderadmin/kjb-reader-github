@@ -29,6 +29,7 @@ fs.cpSync('dist', iosPublic, { recursive: true });
 //    legacy-download notice page, and the defence-resources snapshot.
 const natives = [
   ['bible/pce-bible.txt', '__native/pce-bible.txt'],
+  ['images/logo.png', '__native/logo.png'],
   ['legacy/legacy.html', '__native/legacy.html'],
   ['defence-resources-snapshot.json', '__native/defence-resources.json'],
 ];

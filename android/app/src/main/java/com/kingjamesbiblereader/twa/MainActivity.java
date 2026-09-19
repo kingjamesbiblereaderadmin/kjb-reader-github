@@ -90,6 +90,12 @@ public class MainActivity extends BridgeActivity {
     // localStorage cache, which is preferred over this whenever it exists.
     static final String BUNDLED_DEFENCE_PATH = "/__native/defence-resources.json";
 
+    // The app logo, bundled in the APK at assets/images/logo.png. The splash,
+    // header and landing pages now request it at this /__native/ path on
+    // native (src/lib/splashLogo.js), so a fresh install opened offline shows
+    // the logo instead of a broken remote-media image.
+    static final String BUNDLED_LOGO_PATH = "/__native/logo.png";
+
     // True once this session has proven the network doesn't actually work,
     // even if the OS still reports a connection as "available" (e.g. a
     // captive portal, a DNS hiccup, the server itself being briefly down).
@@ -700,6 +706,19 @@ public class MainActivity extends BridgeActivity {
                 try {
                     InputStream stream = view.getContext().getAssets().open("defence-resources-snapshot.json");
                     WebResourceResponse response = new WebResourceResponse("application/json", "UTF-8", stream);
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Access-Control-Allow-Origin", "*");
+                    response.setResponseHeaders(headers);
+                    return response;
+                } catch (IOException e) {
+                    // Fall through to normal (network) handling below.
+                }
+            }
+
+            if (BUNDLED_LOGO_PATH.equals(url.getPath())) {
+                try {
+                    InputStream stream = view.getContext().getAssets().open("images/logo.png");
+                    WebResourceResponse response = new WebResourceResponse("image/png", null, stream);
                     Map<String, String> headers = new HashMap<>();
                     headers.put("Access-Control-Allow-Origin", "*");
                     response.setResponseHeaders(headers);

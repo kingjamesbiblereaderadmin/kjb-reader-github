@@ -20,6 +20,7 @@ import { prefetchAllBackgroundCaches } from '@/lib/backgroundCache';
 import { toast } from 'sonner';
 import { useSoftReload } from '@/lib/SoftReloadContext';
 import { getAccessibilityFont, applyAccessibilityFont } from '@/lib/accessibilityFont';
+import { getSplashLogo } from '@/lib/splashLogo';
 
 const scrollMainToTop = (fromPathname) => {
   // Instant, not smooth: this fires right before the page unmounts and the
@@ -380,7 +381,7 @@ export default function AppLayout() {
               className="flex items-center gap-2 flex-shrink-0 pointer-events-auto"
             >
               <div className="flex items-center gap-1.5">
-                <img src="https://media.base44.com/images/public/6a05d76723afe58d80c589e8/2279e016e_8e738d108_cfb4bf781_Untitled.png" alt="KJB Reader" className="h-8 w-auto" />
+                <img src={getSplashLogo()} alt="KJB Reader" className="h-8 w-auto" />
               </div>
             </Link>
           ) : (

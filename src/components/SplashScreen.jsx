@@ -2,16 +2,25 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { detectIncognito } from '@/lib/incognito';
 import { getSplashLogo } from '@/lib/splashLogo';
+import { canUseNativeBundledAssets } from '@/lib/nativeOfflineAssets';
 
 const STEP_PAUSE_MS = 1500;
 
 // mode: 'first_load' | 'subsequent'
+// The splash's words must match the circumstance: offline, online, or a
+// returning visitor. A 'connection lost, continuing online-only' banner on
+// a device with no connection at all is exactly the mismatch this helper
+// exists to prevent.
+function isOfflineNow() {
+  try { return typeof navigator !== 'undefined' && navigator.onLine === false; } catch { return false; }
+}
+
 export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load', isVisible = true, skipMarkVisited = false, isLookup = false }) {
   const [currentMessage, setCurrentMessage] = useState(
     mode === 'reconnect'
       ? 'RECONNECTING\u2026'
       : mode === 'subsequent'
-      ? (isLookup ? 'LOOKING UP\u2026' : 'WELCOME BACK TO KJB READER.')
+      ? (isLookup ? 'LOOKING UP\u2026' : (isOfflineNow() ? 'WELCOME BACK — OFFLINE MODE.' : 'WELCOME BACK TO KJB READER.'))
       : 'WELCOME TO KJB READER.'
   );
   const [isIncognito, setIsIncognito] = useState(false);
@@ -162,12 +171,32 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
       if (isFirstVisit) {
         // 2. Skip offline download in incognito (cache won't persist)
         if (!detectedIncognito) {
-          // 2. Downloading offline data (real-time % progress)
-          const gotOfflineData = await downloadWithProgress('DOWNLOADING OFFLINE DATA...');
+          // Native origins (Android always; iOS offline-fallback copy) ship
+          // the full Bible inside the app bundle, so the splash never says
+          // 'connection lost': the Bible is already on the device. The
+          // download is just local cache hydration, run in the background
+          // without gating the splash on it.
+          if (canUseNativeBundledAssets()) {
+            setStep('OFFLINE BIBLE DATA READY.');
+            import('@/lib/bibleCache')
+              .then(({ downloadBibleForOffline }) => downloadBibleForOffline().catch(() => {}))
+              .catch(() => {});
+          } else {
+            // 2. Downloading offline data (real-time % progress)
+            const gotOfflineData = await downloadWithProgress('DOWNLOADING OFFLINE DATA...');
 
-          // 2b. Offline data complete (or, if the connection dropped, say so
-          // plainly instead of implying it finished)
-          setStep(gotOfflineData ? 'OFFLINE BIBLE DATA COMPLETE.' : 'CONNECTION LOST — CONTINUING ONLINE-ONLY.');
+            // 2b. Say exactly what happened: completed, no connection at
+            // all (it will download once back online), or a download
+            // interrupted on an otherwise-online device (the app continues
+            // online-only for now).
+            if (gotOfflineData) {
+              setStep('OFFLINE BIBLE DATA COMPLETE.');
+            } else if (isOfflineNow()) {
+              setStep('NO CONNECTION — OFFLINE BIBLE WILL DOWNLOAD WHEN ONLINE.');
+            } else {
+              setStep('DOWNLOAD INTERRUPTED — CONTINUING ONLINE-ONLY.');
+            }
+          }
           await pause(STEP_PAUSE_MS);
         } else {
           console.log('[Splash] Incognito mode detected — skipping offline download');
@@ -222,7 +251,7 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
         // Android overlay approach was reverted -- it kept showing corrupted
         // text on-device across several fix attempts, so the reliable web
         // splash handles this alone again instead).
-        const welcomeMessage = isLookup ? 'LOOKING UP…' : 'WELCOME BACK TO KJB READER.';
+        const welcomeMessage = isLookup ? 'LOOKING UP…' : (isOfflineNow() ? 'WELCOME BACK — OFFLINE MODE.' : 'WELCOME BACK TO KJB READER.');
         setStep(welcomeMessage);
         window.dispatchEvent(new CustomEvent('kjb-progress', { detail: { message: welcomeMessage, status: 'success' } }));
         await pause(STEP_PAUSE_MS);

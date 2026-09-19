@@ -1,6 +1,14 @@
 import { base44 } from '@/api/base44Client';
+import { canUseNativeBundledAssets } from '@/lib/nativeOfflineAssets';
 
 const LOGO_URL = 'https://media.base44.com/images/public/6a05d76723afe58d80c589e8/2279e016e_8e738d108_cfb4bf781_Untitled.png';
+// On native origins the app bundle carries the exact same PNG (Android APK
+// assets/images/logo.png, iOS offline bundle __native/logo.png) and serves
+// it locally — so the logo shows even when the device has no connection,
+// instead of depending on a remote media URL that a fresh install has never
+// cached. See MainActivity.java's /__native/logo.png branch and
+// scripts/prepare-ios-offline.js.
+const BUNDLED_LOGO_PATH = '/__native/logo.png';
 const STORAGE_KEY = 'kjb-splash-logo-dataurl';
 const VERSION_KEY = 'kjb-splash-logo-version';
 // Bump when the caching logic changes so existing users re-cache.
@@ -11,6 +19,9 @@ export function getSplashLogo() {
     const cached = localStorage.getItem(STORAGE_KEY);
     const version = localStorage.getItem(VERSION_KEY);
     if (cached && version === CACHE_VERSION) return cached;
+  } catch {}
+  try {
+    if (canUseNativeBundledAssets()) return BUNDLED_LOGO_PATH;
   } catch {}
   return LOGO_URL;
 }

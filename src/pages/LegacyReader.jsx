@@ -4,6 +4,7 @@ import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { appParams } from '@/lib/app-params';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { isNativeIos } from '@/lib/isNativeIos';
+import { canUseNativeBundledAssets } from '@/lib/nativeOfflineAssets';
 
 // The legacy reader is a 100% server-rendered HTML page (no React, no JS),
 // served by the `legacy` backend function so it works on ancient browsers
@@ -43,7 +44,12 @@ export default function LegacyReader() {
   // mechanism, not two). "Open in Browser" deliberately does NOT get that
   // param: once it's genuinely external, the embedded link is the only way
   // back and should keep working there.
-  const [iframeUrl] = useState(() => legacyUrl(native ? ['native=1'] : []));
+  // On native origins the server-rendered function can't be reached offline,
+  // but the app bundle carries the exact same page (Android APK assets
+  // legacy/legacy.html, iOS offline bundle __native/legacy.html), so the
+  // iframe reads the bundled snapshot instead of dying with the connection.
+  const [iframeUrl] = useState(() =>
+    canUseNativeBundledAssets() ? '/__native/legacy.html' : legacyUrl(native ? ['native=1'] : []));
   const [browserUrl] = useState(() => legacyUrl(['open_external=1']));
   const [loaded, setLoaded] = useState(false);
   const navigate = useNavigate();
