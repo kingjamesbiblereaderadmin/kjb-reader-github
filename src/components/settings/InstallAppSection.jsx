@@ -87,10 +87,10 @@ export function InstallAppSection({ expanded, isIncognito }) {
   if (effectiveIncognito) return null;
 
   return (
-    <div className="bg-fuchsia-50 dark:bg-fuchsia-950/40 border border-fuchsia-200 dark:border-fuchsia-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+    <div className="bg-fuchsia-100/60 dark:bg-fuchsia-950/50 border border-fuchsia-200 dark:border-fuchsia-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
       <button
         onClick={() => {}}
-        className="w-full flex items-center justify-between px-5 py-3.5 bg-white/50 dark:bg-white/[0.04] hover:bg-white/70 dark:hover:bg-white/[0.07] transition-colors text-left"
+        className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-white/[0.06] hover:bg-white/80 dark:hover:bg-white/[0.09] transition-colors text-left"
       >
         <div className="flex flex-col gap-1">
           <h2 className="font-serif text-lg font-semibold text-foreground">Install App</h2>

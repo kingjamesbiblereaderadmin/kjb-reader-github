@@ -328,7 +328,7 @@ function StepCard({ number, icon, iconBg, title, copyText, children, defaultOpen
     : "flex items-start justify-between gap-4 mb-2";
 
   return (
-    <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-2xl p-6 shadow-lg shadow-black/[0.03]">
+    <div className="bg-rose-100/60 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900/60 rounded-2xl p-6 shadow-lg shadow-black/[0.03]">
       <div className={headerClass} onClick={collapsible ? () => setOpen(!open) : undefined}>
         <div className="flex-shrink-0 w-10 h-10 rounded-2xl shadow-md flex items-center justify-center" style={{ backgroundImage: iconBg }}>
           {icon}
