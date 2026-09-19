@@ -1,5 +1,5 @@
 // Two-origin state-sync test: verifies the cross-origin state mirror
-// (src/lib/nativeStateSync.js) end-to-end against the exact bundle that
+// (src/lib/stateSyncMirror.js, formerly nativeStateSync.js) end-to-end against the exact bundle that
 // ships inside the iOS IPA.
 //
 // On a real device the shell runs the live site on https://kingjamesbiblereader.com

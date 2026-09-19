@@ -6,7 +6,7 @@ import { cacheSplashLogo } from '@/lib/splashLogo'
 import { Capacitor } from '@capacitor/core'
 import { isNativeAndroid } from '@/lib/isNativeAndroid'
 import { isNativeIos } from '@/lib/isNativeIos'
-import { hydrateNativeStateMirror } from '@/lib/nativeStateSync'
+import { hydrateNativeStateMirror } from '@/lib/stateSyncMirror'
 import { toast } from 'sonner'
 
 // Swallow the harmless, transient "Failed to update a ServiceWorker ... Not
@@ -85,7 +85,7 @@ if (!rootElement) {
     );
   };
   // In the native iOS shell, wait for the cross-origin state mirror to
-  // hydrate localStorage first (see src/lib/nativeStateSync.js), so the
+  // hydrate localStorage first (see src/lib/stateSyncMirror.js), so the
   // app mounts with the user's live-site state even on the offline copy.
   // Everywhere else this resolves immediately.
   hydrateNativeStateMirror().catch(() => {}).then(mountApp);
