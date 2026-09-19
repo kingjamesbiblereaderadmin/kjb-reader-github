@@ -63,6 +63,7 @@ export const PREACHERS = [
   {
     name: 'Robert Breaker',
     desc: 'KJB missionary evangelist, rightly dividing the word of truth. Also preaches in Spanish.',
+    photo: 'https://yt3.googleusercontent.com/ytc/AIdro_mJGwX4Nio4c1LLI1ja79m1lHQIUJ53l-J42tlZcNCEk0w=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://www.youtube.com/@Robertbreaker3',
       'https://www.tiktok.com/@robertbreaker',
@@ -72,6 +73,8 @@ export const PREACHERS = [
   {
     name: 'Robert Potthoff',
     desc: 'Big Red Preacher — KJB soul winner.',
+    // No usable public photo found (TikTok/Instagram block image access) —
+    // falls back to initials automatically.
     links: [
       'https://www.instagram.com/robert.potthoff/',
       'https://www.facebook.com/potthoff87',
@@ -81,6 +84,7 @@ export const PREACHERS = [
   {
     name: 'Ryan Poff',
     desc: 'Seed of Hope Church — KJB pastor and preacher.',
+    photo: 'https://yt3.googleusercontent.com/VF5lO3c2JpNd61mBrKtPFfUs08uFE66b6y6vf4eMDA6PN3lW025tEBT7varYSFmeG5-eZZ84gg=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://www.seedofhopechurch.org/',
       'https://youtube.com/@ryan_poff',
@@ -89,6 +93,7 @@ export const PREACHERS = [
   {
     name: 'Skyler (AV1611 Ministry)',
     desc: 'AV1611 Ministry — KJB defence and preaching.',
+    photo: 'https://yt3.googleusercontent.com/ZhXQ7IgQ6pHOkWcSZafGDHhOqbRecC5ZaJ7oX8FXLJAPHT59yDXcEPyNPKYNgNNa20IzJ5pWAg=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://www.tiktok.com/@av1611ministries',
       'https://youtube.com/@av1611ministries']
@@ -96,12 +101,14 @@ export const PREACHERS = [
   {
     name: 'Crown of Thorns',
     desc: 'KJB preaching ministry on YouTube.',
+    photo: 'https://yt3.googleusercontent.com/WjelDZ6TP5t3xYW0ajrp-eSgjzC4dBSIH6WS1wpAoJ1rMrEhIV8xTqJdPWB0Z_hOIIxdnwnY3Q=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://www.youtube.com/@CrownOfThorns']
   },
   {
     name: 'Paul Johnson',
     desc: 'Biblical Salvation — KJB preaching and Bible teaching.',
+    photo: 'https://yt3.googleusercontent.com/ytc/AIdro_kvbtTnSib7sZ8unyXGBaXdCu1QEHUOmM0J_vmGOMefsdIjo3XP0JRi_xplBMKba99Xow=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://www.tiktok.com/@pauljohnson9632',
       'https://youtube.com/@biblicalsalvation']
@@ -109,6 +116,7 @@ export const PREACHERS = [
   {
     name: 'CPR Missions',
     desc: 'Church Planting and Revival Missions — soul winning and church planting.',
+    photo: 'https://yt3.googleusercontent.com/DD0QKBtsaz7Jg_FaLihJT7RQWx2F4ftUL8hiRoZDDs7Iw11P8YcHgsdGxnZWP3Cz_YFPGXkW=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://www.youtube.com/channel/UCWBR5DmAi2XPMFRtb-wqHwg',
       'https://www.tiktok.com/@cprmissions',
@@ -118,6 +126,7 @@ export const PREACHERS = [
   {
     name: 'James Bray',
     desc: 'KJB preacher and Bible teacher on YouTube.',
+    photo: 'https://yt3.googleusercontent.com/1B9oAx4QevNcFBzYYh9psQv21c8_OrLzd-DnUs6b2kBjMsPktc7S8uNluZpR51D8qJ_tM3aFLA=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://youtube.com/@jamesbrayall3?si=nXkuHAhyVvC_0KVg']
   },
@@ -125,6 +134,28 @@ export const PREACHERS = [
 
 const initials = (name) =>
   name.trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+
+// Preacher avatar: shows their channel/ministry photo when one is available,
+// falling back to the initials circle if there's no photo or it fails to load.
+function PreacherAvatar({ preacher, size = 'w-9 h-9', textClass = 'text-xs' }) {
+  const [failed, setFailed] = useState(false);
+  if (!preacher.photo || failed) {
+    return (
+      <div className={`flex-shrink-0 ${size} flex items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 font-sans font-semibold ${textClass}`}>
+        {initials(preacher.name)}
+      </div>
+    );
+  }
+  return (
+    <img
+      src={preacher.photo}
+      alt={preacher.name}
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className={`flex-shrink-0 ${size} rounded-full object-cover bg-amber-100 dark:bg-amber-900/40 border border-border/40`}
+    />
+  );
+}
 
 export default function PreachersSection({
   groupOpen: externalGroupOpen,
@@ -172,9 +203,7 @@ export default function PreachersSection({
               onClick={() => setSelected(preacher)}
               className="flex items-center gap-3 p-4 bg-card border border-border rounded-xl text-left hover:border-accent/50 hover:bg-accent/5 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
             >
-              <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 font-sans font-semibold text-xs">
-                {initials(preacher.name)}
-              </div>
+              <PreacherAvatar preacher={preacher} />
               <div className="flex-1 min-w-0">
                 <p className="notranslate font-sans text-sm font-semibold text-foreground truncate" translate="no">{preacher.name}</p>
                 <p className="font-sans text-xs text-muted-foreground truncate">{preacher.desc}</p>
@@ -193,9 +222,7 @@ export default function PreachersSection({
             <ChevronLeft className="w-4 h-4" /> All preachers
           </button>
           <div className="flex items-center gap-3 mb-3">
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 font-sans font-semibold text-sm">
-              {initials(selected.name)}
-            </div>
+            <PreacherAvatar preacher={selected} size="w-10 h-10" textClass="text-sm" />
             <div className="min-w-0">
               <p className="notranslate font-sans text-sm font-semibold text-foreground truncate" translate="no">{selected.name}</p>
               <p className="font-sans text-xs text-muted-foreground flex items-center gap-1">
