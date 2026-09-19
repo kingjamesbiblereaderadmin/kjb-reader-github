@@ -51,7 +51,16 @@ const EXPLICIT_KEYS = [
   'kjb-pre-search', // pre-search reading position to return to
   'kjb-pre-jump',
   'kjb-last-reading', // BibleReader's resume-reading position
+  'kjb-prev-reading-session', // "return to previous reading" anchor
   'kjb-last-route', // AppLayout's resume-route on open
+  'kjb-highlight-color', // persisted highlighter tool colour
+  'kjb-dyslexic-font', // OpenDyslexic toggle
+  'kjb-auto-redownload', // auto re-download toggle
+  'kjb-layout', // paragraph/line reading layout
+  'kjb-layout-zoom', // layout zoom level
+  // Gospel search stepper (parallel to the search stepper):
+  'kjb-gospel-results',
+  'kjb-gospel-index',
   'kjb-defence-cache',
   // Setup wizard state. Without mirroring these, the https origin and the
   // capacitor:// offline origin keep SEPARATE wizard states: setup finished
@@ -78,7 +87,9 @@ function isNativeIos() {
 async function prefSet(key, value) {
   try {
     await Preferences.set({ key: PREFIX + key, value });
-  } catch {}
+  } catch (e) {
+    recordStatus({ lastWriteError: String(e && e.message ? e.message : e), lastWriteKey: key });
+  }
 }
 
 async function prefGet(key) {
@@ -88,6 +99,25 @@ async function prefGet(key) {
   } catch {
     return null;
   }
+}
+
+// On-device diagnostics for the mirror. Written to plain (unmirrored)
+// localStorage so the Settings > App Info > "Startup Diagnostics" DBG
+// button can show exactly what the mirror did on THIS origin — which
+// side (online/offline) a reported sync bug lives on, and whether the
+// Preferences bridge is working at all.
+const STATUS_KEY = 'kjb-mirror-status';
+function recordStatus(fields) {
+  try {
+    let cur = {};
+    try { cur = JSON.parse(localStorage.getItem(STATUS_KEY) || '{}') || {}; } catch {}
+    localStorage.setItem(STATUS_KEY, JSON.stringify({
+      ...cur,
+      ...fields,
+      at: new Date().toISOString(),
+      origin: (typeof location !== 'undefined' && location.origin) || '',
+    }));
+  } catch {}
 }
 
 // Patched localStorage — captured so hydration can write through the
@@ -113,14 +143,24 @@ function patchLocalStorageForMirror() {
 // main.jsx calls (and awaits) this before mounting the app. Resolves
 // immediately outside the native iOS shell.
 export async function hydrateNativeStateMirror() {
-  if (!isNativeIos()) return;
+  if (!isNativeIos()) {
+    try {
+      let platform = 'unknown';
+      try { platform = Capacitor.getPlatform(); } catch {}
+      recordStatus({ native: false, platform, hydrated: false, reason: 'not native iOS' });
+    } catch {}
+    return;
+  }
   patchLocalStorageForMirror();
 
   let prefKeys = [];
   try {
     const { keys } = await Preferences.keys();
     prefKeys = (keys || []).filter((k) => typeof k === 'string' && k.startsWith(PREFIX));
-  } catch {
+    recordStatus({ native: true, keysOk: true, mirroredKeys: prefKeys.length, hydrated: true });
+  } catch (e) {
+    recordStatus({ native: true, keysOk: false, hydrated: false,
+                   reason: 'Preferences bridge failed: ' + String(e && e.message ? e.message : e) });
     return; // bridge not ready — mount with this origin's own state
   }
 
@@ -136,6 +176,7 @@ export async function hydrateNativeStateMirror() {
     // it. Never wipes Preferences again afterwards.
     for (const k of localKeys) await prefSet(k, localStorage.getItem(k));
     await prefSet(MARKER_KEY, '1');
+    recordStatus({ mode: 'seeded-first-run', seeded: localKeys.length });
     return;
   }
 
@@ -160,4 +201,5 @@ export async function hydrateNativeStateMirror() {
   for (const k of localKeys) {
     if (!mirroredNames.has(k)) await prefSet(k, localStorage.getItem(k));
   }
+  recordStatus({ mode: 'pulled', pulled: mirroredNames.size - 1 < 0 ? 0 : mirroredNames.size });
 }

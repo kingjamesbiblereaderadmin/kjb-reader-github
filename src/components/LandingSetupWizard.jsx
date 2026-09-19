@@ -402,7 +402,7 @@ export default function LandingSetupWizard() {
         {step === 1 && (
           <div className="text-center">
             <h3 className="font-serif text-lg font-bold text-foreground mb-1">Theme & Colour</h3>
-            <p className="font-sans text-xs text-muted-foreground mb-4">Choose light/dark and your accent color</p>
+            <p className="font-sans text-xs text-muted-foreground mb-4">Choose light/dark and your accent colour</p>
             {(mode === 'auto' || mode === 'system') && (
               <div className="max-w-xs mx-auto mb-4 px-3 py-2 rounded-lg bg-accent/10 border border-accent/30">
                 <p className="font-sans text-[11px] text-muted-foreground">

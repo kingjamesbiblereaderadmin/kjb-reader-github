@@ -2,9 +2,36 @@
 
 const SAVED_KEY = 'kjb-saved-verses';
 
+// Default folder. British spelling: builds before September 2026 stored
+// 'Favorites' — normalizeFolder() migrates those reads on the fly, and
+// persistFolderRename() below performs the one-time stored rename.
+export const DEFAULT_FOLDER = 'Favourites';
+
+function normalizeFolder(name) {
+  return name === 'Favorites' ? DEFAULT_FOLDER : name;
+}
+
+function persistFolderRename() {
+  // One-time migration: rewrite the stored folders list without the legacy
+  // spelling so both origins (and the cross-origin mirror) settle on
+  // 'Favourites'.
+  try {
+    const raw = localStorage.getItem('kjb-saved-folders');
+    if (!raw) return;
+    const folders = JSON.parse(raw);
+    if (!Array.isArray(folders) || !folders.includes('Favorites')) return;
+    const migrated = folders.map(normalizeFolder);
+    localStorage.setItem('kjb-saved-folders', JSON.stringify(migrated));
+  } catch {}
+}
+persistFolderRename();
+
 export function getSavedVerses() {
   try {
-    return JSON.parse(localStorage.getItem(SAVED_KEY) || '[]');
+    const saved = JSON.parse(localStorage.getItem(SAVED_KEY) || '[]');
+    return Array.isArray(saved)
+      ? saved.map(v => ({ ...v, folder: normalizeFolder(v.folder || DEFAULT_FOLDER) }))
+      : [];
   } catch {
     return [];
   }
@@ -12,13 +39,14 @@ export function getSavedVerses() {
 
 export function getSavedFolders() {
   try {
-    const folders = JSON.parse(localStorage.getItem('kjb-saved-folders') || '["Favorites"]');
-    if (!folders.includes('Favorites')) {
-      folders.unshift('Favorites');
+    const folders = JSON.parse(localStorage.getItem('kjb-saved-folders') || '[]');
+    const normalized = (Array.isArray(folders) ? folders : []).map(normalizeFolder);
+    if (!normalized.includes(DEFAULT_FOLDER)) {
+      normalized.unshift(DEFAULT_FOLDER);
     }
-    return folders;
+    return normalized;
   } catch {
-    return ['Favorites'];
+    return [DEFAULT_FOLDER];
   }
 }
 
@@ -37,7 +65,7 @@ export function isVerseSaved(abbr, chapter, verse) {
 export function saveVerse(entry) {
   const saved = getSavedVerses();
   if (!isVerseSaved(entry.abbr, entry.chapter, entry.verse)) {
-    saved.unshift({ ...entry, folder: entry.folder || 'Favorites' });
+    saved.unshift({ ...entry, folder: entry.folder || DEFAULT_FOLDER });
     localStorage.setItem(SAVED_KEY, JSON.stringify(saved));
   }
 }
@@ -58,13 +86,13 @@ export function removeSavedVerse(abbr, chapter, verse) {
 }
 
 export function deleteFolder(name) {
-  if (name === 'Favorites') return;
+  if (name === DEFAULT_FOLDER) return;
   const folders = getSavedFolders().filter(f => f !== name);
   localStorage.setItem('kjb-saved-folders', JSON.stringify(folders));
 
   const saved = getSavedVerses().map(v => {
     if (v.folder === name) {
-      return { ...v, folder: 'Favorites' };
+      return { ...v, folder: DEFAULT_FOLDER };
     }
     return v;
   });
