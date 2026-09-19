@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ExternalLink, FileText, BookOpen, ShieldAlert, Globe, CheckCircle, ChevronDown, Youtube, Facebook, Copy, Printer, Mail, PlayCircle, Link2 } from 'lucide-react';
+import { ExternalLink, FileText, BookOpen, ShieldAlert, Globe, CheckCircle, ChevronDown, Youtube, Facebook, Copy, Printer, Mail, PlayCircle } from 'lucide-react';
 import { printHtml } from '@/lib/printHelpers';
+import { LinktreeIcon } from '@/components/ContactLinks';
 import CollapsibleCard from '@/components/landing/CollapsibleCard';
 import PreachersSection, { PREACHERS } from '@/components/PreachersSection';
 
@@ -346,7 +347,7 @@ export default function ResourcesPage() {
             rel="noopener noreferrer"
             className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-sky-500 to-blue-600">
               <Globe className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
@@ -364,7 +365,7 @@ export default function ResourcesPage() {
             rel="noopener noreferrer"
             className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-red-500 to-rose-600">
               <Youtube className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
@@ -382,7 +383,7 @@ export default function ResourcesPage() {
             rel="noopener noreferrer"
             className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-emerald-500 to-green-600">
               <PlayCircle className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
@@ -400,8 +401,8 @@ export default function ResourcesPage() {
             rel="noopener noreferrer"
             className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400">
-              <Link2 className="w-5 h-5" />
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-green-500 to-emerald-600">
+              <LinktreeIcon className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">Linktree</p>
@@ -416,7 +417,7 @@ export default function ResourcesPage() {
             href="mailto:kingjamesbiblereader@outlook.sg"
             className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-emerald-500 to-teal-600">
               <Mail className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">

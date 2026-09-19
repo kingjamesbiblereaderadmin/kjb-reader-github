@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Mail, ExternalLink, Globe, Youtube, PlayCircle, Link2, FileText } from 'lucide-react';
 
 // Linktree icon SVG
-function LinktreeIcon({ className }) {
+export function LinktreeIcon({ className }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
       <path d="M13.736 5.853l4.005-4.117 2.325 2.381-4.2 4.005h5.908v3.288h-5.937l4.229 4.108-2.325 2.339-5.74-5.794-5.741 5.794-2.325-2.339 4.229-4.108H7.436V8.122h5.909l-4.2-4.005 2.324-2.381 4.005 4.117V0h3.062v5.853zm-3.062 9.479h3.062V24h-3.062v-8.668z"/>
