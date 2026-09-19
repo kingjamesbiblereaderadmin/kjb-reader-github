@@ -1,0 +1,26 @@
+name: ASC review notes
+
+# Pushes the Guideline 2.1 information package into the App Review
+# Information -> Notes field in App Store Connect via the ASC API.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'fastlane/metadata/review_information/notes.txt'
+
+jobs:
+  notes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install pyjwt requests cryptography
+      - name: Update App Review notes
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: python scripts/asc-review-notes.py
