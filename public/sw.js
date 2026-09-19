@@ -44,12 +44,26 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[SW] Caching app shell');
-      // Cache the app shell first; then precache cross-origin assets
-      // individually so a single failure doesn't reject the whole batch.
-      return cache.addAll(APP_SHELL_FILES).catch(err => {
-        console.warn('[SW] Some shell resources failed to cache:', err);
-        return Promise.resolve();
-      }).then(() => {
+      // Cache every shell file INDIVIDUALLY, not via one cache.addAll(). addAll
+      // is atomic: if a single one of these ~114 files fails a fetch (one
+      // dropped request during install is enough), the whole call rejects and
+      // NONE of them get cached -- silently, since this only logged a warning
+      // and moved on. The SW still activates immediately (skipWaiting above)
+      // and takes over the page with an empty cache, which is invisible while
+      // online (network covers every request) and only surfaces later,
+      // offline, as a fully unstyled/broken page (missing CSS/JS with no
+      // fallback). Caching each file on its own means one bad fetch only
+      // loses that one file.
+      return Promise.all(
+        APP_SHELL_FILES.map((url) =>
+          fetch(url, { cache: 'no-store' })
+            .then((response) => {
+              if (response && response.ok) return cache.put(url, response);
+              console.warn('[SW] Shell resource not ok, skipping:', url, response && response.status);
+            })
+            .catch((err) => console.warn('[SW] Shell resource failed to cache:', url, err))
+        )
+      ).then(() => {
         // Cross-origin images (e.g. the logo from media.base44.com) return
         // "opaque" responses with no CORS headers. cache.add() defaults to
         // cors mode and rejects these — so fetch in no-cors and cache.put
