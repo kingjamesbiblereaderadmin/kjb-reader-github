@@ -7,7 +7,7 @@ import DownloadBibleSection from '@/components/bible/DownloadBibleSection';
 import OfflineHtmlSection from '@/components/bible/OfflineHtmlSection';
 import ThemeColorPicker from '@/components/bible/ThemeColorPicker';
 import { Switch } from '@/components/ui/switch';
-import InstallAppSection from '@/components/settings/InstallAppSection';
+import { InstallAppSection } from '@/components/settings/InstallAppSection';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { useTheme, COLOUR_PALETTES } from '@/lib/themeContext';
@@ -54,7 +54,7 @@ const isBookmarkBrowser = () => {
 };
 
 const LAST_REVISED = 'September 11th, 2026';
-const WORKER_VERSION = 'v20260918_1129';
+const WORKER_VERSION = 'v20260919_0758';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
