@@ -107,7 +107,7 @@ export const PREACHERS = [
   {
     name: 'Paul Johnson',
     desc: 'Biblical Salvation — KJB preaching and Bible teaching.',
-    photo: 'https://yt3.googleusercontent.com/ytc/AIdro_kvbtTnSib7sZ8unyXGBaXdCu1QEHUOmM0J_vmGOMefsdIjo3XP0JRi_xplBMKba99Xow=s176-c-k-c0x00ffffff-no-rj',
+    photo: 'https://base44.app/api/apps/6a8011c360ff52dad38eb2f3/files/mp/public/6a8011c360ff52dad38eb2f3/5888f56c6_paul-johnson.jpg',
     links: [
       'https://www.tiktok.com/@pauljohnson9632',
       'https://youtube.com/@biblicalsalvation']
