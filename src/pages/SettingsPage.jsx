@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 import { Settings, Download, CheckCircle2, AlertCircle, Loader2, Trash2, Smartphone, MonitorSmartphone, Eye, EyeOff, ZoomIn, ZoomOut, Palette, Upload, Crop, Type, ChevronDown, CheckCircle, ExternalLink, Shield, MessageCircle, Youtube, RotateCcw, Accessibility, Keyboard, Star, Server, Globe, Mail, PlayCircle, Link2, FileText, Lock, Wrench } from 'lucide-react';
 import ShortcutsList from '@/components/ShortcutsList';
+import PageHero from '@/components/PageHero';
 
 import DownloadBibleSection from '@/components/bible/DownloadBibleSection';
 import OfflineHtmlSection from '@/components/bible/OfflineHtmlSection';
@@ -350,20 +351,19 @@ export default function SettingsPage() {
   return (
     <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 pt-10 pb-32">
       {/* Header */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-500 to-slate-700 shadow-lg shadow-slate-500/30 mb-4">
-          <Settings className="w-7 h-7 text-white" />
-        </div>
-        <h1 className="font-serif text-4xl font-bold text-foreground mb-2">Settings</h1>
-        <p className="font-sans text-sm text-muted-foreground">Customise your experience</p>
-        <div className="mt-4 w-16 h-px bg-accent mx-auto" />
+      <PageHero
+        icon={<Settings className="w-7 h-7" />}
+        iconGradient="from-slate-500 to-slate-700 shadow-slate-500/30"
+        title="Settings"
+        subtitle="Customise your experience"
+      >
         <button
           onClick={toggleAll}
           className="mt-4 px-4 py-2 rounded-xl bg-transparent border border-border text-foreground font-sans text-sm font-medium hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
         >
           {allExpanded ? 'Collapse All' : 'Expand All'}
         </button>
-      </div>
+      </PageHero>
 
       {/* Text Settings */}
       <div className="bg-sky-100/60 dark:bg-sky-950/50 border border-sky-200 dark:border-sky-900/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">

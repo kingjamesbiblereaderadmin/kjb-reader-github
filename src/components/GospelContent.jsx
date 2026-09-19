@@ -14,6 +14,7 @@ import { getGospelResults } from '@/lib/gospelVerses';
 import PreachersSection from '@/components/PreachersSection';
 import VerseQuote from '@/components/gospel/VerseQuote';
 import { downloadSuccessMessage } from '@/lib/nativeDownload';
+import PageHero from '@/components/PageHero';
 
 function CopyButton({ text, className }) {
   const [copied, setCopied] = useState(false);
@@ -388,22 +389,21 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
   return (
     <>
       {/* Header */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 shadow-lg shadow-red-500/30 mb-4">
-          <Heart className="w-7 h-7 text-white" />
-        </div>
-        <h1 className="font-serif text-4xl font-bold text-foreground mb-3">How to be Saved</h1>
-        <p className="font-sans text-muted-foreground max-w-lg mx-auto">
-          The Gospel is the glad tidings of the Lord Jesus Christ:
-        </p>
-        <p className="font-sans text-muted-foreground max-w-lg mx-auto mt-3">
-          Trust he is God, died, shed his blood, buried and rose again on the third day for our sins according to the scriptures.
-        </p>
-        <div className="mt-4 w-16 h-px bg-accent mx-auto" />
+      <PageHero
+        icon={<Heart className="w-7 h-7" />}
+        iconGradient="from-rose-500 to-red-600 shadow-red-500/30"
+        title="How to be Saved"
+        subtitle={
+          <>
+            <p className="font-sans text-muted-foreground">The Gospel is the glad tidings of the Lord Jesus Christ:</p>
+            <p className="font-sans text-muted-foreground">Trust he is God, died, shed his blood, buried and rose again on the third day for our sins according to the scriptures.</p>
+          </>
+        }
+      >
         <div className="mt-5">
           <GospelActions />
         </div>
-      </div>
+      </PageHero>
 
       {showSpanishGospelCard && (
         <Link

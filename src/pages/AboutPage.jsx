@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Info, Mail, MessageSquare, ExternalLink, BookOpen, Globe, ChevronDown, ChevronRight, Youtube, PlayCircle, Link2, FileText, ShieldAlert, Heart } from 'lucide-react';
+import { Info, Mail, MessageSquare, ExternalLink, BookOpen, Globe, ChevronDown, ChevronRight, Youtube, PlayCircle, Link2, FileText, ShieldAlert, Heart, Users } from 'lucide-react';
 import ContactLinks from '@/components/ContactLinks';
+import PageHero from '@/components/PageHero';
+import ColorSection from '@/components/ColorSection';
 
 function AccordionSection({ title, children }) {
   const [open, setOpen] = useState(false);
@@ -64,17 +66,10 @@ export default function AboutPage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
     <div className="w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-10">
       {/* Header */}
-      <div className="text-center mb-10">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/30 mb-4">
-          <Info className="w-7 h-7 text-white" />
-        </div>
-        <h1 className="font-serif text-4xl font-bold text-foreground mb-3">About</h1>
-        <div className="mt-4 w-16 h-px bg-accent mx-auto" />
-      </div>
+      <PageHero icon={<Info className="w-7 h-7" />} iconGradient="from-amber-500 to-orange-600 shadow-amber-500/30" title="About" />
 
       {/* About Shawn */}
-      <div className="notranslate bg-amber-100/60 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/60 rounded-2xl p-7 mb-8 shadow-lg shadow-black/[0.03]" translate="no">
-        <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">About the Ministry</h2>
+      <ColorSection edge="from-amber-500 to-orange-500" iconBg="from-amber-500 to-orange-600" eyebrow="The ministry" icon={<Users className="w-5 h-5" />} title="About the Ministry" className="notranslate" translate="no">
         <p className="font-sans text-foreground/85 leading-relaxed mb-4">
           I'm <span className="notranslate" translate="no">Shawn</span>, a firm believer that the King James Bible is the pure, infallible, perfect Word of God in the English language. 
           I am a dispensational salvationist, rightly dividing the word of truth.
@@ -93,11 +88,10 @@ export default function AboutPage() {
             <span>I believe in <span className="notranslate" translate="no">OSAS (Once Saved, Always Saved)</span>: a believer who has trusted the gospel cannot lose salvation, no matter what happens in their life.</span>
           </li>
         </ul>
-      </div>
+      </ColorSection>
 
       {/* The Bible Text source */}
-      <div className="notranslate bg-blue-100/60 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-900/60 rounded-2xl p-7 mb-8 shadow-lg shadow-black/[0.03]" translate="no">
-        <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">The Bible Text</h2>
+      <ColorSection edge="from-blue-600 to-indigo-500" iconBg="from-blue-600 to-indigo-500" eyebrow="The text" icon={<BookOpen className="w-5 h-5" />} title="The Bible Text" className="notranslate" translate="no">
         <p className="font-sans text-foreground/85 leading-relaxed mb-4">
           This app uses the <span className="notranslate" translate="no">King James Bible (Pure Cambridge Edition)</span> — the standard text of the
           preserved King James Bible. The text is taken directly from our authoritative
@@ -118,7 +112,7 @@ export default function AboutPage() {
             <span>The same verified text is used everywhere — the reader, search, daily verses, exports, the browser extension, and the Android app.</span>
           </li>
         </ul>
-      </div>
+      </ColorSection>
 
       {/* Statement of Faith — expandable sections */}
       <div className="notranslate mb-8" translate="no">
@@ -292,10 +286,9 @@ export default function AboutPage() {
       </div>
 
       {/* Links */}
-      <div className="bg-emerald-100/60 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-900/60 rounded-2xl p-7 mb-8 shadow-lg shadow-black/[0.03]">
-        <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">Links & Contact</h2>
+      <ColorSection edge="from-emerald-500 to-teal-400" iconBg="from-emerald-500 to-teal-500" eyebrow="Reach us" icon={<Globe className="w-5 h-5" />} title="Links & Contact">
         <ContactLinks />
-      </div>
+      </ColorSection>
 
 
     </div>

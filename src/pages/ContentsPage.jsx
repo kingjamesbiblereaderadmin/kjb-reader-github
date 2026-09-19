@@ -7,6 +7,7 @@ import BookSelector from '@/components/bible/BookSelector';
 import ChapterSelector from '@/components/bible/ChapterSelector';
 import VerseSelector from '@/components/bible/VerseSelector';
 import NativeSelector from '@/components/bible/NativeSelector';
+import PageHero from '@/components/PageHero';
 
 const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 640;
 
@@ -116,14 +117,12 @@ export default function ContentsPage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
     <div className="w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-10">
       {/* Header */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-indigo-500/30 mb-4">
-          <List className="w-7 h-7 text-white" />
-        </div>
-        <h1 className="font-serif text-4xl font-bold text-foreground mb-2">Table of Contents</h1>
-        <p className="notranslate font-sans text-sm text-muted-foreground" translate="no">King James Bible — Pure Cambridge Edition</p>
-        <div className="mt-4 w-16 h-px bg-accent mx-auto" />
-      </div>
+      <PageHero
+        icon={<List className="w-7 h-7" />}
+        iconGradient="from-blue-500 to-indigo-600 shadow-indigo-500/30"
+        title="Table of Contents"
+        subtitle={<span className="notranslate" translate="no">King James Bible — Pure Cambridge Edition</span>}
+      />
 
       {/* Selection Button */}
       <div className="mb-8">

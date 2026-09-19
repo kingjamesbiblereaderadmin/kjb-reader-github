@@ -5,6 +5,7 @@ import { printHtml } from '@/lib/printHelpers';
 import { LinktreeIcon } from '@/components/ContactLinks';
 import CollapsibleCard from '@/components/landing/CollapsibleCard';
 import PreachersSection, { PREACHERS } from '@/components/PreachersSection';
+import PageHero from '@/components/PageHero';
 
 function CopyButton({ text, className }) {
   const [copied, setCopied] = useState(false);
@@ -127,13 +128,12 @@ export default function ResourcesPage() {
 
   return (
     <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-10">
-      <div className="text-center mb-10">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-secondary mb-4">
-          <FileText className="w-7 h-7 text-accent" />
-        </div>
-        <h1 className="font-serif text-4xl font-bold text-foreground mb-3">Resources</h1>
-        <p className="font-sans text-muted-foreground max-w-lg mx-auto"><span className="notranslate" translate="no">KJB</span> defence materials, studies on modern version corruption, and links to free Bible study resources.</p>
-        <div className="mt-4 w-16 h-px bg-accent mx-auto" />
+      <PageHero
+        icon={<FileText className="w-7 h-7" />}
+        iconGradient="from-violet-500 to-purple-600 shadow-purple-500/30"
+        title="Resources"
+        subtitle={<><span className="notranslate" translate="no">KJB</span> defence materials, studies on modern version corruption, and links to free Bible study resources.</>}
+      >
         <div className="mt-4 flex items-center justify-center gap-2">
           <button
             onClick={toggleAll}
@@ -148,7 +148,7 @@ export default function ResourcesPage() {
             <Printer className="w-4 h-4" /> Print
           </button>
         </div>
-      </div>
+      </PageHero>
 
       {/* KJBI — Free Online Bible College */}
       <div className="mb-6">

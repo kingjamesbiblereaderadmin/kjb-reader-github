@@ -4,6 +4,7 @@ import { Bookmark, Trash2, BookOpen, Share2, Copy, FolderPlus, Folder, MoreVerti
 import { getSavedVerses, removeSavedVerse, getSavedFolders, createFolder, deleteFolder, updateVerseFolder } from '@/lib/savedVerses';
 import { formatVerseShare, buildVerseUrl } from '@/lib/formatDailyVerse';
 import { printHtml } from '@/lib/printHelpers';
+import PageHero from '@/components/PageHero';
 import { nativeShare } from '@/lib/nativeShare';
 import { toast } from 'sonner';
 
@@ -226,14 +227,12 @@ export default function SavedVersesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
     <div className="w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-10">
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-fuchsia-500 to-pink-600 shadow-lg shadow-pink-500/30 mb-4">
-          <Bookmark className="w-7 h-7 text-white" />
-        </div>
-        <h1 className="font-serif text-4xl font-bold text-foreground mb-2">Saved Verses</h1>
-        <p className="font-sans text-sm text-muted-foreground">{saved.length} verse{saved.length !== 1 ? 's' : ''} saved</p>
-        <div className="mt-4 w-16 h-px bg-accent mx-auto" />
-      </div>
+      <PageHero
+        icon={<Bookmark className="w-7 h-7" />}
+        iconGradient="from-fuchsia-500 to-pink-600 shadow-pink-500/30"
+        title="Saved Verses"
+        subtitle={`${saved.length} verse${saved.length !== 1 ? 's' : ''} saved`}
+      />
 
       {saved.length > 0 && (
         <div className="flex items-center gap-2 mb-6">

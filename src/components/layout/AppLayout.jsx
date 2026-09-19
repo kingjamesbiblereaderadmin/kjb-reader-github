@@ -519,14 +519,6 @@ export default function AppLayout() {
                   );
                 })}
               </div>
-              {/* Legal links — kept in the menu (not just the desktop footer,
-                  which is hidden on mobile) so Privacy/Terms are reachable
-                  from every screen on phones, as the App Store requires. */}
-              <p className="text-center font-sans text-xs text-muted-foreground pt-3 pb-1">
-                <Link to="/privacy" onClick={() => setMenuOpen(false)} className="hover:text-foreground hover:underline transition-colors">Privacy Policy</Link>
-                {' · '}
-                <Link to="/terms" onClick={() => setMenuOpen(false)} className="hover:text-foreground hover:underline transition-colors">Terms of Service</Link>
-              </p>
             </div>
           </>
         )}
