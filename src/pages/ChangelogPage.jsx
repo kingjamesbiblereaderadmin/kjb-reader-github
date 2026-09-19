@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.254', date: 'September 19, 2026', items: [
+    { tag: 'fix', text: 'Fixed the panel footer showing in the middle of the page with a blank gap beneath it, instead of anchored to the bottom, when search results or page content are short' },
+    { tag: 'fix', text: 'The footer is now correctly re-verified against the panel\u2019s real size on load and on resize, so it never gets stuck in the wrong layout mode' },
+  ] },
   { version: 'v0.4.253', date: 'September 19, 2026', items: [
     { tag: 'improved', text: 'Epistle subscriptions are now printed exactly as the source text reads them (\u201CWritten to the Romans from Corinthus, [and] [sent] by Phebe servant of the church at Cenchrea.\u201D) instead of an editorial summary line' },
     { tag: 'fix', text: 'Removed invented end-of-book lines the source never prints (\u201CThe End of the Epistle of Paul the Apostle to the Romans.\u201D); books with no subscription in the source now show nothing after the last verse' },
@@ -288,7 +292,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.253
+            Current Version: v0.4.254
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
