@@ -62,10 +62,19 @@
           var atRoot = window.location.pathname === '/' || window.location.pathname === '';
           var wantsLegacyTab = atRoot && qs.indexOf('tab=') !== -1;
 
+          // Native app origins (capacitor://localhost — the iOS offline-fallback
+          // copy; Android always serves /legacy through the React route) can't
+          // reach the server-rendered function page, and offline they must not
+          // even try: the React /legacy page loads the identical page from the
+          // app bundle instead (see src/pages/LegacyReader.jsx). So on a
+          // capacitor: origin a /legacy visit falls through to the React route
+          // instead of redirecting to a path that would 404.
+          var isNativeCap = /^capacitor:/i.test((window.location.protocol || ''));
+
           // A direct visit to "/legacy" always means the server-rendered Full
           // Bible reader — send EVERY browser straight to the function endpoint
           // (the React /legacy page can't run on IE and only redirects anyway).
-          if (window.location.pathname === '/legacy' && !optedOut) {
+          if (window.location.pathname === '/legacy' && !optedOut && !isNativeCap) {
             var lHost = window.location.hostname || '';
             var lIsCustom = lHost.indexOf('base44.app') === -1 && lHost.indexOf('localhost') === -1;
             var lOrigin = window.location.origin || (window.location.protocol + '//' + window.location.host);
@@ -85,6 +94,12 @@
             return;
           }
           if (wantsLegacyTab && !optedOut) {
+            if (isNativeCap) {
+              // Same reasoning as above: the native offline copy renders the
+              // legacy reader from the app bundle via the React /legacy route.
+              window.location.replace('/legacy' + qs);
+              return;
+            }
             var tHost = window.location.hostname || '';
             var tIsCustom = tHost.indexOf('base44.app') === -1 && tHost.indexOf('localhost') === -1;
             if (tIsCustom) {
