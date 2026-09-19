@@ -1065,7 +1065,7 @@ localStorage.removeItem('kjb-daily-verse-cache-v17');
       {/* Credits — link to dedicated page */}
       <Link
         to="/credits"
-        className="block bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03] hover:border-accent/40 hover:-translate-y-0.5 transition-all duration-200"
+        className="block bg-card/70 backdrop-blur-xl border border-border/60 border-t-4 border-t-amber-300 dark:border-t-amber-700/60 rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03] hover:border-accent/40 hover:-translate-y-0.5 transition-all duration-200"
       >
         <div className="w-full flex items-center justify-between px-5 py-3.5">
           <div className="flex flex-col gap-1">

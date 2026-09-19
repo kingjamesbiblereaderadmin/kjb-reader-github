@@ -59,6 +59,12 @@ function getLinkLabel(url) {
   try { return new URL(url).hostname.replace('www.', ''); } catch { return 'Website'; }
 }
 
+// Compact directory-card initials ("Robert Breaker" -> "RB").
+function initialsFor(name) {
+  const parts = name.replace(/[()]/g, '').split(/\s+/).filter(Boolean);
+  return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'K';
+}
+
 export const PREACHERS = [
   {
     name: 'Robert Breaker',
@@ -183,7 +189,7 @@ export default function PreachersSection({
             <h2 className="font-sans font-semibold text-sm text-amber-600">Verified KJB Preachers</h2>
           </div>
           <p className="font-sans text-xs text-muted-foreground">
-            KJB-believing, soul-winning preachers — tap to see all their links
+            KJB-believing, soul-winning preachers — tap one for their verified links
           </p>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
