@@ -69,7 +69,7 @@ export default function AboutPage() {
       <PageHero icon={<Info className="w-7 h-7" />} iconGradient="from-sky-500 to-cyan-600 shadow-sky-500/30" headlineGradient="from-sky-500 via-cyan-500 to-cyan-600 dark:from-sky-400 dark:via-cyan-400 dark:to-cyan-500" title="About" />
 
       {/* About Shawn */}
-      <ColorSection collapsible edge="from-amber-500 to-orange-500" iconBg="from-amber-500 to-orange-600" eyebrow="The ministry" icon={<Users className="w-5 h-5" />} title="About the Ministry" className="notranslate" translate="no">
+      <ColorSection collapsible edge="from-amber-500 to-orange-500" iconBg="from-amber-500 to-orange-600" eyebrow="The app creator" icon={<Users className="w-5 h-5" />} title="About the App Creator" className="notranslate" translate="no">
         <p className="font-sans text-foreground/85 leading-relaxed mb-4">
           I'm <span className="notranslate" translate="no">Shawn</span>, a firm believer that the King James Bible is the pure, infallible, perfect Word of God in the English language. 
           I am a dispensational salvationist, rightly dividing the word of truth.
