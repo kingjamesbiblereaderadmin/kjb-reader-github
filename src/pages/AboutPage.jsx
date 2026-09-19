@@ -69,7 +69,7 @@ export default function AboutPage() {
       <PageHero icon={<Info className="w-7 h-7" />} iconGradient="from-sky-500 to-cyan-600 shadow-sky-500/30" headlineGradient="from-sky-500 via-cyan-500 to-cyan-600 dark:from-sky-400 dark:via-cyan-400 dark:to-cyan-500" title="About" />
 
       {/* About Shawn */}
-      <ColorSection edge="from-amber-500 to-orange-500" iconBg="from-amber-500 to-orange-600" eyebrow="The ministry" icon={<Users className="w-5 h-5" />} title="About the Ministry" className="notranslate" translate="no">
+      <ColorSection collapsible edge="from-amber-500 to-orange-500" iconBg="from-amber-500 to-orange-600" eyebrow="The ministry" icon={<Users className="w-5 h-5" />} title="About the Ministry" className="notranslate" translate="no">
         <p className="font-sans text-foreground/85 leading-relaxed mb-4">
           I'm <span className="notranslate" translate="no">Shawn</span>, a firm believer that the King James Bible is the pure, infallible, perfect Word of God in the English language. 
           I am a dispensational salvationist, rightly dividing the word of truth.
@@ -91,7 +91,7 @@ export default function AboutPage() {
       </ColorSection>
 
       {/* The Bible Text source */}
-      <ColorSection edge="from-blue-600 to-indigo-500" iconBg="from-blue-600 to-indigo-500" eyebrow="The text" icon={<BookOpen className="w-5 h-5" />} title="The Bible Text" className="notranslate" translate="no">
+      <ColorSection collapsible edge="from-blue-600 to-indigo-500" iconBg="from-blue-600 to-indigo-500" eyebrow="The text" icon={<BookOpen className="w-5 h-5" />} title="The Bible Text" className="notranslate" translate="no">
         <p className="font-sans text-foreground/85 leading-relaxed mb-4">
           This app uses the <span className="notranslate" translate="no">King James Bible (Pure Cambridge Edition)</span> — the standard text of the
           preserved King James Bible. The text is taken directly from our authoritative
@@ -286,7 +286,7 @@ export default function AboutPage() {
       </div>
 
       {/* Links */}
-      <ColorSection edge="from-emerald-500 to-teal-400" iconBg="from-emerald-500 to-teal-500" eyebrow="Reach us" icon={<Globe className="w-5 h-5" />} title="Links & Contact">
+      <ColorSection collapsible edge="from-emerald-500 to-teal-400" iconBg="from-emerald-500 to-teal-500" eyebrow="Reach us" icon={<Globe className="w-5 h-5" />} title="Links & Contact">
         <ContactLinks />
       </ColorSection>
 
