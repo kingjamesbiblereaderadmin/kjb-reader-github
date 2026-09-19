@@ -216,7 +216,7 @@ export default function ResourcesPage() {
             </div>
           </div>
 
-          <div className="border-t border-border/60 -mt-1 mb-4" />
+          <div className="border-t-2 border-indigo-300/70 dark:border-indigo-700/70 -mt-1 mb-4" />
 
           <div>
             <h3 className="notranslate font-sans font-semibold text-sm text-foreground mb-1">KJB Knights Server</h3>
