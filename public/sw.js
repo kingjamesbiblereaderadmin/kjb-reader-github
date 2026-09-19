@@ -1,8 +1,15 @@
 // KJB Reader Service Worker v20260919_1417
 // Cache-first loading for offline support
 
-const CACHE_NAME = 'kjb-reader-v20260919_1417';
+const CACHE_NAME = 'kjb-reader-v20260919_1425';
 const LEGACY_CACHE_NAME = 'kjb-legacy-v11';
+// Persistent image cache — deliberately NOT versioned. Runtime-cached images
+// (preacher photos, extension page icons, mockups) used to be stored in
+// CACHE_NAME, which is deleted on every app update — so each SW bump wiped
+// them all and the icons vanished offline until the user revisited each
+// page online. Images now live here and survive every update: one online
+// view of a page persists its images for offline use permanently.
+const IMAGE_CACHE_NAME = 'kjb-images-v1';
 
 // Core app shell resources to cache immediately
 const APP_SHELL_FILES = [
@@ -86,7 +93,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => name !== CACHE_NAME && name !== LEGACY_CACHE_NAME)
+          .filter((name) => name !== CACHE_NAME && name !== LEGACY_CACHE_NAME && name !== IMAGE_CACHE_NAME)
           .map((name) => {
             console.log('[SW] Deleting old cache:', name);
             return caches.delete(name);
@@ -341,7 +348,16 @@ self.addEventListener('fetch', (event) => {
 
         const responseToCache = response.clone();
 
-        caches.open(CACHE_NAME).then((cache) => {
+        // Images go into the persistent (unversioned) image cache so they
+        // survive app updates; every other asset stays in CACHE_NAME.
+        // Opaque cross-origin images (preacher channel photos on
+        // yt3.googleusercontent.com, media.base44.com files) are included.
+        const contentType = (response.headers && response.headers.get) ? String(response.headers.get('content-type') || '') : '';
+        const cacheName = (request.destination === 'image' || contentType.startsWith('image/'))
+          ? IMAGE_CACHE_NAME
+          : CACHE_NAME;
+
+        caches.open(cacheName).then((cache) => {
           cache.put(request, responseToCache);
         });
 
