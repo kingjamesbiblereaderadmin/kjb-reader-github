@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ExternalLink, CheckCircle, Users, ChevronLeft, ChevronRight, ChevronDown, Youtube, Facebook, Instagram, Link as LinkIcon, Copy, Globe } from 'lucide-react';
+import { ExternalLink, CheckCircle, Users, ChevronDown, ChevronLeft, ChevronRight, Youtube, Facebook, Instagram, Link as LinkIcon, Copy, Globe } from 'lucide-react';
 
 function CopyButton({ text, className }) {
   const [copied, setCopied] = useState(false);
@@ -59,16 +59,11 @@ function getLinkLabel(url) {
   try { return new URL(url).hostname.replace('www.', ''); } catch { return 'Website'; }
 }
 
-// Compact directory-card initials ("Robert Breaker" -> "RB").
-function initialsFor(name) {
-  const parts = name.replace(/[()]/g, '').split(/\s+/).filter(Boolean);
-  return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'K';
-}
-
 export const PREACHERS = [
   {
     name: 'Robert Breaker',
     desc: 'KJB missionary evangelist, rightly dividing the word of truth. Also preaches in Spanish.',
+    photo: 'https://yt3.googleusercontent.com/ytc/AIdro_mJGwX4Nio4c1LLI1ja79m1lHQIUJ53l-J42tlZcNCEk0w=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://www.youtube.com/@Robertbreaker3',
       'https://www.tiktok.com/@robertbreaker',
@@ -78,6 +73,7 @@ export const PREACHERS = [
   {
     name: 'Robert Potthoff',
     desc: 'Big Red Preacher — KJB soul winner.',
+    photo: 'https://lh7-us.googleusercontent.com/sitesv-images-rt/AMxu72uxcEWGQv18shKEOYqvsZThItOEShMdY44jxSfj5OBq2Vq3seVZHNsDq2SoaS3TOtefuiNWijzRX9gnmpAXMZXd9ETkbX1kL0F6lK8AIB74AR7hWH_IxivmtLnVcfQwG2iyehaljgHE1zHHZBY_nOMj-U4mxzJnNaqtaTiJL5APJoxpAFBtLbxSnISt3co=w400',
     links: [
       'https://www.instagram.com/robert.potthoff/',
       'https://www.facebook.com/potthoff87',
@@ -87,6 +83,7 @@ export const PREACHERS = [
   {
     name: 'Ryan Poff',
     desc: 'Seed of Hope Church — KJB pastor and preacher.',
+    photo: 'https://yt3.googleusercontent.com/VF5lO3c2JpNd61mBrKtPFfUs08uFE66b6y6vf4eMDA6PN3lW025tEBT7varYSFmeG5-eZZ84gg=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://www.seedofhopechurch.org/',
       'https://youtube.com/@ryan_poff',
@@ -95,6 +92,7 @@ export const PREACHERS = [
   {
     name: 'Skyler (AV1611 Ministry)',
     desc: 'AV1611 Ministry — KJB defence and preaching.',
+    photo: 'https://yt3.googleusercontent.com/ZhXQ7IgQ6pHOkWcSZafGDHhOqbRecC5ZaJ7oX8FXLJAPHT59yDXcEPyNPKYNgNNa20IzJ5pWAg=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://www.tiktok.com/@av1611ministries',
       'https://youtube.com/@av1611ministries']
@@ -102,12 +100,14 @@ export const PREACHERS = [
   {
     name: 'Crown of Thorns',
     desc: 'KJB preaching ministry on YouTube.',
+    photo: 'https://yt3.googleusercontent.com/WjelDZ6TP5t3xYW0ajrp-eSgjzC4dBSIH6WS1wpAoJ1rMrEhIV8xTqJdPWB0Z_hOIIxdnwnY3Q=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://www.youtube.com/@CrownOfThorns']
   },
   {
     name: 'Paul Johnson',
     desc: 'Biblical Salvation — KJB preaching and Bible teaching.',
+    photo: 'https://base44.app/api/apps/6a8011c360ff52dad38eb2f3/files/mp/public/6a8011c360ff52dad38eb2f3/5888f56c6_paul-johnson.jpg',
     links: [
       'https://www.tiktok.com/@pauljohnson9632',
       'https://youtube.com/@biblicalsalvation']
@@ -115,6 +115,7 @@ export const PREACHERS = [
   {
     name: 'CPR Missions',
     desc: 'Church Planting and Revival Missions — soul winning and church planting.',
+    photo: 'https://yt3.googleusercontent.com/DD0QKBtsaz7Jg_FaLihJT7RQWx2F4ftUL8hiRoZDDs7Iw11P8YcHgsdGxnZWP3Cz_YFPGXkW=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://www.youtube.com/channel/UCWBR5DmAi2XPMFRtb-wqHwg',
       'https://www.tiktok.com/@cprmissions',
@@ -124,10 +125,36 @@ export const PREACHERS = [
   {
     name: 'James Bray',
     desc: 'KJB preacher and Bible teacher on YouTube.',
+    photo: 'https://yt3.googleusercontent.com/1B9oAx4QevNcFBzYYh9psQv21c8_OrLzd-DnUs6b2kBjMsPktc7S8uNluZpR51D8qJ_tM3aFLA=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://youtube.com/@jamesbrayall3?si=nXkuHAhyVvC_0KVg']
   },
 ];
+
+const initials = (name) =>
+  name.trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+
+// Preacher avatar: shows their channel/ministry photo when one is available,
+// falling back to the initials circle if there's no photo or it fails to load.
+function PreacherAvatar({ preacher, size = 'w-9 h-9', textClass = 'text-xs' }) {
+  const [failed, setFailed] = useState(false);
+  if (!preacher.photo || failed) {
+    return (
+      <div className={`flex-shrink-0 ${size} flex items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 font-sans font-semibold ${textClass}`}>
+        {initials(preacher.name)}
+      </div>
+    );
+  }
+  return (
+    <img
+      src={preacher.photo}
+      alt={preacher.name}
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className={`flex-shrink-0 ${size} rounded-full object-cover bg-amber-100 dark:bg-amber-900/40 border border-border/40`}
+    />
+  );
+}
 
 export default function PreachersSection({
   groupOpen: externalGroupOpen,
@@ -153,10 +180,10 @@ export default function PreachersSection({
   const preacher = selected ? PREACHERS.find((p) => p.name === selected) : null;
 
   return (
-    <div className="mb-8 bg-card border border-border border-t-4 border-t-amber-300 dark:border-t-amber-700/60 rounded-2xl overflow-hidden">
+    <div className="mb-8 bg-amber-100/60 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/60 rounded-2xl overflow-hidden">
       <button
         onClick={toggleGroup}
-        className="w-full flex items-start justify-between gap-4 p-5 hover:bg-accent/5 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left"
+        className="w-full flex items-start justify-between gap-4 p-5 bg-white/70 dark:bg-white/[0.06] hover:bg-white/80 dark:hover:bg-white/[0.09] transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left"
       >
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700/60 mb-2">
@@ -177,7 +204,7 @@ export default function PreachersSection({
       </button>
       {groupOpen && (preacher ? (
         /* ---- Detail view: one preacher, full description + links ---- */
-        <div className="p-5 pt-0">
+        <div className="p-5 pt-4">
           <button
             onClick={() => setSelected(null)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary border border-border font-sans text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-colors"
@@ -185,9 +212,7 @@ export default function PreachersSection({
             <ChevronLeft className="w-3.5 h-3.5" /> All preachers
           </button>
           <div className="flex items-start gap-3 mt-4">
-            <span className="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 flex items-center justify-center text-amber-700 dark:text-amber-400 font-sans text-sm font-semibold flex-shrink-0 notranslate" translate="no">
-              {initialsFor(preacher.name)}
-            </span>
+            <PreacherAvatar preacher={preacher} size="w-10 h-10" textClass="text-sm" />
             <div className="flex-1 min-w-0">
               <p className="notranslate font-sans text-base font-semibold text-foreground" translate="no">{preacher.name}</p>
               <p className="font-sans text-xs text-muted-foreground">
@@ -225,16 +250,14 @@ export default function PreachersSection({
         </div>
       ) : (
         /* ---- Directory view: compact cards, one per preacher ---- */
-        <div className="p-5 pt-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="p-5 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
           {PREACHERS.map((p) => (
             <button
               key={p.name}
               onClick={() => setSelected(p.name)}
               className="group flex items-center gap-3 p-3.5 bg-card border border-border rounded-xl text-left hover:border-amber-300/60 hover:bg-amber-50/40 dark:hover:bg-amber-900/10 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
             >
-              <span className="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 flex items-center justify-center text-amber-700 dark:text-amber-400 font-sans text-xs font-semibold flex-shrink-0 notranslate" translate="no">
-                {initialsFor(p.name)}
-              </span>
+              <PreacherAvatar preacher={p} />
               <span className="flex-1 min-w-0">
                 <span className="notranslate block font-sans text-sm font-semibold text-foreground truncate" translate="no">{p.name}</span>
                 <span className="block font-sans text-xs text-muted-foreground truncate">{p.desc}</span>
