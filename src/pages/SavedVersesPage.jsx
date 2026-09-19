@@ -230,6 +230,7 @@ export default function SavedVersesPage() {
       <PageHero
         icon={<Bookmark className="w-7 h-7" />}
         iconGradient="from-fuchsia-500 to-pink-600 shadow-pink-500/30"
+        headlineGradient="from-fuchsia-500 via-pink-500 to-pink-600 dark:from-fuchsia-400 dark:via-pink-400 dark:to-pink-500"
         title="Saved Verses"
         subtitle={`${saved.length} verse${saved.length !== 1 ? 's' : ''} saved`}
       />

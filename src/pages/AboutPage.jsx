@@ -66,7 +66,7 @@ export default function AboutPage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
     <div className="w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-10">
       {/* Header */}
-      <PageHero icon={<Info className="w-7 h-7" />} iconGradient="from-amber-500 to-orange-600 shadow-amber-500/30" title="About" />
+      <PageHero icon={<Info className="w-7 h-7" />} iconGradient="from-sky-500 to-cyan-600 shadow-sky-500/30" headlineGradient="from-sky-500 via-cyan-500 to-cyan-600 dark:from-sky-400 dark:via-cyan-400 dark:to-cyan-500" title="About" />
 
       {/* About Shawn */}
       <ColorSection edge="from-amber-500 to-orange-500" iconBg="from-amber-500 to-orange-600" eyebrow="The ministry" icon={<Users className="w-5 h-5" />} title="About the Ministry" className="notranslate" translate="no">

@@ -119,7 +119,8 @@ export default function ContentsPage() {
       {/* Header */}
       <PageHero
         icon={<List className="w-7 h-7" />}
-        iconGradient="from-blue-500 to-indigo-600 shadow-indigo-500/30"
+        iconGradient="from-amber-500 to-orange-600 shadow-amber-500/30"
+        headlineGradient="from-amber-500 via-orange-500 to-orange-600 dark:from-amber-400 dark:via-orange-400 dark:to-orange-500"
         title="Table of Contents"
         subtitle={<span className="notranslate" translate="no">King James Bible — Pure Cambridge Edition</span>}
       />

@@ -354,7 +354,7 @@ export default function SettingsPage() {
       <PageHero
         icon={<Settings className="w-7 h-7" />}
         iconGradient="from-slate-500 to-slate-700 shadow-slate-500/30"
-        headlineGradient="from-slate-600 via-slate-500 to-sky-600 dark:from-slate-300 dark:via-slate-200 dark:to-sky-300"
+        headlineGradient="from-slate-500 via-slate-600 to-slate-700 dark:from-slate-300 dark:via-slate-400 dark:to-slate-500"
         title="Settings"
         subtitle="Customise your experience"
       >

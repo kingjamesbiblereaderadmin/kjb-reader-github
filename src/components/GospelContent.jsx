@@ -391,7 +391,8 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
       {/* Header */}
       <PageHero
         icon={<Heart className="w-7 h-7" />}
-        iconGradient="from-rose-500 to-red-600 shadow-red-500/30"
+        iconGradient="from-rose-500 to-pink-600 shadow-rose-500/30"
+        headlineGradient="from-rose-500 via-pink-500 to-pink-600 dark:from-rose-400 dark:via-pink-400 dark:to-pink-500"
         title="How to be Saved"
         subtitle={
           <>

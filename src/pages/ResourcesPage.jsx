@@ -131,6 +131,7 @@ export default function ResourcesPage() {
       <PageHero
         icon={<FileText className="w-7 h-7" />}
         iconGradient="from-violet-500 to-purple-600 shadow-purple-500/30"
+        headlineGradient="from-violet-500 via-purple-500 to-purple-600 dark:from-violet-400 dark:via-purple-400 dark:to-purple-500"
         title="Resources"
         subtitle={<><span className="notranslate" translate="no">KJB</span> defence materials, studies on modern version corruption, and links to free Bible study resources.</>}
       >
