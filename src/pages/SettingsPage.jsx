@@ -272,7 +272,11 @@ export default function SettingsPage() {
           });
           toast.success(downloadSuccessMessage());
         } catch (err) {
+          // Offline reading is unaffected (the cache succeeded); only the
+          // file hand-off failed. Surface it instead of failing silently —
+          // the status line already confirms the cache below.
           console.error('Bible file export failed:', err);
+          toast.error('Offline reading is enabled, but the Bible file export failed. Please try again.');
         }
         setDlStatus('All 66 books downloaded successfully!');
       }
