@@ -616,3 +616,16 @@
     position: static !important;
   }
 }
+/* iOS native shell (html.kjb-native-ios, added in src/main.jsx):
+   WKWebView auto-zooms into any focused input/textarea/select whose font
+   size is below 16px, and on modern iOS it never zooms back out after
+   blur — the UI stays zoomed until the app is killed and reopened. Every
+   text input in the app uses 14px (text-sm) or smaller, so typing in
+   search or filters zoomed and stuck. Enforcing a 16px floor on form
+   controls in the native shell only prevents the focus-zoom entirely;
+   the regular web build is untouched. */
+html.kjb-native-ios input,
+html.kjb-native-ios textarea,
+html.kjb-native-ios select {
+  font-size: 16px !important;
+}

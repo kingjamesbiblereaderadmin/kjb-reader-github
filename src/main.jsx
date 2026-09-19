@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from '@/App.jsx'
 import '@/index.css'
 import { cacheSplashLogo } from '@/lib/splashLogo'
+import { Capacitor } from '@capacitor/core'
 import { isNativeAndroid } from '@/lib/isNativeAndroid'
 import { isNativeIos } from '@/lib/isNativeIos'
 import { hydrateNativeStateMirror } from '@/lib/nativeStateSync'
@@ -62,6 +63,15 @@ if (typeof Node === 'function' && Node.prototype) {
     return origRemoveChild.call(this, child);
   };
 }
+
+// Tag the document so iOS-native-only CSS can hook in (e.g. the 16px input
+// font floor that stops WKWebView from auto-zooming on focus and never
+// zooming back out — see src/index.css).
+try {
+  if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios') {
+    document.documentElement.classList.add('kjb-native-ios');
+  }
+} catch {}
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
