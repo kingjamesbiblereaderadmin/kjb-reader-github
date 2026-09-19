@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
-export default function CollapsibleCard({ icon, title, children, defaultOpen = false, open: openProp, onToggle }) {
+// Subtle per-section colour identity: a thin coloured top edge so each
+// section stands out without shouting. Distinct hue per section, same shape.
+const ACCENTS = {
+  green: 'border-t-4 border-t-green-300 dark:border-t-green-700/60',
+  purple: 'border-t-4 border-t-purple-300 dark:border-t-purple-700/60',
+  violet: 'border-t-4 border-t-violet-300 dark:border-t-violet-700/60',
+  sky: 'border-t-4 border-t-sky-300 dark:border-t-sky-700/60',
+  emerald: 'border-t-4 border-t-emerald-300 dark:border-t-emerald-700/60',
+  red: 'border-t-4 border-t-red-300 dark:border-t-red-700/60',
+};
+
+export default function CollapsibleCard({ icon, title, children, defaultOpen = false, open: openProp, onToggle, accent }) {
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const isControlled = openProp !== undefined;
   const open = isControlled ? openProp : internalOpen;
@@ -10,7 +21,7 @@ export default function CollapsibleCard({ icon, title, children, defaultOpen = f
     else setInternalOpen((o) => !o);
   };
   return (
-    <div className="bg-card border border-border/60 rounded-2xl shadow-sm overflow-hidden">
+    <div className={`bg-card border border-border/60 rounded-2xl shadow-sm overflow-hidden ${ACCENTS[accent] || ''}`}>
       <button
         type="button"
         onClick={handleToggle}

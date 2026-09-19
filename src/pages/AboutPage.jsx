@@ -73,7 +73,7 @@ export default function AboutPage() {
       </div>
 
       {/* About Shawn */}
-      <div className="notranslate bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-7 mb-8 shadow-lg shadow-black/[0.03]" translate="no">
+      <div className="notranslate bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl border-t-4 border-t-amber-300 dark:border-t-amber-700/60 rounded-2xl p-7 mb-8 shadow-lg shadow-black/[0.03]" translate="no">
         <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">About the Ministry</h2>
         <p className="font-sans text-foreground/85 leading-relaxed mb-4">
           I'm <span className="notranslate" translate="no">Shawn</span>, a firm believer that the King James Bible is the pure, infallible, perfect Word of God in the English language. 
@@ -96,7 +96,7 @@ export default function AboutPage() {
       </div>
 
       {/* The Bible Text source */}
-      <div className="notranslate bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-7 mb-8 shadow-lg shadow-black/[0.03]" translate="no">
+      <div className="notranslate bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl border-t-4 border-t-blue-300 dark:border-t-blue-700/60 rounded-2xl p-7 mb-8 shadow-lg shadow-black/[0.03]" translate="no">
         <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">The Bible Text</h2>
         <p className="font-sans text-foreground/85 leading-relaxed mb-4">
           This app uses the <span className="notranslate" translate="no">King James Bible (Pure Cambridge Edition)</span> — the standard text of the
@@ -292,7 +292,7 @@ export default function AboutPage() {
       </div>
 
       {/* Links */}
-      <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-7 mb-8 shadow-lg shadow-black/[0.03]">
+      <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl border-t-4 border-t-emerald-300 dark:border-t-emerald-700/60 rounded-2xl p-7 mb-8 shadow-lg shadow-black/[0.03]">
         <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">Links & Contact</h2>
         <ContactLinks />
       </div>

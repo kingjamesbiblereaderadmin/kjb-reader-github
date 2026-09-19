@@ -154,6 +154,7 @@ export default function ResourcesPage() {
         <CollapsibleCard
           icon={<CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />}
           title="KJBI.org — Free Online Bible College"
+          accent="green"
           open={expandedSections.kjbi}
           onToggle={() => toggleSection('kjbi')}
         >
@@ -183,6 +184,7 @@ export default function ResourcesPage() {
             </div>
           }
           title="Discord"
+          accent="purple"
           open={expandedSections.discord}
           onToggle={() => toggleSection('discord')}
         >
@@ -241,6 +243,7 @@ export default function ResourcesPage() {
             </div>
           }
           title="KJB SidePanel"
+          accent="sky"
           open={expandedSections.sidepanel}
           onToggle={() => toggleSection('sidepanel')}
         >
@@ -267,6 +270,7 @@ export default function ResourcesPage() {
             </div>
           }
           title="Bible Resources (Español)"
+          accent="emerald"
           open={expandedSections.spanish}
           onToggle={() => toggleSection('spanish')}
         >
@@ -291,6 +295,7 @@ export default function ResourcesPage() {
             </div>
           }
           title="KJB Defence"
+          accent="red"
           open={expandedSections.defence}
           onToggle={() => toggleSection('defence')}
         >
@@ -313,7 +318,7 @@ export default function ResourcesPage() {
       />
 
       {/* Ministry Links */}
-      <div className="bg-card border border-border rounded-2xl mb-6 overflow-hidden">
+      <div className="bg-card border border-border border-t-4 border-t-purple-300 dark:border-t-purple-700/60 rounded-2xl mb-6 overflow-hidden">
         <button
           onClick={() => toggleSection('ministry')}
           className="w-full flex items-center justify-between p-5 bg-card hover:bg-accent/5 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left"
