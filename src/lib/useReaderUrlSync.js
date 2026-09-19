@@ -27,6 +27,23 @@ export function useReaderUrlSync(pos, loading, a11yFont, navigate, searchTerm, g
       if (!from && (searchTerm || gospelMode)) {
         from = gospelMode ? 'gospel' : 'search';
       }
+      // Preserve an in-chapter range (verseEnd) for the CURRENT position.
+      // pos itself doesn't carry verseEnd (it's held in selectedVerses), but
+      // every range-producing path (search-bar goTo, stepToResult,
+      // handleReadSelected) persists it to kjb-position. Restore it from
+      // there ONLY when the saved position matches this exact book/chapter/
+      // verse — otherwise this sync rewrites the URL on every pos change and
+      // silently strips &verseEnd=..., collapsing "1 Cor 15:1-4" to "15:1"
+      // (wrong pill label, single-verse highlight, lost filter range).
+      let verseEnd = null;
+      try {
+        const p = JSON.parse(localStorage.getItem('kjb-position') || '{}');
+        if (p && p.abbr === pos.abbr && Number(p.chapter) === Number(pos.chapter)
+            && Number(p.verse) === Number(pos.verse)
+              && p.verseEnd && Number(p.verseEnd) > Number(p.verse || 0)) {
+          verseEnd = parseInt(p.verseEnd, 10);
+        }
+      } catch {}
       let url;
       if (pos.chapter === 0) {
         // Keep the testament-cover URL for GEN/MAT (their title page IS that
@@ -39,6 +56,7 @@ export function useReaderUrlSync(pos, loading, a11yFont, navigate, searchTerm, g
       } else {
         url = `/read?book=${pos.abbr}&chapter=${pos.chapter}`;
         if (pos.verse) url += `&verse=${pos.verse}`;
+        if (pos.verse && verseEnd) url += `&verseEnd=${verseEnd}`;
         if (from) url += `&from=${from}`;
         if (q) url += `&q=${encodeURIComponent(q)}`;
       }

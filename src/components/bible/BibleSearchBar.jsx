@@ -411,7 +411,7 @@ export default function BibleSearchBar({ onClose }) {
     // highlight/selection.
     if (verse) {
       const b = BIBLE_BOOKS.find(bk => bk.abbr === abbr);
-      const label = `${b ? b.shortName : abbr} ${chapter}:${verse}`;
+      const label = `${b ? b.shortName : abbr} ${chapter}:${verse}${verseEnd && verseEnd > verse ? `-${verseEnd}` : ''}`;
       setSearchNav([{ abbr, chapter, verse, verseEnd: verseEnd || null }], 0, label);
     } else {
       // Whole-chapter jumps (no verse) don't go through the highlightVerse

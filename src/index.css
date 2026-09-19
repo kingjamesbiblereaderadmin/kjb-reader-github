@@ -280,11 +280,35 @@
      — turning it off for cursive let long words that hyphenation would have
      broken overflow straight past the column edge instead, which leaked
      worse than the original swash overhang did. */
+  /* Column-safe verse spacing: use PADDING, not margin, for the vertical
+     rhythm between verses in the two-column layout. Margins are truncated
+     at a column break, so a verse that starts at the top of the right column
+     sat flush against the fragmentainer edge — and WebKit clips content
+     that sits at (or is pulled above) that edge, which cut the top off the
+     verse's number (sup) / drop-cap on iOS. Padding is preserved at column
+     starts, so every column-leading verse keeps real space above its
+     first line and nothing can be clipped.
+     Values mirror the verse classes they replace (mt-3 / pilcrow mt-12),
+     so in-column rhythm is unchanged. */
+  .kjb-two-col > span {
+    margin-top: 0 !important;
+    padding-top: 0.75rem;
+  }
+  .kjb-two-col > span[data-pilcrow='true'] {
+    padding-top: 3rem;
+  }
   /* First verse of each column starts flush at the top (no leading gap),
      so the left & right columns align at the same height */
   .kjb-two-col > span:first-child {
-    margin-top: 0 !important;
     padding-top: 0 !important;
+  }
+  /* The drop-cap lifts itself with a small negative top margin (-0.15em) to
+     fine-tune its two-line alignment. Inside a multicol fragmentainer, any
+     box pulled above its line is clipped at the column edge — slicing the
+     top off the cap (and the drop-cap verse number). In two-column mode the
+     cap stays inside its box; the 0.15em visual difference is imperceptible. */
+  .kjb-two-col .kjb-dropcap-letter {
+    margin-top: 0;
   }
 
   /* Extension page mockups: show the screenshot matching the browser's color

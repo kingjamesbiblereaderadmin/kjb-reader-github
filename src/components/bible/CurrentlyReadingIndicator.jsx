@@ -70,7 +70,11 @@ export default function CurrentlyReadingIndicator({
     const isStanza = book.abbr === 'PSA' && pos.chapter === 119 && selectedVerses && selectedVerses.size > 1;
     const searchVerses = isStanza
       ? ` (Stanza)`
-      : (verseNum ? `:${verseNum}${occurrenceLabel || ''}` : '');
+      // Multi-verse range (e.g. looked up "1 Cor 15:1-4"): show the whole
+      // range like the gospel branch does, not just the first verse.
+      : ((selectedVerses && selectedVerses.size > 1)
+          ? `:${formatVerseRange([...selectedVerses])}`
+          : (verseNum ? `:${verseNum}${occurrenceLabel || ''}` : ''));
     reference = `${book.shortName} ${pos.chapter}${searchVerses}${sectionSuffix}`;
     clearLabel = (selectedVerses && selectedVerses.size > 0) || filterMode ? 'Show Full Chapter' : 'Clear search';
   } else if (isFilterMode) {
