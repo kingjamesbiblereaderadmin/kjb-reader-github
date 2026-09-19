@@ -115,33 +115,49 @@ export default function CreditsPage() {
             <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-blue-500 to-indigo-600">
               <Scale className="w-5 h-5" />
             </div>
-            <h2 className="font-serif text-xl font-semibold text-foreground">Trademarks</h2>
+            <h2 className="font-serif text-xl font-semibold text-foreground">Trademarks &amp; Legal Notices</h2>
           </div>
-          <p className="font-sans text-sm text-foreground/85 leading-relaxed mb-3">
+          <p className="font-sans text-sm text-foreground/85 leading-relaxed mb-4">
             This app and its browser extension mention the product and company names below only to describe browser
-            compatibility, social links, fonts, or development tools used — not to claim any affiliation
-            with, sponsorship by, or endorsement from their owners. All product names, logos, and brands are the
-            property of their respective owners.
+            compatibility, social links, fonts, or development and distribution tools used — not to claim any
+            affiliation with, sponsorship by, or endorsement from their owners. All product names, logos, and brands
+            are the property of their respective owners.
           </p>
-          <ul className="space-y-1.5 font-sans text-xs text-muted-foreground leading-relaxed">
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Google, Google Play, Google Play Console, Chrome, Android, Android Studio,</span> and <span className="notranslate" translate="no">YouTube</span> are trademarks of <span className="notranslate" translate="no">Google LLC</span>. <strong className="text-foreground">KJB Reader is an independent app; it is not affiliated with, sponsored by, or endorsed by <span className="notranslate" translate="no">Google LLC</span>.</strong></span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Gradle</span> is a trademark of <span className="notranslate" translate="no">Gradle, Inc.</span></span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Java</span> is a registered trademark of <span className="notranslate" translate="no">Oracle</span> and/or its affiliates.</span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Microsoft, Edge, Windows,</span> and <span className="notranslate" translate="no">Internet Explorer</span> are trademarks of <span className="notranslate" translate="no">Microsoft Corporation</span>.</span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Firefox</span> is a trademark of the <span className="notranslate" translate="no">Mozilla Foundation</span>.</span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Apple, App Store, Xcode, WebKit, Safari, iPhone, iPad,</span> and <span className="notranslate" translate="no">iOS</span> are trademarks of <span className="notranslate" translate="no">Apple Inc.</span>, registered in the U.S. and other countries. <strong className="text-foreground">KJB Reader is an independent app; it is not affiliated with, sponsored by, or endorsed by <span className="notranslate" translate="no">Apple Inc.</span></strong></span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Opera</span> is a trademark of <span className="notranslate" translate="no">Opera Software</span>.</span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Brave</span> is a trademark of <span className="notranslate" translate="no">Brave Software, Inc.</span></span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Kiwi Browser</span> is a trademark of its respective owner.</span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Discord</span> is a trademark of <span className="notranslate" translate="no">Discord Inc.</span></span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">TikTok</span> is a trademark of <span className="notranslate" translate="no">ByteDance Ltd.</span></span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Instagram</span> and <span className="notranslate" translate="no">Facebook</span> are trademarks of <span className="notranslate" translate="no">Meta Platforms, Inc.</span></span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Rumble</span> is a trademark of <span className="notranslate" translate="no">Rumble Inc.</span></span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Linktree</span> is a trademark of <span className="notranslate" translate="no">Linktree Pty Ltd.</span></span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Claude</span> is a trademark of <span className="notranslate" translate="no">Anthropic PBC</span>.</span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">LibreOffice</span> is a trademark of <span className="notranslate" translate="no">The Document Foundation</span>.</span></li>
-            <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><span className="notranslate" translate="no">Base44</span> is a trademark of its respective owner.</span></li>
-          </ul>
+
+          {/* Owner-grouped trademark grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-4">
+            {[
+              { owner: 'Apple Inc.', marks: 'Apple, App Store, Xcode, WebKit, Safari, iPhone, iPad, iOS', note: 'registered in the U.S. and other countries.' },
+              { owner: 'Google LLC', marks: 'Google, Google Play, Google Play Console, Chrome, Android, Android Studio, YouTube' },
+              { owner: 'Microsoft Corporation', marks: 'Microsoft, Edge, Windows, Internet Explorer' },
+              { owner: 'Oracle', marks: 'Java', note: 'Java is a registered trademark of Oracle and/or its affiliates.' },
+              { owner: 'Gradle, Inc.', marks: 'Gradle' },
+              { owner: 'Mozilla Foundation', marks: 'Firefox' },
+              { owner: 'Opera Software', marks: 'Opera' },
+              { owner: 'Brave Software, Inc.', marks: 'Brave' },
+              { owner: 'Discord Inc.', marks: 'Discord' },
+              { owner: 'ByteDance Ltd.', marks: 'TikTok' },
+              { owner: 'Meta Platforms, Inc.', marks: 'Instagram, Facebook' },
+              { owner: 'Rumble Inc.', marks: 'Rumble' },
+              { owner: 'Linktree Pty Ltd', marks: 'Linktree' },
+              { owner: 'Anthropic PBC', marks: 'Claude' },
+              { owner: 'The Document Foundation', marks: 'LibreOffice' },
+              { owner: 'Kiwi Browser', marks: 'Kiwi Browser', note: 'trademark of its respective owner.' },
+              { owner: 'Base44', marks: 'Base44', note: 'trademark of its respective owner.' }
+            ].map((t) => (
+              <div key={t.owner} className="rounded-xl bg-secondary/60 border border-border px-4 py-3">
+                <p className="font-sans text-sm font-semibold text-foreground notranslate" translate="no">{t.owner}</p>
+                <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-0.5 notranslate" translate="no">{t.marks}{t.note ? <span className="block mt-0.5">{t.note}</span> : null}</p>
+              </div>
+            ))}
+          </div>
+
+          <p className="font-sans text-sm text-foreground/85 leading-relaxed">
+            <strong className="text-foreground">KJB Reader is an independent app.</strong> It is not affiliated with,
+            sponsored by, or endorsed by <span className="notranslate" translate="no">Apple Inc.</span>,{' '}
+            <span className="notranslate" translate="no">Google LLC</span>, or any other company or trademark owner
+            listed above.
+          </p>
         </section>
 
         {/* Disclaimers */}
@@ -156,7 +172,7 @@ export default function CreditsPage() {
             <li className="flex items-start gap-2"><span className="text-accent mt-1">•</span><span><strong className="text-foreground">AI Disclaimer:</strong> This app was built with the assistance of artificial intelligence (AI). AI-generated code and content may contain errors. The King James Bible text itself is not AI-generated. Please report any issues so we can correct them.</span></li>
           </ul>
           <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-3">© 2026 <span className="notranslate" translate="no">Shawn Poh Hanlin</span>. This app is public domain and freely shareable.</p>
-          <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-1.5">The iOS app uses only standard, operating-system-provided HTTPS encryption for network communication; it contains no proprietary encryption or proprietary algorithms.</p>
+          <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-1.5">The Android (Google Play) and iOS (App Store) apps use only standard, operating-system-provided HTTPS encryption for all network communication. Neither app contains proprietary encryption, proprietary algorithms, or any encryption requiring an export-compliance declaration.</p>
         </section>
       </div>
     </div>
