@@ -3,6 +3,11 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.253', date: 'September 19, 2026', items: [
+    { tag: 'improved', text: 'Epistle subscriptions are now printed exactly as the source text reads them (\u201CWritten to the Romans from Corinthus, [and] [sent] by Phebe servant of the church at Cenchrea.\u201D) instead of an editorial summary line' },
+    { tag: 'fix', text: 'Removed invented end-of-book lines the source never prints (\u201CThe End of the Epistle of Paul the Apostle to the Romans.\u201D); books with no subscription in the source now show nothing after the last verse' },
+    { tag: 'improved', text: 'Copying a non-consecutive verse selection now uses the same numbered block format as Copy All' },
+  ] },
   { version: 'v0.4.251', date: 'September 13, 2026', items: [
     'The book shortcut shown above search results (when a search term is also a book name) now reads \u201Copen Joshua \u2014 Chapter 1\u201D using the short book name',
     'Opening a book from that shortcut now shows the chapter cleanly \u2014 verses matching the searched word are no longer carried over as highlights',
@@ -283,7 +288,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.251
+            Current Version: v0.4.253
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
