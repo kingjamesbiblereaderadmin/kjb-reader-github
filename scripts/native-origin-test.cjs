@@ -1,5 +1,5 @@
 // Native-origin simulation test: serves the exact bundle that ships inside
-// the iOS IPA (ios/App/public, produced by scripts/prepare-ios-offline.js)
+// the iOS IPA (ios/App/App/public, produced by scripts/prepare-ios-offline.js)
 // and loads it with a Capacitor mock that makes the page believe it runs on
 // a native app origin (the bundled-asset logic in nativeOfflineAssets.js is
 // platform-shared: Android always serves /__native/*, iOS on the capacitor:
@@ -18,7 +18,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 4180;
-const ROOT = path.join(__dirname, '..', 'ios', 'App', 'public');
+const ROOT = path.join(__dirname, '..', 'ios', 'App', 'App', 'public');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
