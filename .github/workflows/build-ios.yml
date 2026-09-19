@@ -19,6 +19,18 @@ jobs:
         run: node scripts/prepare-ios-offline.js
       - name: Install pods
         run: cd ios/App && pod install
+      - name: Determine next build number (queries ASC, avoids collisions)
+        id: nextbuild
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          pip install --quiet pyjwt requests cryptography
+          NEXT=$(python3 scripts/asc-next-build.py)
+          echo "next=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "Next build number: $NEXT"
+
       - name: Write signing key
         env:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
@@ -47,6 +59,7 @@ jobs:
             -configuration Release -sdk iphoneos \
             -destination 'generic/platform=iOS' \
             -derivedDataPath build/derived \
+            CURRENT_PROJECT_VERSION=${{ steps.nextbuild.outputs.next }} \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
           APP=build/derived/Build/Products/Release-iphoneos/App.app
           VER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Info.plist")"
