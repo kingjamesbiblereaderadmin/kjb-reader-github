@@ -48,6 +48,9 @@ const EXPLICIT_KEYS = [
   'kjb-search-results',
   'kjb-search-total',
   'kjb-search-index',
+  'kjb-reader-toolbar-state', // reader's search/gospel context snapshot (pill
+  // label, result stepper index/total, "verses only" flag, verse selection) —
+  // without it the offline origin re-enters the reader with no search context.
   'kjb-pre-search', // pre-search reading position to return to
   'kjb-pre-jump',
   'kjb-last-reading', // BibleReader's resume-reading position
