@@ -202,7 +202,10 @@ export function renderVerseText(text, searchTerm = null) {
       : inner.split(',').map(t => t.trim()).filter(Boolean);
     const list = terms.length ? terms : [inner.trim()].filter(Boolean);
     const escapedTerms = list.map(hyphenTolerantPattern);
-    const termRegex = new RegExp(`(${escapedTerms.join('|')})`, 'gi');
+    // Trailing punctuation right after a match is pulled INSIDE the highlight
+    // box, so the box never sits flush against (or half-over) a full stop or
+    // comma — requested behaviour: punctuation shares the keyword's box.
+    const termRegex = new RegExp(`(?:${escapedTerms.join('|')})[.,;:!?'")\\]]*`, 'gi');
     let occ = 0;
     // Split the HTML string into tag and text segments, only replace in text segments
     result = result.replace(/(<[^>]+>)|([^<]+)/g, (chunk, tag, text) => {
@@ -227,7 +230,7 @@ function escapeHtml(s) {
 function highlightInHtml(html, searchTerm) {
   if (!searchTerm || !searchTerm.trim()) return html;
   const escaped = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const termRegex = new RegExp(`(${escaped})`, 'gi');
+  const termRegex = new RegExp(`(${escaped}[.,;:!?'")\\]]*)`, 'gi');
   return html.replace(/(<[^>]+>)|([^<]+)/g, (chunk, tag, text) => {
     if (tag) return tag;
     return text.replace(termRegex, '<mark style="background-color: rgba(250, 204, 21, 0.55); border-radius: 3px; padding: 0 0.2em; margin: 0 0.06em;">$1</mark>');
