@@ -149,10 +149,10 @@ jobs:
           done
           SV="$APP/public/__native/spotlight-verses.json"
           if [ -f "$SV" ]; then
-            echo "- spotlight-verses.json: present ($(du -k "$SV" | cut -f1) KB)" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "::error::spotlight-verses.json is in the IPA - per-verse Spotlight rows were removed; delete the stale file and the prepare step that generates it"
+            exit 1
           else
-            echo "::warning::spotlight-verses.json is missing from the IPA - verse text will not be searchable in iOS Search"
-            echo "- spotlight-verses.json: MISSING (verse search disabled)" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "- spotlight-verses.json: absent (per-verse Spotlight rows removed by design)" | tee -a "$GITHUB_STEP_SUMMARY"
           fi
       - name: Resolve upload mode
         id: uploadmode

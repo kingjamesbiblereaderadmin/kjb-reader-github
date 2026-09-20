@@ -142,15 +142,6 @@ if (srcMd5 !== dstMd5) {
 }
 console.log(`[verify] OK — bundle at ${iosPublic} ships the full Bible (md5 ${dstMd5}).`);
 
-// 7. Verse-level iOS Search (Spotlight) data. SpotlightIndexer.swift indexes
-// every verse's text from public/__native/spotlight-verses.json (built from
-// the same PCE text with the reader's own parser). The full verse index is a
-// promised feature, so a failure here MUST block the build — shipping an IPA
-// without this file silently disables verse search in iOS Search.
-import { execFileSync } from 'node:child_process';
-execFileSync(process.execPath, [
-  'scripts/build-spotlight-verses.mjs',
-  path.join(iosPublic, '__native', 'pce-bible.txt'),
-  path.join(iosPublic, '__native', 'spotlight-verses.json'),
-], { stdio: 'inherit' });
-console.log('[spotlight] verse index data generated');
+// 7. (removed) Verse-level Spotlight data. Spotlight can't hide rows per
+// query, so 31k per-verse rows flooded plain book-name searches — they are
+// gone from SpotlightIndexer.swift (v5), and no verse JSON ships anymore.

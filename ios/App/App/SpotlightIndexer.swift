@@ -9,16 +9,20 @@ import UniformTypeIdentifiers
  * "Romans 8" or "John 3" shows a KJB Reader result, and tapping it opens the
  * reader at that passage. Book rows open chapter 1.
  *
- * - 132 book rows (66 books + 66 "Look up … in verses" phrase-lookup rows)
- *   indexed from the table below, plus one item per verse (31,102) whose
- *   text is searchable. Tapping a book opens its chapter 1; the chapter is
- *   then picked in the app. Per-chapter rows are deliberately omitted.,
- *   so "for God so loved" or "charity" finds the verse. Verse text comes from
- *   public/__native/spotlight-verses.json, which CI generates from the bundled
- *   PCE text (scripts/build-spotlight-verses.mjs); if that file is absent the
- *   verse index is skipped and book/chapter search still works.
- * - Item identifiers are "kjb:<ABBR>" (book), "kjb:<ABBR>:<chapter>" and
- *   "kjb:<ABBR>:<chapter>:<verse>".
+ * - 132 rows total: 66 book rows plus 66 "Look up … in verses"
+ *   phrase-lookup rows, indexed from the table below. Tapping a book opens
+ *   its chapter 1; the chapter is then picked in the app. Per-chapter rows
+ *   are deliberately omitted (1,189 of them would bury the book rows for
+ *   short names like Peter). Per-verse rows are deliberately omitted too:
+ *   Spotlight decides which rows match a query, so rows titled
+ *   "1 Peter 1:19" also flood a plain "1 Peter" search. Instead, typing a
+ *   reference like "1 Peter 3:16" falls through to the "Search in App"
+ *   continuation row, which hands the typed text to the app's own search
+ *   (it parses references) via CSQueryContinuationActionType below.
+ * - Item identifiers are "kjb:<ABBR>" (book) and "kjb:search:<ABBR>"
+ *   (phrase lookup). Legacy "kjb:<ABBR>:<chapter>[:<verse>]" identifiers
+ *   from older builds are still routed correctly if Spotlight serves a
+ *   stale row.
  * - Tapping a result arrives as a CSSearchableItemActionType user activity;
  *   AppDelegate.application(_:continue:) maps it to
  *   https://kingjamesbiblereader.com/read?book=<ABBR>&chapter=<n>[&verse=<v>] —
@@ -34,8 +38,10 @@ import UniformTypeIdentifiers
  */
 enum SpotlightIndexer {
 
-    /// Bump to make existing installs delete and rebuild the index.
-    private static let indexVersion = 4
+    /// Bump to make existing installs delete and rebuild the index. v5 also
+    /// purges the per-verse rows older builds indexed: Spotlight can't hide
+    /// them per-query, so they are gone entirely now (see header note).
+    private static let indexVersion = 5
     private static let versionKey = "kjbSpotlightIndexVersion"
     private static let domain = "com.kingjamesbiblereader.twa.reader"
     private static let baseURL = "https://kingjamesbiblereader.com"
@@ -188,7 +194,9 @@ enum SpotlightIndexer {
         DispatchQueue.global(qos: .utility).async {
             let index = CSSearchableIndex.default()
             // Start clean so a version bump never leaves stale rows behind.
-            index.deleteSearchableItems(withDomainIdentifiers: [domain]) { _ in
+            // The verse domain is the per-verse index older builds shipped
+            // (31,102 rows); deleting it here purges those rows on update.
+            index.deleteSearchableItems(withDomainIdentifiers: [domain, verseDomainLegacy]) { _ in
                 let items = makeItems()
                 let batchSize = 250
                 let group = DispatchGroup()
@@ -274,123 +282,10 @@ enum SpotlightIndexer {
         return item
     }
 
-    // MARK: - Verse-level index
-
-    /// Bump to rebuild the verse index on existing installs.
-    private static let verseIndexVersion = 2
-    private static let verseVersionKey = "kjbSpotlightVerseIndexVersion"
-    private static let verseDomain = "com.kingjamesbiblereader.twa.verses"
-
-    /// Indexes every verse's text in the background if that has not been done
-    /// for this `verseIndexVersion`. Batches are sent one at a time so memory
-    /// stays small; success is only recorded when every batch went in, so an
-    /// interrupted run (app killed mid-way) starts over on the next launch.
-    static func indexVersesIfNeeded() {
-        let defaults = UserDefaults.standard
-        guard defaults.integer(forKey: verseVersionKey) != verseIndexVersion else { return }
-        // Written into the .app by scripts/prepare-ios-offline.js. Absent in a
-        // build where that step failed — then there is simply no verse index.
-        guard let fileURL = Bundle.main.url(forResource: "spotlight-verses",
-                                            withExtension: "json",
-                                            subdirectory: "public/__native") else { return }
-
-        DispatchQueue.global(qos: .utility).async {
-            guard let data = try? Data(contentsOf: fileURL, options: .mappedIfSafe),
-                  let versesByBook = try? JSONDecoder().decode([String: [[String]]].self, from: data),
-                  !versesByBook.isEmpty else { return }
-
-            // Ask iOS for background runtime so indexing keeps going for a
-            // while even if the user backgrounds the app mid-run. If the app
-            // is suspended anyway, the version key below is never written and
-            // the whole index is rebuilt on the next launch/activation — a
-            // partial index is never mistaken for a complete one.
-            var bgTask = UIApplication.shared.beginBackgroundTask(withName: "kjb-spotlight-verses")
-
-            let started = Date()
-            var indexedCount = 0
-            var batchCount = 0
-            NSLog("[KJB-Spotlight] verse indexing started (\(versesByBook.count) books)")
-
-            let index = CSSearchableIndex.default()
-
-            // Start clean so a rebuild never leaves stale rows behind.
-            let deleted = DispatchSemaphore(value: 0)
-            index.deleteSearchableItems(withDomainIdentifiers: [verseDomain]) { _ in deleted.signal() }
-            deleted.wait()
-
-            var failed = false
-            var batch: [CSSearchableItem] = []
-            batch.reserveCapacity(500)
-
-            func flush() {
-                guard !batch.isEmpty else { return }
-                let sent = DispatchSemaphore(value: 0)
-                index.indexSearchableItems(batch) { error in
-                    if error != nil {
-                        failed = true
-                        NSLog("[KJB-Spotlight] batch \(batchCount) failed: \(String(describing: error))")
-                    }
-                    sent.signal()
-                }
-                sent.wait()
-                indexedCount += batch.count
-                batchCount += 1
-                batch.removeAll(keepingCapacity: true)
-                if batchCount % 10 == 0 {
-                    NSLog("[KJB-Spotlight] indexed \(indexedCount) verses so far...")
-                }
-            }
-
-            for book in books {
-                guard let chapters = versesByBook[book.abbr] else { continue }
-                let extras = aliases[book.abbr] ?? []
-                autoreleasepool {
-                    for (chapterIndex, verses) in chapters.enumerated() {
-                        let chapter = chapterIndex + 1
-                        for (verseIndex, text) in verses.enumerated() where !text.isEmpty {
-                            let verse = verseIndex + 1
-                            let reference = "\(book.name) \(chapter):\(verse)"
-                            batch.append(makeVerseItem(
-                                id: "\(idPrefix)\(book.abbr):\(chapter):\(verse)",
-                                reference: reference,
-                                text: text,
-                                keywords: [reference, "\(book.abbr) \(chapter):\(verse)"]
-                                    + extras.map { "\($0) \(chapter):\(verse)" }
-                            ))
-                            if batch.count >= 500 { flush() }
-                        }
-                    }
-                }
-            }
-            flush()
-
-            let elapsed = Date().timeIntervalSince(started)
-            if !failed {
-                defaults.set(verseIndexVersion, forKey: verseVersionKey)
-                NSLog("[KJB-Spotlight] verse index COMPLETE: \(indexedCount) verses in \(Int(elapsed))s")
-            } else {
-                NSLog("[KJB-Spotlight] verse index FAILED after \(indexedCount) verses — will retry on next launch/activation")
-            }
-            if bgTask != .invalid {
-                UIApplication.shared.endBackgroundTask(bgTask)
-                bgTask = .invalid
-            }
-        }
-    }
-
-    private static func makeVerseItem(id: String, reference: String, text: String, keywords: [String]) -> CSSearchableItem {
-        let attributes = CSSearchableItemAttributeSet(contentType: UTType.text)
-        attributes.title = reference
-        attributes.displayName = reference
-        // Searchable body text, and the snippet Spotlight shows under the title.
-        attributes.textContent = text
-        attributes.contentDescription = text
-        attributes.keywords = keywords
-
-        let item = CSSearchableItem(uniqueIdentifier: id, domainIdentifier: verseDomain, attributeSet: attributes)
-        item.expirationDate = Date.distantFuture
-        return item
-    }
+    /// Domain of the per-verse index older builds created. Nothing indexes
+    /// into it anymore; indexIfNeeded deletes it so updated installs drop
+    /// the 31,102 stale verse rows (see header note).
+    private static let verseDomainLegacy = "com.kingjamesbiblereader.twa.verses"
 
     // MARK: - Opening a tapped result
 
