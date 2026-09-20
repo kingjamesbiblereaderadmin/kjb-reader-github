@@ -89,7 +89,7 @@ export default function PrivacyPolicyPage() {
         </ul>
         <p>
           All of this data stays only on your device. You can clear it at any time using the
-          "Reset All Settings" or "Clear Cache" options in Settings, or by clearing your
+          "Clear All Data", "Reset All Settings" or "Clear Cache" options in Settings, or by clearing your
           browser data.
         </p>
       </Section>
