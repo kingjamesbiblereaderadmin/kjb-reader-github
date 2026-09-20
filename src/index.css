@@ -569,6 +569,15 @@
   .kjb-dropcap-col {
     container-type: inline-size;
   }
+  /* A verse highlight paints the background of the inline text span, but the
+     drop-cap group is FLOATED — out of flow — so that background never
+     reached behind it and the big letter sat outside the highlight. Taking
+     the parent's background colour makes the highlight cover the whole cap
+     (transparent, i.e. no change, when the verse isn't highlighted). */
+  .kjb-dropcap-group {
+    background-color: inherit;
+    border-radius: 0.25rem;
+  }
   .kjb-dropcap-letter {
     /* Sized so the letter box spans exactly two body text lines
        (2 × leading-relaxed 1.625 = 3.25em), making the drop cap's bottom
