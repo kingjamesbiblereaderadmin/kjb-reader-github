@@ -113,7 +113,16 @@ export function useToolbarState(pos, loading, verses, filterMode, selectedVerses
         // "Searched" pill and stepper vanish or show the wrong thing on
         // iOS/Android after tapping a result. Skip the snapshot entirely —
         // the save effect below persists the fresh state for later returns.
-        if (navFrom === 'search' || navFrom === 'gospel') {
+        // ...UNLESS nothing has actually been applied yet. Coming back to the
+        // reader cold (Home -> Read, or after an app restart) restores the
+        // persisted reader URL, which still carries from=search/gospel even
+        // though no live navigation established anything this session — no
+        // verse selection, no filter/"verses only" flag, no stepper. An empty
+        // selection is the reliable signal for that case: a genuine fresh
+        // search/gospel navigation always sets the selection BEFORE the
+        // chapter's verses finish loading (this effect runs after that), so
+        // here we only rehydrate when there is nothing to overwrite.
+        if ((navFrom === 'search' || navFrom === 'gospel') && selectedVerses && selectedVerses.size > 0) {
           appliedRestoreForChapterRef.current = true;
           setRestoreTick(t => t + 1);
           return;
