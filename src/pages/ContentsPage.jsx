@@ -126,9 +126,9 @@ export default function ContentsPage() {
       />
 
       {/* Selection Button */}
-      <div className="mb-8">
+      <div className={showBookSelector && !isMobile() ? 'mb-3' : 'mb-8'}>
         <button
-          onClick={() => setShowBookSelector(true)}
+          onClick={() => setShowBookSelector(v => !v)}
           className="w-full py-3 px-4 rounded-xl bg-primary text-primary-foreground font-sans font-semibold text-sm hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-between"
         >
           <span className="notranslate" translate="no">
@@ -159,18 +159,15 @@ export default function ContentsPage() {
           </div>
         </div>
       )}
+      {/* Book Selector — expands inline under the button on desktop, native dropdown popup on mobile */}
       {showBookSelector && !isMobile() && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 bg-black/50 backdrop-blur-sm"
-          onClick={() => setShowBookSelector(false)}
-        >
-          <div className="relative" onClick={(e) => e.stopPropagation()}>
-            <BookSelector
-              currentAbbr={selectedBook}
-              onSelect={handleSelectBook}
-              onClose={() => setShowBookSelector(false)}
-            />
-          </div>
+        <div className="mb-8">
+          <BookSelector
+            currentAbbr={selectedBook}
+            onSelect={handleSelectBook}
+            onClose={() => setShowBookSelector(false)}
+            inline
+          />
         </div>
       )}
 

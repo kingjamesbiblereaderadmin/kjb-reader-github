@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { OLD_TESTAMENT, NEW_TESTAMENT } from '@/lib/bibleData';
 
-export default function BookSelector({ currentAbbr, onSelect, onClose, initialTestament }) {
+export default function BookSelector({ currentAbbr, onSelect, onClose, initialTestament, inline }) {
   const [tab, setTab] = useState(initialTestament === 'new' ? 'new' : 'old');
   const scrollRef = useRef(null);
 
@@ -35,7 +35,9 @@ export default function BookSelector({ currentAbbr, onSelect, onClose, initialTe
   };
 
   return (
-    <div className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden w-[95vw] max-w-md sm:max-w-2xl lg:max-w-3xl max-h-[70vh] flex flex-col relative">
+    <div className={`bg-card border border-border rounded-2xl shadow-2xl overflow-hidden max-h-[70vh] flex flex-col relative ${
+      inline ? 'w-full shadow-lg' : 'w-[95vw] max-w-md sm:max-w-2xl lg:max-w-3xl'
+    }`}>
       {/* Testament tabs */}
       <div className="grid grid-cols-2 gap-1 p-2 border-b border-border">
         <button
@@ -68,7 +70,7 @@ export default function BookSelector({ currentAbbr, onSelect, onClose, initialTe
         >
           <span>Title Page</span>
         </button>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-1">
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-1 ${inline ? 'xl:grid-cols-4' : ''}`}>
           {books.map((book) => renderBook(book))}
         </div>
       </div>
