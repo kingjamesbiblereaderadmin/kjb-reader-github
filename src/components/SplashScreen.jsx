@@ -7,6 +7,10 @@ import { BIBLE_BOOKS } from '@/lib/bibleData';
 
 const STEP_PAUSE_MS = 1500;
 
+// Horizontal ellipsis used by the lookup splash label (and kept as a constant
+// so the messages compose consistently with the other splash messages).
+const ELL = '\u2026';
+
 // mode: 'first_load' | 'subsequent'
 // The splash's words must match the circumstance: offline, online, or a
 // returning visitor. A 'connection lost, continuing online-only' banner on
