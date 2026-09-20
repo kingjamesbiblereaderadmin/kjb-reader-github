@@ -848,6 +848,14 @@ export default function BibleReader() {
     // in-app navigation is correctly treated as non-initial.
     const wasInitialNavMount = initialNavMountRef.current;
     initialNavMountRef.current = false;
+    // Stepping to a result INSIDE the reader also re-enters this effect:
+    // stepToResult sets pos, useReaderUrlSync rewrites the URL to match, and
+    // the resulting routerLocation.search change runs this effect again. pos
+    // always leads its own fetch, so if the reader is already positioned on
+    // the URL's book/chapter that chapter has already been requested and must
+    // not be fetched a second time (the repaint = the reported flicker).
+    const alreadyAtTarget = (bookAbbr, chapterNum) => posRef.current.abbr === bookAbbr
+      && parseInt(posRef.current.chapter, 10) === chapterNum;
     
     if (urlBookObj && urlChapter) {
       const chapterNum = parseInt(urlChapter, 10);
@@ -886,7 +894,10 @@ export default function BibleReader() {
             && (r.section ? urlHighlightSection === r.section : gV(r.verse) === gV(verseNum)));
           if (gMatch >= 0) {
             setGospelMode(true); setGospelResultIndex(gMatch); setGospelTotalResults(g.results.length);
-            stepToResult(g.results[gMatch]); return;
+            // On the initial mount the mount effect above already fetched this
+            // exact book/chapter from the URL — gMatch only matches results on
+            // that same book/chapter — so let it skip the duplicate fetch.
+            stepToResult(g.results[gMatch], wasInitialNavMount); return;
           }
           // Stale gospel step vs a fresh target — end the step instead of
           // stepping, and let normal position handling load the target.
@@ -944,7 +955,11 @@ export default function BibleReader() {
             setSearchResultIndex(matchIdx);
             try { setSearchIndex(matchIdx); } catch {}
           }
-          stepToResult(results[matchIdx]); return;
+          // Same as the gospel branch: matchIdx only matches a result on the
+          // URL's own book/chapter/verse, which the mount effect has already
+          // fetched on this first pass — skip the duplicate fetch that was
+          // repainting the chapter (the search-result flicker).
+          stepToResult(results[matchIdx], wasInitialNavMount); return;
         }
         // No result matches the URL target — fresh navigation to a different
         // passage; end the stale search step rather than hijacking the jump.
