@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 /**
@@ -10,9 +10,9 @@ import { ChevronDown } from 'lucide-react';
  * `value` matching is string-based so numbers and '' (Whole chapter) compare
  * reliably.
  */
-export function FieldDropdownList({ options, value, onSelect, small }) {
+export function FieldDropdownList({ options, value, onSelect, small, style }) {
   return (
-    <div className="rounded-xl bg-background border border-border shadow-lg max-h-56 overflow-y-auto">
+    <div style={style} className="rounded-xl bg-background border border-border shadow-lg max-h-56 overflow-y-auto">
       {options.map(o => (
         <button
           key={String(o.value)}
@@ -37,7 +37,40 @@ export function FieldDropdownList({ options, value, onSelect, small }) {
  */
 export default function FieldDropdown({ label, value, options, onSelect, disabled, small }) {
   const [open, setOpen] = useState(false);
+  const [listMaxH, setListMaxH] = useState(undefined);
+  const listRef = useRef(null);
   const current = options.find(o => String(o.value) === String(value));
+
+  // Cap the open list to the space remaining inside the nearest scrollable /
+  // clipping ancestor (the "Go to Passage" modal). Without this the list
+  // overflows past the modal's bottom edge and gets visually cut off mid-item;
+  // with it the list scrolls internally instead of the modal clipping it.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const measure = () => {
+      const el = listRef.current;
+      if (!el) return;
+      let node = el.parentElement;
+      let clipper = null;
+      while (node && node !== document.body) {
+        const style = getComputedStyle(node);
+        if (style.overflowY === 'auto' || style.overflowY === 'scroll' || style.overflow !== 'visible') {
+          clipper = node;
+          break;
+        }
+        node = node.parentElement;
+      }
+      const top = el.getBoundingClientRect().top;
+      const limit = clipper
+        ? clipper.getBoundingClientRect().bottom - 8
+        : window.innerHeight - 16;
+      // Never grow past the default 14rem (max-h-56) — only shrink to fit.
+      setListMaxH(Math.max(112, Math.min(224, limit - top)));
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [open]);
   return (
     <div>
       {label && <label className="block font-sans text-xs text-muted-foreground mb-1.5">{label}</label>}
@@ -54,12 +87,13 @@ export default function FieldDropdown({ label, value, options, onSelect, disable
           <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
         </button>
         {open && !disabled && (
-          <div className="absolute left-0 right-0 top-full mt-1 z-20">
+          <div ref={listRef} className="absolute left-0 right-0 top-full mt-1 z-20">
             <FieldDropdownList
               options={options}
               value={value}
               onSelect={(v) => { onSelect(v); setOpen(false); }}
               small={small}
+              style={listMaxH ? { maxHeight: listMaxH } : undefined}
             />
           </div>
         )}
