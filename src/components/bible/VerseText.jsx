@@ -148,19 +148,31 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     const dropHighlight = dropRaw
       ? (dropRaw.startsWith('#') ? `${dropRaw}99` : `hsl(var(--accent) / 0.6)`)
       : null;
-    const letterStyle = dropHighlight
+    // In select mode the letter gets NO tint of its own — the group below
+    // carries a single layer (see groupStyle) so the two boxes can't stack
+    // into a misaligned double edge.
+    const letterStyle = dropHighlight && !selectMode
       ? ` style="background-color:${dropHighlight};border-radius:0.1em;"`
       : '';
     // When the letter carries its own tint, mask the inline highlight behind the
     // float with the page background so the two layers don't stack into a
     // darker box. The number cell stays transparent (only the letter is masked).
-    // The background mask is only useful over a verse-highlight background
-    // (to keep the tint layers from stacking darker). In select mode the area
-    // behind the cap is the selection box's light tint instead — masking it
-    // there paints a solid white halo around the letter, so skip it.
-    const groupStyle = dropHighlight && !selectMode
-      ? ` style="background-color:hsl(var(--background));"`
-      : '';
+    // Outside select mode, mask the inline highlight behind the float with
+    // the page background so the two tint layers don't stack into a darker
+    // box (the letter carries its own tint in that case).
+    // In select mode there is exactly ONE highlight layer instead: the group
+    // box itself (its CSS `background-color: inherit` picks up the verse
+    // highlight). The letter keeps its normal -0.15em top lift, which pokes
+    // 0.51em (0.15 × the 3.4em glyph) above the group box — so shift the
+    // group up by that same amount and pad it back down, growing the single
+    // layer to cover the lifted letter. Two stacked boxes with mismatched
+    // edges (group bg + letter tint) is what produced the visible "leak"
+    // along the cap's top and left.
+    const groupStyle = dropHighlight && selectMode
+      ? ` style="padding-top:0.51em;margin-top:-0.51em;"`
+      : (dropHighlight
+        ? ` style="background-color:hsl(var(--background));"`
+        : '');
     // Match the first letter that is part of the actual TEXT, skipping any
     // leading HTML tags (e.g. <em>, <span class="pilcrow">). Using a bare
     // /[A-Za-z]/ would match the "e" inside a leading "<em>" tag and break it
