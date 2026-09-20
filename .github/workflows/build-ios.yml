@@ -74,6 +74,17 @@ jobs:
           BUILD="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Info.plist")"
           mkdir -p build/App.xcarchive/Products/Applications
           cp -R "$APP" build/App.xcarchive/Products/Applications/
+          ARC=build/App.xcarchive/Products/Applications/App.app
+          # The unsigned build embeds no entitlements, and -exportArchive takes
+          # entitlements from the archive's existing signature — so without
+          # this step the exported IPA is signed with EMPTY entitlements and
+          # the App Group (share-sheet hand-off) silently goes missing.
+          # Ad-hoc signing the bundles here embeds each target's entitlements;
+          # the export step then re-signs with the distribution identity while
+          # preserving them. If the profile can't cover the App Group, export
+          # fails loudly here instead of shipping a broken share extension.
+          codesign --force --sign - --entitlements ios/App/App/App.entitlements "$ARC"
+          codesign --force --sign - --entitlements ios/App/Share/KJBShare.entitlements "$ARC/PlugIns/KJBShare.appex"
           cat > build/App.xcarchive/Info.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -139,12 +150,13 @@ jobs:
             echo "- extension version/build: $($PB -c 'Print :CFBundleShortVersionString' "$APPEX/Info.plist") ($($PB -c 'Print :CFBundleVersion' "$APPEX/Info.plist"))"
           } | tee -a "$GITHUB_STEP_SUMMARY"
           for T in "$APP" "$APPEX"; do
-            ENT="$(codesign -d --entitlements :- "$T" 2>/dev/null || true)"
+            ENT="$(codesign -d --entitlements :- "$T" 2>/dev/null || codesign -d --xml --entitlements - "$T" 2>/dev/null || true)"
             if printf '%s' "$ENT" | grep -q "$GROUP"; then
               echo "- $(basename "$T"): App Group entitlement present" | tee -a "$GITHUB_STEP_SUMMARY"
             else
-              echo "::warning::$(basename "$T") is missing the $GROUP entitlement - share-to-app handoff would silently fail"
+              echo "::error::$(basename "$T") is missing the $GROUP entitlement - the share sheet 'Look up' hand-off would silently do nothing"
               echo "- $(basename "$T"): App Group entitlement MISSING" | tee -a "$GITHUB_STEP_SUMMARY"
+              exit 1
             fi
           done
           SV="$APP/public/__native/spotlight-verses.json"
