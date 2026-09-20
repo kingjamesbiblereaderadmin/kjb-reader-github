@@ -54,7 +54,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             guard let self else { return }
             guard let bridgeVC = self.window?.rootViewController as? CAPBridgeViewController,
                   let webView = bridgeVC.bridge?.webView else {
-                if attempt < 4 { self.loadWhenWebViewReady(url: url, attempt: attempt + 1) }
+                if attempt < 8 { self.loadWhenWebViewReady(url: url, attempt: attempt + 1) }
                 return
             }
             webView.load(URLRequest(url: url))

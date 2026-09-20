@@ -33,7 +33,7 @@ import UniformTypeIdentifiers
 enum SpotlightIndexer {
 
     /// Bump to make existing installs delete and rebuild the index.
-    private static let indexVersion = 2
+    private static let indexVersion = 3
     private static let versionKey = "kjbSpotlightIndexVersion"
     private static let domain = "com.kingjamesbiblereader.twa.reader"
     private static let baseURL = "https://kingjamesbiblereader.com"
@@ -231,6 +231,17 @@ enum SpotlightIndexer {
                 keywords: [book.name, book.abbr] + extras + ["Bible", "KJV", "King James"]
             ))
 
+            // Book names are often ordinary words too (Romans appears in
+            // Acts; Job, Hosea, Esther), so typing the name should also
+            // offer looking the PHRASE up in the verse text. Spotlight can't
+            // show options on a single result, so this is a second item.
+            items.append(makeItem(
+                id: "\(idPrefix)search:\(book.abbr)",
+                title: "Look up “\(book.name)” in verses",
+                description: "Search the Bible text for “\(book.name)” · King James Bible",
+                keywords: ["search \(book.name)", "\(book.name) in verses"] + extras
+            ))
+
             for chapter in 1...book.chapters {
                 items.append(makeItem(
                     id: "\(idPrefix)\(book.abbr):\(chapter)",
@@ -371,6 +382,17 @@ enum SpotlightIndexer {
               id.hasPrefix(idPrefix) else { return nil }
 
         let parts = id.dropFirst(idPrefix.count).split(separator: ":").map(String.init)
+
+        // "kjb:search:<ABBR>" — the phrase-lookup item: open the app's own
+        // text search for the book name so the user sees every verse that
+        // contains the word (the same page the in-app search shows).
+        if parts.first == "search", parts.count > 1 {
+            guard let book = books.first(where: { $0.abbr == parts[1] }) else { return nil }
+            let allowed = CharacterSet.urlQueryAllowed.subtracting(CharacterSet(charactersIn: "&+=#"))
+            guard let encoded = book.name.addingPercentEncoding(withAllowedCharacters: allowed) else { return nil }
+            return URL(string: "\(baseURL)/search?q=\(encoded)")
+        }
+
         guard let abbr = parts.first,
               let book = books.first(where: { $0.abbr == abbr }) else { return nil }
 
