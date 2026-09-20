@@ -62,7 +62,7 @@ export default function BookSelector({ currentAbbr, onSelect, onClose, initialTe
         </button>
       </div>
 
-      <div ref={scrollRef} className="overflow-y-auto flex-1 pb-6 overscroll-contain">
+      <div ref={scrollRef} className="kjb-scroll-visible overflow-y-auto flex-1 pb-6 overscroll-contain">
         {/* Title Page for this testament */}
         <button
           onClick={() => { onSelect(titleBook, true, false); onClose(); }}

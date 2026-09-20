@@ -585,6 +585,26 @@
   button:not(.rounded-full):not(.rounded-none) {
     border-radius: 0.625rem;
   }
+  /* Book selector list: show a slim themed scrollbar so long book lists are
+     visibly scrollable. Overrides the app-wide hidden-scrollbar rules. */
+  .kjb-scroll-visible {
+    scrollbar-width: thin;
+    -ms-overflow-style: auto;
+  }
+  .kjb-scroll-visible::-webkit-scrollbar {
+    display: block;
+    width: 8px;
+  }
+  .kjb-scroll-visible::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .kjb-scroll-visible::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 9999px;
+  }
+  .kjb-scroll-visible::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
 }
 
 /* Elements using backdrop-blur can lose their content (card shape stays but
