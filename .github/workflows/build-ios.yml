@@ -197,7 +197,24 @@ jobs:
           fi
       - name: Upload to App Store Connect
         if: steps.uploadmode.outputs.skip != 'true'
-        run: fastlane deliver --api_key_path ios/ci/asc_key_runtime.json --ipa build/ipa/App.ipa --skip_screenshots --skip_metadata --run_precheck_before_submit false
+        run: |
+          # Keep fastlane's output and surface the reason as a run annotation +
+          # job summary, so a failed upload can be diagnosed from the run page
+          # (annotations are readable without opening the raw log).
+          set +e
+          fastlane deliver --api_key_path ios/ci/asc_key_runtime.json --ipa build/ipa/App.ipa --skip_screenshots --skip_metadata --run_precheck_before_submit false 2>&1 | tee /tmp/deliver.log
+          rc=${PIPESTATUS[0]}
+          if [ "$rc" -ne 0 ]; then
+            REASON="$(grep -iE 'error|invalid|fail|already|limit|too many|denied|forbidden|unauthorized|not found|missing|exceed|reject' /tmp/deliver.log | tail -6 | tr '\n' ' ' | cut -c1-800)"
+            echo "::error title=ASC upload failed (fastlane exit $rc)::${REASON}"
+            {
+              echo "### ASC upload failed (exit $rc)"
+              echo '```'
+              tail -40 /tmp/deliver.log
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit $rc
       - name: Upload skipped (build-only)
         if: steps.uploadmode.outputs.skip == 'true'
         run: echo "Skipped the App Store Connect upload per .github/asc-upload-mode (or the dispatch input). The build+export still validated this commit."
