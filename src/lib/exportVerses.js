@@ -457,7 +457,8 @@ export async function exportDocx(items, query, filters, options = {}) {
         if (it.heading) {
           heading += `</ul><div style="margin:18pt 0 8pt 0;font-family:Georgia,serif;font-size:14pt;font-weight:bold;text-align:center;page-break-after:avoid;">${escapeHtml(it.heading.charAt(0) + it.heading.slice(1).toLowerCase())}</div><ul style="margin:0 0 12pt 0; padding-left: 20px;">`;
         }
-        const textHtml = bracketsToItalicHtml(it.text, true, isSpecial);
+        const textHtml = bracketsToItalicHtml(it.text, true, isSpecial)
+          .replace(/¶\s*/g, '<span style="opacity:0.5;">&para;</span> ');
         let formattedText = isSpecial ? textHtml : `&ldquo;${textHtml}&rdquo;`;
         if (!isReading && query) {
           formattedText = highlightTermHtml(formattedText, query, filters);
@@ -937,7 +938,8 @@ export function exportPrint(items, query, filters, options = {}) {
           if (it.heading) {
             heading += `</ul><div style="margin:18pt 0 8pt 0;font-family:Georgia,serif;font-size:14pt;font-weight:bold;text-align:center;page-break-after:avoid;">${escapeHtml(it.heading.charAt(0) + it.heading.slice(1).toLowerCase())}</div><ul style="margin:0 0 14pt 0; padding-left: 20px;">`;
           }
-          const textHtml = bracketsToItalicHtml(it.text, true, isSpecial);
+          const textHtml = bracketsToItalicHtml(it.text, true, isSpecial)
+            .replace(/¶\s*/g, '<span style="opacity:0.5;">&para;</span> ');
           let formattedText = isSpecial ? textHtml : `&ldquo;${textHtml}&rdquo;`;
           if (!isReading && query) {
             formattedText = highlightTermHtml(formattedText, query, filters);

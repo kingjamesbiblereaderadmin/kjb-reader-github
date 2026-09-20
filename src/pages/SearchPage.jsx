@@ -994,9 +994,9 @@ export default function SearchPage() {
       // copied text (instead of silently stripping it with no break) so
       // paragraph breaks stay legible outside the app.
       const hasPilcrow = /^\s*¶/.test(r.text || '');
-      const text = r.text
-        .replace(/¶\s*/g, '')
-        .replace(/^<<[^>]*>>\s*/, '');
+      // The pilcrow itself is KEPT in copied/shared text (it's part of the KJB's
+      // paragraph marking), with the blank line above it preserved below.
+      const text = r.text.replace(/^<<[^>]*>>\s*/, '');
       const bookEntry = BIBLE_BOOKS.find(b => b.apiName === r.book);
       const bookName = bookEntry ? bookEntry.shortName : r.book;
       const isColophon = r.isColophon || (r.verse === 0 && !r.isSubscript && !r.isHeading);
