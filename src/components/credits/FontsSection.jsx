@@ -9,19 +9,19 @@ const READING_INTERFACE = [
   {
     name: 'Merriweather',
     cssFamily: "'Merriweather', Georgia, serif",
-    purpose: 'the Serif reading option',
+    purpose: 'the Serif reading option — the default scripture font, styled after a printed Bible',
     tint: 'bg-orange-100/50 dark:bg-card border-orange-300/60 dark:border-border',
   },
   {
     name: 'Inter',
     cssFamily: "'Inter', system-ui, sans-serif",
-    purpose: 'the Sans Serif option, and the app interface',
+    purpose: 'the Sans Serif reading option, and the font used across the whole app interface',
     tint: 'bg-indigo-100/50 dark:bg-card border-indigo-300/60 dark:border-border',
   },
   {
     name: 'Mono & Times New Roman',
     cssFamily: "'Courier New', monospace",
-    purpose: "use your device's own built-in fonts",
+    purpose: "two more reading options that use your device's own built-in fonts, so nothing extra is downloaded",
     tint: 'bg-sky-100/50 dark:bg-card border-sky-300/60 dark:border-border',
   },
 ];
@@ -30,7 +30,7 @@ const DECORATIVE = [
   {
     name: 'Dancing Script',
     cssFamily: "'Dancing Script', cursive",
-    purpose: 'the Cursive reading font option',
+    purpose: 'the Cursive reading option — a flowing handwritten style for the scripture text',
     tint: 'bg-fuchsia-100/50 dark:bg-card border-fuchsia-300/60 dark:border-border',
   },
   {

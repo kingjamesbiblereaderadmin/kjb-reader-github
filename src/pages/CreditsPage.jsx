@@ -203,7 +203,7 @@ export default function CreditsPage() {
             </div>
             <p className="font-sans text-xs text-muted-foreground leading-relaxed flex items-start gap-2">
               <span className="text-accent mt-0.5">•</span>
-              <span>This app is provided for personal, non-commercial reading and study only, and is never sold or licensed for resale.</span>
+              <span>This app is provided for personal, non-commercial reading and study only, and is never to be sold or licensed for resale.</span>
             </p>
           </div>
         </Section>
