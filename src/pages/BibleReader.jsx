@@ -137,6 +137,11 @@ export default function BibleReader() {
 
   const [showBookPicker, setShowBookPicker] = useState(false);
   const [showChapterPicker, setShowChapterPicker] = useState(false);
+  // Book tapped in the book selector, waiting for the user to confirm a
+  // chapter (or open the whole book). While set, the chapter picker shows
+  // THIS book's chapters instead of the current chapter's — nothing
+  // navigates until a chapter/whole-book choice is confirmed.
+  const [pendingBook, setPendingBook] = useState(null);
   const [showVersePicker, setShowVersePicker] = useState(false);
   const [flowMode, setFlowMode] = useState(() => {
     try {
@@ -1775,10 +1780,9 @@ export default function BibleReader() {
                     onSelect={(b, isTitlePage, showChapter) => {
                       if (isTitlePage) { navigate(b.abbr, 0); setShowBookPicker(false); }
                       else if (showChapter) {
-                        navigate(b.abbr, 1); setShowBookPicker(false);
-                        // Single-chapter books (Obadiah, Philemon, Jude, etc.) have
-                        // nothing to pick in the chapter grid — open the verse picker.
-                        if (b.chapters <= 1) setShowVersePicker(true); else setShowChapterPicker(true);
+                        setPendingBook(b);
+                        setShowBookPicker(false);
+                        setShowChapterPicker(true);
                       }
                     }}
                     onClose={() => setShowBookPicker(false)}
@@ -1791,8 +1795,9 @@ export default function BibleReader() {
                   onSelect={(b, isTitlePage, showChapter) => {
                     if (isTitlePage) { navigate(b.abbr, 0); setShowBookPicker(false); }
                     else if (showChapter) {
-                      navigate(b.abbr, 1); setShowBookPicker(false);
-                      if (b.chapters <= 1) setShowVersePicker(true); else setShowChapterPicker(true);
+                      setPendingBook(b);
+                      setShowBookPicker(false);
+                      setShowChapterPicker(true);
                     }
                   }}
                   onClose={() => setShowBookPicker(false)}
@@ -1819,21 +1824,23 @@ export default function BibleReader() {
                 {showChapterPicker && !isMobile() && (
                   <div className="kjb-popover-panel absolute top-full left-0 mt-1 z-[100]">
                     <ChapterSelector
-                      totalChapters={book.chapters}
-                      currentChapter={pos.chapter}
-                      onSelect={(ch, showVerse) => { navigate(pos.abbr, ch); setShowChapterPicker(false); if (showVerse) setShowVersePicker(true); }}
-                      onClose={() => setShowChapterPicker(false)}
-                      bookName={book.name}
+                      totalChapters={pendingBook ? pendingBook.chapters : book.chapters}
+                      currentChapter={pendingBook ? null : pos.chapter}
+                      onSelect={(ch, showVerse) => { navigate(pendingBook ? pendingBook.abbr : pos.abbr, ch); setPendingBook(null); setShowChapterPicker(false); if (showVerse) setShowVersePicker(true); }}
+                      onClose={() => { setPendingBook(null); setShowChapterPicker(false); }}
+                      onWholeBook={() => { if (pendingBook) { navigate(pendingBook.abbr, 1); } setPendingBook(null); setShowChapterPicker(false); }}
+                      bookName={pendingBook ? pendingBook.name : book.name}
                     />
                   </div>
                 )}
                 <SelectorSheet open={showChapterPicker && isMobile()} onClose={() => setShowChapterPicker(false)} title="Select Chapter">
                   <ChapterSelector
-                    totalChapters={book.chapters}
-                    currentChapter={pos.chapter}
-                    onSelect={(ch, showVerse) => { navigate(pos.abbr, ch); setShowChapterPicker(false); if (showVerse) setShowVersePicker(true); }}
-                    onClose={() => setShowChapterPicker(false)}
-                    bookName={book.name}
+                    totalChapters={pendingBook ? pendingBook.chapters : book.chapters}
+                    currentChapter={pendingBook ? null : pos.chapter}
+                    onSelect={(ch, showVerse) => { navigate(pendingBook ? pendingBook.abbr : pos.abbr, ch); setPendingBook(null); setShowChapterPicker(false); if (showVerse) setShowVersePicker(true); }}
+                    onClose={() => { setPendingBook(null); setShowChapterPicker(false); }}
+                    onWholeBook={() => { if (pendingBook) { navigate(pendingBook.abbr, 1); } setPendingBook(null); setShowChapterPicker(false); }}
+                    bookName={pendingBook ? pendingBook.name : book.name}
                     bare
                   />
                 </SelectorSheet>
