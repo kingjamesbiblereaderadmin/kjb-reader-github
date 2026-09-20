@@ -522,7 +522,13 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
             ? (isSelected ? 'inline-block kjb-select-dropcap-box' : 'inline-block')
             : (selectMode && isSelected ? 'bg-primary/10 box-decoration-clone rounded px-[0.2em] py-[0.1em]' : '')}>
             {selectMode && (
-              <span className="inline-flex items-center mr-1 text-primary align-middle">
+              /* The drop-cap float hoists to the containing block's left
+                 edge, jumping past an inline checkbox. Floating the checkbox
+                 too keeps the floats in source order: checkbox first, then
+                 the big letter, matching non-dropcap verses. */
+              <span className={dropCap
+                ? 'float-left items-center mr-1 mt-[0.2em] text-primary'
+                : 'inline-flex items-center mr-1 text-primary align-middle'}>
                 {isSelected ? <CheckSquare className="w-[1em] h-[1em]" /> : <Square className="w-[1em] h-[1em] text-muted-foreground" />}
               </span>
             )}
