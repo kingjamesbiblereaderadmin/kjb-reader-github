@@ -55,6 +55,11 @@ const EXPLICIT_KEYS = [
   'kjb-gospel-results',
   'kjb-gospel-index',
   'kjb-defence-cache',
+  // Restores the ACTIVE search/gospel stepper (term, result index, filter
+  // mode) when landing back on the chapter. The kjb-search-* keys above hold
+  // the results themselves, but without this key the other origin never
+  // re-enters the stepper. Small JSON with its own 12h staleness check.
+  'kjb-reader-toolbar-state',
   // Setup wizard state. Without mirroring these, the https origin and the
   // capacitor:// offline origin keep SEPARATE wizard states: setup finished
   // during an offline session never marks the online app as set up (and vice
@@ -79,6 +84,9 @@ let _writeCount = 0;
 let _statusTimer = null;
 
 async function prefSet(key, value) {
+  // Skip no-op writes (e.g. repeated tombstones for a key that is already
+  // absent) so frequently re-run effects don't flood the native bridge.
+  if (_lastSent.get(key) === value) return;
   _lastSent.set(key, value);
   try {
     await Preferences.set({ key: PREFIX + key, value });
