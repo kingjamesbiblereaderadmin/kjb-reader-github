@@ -202,6 +202,15 @@ export default function BibleReader() {
   // it's a live in-app navigation to a new reference, and a same-chapter
   // match with old toolbar state should NOT drag along a stale search term.
   const initialNavMountRef = useRef(true);
+  // React StrictMode (dev/preview) intentionally mounts, unmounts and re-mounts
+  // every effect to surface side-effect bugs. The two effects below each fetch a
+  // chapter, so without these guards a single search-result navigation issues
+  // the SAME fetch twice and the chapter paints, then repaints — the visible
+  // flicker. Guarding on a ref (refs survive StrictMode's simulated remount)
+  // makes each effect run exactly once per real mount. Harmless in production,
+  // where StrictMode does not double-invoke.
+  const didMountLoadRef = useRef(false);
+  const lastHandledNavSearchRef = useRef(null);
 
   const [gospelMode, setGospelMode] = useState(false);
   const [gospelResultIndex, setGospelResultIndex] = useState(() => getGospelNav().index);
@@ -686,6 +695,10 @@ export default function BibleReader() {
   }, []);
 
   useEffect(() => {
+    // StrictMode re-invokes this mount effect; a second run would fire a
+    // duplicate chapter fetch and repaint the reader (flicker).
+    if (didMountLoadRef.current) return;
+    didMountLoadRef.current = true;
     getBibleData().catch(err => console.error('[BibleReader] Cache preload failed:', err));
     // Restore toolbar state from localStorage on mount (persists across app restarts).
     // SKIP this when the URL is a plain chapter return (book+chapter, no
@@ -825,6 +838,12 @@ export default function BibleReader() {
   }, []);
 
   useEffect(() => {
+    // This effect only ever needs to run when the URL's query string actually
+    // changes (its sole trigger — loadChapter is a stable callback). StrictMode
+    // re-invokes it with the identical query string, which would step/load the
+    // same chapter a second time and repaint it.
+    if (lastHandledNavSearchRef.current === routerLocation.search) return;
+    lastHandledNavSearchRef.current = routerLocation.search;
     const urlParams = new URLSearchParams(routerLocation.search);
     const urlTitlePage = urlParams.get('titlePage');
     if (urlTitlePage === 'old' || urlTitlePage === 'new') {
