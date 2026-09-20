@@ -40,7 +40,7 @@ def get(url):
     return requests.get(BASE + url, headers=H)
 
 def post(url, payload):
-    return requests.post(BASE + url, headers={dict(H, **{"Content-Type": "application/json"})}, json=payload)
+    return requests.post(BASE + url, headers=dict(H, **{"Content-Type": "application/json"}), json=payload)
 
 found = {}
 for bid in BUNDLE_IDS:
