@@ -147,6 +147,13 @@ jobs:
               echo "- $(basename "$T"): App Group entitlement MISSING" | tee -a "$GITHUB_STEP_SUMMARY"
             fi
           done
+          SV="$APP/public/__native/spotlight-verses.json"
+          if [ -f "$SV" ]; then
+            echo "- spotlight-verses.json: present ($(du -k "$SV" | cut -f1) KB)" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::spotlight-verses.json is missing from the IPA - verse text will not be searchable in iOS Search"
+            echo "- spotlight-verses.json: MISSING (verse search disabled)" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Resolve upload mode
         id: uploadmode
         run: |
