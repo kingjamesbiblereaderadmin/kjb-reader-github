@@ -515,7 +515,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
               becomes inline-block — a real containing block — so the overlay
               wraps the checkbox AND the drop cap together with the text. */}
           <span className={selectMode && dropCap
-            ? (isSelected ? 'inline-block bg-primary/10 border border-primary/30 rounded-[0.4em] px-[0.2em] py-[0.1em]' : 'inline-block')
+            ? (isSelected ? 'inline-block kjb-select-dropcap-box' : 'inline-block')
             : (selectMode && isSelected ? 'bg-primary/10 box-decoration-clone rounded px-[0.2em] py-[0.1em]' : '')}>
             {selectMode && (
               <span className="inline-flex items-center mr-1 text-primary align-middle">
@@ -551,7 +551,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
           {/* Spacer matching the verse-number column so verse 1's text column
               lines up with verses 2+. The actual number lives in the drop-cap. */}
           <sup className="text-accent font-sans font-bold text-[0.6em] shrink-0 select-none mt-[0.2em] mr-[0.3em] inline-block text-right w-[1.6em]">{verse.verse}</sup>
-          <span className={`flex-1 min-w-0 flex items-start gap-[0.6em] ${selectMode && isSelected ? 'bg-primary/10 border border-primary/30 rounded-[0.5em] px-[0.3em] py-[0.1em]' : ''}`}>
+          <span className={`flex-1 min-w-0 flex items-start gap-[0.6em] ${selectMode && isSelected ? 'kjb-select-dropcap-box' : ''}`}>
             {selectMode && (
               <span className="shrink-0 mt-[0.2em] text-primary">
                 {isSelected ? <CheckSquare className="w-[1.1em] h-[1.1em]" /> : <Square className="w-[1.1em] h-[1.1em] text-muted-foreground" />}
