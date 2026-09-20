@@ -70,7 +70,7 @@ export default function BookSelector({ currentAbbr, onSelect, onClose, initialTe
         >
           <span>Title Page</span>
         </button>
-        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-1 ${inline ? 'xl:grid-cols-4' : ''}`}>
+        <div className="flex flex-col">
           {books.map((book) => renderBook(book))}
         </div>
       </div>
