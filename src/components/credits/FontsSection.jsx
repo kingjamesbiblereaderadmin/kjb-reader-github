@@ -27,7 +27,7 @@ const READING_INTERFACE = [
   {
     name: 'System',
     cssFamily: 'system-ui, -apple-system, sans-serif',
-    purpose: "your device's own built-in Serif, Sans, Mono and Cursive fonts — no download or attribution needed",
+    purpose: "the Mono (Courier New), Times New Roman and System reading options use your device's own built-in fonts — no download or attribution needed",
     tint: 'bg-sky-100/50 dark:bg-card border-sky-300/60 dark:border-border',
   },
 ];
@@ -82,12 +82,12 @@ export default function FontsSection() {
   return (
     <div>
       <Eyebrow>Reading &amp; Interface</Eyebrow>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 items-start gap-2.5 mb-3">
         {READING_INTERFACE.map((f) => <FontPreviewCard key={f.name} {...f} />)}
       </div>
 
       <Eyebrow>Handwritten &amp; Decorative</Eyebrow>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 items-start gap-2.5 mb-3">
         {DECORATIVE.map((f) => <FontPreviewCard key={f.name} {...f} />)}
       </div>
 
@@ -97,7 +97,7 @@ export default function FontsSection() {
       </p>
 
       <Eyebrow>Accessibility</Eyebrow>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 items-start gap-2.5">
         {ACCESSIBILITY.map((f) => <FontPreviewCard key={f.name} {...f} />)}
       </div>
 
