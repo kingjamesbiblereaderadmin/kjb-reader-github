@@ -624,17 +624,27 @@ extension CAPBridgeViewController {
         KjbChrome.shared.leftStrip = leftStrip
         KjbChrome.shared.rightStrip = rightStrip
 
+        // Only the TOP is pinned to the safe-area guide (nothing renders in
+        // the status bar / notch / Dynamic Island zone). The left, right and
+        // bottom edges run FULL-BLEED to the screen edge: the page paints its
+        // own backgrounds (gradients, translucent bars) right out to the
+        // edges, so there are no flat native strips beside it that can never
+        // match a multi-toned page (that mismatch was the "white border" in
+        // landscape and above the home indicator). env(safe-area-inset-left /
+        // right / bottom) now report the real insets inside the webview, and
+        // the web layout already pads for them (AppLayout header, main,
+        // footer, bottom nav).
         container.addSubview(webView)
         webView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             webView.topAnchor.constraint(
                 equalTo: container.safeAreaLayoutGuide.topAnchor),
             webView.leadingAnchor.constraint(
-                equalTo: container.safeAreaLayoutGuide.leadingAnchor),
+                equalTo: container.leadingAnchor),
             webView.bottomAnchor.constraint(
-                equalTo: container.safeAreaLayoutGuide.bottomAnchor),
+                equalTo: container.bottomAnchor),
             webView.trailingAnchor.constraint(
-                equalTo: container.safeAreaLayoutGuide.trailingAnchor),
+                equalTo: container.trailingAnchor),
         ])
     }
 
