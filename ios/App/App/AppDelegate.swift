@@ -17,6 +17,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                                                object: nil, queue: .main) { [weak self] _ in
             self?.consumePendingLookup()
         }
+        // Make every book and chapter searchable from iOS Search (Spotlight).
+        // Runs in the background and only when the index is missing or stale
+        // (see SpotlightIndexer.swift).
+        SpotlightIndexer.indexIfNeeded()
         return true
     }
 
@@ -88,6 +92,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the app was launched with an activity, including Universal Links.
         // Feel free to add additional processing here, but if you want the App API to support
         // tracking app url opens, make sure to keep this call
+
+        // A tapped iOS Search (Spotlight) result for a book or chapter: open
+        // the reader at that passage. Anything else (Universal Links, etc.)
+        // falls through to Capacitor below.
+        if let url = SpotlightIndexer.url(for: userActivity) {
+            loadWhenWebViewReady(url: url, attempt: 0)
+            return true
+        }
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
 
