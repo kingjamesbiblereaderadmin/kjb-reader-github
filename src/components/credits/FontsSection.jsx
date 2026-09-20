@@ -102,7 +102,7 @@ export default function FontsSection() {
       </div>
 
       <p className="font-sans text-[11px] text-muted-foreground leading-relaxed mt-4">
-        In the Android app (Google Play), these fonts are bundled with the app itself so they're available offline from first launch, instead of being downloaded from Google Fonts.
+        In the Android (Google Play) and iOS (App Store) apps, these fonts are bundled with the app itself so they're available offline from first launch, instead of being downloaded from Google Fonts.
       </p>
     </div>
   );
