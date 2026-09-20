@@ -114,15 +114,23 @@ export function useToolbarState(pos, loading, verses, filterMode, selectedVerses
         // iOS/Android after tapping a result. Skip the snapshot entirely —
         // the save effect below persists the fresh state for later returns.
         // ...UNLESS nothing has actually been applied yet. Coming back to the
-        // reader cold (Home -> Read, or after an app restart) restores the
-        // persisted reader URL, which still carries from=search/gospel even
+        // reader cold (Home -> Read, or after an app restart — online OR
+        // offline, the session data lives in localStorage either way) restores
+        // the persisted reader URL, which still carries from=search/gospel even
         // though no live navigation established anything this session — no
-        // verse selection, no filter/"verses only" flag, no stepper. An empty
-        // selection is the reliable signal for that case: a genuine fresh
-        // search/gospel navigation always sets the selection BEFORE the
-        // chapter's verses finish loading (this effect runs after that), so
-        // here we only rehydrate when there is nothing to overwrite.
-        if ((navFrom === 'search' || navFrom === 'gospel') && selectedVerses && selectedVerses.size > 0) {
+        // search term, no step count, no stepper. The reader's synchronous
+        // first-paint snapshot (computeReaderInitialSnapshot) now pre-applies
+        // the verse SELECTION from the URL before this effect runs, so an
+        // empty selection is no longer a reliable cold-restart signal: the
+        // snapshot made this skip fire on every restart, dropping the pill
+        // and stepper. Use the STEP COUNT instead: a genuine fresh
+        // search/gospel navigation always populates searchTotalResults (or
+        // gospelMode) BEFORE the chapter's verses finish loading (this effect
+        // runs after that). On a cold restart they're still at their initial
+        // 0/false — exactly the case where the saved session must be
+        // rehydrated from the snapshot.
+        const hasLiveResultContext = searchTotalResults > 0 || gospelMode;
+        if ((navFrom === 'search' || navFrom === 'gospel') && selectedVerses && selectedVerses.size > 0 && hasLiveResultContext) {
           appliedRestoreForChapterRef.current = true;
           setRestoreTick(t => t + 1);
           return;
