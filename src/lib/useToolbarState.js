@@ -196,7 +196,13 @@ export function useToolbarState(pos, loading, verses, filterMode, selectedVerses
     };
     appliedRestoreForChapterRef.current = false;
     restoreToolbarState();
-    const timer = setTimeout(restoreToolbarState, 100);
+    // Safety retry shortly after load, but flagged as a revisit so it is a
+    // no-op once the synchronous pass above already applied (or deliberately
+    // skipped) the saved state. Previously this ran as a fresh restore, so it
+    // could apply the passage filter 100ms AFTER the chapter had already
+    // painted unfiltered — the brief flash of the full chapter's text when
+    // returning to the reader.
+    const timer = setTimeout(() => restoreToolbarState(true), 100);
     // Re-apply persisted search/gospel/filter state when the page becomes
     // visible again. Switching browser tabs OR backgrounding/foregrounding a
     // mobile app fires `visibilitychange` but NOT always `focus` (especially
