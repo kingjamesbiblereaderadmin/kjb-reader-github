@@ -1063,12 +1063,16 @@ export default function SettingsPage() {
             <div className="flex gap-3 pt-2">
               <button
                 onClick={async () => {
-                  if (confirm('Reset all settings to default? This cannot be undone.')) {
+                  // Accessibility font mode: leave every font setting alone.
+                  const a11yOn = getAccessibilityFont() !== 'default';
+                  if (confirm('Reset all settings to default? This cannot be undone.' + (a11yOn ? '\n\nYour accessibility font will be kept.' : ''))) {
                     // Reset all localStorage settings.
                     localStorage.removeItem('kjb-verse-text-color');
                     localStorage.removeItem('kjb-verse-text-opacity');
-                    localStorage.removeItem('kjb-verse-font-family');
-                    localStorage.removeItem('kjb-reader-font-family');
+                    if (!a11yOn) {
+                      localStorage.removeItem('kjb-verse-font-family');
+                      localStorage.removeItem('kjb-reader-font-family');
+                    }
                     localStorage.removeItem('kjb-verse-panel-visible');
                     localStorage.removeItem('kjb-zoom');
                     localStorage.removeItem('kjb-notif-image');
@@ -1124,7 +1128,7 @@ localStorage.removeItem('kjb-daily-verse-cache-v17');
                   <AlertDialogDescription>
                     This permanently removes your highlights, saved verses and folders, reading position and history,
                     search progress, and all your settings. In the iOS app it clears both the online and offline copies.
-                    The downloaded Bible text is kept. This cannot be undone.
+                    The downloaded Bible text is kept, and so is your accessibility font if one is on. This cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

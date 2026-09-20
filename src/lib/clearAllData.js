@@ -2,7 +2,7 @@
 // saved verses/folders, reading position + history, search/gospel progress and
 // every setting — and starts the app fresh.
 //
-// Deliberately KEPT: the downloaded Bible text (IndexedDB + its cache flags),
+// Deliberately KEPT: the accessibility font (when one is on), the downloaded Bible text (IndexedDB + its cache flags),
 // splash-logo/offline caches and device diagnostics, so nothing has to be
 // re-downloaded and the app still works offline right after clearing.
 //
@@ -34,6 +34,19 @@ const KEEP = new Set([
   'kjb-debug-diagnostics',
 ]);
 
+// While an accessibility font (dyslexic / hyperlegible / system) is on, the font
+// settings survive a clear: someone who relies on that font must still be able to
+// read the app afterwards. Checked at wipe time; the accessibility key itself is
+// never removed, so the second (post-reload) wipe sees the same answer.
+const A11Y_MODES = ['dyslexic', 'hyperlegible', 'system'];
+const FONT_KEYS = ['kjb-a11y-font', 'kjb-reader-font-family', 'kjb-verse-font-family', 'kjb-dyslexic-font'];
+function preservedKeys() {
+  try {
+    if (A11Y_MODES.includes(localStorage.getItem('kjb-a11y-font'))) return new Set(FONT_KEYS);
+  } catch {}
+  return new Set();
+}
+
 function isUserKey(k) {
   if (typeof k !== 'string') return false;
   if (!(k.startsWith('kjb-') || k.startsWith('kjb_'))) return false;
@@ -42,12 +55,12 @@ function isUserKey(k) {
   return true;
 }
 
-function removeMatching(store) {
+function removeMatching(store, keep) {
   try {
     const keys = [];
     for (let i = 0; i < store.length; i++) {
       const k = store.key(i);
-      if (isUserKey(k)) keys.push(k);
+      if (isUserKey(k) && !keep.has(k)) keys.push(k);
     }
     keys.forEach((k) => { try { store.removeItem(k); } catch {} });
   } catch {}
@@ -56,15 +69,17 @@ function removeMatching(store) {
 // Removes user data from this origin and tombstones the shared native store.
 // (Includes kjb-mirror-prepull-backup, which holds a copy of the user's data.)
 export async function wipeUserData() {
-  removeMatching(localStorage);
-  try { removeMatching(sessionStorage); } catch {}
+  const keep = preservedKeys();
+  removeMatching(localStorage, keep);
+  try { removeMatching(sessionStorage, new Set()); } catch {}
 
   if (isNativeIos()) {
     try {
       const { keys } = await Preferences.keys();
       for (const pk of keys || []) {
         if (typeof pk !== 'string' || !pk.startsWith(MIRROR_PREFIX)) continue;
-        if (pk.slice(MIRROR_PREFIX.length) === MIRROR_MARKER) continue;
+        const name = pk.slice(MIRROR_PREFIX.length);
+        if (name === MIRROR_MARKER || keep.has(name)) continue;
         await Preferences.set({ key: pk, value: '' });
       }
     } catch {}
