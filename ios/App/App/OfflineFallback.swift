@@ -186,6 +186,24 @@ final class OfflineFallbackDelegate: NSObject, WKNavigationDelegate {
     // MARK: - WKNavigationDelegate (forwarded, with failure interception)
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        // Blob-URL anchor clicks are the web-standard "save this generated
+        // file" fallback (Settings → Download Bible → PDF/Word/RTF/Text, and
+        // the other export buttons, all end in triggerDownload's blob click
+        // when the download bridge isn't available). WKWebView cannot save a
+        // blob this way — the click NAVIGATES the main frame to the blob
+        // instead, the load then fails, and this fallback layer reads that
+        // as a dead https load and reboots to the offline copy: the user
+        // sees the export "finish" and then the app splash-screens. Cancel
+        // blob navigations outright. Current app builds save through
+        // kjbDownloadBridge (native share sheet) and never reach this;
+        // stale/cached web copies lose only their already-broken blob
+        // fallback — no reload, no reboot.
+        if let blobURL = navigationAction.request.url,
+           blobURL.scheme?.lowercased() == "blob",
+           navigationAction.targetFrame?.isMainFrame ?? true {
+            decisionHandler(.cancel)
+            return
+        }
         // The legacy reader page's "Download HTML File" (and txt/rtf/doc/pdf
         // variants) are plain links to the legacy function with
         // Content-Disposition: attachment. WKWebView can't perform that
