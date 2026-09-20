@@ -654,6 +654,25 @@ html.kjb-native-ios select {
   font-size: 16px !important;
 }
 
+/* Reader toolbar band. It bleeds to its page container's edges with negative
+   margins, but <main> is inset by the left/right safe-area (landscape notch /
+   rounded corners), so on its own the band would stop short of the screen
+   edges and show the page gradient beside it. This pseudo-element extends the
+   band's background + bottom border out to the screen edges (zero-width
+   wherever there is no inset, so browsers/portrait are unaffected). */
+[data-kjb-reader-toolbar-wrap]::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: -1px;
+  left: calc(-1 * env(safe-area-inset-left, 0px));
+  right: calc(-1 * env(safe-area-inset-right, 0px));
+  background: hsl(var(--background));
+  border-bottom: 1px solid hsl(var(--border));
+  pointer-events: none;
+}
+
 /* ── Thicker panel edge lines in dark mode ──
    The section panels (border-sky-200 … dark:border-border) draw a slightly
    thicker edge in dark mode so each panel's outline reads clearly against
