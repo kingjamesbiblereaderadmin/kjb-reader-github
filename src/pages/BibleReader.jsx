@@ -1306,7 +1306,11 @@ export default function BibleReader() {
     return () => window.removeEventListener('kjb-navigate', applyRequestedPosition);
   }, [routerLocation.search, loadChapter]);
 
-  const scrollToVerseEl = useCallback((verseNum) => {
+  // `instant` = jump with no animation. Used by the pre-paint scroll-restore
+  // pass so the FIRST frame the user sees already has the verse in place —
+  // a smooth animation started pre-paint still animates across the first
+  // painted frames (visible movement from wherever the scroller was).
+  const scrollToVerseEl = useCallback((verseNum, instant = false) => {
     const verseEl = document.getElementById(`v${verseNum}`);
     if (!verseEl) return;
     const occ = posRef.current?.occurrence || 0;
@@ -1333,7 +1337,7 @@ export default function BibleReader() {
     if (Math.abs(current - target) < 4) return;
     const first = !scrolledVerseRef.current || scrolledVerseRef.current.verse !== verseNum;
     scrolledVerseRef.current = { verse: verseNum };
-    (scroller || window).scrollTo({ top: target, behavior: first ? 'smooth' : 'auto' });
+    (scroller || window).scrollTo({ top: target, behavior: instant ? 'auto' : (first ? 'smooth' : 'auto') });
   }, []);
 
 

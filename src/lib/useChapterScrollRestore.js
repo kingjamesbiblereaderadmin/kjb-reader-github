@@ -20,6 +20,11 @@ export function useChapterScrollRestore({
   useLayoutEffect(() => {
     if (loading) return;
     if (highlightVerse) {
+      // First pass runs synchronously, PRE-PAINT (we're in useLayoutEffect and
+      // the verse DOM already exists) and with an instant jump — previously the
+      // chapter painted at the top first and only then scrolled to the verse,
+      // so the top of the chapter visibly flashed by on every search jump.
+      scrollToVerseEl(highlightVerse, true);
       const scrollToVerse = () => scrollToVerseEl(highlightVerse);
       const t1 = setTimeout(scrollToVerse, 50), t2 = setTimeout(scrollToVerse, 200), t3 = setTimeout(scrollToVerse, 600);
       const container = document.querySelector('.kjb-reader-content');
@@ -34,9 +39,11 @@ export function useChapterScrollRestore({
       try {
         const parsed = JSON.parse(lastReadingRaw);
         if (parsed && parsed.abbr === abbr && parsed.chapter === chapter && parsed.verse) {
+          // The state update re-renders before paint, re-running this effect
+          // with highlightVerse set — which performs the instant pre-paint
+          // jump in the branch above. No timer needed.
           setHighlightVerse(parsed.verse);
           setHighlightedVerses(new Set([parsed.verse]));
-          setTimeout(() => scrollToVerseEl(parsed.verse), 100);
         }
       } catch {}
     }
