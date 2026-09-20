@@ -182,6 +182,60 @@ for (const viewport of VIEWPORTS) {
                 `${book.label} (${font} @ ${zoom}%): two-column container has horizontal overflow`
               ).toBeLessThanOrEqual(result.clientWidth + OVERFLOW_TOLERANCE_PX);
             }
+
+            // ── Flow divider overlay: a T junction at the running head's
+            //    rule, never a "+" above it, never a gap below it ──
+            const divider = page.getByTestId('kjb-two-col-flow-divider');
+            const headForDivider = page.getByTestId('kjb-running-head');
+            const containerForDivider = page.getByTestId('kjb-two-col-container');
+            if ((await divider.count()) && (await containerForDivider.count())) {
+              const dBox = await divider.boundingBox();
+              const cBox = await containerForDivider.boundingBox();
+              expect(dBox, `${book.label}: flow divider not visible`).toBeTruthy();
+              expect(cBox, `${book.label}: columns container not visible`).toBeTruthy();
+
+              // Runs the full height of the columns…
+              expect(
+                dBox.y + dBox.height,
+                `${book.label} (${font} @ ${zoom}%): flow divider stops short of the columns' bottom`
+              ).toBeGreaterThanOrEqual(cBox.y + cBox.height - OVERFLOW_TOLERANCE_PX);
+
+              // …and sits on the column gap's exact midpoint.
+              const midX = cBox.x + cBox.width / 2;
+              expect(
+                Math.abs(dBox.x + dBox.width / 2 - midX),
+                `${book.label} (${font} @ ${zoom}%): flow divider is off the column gap midpoint`
+              ).toBeLessThanOrEqual(OVERFLOW_TOLERANCE_PX);
+
+              // The junction target is the head's OUTER box (.kjb-running-head,
+              // which owns the mb-6 margin and contains the horizontal rule at
+              // its very bottom edge). The kjb-running-head testid sits on the
+              // inner label container, which ends 7px ABOVE the rule — using it
+              // here makes a correct divider look 5.5px short.
+              const headOuter = page.locator('.kjb-running-head');
+              if ((await headOuter.count()) && (await headOuter.boundingBox())) {
+                const hBox = await headOuter.boundingBox();
+                // T junction: the divider's TOP edge must sit exactly on the
+                // running head's bottom (its horizontal rule). Above it is the
+                // "+" bug (line crossing over the heading); below it is the
+                // abrupt-start bug the overlay exists to fix.
+                expect(
+                  dBox.y,
+                  `${book.label} (${font} @ ${zoom}%): flow divider extends ABOVE the running head's rule (the "+" bug)`
+                ).toBeGreaterThanOrEqual(hBox.y + hBox.height - OVERFLOW_TOLERANCE_PX);
+                expect(
+                  dBox.y,
+                  `${book.label} (${font} @ ${zoom}%): flow divider starts below the running head's rule (gap at the T junction)`
+                ).toBeLessThanOrEqual(hBox.y + hBox.height + OVERFLOW_TOLERANCE_PX);
+              } else {
+                // No running head (chapter 1): the divider matches the
+                // columns box exactly, like the column-rule itself.
+                expect(
+                  Math.abs(dBox.y - cBox.y),
+                  `${book.label} (${font} @ ${zoom}%): with no running head, flow divider should start at the columns' top`
+                ).toBeLessThanOrEqual(OVERFLOW_TOLERANCE_PX);
+              }
+            }
           });
         }
       }

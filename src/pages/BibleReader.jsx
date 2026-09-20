@@ -2293,31 +2293,31 @@ export default function BibleReader() {
 
           return (
           <>
-          {/* Decorative continuation of the same column-rule (colour + weight)
-              up through the running head above, so the vertical split reads
-              as one unbroken line from the book/chapter heading all the way
-              down through the verse columns instead of appearing to start
-              mid-page. Purely an absolutely-positioned overlay against the
-              shared .relative wrapper -- it never affects the height/width
-              of the running head or the columns div, so it can't push or
-              resize any text or toolbar button. In the vast majority of
-              chapters the book name and "Chapter N" labels sit well clear of
-              the midpoint (that's the whole point of RunningHead's split
-              layout), so the line runs through open space; on the rare very
-              long book name that reaches the midpoint it's a hairline
-              crossing serif strokes, the same as a printed Bible's column
-              rule crossing a running head. */}
+          {/* The vertical divider between the two verse columns is continued
+              upward so it MEETS the running head's horizontal rule — a clean
+              T junction, like a printed Bible's column rule meeting the
+              running head — but it never crosses ABOVE that rule (an earlier
+              version ran it over the head to the top of the page, cutting the
+              book/chapter heading with a "+" crossover). The overlay is
+              anchored to a wrapper that starts at the columns; top:-1.5rem
+              bridges exactly the RunningHead's mb-6 margin, landing on the
+              rule's bottom edge. With no running head (chapter 1) it simply
+              matches the columns box, like the column-rule itself.
+              Absolutely-positioned overlay — it can't push or resize any
+              text, rule, or toolbar button. */}
+          <div className="relative">
           {useColumns && (
             <div
               aria-hidden="true"
               data-testid="kjb-two-col-flow-divider"
-              className="absolute top-0 bottom-0 left-1/2 w-px -translate-x-1/2 pointer-events-none"
-              style={{ backgroundColor: 'hsl(var(--border))' }}
+              className="absolute bottom-0 left-1/2 w-px -translate-x-1/2 pointer-events-none"
+              style={{ top: !isViewingTitlePage && pos.chapter !== 1 ? '-1.5rem' : '0', backgroundColor: 'hsl(var(--border))' }}
             />
           )}
           <div ref={useColumns ? columnsContainerRef : null} data-testid={useColumns ? 'kjb-two-col-container' : undefined} className={`${useColumns ? 'kjb-two-col text-left hyphens-auto' : 'text-left'} ${paragraphMode ? 'text-left px-2 sm:px-4' : ''}`} style={useColumns ? { fontSize: 'inherit', columnCount: 2, columnGap: fontFamily === 'cursive' ? '3.5rem' : '2.5rem', columnRule: '1px solid hsl(var(--border))' } : { fontSize: 'inherit' }}>
             {subscriptBlock}
             {shownVerses.map((v, idx) => renderVerse(v, idx === 0))}
+          </div>
           </div>
           </>
           );
