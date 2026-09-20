@@ -12,7 +12,7 @@
  * search, and offline behavior — see each describe block's own comments.
  */
 import { expect } from '@wdio/globals';
-import { switchToWebview, waitForReaderContent, goTo, APP_PACKAGE } from '../helpers.js';
+import { switchToWebview, waitForReaderContent, goTo, executeStable, APP_PACKAGE } from '../helpers.js';
 
 before(async () => {
   await switchToWebview(driver);
@@ -303,6 +303,17 @@ describe('Offline behavior (native)', () => {
     const savedOnline = await driver.execute(() => localStorage.getItem('kjb-saved-verses'));
     expect(savedOnline).toBe(savedOffline);
 
+    // A full location load boots the app again, and the splash overlay
+    // stays up for a moment before handing off to the page — reading the
+    // body instantly captured only the splash text. Wait for the actual
+    // Saved Verses content to render before asserting on it.
+    await driver.waitUntil(
+      async () => {
+        const txt = await driver.execute(() => document.body.innerText);
+        return /John/i.test(txt);
+      },
+      { timeout: 20000, timeoutMsg: 'Saved verse never rendered on the Saved Verses page' }
+    );
     const bodyText = await driver.execute(() => document.body.innerText);
     expect(bodyText).toMatch(/John/i);
   });
@@ -379,7 +390,9 @@ describe('App restart persistence (native)', () => {
     await switchToWebview(driver, { timeout: 30000 });
     await waitForReaderContent(driver, 25000).catch(() => {});
 
-    const after = await driver.execute(() => ({
+    // The old emulator WebView occasionally drops the renderer right after
+    // the relaunch — executeStable re-switches the context and retries.
+    const after = await executeStable(driver, () => ({
       font: localStorage.getItem('kjb-reader-font-family'),
       highlights: localStorage.getItem('kjb-verse-highlights'),
       saved: localStorage.getItem('kjb-saved-verses'),
