@@ -897,7 +897,7 @@ export default function BibleReader() {
             // On the initial mount the mount effect above already fetched this
             // exact book/chapter from the URL — gMatch only matches results on
             // that same book/chapter — so let it skip the duplicate fetch.
-            stepToResult(g.results[gMatch], wasInitialNavMount); return;
+            stepToResult(g.results[gMatch], wasInitialNavMount || alreadyAtTarget(urlBookObj.abbr, chapterNum)); return;
           }
           // Stale gospel step vs a fresh target — end the step instead of
           // stepping, and let normal position handling load the target.
@@ -959,7 +959,7 @@ export default function BibleReader() {
           // URL's own book/chapter/verse, which the mount effect has already
           // fetched on this first pass — skip the duplicate fetch that was
           // repainting the chapter (the search-result flicker).
-          stepToResult(results[matchIdx], wasInitialNavMount); return;
+          stepToResult(results[matchIdx], wasInitialNavMount || alreadyAtTarget(urlBookObj.abbr, chapterNum)); return;
         }
         // No result matches the URL target — fresh navigation to a different
         // passage; end the stale search step rather than hijacking the jump.
