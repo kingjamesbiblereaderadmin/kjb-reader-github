@@ -9,12 +9,19 @@ import UniformTypeIdentifiers
  * "Romans 8" or "John 3" shows a KJB Reader result, and tapping it opens the
  * reader at that passage. Book rows open chapter 1.
  *
- * - ~1,255 items (66 books + 1,189 chapters). Verses are not indexed.
- * - Item identifiers are "kjb:<ABBR>" (book) and "kjb:<ABBR>:<chapter>".
+ * - ~1,255 book/chapter items (66 books + 1,189 chapters), indexed from the
+ *   table below, plus one item per verse (31,102) whose text is searchable,
+ *   so "for God so loved" or "charity" finds the verse. Verse text comes from
+ *   public/__native/spotlight-verses.json, which CI generates from the bundled
+ *   PCE text (scripts/build-spotlight-verses.mjs); if that file is absent the
+ *   verse index is skipped and book/chapter search still works.
+ * - Item identifiers are "kjb:<ABBR>" (book), "kjb:<ABBR>:<chapter>" and
+ *   "kjb:<ABBR>:<chapter>:<verse>".
  * - Tapping a result arrives as a CSSearchableItemActionType user activity;
  *   AppDelegate.application(_:continue:) maps it to
- *   https://kingjamesbiblereader.com/read?book=<ABBR>&chapter=<n> — the same
- *   route the web reader's own links use — and loads it in the bridge webview.
+ *   https://kingjamesbiblereader.com/read?book=<ABBR>&chapter=<n>[&verse=<v>] —
+ *   the same route the web reader's own links use — and loads it in the
+ *   bridge webview.
  * - Indexing runs in the background on launch and only when `indexVersion`
  *   changes (Spotlight items expire after a month by default, so every item
  *   gets a far-future expirationDate).
@@ -251,6 +258,94 @@ enum SpotlightIndexer {
         return item
     }
 
+    // MARK: - Verse-level index
+
+    /// Bump to rebuild the verse index on existing installs.
+    private static let verseIndexVersion = 1
+    private static let verseVersionKey = "kjbSpotlightVerseIndexVersion"
+    private static let verseDomain = "com.kingjamesbiblereader.twa.verses"
+
+    /// Indexes every verse's text in the background if that has not been done
+    /// for this `verseIndexVersion`. Batches are sent one at a time so memory
+    /// stays small; success is only recorded when every batch went in, so an
+    /// interrupted run (app killed mid-way) starts over on the next launch.
+    static func indexVersesIfNeeded() {
+        let defaults = UserDefaults.standard
+        guard defaults.integer(forKey: verseVersionKey) != verseIndexVersion else { return }
+        // Written into the .app by scripts/prepare-ios-offline.js. Absent in a
+        // build where that step failed — then there is simply no verse index.
+        guard let fileURL = Bundle.main.url(forResource: "spotlight-verses",
+                                            withExtension: "json",
+                                            subdirectory: "public/__native") else { return }
+
+        DispatchQueue.global(qos: .utility).async {
+            guard let data = try? Data(contentsOf: fileURL, options: .mappedIfSafe),
+                  let versesByBook = try? JSONDecoder().decode([String: [[String]]].self, from: data),
+                  !versesByBook.isEmpty else { return }
+
+            let index = CSSearchableIndex.default()
+
+            // Start clean so a rebuild never leaves stale rows behind.
+            let deleted = DispatchSemaphore(value: 0)
+            index.deleteSearchableItems(withDomainIdentifiers: [verseDomain]) { _ in deleted.signal() }
+            deleted.wait()
+
+            var failed = false
+            var batch: [CSSearchableItem] = []
+            batch.reserveCapacity(500)
+
+            func flush() {
+                guard !batch.isEmpty else { return }
+                let sent = DispatchSemaphore(value: 0)
+                index.indexSearchableItems(batch) { error in
+                    if error != nil { failed = true }
+                    sent.signal()
+                }
+                sent.wait()
+                batch.removeAll(keepingCapacity: true)
+            }
+
+            for book in books {
+                guard let chapters = versesByBook[book.abbr] else { continue }
+                let extras = aliases[book.abbr] ?? []
+                autoreleasepool {
+                    for (chapterIndex, verses) in chapters.enumerated() {
+                        let chapter = chapterIndex + 1
+                        for (verseIndex, text) in verses.enumerated() where !text.isEmpty {
+                            let verse = verseIndex + 1
+                            let reference = "\(book.name) \(chapter):\(verse)"
+                            batch.append(makeVerseItem(
+                                id: "\(idPrefix)\(book.abbr):\(chapter):\(verse)",
+                                reference: reference,
+                                text: text,
+                                keywords: [reference, "\(book.abbr) \(chapter):\(verse)"]
+                                    + extras.map { "\($0) \(chapter):\(verse)" }
+                            ))
+                            if batch.count >= 500 { flush() }
+                        }
+                    }
+                }
+            }
+            flush()
+
+            if !failed { defaults.set(verseIndexVersion, forKey: verseVersionKey) }
+        }
+    }
+
+    private static func makeVerseItem(id: String, reference: String, text: String, keywords: [String]) -> CSSearchableItem {
+        let attributes = CSSearchableItemAttributeSet(contentType: UTType.text)
+        attributes.title = reference
+        attributes.displayName = reference
+        // Searchable body text, and the snippet Spotlight shows under the title.
+        attributes.textContent = text
+        attributes.contentDescription = text
+        attributes.keywords = keywords
+
+        let item = CSSearchableItem(uniqueIdentifier: id, domainIdentifier: verseDomain, attributeSet: attributes)
+        item.expirationDate = Date.distantFuture
+        return item
+    }
+
     // MARK: - Opening a tapped result
 
     /// Maps a tapped Spotlight result to the reader URL, or returns nil when
@@ -268,6 +363,10 @@ enum SpotlightIndexer {
         if parts.count > 1, let parsed = Int(parts[1]) {
             chapter = min(max(parsed, 1), book.chapters)
         }
-        return URL(string: "\(baseURL)/read?book=\(book.abbr)&chapter=\(chapter)")
+        var urlString = "\(baseURL)/read?book=\(book.abbr)&chapter=\(chapter)"
+        if parts.count > 2, let verse = Int(parts[2]), verse >= 1 {
+            urlString += "&verse=\(verse)"
+        }
+        return URL(string: urlString)
     }
 }

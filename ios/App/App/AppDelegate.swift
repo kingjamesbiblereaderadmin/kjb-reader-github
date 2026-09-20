@@ -19,8 +19,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         // Make every book and chapter searchable from iOS Search (Spotlight).
         // Runs in the background and only when the index is missing or stale
-        // (see SpotlightIndexer.swift).
+        // (see SpotlightIndexer.swift). Includes verse text when the bundle has it.
         SpotlightIndexer.indexIfNeeded()
+        SpotlightIndexer.indexVersesIfNeeded()
         return true
     }
 
