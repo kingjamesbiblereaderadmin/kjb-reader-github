@@ -927,15 +927,27 @@ export default function BibleReader() {
         }
         // No result matches the URL target — fresh navigation to a different
         // passage; end the stale search step rather than hijacking the jump.
-        searchClearedRef.current = true;
-        setSearchTerm(null); setSearchResultIndex(0); setSearchTotalResults(0);
-        try {
-          clearSearchNav();
-          localStorage.removeItem('kjb-search-term');
-          localStorage.removeItem('kjb-search-results');
-          localStorage.removeItem('kjb-search-index');
-          localStorage.removeItem('kjb-reader-toolbar-state');
-        } catch {}
+        // EXCEPTION: the URL still carries the keyword (`q`), i.e. this is the
+        // same search session being re-entered (coming back to the reader from
+        // Home, or after a restart, where the restored position's verse need
+        // not be the exact result verse). Wiping the results there is what left
+        // the pill saying "Searched" with no prev/next stepper — the term was
+        // restored from `q` but the result list behind it had just been deleted.
+        // Keep the session (term/index/total were set above) and let the normal
+        // position handling load the target. A genuine fresh jump (Table of
+        // Contents, book selector, reference lookup) never carries `q`, so it
+        // still clears exactly as before.
+        if (!qParam) {
+          searchClearedRef.current = true;
+          setSearchTerm(null); setSearchResultIndex(0); setSearchTotalResults(0);
+          try {
+            clearSearchNav();
+            localStorage.removeItem('kjb-search-term');
+            localStorage.removeItem('kjb-search-results');
+            localStorage.removeItem('kjb-search-index');
+            localStorage.removeItem('kjb-reader-toolbar-state');
+          } catch {}
+        }
       } else if (!isFromDaily && !isFromRandom) {
         // Keep the "Daily Verse" / "Random Chapter" indicator state in sync with
         // what's actually persisted. goTo()/keyword search clear kjb-last-reading
