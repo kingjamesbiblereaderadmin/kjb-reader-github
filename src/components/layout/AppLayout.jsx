@@ -426,19 +426,19 @@ export default function AppLayout() {
                 onClick={toggleFullscreen}
                 title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
                 aria-label="Toggle fullscreen"
-                className="w-9 h-9 xs:w-11 xs:h-11 sm:w-10 sm:h-10 shrink-0 rounded-xl border border-border bg-secondary/30 hover:bg-secondary/50 active:bg-secondary transition-all duration-200 flex items-center justify-center cursor-pointer touch-manipulation"
+                className="w-9 h-9 shrink-0 rounded-lg border border-border bg-secondary/30 hover:bg-secondary/50 active:bg-secondary transition-all duration-200 flex items-center justify-center cursor-pointer touch-manipulation"
               >
                 {isFullscreen ? <Minimize2 className="w-4 h-4 pointer-events-none text-violet-500" /> : <Maximize2 className="w-4 h-4 pointer-events-none text-violet-500" />}
               </button>
             )}
-            <button className="w-9 h-9 xs:w-11 xs:h-11 sm:w-10 sm:h-10 shrink-0 rounded-xl border border-border bg-secondary/30 hover:bg-secondary/50 active:bg-secondary transition-all duration-200 flex items-center justify-center cursor-pointer touch-manipulation"
+            <button className="w-9 h-9 shrink-0 rounded-lg border border-border bg-secondary/30 hover:bg-secondary/50 active:bg-secondary transition-all duration-200 flex items-center justify-center cursor-pointer touch-manipulation"
               onClick={(e) => { e.stopPropagation(); try { window.dispatchEvent(new Event('kjb-close-popovers')); } catch {} toggleTheme(); }}
               type="button"
               aria-label="Toggle theme"
             >
               {mode === 'auto' ? <SunMoon className="w-4 h-4 pointer-events-none transition-transform duration-200 text-amber-500" /> : isDark ? <Moon className="w-4 h-4 pointer-events-none transition-transform duration-200 text-indigo-400" /> : <Sun className="w-4 h-4 pointer-events-none transition-transform duration-200 text-amber-500" />}
             </button>
-            <button data-kjb-menu-toggle className="w-9 h-9 xs:w-11 xs:h-11 sm:w-10 sm:h-10 shrink-0 rounded-xl border border-border bg-secondary/30 hover:bg-secondary/50 active:bg-secondary transition-all duration-200 flex items-center justify-center cursor-pointer touch-manipulation"
+            <button data-kjb-menu-toggle className="w-9 h-9 shrink-0 rounded-lg border border-border bg-secondary/30 hover:bg-secondary/50 active:bg-secondary transition-all duration-200 flex items-center justify-center cursor-pointer touch-manipulation"
               onClick={(e) => { e.stopPropagation(); setMenuOpen(o => !o); }}
               type="button"
               aria-label="Open menu"
