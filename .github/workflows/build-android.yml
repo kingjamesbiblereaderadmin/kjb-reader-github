@@ -50,7 +50,7 @@ jobs:
             android/gradlew --stop || true
           fi
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4.0.4
       - name: Generate Gradle wrapper (if missing)
         working-directory: android
         run: |
