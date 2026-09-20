@@ -59,7 +59,7 @@ for bid in BUNDLE_IDS:
     if "APP_GROUPS" not in types:
         pr = post("/v1/bundleIdCapabilities", {
             "data": {
-                "type": "bundleIdCapability",
+                "type": "capabilities",
                 "attributes": {"capabilityType": "APP_GROUPS"},
                 "relationships": {"bundleId": {"data": {"type": "bundleIds", "id": data[0]["id"]}}},
             }})
@@ -67,12 +67,18 @@ for bid in BUNDLE_IDS:
               + ("" if pr.ok else f" {pr.text[:400]}"))
 
 if "com.kingjamesbiblereader.twa" in found:
+    certs = get("/v1/certificates?filter[certificateType]=DISTRIBUTION&limit=5")
+    cert_ids = [{"type": "certificates", "id": c["id"]}
+               for c in certs.json().get("data", [])] if certs.ok else []
     pr = post("/v1/profiles", {"data": {
         "type": "profiles",
         "attributes": {"name": f"CI appgroup check {int(time.time())}",
                        "profileType": "IOS_APP_STORE"},
-        "relationships": {"bundleId": {"data": {"type": "bundleIds",
-                                                "id": found["com.kingjamesbiblereader.twa"]}}},
+        "relationships": {
+            "bundleId": {"data": {"type": "bundleIds",
+                                  "id": found["com.kingjamesbiblereader.twa"]}},
+            "certificates": {"data": cert_ids},
+        },
     }})
     if pr.ok:
         content = pr.json()["data"]["attributes"].get("profileContent", "")
