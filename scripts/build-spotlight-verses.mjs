@@ -67,6 +67,12 @@ try {
 const clean = (t) =>
   String(t)
     .replace(/\s+/g, ' ')
+    // The printed edition brackets each supplied word individually, so runs
+    // like "[it] [was]" (4,442 adjacent pairs in the text) read badly as
+    // plain Spotlight text. Merge ADJACENT bracket groups into one:
+    // "[it was]". Spotlight tokenizes on the brackets, so word matching is
+    // unaffected.
+    .replace(/\]\s*\[/g, ' ')
     .trim();
 
 const out = {};
