@@ -94,7 +94,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="bg-gradient-to-br from-background via-accent/10 to-background"
+    <div data-kjb-safe-bleed className="bg-gradient-to-br from-background via-accent/10 to-background"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}

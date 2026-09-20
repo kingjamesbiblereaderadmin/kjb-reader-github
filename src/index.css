@@ -654,6 +654,22 @@ html.kjb-native-ios select {
   font-size: 16px !important;
 }
 
+/* Generic full-bleed background: extends an element's background out to
+   the TRUE screen edges even though it sits inside <main>, which insets
+   itself by the left/right safe-area (landscape notch / rounded corners on
+   iPhone). Without this, boxes like the home page's accent-tinted
+   background stop at main's padding, leaving a gap that shows whatever is
+   behind main (a "leak") instead of flowing edge-to-edge. Zero-width
+   wherever there is no inset, so portrait/browsers are unaffected. Works on
+   ordinary flow elements: negative margins grow the box, matching padding
+   keeps its own content from sliding into the notch. */
+[data-kjb-safe-bleed] {
+  margin-left: calc(-1 * env(safe-area-inset-left, 0px));
+  margin-right: calc(-1 * env(safe-area-inset-right, 0px));
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
 /* Reader toolbar band. It bleeds to its page container's edges with negative
    margins, but <main> is inset by the left/right safe-area (landscape notch /
    rounded corners), so on its own the band would stop short of the screen
