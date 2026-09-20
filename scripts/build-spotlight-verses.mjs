@@ -11,11 +11,12 @@
 //
 // keyed by book abbreviation (BIBLE_BOOKS[].abbr); chapter = array index + 1,
 // verse = index + 1 within the chapter. A missing verse number is filled with
-// "" (Swift skips empty strings). Text is plain: the ¶ paragraph mark is
-// removed, but the KJB [brackets] around supplied words are KEPT — Spotlight
-// cannot render italics, and the brackets show which words the translators
-// added. Spotlight tokenizes on punctuation, so matching still treats
-// "[are]" as the word "are".
+// "" (Swift skips empty strings). The text follows the printed edition: the
+// ¶ pilcrow that marks a new paragraph and the KJB [brackets] around
+// supplied words are both KEPT — Spotlight cannot render italics or
+// paragraph breaks, and the reader shows both of these too. Spotlight
+// tokenizes on punctuation, so matching still treats "[are]" as the word
+// "are" and ignores the ¶.
 //
 // The source file is Windows-1252 (the app decodes it the same way), not UTF-8.
 import fs from 'node:fs';
@@ -65,7 +66,6 @@ try {
 
 const clean = (t) =>
   String(t)
-    .replace(/^\s*¶\s*/, '')
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -86,7 +86,12 @@ for (const book of BIBLE_BOOKS) {
     const maxVerse = entries.reduce((m, e) => Math.max(m, e.verse), 0);
     const verses = new Array(maxVerse).fill('');
     for (const e of entries) {
-      verses[e.verse - 1] = clean(e.text);
+      let t = clean(e.text);
+      // Psalm 119's Hebrew section marks (ALEPH, BETH, ...) prefix their
+      // verse. Psalm titles and colophons stay out — Spotlight truncates
+      // long verse text, so trailing metadata would rarely render anyway.
+      if (e.heading) t = `${e.heading}. ${t}`;
+      verses[e.verse - 1] = t;
       verseTotal++;
     }
     rows.push(verses);
