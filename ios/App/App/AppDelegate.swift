@@ -1,5 +1,7 @@
 import UIKit
 import Capacitor
+import CoreSpotlight
+import UniformTypeIdentifiers
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -17,11 +19,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                                                object: nil, queue: .main) { [weak self] _ in
             self?.consumePendingLookup()
         }
-        // Make every book and chapter searchable from iOS Search (Spotlight).
-        // Runs in the background and only when the index is missing or stale
-        // (see SpotlightIndexer.swift). Includes verse text when the bundle has it.
-        SpotlightIndexer.indexIfNeeded()
-        SpotlightIndexer.indexVersesIfNeeded()
+        // Index the whole Bible into iOS system search (Spotlight) once per
+        // install (re-indexed whenever kjbSpotlightIndexVersion is bumped).
+        // The heavy work is delayed + backgrounded so it never competes with
+        // the app's own cold-start load.
+        startSpotlightIndexingIfNeeded()
         return true
     }
 
@@ -54,7 +56,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             guard let self else { return }
             guard let bridgeVC = self.window?.rootViewController as? CAPBridgeViewController,
                   let webView = bridgeVC.bridge?.webView else {
-                if attempt < 4 { self.loadWhenWebViewReady(url: url, attempt: attempt + 1) }
+                if attempt < 8 { self.loadWhenWebViewReady(url: url, attempt: attempt + 1) }
                 return
             }
             webView.load(URLRequest(url: url))
@@ -90,18 +92,209 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
-        // Called when the app was launched with an activity, including Universal Links.
-        // Feel free to add additional processing here, but if you want the App API to support
-        // tracking app url opens, make sure to keep this call
-
-        // A tapped iOS Search (Spotlight) result for a book or chapter: open
-        // the reader at that passage. Anything else (Universal Links, etc.)
-        // falls through to Capacitor below.
-        if let url = SpotlightIndexer.url(for: userActivity) {
+        // A Spotlight (system search) tap carries the tapped item's
+        // identifier; route it to the right passage and open it in the
+        // webview. Falls through to the proxy for every other activity
+        // type (Universal Links, Handoff).
+        if userActivity.activityType == CSSearchableItemActionType,
+           let identifier = userActivity.userInfo?[CSSearchableItemActivityIdentifier] as? String,
+           let url = kjbSpotlightURL(forIdentifier: identifier) {
             loadWhenWebViewReady(url: url, attempt: 0)
             return true
         }
+        // Called when the app was launched with an activity, including Universal Links.
+        // Feel free to add additional processing here, but if you want the App API to support
+        // tracking app url opens, make sure to keep this call
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
 
+}
+
+// MARK: - CoreSpotlight (iOS system search)
+
+/// Indexes the whole Bible — every book, every chapter, every verse, and a
+/// "look up <book name> in verses" item per book — into iOS Spotlight so
+/// any passage (or phrase) is findable from the system search, and tapping
+/// a result opens the app straight at it.
+///
+/// Book names are often ordinary words too (Romans appears in Acts, Job,
+/// Hosea...), so each book gets TWO entries: "Romans" (open the book) and
+/// "Look up 'Romans' in verses" (the app's text search for the phrase) —
+/// Spotlight cannot offer options on a single result, so both are indexed.
+///
+/// The manifest ships in the bundle as public/__native/spotlight-index.json
+/// (generated at build time by scripts/gen-spotlight-index.mjs via
+/// prepare-ios-offline.js): { books: [[shortName, fullName, abbr, 0|1,
+/// chapters]], verses: [[abbr, chapter, verse, plainText]] }.
+fileprivate let kjbSpotlightDomain = "com.kingjamesbiblereader.twa.spotlight"
+/// Bump to force a full re-index on existing installs.
+fileprivate let kjbSpotlightIndexVersion = 1
+fileprivate let kjbSpotlightVersionKey = "kjb.spotlight.indexVersion"
+fileprivate let kjbSpotlightBatchSize = 200
+
+extension AppDelegate {
+
+    /// Runs the (one-time, backgrounded) index build if the stored version
+    /// doesn't match. Called from didFinishLaunchingWithOptions.
+    func startSpotlightIndexingIfNeeded() {
+        guard UserDefaults.standard.integer(forKey: kjbSpotlightVersionKey) != kjbSpotlightIndexVersion else { return }
+        // Give the app's own cold-start (splash, offline hydration) a head
+        // start before we start feeding Spotlight.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+            DispatchQueue.global(qos: .utility).async {
+                self?.buildSpotlightIndex()
+            }
+        }
+    }
+
+    private struct SpotlightBook {
+        let shortName: String
+        let fullName: String
+        let abbr: String
+        let testament: Int // 0 = Old, 1 = New
+        let chapters: Int
+    }
+
+    private func loadSpotlightManifest() -> (books: [SpotlightBook], verses: [[Any]])? {
+        // The web bundle ships as a folder reference named "public", so the
+        // manifest sits at public/__native/... inside the .app; try the bare
+        // subdirectory too, in case the packaging ever changes.
+        let candidates = [
+            Bundle.main.url(forResource: "spotlight-index", withExtension: "json", subdirectory: "public/__native"),
+            Bundle.main.url(forResource: "spotlight-index", withExtension: "json", subdirectory: "__native")
+        ].compactMap { $0 }
+        guard let url = candidates.first,
+              let data = try? Data(contentsOf: url),
+              let obj = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+              let rawBooks = obj["books"] as? [[Any]],
+              let verses = obj["verses"] as? [[Any]] else { return nil }
+        var books: [SpotlightBook] = []
+        for b in rawBooks {
+            guard b.count >= 5,
+                  let shortName = b[0] as? String,
+                  let fullName = b[1] as? String,
+                  let abbr = b[2] as? String,
+                  let chapters = b[4] as? Int else { continue }
+            books.append(SpotlightBook(shortName: shortName, fullName: fullName, abbr: abbr,
+                                       testament: (b[3] as? Int) ?? 1, chapters: chapters))
+        }
+        guard !books.isEmpty else { return nil }
+        return (books, verses)
+    }
+
+    private func buildSpotlightIndex() {
+        guard let (books, verses) = loadSpotlightManifest() else { return }
+        var items: [CSSearchableItem] = []
+        var shortByAbbr: [String: String] = [:]
+
+        for b in books {
+            let testament = b.testament == 0 ? "Old Testament" : "New Testament"
+            shortByAbbr[b.abbr] = b.shortName
+
+            // The book itself — "Romans", "Genesis", ...
+            let bookAttrs = CSSearchableItemAttributeSet(contentType: UTType.text)
+            bookAttrs.title = b.shortName
+            bookAttrs.contentDescription = "\(b.fullName) — \(testament), \(b.chapters) chapters. KJB Reader"
+            bookAttrs.keywords = [b.shortName, b.abbr]
+            items.append(CSSearchableItem(uniqueIdentifier: "kjb-book-\(b.abbr)",
+                                          domainIdentifier: kjbSpotlightDomain,
+                                          attributeSet: bookAttrs))
+
+            // "Look up '<book>' in verses" — book names are often ordinary
+            // words (Romans in Acts, Job, Hosea), so the name should ALSO
+            // offer a phrase search in the verse text.
+            let wordAttrs = CSSearchableItemAttributeSet(contentType: UTType.text)
+            wordAttrs.title = "Look up “\(b.shortName)” in verses"
+            wordAttrs.contentDescription = "Search the Bible text for “\(b.shortName)”. KJB Reader"
+            let encodedName = b.shortName.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? b.shortName
+            items.append(CSSearchableItem(uniqueIdentifier: "kjb-word-\(encodedName)",
+                                          domainIdentifier: kjbSpotlightDomain,
+                                          attributeSet: wordAttrs))
+
+            // Every chapter — "Romans Chapter 3", ...
+            for ch in 1...max(b.chapters, 1) {
+                let chAttrs = CSSearchableItemAttributeSet(contentType: UTType.text)
+                chAttrs.title = "\(b.shortName) Chapter \(ch)"
+                chAttrs.contentDescription = "KJB Reader — read \(b.shortName) \(ch)"
+                chAttrs.keywords = ["\(b.shortName) \(ch)", "\(b.abbr) \(ch)"]
+                items.append(CSSearchableItem(uniqueIdentifier: "kjb-chapter-\(b.abbr)-\(ch)",
+                                              domainIdentifier: kjbSpotlightDomain,
+                                              attributeSet: chAttrs))
+            }
+        }
+
+        // Every verse — "Romans 3:16" with the verse text as the description,
+        // so Spotlight's full-text matching finds phrases too.
+        for v in verses {
+            guard v.count >= 4,
+                  let abbr = v[0] as? String,
+                  let ch = v[1] as? Int,
+                  let vs = v[2] as? Int,
+                  let text = v[3] as? String else { continue }
+            let short = shortByAbbr[abbr] ?? abbr
+            let vAttrs = CSSearchableItemAttributeSet(contentType: UTType.text)
+            vAttrs.title = "\(short) \(ch):\(vs)"
+            vAttrs.contentDescription = String(text.prefix(500))
+            items.append(CSSearchableItem(uniqueIdentifier: "kjb-verse-\(abbr)-\(ch)-\(vs)",
+                                          domainIdentifier: kjbSpotlightDomain,
+                                          attributeSet: vAttrs))
+        }
+
+        // Re-indexing replaces the whole domain (old identifiers from a
+        // previous version disappear); a fresh install just indexes.
+        let index = CSSearchableIndex.default()
+        index.deleteSearchableItems(withDomainIdentifiers: [kjbSpotlightDomain]) { [weak self] _ in
+            self?.indexSpotlightBatch(items, offset: 0)
+        }
+    }
+
+    /// Feeds Spotlight in modest sequential batches — ~33k items land over a
+    /// couple of minutes on a background queue without blocking anything.
+    private func indexSpotlightBatch(_ items: [CSSearchableItem], offset: Int) {
+        let end = min(offset + kjbSpotlightBatchSize, items.count)
+        guard offset < end else { return }
+        let batch = Array(items[offset..<end])
+        CSSearchableIndex.default().indexSearchableItems(batch) { [weak self] error in
+            if let error = error {
+                NSLog("[spotlight] index batch at \(offset) failed: \(error)")
+            }
+            if end >= items.count {
+                UserDefaults.standard.set(kjbSpotlightIndexVersion, forKey: kjbSpotlightVersionKey)
+                NSLog("[spotlight] indexing complete — \(items.count) items")
+            } else {
+                self?.indexSpotlightBatch(items, offset: end)
+            }
+        }
+    }
+}
+
+/// Maps a Spotlight item identifier back to the app URL that opens the
+/// tapped passage. Formats:
+///   kjb-book-<ABBR>                          → read the book (chapter 1)
+///   kjb-chapter-<ABBR>-<ch>                  → read that chapter
+///   kjb-verse-<ABBR>-<ch>-<v>                → read that verse
+///   kjb-word-<percent-encoded book name>     → search the phrase in verses
+fileprivate func kjbSpotlightURL(forIdentifier identifier: String) -> URL? {
+    let base = "https://kingjamesbiblereader.com"
+    if identifier.hasPrefix("kjb-book-") {
+        let abbr = String(identifier.dropFirst("kjb-book-".count))
+        guard !abbr.isEmpty else { return nil }
+        return URL(string: "\(base)/read?book=\(abbr)&chapter=1")
+    }
+    if identifier.hasPrefix("kjb-chapter-") {
+        let rest = String(identifier.dropFirst("kjb-chapter-".count)).split(separator: "-").map(String.init)
+        guard rest.count == 2, let ch = Int(rest[1]) else { return nil }
+        return URL(string: "\(base)/read?book=\(rest[0])&chapter=\(ch)")
+    }
+    if identifier.hasPrefix("kjb-verse-") {
+        let rest = String(identifier.dropFirst("kjb-verse-".count)).split(separator: "-").map(String.init)
+        guard rest.count == 3, let ch = Int(rest[1]), let vs = Int(rest[2]) else { return nil }
+        return URL(string: "\(base)/read?book=\(rest[0])&chapter=\(ch)&verse=\(vs)")
+    }
+    if identifier.hasPrefix("kjb-word-") {
+        let encoded = String(identifier.dropFirst("kjb-word-".count))
+        guard !encoded.isEmpty else { return nil }
+        return URL(string: "\(base)/search?q=\(encoded)")
+    }
+    return nil
 }
