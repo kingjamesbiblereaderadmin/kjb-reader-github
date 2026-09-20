@@ -2255,6 +2255,7 @@ export default function BibleReader() {
         {!loading && !error && isViewingTitlePage && (
           <div style={{ fontFamily: "'Merriweather', 'Cormorant Garamond', Georgia, serif" }} className="kjb-titlepage [&_*]:!font-serif"><TitlePage type={pos.abbr === 'GEN' ? 'testament-old' : pos.abbr === 'MAT' ? 'testament-new' : 'book'} book={book} /></div>
         )}
+        <div className="relative">
         {!loading && !error && verses.length > 0 && columnMode && !isViewingTitlePage && pos.chapter !== 1 && (
           <RunningHead bookName={book.name} chapter={pos.chapter} baseFontRem={zoomLevel / 100 * 0.7} isCursive={fontFamily === 'cursive'} />
         )}
@@ -2291,12 +2292,37 @@ export default function BibleReader() {
           ) : null;
 
           return (
+          <>
+          {/* Decorative continuation of the same column-rule (colour + weight)
+              up through the running head above, so the vertical split reads
+              as one unbroken line from the book/chapter heading all the way
+              down through the verse columns instead of appearing to start
+              mid-page. Purely an absolutely-positioned overlay against the
+              shared .relative wrapper -- it never affects the height/width
+              of the running head or the columns div, so it can't push or
+              resize any text or toolbar button. In the vast majority of
+              chapters the book name and "Chapter N" labels sit well clear of
+              the midpoint (that's the whole point of RunningHead's split
+              layout), so the line runs through open space; on the rare very
+              long book name that reaches the midpoint it's a hairline
+              crossing serif strokes, the same as a printed Bible's column
+              rule crossing a running head. */}
+          {useColumns && (
+            <div
+              aria-hidden="true"
+              data-testid="kjb-two-col-flow-divider"
+              className="absolute top-0 bottom-0 left-1/2 w-px -translate-x-1/2 pointer-events-none"
+              style={{ backgroundColor: 'hsl(var(--border))' }}
+            />
+          )}
           <div ref={useColumns ? columnsContainerRef : null} data-testid={useColumns ? 'kjb-two-col-container' : undefined} className={`${useColumns ? 'kjb-two-col text-left hyphens-auto' : 'text-left'} ${paragraphMode ? 'text-left px-2 sm:px-4' : ''}`} style={useColumns ? { fontSize: 'inherit', columnCount: 2, columnGap: fontFamily === 'cursive' ? '3.5rem' : '2.5rem', columnRule: '1px solid hsl(var(--border))' } : { fontSize: 'inherit' }}>
             {subscriptBlock}
             {shownVerses.map((v, idx) => renderVerse(v, idx === 0))}
           </div>
+          </>
           );
         })()}
+        </div>
         {!loading && !error && colophon && (!(filterMode && selectedVerses.size > 0) || (verses.length > 0 && selectedVerses.has(parseInt(verses[verses.length - 1].verse, 10)))) && (
           <div onClick={() => handleSectionClick('colophon')} id="kjb-colophon-anchor" className={`${columnMode ? 'mt-6 mb-4' : 'mt-12 mb-4 border-t border-border pt-6'} text-center transition-colors duration-500 rounded-lg cursor-pointer ${sectionActive('colophon') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`}>
             <p className={`notranslate kjb-colophon text-sm text-muted-foreground leading-relaxed ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}><SubscriptContent text={colophon} searchTerm={sectionActive('colophon') ? searchTerm : null} /></p>
