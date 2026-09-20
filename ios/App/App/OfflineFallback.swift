@@ -267,6 +267,10 @@ try {
       // Paints the native notch/home-indicator strips (see KjbChrome below).
       setColor: function (r, g, b) {
         window.webkit.messageHandlers.kjbChrome.postMessage({ r: Number(r) || 0, g: Number(g) || 0, b: Number(b) || 0 });
+      },
+      // One colour per edge, each [r, g, b]: top, bottom, left, right.
+      setEdges: function (t, b, l, r) {
+        window.webkit.messageHandlers.kjbChrome.postMessage({ edges: { t: t, b: b, l: l, r: r } });
       }
     };
     window.kjbPrintBridge = {
@@ -329,6 +333,20 @@ final class KJBNativeBridges: NSObject, WKScriptMessageHandler {
     // Theme color for the native chrome strips (notch / home indicator).
     // JS syncs the computed page background whenever the theme resolves.
     private func handleChrome(_ body: [String: Any]) {
+        // Newer JS: one colour per edge ({ edges: { t, b, l, r } }, each
+        // [r, g, b]). Falls back to the single-colour form below.
+        if let edges = body["edges"] as? [String: Any] {
+            func rgb(_ key: String) -> [Double]? {
+                guard let arr = edges[key] as? [Any] else { return nil }
+                let values = arr.compactMap { ($0 as? NSNumber)?.doubleValue }
+                return values.count >= 3 ? values : nil
+            }
+            if let t = rgb("t") {
+                KjbChrome.shared.setEdges(top: t, bottom: rgb("b") ?? t,
+                                          left: rgb("l") ?? t, right: rgb("r") ?? t)
+            }
+            return
+        }
         guard let r = body["r"] as? Double,
               let g = body["g"] as? Double,
               let b = body["b"] as? Double else { return }
@@ -484,13 +502,44 @@ final class KjbChrome: NSObject {
     // it via self.view).
     weak var hostView: UIView?
 
+    // The four exposed strips around the safe-area webview (top = notch /
+    // Dynamic Island, bottom = home indicator, left/right = landscape
+    // insets). Each one is painted with the colour the page is actually
+    // drawing at that edge, so the page's colours flow to the screen edges.
+    weak var topStrip: UIView?
+    weak var bottomStrip: UIView?
+    weak var leftStrip: UIView?
+    weak var rightStrip: UIView?
+
+    private static func makeColor(_ c: [Double]) -> UIColor? {
+        guard c.count >= 3 else { return nil }
+        return UIColor(red: c[0] / 255.0, green: c[1] / 255.0, blue: c[2] / 255.0, alpha: 1)
+    }
+
+    // Legacy single-colour path (older JS): paints every strip the same.
     func setBackgroundColor(_ r: Double, _ g: Double, _ b: Double) {
-        let dark = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255.0 < 0.5
+        let c = [r, g, b]
+        setEdges(top: c, bottom: c, left: c, right: c)
+    }
+
+    // Per-edge colours, each [r, g, b] in 0...255.
+    func setEdges(top: [Double], bottom: [Double], left: [Double], right: [Double]) {
+        guard top.count >= 3 else { return }
+        let dark = (0.2126 * top[0] + 0.7152 * top[1] + 0.0722 * top[2]) / 255.0 < 0.5
         let changed = dark != isDark
         isDark = dark
-        let color = UIColor(red: r / 255.0, green: g / 255.0, blue: b / 255.0, alpha: 1)
+        let topColor = KjbChrome.makeColor(top)
+        let bottomColor = KjbChrome.makeColor(bottom) ?? topColor
+        let leftColor = KjbChrome.makeColor(left) ?? topColor
+        let rightColor = KjbChrome.makeColor(right) ?? topColor
         DispatchQueue.main.async { [weak self] in
-            self?.hostView?.backgroundColor = color
+            UIView.animate(withDuration: 0.15) {
+                self?.hostView?.backgroundColor = topColor
+                self?.topStrip?.backgroundColor = topColor
+                self?.bottomStrip?.backgroundColor = bottomColor
+                self?.leftStrip?.backgroundColor = leftColor
+                self?.rightStrip?.backgroundColor = rightColor
+            }
             if changed {
                 // Status bar text must contrast the strip (light text on a
                 // dark strip, dark text on a light one).
@@ -533,6 +582,48 @@ extension CAPBridgeViewController {
                                  .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
 
         self.view = container
+
+        // Four colour strips behind the webview, each spanning exactly the
+        // area between the screen edge and the safe-area guide on that side.
+        // They start clear (the container colour shows) and are painted per
+        // edge by KjbChrome.setEdges. Added BEFORE the webview so the page
+        // always sits on top of them.
+        let guide = container.safeAreaLayoutGuide
+        let topStrip = UIView()
+        let bottomStrip = UIView()
+        let leftStrip = UIView()
+        let rightStrip = UIView()
+        for strip in [topStrip, bottomStrip, leftStrip, rightStrip] {
+            strip.translatesAutoresizingMaskIntoConstraints = false
+            strip.backgroundColor = UIColor.clear
+            container.addSubview(strip)
+        }
+        NSLayoutConstraint.activate([
+            topStrip.topAnchor.constraint(equalTo: container.topAnchor),
+            topStrip.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            topStrip.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            topStrip.bottomAnchor.constraint(equalTo: guide.topAnchor),
+
+            bottomStrip.topAnchor.constraint(equalTo: guide.bottomAnchor),
+            bottomStrip.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            bottomStrip.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            bottomStrip.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+
+            leftStrip.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            leftStrip.trailingAnchor.constraint(equalTo: guide.leadingAnchor),
+            leftStrip.topAnchor.constraint(equalTo: guide.topAnchor),
+            leftStrip.bottomAnchor.constraint(equalTo: guide.bottomAnchor),
+
+            rightStrip.leadingAnchor.constraint(equalTo: guide.trailingAnchor),
+            rightStrip.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            rightStrip.topAnchor.constraint(equalTo: guide.topAnchor),
+            rightStrip.bottomAnchor.constraint(equalTo: guide.bottomAnchor),
+        ])
+        KjbChrome.shared.topStrip = topStrip
+        KjbChrome.shared.bottomStrip = bottomStrip
+        KjbChrome.shared.leftStrip = leftStrip
+        KjbChrome.shared.rightStrip = rightStrip
+
         container.addSubview(webView)
         webView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
