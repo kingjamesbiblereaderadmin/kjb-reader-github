@@ -527,7 +527,7 @@ export default function AppLayout() {
       <main
         id="kjb-scroll"
         className="flex-1 overflow-y-auto sm:!pb-0 relative"
-        style={{ paddingBottom: `calc(${footerMode === 'bar' ? '2.5rem' : footerMode === 'two' ? '7rem' : '4rem'} + env(safe-area-inset-bottom))` }}
+        style={{ paddingBottom: `calc(${footerMode === 'bar' ? '2.5rem' : footerMode === 'two' ? '7rem' : '4rem'} + env(safe-area-inset-bottom))`, paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}
       >
         <div key={reloadKey} className={isReloading ? 'opacity-50 pointer-events-none' : ''}>
           <Outlet />
@@ -561,7 +561,10 @@ function DesktopFooter({ navigate, setMenuOpen, pathname }) {
     });
   };
   return (
-      <footer className={`print:hidden hidden sm:block border-t border-border/60 bg-card/70 backdrop-blur-xl flex-shrink-0 ${open ? 'py-3' : 'py-0.5'}`}>
+      <footer
+        className={`print:hidden hidden sm:block border-t border-border/60 bg-card/70 backdrop-blur-xl flex-shrink-0 ${open ? 'py-3' : 'py-0.5'}`}
+        style={{ paddingBottom: `calc(${open ? '0.75rem' : '0.125rem'} + env(safe-area-inset-bottom))`, paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}
+      >
         <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12">
           <div className={`flex justify-center ${open ? 'mb-2' : 'mb-0'}`}>
             <button
