@@ -26,7 +26,7 @@ import UniformTypeIdentifiers
 enum SpotlightIndexer {
 
     /// Bump to make existing installs delete and rebuild the index.
-    private static let indexVersion = 1
+    private static let indexVersion = 2
     private static let versionKey = "kjbSpotlightIndexVersion"
     private static let domain = "com.kingjamesbiblereader.twa.reader"
     private static let baseURL = "https://kingjamesbiblereader.com"
@@ -111,6 +111,64 @@ enum SpotlightIndexer {
         Book("Revelation", "REV", 22, false),
     ]
 
+    /// Extra search terms per book, derived from the reader's own alias list
+    /// (src/lib/parseReference.js): "jn", "1 cor", "ps", "revelations"... Two-letter
+    /// tokens that are also ordinary words ("is", "am", "la") are left out. Digit-led
+    /// forms carry a spaced variant ("1 cor") since that is how people type them.
+    private static let aliases: [String: [String]] = [
+        "GEN": ["gn"],
+        "EXO": ["exod"],
+        "LEV": ["lv"],
+        "NUM": ["nm"],
+        "DEU": ["dt", "deut"],
+        "JOS": ["josh"],
+        "JDG": ["judg", "jg"],
+        "1SA": ["1 sa", "1sam", "1 sam"],
+        "2SA": ["2 sa", "2sam", "2 sam"],
+        "1KI": ["1 ki", "1kgs", "1 kgs"],
+        "2KI": ["2 ki", "2kgs", "2 kgs"],
+        "1CH": ["1 ch", "1chr", "1 chr", "1chron", "1 chron"],
+        "2CH": ["2 ch", "2chr", "2 chr", "2chron", "2 chron"],
+        "EST": ["esth"],
+        "JOB": ["jb"],
+        "PSA": ["ps", "psalm", "pslm"],
+        "PRO": ["prov", "proverb"],
+        "ECC": ["eccl"],
+        "SNG": ["song", "sos", "canticles", "song of songs"],
+        "EZK": ["eze", "ezek"],
+        "DAN": ["dn"],
+        "JOL": ["joe"],
+        "OBA": ["obad"],
+        "JON": ["jnh"],
+        "MIC": ["mc"],
+        "NAM": ["nah"],
+        "HAB": ["hb"],
+        "ZEP": ["zph", "zeph"],
+        "ZEC": ["zech"],
+        "MAL": ["ml"],
+        "MAT": ["mt", "matt"],
+        "MRK": ["mk", "mar"],
+        "LUK": ["lk"],
+        "JHN": ["jn", "joh"],
+        "ROM": ["rm"],
+        "1CO": ["1 co", "1cor", "1 cor"],
+        "2CO": ["2 co", "2cor", "2 cor"],
+        "PHP": ["phil"],
+        "1TH": ["1 th", "1thess", "1 thess"],
+        "2TH": ["2 th", "2thess", "2 thess"],
+        "1TI": ["1 ti", "1tim", "1 tim"],
+        "2TI": ["2 ti", "2tim", "2 tim"],
+        "PHM": ["phlm", "philem"],
+        "JAS": ["jm", "jam"],
+        "1PE": ["1 pe", "1pet", "1 pet"],
+        "2PE": ["2 pe", "2pet", "2 pet"],
+        "1JN": ["1 jn", "1joh", "1 joh"],
+        "2JN": ["2 jn", "2joh", "2 joh"],
+        "3JN": ["3 jn", "3joh", "3 joh"],
+        "JDE": ["jud"],
+        "REV": ["rv", "apocalypse", "revelations"],
+    ]
+
     // MARK: - Indexing
 
     /// Builds the index in the background if it is missing or out of date.
@@ -157,12 +215,13 @@ enum SpotlightIndexer {
         for book in books {
             let testament = book.isOldTestament ? "Old Testament" : "New Testament"
             let chapterWord = book.chapters == 1 ? "1 chapter" : "\(book.chapters) chapters"
+            let extras = aliases[book.abbr] ?? []
 
             items.append(makeItem(
                 id: "\(idPrefix)\(book.abbr)",
                 title: book.name,
                 description: "King James Bible · \(testament) · \(chapterWord)",
-                keywords: [book.name, book.abbr, "Bible", "KJV", "King James"]
+                keywords: [book.name, book.abbr] + extras + ["Bible", "KJV", "King James"]
             ))
 
             for chapter in 1...book.chapters {
@@ -170,7 +229,8 @@ enum SpotlightIndexer {
                     id: "\(idPrefix)\(book.abbr):\(chapter)",
                     title: "\(book.name) \(chapter)",
                     description: "King James Bible · \(testament)",
-                    keywords: ["\(book.name) \(chapter)", "\(book.abbr) \(chapter)", book.name, "Bible", "KJV", "King James"]
+                    keywords: ["\(book.name) \(chapter)", "\(book.abbr) \(chapter)", book.name]
+                        + extras.map { "\($0) \(chapter)" }
                 ))
             }
         }
