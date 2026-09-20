@@ -210,6 +210,8 @@ export default function BibleReader() {
   // makes each effect run exactly once per real mount. Harmless in production,
   // where StrictMode does not double-invoke.
   const didMountLoadRef = useRef(false);
+  // Which verse the scroll-to-verse pass last animated to (see scrollToVerseEl).
+  const scrolledVerseRef = useRef(null);
   const lastHandledNavSearchRef = useRef(null);
 
   const [gospelMode, setGospelMode] = useState(false);
@@ -1318,11 +1320,22 @@ export default function BibleReader() {
     let topRect = numEl ? numEl.getBoundingClientRect().top : verseEl.getBoundingClientRect().top;
     const heading = verseEl.querySelector('.font-bold.text-center');
     if (heading && heading.getBoundingClientRect().top < topRect) topRect = heading.getBoundingClientRect().top;
-    if (scroller) {
-      scroller.scrollTo({ top: Math.max(0, topRect - scroller.getBoundingClientRect().top + scroller.scrollTop - stickyOffset), behavior: 'smooth' });
-    } else {
-      window.scrollTo({ top: Math.max(0, topRect + window.scrollY - stickyOffset), behavior: 'smooth' });
-    }
+    // This runs several times per navigation (timed passes at 50/200/600ms plus
+    // a ResizeObserver on the content for 2s) so late layout shifts can't leave
+    // the verse off-screen. Each of those passes used to start a BRAND-NEW
+    // smooth scroll animation even when the verse was already in place — the
+    // animation visibly restarted/jittered, which is the flicker on opening a
+    // search result. Now a pass that is already at the right offset is a no-op,
+    // and only the first pass animates; later corrections snap instantly so
+    // they can't fight an in-flight animation.
+    const target = scroller
+      ? Math.max(0, topRect - scroller.getBoundingClientRect().top + scroller.scrollTop - stickyOffset)
+      : Math.max(0, topRect + window.scrollY - stickyOffset);
+    const current = scroller ? scroller.scrollTop : window.scrollY;
+    if (Math.abs(current - target) < 4) return;
+    const first = !scrolledVerseRef.current || scrolledVerseRef.current.verse !== verseNum;
+    scrolledVerseRef.current = { verse: verseNum };
+    (scroller || window).scrollTo({ top: target, behavior: first ? 'smooth' : 'auto' });
   }, []);
 
   useEffect(() => {
