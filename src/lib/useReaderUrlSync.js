@@ -11,7 +11,17 @@ export function useReaderUrlSync(pos, loading, a11yFont, navigate, searchTerm, g
     try {
       const params = new URLSearchParams(window.location.search);
       let from = params.get('from');
-      const q = params.get('q');
+      // Returning to /read from Home (or after a restart) arrives with a bare
+      // URL, so the keyword search that was restored from storage has no `q`
+      // in it. Without `q` the reader's from=search branch treats the visit as
+      // a plain reference jump: it drops the term and the result count, so the
+      // pill falls back to "Currently Reading" and the prev/next stepper never
+      // renders. Re-stamp the active keyword term (a reference-style label like
+      // "John 3:16" is NOT a keyword search, so it stays out) and the whole
+      // live-search path applies exactly as it does straight off the Search
+      // page — term, index and total all restored from the saved search nav.
+      const q = params.get('q')
+        || (searchTerm && !/\d+\s*:\s*\d+/.test(searchTerm) ? searchTerm : null);
       // An active search/gospel context must win over a stale daily/random
       // flag left in the URL from a previous view. Otherwise the "currently
       // reading" indicator glitches — keeping the search term but showing the
