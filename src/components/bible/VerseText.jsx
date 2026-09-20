@@ -154,7 +154,11 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     // When the letter carries its own tint, mask the inline highlight behind the
     // float with the page background so the two layers don't stack into a
     // darker box. The number cell stays transparent (only the letter is masked).
-    const groupStyle = dropHighlight
+    // The background mask is only useful over a verse-highlight background
+    // (to keep the tint layers from stacking darker). In select mode the area
+    // behind the cap is the selection box's light tint instead — masking it
+    // there paints a solid white halo around the letter, so skip it.
+    const groupStyle = dropHighlight && !selectMode
       ? ` style="background-color:hsl(var(--background));"`
       : '';
     // Match the first letter that is part of the actual TEXT, skipping any
