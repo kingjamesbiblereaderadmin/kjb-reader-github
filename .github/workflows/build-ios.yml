@@ -112,6 +112,41 @@ jobs:
             -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8 \
             -authenticationKeyID ${{ secrets.ASC_KEY_ID }} \
             -authenticationKeyIssuerID ${{ secrets.ASC_ISSUER_ID }} \
+      # The archive is assembled by hand from an unsigned build, so confirm the
+      # signed IPA really carries the share extension and the App Group
+      # entitlement on both the app and the extension. A missing extension fails
+      # the job before upload; a missing App Group is reported as a warning.
+      - name: Verify share extension in IPA
+        run: |
+          set -u
+          rm -rf /tmp/ipacheck && mkdir -p /tmp/ipacheck
+          unzip -q build/ipa/App.ipa -d /tmp/ipacheck
+          APP=/tmp/ipacheck/Payload/App.app
+          APPEX="$APP/PlugIns/KJBShare.appex"
+          GROUP=group.com.kingjamesbiblereader.twa
+          {
+            echo "### Share extension check"
+            echo "PlugIns contents:"; ls -1 "$APP/PlugIns" 2>&1 | sed 's/^/- /'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          if [ ! -d "$APPEX" ]; then
+            echo "::error::KJBShare.appex is missing from the IPA - the share sheet entry would not ship"
+            exit 1
+          fi
+          PB=/usr/libexec/PlistBuddy
+          {
+            echo "- extension display name: $($PB -c 'Print :CFBundleDisplayName' "$APPEX/Info.plist")"
+            echo "- app version/build: $($PB -c 'Print :CFBundleShortVersionString' "$APP/Info.plist") ($($PB -c 'Print :CFBundleVersion' "$APP/Info.plist"))"
+            echo "- extension version/build: $($PB -c 'Print :CFBundleShortVersionString' "$APPEX/Info.plist") ($($PB -c 'Print :CFBundleVersion' "$APPEX/Info.plist"))"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          for T in "$APP" "$APPEX"; do
+            ENT="$(codesign -d --entitlements :- "$T" 2>/dev/null || true)"
+            if printf '%s' "$ENT" | grep -q "$GROUP"; then
+              echo "- $(basename "$T"): App Group entitlement present" | tee -a "$GITHUB_STEP_SUMMARY"
+            else
+              echo "::warning::$(basename "$T") is missing the $GROUP entitlement - share-to-app handoff would silently fail"
+              echo "- $(basename "$T"): App Group entitlement MISSING" | tee -a "$GITHUB_STEP_SUMMARY"
+            fi
+          done
       - name: Resolve upload mode
         id: uploadmode
         run: |
