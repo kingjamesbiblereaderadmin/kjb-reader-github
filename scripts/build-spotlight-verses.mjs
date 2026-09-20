@@ -11,8 +11,11 @@
 //
 // keyed by book abbreviation (BIBLE_BOOKS[].abbr); chapter = array index + 1,
 // verse = index + 1 within the chapter. A missing verse number is filled with
-// "" (Swift skips empty strings). Text is plain: the ¶ paragraph mark and the
-// [italic] brackets are removed so Spotlight matches ordinary words.
+// "" (Swift skips empty strings). Text is plain: the ¶ paragraph mark is
+// removed, but the KJB [brackets] around supplied words are KEPT — Spotlight
+// cannot render italics, and the brackets show which words the translators
+// added. Spotlight tokenizes on punctuation, so matching still treats
+// "[are]" as the word "are".
 //
 // The source file is Windows-1252 (the app decodes it the same way), not UTF-8.
 import fs from 'node:fs';
@@ -63,7 +66,6 @@ try {
 const clean = (t) =>
   String(t)
     .replace(/^\s*¶\s*/, '')
-    .replace(/[\[\]]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
 

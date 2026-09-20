@@ -272,7 +272,7 @@ enum SpotlightIndexer {
     // MARK: - Verse-level index
 
     /// Bump to rebuild the verse index on existing installs.
-    private static let verseIndexVersion = 1
+    private static let verseIndexVersion = 2
     private static let verseVersionKey = "kjbSpotlightVerseIndexVersion"
     private static let verseDomain = "com.kingjamesbiblereader.twa.verses"
 
