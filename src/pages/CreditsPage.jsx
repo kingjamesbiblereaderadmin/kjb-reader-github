@@ -173,10 +173,10 @@ export default function CreditsPage() {
         <Section edge="from-amber-500 to-amber-400" iconBg="from-amber-500 to-orange-500" eyebrow="The text" icon={<BookOpen className="w-5 h-5" />} title="Bible Text">
           <div className="space-y-2.5 notranslate" translate="no">
             {[
-              <>The <strong className="text-foreground">King James Bible (KJB)</strong> — Pure Cambridge Edition.</>,
+              <>The <strong className="text-foreground">King James Bible (KJB)</strong> — Pure Cambridge Edition, the text used throughout this app for reading, searching, sharing, and exporting.</>,
               <>Our master text file is generated directly from our authoritative Pure Cambridge Edition source document, kindly made available by <a href="https://bibleprotector.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">bibleprotector.com</a>.</>,
               <>It is then verified word-for-word and verse-by-verse against an independent Pure Cambridge Edition reference.</>,
-              <>All 66 books, 1,189 chapters, and 31,102 verses are included in full.</>,
+              <>All 66 books, 1,189 chapters, and 31,102 verses are included in full, with nothing abridged, paraphrased, or reworded.</>,
               <>Italics, paragraph marks, and small-caps LORD and GOD are preserved exactly as printed.</>,
             ].map((line, i) => (
               <p key={i} className="font-sans text-sm text-foreground/85 leading-relaxed flex items-start gap-2">
@@ -188,7 +188,7 @@ export default function CreditsPage() {
           <div className="space-y-2 mt-3">
             <p className="font-sans text-xs text-muted-foreground leading-relaxed flex items-start gap-2">
               <span className="text-accent mt-0.5">•</span>
-              <span>The KJB text is public domain worldwide.</span>
+              <span>The KJB text is public domain worldwide, with one regional exception:</span>
             </p>
             <div className="pl-5 space-y-1.5">
               {[
@@ -203,7 +203,7 @@ export default function CreditsPage() {
             </div>
             <p className="font-sans text-xs text-muted-foreground leading-relaxed flex items-start gap-2">
               <span className="text-accent mt-0.5">•</span>
-              <span>This app is for personal, non-commercial use only.</span>
+              <span>This app is provided for personal, non-commercial reading and study only, and is never sold or licensed for resale.</span>
             </p>
           </div>
         </Section>
