@@ -13,7 +13,13 @@ export function useSearchAndGospelResults(
 ) {
   const preSearchPosRef = useRef(null);
 
-  const stepToResult = (r) => {
+  // skipLoad: the caller has ALREADY issued a fetch for this exact chapter
+  // (the reader's mount effect loads the URL's book/chapter before this runs on
+  // a fresh search-result navigation). Without it, this function fires a second
+  // identical fetch — the chapter paints, then repaints and re-runs the
+  // scroll-to-verse pass, which is the visible flicker. Every other piece of
+  // step state (pos, highlight, selection, filter) is still applied.
+  const stepToResult = (r, skipLoad = false) => {
     // Capture the user's ORIGINAL reading position ONCE — only if no return
     // anchor exists yet. stepToResult also runs when stepping between results
     // (the prev/next arrows), and at that point kjb-position is itself a
@@ -91,6 +97,7 @@ export function useSearchAndGospelResults(
     // the lookup back down to a single verse the moment the chapter loads.
     const rangeEnd = (!section && r.verse && r.verseEnd && parseInt(r.verseEnd, 10) > parseInt(r.verse, 10))
       ? parseInt(r.verseEnd, 10) : null;
+    if (skipLoad) return;
     loadChapter(r.abbr, r.chapter, targetVerse, rangeEnd);
   };
 
