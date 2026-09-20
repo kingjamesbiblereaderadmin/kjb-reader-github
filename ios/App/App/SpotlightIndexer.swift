@@ -9,8 +9,10 @@ import UniformTypeIdentifiers
  * "Romans 8" or "John 3" shows a KJB Reader result, and tapping it opens the
  * reader at that passage. Book rows open chapter 1.
  *
- * - ~1,255 book/chapter items (66 books + 1,189 chapters), indexed from the
- *   table below, plus one item per verse (31,102) whose text is searchable,
+ * - 132 book rows (66 books + 66 "Look up … in verses" phrase-lookup rows)
+ *   indexed from the table below, plus one item per verse (31,102) whose
+ *   text is searchable. Tapping a book opens its chapter 1; the chapter is
+ *   then picked in the app. Per-chapter rows are deliberately omitted.,
  *   so "for God so loved" or "charity" finds the verse. Verse text comes from
  *   public/__native/spotlight-verses.json, which CI generates from the bundled
  *   PCE text (scripts/build-spotlight-verses.mjs); if that file is absent the
@@ -33,7 +35,7 @@ import UniformTypeIdentifiers
 enum SpotlightIndexer {
 
     /// Bump to make existing installs delete and rebuild the index.
-    private static let indexVersion = 3
+    private static let indexVersion = 4
     private static let versionKey = "kjbSpotlightIndexVersion"
     private static let domain = "com.kingjamesbiblereader.twa.reader"
     private static let baseURL = "https://kingjamesbiblereader.com"
@@ -222,7 +224,7 @@ enum SpotlightIndexer {
 
     private static func makeItems() -> [CSSearchableItem] {
         var items: [CSSearchableItem] = []
-        items.reserveCapacity(1300)
+        items.reserveCapacity(132)
 
         for book in books {
             let testament = book.isOldTestament ? "Old Testament" : "New Testament"
@@ -247,15 +249,13 @@ enum SpotlightIndexer {
                 keywords: ["search \(book.name)", "\(book.name) in verses"] + extras
             ))
 
-            for chapter in 1...book.chapters {
-                items.append(makeItem(
-                    id: "\(idPrefix)\(book.abbr):\(chapter)",
-                    title: "\(book.name) \(chapter)",
-                    description: "King James Bible · \(testament)",
-                    keywords: ["\(book.name) \(chapter)", "\(book.abbr) \(chapter)", book.name]
-                        + extras.map { "\($0) \(chapter)" }
-                ))
-            }
+            // NOTE: no per-chapter items. The book row already tells you how
+            // many chapters it has and opens the app at the book, where you
+            // pick the chapter; 1,189 chapter rows would bury the book rows
+            // for short names like Peter (1 Peter 1..5, 2 Peter 1..3 next to
+            // the two book rows you actually want). Direct chapter access is
+            // still searchable: typing "1 Peter 3" matches the verse items
+            // ("1 Peter 3:16", ...) which open that chapter.
         }
         return items
     }
