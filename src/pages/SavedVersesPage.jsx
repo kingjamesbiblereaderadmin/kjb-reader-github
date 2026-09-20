@@ -19,11 +19,14 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
-// Renders saved-verse text with [bracketed] words as italic <em> elements,
-// matching the reader's rendering of KJB supplied-word italics.
+// Saved verse text is stored with [square brackets] marking the italic
+// words — the reader renders those as real italics (renderVerseText).
+// Render them the same way here instead of showing the raw brackets.
 function ItalicVerseText({ text }) {
   const parts = String(text || '').split(/\[([^\]]+)\]/g);
-  return parts.map((part, i) => (i % 2 === 1 ? <em key={i}>{part}</em> : <span key={i}>{part}</span>));
+  return parts.map((part, i) => (i % 2 === 1
+    ? <em key={i}>{part}</em>
+    : <span key={i}>{part}</span>));
 }
 
 export default function SavedVersesPage() {
