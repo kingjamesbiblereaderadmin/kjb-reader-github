@@ -348,9 +348,24 @@ enum SpotlightIndexer {
 
     // MARK: - Opening a tapped result
 
-    /// Maps a tapped Spotlight result to the reader URL, or returns nil when
-    /// the activity is not one of ours.
+    /// Maps a Spotlight hand-off to the reader URL, or returns nil when the
+    /// activity is not one of ours. Two kinds arrive here:
+    /// - a tapped result (CSSearchableItemActionType) -> that book/chapter/verse;
+    /// - the "Search in App" row iOS shows under Spotlight results
+    ///   (CSQueryContinuationActionType) -> the app's own search page for the
+    ///   text the user typed, so they can see every match, not just the few
+    ///   Spotlight lists.
     static func url(for userActivity: NSUserActivity) -> URL? {
+        if userActivity.activityType == CSQueryContinuationActionType {
+            let query = (userActivity.userInfo?[CSSearchQueryString] as? String)?
+                .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            // & + = # would end or corrupt the q= value, so escape them too.
+            let allowed = CharacterSet.urlQueryAllowed.subtracting(CharacterSet(charactersIn: "&+=#"))
+            guard !query.isEmpty,
+                  let encoded = query.addingPercentEncoding(withAllowedCharacters: allowed) else { return nil }
+            return URL(string: "\(baseURL)/search?q=\(encoded)")
+        }
+
         guard userActivity.activityType == CSSearchableItemActionType,
               let id = userActivity.userInfo?[CSSearchableItemActivityIdentifier] as? String,
               id.hasPrefix(idPrefix) else { return nil }
