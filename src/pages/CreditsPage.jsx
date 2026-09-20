@@ -186,17 +186,25 @@ export default function CreditsPage() {
             ))}
           </div>
           <div className="space-y-2 mt-3">
-            {[
-              'The KJB text is public domain worldwide.',
-              <>In the United Kingdom, it is protected by a perpetual Crown Copyright administered by the King&apos;s Printer.</>,
-              'This app is for personal, non-commercial use only.',
-              <>For commercial use within the UK, a licence from Cambridge University Press or the King&apos;s Printer may be required.</>,
-            ].map((line, i) => (
-              <p key={i} className="font-sans text-xs text-muted-foreground leading-relaxed flex items-start gap-2">
-                <span className="text-accent mt-0.5">•</span>
-                <span>{line}</span>
-              </p>
-            ))}
+            <p className="font-sans text-xs text-muted-foreground leading-relaxed flex items-start gap-2">
+              <span className="text-accent mt-0.5">•</span>
+              <span>The KJB text is public domain worldwide.</span>
+            </p>
+            <div className="pl-5 space-y-1.5">
+              {[
+                <>In the United Kingdom, it is protected by a perpetual Crown Copyright administered by the King&apos;s Printer.</>,
+                <>For commercial use within the UK, a licence from Cambridge University Press or the King&apos;s Printer may be required.</>,
+              ].map((line, i) => (
+                <p key={i} className="font-sans text-[11px] text-muted-foreground/90 leading-relaxed flex items-start gap-2">
+                  <span className="text-accent/70 mt-0.5">–</span>
+                  <span>{line}</span>
+                </p>
+              ))}
+            </div>
+            <p className="font-sans text-xs text-muted-foreground leading-relaxed flex items-start gap-2">
+              <span className="text-accent mt-0.5">•</span>
+              <span>This app is for personal, non-commercial use only.</span>
+            </p>
           </div>
         </Section>
 
