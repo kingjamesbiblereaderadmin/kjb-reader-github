@@ -113,24 +113,6 @@ function rewriteCssFonts(dir) {
 }
 rewriteCssFonts(iosPublic);
 
-// 5b. CoreSpotlight manifest — books + chapters + every verse in plain
-// text, so iOS Spotlight finds "Romans", "Romans Chapter 3", "Romans 3:16"
-// and phrase searches. The generator (and the parser it imports) uses the
-// app's "@/lib/..." aliases, so bundle it with esbuild first — plain node
-// cannot resolve those.
-import { execSync } from 'node:child_process';
-const genBundle = '.tmp-spotlight-gen.cjs';
-execSync(
-  'npx esbuild scripts/gen-spotlight-index.mjs --bundle --platform=node --format=cjs' +
-    ` --outfile=\${genBundle} --alias:@=./src --log-level=warning`,
-  { stdio: 'inherit' }
-);
-try {
-  execSync(`node \${genBundle}`, { stdio: 'inherit' });
-} finally {
-  fs.rmSync(genBundle, { force: true });
-}
-
 console.log('iOS offline bundle prepared.');
 
 // 6. Hard verification — the bundle is only useful if the files the app
@@ -143,7 +125,6 @@ const mustExist = [
   '__native/logo.png',
   '__native/legacy.html',
   '__native/defence-resources.json',
-  '__native/spotlight-index.json',
   'index.html',
 ];
 for (const rel of mustExist) {
@@ -161,17 +142,18 @@ if (srcMd5 !== dstMd5) {
 }
 console.log(`[verify] OK — bundle at ${iosPublic} ships the full Bible (md5 ${dstMd5}).`);
 
-// The Spotlight manifest must carry the whole Bible: 66 books and ~31k
-// verses, and the generator's own spot-checks (John 3:16, Romans 3:16) have
-// already validated the content — here we re-check the counts survived to
-// disk so an interrupted write cannot ship a partial index.
-const spotlightManifest = JSON.parse(fs.readFileSync(path.join(iosPublic, '__native', 'spotlight-index.json'), 'utf8'));
-if (!Array.isArray(spotlightManifest.books) || spotlightManifest.books.length !== 66) {
-  console.error('[verify] Spotlight manifest does not have exactly 66 books');
-  process.exit(1);
+// 7. Verse-level iOS Search (Spotlight) data. SpotlightIndexer.swift indexes
+// every verse's text from public/__native/spotlight-verses.json (built from
+// the same PCE text with the reader's own parser). It is an enhancement, so a
+// failure here must not block the build: the app just skips verse indexing
+// (book/chapter search keeps working) and the CI IPA check reports it.
+import { execFileSync } from 'node:child_process';
+try {
+  execFileSync(process.execPath, [
+    'scripts/build-spotlight-verses.mjs',
+    path.join(iosPublic, '__native', 'pce-bible.txt'),
+    path.join(iosPublic, '__native', 'spotlight-verses.json'),
+  ], { stdio: 'inherit' });
+} catch (e) {
+  console.warn(`[spotlight] verse index data NOT generated — verse search disabled in this build: ${e.message}`);
 }
-if (!Array.isArray(spotlightManifest.verses) || spotlightManifest.verses.length < 31000) {
-  console.error(`[verify] Spotlight manifest only has ${spotlightManifest.verses?.length ?? 0} verses`);
-  process.exit(1);
-}
-console.log(`[verify] OK — Spotlight manifest: ${spotlightManifest.books.length} books, ${spotlightManifest.verses.length} verses.`);
