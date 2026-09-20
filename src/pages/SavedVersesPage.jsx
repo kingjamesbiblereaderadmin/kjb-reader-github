@@ -19,6 +19,13 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
+// Renders saved-verse text with [bracketed] words as italic <em> elements,
+// matching the reader's rendering of KJB supplied-word italics.
+function ItalicVerseText({ text }) {
+  const parts = String(text || '').split(/\[([^\]]+)\]/g);
+  return parts.map((part, i) => (i % 2 === 1 ? <em key={i}>{part}</em> : <span key={i}>{part}</span>));
+}
+
 export default function SavedVersesPage() {
   const [saved, setSaved] = useState([]);
   const [folders, setFolders] = useState([]);
@@ -406,8 +413,8 @@ export default function SavedVersesPage() {
                 <p className="font-sans text-xs font-semibold text-accent tracking-wide uppercase mb-2">
                   {entry.ref} {activeFolder === 'All' && <span className="ml-2 px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground text-[10px] lowercase tracking-normal">{entry.folder || 'Favourites'}</span>}
                 </p>
-                <blockquote className="font-serif text-lg text-foreground leading-relaxed">
-                  "{entry.text}"
+                <blockquote className="font-serif text-lg text-foreground leading-relaxed [&_em]:italic [&_em]:text-foreground/75">
+                  "<ItalicVerseText text={entry.text} />"
                 </blockquote>
               </button>
               

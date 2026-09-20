@@ -725,10 +725,20 @@ export default function BibleReader() {
       if (term && resultsRaw && !searchTerm) {
         const results = JSON.parse(resultsRaw);
         if (results.length > 0) {
-          searchClearedRef.current = false;
-          setSearchTerm(term);
-          setSearchResultIndex(index ? parseInt(index, 10) : 0);
-          setSearchTotalResults(results.length);
+          // Position guard: only restore when the saved result at that index
+          // matches the persisted reading position — otherwise a stale search
+          // step arms itself and hijacks the next fresh navigation.
+          const idx = index ? parseInt(index, 10) : 0;
+          try {
+            const curPos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            const res = results[idx];
+            if (res && curPos && curPos.abbr && res.abbr === curPos.abbr && parseInt(res.chapter, 10) === parseInt(curPos.chapter, 10)) {
+              searchClearedRef.current = false;
+              setSearchTerm(term);
+              setSearchResultIndex(idx);
+              setSearchTotalResults(results.length);
+            }
+          } catch {}
         }
       }
     } catch {}
@@ -864,8 +874,25 @@ export default function BibleReader() {
           g = { results, index: idx };
         }
         if (g.results.length > 0) {
-          setGospelMode(true); setGospelResultIndex(g.index); setGospelTotalResults(g.results.length);
-          if (g.results[g.index]) { stepToResult(g.results[g.index]); return; }
+          // Position guard: only step to a stored gospel result that matches
+          // the URL target — a stale gospel step must not hijack a fresh
+          // navigation (e.g. a book picked in Table of Contents).
+          const matchIdx = g.results.findIndex(r => r && r.abbr === urlBookObj.abbr && parseInt(r.chapter, 10) === chapterNum && (r.section ? urlHighlightSection === r.section : parseInt(r.verse, 10) === (verseNum || null)));
+          if (matchIdx >= 0) {
+            setGospelMode(true);
+            setGospelResultIndex(matchIdx);
+            setGospelTotalResults(g.results.length);
+            stepToResult(g.results[matchIdx]); return;
+          }
+          setGospelMode(false);
+          setGospelResultIndex(0);
+          setGospelTotalResults(0);
+          try {
+            localStorage.removeItem('kjb-gospel-results');
+            localStorage.removeItem('kjb-gospel-index');
+            localStorage.removeItem('kjb-reader-toolbar-state');
+          } catch {}
+          clearGospelNav();
         }
       } else {
         setGospelMode(false); clearGospelNav();
@@ -899,7 +926,32 @@ export default function BibleReader() {
           setSearchResultIndex(0);
           setSearchTotalResults(0);
         }
-        if (results[index]) { stepToResult(results[index]); return; }
+        // Position guard: only step to a stored result that actually matches
+        // the URL target. A stale search step (e.g. from before picking a new
+        // book in Table of Contents) must NOT hijack the fresh navigation.
+        const matchesUrlTarget = (r) => r && r.abbr === urlBookObj.abbr && parseInt(r.chapter, 10) === chapterNum && ((r.verse ? parseInt(r.verse, 10) : null) === (verseNum || null));
+        const matchIdx = results.findIndex(matchesUrlTarget);
+        if (matchIdx >= 0) {
+          if (qParam || isMultiResultNav) {
+            setSearchResultIndex(matchIdx);
+            try { setSearchIndex(matchIdx); } catch {}
+          }
+          stepToResult(results[matchIdx]); return;
+        }
+        // No stored result matches the URL target — the fresh navigation
+        // beats the stale search step. Clear the search context and fall
+        // through so normal position handling loads the requested passage.
+        searchClearedRef.current = true;
+        setSearchTerm(null);
+        setSearchResultIndex(0);
+        setSearchTotalResults(0);
+        try {
+          localStorage.removeItem('kjb-search-term');
+          localStorage.removeItem('kjb-search-results');
+          localStorage.removeItem('kjb-search-index');
+          localStorage.removeItem('kjb-reader-toolbar-state');
+        } catch {}
+        clearSearchNav();
       } else if (!isFromDaily && !isFromRandom) {
         // Keep the "Daily Verse" / "Random Chapter" indicator state in sync with
         // what's actually persisted. goTo()/keyword search clear kjb-last-reading
