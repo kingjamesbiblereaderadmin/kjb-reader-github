@@ -43,6 +43,10 @@ export default function renderWithItalics(text, searchTerm, caseSensitive, whole
         const matchText = mm[1] !== undefined ? mm[1] : mm[0];
         const start = mm.index + (mm[0].length - matchText.length);
         for (let p = start; p < start + matchText.length; p++) highlightFlags[p] = true;
+        // Pull trailing punctuation inside the highlight so the box never sits
+        // flush against (or half over) a full stop or comma.
+        let q = start + matchText.length;
+        while (q < clean.length && /[.,;:!?'")\]]/.test(clean[q])) { highlightFlags[q] = true; q++; }
         if (mm.index === regex.lastIndex) regex.lastIndex++; // avoid zero-width loops
       }
     }
@@ -61,7 +65,7 @@ export default function renderWithItalics(text, searchTerm, caseSensitive, whole
     // Highlighted matches inside [bracketed] italics keep the italic styling
     // (slanted + muted colour) so they read as italic, not plain highlighted text.
     let node = hl
-      ? <mark key={key} className={`bg-accent/40 rounded ${it ? 'italic text-foreground/75' : 'text-foreground'}`}>{run}</mark>
+      ? <mark key={key} className={`bg-accent/40 rounded px-[0.15em] mx-[0.04em] box-decoration-clone ${it ? 'italic text-foreground/75' : 'text-foreground'}`}>{run}</mark>
       : run;
     if (it && !hl) node = <em key={key} className="text-foreground/75">{node}</em>;
     else if (!hl) node = <React.Fragment key={key}>{run}</React.Fragment>;

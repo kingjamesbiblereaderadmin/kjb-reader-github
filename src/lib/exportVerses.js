@@ -288,6 +288,7 @@ function highlightTermText(text, query, filters) {
       const termMatch = ww ? m[2] : m[0];
       const start = m.index + prefix.length;
       for (let p = start; p < start + termMatch.length; p++) hlMask[p] = true;
+      extendMaskOverPunctuation(hlMask, plainStr, start + termMatch.length);
       if (re.lastIndex === m.index) re.lastIndex++;
     }
   }
@@ -315,6 +316,14 @@ function highlightTermText(text, query, filters) {
   return result;
 }
 
+// Trailing punctuation right after a match is pulled INSIDE the highlight so
+// the highlight box never sits flush against (or half over) a full stop or
+// comma — matches the on-screen reader/search behaviour.
+function extendMaskOverPunctuation(mask, plainStr, from) {
+  let p = from;
+  while (p < plainStr.length && /[.,;:!?'")\]]/.test(plainStr[p])) { mask[p] = true; p++; }
+}
+
 // Build a boolean highlight mask across ALL italic/roman runs (for PDF).
 // Concatenates every run's text into one plain string, finds matches there
 // (so a multi-word term spanning an italic boundary is detected), and returns
@@ -339,6 +348,7 @@ function buildRunsHighlightMask(runs, query, filters) {
       const termMatch = ww ? m[2] : m[0];
       const start = m.index + prefix.length;
       for (let p = start; p < start + termMatch.length; p++) mask[p] = true;
+      extendMaskOverPunctuation(mask, plainStr, start + termMatch.length);
       if (re.lastIndex === m.index) re.lastIndex++;
     }
   }
@@ -383,6 +393,7 @@ function highlightTermHtml(html, query, filters) {
       const termMatch = wholeWord ? m[2] : m[0];
       const start = m.index + prefix.length;
       for (let p = start; p < start + termMatch.length; p++) hlMask[p] = true;
+      extendMaskOverPunctuation(hlMask, plainStr, start + termMatch.length);
       if (re.lastIndex === m.index) re.lastIndex++;
     }
   }
