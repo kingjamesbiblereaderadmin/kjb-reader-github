@@ -292,7 +292,80 @@
           // browser what to use for the pre-stylesheet blank page, which is
           // what caused the white-then-dark flash on launch.
           rootEl.style.colorScheme = isDark ? 'dark' : 'light';
-          rootEl.style.backgroundColor = isDark ? '#0f1117' : '#fef9f3';
+
+          // Apply the SAVED COLOUR PALETTE's surface tint before first paint.
+          // Without this, the first frame painted the default palette's canvas
+          // (and the fixed hex below), then visibly shifted once ThemeProvider
+          // applied the real palette after React mounted — the "portions still
+          // flash" problem. Values mirror applySurfaceTint() in
+          // src/lib/themeContext.jsx; keep the two in sync.
+          var KJB_HUES = { indigo: 245, sapphire: 222, sky: 200, teal: 174, forest: 142, amethyst: 271, rose: 347, crimson: 0, amber: 32, gold: 45, burgundy: 350, slate: 215, antique: 30 };
+          var colourId = localStorage.getItem('kjb-colour') || 'sky';
+          var colorMode = localStorage.getItem('kjb-color-mode') || 'fixed';
+          var hue = KJB_HUES[colourId];
+          if (colourId === 'custom') {
+            var hex = localStorage.getItem('kjb-custom-accent') || '#B8860B';
+            var r = parseInt(hex.substring(1, 3), 16) / 255,
+                g = parseInt(hex.substring(3, 5), 16) / 255,
+                b = parseInt(hex.substring(5, 7), 16) / 255;
+            var mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, hh = 0;
+            if (d !== 0) {
+              if (mx === r) hh = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+              else if (mx === g) hh = ((b - r) / d + 2) / 6;
+              else hh = ((r - g) / d + 4) / 6;
+            }
+            hue = Math.round(hh * 360);
+          }
+          var bgCss;
+          // 'daily' colour mode derives its accent from the day's verse at
+          // runtime, so only the fixed-palette case can be resolved this early.
+          if (typeof hue === 'number' && colorMode === 'fixed') {
+            var s = rootEl.style;
+            if (isDark) {
+              s.setProperty('--background', hue + ' 30% 8%');
+              s.setProperty('--foreground', hue + ' 25% 92%');
+              s.setProperty('--card', hue + ' 28% 12%');
+              s.setProperty('--card-foreground', hue + ' 25% 92%');
+              s.setProperty('--popover', hue + ' 28% 12%');
+              s.setProperty('--popover-foreground', hue + ' 25% 92%');
+              s.setProperty('--secondary', hue + ' 22% 18%');
+              s.setProperty('--secondary-foreground', hue + ' 25% 88%');
+              s.setProperty('--muted', hue + ' 22% 18%');
+              s.setProperty('--muted-foreground', hue + ' 15% 60%');
+              s.setProperty('--border', hue + ' 20% 22%');
+              s.setProperty('--input', hue + ' 20% 22%');
+              s.setProperty('--sidebar-background', hue + ' 30% 9%');
+              s.setProperty('--sidebar-foreground', hue + ' 25% 88%');
+              s.setProperty('--sidebar-accent', hue + ' 22% 18%');
+              s.setProperty('--sidebar-accent-foreground', hue + ' 25% 88%');
+              s.setProperty('--sidebar-border', hue + ' 20% 22%');
+              bgCss = 'hsl(' + hue + ' 30% 8%)';
+            } else {
+              s.setProperty('--background', hue + ' 30% 99%');
+              s.setProperty('--foreground', hue + ' 55% 8%');
+              s.setProperty('--card', hue + ' 12% 95%');
+              s.setProperty('--card-foreground', hue + ' 55% 8%');
+              s.setProperty('--popover', '0 0% 100%');
+              s.setProperty('--popover-foreground', hue + ' 55% 8%');
+              s.setProperty('--secondary', hue + ' 14% 89%');
+              s.setProperty('--secondary-foreground', hue + ' 30% 24%');
+              s.setProperty('--muted', hue + ' 14% 91%');
+              s.setProperty('--muted-foreground', hue + ' 12% 40%');
+              s.setProperty('--border', hue + ' 30% 89%');
+              s.setProperty('--input', hue + ' 30% 89%');
+              s.setProperty('--sidebar-background', hue + ' 40% 98%');
+              s.setProperty('--sidebar-foreground', hue + ' 35% 15%');
+              s.setProperty('--sidebar-accent', hue + ' 40% 95%');
+              s.setProperty('--sidebar-accent-foreground', hue + ' 45% 25%');
+              s.setProperty('--sidebar-border', hue + ' 30% 89%');
+              bgCss = 'hsl(' + hue + ' 30% 99%)';
+            }
+          } else {
+            bgCss = isDark ? '#0f1117' : '#fef9f3';
+          }
+          // The boot splash below paints this same colour so it matches too.
+          window.__kjbBootBg = bgCss;
+          rootEl.style.backgroundColor = bgCss;
         } catch (e) {}
         try {
           // Apply the manual "App Zoom" setting BEFORE first paint, matching
@@ -458,10 +531,13 @@
               (window.location && window.location.protocol === 'capacitor:'
                 ? '/__native/logo.png'
                 : 'https://media.base44.com/images/public/6a05d76723afe58d80c589e8/2279e016e_8e738d108_cfb4bf781_Untitled.png');
+            // Paint the splash in the theme's own resolved canvas colour
+            // (set by the theme script above), so there's no colour shift
+            // between the splash and the app underneath it.
+            var bg = window.__kjbBootBg || '#0f1117';
+            document.getElementById('kjb-boot-splash').style.background = bg;
+            logoEl.style.background = bg;
             if (!document.documentElement.classList.contains('dark')) {
-              var bg = '#fef9f3';
-              document.getElementById('kjb-boot-splash').style.background = bg;
-              logoEl.style.background = bg;
               document.getElementById('kjb-boot-track').style.background = 'rgba(0,0,0,0.08)';
               document.getElementById('kjb-boot-text').style.color = '#5a6472';
             }
