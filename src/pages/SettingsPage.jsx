@@ -1125,10 +1125,30 @@ localStorage.removeItem('kjb-daily-verse-cache-v17');
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Clear all data?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This permanently removes your highlights, saved verses and folders, reading position and history,
-                    search progress, and all your settings. In the iOS app it clears both the online and offline copies.
-                    The downloaded Bible text is kept, and so is your accessibility font if one is on. This cannot be undone.
+                  <AlertDialogDescription asChild>
+                    <div className="space-y-3 text-left">
+                      <p className="font-medium text-foreground">This permanently removes:</p>
+                      <ul className="space-y-1.5">
+                        {[
+                          'Highlights',
+                          'Saved verses and folders',
+                          'Reading position and history',
+                          'Search progress',
+                          'All settings',
+                        ].map((item) => (
+                          <li key={item} className="flex gap-2">
+                            <span aria-hidden="true" className="text-muted-foreground shrink-0">–</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="rounded-lg border border-border bg-card px-3 py-2.5">
+                        <p className="font-medium text-foreground">Kept:</p>
+                        <p className="mt-0.5">The downloaded Bible text, and your accessibility font if one is on.</p>
+                      </div>
+                      <p className="text-xs">In the iOS app this clears both the online and offline copies.</p>
+                      <p className="text-xs font-medium text-destructive">This cannot be undone.</p>
+                    </div>
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
