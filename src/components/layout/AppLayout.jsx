@@ -424,7 +424,6 @@ export default function AppLayout() {
                 to="/"
                 onClick={() => {
                   setMenuOpen(false);
-                  scrollMainToTop(pathname);
                 }}
                 className="flex items-center justify-center w-10 h-12 rounded-xl hover:bg-secondary/50 active:bg-secondary transition-colors text-foreground touch-manipulation cursor-pointer"
                 title="Home"
@@ -523,7 +522,6 @@ export default function AppLayout() {
                       to={item.path === '/read' ? readNavTarget() : item.path}
                       onClick={() => {
                         setMenuOpen(false);
-                        scrollMainToTop(pathname);
                         navigate(item.path === '/read' ? readNavTarget() : item.path);
                       }}
                       className={`relative flex flex-1 min-w-[9.5rem] items-center gap-2.5 px-3.5 py-3 rounded-lg border font-sans text-sm font-medium leading-snug transition-all duration-200 hover:z-10 hover:shadow-md active:scale-95 ${
@@ -633,7 +631,6 @@ function DesktopFooter({ navigate, setMenuOpen, pathname }) {
                   to={item.path === '/read' ? readNavTarget() : item.path}
                   onClick={() => {
                     setMenuOpen(false);
-                    scrollMainToTop(pathname);
                     navigate(item.path === '/read' ? readNavTarget() : item.path);
                   }}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-sans text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
@@ -779,7 +776,6 @@ function BottomNav({ pathname, navigate }) {
                       navigate(item.path);
                     }
                   } else {
-                    scrollMainToTop(pathname);
                     const fallback = item.path === '/read' ? readNavTarget() : item.path;
                     setTimeout(() => navigate(tabHistoryRef.current[item.path] || fallback), 150);
                   }
@@ -835,7 +831,6 @@ function BottomNav({ pathname, navigate }) {
                         navigate(item.path);
                       }
                     } else {
-                      scrollMainToTop(pathname);
                       setTimeout(() => navigate(tabHistoryRef.current[item.path] || item.path), 150);
                     }
                   }}
