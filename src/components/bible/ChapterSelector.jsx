@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ArrowLeft, ArrowRight, BookOpen } from 'lucide-react';
 
 // Two roles, one component:
@@ -11,9 +11,32 @@ import { ArrowLeft, ArrowRight, BookOpen } from 'lucide-react';
 export default function ChapterSelector({ totalChapters, currentChapter, onSelect, onClose, bare, bookName, onWholeBook, inline, onBack }) {
   const [selectedChapter, setSelectedChapter] = useState(currentChapter);
   const isPending = typeof onWholeBook === 'function';
+  const panelRef = useRef(null);
+  const [inlineMaxH, setInlineMaxH] = useState(undefined);
+
+  // Inline mode: cap the panel to the scroll container's visible bottom (the
+  // footer sits below it), so the grid always fits on screen.
+  React.useEffect(() => {
+    if (!inline || bare) return;
+    const measure = () => {
+      if (!panelRef.current) return;
+      const top = panelRef.current.getBoundingClientRect().top;
+      const scrollEl = document.getElementById('kjb-scroll');
+      const visibleBottom = scrollEl
+        ? scrollEl.getBoundingClientRect().bottom
+        : window.innerHeight;
+      setInlineMaxH(Math.max(240, visibleBottom - top - 24));
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [inline, bare]);
 
   return (
-    <div className={bare ? 'flex flex-col' : `bg-card border border-border rounded-2xl overflow-hidden max-h-[70vh] flex flex-col relative ${
+    <div
+      ref={inline && !bare ? panelRef : null}
+      style={inline && !bare && inlineMaxH ? { maxHeight: inlineMaxH } : undefined}
+      className={bare ? 'flex flex-col' : `bg-card border border-border rounded-2xl overflow-hidden max-h-[70vh] flex flex-col relative ${
       inline ? 'w-full max-w-none shadow-lg' : 'w-[90vw] max-w-sm shadow-2xl'
     }`}>
       {bookName && (

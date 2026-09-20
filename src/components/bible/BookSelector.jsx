@@ -15,7 +15,15 @@ export default function BookSelector({ currentAbbr, onSelect, onClose, initialTe
     const measure = () => {
       if (!panelRef.current) return;
       const top = panelRef.current.getBoundingClientRect().top;
-      setInlineMaxH(Math.max(240, window.innerHeight - top - 96));
+      // The page scrolls inside the app's own scroll container (#kjb-scroll),
+      // with the footer sitting below it — not the raw window. Cap the panel
+      // to that container's visible bottom edge so it never runs under the
+      // footer, regardless of how tall the footer is or how far you've scrolled.
+      const scrollEl = document.getElementById('kjb-scroll');
+      const visibleBottom = scrollEl
+        ? scrollEl.getBoundingClientRect().bottom
+        : window.innerHeight;
+      setInlineMaxH(Math.max(240, visibleBottom - top - 24));
     };
     measure();
     window.addEventListener('resize', measure);
