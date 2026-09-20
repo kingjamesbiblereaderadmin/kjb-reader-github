@@ -724,7 +724,17 @@ export default function BibleReader() {
       const index = localStorage.getItem('kjb-search-index');
       if (term && resultsRaw && !searchTerm) {
         const results = JSON.parse(resultsRaw);
-        if (results.length > 0) {
+        // Only resurrect the step if the saved result still matches where
+        // the reader is actually heading (kjb-position). Restoring it
+        // unconditionally armed a hijack: the URL-sync effect then tagged
+        // the URL with from=search, whose mount branch stepped the reader
+        // back to the stale result — overwriting a fresh Table of Contents
+        // / book selector jump on ANY platform (web, Android, iOS).
+        const res = results[index ? parseInt(index, 10) : 0];
+        let curPos = null;
+        try { curPos = JSON.parse(localStorage.getItem('kjb-position') || 'null'); } catch {}
+        if (results.length > 0 && res && curPos && res.abbr === curPos.abbr
+          && parseInt(res.chapter, 10) === parseInt(curPos.chapter, 10)) {
           searchClearedRef.current = false;
           setSearchTerm(term);
           setSearchResultIndex(index ? parseInt(index, 10) : 0);
@@ -864,8 +874,24 @@ export default function BibleReader() {
           g = { results, index: idx };
         }
         if (g.results.length > 0) {
-          setGospelMode(true); setGospelResultIndex(g.index); setGospelTotalResults(g.results.length);
-          if (g.results[g.index]) { stepToResult(g.results[g.index]); return; }
+          // The explicit URL target always wins over a persisted gospel step:
+          // only step when a saved result matches the exact book/chapter(/verse
+          // or section) this navigation asked for. A stale gospel step left in
+          // storage must never hijack a fresh jump (Table of Contents, book
+          // selector) — stepping to it would snap the reader back to the old
+          // result and overwrite the new position.
+          const gV = (v) => (v ? parseInt(v, 10) : null);
+          const gMatch = g.results.findIndex(r => r && r.abbr === urlBookObj.abbr
+            && parseInt(r.chapter, 10) === chapterNum
+            && (r.section ? urlHighlightSection === r.section : gV(r.verse) === gV(verseNum)));
+          if (gMatch >= 0) {
+            setGospelMode(true); setGospelResultIndex(gMatch); setGospelTotalResults(g.results.length);
+            stepToResult(g.results[gMatch]); return;
+          }
+          // Stale gospel step vs a fresh target — end the step instead of
+          // stepping, and let normal position handling load the target.
+          setGospelMode(false); setGospelResultIndex(0); setGospelTotalResults(0);
+          try { clearGospelNav(); localStorage.removeItem('kjb-gospel-results'); localStorage.removeItem('kjb-gospel-index'); localStorage.removeItem('kjb-reader-toolbar-state'); } catch {}
         }
       } else {
         setGospelMode(false); clearGospelNav();
@@ -899,7 +925,38 @@ export default function BibleReader() {
           setSearchResultIndex(0);
           setSearchTotalResults(0);
         }
-        if (results[index]) { stepToResult(results[index]); return; }
+        // The explicit URL target always wins over a stale search step.
+        // Only step back into the results when one of them matches the exact
+        // book/chapter/verse this navigation asked for (a live search bar
+        // jump writes its result into the URL, so it always matches). When a
+        // persisted search step does NOT match — e.g. the user picked a fresh
+        // book/chapter in Table of Contents or the book selector while a
+        // search step was still active — stepping would snap the reader back
+        // to the stale result and overwrite the new position (kjb-position
+        // ends up reverted to the search result). End the stale step instead
+        // and let the normal position handling load the URL's target.
+        const matchesUrlTarget = (r) => r && r.abbr === urlBookObj.abbr
+          && parseInt(r.chapter, 10) === chapterNum
+          && ((r.verse ? parseInt(r.verse, 10) : null) === (verseNum || null));
+        const matchIdx = results.findIndex(matchesUrlTarget);
+        if (matchIdx >= 0) {
+          if (qParam || isMultiResultNav) {
+            setSearchResultIndex(matchIdx);
+            try { setSearchIndex(matchIdx); } catch {}
+          }
+          stepToResult(results[matchIdx]); return;
+        }
+        // No result matches the URL target — fresh navigation to a different
+        // passage; end the stale search step rather than hijacking the jump.
+        searchClearedRef.current = true;
+        setSearchTerm(null); setSearchResultIndex(0); setSearchTotalResults(0);
+        try {
+          clearSearchNav();
+          localStorage.removeItem('kjb-search-term');
+          localStorage.removeItem('kjb-search-results');
+          localStorage.removeItem('kjb-search-index');
+          localStorage.removeItem('kjb-reader-toolbar-state');
+        } catch {}
       } else if (!isFromDaily && !isFromRandom) {
         // Keep the "Daily Verse" / "Random Chapter" indicator state in sync with
         // what's actually persisted. goTo()/keyword search clear kjb-last-reading
