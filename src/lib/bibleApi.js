@@ -1,4 +1,4 @@
-import { getBibleData, isBibleCached } from '@/lib/bibleCache';
+import { getBibleData, getBibleDataSync, isBibleCached } from '@/lib/bibleCache';
 import { COLOPHONS, SUBSCRIPTS } from '@/lib/bibleSubscripts';
 import { loadOverrides, applyOverrides, getSubscriptOverride, getColophonOverride, getEndMarkerOverride } from '@/lib/bibleTextOverrides';
 
@@ -104,17 +104,11 @@ export function mergeAdjacentBrackets(text = '') {
   return out;
 }
 
-export async function fetchChapter(bookApiName, chapter) {
-  // Get complete Bible data (from cache or network)
-  const bible = await getBibleData();
+// Shared chapter cleaning — identical for the async and the synchronous path.
+function cleanChapterData(bible, bookApiName, chapter) {
   
   let verses = bible[bookApiName]?.[chapter] || [];
-  console.log('[fetchChapter] Got', verses.length, 'verses for', bookApiName, chapter);
-  if (verses.length > 0) {
-    console.log('[fetchChapter] Sample verse 1:', verses[0]?.text?.substring(0, 150));
-    console.log('[fetchChapter] Has brackets?', verses.some(v => v.text.includes('[')));
-  }
-  if (!verses.length) throw new Error(`No verses found for ${bookApiName} ${chapter}`);
+  if (!verses.length) return null;
 
   // Strip "Made in Australia" + merge adjacent [bracketed] words on all verses
   verses = verses.map(v => {
@@ -139,6 +133,29 @@ export async function fetchChapter(bookApiName, chapter) {
   // hardcoded value in bibleSubscripts.js.
   const colophon = resolveColophon(bookApiName, chapter);
   return { verses, colophon };
+}
+
+export async function fetchChapter(bookApiName, chapter) {
+  // Get complete Bible data (from cache or network)
+  const bible = await getBibleData();
+  const out = cleanChapterData(bible, bookApiName, chapter);
+  if (!out) throw new Error(`No verses found for ${bookApiName} ${chapter}`);
+  return out;
+}
+
+// Synchronous chapter read from the Bible data already parsed in memory this
+// session. Returns null until the first async load completes, so callers can
+// fall back to the spinner/async path. This is what lets the reader paint the
+// chapter in its very FIRST render when returning to /read — no spinner frame
+// followed by a content swap (the reader flash).
+export function fetchChapterSync(bookApiName, chapter) {
+  const bible = getBibleDataSync();
+  if (!bible) return null;
+  try {
+    return cleanChapterData(bible, bookApiName, chapter);
+  } catch {
+    return null;
+  }
 }
 
 export async function fetchVerseCount(bookApiName, chapter) {

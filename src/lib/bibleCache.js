@@ -351,6 +351,14 @@ export async function getBibleData() {
   return fetchInProgress;
 }
 
+// Synchronous access to the Bible data already parsed in memory this session.
+// Returns null before the first async load completes. Lets callers (the
+// reader's first paint) render a chapter WITHOUT awaiting getBibleData —
+// the difference between a spinner-then-swap flash and an instant paint.
+export function getBibleDataSync() {
+  return parsedData && isValidBibleData(parsedData) ? parsedData : null;
+}
+
 export function preloadBibleData() {
   // Only preload if not already loaded
   if (!parsedData) {
