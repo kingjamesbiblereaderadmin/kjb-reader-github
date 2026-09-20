@@ -41,7 +41,7 @@ enum SpotlightIndexer {
     /// Bump to make existing installs delete and rebuild the index. v5 also
     /// purges the per-verse rows older builds indexed: Spotlight can't hide
     /// them per-query, so they are gone entirely now (see header note).
-    private static let indexVersion = 5
+    private static let indexVersion = 6
     private static let versionKey = "kjbSpotlightIndexVersion"
     private static let domain = "com.kingjamesbiblereader.twa.reader"
     private static let baseURL = "https://kingjamesbiblereader.com"
@@ -250,12 +250,20 @@ enum SpotlightIndexer {
             // Acts; Job, Hosea, Esther), so typing the name should also
             // offer looking the PHRASE up in the verse text. Spotlight can't
             // show options on a single result, so this is a second item.
-            items.append(makeItem(
-                id: "\(idPrefix)search:\(book.abbr)",
-                title: "Look up “\(book.name)” in verses",
-                description: "Search the Bible text for “\(book.name)” · King James Bible",
-                keywords: ["search \(book.name)", "\(book.name) in verses"] + extras
-            ))
+            //
+            // Numbered books ("1 John", "2 Peter") are skipped: the number is
+            // not part of any phrase in the text, and Spotlight matches the
+            // "John" token inside "1 John", so typing "John" was returning
+            // "Look up “1 John”" and "Look up “2 John”" rows alongside (and
+            // sometimes instead of) the plain "Look up “John”" one.
+            if !book.name.first!.isNumber {
+                items.append(makeItem(
+                    id: "\(idPrefix)search:\(book.abbr)",
+                    title: "Look up “\(book.name)” in verses",
+                    description: "Search the Bible text for “\(book.name)” · King James Bible",
+                    keywords: ["search \(book.name)", "\(book.name) in verses"] + extras
+                ))
+            }
 
             // NOTE: no per-chapter items. The book row already tells you how
             // many chapters it has and opens the app at the book, where you
