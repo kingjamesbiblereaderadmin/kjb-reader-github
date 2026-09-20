@@ -167,6 +167,26 @@ async function hydrateNativeStateMirror() {
     return;
   }
 
+  // Safety net (added 2026-09-20): snapshot this origin's mirrored values
+  // BEFORE pulling the shared store, into an UNMIRRORED backup key (not in
+  // EXPLICIT_KEYS, no kjb-scroll- prefix, written with the original setItem
+  // so the mirror never pushes it). The 2026-09-19/20 transition window
+  // showed the failure mode: a write made by an old-code session never
+  // reaches the shared store, and the next new-code launch pulls a stale
+  // snapshot over the fresh local value — silently destroying user data.
+  // With this snapshot the pre-pull values stay recoverable from
+  // localStorage 'kjb-mirror-prepull-backup' (single key, overwritten each
+  // launch, small payloads only).
+  try {
+    const backup = {};
+    for (const k of localKeys) backup[k] = localStorage.getItem(k);
+    _origSetItem('kjb-mirror-prepull-backup', JSON.stringify({
+      at: new Date().toISOString(),
+      origin: (typeof location !== 'undefined' && location.origin) || '',
+      values: backup,
+    }));
+  } catch {}
+
   // Pull the freshest mirrored state into this origin's localStorage
   // before any component reads it.
   const mirroredNames = new Set();
