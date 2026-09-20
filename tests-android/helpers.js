@@ -60,4 +60,29 @@ export async function goTo(driver, path) {
   await driver.execute((url) => { window.location.href = url; }, `${base}${path}`);
 }
 
+// Runs a webview script with resilience against the emulator WebView's
+// (an old Chromium build) renderer connection dropping right after an app
+// relaunch: chromedriver can attach while the renderer is still spinning
+// up, and the first execute() then fails with "unable to connect to
+// renderer". Re-switching the context after a short pause gets a working
+// session back — a hard fail here is an emulator flake, not an app bug.
+export async function executeStable(driver, script, args = [], { attempts = 4, interval = 2000 } = {}) {
+  let lastErr;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await driver.execute(script, args);
+    } catch (err) {
+      lastErr = err;
+      const msg = String(err && (err.message || err));
+      if (/disconnect|renderer|not reachable|connection reset|session deleted/i.test(msg)) {
+        await driver.pause(interval);
+        try { await switchToWebview(driver, { timeout: 30000 }); } catch {}
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastErr;
+}
+
 export { APP_PACKAGE };
