@@ -225,6 +225,10 @@ export function ThemeProvider({ children }) {
   // Apply dark class to <html> - run immediately on mount
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark);
+    // Keep the pre-paint canvas colour (set inline in index.html) in sync when
+    // the user switches theme, so it never lags a mode behind on next launch.
+    document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+    document.documentElement.style.backgroundColor = isDark ? '#0f1117' : '#fef9f3';
     // Keep the native notch/home-indicator strips in sync with the theme.
     syncNativeChrome();
   }, [isDark]);
