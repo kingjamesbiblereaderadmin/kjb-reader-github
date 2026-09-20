@@ -103,6 +103,21 @@ export function useToolbarState(pos, loading, verses, filterMode, selectedVerses
           setRestoreTick(t => t + 1);
           return;
         }
+        // This mount arrived with an ACTIVE search/gospel context in its URL
+        // (?from=search&q=… or ?from=gospel). The reader's URL-driven nav
+        // effect has already established the fresh context and applied the
+        // filter/selection for this exact chapter — re-applying the saved
+        // snapshot on top of it would overwrite the fresh values with a
+        // PREVIOUS session's snapshot for the same chapter (stale term,
+        // stale index/total, stale verse selection), which is what made the
+        // "Searched" pill and stepper vanish or show the wrong thing on
+        // iOS/Android after tapping a result. Skip the snapshot entirely —
+        // the save effect below persists the fresh state for later returns.
+        if (navFrom === 'search' || navFrom === 'gospel') {
+          appliedRestoreForChapterRef.current = true;
+          setRestoreTick(t => t + 1);
+          return;
+        }
         const saved = localStorage.getItem('kjb-reader-toolbar-state');
         console.log('[ToolbarState] Restore attempt - saved:', saved);
         if (!saved) {

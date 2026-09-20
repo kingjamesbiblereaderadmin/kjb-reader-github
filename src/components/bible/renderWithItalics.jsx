@@ -61,7 +61,7 @@ export default function renderWithItalics(text, searchTerm, caseSensitive, whole
     // Highlighted matches inside [bracketed] italics keep the italic styling
     // (slanted + muted colour) so they read as italic, not plain highlighted text.
     let node = hl
-      ? <mark key={key} className={`bg-accent/40 rounded px-0.5 ${it ? 'italic text-foreground/75' : 'text-foreground'}`}>{run}</mark>
+      ? <mark key={key} className={`bg-accent/40 rounded ${it ? 'italic text-foreground/75' : 'text-foreground'}`}>{run}</mark>
       : run;
     if (it && !hl) node = <em key={key} className="text-foreground/75">{node}</em>;
     else if (!hl) node = <React.Fragment key={key}>{run}</React.Fragment>;

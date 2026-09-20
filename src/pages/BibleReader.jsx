@@ -660,29 +660,45 @@ export default function BibleReader() {
   useReaderUrlSync(pos, loading, a11yFont, routerNavigate, searchTerm, gospelMode);
   const isViewingTitlePage = pos.chapter === 0;
 
+  // A search-result navigation triggers TWO identical load calls back-to-back:
+  // the mount effect loads the URL's chapter, then the nav effect's stepToResult
+  // loads the SAME chapter again while verses are still empty. The duplicate
+  // fetch re-set verses and re-fired the scroll-to-verse pass, painting the
+  // chapter twice — visible as flicker on the slower iOS/Android WebViews.
+  // Skip a load for a chapter already in flight: the caller's own highlight/
+  // pos/selection updates still apply, and the scroll effect lands on the
+  // target verse when the single in-flight fetch resolves.
+  const loadInFlightRef = useRef(null);
   const loadChapter = useCallback(async (bookAbbr, chapter, jumpVerse, jumpVerseEnd = null) => {
-    setLoading(true); setError(null); setVerses([]); setColophon(null);
-    (document.getElementById('kjb-scroll') || window).scrollTo({ top: 0 });
-    const b = BIBLE_BOOKS.find(bk => bk.abbr === bookAbbr);
-    if (!b) { setError('Book not found'); setLoading(false); return; }
-    if (!jumpVerse) setHighlightVerse(null);
-    if (chapter === 0) {
-      setVerseCount(0); setLoading(false); setHighlightVerse(jumpVerse || null);
-      savePosition(bookAbbr, chapter);
-      return;
-    }
+    const loadKey = `${bookAbbr}-${chapter}`;
+    if (loadInFlightRef.current === loadKey) return;
+    loadInFlightRef.current = loadKey;
     try {
-      const data = await fetchChapter(b.apiName, chapter);
-      setVerses(data.verses); setColophon(data.colophon || null); setVerseCount(data.verses.length);
-      if (jumpVerse) setHighlightVerse(jumpVerse);
-      // jumpVerseEnd, when the caller passed one, is what lets a lookup range
-      // (e.g. "1 Cor 15:1-4") survive this save instead of collapsing to just
-      // the first verse the moment the chapter finishes loading.
-      savePosition(bookAbbr, chapter, jumpVerse || null, jumpVerseEnd || null);
-    } catch (err) {
-      setError('Failed to load chapter. Please check your connection.');
+      setLoading(true); setError(null); setVerses([]); setColophon(null);
+      (document.getElementById('kjb-scroll') || window).scrollTo({ top: 0 });
+      const b = BIBLE_BOOKS.find(bk => bk.abbr === bookAbbr);
+      if (!b) { setError('Book not found'); setLoading(false); return; }
+      if (!jumpVerse) setHighlightVerse(null);
+      if (chapter === 0) {
+        setVerseCount(0); setLoading(false); setHighlightVerse(jumpVerse || null);
+        savePosition(bookAbbr, chapter);
+        return;
+      }
+      try {
+        const data = await fetchChapter(b.apiName, chapter);
+        setVerses(data.verses); setColophon(data.colophon || null); setVerseCount(data.verses.length);
+        if (jumpVerse) setHighlightVerse(jumpVerse);
+        // jumpVerseEnd, when the caller passed one, is what lets a lookup range
+        // (e.g. "1 Cor 15:1-4") survive this save instead of collapsing to just
+        // the first verse the moment the chapter finishes loading.
+        savePosition(bookAbbr, chapter, jumpVerse || null, jumpVerseEnd || null);
+      } catch (err) {
+        setError('Failed to load chapter. Please check your connection.');
+      }
+      setLoading(false);
+    } finally {
+      if (loadInFlightRef.current === loadKey) loadInFlightRef.current = null;
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {

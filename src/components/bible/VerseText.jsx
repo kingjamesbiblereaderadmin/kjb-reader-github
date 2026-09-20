@@ -186,7 +186,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     if (!regex.test(headingLabel)) return headingLabel;
     const parts = headingLabel.split(regex);
     return parts.map((part, i) => 
-      regex.test(part) ? <mark key={i} style={{ backgroundColor: 'rgba(250, 204, 21, 0.55)', borderRadius: '3px', padding: '0 2px' }}>{part}</mark> : part
+      regex.test(part) ? <mark key={i} style={{ backgroundColor: 'rgba(250, 204, 21, 0.55)', borderRadius: '3px', padding: '0' }}>{part}</mark> : part
     );
   };
 

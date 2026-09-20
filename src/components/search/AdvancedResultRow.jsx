@@ -25,7 +25,7 @@ function highlightAny(text, terms, keyPrefix) {
   const pieces = text.split(re);
   return pieces.map((piece, i) =>
     i % 2 === 1
-      ? <mark key={`${keyPrefix}-${i}`} className="bg-yellow-200 dark:bg-yellow-500/40 text-foreground rounded px-0.5">{piece}</mark>
+      ? <mark key={`${keyPrefix}-${i}`} className="bg-yellow-200 dark:bg-yellow-500/40 text-foreground rounded">{piece}</mark>
       : piece
   );
 }
@@ -42,7 +42,7 @@ function highlightInOrder(text, terms, keyPrefix, adjacent, caseSensitive, whole
   const after = wholeWord ? `(?![A-Za-z'])` : '';
 
   const mark = (str, key) => (
-    <mark key={key} className="bg-yellow-200 dark:bg-yellow-500/40 text-foreground rounded px-0.5">{str}</mark>
+    <mark key={key} className="bg-yellow-200 dark:bg-yellow-500/40 text-foreground rounded">{str}</mark>
   );
 
   // Adjacent → one contiguous phrase span.
@@ -109,7 +109,7 @@ function highlightPattern(text, pattern, keyPrefix) {
   let cursor = 0, m, idx = 0;
   while ((m = re.exec(text)) !== null) {
     if (m.index > cursor) nodes.push(text.slice(cursor, m.index));
-    nodes.push(<mark key={`${keyPrefix}-${idx++}`} className="bg-yellow-200 dark:bg-yellow-500/40 text-foreground rounded px-0.5">{m[0]}</mark>);
+    nodes.push(<mark key={`${keyPrefix}-${idx++}`} className="bg-yellow-200 dark:bg-yellow-500/40 text-foreground rounded">{m[0]}</mark>);
     cursor = m.index + m[0].length;
     if (m[0].length === 0) re.lastIndex++; // guard against zero-width loops
   }
@@ -155,14 +155,14 @@ function renderText(rawText, terms, filters) {
     <>
       {hasPilcrow && (
         highlightPilcrow
-          ? <mark className="pilcrow font-serif mr-1 bg-yellow-200 dark:bg-yellow-500/40 rounded px-0.5">¶</mark>
+          ? <mark className="pilcrow font-serif mr-1 bg-yellow-200 dark:bg-yellow-500/40 rounded">¶</mark>
           : <span className="pilcrow font-serif mr-1">¶</span>
       )}
       {parts.map((p, i) => {
         if (p.startsWith('[') && p.endsWith(']')) {
           const inner = renderSegment(p.slice(1, -1), `em${i}`);
           return highlightItalics
-            ? <em key={i} className="text-muted-foreground"><mark className="bg-yellow-200 dark:bg-yellow-500/40 text-muted-foreground rounded px-0.5">{inner}</mark></em>
+            ? <em key={i} className="text-muted-foreground"><mark className="bg-yellow-200 dark:bg-yellow-500/40 text-muted-foreground rounded">{inner}</mark></em>
             : <em key={i} className="text-muted-foreground">{inner}</em>;
         }
         return <span key={i}>{renderSegment(p, `s${i}`)}</span>;
