@@ -79,8 +79,22 @@ const BOTTOM_NAV_SECONDARY = [
   { path: '/settings', icon: Settings, label: 'Settings' },
 ];
 
+// Where any "Read" entry point (desktop footer, hamburger menu, bottom-nav
+// fallback, cold-start route restore) should go: back to the reader's exact
+// last URL, including its search/gospel flags (?from=search&q=…) — so
+// leaving mid-step and tapping Read returns to the SAME step with the
+// "Searched" pill and stepper intact instead of a bare /read that drops them.
+const readNavTarget = () => {
+  try {
+    const u = localStorage.getItem('kjb-last-read-url');
+    if (u && u.startsWith('/read')) return u;
+  } catch {}
+  return '/read';
+};
+
 export default function AppLayout() {
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const pathname = location.pathname;
   const navigate = useNavigate();
   const { isDark, mode, toggleTheme } = useTheme();
   const { hideHeader } = useHeaderHide();
@@ -181,8 +195,13 @@ export default function AppLayout() {
   // a full reload / app-open can reopen the Reader if that's where they were.
   useEffect(() => {
     if (pathname === '/legacy') return;
-    try { localStorage.setItem('kjb-last-route', pathname); } catch {}
-  }, [pathname]);
+    try {
+      localStorage.setItem('kjb-last-route', pathname);
+      // Remember the reader's exact last URL (incl. its search/gospel flags)
+      // so readNavTarget() can reopen the reader right back at the same step.
+      if (pathname === '/read') localStorage.setItem('kjb-last-read-url', pathname + location.search);
+    } catch {}
+  }, [pathname, location.search]);
 
   // On cold app-open / full reload, if the last route was the Reader, reopen it
   // (with its last chapter + scroll restored). Runs once on mount only.
@@ -193,7 +212,7 @@ export default function AppLayout() {
     try {
       const last = localStorage.getItem('kjb-last-route');
       if (last === '/read' && pathname === '/') {
-        navigate('/read', { replace: true });
+        navigate(readNavTarget(), { replace: true });
       }
     } catch {}
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -207,7 +226,9 @@ export default function AppLayout() {
   const routeStackRef = useRef([pathname]);
   useEffect(() => {
     const stack = routeStackRef.current;
-    if (stack[stack.length - 1] !== pathname) stack.push(pathname);
+    // Store the FULL route (pathname + search) so Back can return to the
+    // reader with its search/gospel flags intact, not a bare /read.
+    if (stack[stack.length - 1] !== pathname) stack.push(pathname + location.search);
   }, [pathname]);
 
   const goBack = React.useCallback(() => {
@@ -499,11 +520,11 @@ export default function AppLayout() {
                   return (
                     <Link
                       key={item.path}
-                      to={item.path}
+                      to={item.path === '/read' ? readNavTarget() : item.path}
                       onClick={() => {
                         setMenuOpen(false);
                         scrollMainToTop(pathname);
-                        navigate(item.path);
+                        navigate(item.path === '/read' ? readNavTarget() : item.path);
                       }}
                       className={`relative flex flex-1 min-w-[9.5rem] items-center gap-2.5 px-3.5 py-3 rounded-lg border font-sans text-sm font-medium leading-snug transition-all duration-200 hover:z-10 hover:shadow-md active:scale-95 ${
                         active
@@ -609,11 +630,11 @@ function DesktopFooter({ navigate, setMenuOpen, pathname }) {
               return (
                 <Link
                   key={item.path}
-                  to={item.path}
+                  to={item.path === '/read' ? readNavTarget() : item.path}
                   onClick={() => {
                     setMenuOpen(false);
                     scrollMainToTop(pathname);
-                    navigate(item.path);
+                    navigate(item.path === '/read' ? readNavTarget() : item.path);
                   }}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-sans text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
                 >
@@ -759,7 +780,8 @@ function BottomNav({ pathname, navigate }) {
                     }
                   } else {
                     scrollMainToTop(pathname);
-                    setTimeout(() => navigate(tabHistoryRef.current[item.path] || item.path), 150);
+                    const fallback = item.path === '/read' ? readNavTarget() : item.path;
+                    setTimeout(() => navigate(tabHistoryRef.current[item.path] || fallback), 150);
                   }
                 }}
                 className="flex flex-col items-center justify-center flex-1 min-h-[48px] active:bg-secondary/50 transition-all duration-200"

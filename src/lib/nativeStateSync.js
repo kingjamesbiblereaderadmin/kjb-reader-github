@@ -53,6 +53,7 @@ const EXPLICIT_KEYS = [
   'kjb-last-reading', // BibleReader's resume-reading position
   'kjb-prev-reading-session', // "return to previous reading" anchor
   'kjb-last-route', // AppLayout's resume-route on open
+  'kjb-last-read-url', // reader's exact last URL incl. search/gospel flags
   'kjb-highlight-color', // persisted highlighter tool colour
   'kjb-dyslexic-font', // OpenDyslexic toggle
   'kjb-auto-redownload', // auto re-download toggle
