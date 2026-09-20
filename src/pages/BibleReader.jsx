@@ -29,6 +29,7 @@ import { scrollToVerse } from '@/lib/scrollToVerse';
 import { getFontFamilyValue } from '@/lib/readerFonts';
 import { buildTapShareText as buildTapShareTextFor, buildShareText, buildPerVerseText } from '@/lib/readerShareText';
 import { useSearchAndGospelResults } from '@/lib/useSearchAndGospelResults';
+import { restoreSavedSearchSession, restoreLegacySearchSession, restoreSavedGospelSession } from '@/lib/restoreReaderSessions';
 import { resolveBook, formatVerseRange } from '@/lib/readerHelpers';
 import { useClosePopovers } from '@/lib/useClosePopovers';
 import { printChapterContents } from '@/lib/printHelpers';
@@ -292,7 +293,33 @@ export default function BibleReader() {
   const toggleSelectMode = () => {
     setTappedVerses(new Set());
     if (selectMode) {
-      setSelectMode(false); setSelectedVerses(new Set()); setFilterMode(false);
+      setSelectMode(false);
+      // Exiting select mode must NOT tear down a live search/gospel result
+      // view — the selection + filter IS the "currently reading" context
+      // (the range bar, the verses-only filter, the highlight). Wiping it
+      // unconditionally made the reader drop to the plain chapter with no
+      // bar/flags until the user stepped again. When a session is live,
+      // restore the current result exactly like the stepper does; with no
+      // live context, plain reading keeps clearing the selection.
+      let liveResult = null;
+      if (!searchClearedRef.current && (searchTerm || gospelMode)) {
+        try {
+          if (gospelMode) {
+            const g = getGospelNav();
+            liveResult = g.results[g.index] || null;
+          } else {
+            const nav = getSearchNav();
+            if (nav.term) liveResult = nav.results[nav.index] || null;
+          }
+        } catch {}
+      }
+      if (liveResult
+        && liveResult.abbr === pos.abbr
+        && parseInt(liveResult.chapter, 10) === parseInt(pos.chapter, 10)) {
+        stepToResult(liveResult, true);
+        return;
+      }
+      setSelectedVerses(new Set()); setFilterMode(false);
     } else {
       setSelectMode(true);
     }
@@ -593,59 +620,9 @@ export default function BibleReader() {
       } catch {}
     }
     if (!isPlainChapterReturn) {
-    try {
-      const savedState = localStorage.getItem('kjb-reader-toolbar-state');
-      if (savedState) {
-        const state = JSON.parse(savedState);
-        if (state && state.hasSearchContext && state.searchTerm) {
-          searchClearedRef.current = false;
-          setSearchTerm(state.searchTerm);
-          setSearchResultIndex(state.searchResultIndex || 0);
-          setSearchTotalResults(state.searchTotalResults || 0);
-        }
-        if (state && state.hasGospelContext) {
-          const g = getGospelNav();
-          if (g.results.length > 0) {
-            setGospelMode(true);
-            setGospelResultIndex(g.index);
-            setGospelTotalResults(g.results.length);
-          }
-        }
-      }
-    } catch {}
+    restoreSavedSearchSession({ searchClearedRef, setSearchTerm, setSearchResultIndex, setSearchTotalResults, setGospelMode, setGospelResultIndex, setGospelTotalResults });
     // ALSO restore legacy search context (fallback)
-    try {
-      const term = localStorage.getItem('kjb-search-term');
-      const resultsRaw = localStorage.getItem('kjb-search-results');
-      const index = localStorage.getItem('kjb-search-index');
-      if (term && resultsRaw && !searchTerm) {
-        const results = JSON.parse(resultsRaw);
-        // Only resurrect the step if the saved result still matches where
-        // the reader is actually heading (kjb-position). Restoring it
-        // unconditionally armed a hijack: the URL-sync effect then tagged
-        // the URL with from=search, whose mount branch stepped the reader
-        // back to the stale result — overwriting a fresh Table of Contents
-        // / book selector jump on ANY platform (web, Android, iOS).
-        const savedIdx = index ? parseInt(index, 10) : 0;
-        let curPos = null;
-        try { curPos = JSON.parse(localStorage.getItem('kjb-position') || 'null'); } catch {}
-        // Accept ANY saved result sitting on the chapter the reader is opening —
-        // not only the one at the saved index. After re-entering the reader the
-        // restored position can be the chapter without the exact result verse,
-        // and requiring an index match there dropped the whole session (no pill,
-        // no stepper). Prefer the saved index when it matches, else the first
-        // result on this chapter.
-        const onThisChapter = (r) => r && curPos && r.abbr === curPos.abbr
-          && parseInt(r.chapter, 10) === parseInt(curPos.chapter, 10);
-        const matchIdx = onThisChapter(results[savedIdx]) ? savedIdx : results.findIndex(onThisChapter);
-        if (results.length > 0 && matchIdx >= 0) {
-          searchClearedRef.current = false;
-          setSearchTerm(term);
-          setSearchResultIndex(matchIdx);
-          setSearchTotalResults(results.length);
-        }
-      }
-    } catch {}
+    restoreLegacySearchSession({ hasSearchTerm: searchTerm, searchClearedRef, setSearchTerm, setSearchResultIndex, setSearchTotalResults });
     }
     try {
       const saved = localStorage.getItem('kjb-last-reading');
@@ -654,18 +631,7 @@ export default function BibleReader() {
         if (parsed) setLastReadingPos(parsed);
       }
     } catch {}
-    try {
-      const g = localStorage.getItem('kjb-gospel-results');
-      if (g) {
-        const results = JSON.parse(g);
-        const idx = parseInt(localStorage.getItem('kjb-gospel-index') || '0', 10);
-        if (results.length > 0) {
-          setGospelMode(true);
-          setGospelResultIndex(idx);
-          setGospelTotalResults(results.length);
-        }
-      }
-    } catch {}
+    restoreSavedGospelSession({ setGospelMode, setGospelResultIndex, setGospelTotalResults });
 
     const initParams = new URLSearchParams(window.location.search);
     const urlBook = initParams.get('book');
