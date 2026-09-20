@@ -27,7 +27,7 @@ const READING_INTERFACE = [
   {
     name: 'System',
     cssFamily: 'system-ui, -apple-system, sans-serif',
-    purpose: "the Mono (Courier New), Times New Roman and System reading options use your device's own built-in fonts — no download or attribution needed",
+    purpose: "the Mono, Times New Roman and System options use your device's own built-in fonts",
     tint: 'bg-sky-100/50 dark:bg-card border-sky-300/60 dark:border-border',
   },
 ];
