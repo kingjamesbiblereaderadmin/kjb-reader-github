@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.256', date: 'September 20, 2026', items: [
+    { tag: 'improved', text: 'Keyword search highlighting now includes the punctuation attached to a matched word, so a hit like \u201Cgrace,\u201D is highlighted as one unit instead of leaving a stray comma or period outside the highlight' },
+  ] },
   { version: 'v0.4.255', date: 'September 19, 2026', items: [
     { tag: 'fix', text: 'Fixed the panel footer showing in the middle of the page with a blank gap beneath it, instead of anchored to the bottom, when search results or page content are short' },
     { tag: 'fix', text: 'The footer is now correctly re-verified against the panel\u2019s real size on load and on resize, so it never gets stuck in the wrong layout mode' },
@@ -292,7 +295,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.255
+            Current Version: v0.4.256
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
