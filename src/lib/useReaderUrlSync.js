@@ -35,6 +35,21 @@ export function useReaderUrlSync(pos, loading, a11yFont, navigate, searchTerm, g
       // verse — otherwise this sync rewrites the URL on every pos change and
       // silently strips &verseEnd=..., collapsing "1 Cor 15:1-4" to "15:1"
       // (wrong pill label, single-verse highlight, lost filter range).
+      // A search-result jump has just put `&verse=N` in the URL, but `pos`
+      // is applied a render later (stepToResult -> setPos). Writing the URL
+      // from that stale pos (verse still null) strips the verse the user just
+      // asked for, which the reader's from=search branch then reads as a
+      // different, verse-less navigation and tears down the search — and the
+      // two writers then undo each other forever (endless URL rewrites and
+      // re-renders: the page flickers, the "Searched:" pill and steppers
+      // vanish). While the URL already names this chapter's verse under
+      // from=search and pos hasn't caught up, leave the URL alone.
+      if (from === 'search' && !pos.verse && pos.chapter !== 0) {
+        const cur = new URLSearchParams(window.location.search);
+        if (cur.get('book') === pos.abbr && Number(cur.get('chapter')) === Number(pos.chapter) && cur.get('verse')) {
+          return;
+        }
+      }
       let verseEnd = null;
       try {
         const p = JSON.parse(localStorage.getItem('kjb-position') || '{}');
