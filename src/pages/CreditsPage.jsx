@@ -171,19 +171,33 @@ export default function CreditsPage() {
 
         {/* Bible Text */}
         <Section edge="from-amber-500 to-amber-400" iconBg="from-amber-500 to-orange-500" eyebrow="The text" icon={<BookOpen className="w-5 h-5" />} title="Bible Text">
-          <p className="font-sans text-sm text-foreground/85 leading-relaxed notranslate" translate="no">
-            King James Bible (KJB) — Pure Cambridge Edition. Our master text file is generated directly from our
-            authoritative <span className="notranslate" translate="no">Pure Cambridge Edition</span> source document
-            (kindly made available by <a href="https://bibleprotector.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">bibleprotector.com</a>),
-            then verified word-for-word, verse-by-verse, against an independent <span className="notranslate" translate="no">Pure Cambridge Edition</span> reference —
-            all 66 books, 1,189 chapters, and 31,102 verses, with italics, paragraph marks, and small-caps <span className="notranslate" translate="no">LORD</span> and <span className="notranslate" translate="no">GOD</span> preserved exactly as printed.
-          </p>
-          <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-3">
-            The KJB text is public
-            domain worldwide. In the United Kingdom, it is protected by a perpetual Crown Copyright administered by
-            the King&apos;s Printer; this app is for personal, non-commercial use only. For commercial use within the UK,
-            a licence from Cambridge University Press or the King&apos;s Printer may be required.
-          </p>
+          <div className="space-y-2.5 notranslate" translate="no">
+            {[
+              <>The <strong className="text-foreground">King James Bible (KJB)</strong> — Pure Cambridge Edition.</>,
+              <>Our master text file is generated directly from our authoritative Pure Cambridge Edition source document, kindly made available by <a href="https://bibleprotector.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">bibleprotector.com</a>.</>,
+              <>It is then verified word-for-word and verse-by-verse against an independent Pure Cambridge Edition reference.</>,
+              <>All 66 books, 1,189 chapters, and 31,102 verses are included in full.</>,
+              <>Italics, paragraph marks, and small-caps LORD and GOD are preserved exactly as printed.</>,
+            ].map((line, i) => (
+              <p key={i} className="font-sans text-sm text-foreground/85 leading-relaxed flex items-start gap-2">
+                <span className="text-accent mt-1">•</span>
+                <span>{line}</span>
+              </p>
+            ))}
+          </div>
+          <div className="space-y-2 mt-3">
+            {[
+              'The KJB text is public domain worldwide.',
+              <>In the United Kingdom, it is protected by a perpetual Crown Copyright administered by the King&apos;s Printer.</>,
+              'This app is for personal, non-commercial use only.',
+              <>For commercial use within the UK, a licence from Cambridge University Press or the King&apos;s Printer may be required.</>,
+            ].map((line, i) => (
+              <p key={i} className="font-sans text-xs text-muted-foreground leading-relaxed flex items-start gap-2">
+                <span className="text-accent mt-0.5">•</span>
+                <span>{line}</span>
+              </p>
+            ))}
+          </div>
         </Section>
 
         {/* Fonts */}
@@ -215,12 +229,18 @@ export default function CreditsPage() {
 
         {/* Trademarks & Legal Notices */}
         <Section edge="from-teal-500 to-teal-400" iconBg="from-teal-500 to-cyan-500" eyebrow="Legal" icon={<Scale className="w-5 h-5" />} title="Trademarks &amp; Legal Notices">
-          <p className="font-sans text-sm text-foreground/85 leading-relaxed mb-4">
-            KJB Reader mentions the product and company names below only to describe browser compatibility, social
-            links, fonts, or development and distribution tools used — not to claim any affiliation with, sponsorship
-            by, or endorsement from their owners. All product names, logos, and brands are the property of their
-            respective owners.
-          </p>
+          <div className="space-y-2.5 mb-4">
+            {[
+              <>KJB Reader mentions the product and company names below only to describe browser compatibility, social links, fonts, or development and distribution tools used.</>,
+              <>No affiliation with, sponsorship by, or endorsement from their owners is claimed or implied.</>,
+              <>All product names, logos, and brands are the property of their respective owners.</>,
+            ].map((line, i) => (
+              <p key={i} className="font-sans text-sm text-foreground/85 leading-relaxed flex items-start gap-2">
+                <span className="text-accent mt-1">•</span>
+                <span>{line}</span>
+              </p>
+            ))}
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 items-start mb-4">
             {TM_CARDS.map((t) => (
