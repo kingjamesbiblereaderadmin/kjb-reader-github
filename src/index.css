@@ -131,6 +131,20 @@
        right up near the top of the page. */
     top: calc(env(safe-area-inset-top, 0px) + var(--kjb-toast-top-offset, 70px)) !important;
   }
+  /* Pin the top-center toast's horizontal centering. Sonner centers via
+     left:50% + translateX(-50%), but in some environments that rule or the
+     transform gets dropped — leaving the fixed box at the top-LEFT corner
+     of the screen. Stating the centering explicitly (with !important, so it
+     also beats any lift/expanded transform tweaks) guarantees the toast
+     always sits in the middle. Scoped to wide screens only — the mobile
+     full-width toast layout keeps its own positioning. */
+  @media (min-width: 601px) {
+    [data-sonner-toaster][data-x-position='center'] {
+      left: 50% !important;
+      right: auto !important;
+      transform: translateX(-50%) !important;
+    }
+  }
   /* Toasts must be fully opaque. Sonner's own runtime stylesheet paints the
      toast with theme colors layered over whatever the page shows, and the
      app theme's surface colors can read as translucent on iOS — result:
