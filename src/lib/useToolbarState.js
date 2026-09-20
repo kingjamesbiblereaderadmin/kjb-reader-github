@@ -41,6 +41,24 @@ export function useToolbarState(pos, loading, verses, filterMode, selectedVerses
       // filtered passage from a previous session.
       const hasContext = (searchTerm && !searchClearedRef.current) || gospelMode;
       if (!hasContext) {
+        // Don't destroy a still-live saved session just because THIS mount
+        // hasn't re-established it. When an offline/online restart (or an
+        // older cached copy of the app) fails to rehydrate the snapshot —
+        // e.g. the chapter didn't finish loading, or a stale build's restore
+        // logic skipped it — this save step used to DELETE the snapshot for
+        // the very chapter the session is still saved on. That erase mirrors
+        // across origins/relaunches, so going online→offline (or back) could
+        // permanently kill a session the user never cleared. Keep the
+        // snapshot whenever it still points at THIS chapter with a live
+        // search/gospel context and nothing was explicitly cleared here;
+        // removal stays correct for chapter moves and explicit clears.
+        try {
+          const saved = JSON.parse(localStorage.getItem('kjb-reader-toolbar-state') || 'null');
+          const stillLiveHere = saved && saved.abbr === pos.abbr
+            && parseInt(saved.chapter, 10) === parseInt(pos.chapter, 10)
+            && (saved.hasSearchContext || saved.hasGospelContext);
+          if (stillLiveHere && !searchClearedRef.current) return;
+        } catch {}
         localStorage.removeItem('kjb-reader-toolbar-state');
         return;
       }
