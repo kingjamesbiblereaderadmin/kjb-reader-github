@@ -1,4 +1,11 @@
 name: Build iOS App
+
+# Serialize iOS builds: concurrent runs race on the ASC "next build number"
+# query (two runs can grab the same number -> altool 90189 Redundant Binary
+# Upload) and churn duplicate provisioning requests.
+concurrency:
+  group: build-ios
+  cancel-in-progress: false
 on:
   workflow_dispatch:
     inputs:
