@@ -305,7 +305,7 @@ const AuthenticatedApp = () => {
         mode={splashMode}
         isVisible={showSplash && location.pathname !== '/legacy' && location.pathname !== '/bible.txt'}
         skipMarkVisited={location.pathname === '/landing'}
-        isLookup={initialPathname === '/search'}
+        isLookup={initialPathname === '/search' || initialPathname === '/read'}
       />
       <ChunkErrorBoundary>
         <Routes location={location}>

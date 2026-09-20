@@ -3,6 +3,7 @@ import { Loader2 } from 'lucide-react';
 import { detectIncognito } from '@/lib/incognito';
 import KjbLogo from '@/components/KjbLogo';
 import { canUseNativeBundledAssets } from '@/lib/nativeOfflineAssets';
+import { BIBLE_BOOKS } from '@/lib/bibleData';
 
 const STEP_PAUSE_MS = 1500;
 
@@ -15,12 +16,41 @@ function isOfflineNow() {
   try { return typeof navigator !== 'undefined' && navigator.onLine === false; } catch { return false; }
 }
 
+// This boot was opened straight AT a passage or a search — a Spotlight
+// (system search) tap, a share-extension "Look Up", or a deep link — rather
+// than a normal app open. Instead of "Loading"/"Welcome back", the splash
+// names what it is opening: "LOOKING UP ROMANS 3:16..." for a passage,
+// "LOOKING UP "ROMANS"..." for a search. Falls back to a plain
+// "LOOKING UP..." whenever the URL can't be resolved.
+function lookupSplashLabel() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (window.location.pathname === '/read') {
+      const abbr = (params.get('book') || '').trim().toUpperCase();
+      const book = BIBLE_BOOKS.find((b) => b.abbr === abbr);
+      const name = book ? book.shortName : abbr;
+      if (!name) return `LOOKING UP${ELL} `;
+      const chapter = (params.get('chapter') || '').trim();
+      const verse = (params.get('verse') || '').trim();
+      let ref = name;
+      if (chapter) ref += ` ${chapter}`;
+      if (chapter && verse) ref += `:${verse}`;
+      return `LOOKING UP ${ref.toUpperCase()}${ELL} `;
+    }
+    if (window.location.pathname === '/search') {
+      const q = (params.get('q') || '').trim();
+      return q ? `LOOKING UP \u201C${q.toUpperCase()}\u201D${ELL} ` : `LOOKING UP${ELL} `;
+    }
+  } catch {}
+  return `LOOKING UP${ELL} `;
+}
+
 export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load', isVisible = true, skipMarkVisited = false, isLookup = false }) {
   const [currentMessage, setCurrentMessage] = useState(
     mode === 'reconnect'
       ? 'RECONNECTING\u2026'
       : mode === 'subsequent'
-      ? (isLookup ? 'LOOKING UP\u2026' : (isOfflineNow() ? 'WELCOME BACK — OFFLINE MODE.' : 'WELCOME BACK TO KJB READER.'))
+      ? (isLookup ? lookupSplashLabel() : (isOfflineNow() ? 'WELCOME BACK — OFFLINE MODE.' : 'WELCOME BACK TO KJB READER.'))
       : 'WELCOME TO KJB READER.'
   );
   const [isIncognito, setIsIncognito] = useState(false);
@@ -271,7 +301,7 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
           setStep('WELCOME TO KJB READER (GUEST MODE)');
           window.dispatchEvent(new CustomEvent('kjb-progress', { detail: { message: 'WELCOME TO KJB READER (GUEST MODE)', status: 'success' } }));
         } else {
-          const finalMessage = isLookup ? 'LOOKING UP…' : 'WELCOME TO KJB READER.';
+          const finalMessage = isLookup ? lookupSplashLabel() : 'WELCOME TO KJB READER.';
           setStep(finalMessage);
           window.dispatchEvent(new CustomEvent('kjb-progress', { detail: { message: finalMessage, status: 'success' } }));
         }
@@ -297,7 +327,7 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
         // Android overlay approach was reverted -- it kept showing corrupted
         // text on-device across several fix attempts, so the reliable web
         // splash handles this alone again instead).
-        const welcomeMessage = isLookup ? 'LOOKING UP…' : (isOfflineNow() ? 'WELCOME BACK — OFFLINE MODE.' : 'WELCOME BACK TO KJB READER.');
+        const welcomeMessage = isLookup ? lookupSplashLabel() : (isOfflineNow() ? 'WELCOME BACK — OFFLINE MODE.' : 'WELCOME BACK TO KJB READER.');
         setStep(welcomeMessage);
         window.dispatchEvent(new CustomEvent('kjb-progress', { detail: { message: welcomeMessage, status: 'success' } }));
         await pause(STEP_PAUSE_MS);
