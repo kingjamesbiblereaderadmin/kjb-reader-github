@@ -4,6 +4,23 @@ import { OLD_TESTAMENT, NEW_TESTAMENT } from '@/lib/bibleData';
 export default function BookSelector({ currentAbbr, onSelect, onClose, initialTestament, inline }) {
   const [tab, setTab] = useState(initialTestament === 'new' ? 'new' : 'old');
   const scrollRef = useRef(null);
+  const panelRef = useRef(null);
+  const [inlineMaxH, setInlineMaxH] = useState(undefined);
+
+  // Inline mode: cap the panel to the space between its top edge and the
+  // viewport bottom (minus the footer nav), so the list always fits on
+  // screen instead of running under the page footer when not scrolled.
+  useEffect(() => {
+    if (!inline) return;
+    const measure = () => {
+      if (!panelRef.current) return;
+      const top = panelRef.current.getBoundingClientRect().top;
+      setInlineMaxH(Math.max(240, window.innerHeight - top - 96));
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [inline]);
 
   // Reset the book list to the top whenever the testament tab changes, so a
   // user scrolled deep into the Old Testament lands at the top of the New.
@@ -35,9 +52,12 @@ export default function BookSelector({ currentAbbr, onSelect, onClose, initialTe
   };
 
   return (
-    <div className={`bg-card border border-border rounded-2xl shadow-2xl overflow-hidden max-h-[70vh] flex flex-col relative ${
-      inline ? 'w-full shadow-lg' : 'w-[95vw] max-w-md sm:max-w-2xl lg:max-w-3xl'
-    }`}>
+    <div
+      ref={inline ? panelRef : null}
+      style={inline && inlineMaxH ? { maxHeight: inlineMaxH } : undefined}
+      className={`bg-card border border-border rounded-2xl shadow-2xl overflow-hidden max-h-[70vh] flex flex-col relative ${
+        inline ? 'w-full shadow-lg' : 'w-[95vw] max-w-md sm:max-w-2xl lg:max-w-3xl'
+      }`}>
       {/* Testament tabs */}
       <div className="grid grid-cols-2 gap-1 p-2 border-b border-border">
         <button
