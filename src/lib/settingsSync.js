@@ -15,6 +15,7 @@ export const SYNC_KEYS = [
   'kjb-color-mode',
   'kjb-custom-accent',
   'kjb-footer-mode',
+  'kjb-desktop-footer-open',
   'kjb-footer-auto-hide-enabled',
   'kjb-footer-hide-time',
   'kjb-notifications-enabled',

@@ -550,13 +550,39 @@ export default function AppLayout() {
 }
 
 function DesktopFooter({ navigate, setMenuOpen, pathname }) {
-  const [open, setOpen] = useState(() => {
-    try { return localStorage.getItem('kjb-desktop-footer-open') !== 'false'; } catch { return true; }
-  });
+  const readOpen = () => {
+    try {
+      // The footer is ONE preference with two renderings: the phone's bottom
+      // nav (portrait) and this desktop footer (landscape / large screens).
+      // A footer the user minimized on the phone ('bar' mode) must stay
+      // minimized here, and vice versa — rotating must never reopen it.
+      if (localStorage.getItem('kjb-footer-mode') === 'bar') return false;
+      return localStorage.getItem('kjb-desktop-footer-open') !== 'false';
+    } catch { return true; }
+  };
+  const [open, setOpen] = useState(readOpen);
+  // Rotation swaps which footer is on screen; re-read the shared preference
+  // each time the viewport crosses the phone/desktop breakpoint.
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 640px)');
+    const sync = () => setOpen(readOpen());
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
   const toggle = () => {
     setOpen(o => {
       const next = !o;
-      try { localStorage.setItem('kjb-desktop-footer-open', String(next)); } catch {}
+      try {
+        localStorage.setItem('kjb-desktop-footer-open', String(next));
+        // Keep the phone's bottom nav in step: a collapsed desktop footer is
+        // the same "footer closed" as the mobile 'bar' mode, so rotating
+        // back to portrait keeps it closed (and opening it here opens it
+        // there, unless the phone side was deliberately left expanded).
+        const mobileMode = localStorage.getItem('kjb-footer-mode');
+        if (!next) localStorage.setItem('kjb-footer-mode', 'bar');
+        else if (mobileMode === 'bar') localStorage.setItem('kjb-footer-mode', 'one');
+        window.dispatchEvent(new Event('kjb-footer-mode-change'));
+      } catch {}
       return next;
     });
   };
@@ -649,6 +675,21 @@ function BottomNav({ pathname, navigate }) {
     }
   }, [location.pathname, location.search]);
 
+  // Rotation swaps which footer is on screen; re-read the saved mode each
+  // time the viewport crosses the phone/desktop breakpoint so a footer
+  // closed on the desktop/landscape side stays closed here too.
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 640px)');
+    const sync = () => {
+      try {
+        const saved = localStorage.getItem('kjb-footer-mode');
+        setShowMode(saved === 'none' ? 'bar' : (['two', 'one', 'bar'].includes(saved) ? saved : 'one'));
+      } catch {}
+    };
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
   const cycleShowMode = () => {
     // Cycle: one row (default) → two rows (expand, more nav items) → bar
     // (minimize to a thin strip) → back to one row. The chevron points DOWN,
@@ -663,6 +704,9 @@ function BottomNav({ pathname, navigate }) {
       'one';
     setShowMode(next);
     try { localStorage.setItem('kjb-footer-mode', next); } catch {}
+    // Keep the desktop/landscape footer in step: minimized 'bar' mode means
+    // the footer is closed everywhere, so rotating doesn't reopen it.
+    try { localStorage.setItem('kjb-desktop-footer-open', String(next !== 'bar')); } catch {}
     try { window.dispatchEvent(new Event('kjb-footer-mode-change')); } catch {}
   };
 
