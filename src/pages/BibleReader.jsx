@@ -1,27 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Loader2, AlignJustify, AlignLeft, List, Columns2, ChevronDown, CheckSquare, Square, Copy, X, BookMarked, ZoomIn, Minus, Plus, Type, Share2, Printer, Highlighter, Bookmark } from 'lucide-react';
 import { buildVerseUrl, formatVerseShare, cleanVerseText, centerLine } from '@/lib/formatDailyVerse';
 import { BIBLE_BOOKS, getNextBook, getPrevBook } from '@/lib/bibleData';
-import { fetchChapter, fetchVerseCount, renderVerseText, renderColophonText, renderSubscriptText, resolveSubscript, resolveEndMarker } from '@/lib/bibleApi';
+import { fetchChapter, fetchChapterSync, fetchVerseCount, renderVerseText, renderColophonText, renderSubscriptText, resolveSubscript, resolveEndMarker } from '@/lib/bibleApi';
 import SubscriptContent from '@/components/bible/SubscriptContent';
 import { getBibleData } from '@/lib/bibleCache';
 import { SUBSCRIPTS, COLOPHONS } from '@/lib/bibleSubscripts';
-import BookSelector from '@/components/bible/BookSelector';
-import ChapterSelector from '@/components/bible/ChapterSelector';
-import VerseGrid from '@/components/bible/VerseGrid';
+import ReaderToolbar from '@/components/bible/ReaderToolbar';
 import VerseText from '@/components/bible/VerseText';
 import TitlePage from '@/components/bible/TitlePage';
-import SelectorSheet from '@/components/bible/SelectorSheet';
 import RunningHead from '@/components/bible/RunningHead';
-import CurrentlyReadingIndicator from '@/components/bible/CurrentlyReadingIndicator';
 import MinimizedHeaderBar from '@/components/bible/MinimizedHeaderBar';
-import ReadingRangeBar from '@/components/bible/ReadingRangeBar';
-import SelectActionBar from '@/components/bible/SelectActionBar';
-import VerseTapBar from '@/components/bible/VerseTapBar';
 import { useHeaderHide } from '@/lib/HeaderHideContext';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Accessibility } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getAccessibilityFont, setAccessibilityFont, applyReaderFont } from '@/lib/accessibilityFont';
@@ -33,6 +24,10 @@ import { useReaderNavigation } from '@/lib/useReaderNavigation';
 import { readScrollCache, saveScrollCache, saveScrollY } from '@/lib/scrollCache';
 import { useToolbarState } from '@/lib/useToolbarState';
 import { useChapterScrollRestore } from '@/lib/useChapterScrollRestore';
+import { computeReaderInitialSnapshot } from '@/lib/readerInitialSnapshot';
+import { scrollToVerse } from '@/lib/scrollToVerse';
+import { getFontFamilyValue } from '@/lib/readerFonts';
+import { buildTapShareText as buildTapShareTextFor, buildShareText, buildPerVerseText } from '@/lib/readerShareText';
 import { useSearchAndGospelResults } from '@/lib/useSearchAndGospelResults';
 import { resolveBook, formatVerseRange } from '@/lib/readerHelpers';
 import { useClosePopovers } from '@/lib/useClosePopovers';
@@ -66,18 +61,27 @@ export default function BibleReader() {
   }, [setHideHeader]);
   const routerLocation = useLocation();
   const routerNavigate = useNavigate();
-  const [pos, setPos] = useState(() => {
-    const p = loadPosition();
-    return { ...p, verse: null };
-  });
-  const [verses, setVerses] = useState([]);
-  const [colophon, setColophon] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // ── Synchronous first paint ──
+  // The reader used to mount with an EMPTY chapter + spinner and swap the
+  // text in a second paint — that was the flash on every return to /read
+  // (search results, Home's continue-reading, etc.). The snapshot resolves
+  // the URL/saved target AND — when the Bible is already parsed in memory
+  // this session — its chapter data synchronously, so the very first render
+  // shows it with the right verse/filter state. The mount effects still run
+  // and loadChapter re-fetches to revalidate; with warm data that changes
+  // nothing visible. Cold session: verses empty → spinner as before.
+  const [initialSnapshot] = useState(computeReaderInitialSnapshot);
+  const [pos, setPos] = useState(() => initialSnapshot.pos
+    ? { ...initialSnapshot.pos, verse: null }
+    : { ...loadPosition(), verse: null });
+  const [verses, setVerses] = useState(initialSnapshot.verses);
+  const [colophon, setColophon] = useState(initialSnapshot.colophon);
+  const [loading, setLoading] = useState(initialSnapshot.verses.length === 0);
   const [error, setError] = useState(null);
-  const [highlightVerse, setHighlightVerse] = useState(pos.verse || null);
+  const [highlightVerse, setHighlightVerse] = useState(initialSnapshot.highlightVerse);
   const [highlightSection, setHighlightSection] = useState(null);
-  const [highlightedVerses, setHighlightedVerses] = useState(new Set());
-  const [verseCount, setVerseCount] = useState(0);
+  const [highlightedVerses, setHighlightedVerses] = useState(initialSnapshot.selection || initialSnapshot.highlightSet || new Set());
+  const [verseCount, setVerseCount] = useState(initialSnapshot.verses.length);
 
   const [showBookPicker, setShowBookPicker] = useState(false);
   const [showChapterPicker, setShowChapterPicker] = useState(false);
@@ -119,9 +123,9 @@ export default function BibleReader() {
     setHighlightColor(name);
     try { localStorage.setItem('kjb-highlight-color', name); } catch {}
   };
-  const [selectedVerses, setSelectedVerses] = useState(new Set());
+  const [selectedVerses, setSelectedVerses] = useState(initialSnapshot.selection || new Set());
   const [selectedSections, setSelectedSections] = useState(new Set());
-  const [filterMode, setFilterMode] = useState(false);
+  const [filterMode, setFilterMode] = useState(initialSnapshot.filterMode);
   const [fontFamily, setFontFamily] = useState(() => {
     try { return localStorage.getItem('kjb-reader-font-family') || 'serif'; } catch { return 'serif'; }
   });
@@ -134,8 +138,18 @@ export default function BibleReader() {
       try { localStorage.setItem('kjb-reader-font-family', 'serif'); } catch {}
     }
   }, []);
-  
-  const [searchTerm, setSearchTerm] = useState(null);
+
+  const [searchTerm, setSearchTerm] = useState(() => {
+    // A keyword search carries ?from=search&q=… — seed the term on mount so
+    // the keyword <mark> highlighting is in the FIRST paint too (it would
+    // otherwise only appear a paint later, when the mount effects restore
+    // the search context).
+    try {
+      const p = new URLSearchParams(window.location.search);
+      if (p.get('from') === 'search' && p.get('q')) return p.get('q');
+    } catch {}
+    return null;
+  });
   const [searchResultIndex, setSearchResultIndex] = useState(0);
   const [searchTotalResults, setSearchTotalResults] = useState(0);
   const searchClearedRef = useRef(false);
@@ -177,18 +191,6 @@ export default function BibleReader() {
       setA11yFont('default');
     }
     window.dispatchEvent(new Event('storage'));
-  };
-
-  const getFontFamilyValue = (family) => {
-    if (family === 'cursive') return "'Dancing Script', cursive";
-    if (family === 'serif') return "'Merriweather', 'Cormorant Garamond', Georgia, serif";
-    if (family === 'sans-serif') return "'Inter', system-ui, -apple-system, sans-serif";
-    if (family === 'monospace') return "'Courier New', monospace";
-    if (family === 'comic-sans') return "'Comic Sans MS', 'Comic Sans', 'Chalkboard SE', 'Comic Neue', system-ui, sans-serif";
-    if (family === 'times') return "'Times New Roman', Times, serif";
-    if (family === 'dyslexic') return "'OpenDyslexic', 'Comic Sans MS', sans-serif";
-    if (family === 'hyperlegible') return "'Atkinson Hyperlegible', system-ui, sans-serif";
-    return family;
   };
 
   const [copyFeedback, setCopyFeedback] = useState(false);
@@ -282,6 +284,11 @@ export default function BibleReader() {
     window.dispatchEvent(new Event('storage'));
   };
 
+  const resetZoom = () => {
+    setZoomLevel(100);
+    try { localStorage.setItem('kjb-zoom', '100'); } catch {}
+  };
+
   const toggleSelectMode = () => {
     setTappedVerses(new Set());
     if (selectMode) {
@@ -299,24 +306,7 @@ export default function BibleReader() {
     () => tappedVerseNums.map(n => verses.find(v => parseInt(v.verse, 10) === n)).filter(Boolean),
     [tappedVerseNums, verses]
   );
-  const buildTapShareText = () => {
-    if (tappedVerseNums.length === 0) return '';
-    const first = tappedVerseNums[0], last = tappedVerseNums[tappedVerseNums.length - 1];
-    const isFirst = first === 1;
-    const isLast = verses.length > 0 && last === parseInt(verses[verses.length - 1].verse, 10);
-    const range = formatVerseRange(tappedVerseNums);
-    // tappedVerseObjs[0].heading covers Psalm 119's per-verse acrostic headings
-    // (ALEPH, BETH, ...), which chapterSubscript doesn't carry (it's null for
-    // Ps119) — falls back to it so tapping e.g. v9 alone still shows "BETH".
-    return formatVerseShare({
-      text: tappedVerseObjs.map(v => v.text).join(' '),
-      subscript: isFirst ? (chapterSubscript || null) : null,
-      heading: tappedVerseObjs[0]?.heading || null,
-      colophon: isLast ? (colophon || null) : null,
-      ref: `${book.shortName} ${pos.chapter}:${range}`,
-      url: buildVerseUrl({ abbr: pos.abbr, chapter: pos.chapter, verse: first, verseEnd: last > first ? last : undefined }),
-    });
-  };
+  const buildTapShareText = () => buildTapShareTextFor({ tappedVerseNums, tappedVerseObjs, chapterSubscript, colophon, book, pos });
   const handleTapCopy = async () => {
     await copyToClipboard(buildTapShareText());
     setTapCopyFeedback(true);
@@ -393,55 +383,7 @@ export default function BibleReader() {
     setSelectedSections(next);
   };
 
-  const generateShareText = () => {
-    // Coerce verse numbers to ints — selectedVerses holds ints (from
-    // toggleVerseSelect) while cached v.verse can be a string, so a plain
-    // toUse.has(v.verse) match silently produced an empty selection and an
-    // empty clipboard (copy "didn't work").
-    const toUse = selectedVerses.size > 0 ? selectedVerses : new Set(verses.map(v => parseInt(v.verse, 10)));
-    const verseInSel = (v) => toUse.has(parseInt(v.verse, 10));
-    const selectedVersesList = verses.filter(verseInSel).sort((a, b) => parseInt(a.verse, 10) - parseInt(b.verse, 10));
-
-    const groups = [];
-    let group = [];
-    selectedVersesList.forEach((v) => {
-      const vn = parseInt(v.verse, 10);
-      if (group.length === 0 || vn === parseInt(group[group.length - 1].verse, 10) + 1) {
-        group.push(v);
-      } else {
-        groups.push(group);
-        group = [v];
-      }
-    });
-    if (group.length) groups.push(group);
-
-    const chapterSubscript = resolveSubscript(book.apiName, pos.chapter) || null;
-    const lastVerseNum = verses.length ? parseInt(verses[verses.length - 1].verse, 10) : null;
-    // Subscript/colophon are included when explicitly selected (Select-mode tap)
-    // or, when no section has been explicitly toggled, when their anchor verse
-    // (1 / last) is in the selection — preserving the pre-tap behaviour.
-    const anySectionToggled = selectedSections.size > 0;
-    const wantSub = !!chapterSubscript && (selectedSections.has('subscript') || (!anySectionToggled && groups.some(g => g.some(v => parseInt(v.verse, 10) === 1))));
-    const wantCol = !!colophon && (selectedSections.has('colophon') || (!anySectionToggled && groups.some(g => g.some(v => parseInt(v.verse, 10) === lastVerseNum))));
-    const blocks = groups.map((g, gi) => {
-      const nums = g.map(v => parseInt(v.verse, 10));
-      const range = formatVerseRange(nums);
-      const first = nums[0], last = nums[nums.length - 1];
-      // g[0].heading covers Psalm 119's per-verse acrostic headings (ALEPH,
-      // BETH, ...) — chapterSubscript is null for Ps119, and unlike it a
-      // heading can start ANY group (not just the first), so check every
-      // group's own first verse rather than gating on gi === 0.
-      return formatVerseShare({
-        text: g.map(v => cleanVerseText(v.text)).join(' '),
-        subscript: gi === 0 && wantSub ? chapterSubscript : null,
-        heading: g[0]?.heading || null,
-        colophon: gi === groups.length - 1 && wantCol ? colophon : null,
-        ref: `${book.shortName} ${pos.chapter}:${range}`,
-        url: buildVerseUrl({ abbr: pos.abbr, chapter: pos.chapter, verse: first, verseEnd: last > first ? last : undefined, from: searchTerm ? 'search' : undefined }),
-      });
-    });
-    return blocks.join('\n\n———\n\n');
-  };
+  const generateShareText = () => buildShareText({ verses, selectedVerses, selectedSections, book, pos, searchTerm, colophon });
 
   const handleCopySelected = async () => {
     const lines = generateShareText();
@@ -450,55 +392,7 @@ export default function BibleReader() {
     setTimeout(() => setCopyFeedback(false), 1800);
   };
 
-  // Per-verse copy: each selected verse's text on its own line, followed by a
-  // single combined reference at the end (not a ref per verse).
-  const generatePerVerseText = () => {
-    // Coerce verse numbers to ints (see generateShareText) — cached v.verse can
-    // be a string while selectedVerses holds ints, which broke the filter.
-    const toUse = selectedVerses.size > 0 ? selectedVerses : new Set(verses.map(v => parseInt(v.verse, 10)));
-    const verseInSel = (v) => toUse.has(parseInt(v.verse, 10));
-    const selectedVersesList = verses.filter(verseInSel).sort((a, b) => parseInt(a.verse, 10) - parseInt(b.verse, 10));
-
-    const verseLines = selectedVersesList.map(v => {
-      const line = `${parseInt(v.verse, 10)} ${cleanVerseText(v.text).replace(/^¶\s*/, '')}`;
-      // Psalm 119's acrostic heading (ALEPH, BETH, ...) lives on the verse
-      // itself and can precede ANY verse in the list, not just the first —
-      // insert it right above the verse it belongs to. chapterSub (below)
-      // only ever covers a chapter-wide title attached to verse 1, which
-      // doesn't apply to Ps119 (chapterSub is null there).
-      return v.heading ? `${v.heading}\n${line}` : line;
-    });
-    const nums = selectedVersesList.map(v => parseInt(v.verse, 10));
-    const range = formatVerseRange(nums);
-    const ref = `${book.shortName} ${pos.chapter}:${range}`;
-    const first = nums[0], last = nums[nums.length - 1];
-    const url = buildVerseUrl({ abbr: pos.abbr, chapter: pos.chapter, verse: first, verseEnd: last > first ? last : undefined, from: searchTerm ? 'search' : undefined });
-
-    // Include the Psalm superscription (subscript) and epistle colophon when
-    // explicitly selected (Select-mode tap) or — when no section has been
-    // toggled — when their anchor verse (1 / last) is in the selection.
-    const parts = [];
-    const includesV1 = selectedVersesList.some(v => parseInt(v.verse, 10) === 1);
-    const chapterSub = resolveSubscript(book.apiName, pos.chapter) || null;
-    const lastVerseNum = verses.length ? parseInt(verses[verses.length - 1].verse, 10) : null;
-    const includesLast = lastVerseNum != null && selectedVersesList.some(v => parseInt(v.verse, 10) === lastVerseNum);
-    const anySectionToggled = selectedSections.size > 0;
-    // Copying more than one verse keeps the reference at the top (no dash);
-    // a single verse moves it to the end with a dash, matching the
-    // paragraph-copy citation style.
-    const isMultiVerse = selectedVersesList.length > 1;
-    if (isMultiVerse) parts.push(centerLine(book.name) + '\n' + centerLine(`Chapter ${pos.chapter}`));
-    if (chapterSub && (selectedSections.has('subscript') || (!anySectionToggled && includesV1))) {
-      parts.push(`¶ ${cleanVerseText(chapterSub).replace(/^[\u00B6\uFFFD¶]\s*/, '')}`);
-    }
-    parts.push(verseLines.join('\n\n'));
-    if (colophon && (selectedSections.has('colophon') || (!anySectionToggled && includesLast))) {
-      parts.push(`¶ ${cleanVerseText(colophon).replace(/^[\u00B6\uFFFD¶]\s*/, '')}`);
-    }
-    if (!isMultiVerse) parts.push(`— ${ref}`);
-    parts.push(`Read more: <${url}>`);
-    return parts.join('\n\n');
-  };
+  const generatePerVerseText = () => buildPerVerseText({ verses, selectedVerses, selectedSections, book, pos, searchTerm, colophon });
 
   const handleCopyPerVerse = async () => {
     const lines = generatePerVerseText();
@@ -616,23 +510,41 @@ export default function BibleReader() {
   const isViewingTitlePage = pos.chapter === 0;
 
   const loadChapter = useCallback(async (bookAbbr, chapter, jumpVerse, jumpVerseEnd = null) => {
-    setLoading(true); setError(null); setVerses([]); setColophon(null);
-    (document.getElementById('kjb-scroll') || window).scrollTo({ top: 0 });
+    setError(null);
     const b = BIBLE_BOOKS.find(bk => bk.abbr === bookAbbr);
     if (!b) { setError('Book not found'); setLoading(false); return; }
     if (!jumpVerse) setHighlightVerse(null);
     if (chapter === 0) {
-      setVerseCount(0); setLoading(false); setHighlightVerse(jumpVerse || null);
+      setVerses([]); setColophon(null); setVerseCount(0); setLoading(false); setHighlightVerse(jumpVerse || null);
       savePosition(bookAbbr, chapter);
       return;
     }
-    try {
-      const data = await fetchChapter(b.apiName, chapter);
-      setVerses(data.verses); setColophon(data.colophon || null); setVerseCount(data.verses.length);
+    // Warm session (Bible already parsed in memory): swap the chapter in
+    // SYNCHRONOUSLY with the navigation state so everything lands in ONE
+    // commit — no intermediate spinner/blank frame between chapters (the
+    // reader flash). The pre-paint scroll-restore hook then positions it.
+    // The Bible data itself still comes from the same offline-first cache
+    // (IndexedDB → network), so offline behaviour is unchanged: warm memory
+    // is only used when present, otherwise the async path below runs.
+    const syncData = fetchChapterSync(b.apiName, chapter);
+    if (syncData) {
+      setVerses(syncData.verses); setColophon(syncData.colophon || null); setVerseCount(syncData.verses.length);
       if (jumpVerse) setHighlightVerse(jumpVerse);
       // jumpVerseEnd, when the caller passed one, is what lets a lookup range
       // (e.g. "1 Cor 15:1-4") survive this save instead of collapsing to just
       // the first verse the moment the chapter finishes loading.
+      savePosition(bookAbbr, chapter, jumpVerse || null, jumpVerseEnd || null);
+      setLoading(false);
+      return;
+    }
+    // Cold session (first chapter load this app session): async fetch with
+    // the spinner, exactly as before.
+    setLoading(true); setVerses([]); setColophon(null);
+    (document.getElementById('kjb-scroll') || window).scrollTo({ top: 0 });
+    try {
+      const data = await fetchChapter(b.apiName, chapter);
+      setVerses(data.verses); setColophon(data.colophon || null); setVerseCount(data.verses.length);
+      if (jumpVerse) setHighlightVerse(jumpVerse);
       savePosition(bookAbbr, chapter, jumpVerse || null, jumpVerseEnd || null);
     } catch (err) {
       setError('Failed to load chapter. Please check your connection.');
@@ -754,7 +666,7 @@ export default function BibleReader() {
         }
       }
     } catch {}
-    
+
     const initParams = new URLSearchParams(window.location.search);
     const urlBook = initParams.get('book');
     const urlChapter = initParams.get('chapter');
@@ -766,7 +678,7 @@ export default function BibleReader() {
       loadChapter(abbr, 0, null);
       return;
     }
-    
+
     const urlBookObj = resolveBook(urlBook);
     if (urlBookObj && urlChapter) {
       const chapterNum = parseInt(urlChapter, 10);
@@ -854,7 +766,7 @@ export default function BibleReader() {
     // not be fetched a second time (the repaint = the reported flicker).
     const alreadyAtTarget = (bookAbbr, chapterNum) => posRef.current.abbr === bookAbbr
       && parseInt(posRef.current.chapter, 10) === chapterNum;
-    
+
     if (urlBookObj && urlChapter) {
       const chapterNum = parseInt(urlChapter, 10);
       const verseNum = urlParams.get('verse') ? parseInt(urlParams.get('verse'), 10) : null;
@@ -870,7 +782,7 @@ export default function BibleReader() {
         for (let v = verseNum; v <= verseEnd; v++) range.add(v);
         setSelectedVerses(range); setHighlightedVerses(range); setFilterMode(true);
       }
-      
+
       if (isFromGospel) {
         let g = getGospelNav();
         if (g.results.length === 0) {
@@ -905,7 +817,7 @@ export default function BibleReader() {
       } else {
         setGospelMode(false); clearGospelNav();
       }
-      
+
       if (isFromSearch) {
         let { term, index, results } = getSearchNav();
         // Only a real keyword search carries a `q` param. A plain reference/passage
@@ -954,7 +866,7 @@ export default function BibleReader() {
             try { setSearchIndex(matchIdx); } catch {}
           }
           // Same as the gospel branch: matchIdx only matches a result on the
-          // URL's own book/chapter/verse, which the mount effect has already
+          // URL's own book/chapter, which the mount effect has already
           // fetched on this first pass — skip the duplicate fetch that was
           // repainting the chapter (the search-result flicker).
           stepToResult(results[matchIdx], wasInitialNavMount || alreadyAtTarget(urlBookObj.abbr, chapterNum)); return;
@@ -1048,11 +960,11 @@ export default function BibleReader() {
           setGospelMode(false); clearGospelNav();
         }
       }
-      
+
       if (posRef.current.abbr === urlBookObj.abbr && posRef.current.chapter === chapterNum && posRef.current.verse === verseNum && !isFromGospel) {
         return;
       }
-      
+
       if (isFromDaily || isFromRandom) {
         // Clear any existing search context when coming from daily/random
         searchClearedRef.current = true; setSearchTerm(null); setSearchResultIndex(0); setSearchTotalResults(0);
@@ -1140,7 +1052,7 @@ export default function BibleReader() {
         const urlParams = new URLSearchParams(window.location.search);
         const isFromDaily = urlParams.get('from') === 'daily';
         const isFromRandom = urlParams.get('from') === 'random';
-        
+
         // Restore toolbar state from localStorage (search/gospel context persists across app restarts)
         let restoredSelection = false;
         let restoredFilterMode = false;
@@ -1306,40 +1218,12 @@ export default function BibleReader() {
     return () => window.removeEventListener('kjb-navigate', applyRequestedPosition);
   }, [routerLocation.search, loadChapter]);
 
-  // `instant` = jump with no animation. Used by the pre-paint scroll-restore
-  // pass so the FIRST frame the user sees already has the verse in place —
-  // a smooth animation started pre-paint still animates across the first
-  // painted frames (visible movement from wherever the scroller was).
+  // Scroll the given verse under the toolbar. The implementation lives in
+  // src/lib/scrollToVerse.js; `instant` jumps without animation so the
+  // pre-paint pass can position the verse before the first frame is painted.
   const scrollToVerseEl = useCallback((verseNum, instant = false) => {
-    const verseEl = document.getElementById(`v${verseNum}`);
-    if (!verseEl) return;
-    const occ = posRef.current?.occurrence || 0;
-    emphasizeOccurrence(verseEl.querySelectorAll('mark[data-occ]'), occ);
-    const scroller = document.getElementById('kjb-scroll');
-    const toolbarH = topRef.current ? topRef.current.getBoundingClientRect().height : 0;
-    const stickyOffset = toolbarH + 48;
-    const numEl = verseEl.querySelector('sup, .kjb-dropcap-num');
-    let topRect = numEl ? numEl.getBoundingClientRect().top : verseEl.getBoundingClientRect().top;
-    const heading = verseEl.querySelector('.font-bold.text-center');
-    if (heading && heading.getBoundingClientRect().top < topRect) topRect = heading.getBoundingClientRect().top;
-    // This runs several times per navigation (timed passes at 50/200/600ms plus
-    // a ResizeObserver on the content for 2s) so late layout shifts can't leave
-    // the verse off-screen. Each of those passes used to start a BRAND-NEW
-    // smooth scroll animation even when the verse was already in place — the
-    // animation visibly restarted/jittered, which is the flicker on opening a
-    // search result. Now a pass that is already at the right offset is a no-op,
-    // and only the first pass animates; later corrections snap instantly so
-    // they can't fight an in-flight animation.
-    const target = scroller
-      ? Math.max(0, topRect - scroller.getBoundingClientRect().top + scroller.scrollTop - stickyOffset)
-      : Math.max(0, topRect + window.scrollY - stickyOffset);
-    const current = scroller ? scroller.scrollTop : window.scrollY;
-    if (Math.abs(current - target) < 4) return;
-    const first = !scrolledVerseRef.current || scrolledVerseRef.current.verse !== verseNum;
-    scrolledVerseRef.current = { verse: verseNum };
-    (scroller || window).scrollTo({ top: target, behavior: instant ? 'auto' : (first ? 'smooth' : 'auto') });
+    scrollToVerse({ verseNum, posRef, topRef, scrolledVerseRef, instant });
   }, []);
-
 
 
   useEffect(() => {
@@ -1612,18 +1496,18 @@ export default function BibleReader() {
     if (!abbr || !chapter) return;
     setHighlightSection(null);
     setShowFilterOverlay(false);
-    
+
     // Save scroll position for restoration
     if (typeof exactY === 'number' && exactY > 0) {
       try { localStorage.setItem(`kjb-scroll-${abbr}-${chapter}`, String(Math.round(exactY))); } catch {}
     }
-    
+
     // Reuse the app's main navigate() (defined below) instead of duplicating
     // pos/localStorage/URL updates here — it's the single vetted path that
     // keeps react-router's tracked location, the real URL, and kjb-position
     // in sync, so Home → Read afterward never re-reads a stale filtered verse.
     navigate(abbr, chapter, null, false, false, true);
-    
+
     // ALSO manually restore scroll after chapter loads (in case effect doesn't trigger for same chapter)
     setTimeout(() => {
       if (typeof exactY === 'number' && exactY > 0) {
@@ -1636,24 +1520,24 @@ export default function BibleReader() {
       }
     }, 400);
   };
-  
+
   const { stepToResult, clearSearchContext } = useSearchAndGospelResults(
     posRef, loading, verses, topRef, searchTerm, gospelMode, setGospelMode, setGospelResultIndex, setGospelTotalResults,
     setSearchTerm, setSearchResultIndex, setSearchTotalResults, resultViewRef, setFilterMode, setHighlightedVerses, setSelectedVerses,
     setHighlightSection, setHighlightVerse, setPos, loadChapter, returnToChapter, clearSearchNav, setGospelNav, setGospelIndex, clearGospelNav,
     setSelectMode, setShowFilterOverlay, setLastReadingPos
   );
-  
+
   // Debug: log toolbar state on every render
   useEffect(() => {
     console.log('[BibleReader] Render state:', { searchTerm, gospelMode, filterMode, selectedVerses: selectedVerses.size, highlightVerse, pos });
   }, [searchTerm, gospelMode, filterMode, selectedVerses, highlightVerse, pos]);
-  
+
   const navigate = (newAbbr, newChapter, jumpVerse = null, fromDailyVerse = false, fromRandom = false, isAutoAdvance = false, section = null, preserveSearchContext = false) => {
     const sameChapter = newAbbr === pos.abbr && newChapter === pos.chapter;
     const scroller = document.getElementById('kjb-scroll');
     const scrollY = scroller ? scroller.scrollTop : window.scrollY;
-    
+
     // ALWAYS save current reading position before ANY navigation
     // This is the key fix - we save BEFORE overwriting with special mode positions
     if (pos.abbr && pos.chapter && !fromDailyVerse && !fromRandom) {
@@ -1661,13 +1545,13 @@ export default function BibleReader() {
       try { localStorage.setItem('kjb-prev-reading-session', JSON.stringify(prevSession)); } catch {}
       setPrevReadingSession(prevSession);
     }
-    
+
     // Clear search/gospel context for daily/random or when moving to different chapter
     if (fromDailyVerse || fromRandom || (!preserveSearchContext && !sameChapter)) {
       searchClearedRef.current = true; clearSearchNav(); setSearchTerm(null); setSearchResultIndex(0); setSearchTotalResults(0);
       setGospelMode(false); clearGospelNav();
     }
-    
+
     // For daily/random: save where we came FROM so clear can return there
     if ((fromDailyVerse || fromRandom) && pos.abbr && pos.chapter) {
       lastReadingClearedRef.current = false;
@@ -1784,473 +1668,51 @@ export default function BibleReader() {
   return (
     <div onClick={(e) => { if (!e.target.closest('.kjb-verse-container, [id^="v"], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a, [role="menu"], [role="menuitem"], [data-radix-popper-content-wrapper]')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerses(new Set()); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-3 ${hideHeader ? 'pt-16' : ''}`}>
       {!hideHeader && (
-        <div ref={topRef} data-kjb-reader-toolbar-wrap className="print:hidden sticky top-0 z-[100] border-b border-border pb-4 pt-3 mb-8 relative shadow-sm -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background before:content-[''] before:absolute before:bottom-full before:left-[calc(-1*env(safe-area-inset-left,0px))] before:right-[calc(-1*env(safe-area-inset-right,0px))] before:h-12 before:bg-background">
-          <div
-            onClickCapture={(e) => {
-              // Tapping empty space inside the toolbar (the gaps/padding between
-              // buttons, not a button or an open popover) closes any open menu.
-              if (anyMenuOpen && !e.target.closest('button, [role="menu"], .kjb-popover-panel')) {
-                closeAllMenus();
-              }
-            }}
-            className="kjb-reader-toolbar flex flex-wrap items-stretch justify-stretch gap-3 w-full max-w-[120rem] mx-auto [&>button:not(.kjb-fixed-btn)]:flex-grow [&>button:not(.kjb-fixed-btn)]:basis-auto [&>div.relative]:flex-grow [&>div.relative>button]:w-full">
-            <div className="relative flex">
-              <button
-                onClick={() => { setShowBookPicker(p => !p); setShowChapterPicker(false); setShowVersePicker(false); setShowZoomPopover(false); setShowFontPopover(false); }}
-                className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 touch-manipulation h-10 w-full"
-              >
-                <span className="notranslate truncate text-center">{isViewingTitlePage ? 'Title Page' : book.shortName}</span>
-                <ChevronRight className={`w-3 h-3 opacity-70 transition-transform duration-200 flex-shrink-0 ${showBookPicker ? 'rotate-90' : ''}`} />
-              </button>
-              {showBookPicker && !isMobile() && (
-                <div className="kjb-popover-panel absolute top-full left-0 mt-1 z-[100]">
-                  <BookSelector
-                    currentAbbr={pos.abbr}
-                    onSelect={(b, isTitlePage, showChapter) => {
-                      if (isTitlePage) { navigate(b.abbr, 0); setShowBookPicker(false); }
-                      else if (showChapter) {
-                        // Don't jump yet — stage the book and let the user
-                        // confirm a chapter (or open the whole book).
-                        setPendingBook(b);
-                        setShowBookPicker(false);
-                        setShowChapterPicker(true);
-                      }
-                    }}
-                    onClose={() => setShowBookPicker(false)}
-                  />
-                </div>
-              )}
-              <SelectorSheet open={showBookPicker && isMobile()} onClose={() => setShowBookPicker(false)} title="Select Book">
-                <BookSelector
-                  currentAbbr={pos.abbr}
-                  onSelect={(b, isTitlePage, showChapter) => {
-                    if (isTitlePage) { navigate(b.abbr, 0); setShowBookPicker(false); }
-                    else if (showChapter) {
-                      // Same as the desktop picker: stage the book, confirm first.
-                      setPendingBook(b);
-                      setShowBookPicker(false);
-                      setShowChapterPicker(true);
-                    }
-                  }}
-                  onClose={() => setShowBookPicker(false)}
-                />
-              </SelectorSheet>
-            </div>
+        <ReaderToolbar
+          topRef={topRef} hideHeader={hideHeader} setHideHeader={setHideHeader}
+          anyMenuOpen={anyMenuOpen} closeAllMenus={closeAllMenus}
+          pos={pos} book={book} isViewingTitlePage={isViewingTitlePage}
+          showBookPicker={showBookPicker} setShowBookPicker={setShowBookPicker}
+          showChapterPicker={showChapterPicker} setShowChapterPicker={setShowChapterPicker}
+          showVersePicker={showVersePicker} setShowVersePicker={setShowVersePicker}
+          showZoomPopover={showZoomPopover} setShowZoomPopover={setShowZoomPopover}
+          showFontPopover={showFontPopover} setShowFontPopover={setShowFontPopover}
+          pendingBook={pendingBook} setPendingBook={setPendingBook}
+          navigate={navigate} handleVersePick={handleVersePick}
+          verseCount={verseCount} chapterSubscript={chapterSubscript} colophon={colophon}
+          highlightVerse={highlightVerse} highlightSection={highlightSection}
+          selectMode={selectMode} selectedVerses={selectedVerses} filterMode={filterMode}
+          setSelectMode={setSelectMode} setFilterMode={setFilterMode} setSelectedVerses={setSelectedVerses}
+          setHighlightedVerses={setHighlightedVerses} setShowFilterOverlay={setShowFilterOverlay}
+          setHighlightVerse={setHighlightVerse} setHighlightSection={setHighlightSection} setTappedVerses={setTappedVerses}
+          zoomLevel={zoomLevel} adjustZoom={adjustZoom} handleZoomChange={handleZoomChange} resetZoom={resetZoom}
+          fontFamily={fontFamily} a11yActive={a11yActive} a11yFont={a11yFont} handleFontChange={handleFontChange}
+          flowMode={flowMode} toggleFlow={toggleFlow} columnOn={columnOn} toggleColumn={toggleColumn}
+          toggleSelectMode={toggleSelectMode} paragraphMode={paragraphMode} columnMode={columnMode}
+          verses={verses} searchTerm={searchTerm} gospelMode={gospelMode}
+          lastReadingActive={lastReadingActive} lastReadingPos={lastReadingPos}
+          gospelResultIndex={gospelResultIndex} gospelTotalResults={gospelTotalResults}
+          searchResultIndex={searchResultIndex} searchTotalResults={searchTotalResults}
+          setGospelResultIndex={setGospelResultIndex} setSearchResultIndex={setSearchResultIndex}
+          stepToResult={stepToResult} clearSearchContext={clearSearchContext}
+          setGospelMode={setGospelMode} setLastReadingPos={setLastReadingPos}
+          returnToChapter={returnToChapter} scrollToVerseEl={scrollToVerseEl}
+          rangeHighlightRef={rangeHighlightRef} resultViewRef={resultViewRef}
+          goPrev={goPrev} goNext={goNext}
+          isFirstChapterFirstBook={isFirstChapterFirstBook} isLastChapterLastBook={isLastChapterLastBook}
+          copyFeedback={copyFeedback} saveFeedback={saveFeedback}
+          shareFeedback={shareFeedback} shareLinkFeedback={shareLinkFeedback}
+          selectAllVerses={selectAllVerses} handleCopySelected={handleCopySelected}
+          handleCopyPerVerse={handleCopyPerVerse} handleSaveSelected={handleSaveSelected}
+          handleHighlightSelected={handleHighlightSelected} handleReadSelected={handleReadSelected}
+          handleShareChapter={handleShareChapter} handleSharePerVerse={handleSharePerVerse} handleShareLink={handleShareLink}
+          tappedVerseNums={tappedVerseNums} handleTapHighlightToggle={handleTapHighlightToggle}
+          handleTapCopy={handleTapCopy} handleTapShare={handleTapShare} handleTapSave={handleTapSave}
+          tapCopyFeedback={tapCopyFeedback} tapShareFeedback={tapShareFeedback} tapSaveFeedback={tapSaveFeedback}
+        />
+      )}
 
-            {!isViewingTitlePage && (
-              <>
-              <div className="relative flex">
-                <button
-                  onClick={() => {
-                    setShowBookPicker(false); setShowZoomPopover(false); setShowFontPopover(false);
-                    // Single-chapter books have no chapters to choose — open the
-                    // verse picker instead of a pointless one-item chapter grid.
-                    if (book.chapters <= 1) { setShowVersePicker(p => !p); setShowChapterPicker(false); }
-                    else { setShowChapterPicker(p => !p); setShowVersePicker(false); }
-                  }}
-                  className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 w-full"
-                >
-                  <span className="notranslate">Ch.{pos.chapter}</span>
-                  <ChevronRight className={`w-3 h-3 opacity-70 transition-transform duration-200 flex-shrink-0 ${showChapterPicker ? 'rotate-90' : ''}`} />
-                </button>
-                {showChapterPicker && !isMobile() && (
-                  <div className="kjb-popover-panel absolute top-full left-0 mt-1 z-[100]">
-                    <ChapterSelector
-                      totalChapters={pendingBook ? pendingBook.chapters : book.chapters}
-                      currentChapter={pendingBook ? null : pos.chapter}
-                      onSelect={(ch, showVerse) => { navigate(pendingBook ? pendingBook.abbr : pos.abbr, ch); setPendingBook(null); setShowChapterPicker(false); if (showVerse) setShowVersePicker(true); }}
-                      onClose={() => { setPendingBook(null); setShowChapterPicker(false); }}
-                      onWholeBook={() => { if (pendingBook) { navigate(pendingBook.abbr, 1); } setPendingBook(null); setShowChapterPicker(false); }}
-                      bookName={pendingBook ? pendingBook.name : book.name}
-                    />
-                  </div>
-                )}
-                <SelectorSheet open={showChapterPicker && isMobile()} onClose={() => setShowChapterPicker(false)} title="Select Chapter">
-                  <ChapterSelector
-                    totalChapters={pendingBook ? pendingBook.chapters : book.chapters}
-                    currentChapter={pendingBook ? null : pos.chapter}
-                    onSelect={(ch, showVerse) => { navigate(pendingBook ? pendingBook.abbr : pos.abbr, ch); setPendingBook(null); setShowChapterPicker(false); if (showVerse) setShowVersePicker(true); }}
-                    onClose={() => { setPendingBook(null); setShowChapterPicker(false); }}
-                    onWholeBook={() => { if (pendingBook) { navigate(pendingBook.abbr, 1); } setPendingBook(null); setShowChapterPicker(false); }}
-                    bookName={pendingBook ? pendingBook.name : book.name}
-                    bare
-                  />
-                </SelectorSheet>
-              </div>
-
-              <div className="relative flex">
-                <button
-                  onClick={() => { setShowVersePicker(p => !p); setShowBookPicker(false); setShowChapterPicker(false); setShowZoomPopover(false); setShowFontPopover(false); }}
-                  className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 w-full ${
-                    selectMode ? 'bg-primary text-primary-foreground' : filterMode && selectedVerses.size > 0 ? 'bg-accent/20 text-accent' : highlightVerse ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'
-                  }`}
-                  disabled={verseCount === 0}
-                >
-                  <span className="truncate min-w-[3.5rem] text-center">
-                    {selectMode ? `${selectedVerses.size > 0 ? selectedVerses.size : '0'} selected` : filterMode && selectedVerses.size > 0 ? `vv.${formatVerseRange([...selectedVerses])}` : highlightSection === 'colophon' ? 'Colophon' : highlightSection === 'subscript' ? 'Subscript' : highlightVerse ? `v.${highlightVerse}` : 'Verse'}
-                  </span>
-                  {selectMode ? <CheckSquare className="w-3.5 h-3.5 opacity-70 flex-shrink-0 transition-transform duration-200" /> : <ChevronRight className={`w-3 h-3 opacity-70 transition-transform duration-200 flex-shrink-0 ${showVersePicker ? 'rotate-90' : ''}`} />}
-                </button>
-                {showVersePicker && verseCount > 0 && !isMobile() && (
-                  <div className="kjb-popover-panel absolute top-full left-0 mt-1 z-[100]">
-                    <VerseGrid
-                      verseCount={verseCount}
-                      currentVerse={highlightVerse}
-                      currentSection={highlightSection}
-                      hasSubscript={!!chapterSubscript}
-                      hasColophon={!!colophon}
-                      onSelect={handleVersePick}
-                    />
-                  </div>
-                )}
-                <SelectorSheet open={showVersePicker && verseCount > 0 && isMobile()} onClose={() => setShowVersePicker(false)} title="Select Verse">
-                  <VerseGrid
-                    verseCount={verseCount}
-                    currentVerse={highlightVerse}
-                    currentSection={highlightSection}
-                    hasSubscript={!!chapterSubscript}
-                    hasColophon={!!colophon}
-                    onSelect={handleVersePick}
-                    bare
-                  />
-                </SelectorSheet>
-              </div>
-
-              <div className="relative flex">
-              <button
-                onClick={() => { setShowZoomPopover(p => !p); setShowBookPicker(false); setShowChapterPicker(false); setShowVersePicker(false); setShowFontPopover(false); }}
-                title={`Zoom: ${zoomLevel}%`}
-                className="flex items-center justify-center gap-1 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"
-              >
-                <ZoomIn className="w-3.5 h-3.5 transition-transform duration-200 flex-shrink-0" />
-                <span className="truncate">{zoomLevel}%</span>
-              </button>
-              {showZoomPopover && !isMobile() && (
-                <div className="kjb-popover-panel absolute top-full right-0 mt-1 z-[100]" onClick={(e) => e.stopPropagation()}>
-                  <div className="bg-card border border-border rounded-xl shadow-xl p-4 w-64 relative overflow-hidden">
-                    <div className="flex items-center justify-between mb-3 pr-6">
-                      <span className="font-sans text-xs font-medium text-foreground">Text Size</span>
-                      <span className="font-sans text-xs font-semibold text-primary">{zoomLevel}%</span>
-                    </div>
-                    <button onClick={() => setShowZoomPopover(false)} className="absolute top-3 right-3 p-1 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"><X className="w-4 h-4" /></button>
-                    <div className="flex items-center gap-2 mb-2">
-                      <button onClick={() => adjustZoom(-5)} className="p-1.5 rounded-lg bg-secondary hover:bg-accent/20 transition-colors"><Minus className="w-3.5 h-3.5" /></button>
-                      <input type="range" min="75" max="250" step="5" value={zoomLevel} onChange={handleZoomChange} className="flex-1 h-2 bg-muted-foreground/30 rounded-lg appearance-none cursor-pointer accent-primary" />
-                      <button onClick={() => adjustZoom(5)} className="p-1.5 rounded-lg bg-secondary hover:bg-accent/20 transition-colors"><Plus className="w-3.5 h-3.5" /></button>
-                    </div>
-                    {zoomLevel !== 100 && (
-                      <button onClick={() => { setZoomLevel(100); try { localStorage.setItem('kjb-zoom', '100'); } catch {} }} className="w-full mt-2 px-2 py-1.5 rounded-lg bg-primary/10 text-primary font-sans text-xs font-medium hover:bg-primary/20 transition-colors">Reset to 100%</button>
-                    )}
-                  </div>
-                </div>
-              )}
-              <SelectorSheet open={showZoomPopover && isMobile()} onClose={() => setShowZoomPopover(false)} title="Text Size">
-                <div className="space-y-4 p-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-sans text-sm font-medium text-foreground">Zoom Level</span>
-                    <span className="font-sans text-sm font-semibold text-primary">{zoomLevel}%</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button onClick={() => adjustZoom(-5)} className="p-2 rounded-lg bg-secondary hover:bg-accent/20 transition-colors"><Minus className="w-4 h-4" /></button>
-                    <input type="range" min="75" max="250" step="5" value={zoomLevel} onChange={handleZoomChange} className="flex-1 h-3 bg-muted-foreground/30 rounded-lg appearance-none cursor-pointer accent-primary" />
-                    <button onClick={() => adjustZoom(5)} className="p-2 rounded-lg bg-secondary hover:bg-accent/20 transition-colors"><Plus className="w-4 h-4" /></button>
-                  </div>
-                  {zoomLevel !== 100 && (
-                    <button onClick={() => { setZoomLevel(100); try { localStorage.setItem('kjb-zoom', '100'); } catch {} }} className="w-full px-4 py-3 rounded-lg bg-primary/10 text-primary font-sans text-sm font-medium hover:bg-primary/20 transition-colors">Reset to 100%</button>
-                  )}
-                </div>
-              </SelectorSheet>
-              </div>
-
-              <div className="relative flex">
-              <button
-                onClick={() => { setShowFontPopover(p => !p); setShowBookPicker(false); setShowChapterPicker(false); setShowVersePicker(false); setShowZoomPopover(false); }}
-                title="Font family"
-                className="flex items-center justify-center gap-1 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"
-              >
-                <Type className="w-3.5 h-3.5 transition-transform duration-200 flex-shrink-0" />
-                <span className="hidden sm:inline">{(() => { const active = a11yActive ? a11yFont : fontFamily; return active === 'serif' ? 'Serif' : active === 'sans-serif' ? 'Sans' : active === 'monospace' ? 'Mono' : active === 'comic-sans' ? 'Comic' : active === 'times' ? 'Times' : active === 'dyslexic' ? 'Dyslexic' : active === 'hyperlegible' ? 'Legible' : 'Cursive'; })()}</span>
-              </button>
-              {showFontPopover && !isMobile() && (
-                <div className="kjb-popover-panel absolute top-full left-0 mt-1 z-[100]" onClick={(e) => e.stopPropagation()}>
-                  <div className="bg-card border border-border rounded-xl shadow-xl p-4 w-64 relative overflow-hidden">
-                    <div className="flex items-center justify-between mb-3 pr-6"><span className="font-sans text-xs font-medium text-foreground">Font Family</span></div>
-                    <button onClick={() => setShowFontPopover(false)} className="absolute top-3 right-3 p-1 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"><X className="w-4 h-4" /></button>
-                    {a11yActive && <p className="font-sans text-[11px] text-muted-foreground mb-2 leading-snug">An accessibility font is active app-wide and overrides reading fonts.</p>}
-                    <p className="font-sans text-[11px] text-muted-foreground">Standard</p>
-                    <div className="grid grid-cols-2 gap-2 mb-2">
-                      {[ { value: 'serif', label: 'Serif' }, { value: 'sans-serif', label: 'Sans' }, { value: 'monospace', label: 'Mono' }, { value: 'cursive', label: 'Cursive' }, { value: 'comic-sans', label: 'Comic' }, { value: 'times', label: 'Times' } ].map(font => {
-                        const isActive = a11yActive ? false : fontFamily === font.value;
-                        const isDisabled = a11yActive;
-                        return (
-                        <button key={font.value} disabled={isDisabled} onClick={() => { handleFontChange(font.value); setShowFontPopover(false); }} className={`px-3 py-2 rounded-lg border font-sans text-xs font-medium transition-all ${ isActive ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary text-secondary-foreground border-border hover:bg-accent/20' } ${isDisabled ? 'opacity-40 pointer-events-none' : ''}`} style={{ fontFamily: getFontFamilyValue(font.value) }}>{font.label}</button>
-                        );
-                      })}
-                    </div>
-                    <p className="font-sans text-[11px] text-muted-foreground">Accessibility</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {[ { value: 'dyslexic', label: 'Dyslexic' }, { value: 'hyperlegible', label: 'Legible' } ].map(font => {
-                        const isActive = a11yActive && a11yFont === font.value;
-                        return (
-                        <button key={font.value} onClick={() => { handleFontChange(font.value); setShowFontPopover(false); }} className={`px-3 py-2 rounded-lg border font-sans text-xs font-medium transition-all ${ isActive ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary text-secondary-foreground border-border hover:bg-accent/20' }`} style={{ fontFamily: getFontFamilyValue(font.value) }}>{font.label}</button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
-              <SelectorSheet open={showFontPopover && isMobile()} onClose={() => setShowFontPopover(false)} title="Font Family">
-                <div className="space-y-2 p-2">
-                  {a11yActive && <p className="font-sans text-xs text-muted-foreground leading-snug mb-1">An accessibility font is active app-wide and overrides reading fonts.</p>}
-                  <p className="font-sans text-xs text-muted-foreground">Standard</p>
-                  <div className="grid grid-cols-2 gap-2 mb-2">
-                    {[ { value: 'serif', label: 'Serif' }, { value: 'sans-serif', label: 'Sans' }, { value: 'monospace', label: 'Mono' }, { value: 'cursive', label: 'Cursive' }, { value: 'comic-sans', label: 'Comic' }, { value: 'times', label: 'Times' } ].map(font => {
-                      const isActive = a11yActive ? false : fontFamily === font.value;
-                      const isDisabled = a11yActive;
-                      return (
-                      <button key={font.value} disabled={isDisabled} onClick={() => { handleFontChange(font.value); setShowFontPopover(false); }} className={`w-full px-4 py-3 rounded-lg border font-sans text-sm font-medium transition-all ${ isActive ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary text-secondary-foreground border-border hover:bg-accent/20' } ${isDisabled ? 'opacity-40 pointer-events-none' : ''}`} style={{ fontFamily: getFontFamilyValue(font.value) }}>{font.label}</button>
-                      );
-                    })}
-                  </div>
-                  <p className="font-sans text-xs text-muted-foreground">Accessibility</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[ { value: 'dyslexic', label: 'Dyslexic' }, { value: 'hyperlegible', label: 'Legible' } ].map(font => {
-                      const isActive = a11yActive && a11yFont === font.value;
-                      return (
-                      <button key={font.value} onClick={() => { handleFontChange(font.value); setShowFontPopover(false); }} className={`w-full px-4 py-3 rounded-lg border font-sans text-sm font-medium transition-all ${ isActive ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary text-secondary-foreground border-border hover:bg-accent/20' }`} style={{ fontFamily: getFontFamilyValue(font.value) }}>{font.label}</button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </SelectorSheet>
-              </div>
-
-              <button onClick={toggleFlow} title={flowMode === 'line' ? 'Switch to paragraph' : 'Switch to line-by-line'} className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-xs font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap ${paragraphMode ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}>{flowMode === 'line' ? <List className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /> : <AlignJustify className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />}<span className="hidden lg:inline">{flowMode === 'line' ? 'Lines' : 'Para'}</span></button>
-              <button onClick={toggleColumn} title={columnOn ? 'Switch to single column' : 'Switch to two-column'} className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-xs font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap ${columnOn ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}>{columnOn ? <Columns2 className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /> : <AlignLeft className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />}<span className="hidden lg:inline">{columnOn ? '2-Col' : '1-Col'}</span></button>
-              <button onClick={toggleSelectMode} title="Select verses" className={`kjb-fixed-btn flex-none flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-xs font-medium transition-all duration-200 touch-manipulation h-10  whitespace-nowrap ${selectMode ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}><CheckSquare className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Select</span></button>
-              
-               <DropdownMenu onOpenChange={(open) => { if (open) closeAllMenus(); }}>
-                <DropdownMenuTrigger asChild>
-                  <button title={shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'} className="kjb-fixed-btn flex-none flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap">
-                    <Share2 className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />
-                    <span className="hidden lg:inline">{shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'}</span>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="w-52" onCloseAutoFocus={(e) => e.preventDefault()}>
-                  <DropdownMenuItem onClick={handleShareChapter} className="cursor-pointer">
-                    <AlignLeft className="w-4 h-4 mr-2" />
-                    Share Text (Passage)
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleSharePerVerse} className="cursor-pointer">
-                    <List className="w-4 h-4 mr-2" />
-                    Share Text (Per Verse)
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleShareLink} className="cursor-pointer">
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share Link Only
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <button
-                onClick={() => printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode)}
-                title="Print"
-                className="kjb-fixed-btn flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"
-              >
-                <Printer className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />
-                <span className="hidden lg:inline">Print</span>
-              </button>
-
-              <button onClick={goPrev} disabled={isFirstChapterFirstBook} data-testid="prev-chapter-btn" className="kjb-fixed-btn flex-shrink-0 flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"><ChevronLeft className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Prev</span></button>
-              <button onClick={() => goNext()} disabled={isLastChapterLastBook} data-testid="next-chapter-btn" className="kjb-fixed-btn flex-shrink-0 flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"><span className="hidden lg:inline">Next</span><ChevronRight className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /></button>
-              <button onClick={(e) => { e.stopPropagation(); setHideHeader(!hideHeader); }} title={hideHeader ? "Show header" : "Hide header"} className="kjb-fixed-btn flex-shrink-0 flex items-center justify-center px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10  whitespace-nowrap"><ChevronDown className={`w-5 h-5 transition-transform duration-200 flex-shrink-0 ${hideHeader ? '' : 'rotate-180'}`} /></button>
-
-              {((filterMode && selectedVerses.size > 0) || lastReadingActive || searchTerm || gospelMode || highlightVerse) && (
-                <CurrentlyReadingIndicator
-                  highlightVerse={highlightVerse}
-                  filterMode={filterMode}
-                  selectedVerses={selectedVerses}
-                  lastReadingPos={lastReadingActive ? lastReadingPos : null}
-                  book={book}
-                  pos={pos}
-                  highlightSection={highlightSection}
-                  searchTerm={searchTerm}
-                  gospelMode={gospelMode}
-                  gospelLabel={gospelMode ? (getGospelNav().results[gospelResultIndex]?.label || 'Gospel') : null}
-                  currentResultIndex={gospelMode ? gospelResultIndex : searchResultIndex}
-                  totalResults={gospelMode ? gospelTotalResults : searchTotalResults}
-                  occurrenceLabel={!gospelMode && searchTerm ? getOccurrenceLabel(searchResultIndex) : ''}
-                  onPrevResult={() => {
-                    if (gospelMode) {
-                      const { results, index } = getGospelNav();
-                      if (results.length === 0) return;
-                      const prevIndex = (index - 1 + results.length) % results.length;
-                      const r = results[prevIndex];
-                      if (r) { setGospelIndex(prevIndex); setGospelResultIndex(prevIndex); stepToResult(r); }
-                      return;
-                    }
-                    const { results, index } = getSearchNav();
-                    if (results.length === 0) return;
-                    const prevIndex = (index - 1 + results.length) % results.length;
-                    const r = results[prevIndex];
-                    if (r) { setSearchIndex(prevIndex); setSearchResultIndex(prevIndex); stepToResult(r); }
-                  }}
-                  onNextResult={() => {
-                    if (gospelMode) {
-                      const { results, index } = getGospelNav();
-                      if (results.length === 0) return;
-                      const nextIndex = (index + 1) % results.length;
-                      const r = results[nextIndex];
-                      if (r) { setGospelIndex(nextIndex); setGospelResultIndex(nextIndex); stepToResult(r); }
-                      return;
-                    }
-                    const { results, index } = getSearchNav();
-                    if (results.length === 0) return;
-                    const nextIndex = (index + 1) % results.length;
-                    const r = results[nextIndex];
-                    if (r) { setSearchIndex(nextIndex); setSearchResultIndex(nextIndex); stepToResult(r); }
-                  }}
-                  onClear={() => {
-                    // ALWAYS check for a saved previous reading position FIRST (works for search/gospel/daily/random)
-                    let prevAbbr, prevChapter, prevScrollY;
-                    
-                    // Prefer kjb-prev-reading-session — it's the most accurate record of
-                    // the chapter the user was actually reading (captured on chapter load + scroll).
-                    try {
-                      const prevRaw = localStorage.getItem('kjb-prev-reading-session');
-                      if (prevRaw) {
-                        const prev = JSON.parse(prevRaw);
-                        if (prev && prev.abbr && prev.chapter) {
-                          prevAbbr = prev.abbr;
-                          prevChapter = prev.chapter;
-                          prevScrollY = prev.scrollY;
-                        }
-                      }
-                    } catch {}
-                    
-                    // Fall back to the prevAbbr/prevChapter baked into kjb-last-reading
-                    if (!prevAbbr || !prevChapter) {
-                      try {
-                        const lastRaw = localStorage.getItem('kjb-last-reading');
-                        if (lastRaw) {
-                          const last = JSON.parse(lastRaw);
-                          if (last && last.prevAbbr && last.prevChapter) {
-                            prevAbbr = last.prevAbbr;
-                            prevChapter = last.prevChapter;
-                            prevScrollY = typeof last.prevScrollY === 'number' ? last.prevScrollY : last.scrollY;
-                          }
-                        }
-                      } catch {}
-                    }
-                    
-                    // Clear ALL state first (search, gospel, daily, random, filter, highlight)
-                    if (searchTerm) { clearSearchContext(); }
-                    if (gospelMode) { clearGospelNav(); setGospelMode(false); }
-                    setLastReadingPos(null); setFilterMode(false); setSelectMode(false); setSelectedVerses(new Set());
-                    setHighlightedVerses(new Set()); setHighlightVerse(null); setHighlightSection(null);
-                    setShowFilterOverlay(false);
-                    try { localStorage.removeItem('kjb-last-reading'); } catch {}
-                    try { localStorage.removeItem('kjb-reader-toolbar-state'); } catch {}
-                    
-                    // Navigate back if we have a saved position
-                    if (prevAbbr && prevChapter) {
-                      returnToChapter(prevAbbr, prevChapter, prevScrollY);
-                    } else {
-                      // No prior session found — still go through the main
-                      // navigate() so kjb-position, the URL and react-router's
-                      // tracked location all clear the saved verse together.
-                      navigate(pos.abbr, pos.chapter, null, false, false, true);
-                    }
-                  }}
-                />
-              )}
-            </>
-            )}
-
-            {isViewingTitlePage && (
-              <>
-                <button onClick={goPrev} disabled={isFirstChapterFirstBook} title="Previous" data-testid="prev-chapter-btn" className="flex flex-1 items-center justify-center gap-1.5 px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 "><ChevronLeft className="w-5 h-5 flex-shrink-0" /><span className="hidden lg:inline">Prev</span></button>
-                <button onClick={() => goNext()} title="Next" data-testid="next-chapter-btn" className="flex flex-1 items-center justify-center gap-1.5 px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10 "><span className="hidden lg:inline">Next</span><ChevronRight className="w-5 h-5 flex-shrink-0" /></button>
-                <button onClick={(e) => { e.stopPropagation(); setHideHeader(!hideHeader); }} title={hideHeader ? "Show header" : "Hide header"} className="flex items-center justify-center px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10  flex-shrink-0"><ChevronDown className={`w-5 h-5 flex-shrink-0 ${hideHeader ? '' : 'rotate-180'}`} /></button>
-              </>
-            )}
-          </div>
-
-          {/* Single unified toolbar - SelectActionBar for multi-select mode, ReadingRangeBar for search/gospel/daily/navigation */}
-          {selectMode && (
-            <SelectActionBar
-              selectedCount={selectedVerses.size} totalVerses={verses.length} copyFeedback={copyFeedback} shareFeedback={shareFeedback} shareLinkFeedback={shareLinkFeedback} saveFeedback={saveFeedback}
-              onSelectAll={selectAllVerses} onCancel={() => {
-                if (searchTerm) { clearSearchContext(); return; }
-                if (gospelMode) { clearGospelNav(); setGospelMode(false); setHighlightVerse(null); setLastReadingPos(null); try { localStorage.removeItem('kjb-last-reading'); } catch {} return; }
-                // Exit select mode. Only PRESERVE the filter when one was
-                // already active before selecting (e.g. daily verse / random
-                // chapter) — so the user returns to that filtered view. When
-                // select mode was entered from a full chapter, Cancel clears
-                // the selection and returns to the full chapter instead of
-                // unexpectedly dropping into a filtered view.
-                setSelectMode(false);
-                if (filterMode && selectedVerses.size > 0) {
-                  setHighlightVerse(Math.min(...selectedVerses));
-                } else {
-                  setFilterMode(false); setSelectedVerses(new Set()); setHighlightVerse(null);
-                }
-              }}
-              onCopy={handleCopySelected} onCopyPerVerse={handleCopyPerVerse} onShareText={handleShareChapter} onShareTextPerVerse={handleSharePerVerse} onShareLink={handleShareLink}
-              onReadSelected={handleReadSelected} onShowFull={() => { setFilterMode(false); setSelectMode(false); setSelectedVerses(new Set()); setShowFilterOverlay(false); }}
-              onPrintPage={() => { if (!nativePrintCurrentPage()) window.print(); }} onPrintContents={() => printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode)}
-              onSave={handleSaveSelected} onHighlight={handleHighlightSelected}
-            />
-          )}
-          
-          {!selectMode && selectedVerses.size > 0 && tappedVerses.size === 0 && (
-            <ReadingRangeBar
-              label={searchTerm ? (/\d+:\d+/.test(searchTerm) ? `Currently Reading: ${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}` : `Search: "${searchTerm}"`) : gospelMode ? 'Gospel' : lastReadingActive ? (lastReadingPos?.fromRandom ? 'Random Chapter' : 'Daily Verse') : `Reading ${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}`}
-              filterMode={filterMode} copyFeedback={copyFeedback} shareFeedback={shareFeedback} shareLinkFeedback={shareLinkFeedback} saveFeedback={saveFeedback}
-              onCopy={handleCopySelected} onCopyPerVerse={handleCopyPerVerse} onShareText={handleShareChapter} onShareTextPerVerse={handleSharePerVerse} onShareLink={handleShareLink} onSave={handleSaveSelected} onPrintPage={() => { if (!nativePrintCurrentPage()) window.print(); }}
-              onPrintContents={() => printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode)}
-              onToggleView={() => {
-                setFilterMode(prev => {
-                  const next = !prev; rangeHighlightRef.current = next; resultViewRef.current = next ? 'filter' : 'full';
-                  if (!next && selectedVerses.size > 0) {
-                    const first = Math.min(...selectedVerses); setHighlightVerse(first);
-                    setTimeout(() => scrollToVerseEl(first), 80); setTimeout(() => scrollToVerseEl(first), 350);
-                  }
-                  return next;
-                });
-              }}
-              onClear={() => {
-                if (searchTerm) { clearSearchContext(); return; }
-                if (gospelMode) { clearGospelNav(); setGospelMode(false); setHighlightVerse(null); setLastReadingPos(null); try { localStorage.removeItem('kjb-last-reading'); localStorage.removeItem('kjb-reader-toolbar-state'); } catch {} return; }
-                if (lastReadingActive) { setLastReadingPos(null); try { localStorage.removeItem('kjb-last-reading'); localStorage.removeItem('kjb-reader-toolbar-state'); } catch {} return; }
-                rangeHighlightRef.current = false; setSelectMode(false); setShowFilterOverlay(false);
-                try { localStorage.removeItem('kjb-reader-toolbar-state'); } catch {}
-                // Go through the main navigate() so pos, kjb-position (verse
-                // cleared) and the URL all update together via react-router —
-                // otherwise Home → Read can re-read a stale filtered verse.
-                navigate(pos.abbr, pos.chapter, null, false, false, true);
-              }}
-            />
-          )}
-
-          {!selectMode && tappedVerseNums.length > 0 && (
-            <VerseTapBar
-              label={`${book.shortName} ${pos.chapter}:${formatVerseRange(tappedVerseNums)}`}
-              isHighlighted={tappedVerseNums.some(n => !!getVerseHighlight(pos.abbr, pos.chapter, n))}
-              isSaved={tappedVerseNums.every(n => isVerseSaved(pos.abbr, pos.chapter, n))}
-              copyFeedback={tapCopyFeedback} shareFeedback={tapShareFeedback} saveFeedback={tapSaveFeedback}
-              onToggleHighlight={handleTapHighlightToggle}
-              onCopy={handleTapCopy}
-              onShare={handleTapShare}
-              onSave={handleTapSave}
-              onClose={() => setTappedVerses(new Set())}
-            />
-          )}
-
-          </div>
-          )}
-
-          {hideHeader && <MinimizedHeaderBar setHideHeader={setHideHeader} />}
+      {hideHeader && <MinimizedHeaderBar setHideHeader={setHideHeader} />}
 
       {/* Desktop-only backdrop for the inline popovers. On mobile the selectors
           use the bottom sheet (SelectorSheet), which has its own overlay — rendering
@@ -2284,7 +1746,7 @@ export default function BibleReader() {
         </div>
       )}
 
-      <div 
+      <div
         ref={readerContentRef}
         className={`kjb-reader-content leading-loose text-foreground ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`}
         style={{ fontSize: `${zoomLevel / 100 * 1.125}rem`, lineHeight: zoomLevel > 100 ? '1.8' : '1.6', ...(fontFamily !== 'cursive' ? { fontFamily: getFontFamilyValue(fontFamily) } : {}) }}
@@ -2313,12 +1775,17 @@ export default function BibleReader() {
           const renderVerse = (v, isFirstOverall) => (
             <React.Fragment key={`${pos.abbr}-${pos.chapter}-${v.verse}`}>
               <VerseText
-                verse={v} highlight={tappedVerses.size > 0 ? tappedVerses.has(parseInt(v.verse, 10)) : (parseInt(highlightVerse, 10) === parseInt(v.verse, 10) || highlightedVerses.has(parseInt(v.verse, 10)))}
-                id={`v${v.verse}`} bookName={book.name} abbr={pos.abbr} chapter={pos.chapter} isFirstVerse={isFirstOverall} paragraphMode={paragraphMode} selectMode={selectMode}
-                isSelected={selectedVerses.has(parseInt(v.verse, 10)) || selectedVerses.has(String(v.verse))} onSelect={toggleVerseSelect} onActivateSelect={activateSelectFromVerse} totalVerses={verseCount}
+                verse={v}
+                highlight={tappedVerses.size > 0 ? tappedVerses.has(parseInt(v.verse, 10)) : (parseInt(highlightVerse, 10) === parseInt(v.verse, 10) || highlightedVerses.has(parseInt(v.verse, 10)))}
+                id={`v${v.verse}`} bookName={book.name} abbr={pos.abbr} chapter={pos.chapter}
+                isFirstVerse={isFirstOverall} paragraphMode={paragraphMode} selectMode={selectMode}
+                isSelected={selectedVerses.has(parseInt(v.verse, 10)) || selectedVerses.has(String(v.verse))}
+                onSelect={toggleVerseSelect} onActivateSelect={activateSelectFromVerse} totalVerses={verseCount}
                 colophon={verses.length > 0 && String(v.verse) === String(verses[verses.length - 1].verse) ? colophon : null}
                 subscript={parseInt(v.verse, 10) === 1 ? (chapterSubscript || null) : null}
-                isCursive={fontFamily === 'cursive'} fontFamilyValue={getFontFamilyValue(fontFamily)} zoomLevel={zoomLevel} columnMode={useColumns} dropCap={isFirstOverall && parseInt(v.verse, 10) === 1}
+                isCursive={fontFamily === 'cursive'} fontFamilyValue={getFontFamilyValue(fontFamily)}
+                zoomLevel={zoomLevel} columnMode={useColumns}
+                dropCap={isFirstOverall && parseInt(v.verse, 10) === 1}
                 searchTerm={searchTerm && parseInt(highlightVerse, 10) === parseInt(v.verse, 10) ? searchTerm : null}
                 isDirectJump={parseInt(highlightVerse, 10) === parseInt(v.verse, 10)}
                 onVerseTap={toggleTappedVerse}
@@ -2327,7 +1794,13 @@ export default function BibleReader() {
           );
 
           const subscriptBlock = columnMode && !isViewingTitlePage && !(filterMode && selectedVerses.size > 0) && chapterSubscript ? (
-            <p onClick={() => handleSectionClick('subscript')} id="kjb-subscript-anchor" className={`notranslate kjb-subscript text-center text-muted-foreground mb-4 leading-relaxed transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}><SubscriptContent text={chapterSubscript} searchTerm={sectionActive('subscript') ? searchTerm : null} /></p>
+            <p
+              onClick={() => handleSectionClick('subscript')} id="kjb-subscript-anchor"
+              className={`notranslate kjb-subscript text-center text-muted-foreground mb-4 leading-relaxed transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`}
+              style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}
+            >
+              <SubscriptContent text={chapterSubscript} searchTerm={sectionActive('subscript') ? searchTerm : null} />
+            </p>
           ) : null;
 
           return (
