@@ -578,6 +578,15 @@
     background-color: inherit;
     border-radius: 0.25rem;
   }
+  /* Cursive mode: Dancing Script's swashes and descenders extend well past the
+     letter's own layout box, so the inherited highlight background stopped
+     short of the visible glyph. A little padding around the cap (with a
+     matching negative margin so the text beside it doesn't shift) makes the
+     highlight cover the whole letter. */
+  .cursive-em-style .kjb-dropcap-group {
+    padding: 0.12em 0.26em 0.18em 0.1em;
+    margin: -0.12em -0.12em -0.18em -0.1em;
+  }
   .kjb-dropcap-letter {
     /* Sized so the letter box spans exactly two body text lines
        (2 × leading-relaxed 1.625 = 3.25em), making the drop cap's bottom
