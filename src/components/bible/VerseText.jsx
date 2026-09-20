@@ -116,7 +116,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   // of CSS ::first-letter, which doesn't work reliably in inline/paragraph flow
   // and would otherwise enlarge the verse number). Skips any leading HTML tags
   // (e.g. a pilcrow span) so the cap lands on the first real letter.
-  if (dropCap && !selectMode) {
+  if (dropCap) {
     // Float the verse number + big first letter together as one unit, so the
     // number always sits immediately to the LEFT of the drop cap (in every mode).
     // When highlighted, tint the big letter with the active highlight colour so
@@ -506,7 +506,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
           onClick={handleVerseClick}
           className="inline leading-loose rounded cursor-pointer px-[0.3em] py-[0.2em]"
         >
-          {!(dropCap && !selectMode) && (
+          {!dropCap && (
             <sup className="text-accent font-sans font-bold text-[0.65em] mr-2 select-none">{verse.verse}</sup>
           )}
           <span className={selectMode && isSelected ? 'bg-primary/10 box-decoration-clone rounded px-[0.2em] py-[0.1em]' : ''}>
@@ -533,7 +533,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   // column) as every other verse, so its text aligns perfectly with verses 2+.
   // The drop-cap group (number + big letter) renders INSIDE the html and is
   // floated/pulled back via CSS so it still begins at the left margin.
-  if (dropCap && !selectMode) {
+  if (dropCap) {
     return (
       <span id={id} className="block relative mt-2 scroll-mt-24" style={{ display: 'flow-root' }}>
         {stanzaHeading}
@@ -544,15 +544,22 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
           {/* Spacer matching the verse-number column so verse 1's text column
               lines up with verses 2+. The actual number lives in the drop-cap. */}
           <sup className="text-accent font-sans font-bold text-[0.6em] shrink-0 select-none mt-[0.2em] mr-[0.3em] inline-block text-right w-[1.6em]">{verse.verse}</sup>
-          <span className="kjb-dropcap-col flex-1 min-w-0 leading-relaxed break-words text-left">
-            <span
-              className={`kjb-verse-text notranslate inline [&_em]:italic [&_em]:text-foreground/75 box-decoration-clone rounded transition-colors duration-200 py-[0.1em] ${isHighlighted ? hlPadX : 'px-[0.3em]'} ${isCursive ? 'cursive-em-style' : ''} ${isHighlighted ? highlightBg : 'hover:bg-secondary/60'}`}
-              style={{ display: 'inline', ...(isCursive ? { fontSize: `${zoomLevel / 100 * 1.125}rem` } : textStyle) }}
-              dangerouslySetInnerHTML={{ __html: html }}
-            />
+          <span className={`flex-1 min-w-0 flex items-start gap-[0.6em] ${selectMode && isSelected ? 'bg-primary/10 border border-primary/30 rounded-[0.5em] px-[0.3em] py-[0.1em]' : ''}`}>
+            {selectMode && (
+              <span className="shrink-0 mt-[0.2em] text-primary">
+                {isSelected ? <CheckSquare className="w-[1.1em] h-[1.1em]" /> : <Square className="w-[1.1em] h-[1.1em] text-muted-foreground" />}
+              </span>
+            )}
+            <span className="kjb-dropcap-col flex-1 min-w-0 leading-relaxed break-words text-left">
+              <span
+                className={`kjb-verse-text notranslate inline [&_em]:italic [&_em]:text-foreground/75 box-decoration-clone rounded transition-colors duration-200 py-[0.1em] ${isHighlighted ? hlPadX : 'px-[0.3em]'} ${isCursive ? 'cursive-em-style' : ''} ${isHighlighted ? highlightBg : (!selectMode ? 'hover:bg-secondary/60' : '')}`}
+                style={{ display: 'inline', ...(isCursive ? { fontSize: `${zoomLevel / 100 * 1.125}rem` } : textStyle) }}
+                dangerouslySetInnerHTML={{ __html: html }}
+              />
+            </span>
           </span>
         </span>
-        {actionPopover}
+        {!selectMode && actionPopover}
       </span>
     );
   }
