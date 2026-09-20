@@ -126,7 +126,7 @@ export default function ContentsPage() {
       />
 
       {/* Selection Button */}
-      <div className={showBookSelector && !isMobile() ? 'mb-3' : 'mb-8'}>
+      <div className={(showBookSelector || showChapterSelector) && !isMobile() ? 'mb-3' : 'mb-8'}>
         <button
           onClick={() => setShowBookSelector(v => !v)}
           className="w-full py-3 px-4 rounded-xl bg-primary text-primary-foreground font-sans font-semibold text-sm hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-between"
@@ -171,29 +171,21 @@ export default function ContentsPage() {
         </div>
       )}
 
-      {/* Chapter Selector Popup */}
+      {/* Chapter Selector — expands inline under the button, like the book selector */}
       {showChapterSelector && currentBook && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          onClick={() => {
-            setShowChapterSelector(false);
-            setSelectedBook(null);
-            setSelectedChapter(null);
-          }}
-        >
-          <div className="relative" onClick={(e) => e.stopPropagation()}>
-            <ChapterSelector
-              totalChapters={currentBook.chapters}
-              currentChapter={selectedChapter}
-              onSelect={handleSelectChapter}
-              bookName={currentBook.name}
-              onClose={() => {
-                setShowChapterSelector(false);
-                setSelectedBook(null);
-                setSelectedChapter(null);
-              }}
-            />
-          </div>
+        <div className="mb-8">
+          <ChapterSelector
+            totalChapters={currentBook.chapters}
+            currentChapter={selectedChapter}
+            onSelect={handleSelectChapter}
+            bookName={currentBook.name}
+            inline
+            onClose={() => {
+              setShowChapterSelector(false);
+              setSelectedBook(null);
+              setSelectedChapter(null);
+            }}
+          />
         </div>
       )}
 

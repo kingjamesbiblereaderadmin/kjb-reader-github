@@ -8,12 +8,14 @@ import { ArrowRight, BookOpen } from 'lucide-react';
 //   book selector; nothing has navigated yet. The header names the staged
 //   book, and "Whole Book" opens it at chapter 1 — the confirmation step
 //   that prevents a book tap from jumping straight to the reader.
-export default function ChapterSelector({ totalChapters, currentChapter, onSelect, onClose, bare, bookName, onWholeBook }) {
+export default function ChapterSelector({ totalChapters, currentChapter, onSelect, onClose, bare, bookName, onWholeBook, inline }) {
   const [selectedChapter, setSelectedChapter] = useState(currentChapter);
   const isPending = typeof onWholeBook === 'function';
 
   return (
-    <div className={bare ? 'flex flex-col' : 'bg-card rounded-2xl overflow-hidden w-[90vw] max-w-sm max-h-[70vh] flex flex-col relative'}>
+    <div className={bare ? 'flex flex-col' : `bg-card border border-border rounded-2xl overflow-hidden max-h-[70vh] flex flex-col relative ${
+      inline ? 'w-full max-w-none shadow-lg' : 'w-[90vw] max-w-sm shadow-2xl'
+    }`}>
       {bookName && (
         <div className={`flex items-center gap-2 ${bare ? 'px-3 pt-3' : 'px-3 pt-3'}`}>
           <p className="font-serif text-sm font-semibold text-foreground truncate flex-1">{bookName}</p>
@@ -31,7 +33,7 @@ export default function ChapterSelector({ totalChapters, currentChapter, onSelec
         </div>
       )}
       <div className={bare ? 'p-1' : 'overflow-y-auto flex-1 p-3'}>
-        <div className="grid grid-cols-6 sm:grid-cols-8 gap-2">
+        <div className={`grid gap-2 ${inline ? 'grid-cols-6 sm:grid-cols-8 xl:grid-cols-12' : 'grid-cols-6 sm:grid-cols-8'}`}>
           {Array.from({ length: totalChapters }, (_, i) => i + 1).map(ch => {
             const isSelected = ch === selectedChapter;
             const hasSelection = selectedChapter != null;
