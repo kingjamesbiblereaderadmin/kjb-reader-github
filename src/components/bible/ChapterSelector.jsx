@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, BookOpen } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen } from 'lucide-react';
 
 // Two roles, one component:
 // - Normal mode (no onWholeBook): the current book's chapter grid, opened
@@ -8,7 +8,7 @@ import { ArrowRight, BookOpen } from 'lucide-react';
 //   book selector; nothing has navigated yet. The header names the staged
 //   book, and "Whole Book" opens it at chapter 1 — the confirmation step
 //   that prevents a book tap from jumping straight to the reader.
-export default function ChapterSelector({ totalChapters, currentChapter, onSelect, onClose, bare, bookName, onWholeBook, inline }) {
+export default function ChapterSelector({ totalChapters, currentChapter, onSelect, onClose, bare, bookName, onWholeBook, inline, onBack }) {
   const [selectedChapter, setSelectedChapter] = useState(currentChapter);
   const isPending = typeof onWholeBook === 'function';
 
@@ -18,6 +18,17 @@ export default function ChapterSelector({ totalChapters, currentChapter, onSelec
     }`}>
       {bookName && (
         <div className={`flex items-center gap-2 ${bare ? 'px-3 pt-3' : 'px-3 pt-3'}`}>
+          {onBack && (
+            <button
+              data-vaul-no-drag
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={onBack}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-secondary border border-border text-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-colors shrink-0"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Books
+            </button>
+          )}
           <p className="font-serif text-sm font-semibold text-foreground truncate flex-1">{bookName}</p>
           {isPending && (
             <button

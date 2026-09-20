@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { List, ChevronDown } from 'lucide-react';
 import { BIBLE_BOOKS } from '@/lib/bibleData';
@@ -45,6 +45,25 @@ export default function ContentsPage() {
   const [selectedChapter, setSelectedChapter] = useState(null);
   const [selectedVerses, setSelectedVerses] = useState([]);
   const [verseCount, setVerseCount] = useState(0);
+  const selectorRef = useRef(null);
+
+  // Clicking anywhere outside the button + inline panels closes the selector.
+  useEffect(() => {
+    if (!showBookSelector && !showChapterSelector) return;
+    const onPointerDown = (e) => {
+      if (selectorRef.current && !selectorRef.current.contains(e.target)) {
+        if (showChapterSelector) {
+          // Abandoning the staged chapter pick discards the staged book
+          setSelectedBook(null);
+          setSelectedChapter(null);
+        }
+        setShowBookSelector(false);
+        setShowChapterSelector(false);
+      }
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [showBookSelector, showChapterSelector]);
 
   const currentBook = selectedBook ? BIBLE_BOOKS.find(b => b.abbr === selectedBook) : null;
 
@@ -125,69 +144,82 @@ export default function ContentsPage() {
         subtitle={<span className="notranslate" translate="no">King James Bible — Pure Cambridge Edition</span>}
       />
 
-      {/* Selection Button */}
-      <div className={(showBookSelector || showChapterSelector) && !isMobile() ? 'mb-3' : 'mb-8'}>
+      {/* Selection Button + inline selector panels */}
+      <div ref={selectorRef} className="mb-8">
         <button
-          onClick={() => setShowBookSelector(v => !v)}
-          className="w-full py-3 px-4 rounded-xl bg-primary text-primary-foreground font-sans font-semibold text-sm hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-between"
+          onClick={() => {
+            if (showChapterSelector) {
+              // "Select a Chapter" — go back to picking a book
+              setShowChapterSelector(false);
+              setShowBookSelector(true);
+            } else {
+              setShowBookSelector(v => !v);
+            }
+          }}
+          className={`w-full py-3 px-4 rounded-xl bg-primary text-primary-foreground font-sans font-semibold text-sm hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-between ${
+            (showBookSelector || showChapterSelector) && !isMobile() ? 'mb-3' : ''
+          }`}
         >
           <span className="notranslate" translate="no">
-            {selectedBook && selectedChapter 
-              ? `${currentBook?.name} ${selectedChapter}${selectedVerses.length > 0 ? `:${formatVerses(selectedVerses)}` : ''}` 
-              : 'Select a Book'}
+            {showChapterSelector
+              ? 'Select a Chapter'
+              : selectedBook && selectedChapter 
+                ? `${currentBook?.name} ${selectedChapter}${selectedVerses.length > 0 ? `:${formatVerses(selectedVerses)}` : ''}` 
+                : 'Select a Book'}
           </span>
           <ChevronDown className="w-4 h-4" />
         </button>
-      </div>
 
-      {/* Book Selector Popup — native dropdowns on mobile, grid popup on desktop */}
-      {showBookSelector && isMobile() && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          onPointerDown={(e) => { if (e.target === e.currentTarget) setShowBookSelector(false); }}
-        >
-          <div className="relative w-full max-w-sm bg-card border border-border rounded-2xl shadow-2xl p-5">
-            <p className="font-serif text-lg font-semibold text-foreground text-center mb-4">Go to Passage</p>
-            <NativeSelector
-              initialAbbr={selectedBook || 'GEN'}
-              initialChapter={selectedChapter && selectedChapter > 0 ? selectedChapter : 1}
-              onGo={(abbr, chapter, verse) => {
-                setShowBookSelector(false);
-                goTo(abbr, chapter, verse ? [verse] : null);
-              }}
-            />
+        {/* Mobile: native dropdowns popup */}
+        {showBookSelector && isMobile() && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+            onPointerDown={(e) => { if (e.target === e.currentTarget) setShowBookSelector(false); }}
+          >
+            <div className="relative w-full max-w-sm bg-card border border-border rounded-2xl shadow-2xl p-5">
+              <p className="font-serif text-lg font-semibold text-foreground text-center mb-4">Go to Passage</p>
+              <NativeSelector
+                initialAbbr={selectedBook || 'GEN'}
+                initialChapter={selectedChapter && selectedChapter > 0 ? selectedChapter : 1}
+                onGo={(abbr, chapter, verse) => {
+                  setShowBookSelector(false);
+                  goTo(abbr, chapter, verse ? [verse] : null);
+                }}
+              />
+            </div>
           </div>
-        </div>
-      )}
-      {/* Book Selector — expands inline under the button on desktop, native dropdown popup on mobile */}
-      {showBookSelector && !isMobile() && (
-        <div className="mb-8">
+        )}
+
+        {/* Desktop: book panel expands inline under the button */}
+        {showBookSelector && !isMobile() && (
           <BookSelector
             currentAbbr={selectedBook}
             onSelect={handleSelectBook}
             onClose={() => setShowBookSelector(false)}
             inline
           />
-        </div>
-      )}
+        )}
 
-      {/* Chapter Selector — expands inline under the button, like the book selector */}
-      {showChapterSelector && currentBook && (
-        <div className="mb-8">
+        {/* Desktop: chapter panel expands inline under the button, with a back-to-books control */}
+        {showChapterSelector && currentBook && (
           <ChapterSelector
             totalChapters={currentBook.chapters}
             currentChapter={selectedChapter}
             onSelect={handleSelectChapter}
             bookName={currentBook.name}
             inline
+            onBack={() => {
+              setShowChapterSelector(false);
+              setShowBookSelector(true);
+            }}
             onClose={() => {
               setShowChapterSelector(false);
               setSelectedBook(null);
               setSelectedChapter(null);
             }}
           />
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Verse Selector Popup */}
       {showVerseSelector && verseCount > 0 && (
