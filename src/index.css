@@ -125,7 +125,11 @@
      so the toast always sits below the notch (0px everywhere without a
      notch, e.g. desktop/web, so nothing changes there). */
   [data-sonner-toaster][data-y-position='top'] {
-    top: calc(env(safe-area-inset-top, 0px) + 70px) !important;
+    /* The +70px normally clears the app header on AppLayout pages; the
+       standalone gospel pages have no header, so AuthenticatedApp sets
+       --kjb-toast-top-offset to a smaller value there and lifts the toast
+       right up near the top of the page. */
+    top: calc(env(safe-area-inset-top, 0px) + var(--kjb-toast-top-offset, 70px)) !important;
   }
   /* Toasts must be fully opaque. Sonner's own runtime stylesheet paints the
      toast with theme colors layered over whatever the page shows, and the

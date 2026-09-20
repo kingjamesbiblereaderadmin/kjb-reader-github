@@ -245,6 +245,15 @@ const AuthenticatedApp = () => {
     if (typeof window !== 'undefined') window.scrollTo(0, 0);
   }, [location.pathname]);
 
+  // The gospel pages (main + Spanish, both standalone routes with no app
+  // header) lift the toast popup right up near the top of the page's clear
+  // area instead of the usual 70px offset that clears the app header.
+  useEffect(() => {
+    const noHeader = location.pathname === '/salvation' || location.pathname === '/espanol-evangelio';
+    document.documentElement.style.setProperty('--kjb-toast-top-offset', noHeader ? '12px' : '70px');
+    return () => document.documentElement.style.removeProperty('--kjb-toast-top-offset');
+  }, [location.pathname]);
+
   // Preload route chunks in background
   useEffect(() => { preloadAllRoutes(); }, []);
 
