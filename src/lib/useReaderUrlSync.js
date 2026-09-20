@@ -27,14 +27,6 @@ export function useReaderUrlSync(pos, loading, a11yFont, navigate, searchTerm, g
       if (!from && (searchTerm || gospelMode)) {
         from = gospelMode ? 'gospel' : 'search';
       }
-      // Preserve an in-chapter range (verseEnd) for the CURRENT position.
-      // pos itself doesn't carry verseEnd (it's held in selectedVerses), but
-      // every range-producing path (search-bar goTo, stepToResult,
-      // handleReadSelected) persists it to kjb-position. Restore it from
-      // there ONLY when the saved position matches this exact book/chapter/
-      // verse — otherwise this sync rewrites the URL on every pos change and
-      // silently strips &verseEnd=..., collapsing "1 Cor 15:1-4" to "15:1"
-      // (wrong pill label, single-verse highlight, lost filter range).
       // A search-result jump has just put `&verse=N` in the URL, but `pos`
       // is applied a render later (stepToResult -> setPos). Writing the URL
       // from that stale pos (verse still null) strips the verse the user just
@@ -50,6 +42,14 @@ export function useReaderUrlSync(pos, loading, a11yFont, navigate, searchTerm, g
           return;
         }
       }
+      // Preserve an in-chapter range (verseEnd) for the CURRENT position.
+      // pos itself doesn't carry verseEnd (it's held in selectedVerses), but
+      // every range-producing path (search-bar goTo, stepToResult,
+      // handleReadSelected) persists it to kjb-position. Restore it from
+      // there ONLY when the saved position matches this exact book/chapter/
+      // verse — otherwise this sync rewrites the URL on every pos change and
+      // silently strips &verseEnd=..., collapsing "1 Cor 15:1-4" to "15:1"
+      // (wrong pill label, single-verse highlight, lost filter range).
       let verseEnd = null;
       try {
         const p = JSON.parse(localStorage.getItem('kjb-position') || '{}');
