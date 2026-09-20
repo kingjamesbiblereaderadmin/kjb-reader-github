@@ -138,16 +138,9 @@ export function useToolbarState(pos, loading, verses, filterMode, selectedVerses
         }
         const state = JSON.parse(saved);
         console.log('[ToolbarState] Parsed state:', state);
-        // Discard a stale snapshot from a past session (e.g. the app was closed
-        // mid-search/gospel without an explicit Clear) — restoring a filter from
-        // hours/days/weeks ago when the user happens to land back on the same
-        // chapter is confusing, not helpful.
-        const STALE_MS = 12 * 60 * 60 * 1000; // 12 hours
-        if (state && state.timestamp && Date.now() - state.timestamp > STALE_MS) {
-          try { localStorage.removeItem('kjb-reader-toolbar-state'); } catch {}
-          setRestoreTick(t => t + 1);
-          return;
-        }
+        // No staleness expiry: a saved search/gospel session stays live until the
+        // user actually clears it (Clear, a new search, or moving to another
+        // chapter), however long the app was closed in between.
         // Restore search/gospel context if we're on the SAME chapter where it was saved
         if (state && state.abbr === pos.abbr && state.chapter === pos.chapter) {
           console.log('[ToolbarState] Chapter match - restoring');

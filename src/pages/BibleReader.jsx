@@ -668,12 +668,12 @@ export default function BibleReader() {
         const urlCh = parseInt(mountParams.get('chapter'), 10);
         // The saved snapshot is the proof the session was never closed off:
         // Clear, a new search, a fresh reference jump and navigating to another
-        // chapter all delete it. So only revive the pill/stepper when BOTH the
-        // live results and a fresh (<12h) snapshot still point at this chapter.
+        // chapter all delete it. So the pill/stepper come back whenever BOTH the
+        // live results and the snapshot still point at this chapter — no time
+        // limit: the session lasts until the user actually clears it.
         const snap = JSON.parse(localStorage.getItem('kjb-reader-toolbar-state') || 'null');
         const snapLive = !!snap && snap.hasSearchContext && !!snap.searchTerm
-          && snap.abbr === urlAbbr && parseInt(snap.chapter, 10) === urlCh
-          && (!snap.timestamp || Date.now() - snap.timestamp < 12 * 60 * 60 * 1000);
+          && snap.abbr === urlAbbr && parseInt(snap.chapter, 10) === urlCh;
         if (snapLive && nav.term && nav.results.some(r => r && r.abbr === urlAbbr && parseInt(r.chapter, 10) === urlCh)) {
           isPlainChapterReturn = false;
         }
