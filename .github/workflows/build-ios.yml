@@ -205,7 +205,7 @@ jobs:
           fastlane deliver --api_key_path ios/ci/asc_key_runtime.json --ipa build/ipa/App.ipa --skip_screenshots --skip_metadata --run_precheck_before_submit false 2>&1 | tee /tmp/deliver.log
           rc=${PIPESTATUS[0]}
           if [ "$rc" -ne 0 ]; then
-            REASON="$(grep -iE 'error|invalid|fail|already|limit|too many|denied|forbidden|unauthorized|not found|missing|exceed|reject' /tmp/deliver.log | tail -6 | tr '\n' ' ' | cut -c1-800)"
+            REASON="$(tail -18 /tmp/deliver.log | sed 's/\x1b\[[0-9;]*m//g' | tr '\n' '|' | cut -c1-2000)"
             echo "::error title=ASC upload failed (fastlane exit $rc)::${REASON}"
             {
               echo "### ASC upload failed (exit $rc)"
