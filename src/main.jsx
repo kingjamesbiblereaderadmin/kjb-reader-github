@@ -71,10 +71,26 @@ function isMirroredKey(key) {
 
 const isNativeIosShell = isNativeIos;
 
+// Last value known to be in native Preferences for each mirrored key (either
+// sent by us or pulled at hydration). Lets the safety-net flush below send
+// only what actually changed.
+const _lastSent = new Map();
+let _writeCount = 0;
+let _statusTimer = null;
+
 async function prefSet(key, value) {
+  _lastSent.set(key, value);
   try {
     await Preferences.set({ key: PREFIX + key, value });
+    _writeCount++;
+    if (!_statusTimer) {
+      _statusTimer = setTimeout(() => {
+        _statusTimer = null;
+        recordStatus({ writes: _writeCount, lastWriteKey: key, lastWriteAt: new Date().toISOString() });
+      }, 1000);
+    }
   } catch (e) {
+    _lastSent.delete(key);
     recordStatus({ lastWriteError: String(e && e.message ? e.message : e), lastWriteKey: key });
   }
 }
@@ -111,20 +127,63 @@ function recordStatus(fields) {
 // originals without re-triggering the mirror (which would be harmless but
 // wasteful).
 let _patched = false;
-const _origSetItem = typeof localStorage !== 'undefined' ? localStorage.setItem.bind(localStorage) : null;
-const _origRemoveItem = typeof localStorage !== 'undefined' ? localStorage.removeItem.bind(localStorage) : null;
+const _storageProto = typeof Storage !== 'undefined' ? Storage.prototype : null;
+const _protoSetItem = _storageProto ? _storageProto.setItem : null;
+const _protoRemoveItem = _storageProto ? _storageProto.removeItem : null;
+const _origSetItem = (k, v) => _protoSetItem.call(localStorage, k, v);
+const _origRemoveItem = (k) => _protoRemoveItem.call(localStorage, k);
 
+// IMPORTANT: patch Storage.prototype, NOT the localStorage instance.
+// Assigning `localStorage.setItem = fn` is not reliable in WebKit (Storage's
+// named-property setter can swallow the assignment and just store a junk
+// "setItem" key), which left the mirror hooked to nothing in the iOS shell:
+// writes never reached native Preferences, and the next launch's hydration
+// then overwrote fresh local changes (highlights, saved verses) with the
+// stale copy.
 function patchLocalStorageForMirror() {
-  if (_patched) return;
+  if (_patched || !_storageProto) return;
   _patched = true;
-  localStorage.setItem = function (key, value) {
-    _origSetItem(key, value);
-    if (isMirroredKey(key)) prefSet(key, String(value));
+  // Remove junk keys an earlier instance-level patch attempt may have stored.
+  try {
+    for (const junk of ['setItem', 'removeItem']) {
+      const v = localStorage.getItem(junk);
+      if (typeof v === 'string' && v.indexOf('function') !== -1) _origRemoveItem(junk);
+    }
+  } catch {}
+  _storageProto.setItem = function (key, value) {
+    _protoSetItem.call(this, key, value);
+    if (this === localStorage && isMirroredKey(key)) prefSet(key, String(value));
   };
-  localStorage.removeItem = function (key) {
-    _origRemoveItem(key);
-    if (isMirroredKey(key)) prefSet(key, ''); // tombstone
+  _storageProto.removeItem = function (key) {
+    _protoRemoveItem.call(this, key);
+    if (this === localStorage && isMirroredKey(key)) prefSet(key, ''); // tombstone
   };
+  startMirrorSafetyNet();
+}
+
+// Safety net independent of the patch above: push any mirrored key whose
+// local value differs from what native Preferences last received — on
+// background/hide and every few seconds — so a write can never be lost
+// to a hook that didn't fire.
+function flushChangedMirroredKeys() {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!isMirroredKey(k)) continue;
+      const v = localStorage.getItem(k);
+      if (v !== null && _lastSent.get(k) !== v) prefSet(k, v);
+    }
+  } catch {}
+}
+
+function startMirrorSafetyNet() {
+  try {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') flushChangedMirroredKeys();
+    });
+    window.addEventListener('pagehide', flushChangedMirroredKeys);
+    setInterval(flushChangedMirroredKeys, 3000);
+  } catch {}
 }
 
 // main.jsx calls (and awaits) this before mounting the app. Resolves
@@ -144,7 +203,7 @@ async function hydrateNativeStateMirror() {
   try {
     const { keys } = await Preferences.keys();
     prefKeys = (keys || []).filter((k) => typeof k === 'string' && k.startsWith(PREFIX));
-    recordStatus({ native: true, keysOk: true, mirroredKeys: prefKeys.length, hydrated: true });
+    recordStatus({ native: true, keysOk: true, mirroredKeys: prefKeys.length, hydrated: true, patch: 'proto-v2' });
   } catch (e) {
     recordStatus({ native: true, keysOk: false, hydrated: false,
                    reason: 'Preferences bridge failed: ' + String(e && e.message ? e.message : e) });
@@ -196,6 +255,7 @@ async function hydrateNativeStateMirror() {
     mirroredNames.add(key);
     const value = await prefGet(key);
     if (value === null) continue;
+    _lastSent.set(key, value);
     try {
       if (value === '') _origRemoveItem(key); // tombstone: removed on the other origin
       else _origSetItem(key, value);
