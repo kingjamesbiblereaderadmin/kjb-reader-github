@@ -211,6 +211,22 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
               setStep(got ? 'OFFLINE BIBLE DATA READY.' : 'OFFLINE DATA INTERRUPTED — RETRYING IN BACKGROUND.');
               if (!got) downloadBibleForOffline().catch(() => {});
             }
+          } else if (isOfflineNow()) {
+            // 2. Offline: don't attempt a network download at all. The Bible
+            // already on the device (IndexedDB) is what this session will
+            // use — say we're getting it ready instead of pretending to
+            // fetch, and skip straight to the hand-off. It refreshes from
+            // the server the next time the app opens online.
+            const { isBibleCached } = await import('@/lib/bibleCache');
+            const alreadyCached = await isBibleCached().catch(() => false);
+            if (alreadyCached) {
+              setStep('GETTING READY THE BIBLE DATA...');
+            } else {
+              // Fresh device with no connection: nothing is on the device to
+              // prepare — say so instead of promising data that isn't there.
+              setStep('NO CONNECTION — OFFLINE BIBLE WILL DOWNLOAD WHEN ONLINE.');
+            }
+            await pause(STEP_PAUSE_MS);
           } else {
             // 2. Downloading offline data (real-time % progress)
             const gotOfflineData = await downloadWithProgress('DOWNLOADING OFFLINE DATA...');
