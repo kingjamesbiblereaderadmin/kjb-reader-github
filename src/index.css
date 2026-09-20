@@ -610,21 +610,19 @@
     margin-top: -0.15em;
   }
   /* Verse number sits at the top-left of the group, beside the big letter. */
-  /* Select-mode overlay around the drop-cap verse (verse 1). The big letter's
-     own negative top lift (-0.15em of a 3.4em glyph ≈ half a text line) would
-     poke past a normal-tight padding box and get clipped at the border, and a
-     0.1em padding hugged the highlight line too closely. This box gives the
-     cap roomy vertical padding and cancels the letter's lift inside it, so the
-     border always clears the full height of the T (and the yellow highlight
-     line below it) with comfortable breathing space. */
+  /* Select-mode overlay around the drop-cap verse (verse 1). The big letter
+     keeps its normal negative top lift (≈ half a text line) — a tight padding
+     box would clip it at the border, so this box adds enough top padding to
+     clear the full height of the T while it stays aligned with the text. */
   .kjb-select-dropcap-box {
     background: hsl(var(--primary) / 0.1);
     border: 1px solid hsl(var(--primary) / 0.3);
     border-radius: 0.4em;
-    padding: 0.45em 0.3em;
-  }
-  .kjb-select-dropcap-box .kjb-dropcap-letter {
-    margin-top: 0;
+    /* Roomy top padding so the box fully contains the big letter even WITH its
+       normal -0.15em top lift (0.15em of a 3.4em glyph ≈ 0.5em of body text).
+       The lift itself is kept, NOT cancelled — it is what visually aligns the
+       cap's top with the first text line, exactly as in normal reading mode. */
+    padding: 0.55em 0.3em;
   }
   .kjb-dropcap-num {
     font-size: 0.62em;
