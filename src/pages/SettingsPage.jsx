@@ -10,6 +10,11 @@ import ThemeColorPicker from '@/components/bible/ThemeColorPicker';
 import { Switch } from '@/components/ui/switch';
 import { InstallAppSection } from '@/components/settings/InstallAppSection';
 import { base44 } from '@/api/base44Client';
+import { clearAllUserData } from '@/lib/clearAllData';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { appParams } from '@/lib/app-params';
 import { useTheme, COLOUR_PALETTES } from '@/lib/themeContext';
 import { toast } from 'sonner';
@@ -66,6 +71,12 @@ export default function SettingsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteInput, setDeleteInput] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [showClearAll, setShowClearAll] = useState(false);
+  const [clearingAll, setClearingAll] = useState(false);
+  const handleClearAll = async () => {
+    setClearingAll(true);
+    try { await clearAllUserData(); } catch { setClearingAll(false); }
+  };
   const [a11yFont, setA11yFont] = useState(getAccessibilityFont);
   const [bookmarkBrowser] = useState(isBookmarkBrowser);
   const [isIncognito, setIsIncognito] = useState(false);
@@ -1092,6 +1103,42 @@ localStorage.removeItem('kjb-daily-verse-cache-v17');
                 Clear Cache & Reload
               </button>
             </div>
+
+            {/* Clear All Data — wipes everything the user created/changed, on both
+                the online and offline copies in the iOS app. Keeps the downloaded
+                Bible text. */}
+            <button
+              onClick={() => setShowClearAll(true)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-destructive text-destructive-foreground font-sans text-sm font-medium transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
+            >
+              <Trash2 className="w-4 h-4" />
+              Clear All Data
+            </button>
+            <p className="font-sans text-xs text-muted-foreground -mt-1">
+              Removes your highlights, saved verses, reading position, search progress and settings. The downloaded Bible is kept.
+            </p>
+            <AlertDialog open={showClearAll} onOpenChange={(open) => { if (!clearingAll) setShowClearAll(open); }}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Clear all data?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This permanently removes your highlights, saved verses and folders, reading position and history,
+                    search progress, and all your settings. In the iOS app it clears both the online and offline copies.
+                    The downloaded Bible text is kept. This cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={clearingAll}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    disabled={clearingAll}
+                    onClick={(e) => { e.preventDefault(); handleClearAll(); }}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {clearingAll ? 'Clearing…' : 'Clear everything'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         )}
       </div>
