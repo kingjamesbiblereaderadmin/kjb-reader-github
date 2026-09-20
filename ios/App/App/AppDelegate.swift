@@ -16,6 +16,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification,
                                                object: nil, queue: .main) { [weak self] _ in
             self?.consumePendingLookup()
+            // Re-arm the Spotlight indexers on every activation. Both are
+            // no-ops once the index is complete (version-keyed), but an
+            // interrupted first run — e.g. iOS suspended the app mid-index —
+            // resumes here without needing a full app relaunch.
+            SpotlightIndexer.indexIfNeeded()
+            SpotlightIndexer.indexVersesIfNeeded()
         }
         // Make every book and chapter searchable from iOS Search (Spotlight).
         // Runs in the background and only when the index is missing or stale

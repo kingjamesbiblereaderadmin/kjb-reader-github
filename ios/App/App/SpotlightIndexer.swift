@@ -208,8 +208,13 @@ enum SpotlightIndexer {
 
                 group.notify(queue: .global(qos: .utility)) {
                     // Only record success when every batch went in, so a
-                    // failed run is retried on the next launch.
-                    if !failed { defaults.set(indexVersion, forKey: versionKey) }
+                    // failed run is retried on the next launch/activation.
+                    if !failed {
+                        defaults.set(indexVersion, forKey: versionKey)
+                        NSLog("[KJB-Spotlight] book/chapter index COMPLETE: \(items.count) items")
+                    } else {
+                        NSLog("[KJB-Spotlight] book/chapter index FAILED — will retry on next launch/activation")
+                    }
                 }
             }
         }
@@ -294,6 +299,18 @@ enum SpotlightIndexer {
                   let versesByBook = try? JSONDecoder().decode([String: [[String]]].self, from: data),
                   !versesByBook.isEmpty else { return }
 
+            // Ask iOS for background runtime so indexing keeps going for a
+            // while even if the user backgrounds the app mid-run. If the app
+            // is suspended anyway, the version key below is never written and
+            // the whole index is rebuilt on the next launch/activation — a
+            // partial index is never mistaken for a complete one.
+            var bgTask = UIApplication.shared.beginBackgroundTask(withName: "kjb-spotlight-verses")
+
+            let started = Date()
+            var indexedCount = 0
+            var batchCount = 0
+            NSLog("[KJB-Spotlight] verse indexing started (\(versesByBook.count) books)")
+
             let index = CSSearchableIndex.default()
 
             // Start clean so a rebuild never leaves stale rows behind.
@@ -309,11 +326,19 @@ enum SpotlightIndexer {
                 guard !batch.isEmpty else { return }
                 let sent = DispatchSemaphore(value: 0)
                 index.indexSearchableItems(batch) { error in
-                    if error != nil { failed = true }
+                    if error != nil {
+                        failed = true
+                        NSLog("[KJB-Spotlight] batch \(batchCount) failed: \(String(describing: error))")
+                    }
                     sent.signal()
                 }
                 sent.wait()
+                indexedCount += batch.count
+                batchCount += 1
                 batch.removeAll(keepingCapacity: true)
+                if batchCount % 10 == 0 {
+                    NSLog("[KJB-Spotlight] indexed \(indexedCount) verses so far...")
+                }
             }
 
             for book in books {
@@ -339,7 +364,17 @@ enum SpotlightIndexer {
             }
             flush()
 
-            if !failed { defaults.set(verseIndexVersion, forKey: verseVersionKey) }
+            let elapsed = Date().timeIntervalSince(started)
+            if !failed {
+                defaults.set(verseIndexVersion, forKey: verseVersionKey)
+                NSLog("[KJB-Spotlight] verse index COMPLETE: \(indexedCount) verses in \(Int(elapsed))s")
+            } else {
+                NSLog("[KJB-Spotlight] verse index FAILED after \(indexedCount) verses — will retry on next launch/activation")
+            }
+            if bgTask != .invalid {
+                UIApplication.shared.endBackgroundTask(bgTask)
+                bgTask = .invalid
+            }
         }
     }
 
