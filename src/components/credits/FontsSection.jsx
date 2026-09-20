@@ -34,27 +34,15 @@ const READING_INTERFACE = [
 
 const DECORATIVE = [
   {
-    name: 'Caveat',
-    cssFamily: "'Caveat', cursive",
-    purpose: 'handwritten-style font for shareable verse cards',
-    tint: 'bg-pink-100/50 dark:bg-card border-pink-300/60 dark:border-border',
-  },
-  {
     name: 'Dancing Script',
     cssFamily: "'Dancing Script', cursive",
-    purpose: 'handwritten-style font for shareable verse cards',
+    purpose: 'the Cursive reading font option',
     tint: 'bg-fuchsia-100/50 dark:bg-card border-fuchsia-300/60 dark:border-border',
-  },
-  {
-    name: 'Great Vibes',
-    cssFamily: "'Great Vibes', cursive",
-    purpose: 'handwritten-style font for shareable verse cards',
-    tint: 'bg-violet-100/50 dark:bg-card border-violet-300/60 dark:border-border',
   },
   {
     name: 'Comic Neue',
     cssFamily: "'Comic Neue', 'Comic Sans MS', cursive",
-    purpose: 'a friendly, rounded font option for verse cards',
+    purpose: 'the Comic reading font option',
     tint: 'bg-emerald-100/50 dark:bg-card border-emerald-300/60 dark:border-border',
   },
 ];

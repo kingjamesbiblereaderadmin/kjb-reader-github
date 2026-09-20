@@ -1146,7 +1146,6 @@ localStorage.removeItem('kjb-daily-verse-cache-v17');
                         <p className="font-medium text-foreground">Kept:</p>
                         <p className="mt-0.5">The downloaded Bible text, and your accessibility font if one is on.</p>
                       </div>
-                      <p className="text-xs">In the iOS app this clears both the online and offline copies.</p>
                       <p className="text-xs font-medium text-destructive">This cannot be undone.</p>
                     </div>
                   </AlertDialogDescription>
