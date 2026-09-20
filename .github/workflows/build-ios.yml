@@ -121,6 +121,12 @@ jobs:
         run: |
           sed 's|</dict>|<key>teamID</key><string>'"$APPLE_TEAM_ID"'</string></dict>|' ios/ci/ExportOptions.plist > ios/ci/ExportOptions-runtime.plist
           plutil -lint ios/ci/ExportOptions-runtime.plist
+      - name: Ensure App Group capability (diagnose export auth failures)
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: /tmp/ascvenv/bin/python scripts/asc-ensure-app-groups.py
       - name: Export IPA (signs with Apple Distribution)
         run: |
           xcodebuild -exportArchive -archivePath build/App.xcarchive \
