@@ -1316,8 +1316,29 @@ export default function BibleReader() {
     }
     if (freshNavRef.current) {
       freshNavRef.current = false;
-      (document.getElementById('kjb-scroll') || window).scrollTo({ top: 0 });
-      return;
+      const scroller = document.getElementById('kjb-scroll') || window;
+      scroller.scrollTo({ top: 0 });
+      // Real iOS devices: a programmatic scrollTop set right after a flick
+      // can be clobbered by the old content's lingering momentum/rubber-band,
+      // so the new chapter opens wherever the flick ended instead of at the
+      // top (desktop/Android are unaffected). Re-assert the jump across the
+      // first second after the chapter renders — but stop the moment the user
+      // touches or wheels the new chapter themselves, so we never yank the
+      // scroll position out from under someone who is already reading.
+      let userTookOver = false;
+      const takeover = () => { userTookOver = true; };
+      scroller.addEventListener('touchstart', takeover, { once: true, passive: true });
+      scroller.addEventListener('wheel', takeover, { once: true, passive: true });
+      scroller.addEventListener('pointerdown', takeover, { once: true, passive: true });
+      const timers = [120, 350, 700, 1100].map((ms) => setTimeout(() => {
+        if (!userTookOver) scroller.scrollTo({ top: 0 });
+      }, ms));
+      return () => {
+        timers.forEach(clearTimeout);
+        scroller.removeEventListener('touchstart', takeover);
+        scroller.removeEventListener('wheel', takeover);
+        scroller.removeEventListener('pointerdown', takeover);
+      };
     }
     if (highlightSection) return;
     // Restore the saved scroll position for this chapter. The content may not
