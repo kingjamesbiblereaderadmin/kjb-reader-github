@@ -19,17 +19,17 @@ const TM_CARDS = [
   { owner: 'Oracle', slug: 'oracle', color: '#F80000', marks: 'Java', extra: 'Java is a registered trademark of Oracle and/or its affiliates.', use: 'The Java toolchain inside the Android app build.' },
   { owner: 'Gradle, Inc.', slug: 'gradle', color: '#02303A', darkColor: '#5FC8CE', marks: 'Gradle', use: 'Build tool that compiles and signs the Android app.' },
   { owner: 'Anthropic PBC', slug: 'anthropic', color: '#191919', darkColor: '#D4A27F', marks: 'Claude', use: 'AI assistance used to help generate the app code.' },
-  { owner: 'Linktree Pty Ltd', slug: 'linktree', color: '#43E559', marks: 'Linktree', use: 'Ministry link pages opened in the device browser.' },
+  { owner: 'Linktree Pty Ltd', slug: 'linktree', color: '#43E559', marks: 'Linktree', use: 'Ministry and preacher link pages opened in the device browser.' },
   { owner: 'The Document Foundation', slug: 'libreoffice', color: '#18A303', marks: 'LibreOffice', use: 'en-US Liang hyphenation patterns for the two-column reading layout.' },
-  { owner: 'Mozilla Foundation', slug: 'firefoxbrowser', color: '#FF7139', marks: 'Firefox', use: 'Browser-compatibility reference.' },
-  { owner: 'Opera Software', slug: 'opera', color: '#FF1B2D', marks: 'Opera', use: 'Browser-compatibility reference.' },
-  { owner: 'Brave Software, Inc.', slug: 'brave', color: '#FB542B', marks: 'Brave', use: 'Browser-compatibility reference.' },
+  { owner: 'Mozilla Foundation', slug: 'firefoxbrowser', color: '#FF7139', marks: 'Mozilla, Firefox', use: 'Browser-compatibility reference for the web app and extension.' },
+  { owner: 'Opera Software', slug: 'opera', color: '#FF1B2D', marks: 'Opera', use: 'Browser-compatibility reference for the web app and extension.' },
+  { owner: 'Brave Software, Inc.', slug: 'brave', color: '#FB542B', marks: 'Brave', use: 'Browser-compatibility reference for the web app and extension.' },
   { owner: 'Kiwi Browser', slug: null, badge: 'bg-gradient-to-br from-lime-500 to-green-600', marks: 'Kiwi Browser', extra: 'trademark of its respective owner.', use: 'Browser-compatibility reference for the browser extension.' },
   { owner: 'Meta Platforms, Inc.', slug: 'meta', color: '#0467D1', marks: 'Instagram, Facebook', use: 'Ministry and preacher social links opened in the device browser.' },
-  { owner: 'ByteDance Ltd.', slug: 'bytedance', color: '#3255D4', marks: 'TikTok', use: 'Ministry social links opened in the device browser.' },
+  { owner: 'ByteDance Ltd.', slug: 'bytedance', color: '#3255D4', marks: 'TikTok', use: 'Ministry and preacher social links opened in the device browser.' },
   { owner: 'Discord Inc.', slug: 'discord', color: '#5865F2', marks: 'Discord', use: 'Community server invite links.' },
   { owner: 'Rumble Inc.', slug: 'rumble', color: '#85C742', marks: 'Rumble', use: 'Ministry video links opened in the device browser.' },
-  { owner: 'Base44', logo: 'base44', wide: true, marks: 'Base44', use: 'Web app hosting, backend, and optional user authentication.' }
+  { owner: 'Base44', logo: 'base44', wide: true, use: 'Web app hosting, backend, and optional user authentication.' }
 ];
 
 function OwnerLogo({ card }) {
@@ -228,7 +228,9 @@ export default function CreditsPage() {
                 <OwnerLogo card={t} />
                 <div className="min-w-0">
                   <p className="font-sans text-sm font-semibold text-foreground leading-tight notranslate" translate="no">{t.owner}</p>
-                  <p className="font-sans text-xs text-foreground/75 leading-snug mt-0.5 notranslate" translate="no"><span className="text-muted-foreground">–</span> {t.marks}{t.extra ? '.' : ''}{t.extra && <span className="block text-muted-foreground">{t.extra}</span>}</p>
+                  {t.marks && (
+                    <p className="font-sans text-xs text-foreground/75 leading-snug mt-0.5 notranslate" translate="no"><span className="text-muted-foreground">–</span> {t.marks}{t.extra ? '.' : ''}{t.extra && <span className="block text-muted-foreground">{t.extra}</span>}</p>
+                  )}
                   <p className="font-sans text-[11px] text-muted-foreground leading-snug mt-0.5"><span className="text-accent">–</span> <span className="font-medium text-foreground/60">Used for:</span> {t.use}</p>
                 </div>
               </div>
