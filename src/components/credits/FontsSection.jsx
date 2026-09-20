@@ -7,27 +7,21 @@ import FontPreviewCard from './FontPreviewCard';
 
 const READING_INTERFACE = [
   {
-    name: 'Cormorant Garamond',
-    cssFamily: "'Cormorant Garamond', Georgia, serif",
-    purpose: 'long-form reading font option',
-    tint: 'bg-amber-100/50 dark:bg-card border-amber-300/60 dark:border-border',
-  },
-  {
     name: 'Merriweather',
     cssFamily: "'Merriweather', Georgia, serif",
-    purpose: 'long-form reading font option',
+    purpose: 'the Serif reading option',
     tint: 'bg-orange-100/50 dark:bg-card border-orange-300/60 dark:border-border',
   },
   {
     name: 'Inter',
     cssFamily: "'Inter', system-ui, sans-serif",
-    purpose: 'interface text throughout the app',
+    purpose: 'the Sans Serif option, and the app interface',
     tint: 'bg-indigo-100/50 dark:bg-card border-indigo-300/60 dark:border-border',
   },
   {
-    name: 'System',
-    cssFamily: 'system-ui, -apple-system, sans-serif',
-    purpose: "the Mono, Times New Roman and System options use your device's own built-in fonts",
+    name: 'Mono & Times New Roman',
+    cssFamily: "'Courier New', monospace",
+    purpose: "use your device's own built-in fonts",
     tint: 'bg-sky-100/50 dark:bg-card border-sky-300/60 dark:border-border',
   },
 ];
@@ -42,7 +36,7 @@ const DECORATIVE = [
   {
     name: 'Comic Neue',
     cssFamily: "'Comic Neue', 'Comic Sans MS', cursive",
-    purpose: 'the Comic reading font option',
+    purpose: 'the Comic Sans reading option, where the system font is unavailable',
     tint: 'bg-emerald-100/50 dark:bg-card border-emerald-300/60 dark:border-border',
   },
 ];
@@ -92,7 +86,7 @@ export default function FontsSection() {
       </div>
 
       <p className="font-sans text-xs text-muted-foreground leading-relaxed mb-4">
-        All of the above are Google Fonts, released under the{' '}
+        Merriweather, Inter, Dancing Script and Comic Neue are Google Fonts, released under the{' '}
         <a href="https://scripts.sil.org/OFL" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">SIL Open Font License</a>.
       </p>
 
