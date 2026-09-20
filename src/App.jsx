@@ -54,14 +54,15 @@ const loaders = {
   Changelog: () => import('@/pages/ChangelogPage').catch((err) => { console.error('Failed to load ChangelogPage:', err); throw err; }),
 
 };
-// Pads standalone (non-AppLayout) routes below the iOS status bar and above
-// the home indicator. On native iOS the WKWebView is full-bleed and
-// index.html sets viewport-fit=cover, so env(safe-area-inset-*) reports the
-// real insets; in plain browsers (web PWA, screenshot captures) env() is 0
-// and this wrapper is a no-op. AppLayout pages don't need it — their header
-// already pads itself with env(safe-area-inset-top).
+// Pads standalone (non-AppLayout) routes clear of the iOS notch / home
+// indicator. On native iOS the WKWebView runs full-bleed on the left, right
+// and bottom (only the top is pinned below the status bar) and index.html
+// sets viewport-fit=cover, so env(safe-area-inset-*) reports the real
+// insets; in plain browsers (web PWA, screenshot captures) env() is 0 and
+// this wrapper is a no-op. AppLayout pages don't need it — their header,
+// main and footer already pad themselves with env(safe-area-inset-*).
 const SafeAreaPad = ({ children }) => (
-  <div style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>{children}</div>
+  <div style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)', paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}>{children}</div>
 );
 
 const HomePage = lazy(loaders.Home);
