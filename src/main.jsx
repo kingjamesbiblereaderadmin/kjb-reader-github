@@ -51,6 +51,7 @@ const EXPLICIT_KEYS = [
   'kjb-auto-redownload', // auto re-download toggle
   'kjb-layout', // paragraph/line reading layout
   'kjb-layout-zoom', // layout zoom level
+  'kjb-auto-rotate', // auto-rotate toggle
   // Gospel search stepper (parallel to the search stepper):
   'kjb-gospel-results',
   'kjb-gospel-index',
