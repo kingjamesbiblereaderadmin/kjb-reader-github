@@ -156,6 +156,18 @@
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
+  /* Sonner's own mobile stylesheet (@media max-width:600px) sets each toast
+     to left:0; right:0; width:calc(100% - mobile-offset*2) inside the
+     toaster container. left/right both being 0 makes 'right' get dropped in
+     the over-constrained resolution, so the toast hugs the container's left
+     edge and leaves the shrunk width's slack entirely on the right --
+     visibly off-center (flush-left with a bigger gap on the right) instead
+     of centered under top-center. left/right are both non-auto here, so
+     margin:auto on both sides is honored and splits that slack evenly. */
+  [data-sonner-toaster][data-x-position='center'] [data-sonner-toast] {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
   [data-sonner-toaster] [data-sonner-toast] [data-button] {
     background: hsl(var(--primary)) !important;
   }
