@@ -16,16 +16,28 @@ const CHIP_COLORS = [
   'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-500/20 dark:text-fuchsia-300',
 ];
 
+// Trailing punctuation right after a keyword match is pulled INSIDE the
+// highlight so the box never sits flush against (or half over) a full stop or
+// comma — matching the reader and search results.
+const TRAILING_PUNCT = `[.,;:!?'")\\]]*`;
+const MARK_CLASS = 'bg-yellow-200 dark:bg-yellow-500/40 text-foreground rounded px-[0.15em] mx-[0.04em] box-decoration-clone';
+// Extends a match end over any punctuation immediately following it.
+const extendEnd = (text, end) => {
+  let e = end;
+  while (e < text.length && /[.,;:!?'")\]]/.test(text[e])) e++;
+  return e;
+};
+
 // Wrap every occurrence of any search term in a <mark> highlight. Used for the
 // default "any order" mode where each term is matched independently.
 function highlightAny(text, terms, keyPrefix) {
   if (!terms || terms.length === 0) return text;
   const escaped = terms.map(escapeRe);
-  const re = new RegExp(`(${escaped.join('|')})`, 'gi');
+  const re = new RegExp(`((?:${escaped.join('|')})${TRAILING_PUNCT})`, 'gi');
   const pieces = text.split(re);
   return pieces.map((piece, i) =>
     i % 2 === 1
-      ? <mark key={`${keyPrefix}-${i}`} className="bg-yellow-200 dark:bg-yellow-500/40 text-foreground rounded">{piece}</mark>
+      ? <mark key={`${keyPrefix}-${i}`} className={MARK_CLASS}>{piece}</mark>
       : piece
   );
 }
@@ -42,7 +54,7 @@ function highlightInOrder(text, terms, keyPrefix, adjacent, caseSensitive, whole
   const after = wholeWord ? `(?![A-Za-z'])` : '';
 
   const mark = (str, key) => (
-    <mark key={key} className="bg-yellow-200 dark:bg-yellow-500/40 text-foreground rounded">{str}</mark>
+    <mark key={key} className={MARK_CLASS}>{str}</mark>
   );
 
   // Adjacent → one contiguous phrase span.
@@ -52,7 +64,7 @@ function highlightInOrder(text, terms, keyPrefix, adjacent, caseSensitive, whole
     try { re = new RegExp(pattern, flags); } catch { return highlightAny(text, terms, keyPrefix); }
     const m = re.exec(text);
     if (!m) return text;
-    const start = m.index, end = start + m[0].length;
+    const start = m.index, end = extendEnd(text, start + m[0].length);
     return [text.slice(0, start), mark(text.slice(start, end), `${keyPrefix}-m`), text.slice(end)];
   }
 
@@ -68,8 +80,9 @@ function highlightInOrder(text, terms, keyPrefix, adjacent, caseSensitive, whole
     if (!m) break;
     found = true;
     nodes.push(text.slice(cursor, m.index));
-    nodes.push(mark(m[0], `${keyPrefix}-${t}`));
-    cursor = m.index + m[0].length;
+    const end = extendEnd(text, m.index + m[0].length);
+    nodes.push(mark(text.slice(m.index, end), `${keyPrefix}-${t}`));
+    cursor = end;
   }
   if (!found) return text;
   nodes.push(text.slice(cursor));
