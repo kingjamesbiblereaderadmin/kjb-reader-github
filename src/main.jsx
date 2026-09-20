@@ -9,6 +9,7 @@ import { isNativeIos } from '@/lib/isNativeIos'
 import { toast } from 'sonner'
 import { Preferences } from '@capacitor/preferences'
 import { SYNC_KEYS } from '@/lib/settingsSync'
+import { runPendingClear } from '@/lib/clearAllData'
 
 // ---------------------------------------------------------------------------
 // Cross-origin state mirror (inlined on purpose).
@@ -394,7 +395,10 @@ if (!rootElement) {
   // hydrate localStorage first (see src/lib/stateSyncMirror.js), so the
   // app mounts with the user's live-site state even on the offline copy.
   // Everywhere else this resolves immediately.
-  hydrateNativeStateMirror().catch(() => {}).then(mountApp);
+  // A "Clear All Data" run finishes here: wipe again BEFORE hydration and
+  // before anything mounts, so nothing the old page wrote while unloading
+  // (scroll/reading position, toolbar state) can survive or be re-synced.
+  runPendingClear().catch(() => {}).then(() => hydrateNativeStateMirror()).catch(() => {}).then(mountApp);
 }
 
 // Service worker registration for offline support and notifications.
