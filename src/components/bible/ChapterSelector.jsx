@@ -15,7 +15,7 @@ export default function ChapterSelector({ totalChapters, currentChapter, onSelec
   return (
     <div className={bare ? 'flex flex-col' : 'bg-card rounded-2xl overflow-hidden w-[90vw] max-w-sm max-h-[70vh] flex flex-col relative'}>
       {bookName && (
-        <div className="flex items-center gap-2 px-3 pt-3">
+        <div className={`flex items-center gap-2 ${bare ? 'px-3 pt-3' : 'px-3 pt-3'}`}>
           <p className="font-serif text-sm font-semibold text-foreground truncate flex-1">{bookName}</p>
           {isPending && (
             <button

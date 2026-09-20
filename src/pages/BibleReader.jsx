@@ -1780,6 +1780,8 @@ export default function BibleReader() {
                     onSelect={(b, isTitlePage, showChapter) => {
                       if (isTitlePage) { navigate(b.abbr, 0); setShowBookPicker(false); }
                       else if (showChapter) {
+                        // Don't jump yet — stage the book and let the user
+                        // confirm a chapter (or open the whole book).
                         setPendingBook(b);
                         setShowBookPicker(false);
                         setShowChapterPicker(true);
@@ -1795,6 +1797,7 @@ export default function BibleReader() {
                   onSelect={(b, isTitlePage, showChapter) => {
                     if (isTitlePage) { navigate(b.abbr, 0); setShowBookPicker(false); }
                     else if (showChapter) {
+                      // Same as the desktop picker: stage the book, confirm first.
                       setPendingBook(b);
                       setShowBookPicker(false);
                       setShowChapterPicker(true);
