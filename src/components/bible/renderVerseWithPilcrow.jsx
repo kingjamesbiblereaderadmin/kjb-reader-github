@@ -10,7 +10,10 @@ export default function renderVerseWithPilcrow(text, searchTerm, caseSensitive, 
   const body = raw.replace(/^[\u00B6\uFFFD]\s*/, '');
   return (
     <>
-      {hasPilcrow && <span className="pilcrow font-serif mr-1">¶</span>}
+      {/* inline-block + side margins: the pilcrow is rendered in a serif face
+          whose glyph overhangs its box, so without its own spacing it visually
+          collided with the opening quote mark of the result. */}
+      {hasPilcrow && <span className="pilcrow font-serif inline-block ml-1 mr-1.5">¶</span>}
       {renderWithItalics(body, searchTerm, caseSensitive, wholeWord)}
     </>
   );
