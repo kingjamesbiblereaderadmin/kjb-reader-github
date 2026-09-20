@@ -136,6 +136,9 @@ function recordStatus(fields) {
 // originals without re-triggering the mirror (which would be harmless but
 // wasteful).
 let _patched = false;
+let _hookMode = 'none';
+const PROBE_KEY = '__kjb_mirror_probe__';
+let _probeHit = false;
 const _storageProto = typeof Storage !== 'undefined' ? Storage.prototype : null;
 const _protoSetItem = _storageProto ? _storageProto.setItem : null;
 const _protoRemoveItem = _storageProto ? _storageProto.removeItem : null;
@@ -161,12 +164,42 @@ function patchLocalStorageForMirror() {
   } catch {}
   _storageProto.setItem = function (key, value) {
     _protoSetItem.call(this, key, value);
-    if (this === localStorage && isMirroredKey(key)) prefSet(key, String(value));
+    if (this === localStorage) {
+      if (key === PROBE_KEY) { _probeHit = true; return; }
+      if (isMirroredKey(key)) prefSet(key, String(value));
+    }
   };
   _storageProto.removeItem = function (key) {
     _protoRemoveItem.call(this, key);
-    if (this === localStorage && isMirroredKey(key)) prefSet(key, ''); // tombstone
+    if (this === localStorage) {
+      if (key === PROBE_KEY) return;
+      if (isMirroredKey(key)) prefSet(key, ''); // tombstone
+    }
   };
+  _hookMode = 'proto';
+  // If an earlier module (settingsSync.js) put its own wrapper directly on the
+  // localStorage instance and that assignment took effect, the instance
+  // property shadows the prototype patch above. Probe for that, and if the
+  // prototype hook didn't see the write, wrap the instance wrapper as well.
+  try {
+    localStorage.setItem(PROBE_KEY, '1');
+    localStorage.removeItem(PROBE_KEY);
+  } catch {}
+  if (!_probeHit) {
+    try {
+      const shadowSet = localStorage.setItem;
+      const shadowRemove = localStorage.removeItem;
+      localStorage.setItem = function (key, value) {
+        shadowSet.call(localStorage, key, value);
+        if (isMirroredKey(key)) prefSet(key, String(value));
+      };
+      localStorage.removeItem = function (key) {
+        shadowRemove.call(localStorage, key);
+        if (isMirroredKey(key)) prefSet(key, '');
+      };
+      _hookMode = 'proto+instance';
+    } catch {}
+  }
   startMirrorSafetyNet();
 }
 
@@ -212,7 +245,7 @@ async function hydrateNativeStateMirror() {
   try {
     const { keys } = await Preferences.keys();
     prefKeys = (keys || []).filter((k) => typeof k === 'string' && k.startsWith(PREFIX));
-    recordStatus({ native: true, keysOk: true, mirroredKeys: prefKeys.length, hydrated: true, patch: 'proto-v2' });
+    recordStatus({ native: true, keysOk: true, mirroredKeys: prefKeys.length, hydrated: true, patch: _hookMode });
   } catch (e) {
     recordStatus({ native: true, keysOk: false, hydrated: false,
                    reason: 'Preferences bridge failed: ' + String(e && e.message ? e.message : e) });
