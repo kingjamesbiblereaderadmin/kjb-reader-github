@@ -653,7 +653,24 @@ export default function BibleReader() {
     // lands at the top) instead of letting the scroll-restore effect put the
     // user back where they were reading.
     const mountParams = new URLSearchParams(window.location.search);
-    const isPlainChapterReturn = !!mountParams.get('book') && !!mountParams.get('chapter') && !mountParams.get('from') && !mountParams.get('verse') && !mountParams.get('q');
+    let isPlainChapterReturn = !!mountParams.get('book') && !!mountParams.get('chapter') && !mountParams.get('from') && !mountParams.get('verse') && !mountParams.get('q');
+    // ...unless the still-active search session actually points AT this very
+    // chapter. Re-entering the reader (Home -> Read, or a restart) can restore
+    // a bare ?book=&chapter= URL even though the search the user opened the
+    // result from is untouched — treating that as a "plain chapter return"
+    // skipped every restore below, so the "Searched" pill and the prev/next
+    // result stepper silently disappeared. A saved result on this exact
+    // book/chapter means the session is genuinely still live, so restore it.
+    if (isPlainChapterReturn) {
+      try {
+        const nav = getSearchNav();
+        const urlAbbr = resolveBook(mountParams.get('book'))?.abbr;
+        const urlCh = parseInt(mountParams.get('chapter'), 10);
+        if (nav.term && nav.results.some(r => r && r.abbr === urlAbbr && parseInt(r.chapter, 10) === urlCh)) {
+          isPlainChapterReturn = false;
+        }
+      } catch {}
+    }
     if (!isPlainChapterReturn) {
     try {
       const savedState = localStorage.getItem('kjb-reader-toolbar-state');
@@ -688,14 +705,22 @@ export default function BibleReader() {
         // the URL with from=search, whose mount branch stepped the reader
         // back to the stale result — overwriting a fresh Table of Contents
         // / book selector jump on ANY platform (web, Android, iOS).
-        const res = results[index ? parseInt(index, 10) : 0];
+        const savedIdx = index ? parseInt(index, 10) : 0;
         let curPos = null;
         try { curPos = JSON.parse(localStorage.getItem('kjb-position') || 'null'); } catch {}
-        if (results.length > 0 && res && curPos && res.abbr === curPos.abbr
-          && parseInt(res.chapter, 10) === parseInt(curPos.chapter, 10)) {
+        // Accept ANY saved result sitting on the chapter the reader is opening —
+        // not only the one at the saved index. After re-entering the reader the
+        // restored position can be the chapter without the exact result verse,
+        // and requiring an index match there dropped the whole session (no pill,
+        // no stepper). Prefer the saved index when it matches, else the first
+        // result on this chapter.
+        const onThisChapter = (r) => r && curPos && r.abbr === curPos.abbr
+          && parseInt(r.chapter, 10) === parseInt(curPos.chapter, 10);
+        const matchIdx = onThisChapter(results[savedIdx]) ? savedIdx : results.findIndex(onThisChapter);
+        if (results.length > 0 && matchIdx >= 0) {
           searchClearedRef.current = false;
           setSearchTerm(term);
-          setSearchResultIndex(index ? parseInt(index, 10) : 0);
+          setSearchResultIndex(matchIdx);
           setSearchTotalResults(results.length);
         }
       }
