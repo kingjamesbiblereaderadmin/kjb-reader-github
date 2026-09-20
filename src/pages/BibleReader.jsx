@@ -1245,7 +1245,16 @@ export default function BibleReader() {
       if (!p.verse) freshNavRef.current = true;
       setPos({ abbr: p.abbr, chapter: p.chapter, verse: p.verse || null });
       setHighlightVerse(p.verse || null);
-      loadChapter(p.abbr, p.chapter, p.verse || null, isRange ? p.verseEnd : null);
+      // The search page / search bar navigate to /read AND fire this event on
+      // the next tick, so on a fresh navigation the reader's own mount + URL
+      // effects have ALREADY requested this exact chapter. Fetching it again
+      // blanked and repainted the chapter — the reported search-result flicker.
+      // Only fetch when this event points at a different chapter than the one
+      // the reader is already on; the verse/highlight/selection state above is
+      // always applied, so same-chapter verse jumps keep working.
+      const sameChapter = posRef.current.abbr === p.abbr
+        && parseInt(posRef.current.chapter, 10) === parseInt(p.chapter, 10);
+      if (!sameChapter) loadChapter(p.abbr, p.chapter, p.verse || null, isRange ? p.verseEnd : null);
     };
     window.addEventListener('kjb-navigate', applyRequestedPosition);
     return () => window.removeEventListener('kjb-navigate', applyRequestedPosition);
