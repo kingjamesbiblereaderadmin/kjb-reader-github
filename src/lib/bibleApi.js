@@ -208,7 +208,7 @@ export function renderVerseText(text, searchTerm = null) {
     result = result.replace(/(<[^>]+>)|([^<]+)/g, (chunk, tag, text) => {
       if (tag) return tag; // keep HTML tags untouched
       return text.replace(termRegex, (m) =>
-        `<mark data-occ="${occ++}" style="background-color: rgba(250, 204, 21, 0.55); border-radius: 3px; padding: 0;">${m}</mark>`);
+        `<mark data-occ="${occ++}" style="background-color: rgba(250, 204, 21, 0.55); border-radius: 3px; padding: 0 0.1em;">${m}</mark>`);
     });
   }
 
@@ -230,7 +230,7 @@ function highlightInHtml(html, searchTerm) {
   const termRegex = new RegExp(`(${escaped})`, 'gi');
   return html.replace(/(<[^>]+>)|([^<]+)/g, (chunk, tag, text) => {
     if (tag) return tag;
-    return text.replace(termRegex, '<mark style="background-color: rgba(250, 204, 21, 0.55); border-radius: 3px; padding: 0;">$1</mark>');
+    return text.replace(termRegex, '<mark style="background-color: rgba(250, 204, 21, 0.55); border-radius: 3px; padding: 0 0.1em;">$1</mark>');
   });
 }
 
