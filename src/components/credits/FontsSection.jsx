@@ -36,7 +36,7 @@ const DECORATIVE = [
   {
     name: 'Comic Neue',
     cssFamily: "'Comic Neue', 'Comic Sans MS', cursive",
-    purpose: 'the Comic Sans reading option, where the system font is unavailable',
+    purpose: "used for the Comic Sans reading option when your device doesn't have Comic Sans",
     tint: 'bg-emerald-100/50 dark:bg-card border-emerald-300/60 dark:border-border',
   },
 ];
@@ -76,12 +76,12 @@ export default function FontsSection() {
   return (
     <div>
       <Eyebrow>Reading &amp; Interface</Eyebrow>
-      <div className="grid grid-cols-1 sm:grid-cols-2 items-start gap-2.5 mb-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 items-stretch gap-2.5 mb-3">
         {READING_INTERFACE.map((f) => <FontPreviewCard key={f.name} {...f} />)}
       </div>
 
       <Eyebrow>Handwritten &amp; Decorative</Eyebrow>
-      <div className="grid grid-cols-1 sm:grid-cols-2 items-start gap-2.5 mb-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 items-stretch gap-2.5 mb-3">
         {DECORATIVE.map((f) => <FontPreviewCard key={f.name} {...f} />)}
       </div>
 
@@ -91,7 +91,7 @@ export default function FontsSection() {
       </p>
 
       <Eyebrow>Accessibility</Eyebrow>
-      <div className="grid grid-cols-1 sm:grid-cols-2 items-start gap-2.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 items-stretch gap-2.5">
         {ACCESSIBILITY.map((f) => <FontPreviewCard key={f.name} {...f} />)}
       </div>
 
