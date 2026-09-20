@@ -509,7 +509,14 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
           {!dropCap && (
             <sup className="text-accent font-sans font-bold text-[0.65em] mr-2 select-none">{verse.verse}</sup>
           )}
-          <span className={selectMode && isSelected ? 'bg-primary/10 box-decoration-clone rounded px-[0.2em] py-[0.1em]' : ''}>
+          {/* The floated drop-cap escapes an INLINE box's background (and its
+              line position entirely), so the selection overlay would only
+              start at the text after the big letter. In select mode verse 1
+              becomes inline-block — a real containing block — so the overlay
+              wraps the checkbox AND the drop cap together with the text. */}
+          <span className={selectMode && dropCap
+            ? (isSelected ? 'inline-block bg-primary/10 border border-primary/30 rounded-[0.4em] px-[0.2em] py-[0.1em]' : 'inline-block')
+            : (selectMode && isSelected ? 'bg-primary/10 box-decoration-clone rounded px-[0.2em] py-[0.1em]' : '')}>
             {selectMode && (
               <span className="inline-flex items-center mr-1 text-primary align-middle">
                 {isSelected ? <CheckSquare className="w-[1em] h-[1em]" /> : <Square className="w-[1em] h-[1em] text-muted-foreground" />}
