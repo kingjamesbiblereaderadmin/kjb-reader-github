@@ -8,7 +8,7 @@ import { parseReference, resolveBook } from '@/lib/parseReference';
 import { expandPassage } from '@/lib/expandPassage';
 import { isMultiReference, expandMultiReference } from '@/lib/multiReference';
 import SearchResultsList from '@/components/bible/SearchResultsList';
-import renderWithItalics from '@/components/bible/renderWithItalics';
+import renderVerseWithPilcrow from '@/components/bible/renderVerseWithPilcrow';
 import GhostInput from '@/components/bible/GhostInput';
 import useAdaptivePlaceholder from '@/hooks/useAdaptivePlaceholder';
 import { setSearchNav, clearSearchNav } from '@/lib/searchNav';
@@ -468,9 +468,13 @@ export default function SearchPage() {
           // stored in the source text as a replacement char immediately after
           // a letter (e.g. "God\uFFFDs") — convert those to real apostrophes
           // so typing "God's" actually matches.
+          // Apostrophes are normalized FIRST (the in-word pilcrow/replacement
+          // chars become real apostrophes), so any pilcrow left is a genuine
+          // paragraph mark — kept in the text so results show it like the
+          // reader does.
           const processedVerses = verses.map(v => ({
             verse: v.verse,
-            text: normalizeApostrophes(v.text.replace(/¶\s*/g, '').replace(/^<<[^>]*>>\s*/, '')),
+            text: normalizeApostrophes(v.text).replace(/^<<[^>]*>>\s*/, ''),
             heading: v.heading || null
           }));
 
@@ -496,7 +500,7 @@ export default function SearchPage() {
             // Also normalize æ/Æ ligatures (e.g. "Judæa", "Cæsar") to "ae"/"Ae" for
             // matching only — typing "Caesar" or "Judea" still finds them — the
             // displayed match text below uses the original verseObj.text untouched.
-            const searchText = normalizeLigatures(verseObj.text.replace(/[[\]]/g, ''));
+            const searchText = normalizeLigatures(verseObj.text.replace(/[[\]]/g, '').replace(/[\u00B6\uFFFD]\s*/g, ''));
 
             // Multi-keyword AND: verse must contain EVERY term (case-insensitive,
             // honouring whole-word when enabled).
@@ -1564,7 +1568,7 @@ export default function SearchPage() {
                       <span className="text-accent font-serif text-lg leading-none">&bull;</span>
                       <span className="notranslate" translate="no">{ref}</span>
                     </span>
-                    <span className="notranslate font-serif text-foreground leading-relaxed" translate="no">{renderWithItalics(r.text)}</span>
+                    <span className="notranslate font-serif text-foreground leading-relaxed" translate="no">{renderVerseWithPilcrow(r.text)}</span>
                   </div>
                   );
                 })}

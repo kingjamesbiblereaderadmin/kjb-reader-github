@@ -2,6 +2,7 @@ import React from 'react';
 import { BookOpen, CheckSquare, Square } from 'lucide-react';
 import { BOOK_BY_API_NAME } from '@/lib/bibleData';
 import renderWithItalics from '@/components/bible/renderWithItalics';
+import renderVerseWithPilcrow from '@/components/bible/renderVerseWithPilcrow';
 
 // A single search result row. Memoized so only the rows whose props actually
 // change (e.g. the focused/selected one) re-render — not the whole list.
@@ -66,7 +67,7 @@ function SearchResultRow({ r, i, thisIndex, isFocused, isSelected, selectMode, h
           ) : (isColophon || isSubscript) ? (
             <span>¶ {renderWithItalics(r.text, highlightTerm, highlightCaseSensitive, highlightWholeWord)}</span>
           ) : (
-            <span>"{renderWithItalics(r.text, highlightTerm, highlightCaseSensitive, highlightWholeWord)}"</span>
+            <span>"{renderVerseWithPilcrow(r.text, highlightTerm, highlightCaseSensitive, highlightWholeWord)}"</span>
           )}
         </p>
         {r.attachedColophon && (
