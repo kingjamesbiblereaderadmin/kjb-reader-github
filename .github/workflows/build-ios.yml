@@ -14,11 +14,7 @@ on:
         required: false
         default: 'auto'
         type: choice
-        options: [auto, upload, skip]
-  push:
-    branches: [main]
-
-jobs:
+        options: [auto, upload, skip]jobs:
   build:
     runs-on: macos-26
     steps:

@@ -13,25 +13,7 @@ name: Android emulator smoke test
 # and any time via the Actions tab (Run workflow button).
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'android/**'
-      - 'src/**'
-      - 'public/**'
-      - 'capacitor.config.ts'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/android-emulator-smoke-test.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'android/**'
-      - 'src/**'
-      - 'public/**'
-      - 'capacitor.config.ts'
-      - 'package.json'
-      - 'package-lock.json'
+  # Manual only: these used to run on every push to main, i.e. on every publish.
   workflow_dispatch: {}
 
 jobs:

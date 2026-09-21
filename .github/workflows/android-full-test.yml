@@ -15,29 +15,7 @@ name: Android full native UI test
 # this to get its fast smoke-test signal.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'android/**'
-      - 'src/**'
-      - 'public/**'
-      - 'capacitor.config.ts'
-      - 'tests-android/**'
-      - 'wdio.conf.js'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/android-full-test.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'android/**'
-      - 'src/**'
-      - 'public/**'
-      - 'capacitor.config.ts'
-      - 'tests-android/**'
-      - 'wdio.conf.js'
-      - 'package.json'
-      - 'package-lock.json'
+  # Manual only: these used to run on every push to main, i.e. on every publish.
   workflow_dispatch: {}
 
 jobs:

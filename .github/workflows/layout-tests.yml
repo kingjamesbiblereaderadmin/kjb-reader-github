@@ -8,10 +8,7 @@ name: Layout regression tests
 # screenshots needed. A red X on a PR means don't merge.
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  # Manual only: these used to run on every push to main, i.e. on every publish.
   workflow_dispatch: {}
 
 jobs:
