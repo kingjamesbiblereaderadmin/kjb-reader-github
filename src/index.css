@@ -332,6 +332,24 @@
   .kjb-two-col > span:first-child {
     padding-top: 0 !important;
   }
+  /* Flex rows can't fragment across columns in WebKit (iOS): the verse number
+     got orphaned at a column bottom and whole verses jumped to the next
+     column, leaving big gaps. Use a plain block with the verse number
+     absolutely positioned instead, so verse text splits line by line. */
+  .kjb-two-col > span:not([style*="flow-root"]) > span.flex {
+    display: block !important;
+    position: relative;
+    padding-left: 2em !important;
+  }
+  .kjb-two-col > span:not([style*="flow-root"]) > span.flex > sup {
+    position: absolute !important;
+    left: 0.4em;
+    top: 0.3em;
+    margin: 0 !important;
+  }
+  .kjb-two-col > span:not([style*="flow-root"]) > span.flex > span.flex {
+    display: block !important;
+  }
   /* The drop-cap lifts itself with a small negative top margin (-0.15em) to
      fine-tune its two-line alignment. Inside a multicol fragmentainer, any
      box pulled above its line is clipped at the column edge — slicing the
