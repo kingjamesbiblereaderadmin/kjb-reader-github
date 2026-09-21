@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { getGospelNav } from '@/lib/searchNav';
 
-export function useToolbarState(pos, loading, verses, filterMode, selectedVerses, searchTerm, searchResultIndex, searchTotalResults, gospelMode, searchClearedRef, setFilterMode, setSelectedVerses, setHighlightedVerses, resultViewRef, setSearchTerm, setSearchResultIndex, setSearchTotalResults, setGospelMode, setGospelResultIndex, setGospelTotalResults, setHighlightVerse) {
+export function useToolbarState(pos, loading, verses, filterMode, selectedVerses, searchTerm, searchResultIndex, searchTotalResults, gospelMode, searchClearedRef, setFilterMode, setSelectedVerses, setHighlightedVerses, resultViewRef, setSearchTerm, setSearchResultIndex, setSearchTotalResults, setGospelMode, setGospelResultIndex, setGospelTotalResults, setHighlightVerse, refJumpRef) {
   // Prevents the save effect from overwriting persisted state with default
   // values before the restore has had a chance to rehydrate it.
   const hasRestoredRef = useRef(false);
@@ -39,7 +39,10 @@ export function useToolbarState(pos, loading, verses, filterMode, selectedVerses
       // "Read Selected" passage filter (filterMode/selectedVerses alone) must
       // NOT persist — otherwise reopening the reader jumps back into that
       // filtered passage from a previous session.
-      const hasContext = (searchTerm && !searchClearedRef.current) || gospelMode;
+      // A plain typed reference ("John 1:1") that's currently filtered also
+      // counts, so Home -> Read returns to the filtered verse like a range does.
+      const hasRefContext = !!(refJumpRef && refJumpRef.current && filterMode && selectedVerses.size > 0 && !searchTerm && !gospelMode);
+      const hasContext = (searchTerm && !searchClearedRef.current) || gospelMode || hasRefContext;
       if (!hasContext) {
         // Don't destroy a still-live saved session just because THIS mount
         // hasn't re-established it. When an offline/online restart (or an
@@ -71,6 +74,7 @@ export function useToolbarState(pos, loading, verses, filterMode, selectedVerses
         resultView: resultViewRef.current,
         hasSearchContext: !!(searchTerm && !searchClearedRef.current),
         hasGospelContext: gospelMode,
+        hasReferenceContext: hasRefContext,
         searchTerm: searchTerm && !searchClearedRef.current ? searchTerm : null,
         searchResultIndex,
         searchTotalResults,
@@ -173,7 +177,8 @@ export function useToolbarState(pos, loading, verses, filterMode, selectedVerses
           // Re-apply the passage filter ONLY for an active search/gospel
           // session — never for a stale "Read Selected" filter, which would
           // make reopening jump back into a filtered passage.
-          const hadContext = state.hasSearchContext || state.hasGospelContext;
+          const hadContext = state.hasSearchContext || state.hasGospelContext || state.hasReferenceContext;
+          if (state.hasReferenceContext && refJumpRef) refJumpRef.current = true;
           if (hadContext && state.filterMode !== undefined) {
             setFilterMode(state.filterMode);
           }

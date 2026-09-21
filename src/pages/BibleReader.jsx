@@ -154,6 +154,10 @@ export default function BibleReader() {
   const [searchResultIndex, setSearchResultIndex] = useState(0);
   const [searchTotalResults, setSearchTotalResults] = useState(0);
   const searchClearedRef = useRef(false);
+  // True while the reader is showing a plain typed-reference jump (e.g. "John 1:1"
+  // from the header search bar): not a keyword search, but the filtered verse should
+  // still survive leaving the reader and coming back (Home -> Read), like a range does.
+  const refJumpRef = useRef(false);
   const lastReadingClearedRef = useRef(false);
   // Tracks whether this is the very first time the URL-driven navigation
   // effect has run for this mount (e.g. a hard page load / refresh, where
@@ -717,6 +721,7 @@ export default function BibleReader() {
     const isFromDaily = urlParams.get('from') === 'daily';
     const isFromRandom = urlParams.get('from') === 'random';
     const isFromGospel = urlParams.get('from') === 'gospel';
+    if (!isFromSearch) refJumpRef.current = false;
     const urlHighlightSection = urlParams.get('highlight');
     setHighlightSection(urlHighlightSection === 'colophon' || urlHighlightSection === 'subscript' ? urlHighlightSection : null);
     // Capture whether this is the first time this effect runs for this mount
@@ -799,6 +804,7 @@ export default function BibleReader() {
         // and the highlight survives the toolbar-state restore/focus cycle.
         const qParam = urlParams.get('q');
         const isMultiResultNav = !qParam && results.length > 1;
+        refJumpRef.current = !qParam && !isMultiResultNav && !!verseNum;
         if (qParam && results.length === 0) {
           results = [{ abbr: urlBookObj.abbr, chapter: chapterNum, verse: verseNum, verseEnd: verseEnd || null }];
           index = 0; setSearchNav(results, index, qParam);
@@ -902,7 +908,8 @@ export default function BibleReader() {
               // selected verses ONLY when this was an active search or gospel
               // session — otherwise reopening would jump back into a "Read
               // Selected" passage filter from a previous session.
-              const hadContext = (state.hasSearchContext && state.searchTerm) || state.hasGospelContext;
+              const hadContext = (state.hasSearchContext && state.searchTerm) || state.hasGospelContext || state.hasReferenceContext;
+              if (state.hasReferenceContext) refJumpRef.current = true;
               if (hadContext) {
                 if (state.filterMode !== undefined) setFilterMode(state.filterMode);
                 if (state.selectedVerses && state.selectedVerses.length > 0) {
@@ -1049,7 +1056,8 @@ export default function BibleReader() {
               // Restore filter mode and selected verses ONLY for an active
               // search/gospel session — a plain "Read Selected" passage filter
               // must not reapply on reopen (jumps back to filter from a previous).
-              const hadContext = (state.hasSearchContext && state.searchTerm) || state.hasGospelContext;
+              const hadContext = (state.hasSearchContext && state.searchTerm) || state.hasGospelContext || state.hasReferenceContext;
+              if (state.hasReferenceContext) refJumpRef.current = true;
               if (hadContext) {
                 if (state.filterMode !== undefined) { setFilterMode(state.filterMode); restoredFilterMode = true; }
                 if (state.selectedVerses && state.selectedVerses.length > 0) {
@@ -1417,7 +1425,7 @@ export default function BibleReader() {
 
   const resultViewRef = useRef('filter');
 
-  useToolbarState(pos, loading, verses, filterMode, selectedVerses, searchTerm, searchResultIndex, searchTotalResults, gospelMode, searchClearedRef, setFilterMode, setSelectedVerses, setHighlightedVerses, resultViewRef, setSearchTerm, setSearchResultIndex, setSearchTotalResults, setGospelMode, setGospelResultIndex, setGospelTotalResults, setHighlightVerse);
+  useToolbarState(pos, loading, verses, filterMode, selectedVerses, searchTerm, searchResultIndex, searchTotalResults, gospelMode, searchClearedRef, setFilterMode, setSelectedVerses, setHighlightedVerses, resultViewRef, setSearchTerm, setSearchResultIndex, setSearchTotalResults, setGospelMode, setGospelResultIndex, setGospelTotalResults, setHighlightVerse, refJumpRef);
 
   const { navigate: baseNavigate, returnToChapter: baseReturnToChapter, preSearchPosRef, rangeHighlightRef, freshNavRef } = useReaderNavigation(pos, loadChapter, routerNavigate, routerLocation);
 
