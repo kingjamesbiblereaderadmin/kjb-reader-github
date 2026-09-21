@@ -153,6 +153,25 @@ export function useToolbarState(pos, loading, verses, filterMode, selectedVerses
         // rehydrated from the snapshot.
         const hasLiveResultContext = searchTotalResults > 0 || gospelMode;
         if ((navFrom === 'search' || navFrom === 'gospel') && selectedVerses && selectedVerses.size > 0 && hasLiveResultContext) {
+          // The URL-driven jump defaults to the verses-only view, but the user's
+          // "Show Full Chapter" (chapter/verse only) flag for THIS typed/looked-up
+          // verse or range must survive an app restart / Home -> Read too. Only a
+          // reference jump (no keyword `q`) whose saved selection contains the
+          // URL's verse qualifies, so a fresh search result never inherits a stale
+          // full-chapter choice.
+          try {
+            const params = new URLSearchParams(window.location.search);
+            const urlVerse = params.get('verse') ? parseInt(params.get('verse'), 10) : null;
+            const raw = localStorage.getItem('kjb-reader-toolbar-state');
+            const s = raw ? JSON.parse(raw) : null;
+            if (s && !params.get('q') && s.abbr === pos.abbr && s.chapter === pos.chapter
+                && s.resultView === 'full' && s.filterMode === false
+                && (s.hasSearchContext || s.hasReferenceContext)
+                && urlVerse && Array.isArray(s.selectedVerses) && s.selectedVerses.includes(urlVerse)) {
+              resultViewRef.current = 'full';
+              setFilterMode(false);
+            }
+          } catch {}
           appliedRestoreForChapterRef.current = true;
           setRestoreTick(t => t + 1);
           return;
