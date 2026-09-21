@@ -728,7 +728,17 @@ export default function BibleReader() {
     // (hard page load / refresh) BEFORE flipping the ref, so every subsequent
     // in-app navigation is correctly treated as non-initial.
     const wasInitialNavMount = initialNavMountRef.current;
-    initialNavMountRef.current = false;
+    // Consume the "initial mount" allowance only when this pass actually
+    // carries a navigation target (book/chapter in the URL). On a bare /read
+    // return (Home -> Read, app restart) the FIRST pass sees an EMPTY query
+    // string — the mount effect has already resolved the target and restored
+    // the session. Consuming the flag on that empty pass made the very next
+    // pass (URL-sync's book+chapter rewrite, which carries no from/verse/q
+    // yet — it fired before the restored state committed) run as a NON-initial
+    // "plain chapter return", which cleared the just-restored search term as a
+    // stale drag-along, tore down the verse filter, and re-saved kjb-position
+    // without the verse/verseEnd — the lost-range/lost-session bug.
+    if (urlBookObj && urlChapter) initialNavMountRef.current = false;
     // Stepping to a result INSIDE the reader also re-enters this effect:
     // stepToResult sets pos, useReaderUrlSync rewrites the URL to match, and
     // the resulting routerLocation.search change runs this effect again. pos
@@ -752,6 +762,29 @@ export default function BibleReader() {
         const range = new Set();
         for (let v = verseNum; v <= verseEnd; v++) range.add(v);
         setSelectedVerses(range); setHighlightedVerses(range); setFilterMode(true);
+      }
+
+      // ── Self-synthesized URL during the mount-restore window ──
+      // On a bare /read return the URL-sync effect's FIRST run fires before
+      // the restored state has committed (pos.verse is still its initial
+      // null, the search term not yet restored), so it rewrites the bare URL
+      // into a PLAIN book+chapter URL — no from, no verse, no q. Processing
+      // that synthetic URL as a genuine "plain chapter return" is what
+      // destroyed live sessions within ~50ms of entering the reader: the
+      // restored term got cleared as a stale drag-along, the verse filter torn
+      // down, kjb-position re-saved without the verse/verseEnd, and the
+      // search-nav storage wiped. When this is still the initial mount
+      // sequence, the URL carries NO session flags of its own, and it points
+      // at the chapter the mount effect already restored — there is nothing
+      // for this pass to do. The next URL-sync pass re-stamps from/verse from
+      // the RESTORED state, and the pass after that re-applies the session as
+      // a normal from=search navigation.
+      if (wasInitialNavMount
+        && !verseNum && !verseEnd
+        && !isFromSearch && !isFromDaily && !isFromRandom && !isFromGospel
+        && !urlParams.get('q') && !urlHighlightSection
+        && alreadyAtTarget(urlBookObj.abbr, chapterNum)) {
+        return;
       }
 
       if (isFromGospel) {
