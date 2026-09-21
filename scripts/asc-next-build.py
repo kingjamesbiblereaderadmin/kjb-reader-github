@@ -70,4 +70,7 @@ except ValueError:
 highest = max(built + uploaded, default=0)
 nxt = max(highest + 1, run_floor)
 log(f"builds: max {max(built, default=0)} (n={len(built)}); buildUploads: max {max(uploaded, default=0)} (n={len(uploaded)}); run floor {run_floor} -> {nxt}")
+# GitHub turns "::notice::" lines on stderr into run annotations, so the number
+# chosen (and why) is visible on the run page without opening the raw log.
+print(f"::notice title=ASC build number::next={nxt} builds_max={max(built, default=0)} uploads_max={max(uploaded, default=0)} run_floor={run_floor}", file=sys.stderr)
 print(nxt)
