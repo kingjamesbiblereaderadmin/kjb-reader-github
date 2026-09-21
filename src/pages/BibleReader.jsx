@@ -1332,7 +1332,10 @@ export default function BibleReader() {
   // moment the page is hidden so a reopen lands on the full chapter instead.
   useEffect(() => {
     const cleanupFilteredUrlOnHide = () => {
-      if (filterMode && selectedVerses.size > 0 && !searchTerm && !gospelMode) {
+      // A typed reference / Look Up jump (refJumpRef) is a deliberate "where I
+      // am" state, kept across leaving the app and coming back (Home -> Read),
+      // so its URL and saved verse are NOT stripped here.
+      if (filterMode && selectedVerses.size > 0 && !searchTerm && !gospelMode && !refJumpRef.current) {
         try {
           const url = pos.chapter === 0 ? window.location.pathname : `/read?book=${pos.abbr}&chapter=${pos.chapter}`;
           window.history.replaceState({}, '', url);
