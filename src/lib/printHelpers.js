@@ -158,7 +158,11 @@ export async function printChapterPdf(verses, book, pos, filterMode, selectedVer
 
 // Single entry point for every "print this chapter" action in the reader.
 export async function printChapter(verses, book, pos, filterMode, selectedVerses, colophon, columnMode = false, paragraphMode = false) {
-  if (columnMode && isIOSDevice()) {
+  // A filtered selection (a few chosen verses) always prints as a single
+  // column — two narrow columns for a verse or two looks wrong.
+  const filtered = filterMode && selectedVerses.size > 0;
+  const useColumns = columnMode && !filtered;
+  if (useColumns && isIOSDevice()) {
     try {
       await printChapterPdf(verses, book, pos, filterMode, selectedVerses, colophon, paragraphMode);
       return;
@@ -166,5 +170,5 @@ export async function printChapter(verses, book, pos, filterMode, selectedVerses
       console.error('[print] iOS chapter PDF failed, falling back to HTML print:', e);
     }
   }
-  printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode);
+  printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, useColumns, paragraphMode);
 }
