@@ -382,7 +382,9 @@ final class KJBNativeBridges: NSObject, WKScriptMessageHandler {
     }
 
     // Print. 'html' prints formatted markup (gospel/Spanish export, chapter
-    // contents). 'current' renders the live page to PDF via WKWebView's
+    // contents) through a hidden WKWebView so WebKit's real print engine lays
+    // it out (CSS columns, column rules, hyphenation, orphans/widows) — see
+    // KJBHTMLPrintJob. 'current' renders the live page to PDF via WKWebView's
     // createPDF (iOS 14+) and prints that.
     private func handlePrint(_ body: [String: Any]) {
         let kind = (body["kind"] as? String) ?? "current"
@@ -393,15 +395,13 @@ final class KJBNativeBridges: NSObject, WKScriptMessageHandler {
         controller.printInfo = info
 
         if kind == "html", let html = body["html"] as? String, !html.isEmpty {
-            let formatter = UIMarkupTextPrintFormatter(markupText: html)
-            let renderer = UIPrintPageRenderer()
-            let pageRect = CGRect(x: 0, y: 0, width: 612, height: 792) // US Letter
-            let printable = pageRect.insetBy(dx: 36, dy: 36)
-            renderer.setValue(pageRect, forKey: "paperRect")
-            renderer.setValue(printable, forKey: "printableRect")
-            renderer.addPrintFormatter(formatter, startingAtPageAt: 0)
-            controller.printPageRenderer = renderer
-            controller.present(animated: true)
+            if let host = topViewController?.view {
+                KJBHTMLPrintJob.print(html: html, info: info, host: host) { [weak self] in
+                    self?.printWithMarkupFormatter(html: html, info: info)
+                }
+            } else {
+                printWithMarkupFormatter(html: html, info: info)
+            }
         } else if let webView = self.webView {
             webView.createPDF { [weak self] result in
                 guard let self, case .success(let data) = result else { return }
@@ -412,6 +412,23 @@ final class KJBNativeBridges: NSObject, WKScriptMessageHandler {
                 controller.present(animated: true)
             }
         }
+    }
+
+    // Legacy fallback: UIMarkupTextPrintFormatter is a plain text-engine
+    // renderer that ignores modern CSS (single column, no rules/hyphenation).
+    // Only used if the WebKit path can't start or fails to load.
+    private func printWithMarkupFormatter(html: String, info: UIPrintInfo) {
+        let controller = UIPrintInteractionController.shared
+        controller.printInfo = info
+        let formatter = UIMarkupTextPrintFormatter(markupText: html)
+        let renderer = UIPrintPageRenderer()
+        let pageRect = CGRect(x: 0, y: 0, width: 612, height: 792) // US Letter
+        let printable = pageRect.insetBy(dx: 36, dy: 36)
+        renderer.setValue(pageRect, forKey: "paperRect")
+        renderer.setValue(printable, forKey: "printableRect")
+        renderer.addPrintFormatter(formatter, startingAtPageAt: 0)
+        controller.printPageRenderer = renderer
+        controller.present(animated: true)
     }
 
     // Server-side legacy downloads (?download=1 links from the legacy reader
@@ -684,3 +701,97 @@ private let kjbStatusBarSwizzle: Void = {
     guard let types = method_getTypeEncoding(method) else { return }
     class_addMethod(CAPBridgeViewController.self, sel, imp, types)
 }()
+
+
+// MARK: - HTML print through WebKit
+
+/// Prints an HTML document via a hidden WKWebView's print formatter.
+///
+/// The previous path used UIMarkupTextPrintFormatter, a legacy text-engine
+/// renderer that ignores modern CSS — `column-count`/`column-rule`/
+/// `column-span` (the two-column printed Bible), hyphenation and
+/// orphans/widows — so every printout came out as one plain column. A
+/// WKWebView's viewPrintFormatter lays the document out with WebKit's real
+/// print engine, so the same HTML that prints two-column on Android/Chrome does
+/// here too. If the page can't be loaded, `fallback` runs the old formatter so
+/// printing never silently does nothing.
+final class KJBHTMLPrintJob: NSObject, WKNavigationDelegate {
+
+    /// Keeps a job alive until its print sheet closes.
+    private static var active: [KJBHTMLPrintJob] = []
+
+    private let html: String
+    private let printInfo: UIPrintInfo
+    private let fallback: () -> Void
+    private let webView: WKWebView
+    private var finished = false
+
+    static func print(html: String, info: UIPrintInfo, host: UIView, fallback: @escaping () -> Void) {
+        let job = KJBHTMLPrintJob(html: html, info: info, fallback: fallback)
+        active.append(job)
+        job.start(in: host)
+    }
+
+    private init(html: String, info: UIPrintInfo, fallback: @escaping () -> Void) {
+        self.html = html
+        self.printInfo = info
+        self.fallback = fallback
+        let config = WKWebViewConfiguration()
+        config.defaultWebpagePreferences.allowsContentJavaScript = false
+        // US Letter in points; parked off-screen. The print formatter lays the
+        // document out for the printed page, not for this frame.
+        self.webView = WKWebView(frame: CGRect(x: -2000, y: 0, width: 612, height: 792), configuration: config)
+        super.init()
+        webView.navigationDelegate = self
+        webView.isUserInteractionEnabled = false
+    }
+
+    private func start(in host: UIView) {
+        host.addSubview(webView)
+        webView.loadHTMLString(html, baseURL: nil)
+        // Never leave a hidden web view behind if the load stalls.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 20) { [weak self] in self?.abort() }
+    }
+
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        // A beat for WebKit to finish layout (fonts, hyphenation) before the
+        // print sheet asks it to paginate.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in self?.presentPrintSheet() }
+    }
+
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        abort()
+    }
+
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        abort()
+    }
+
+    private func presentPrintSheet() {
+        guard !finished else { return }
+        let controller = UIPrintInteractionController.shared
+        controller.printInfo = printInfo
+        controller.printPageRenderer = nil
+        let formatter = webView.viewPrintFormatter()
+        formatter.perPageContentInsets = UIEdgeInsets(top: 36, left: 36, bottom: 36, right: 36)
+        controller.printFormatter = formatter
+        controller.present(animated: true) { [weak self] _, _, _ in
+            self?.finish()
+        }
+    }
+
+    private func finish() {
+        guard !finished else { return }
+        finished = true
+        webView.navigationDelegate = nil
+        webView.removeFromSuperview()
+        KJBHTMLPrintJob.active.removeAll { $0 === self }
+    }
+
+    private func abort() {
+        guard !finished else { return }
+        let run = fallback
+        finish()
+        run()
+    }
+}
