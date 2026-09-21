@@ -175,7 +175,41 @@ class ShareViewController: UIViewController {
         let text = (pendingText ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         if !text.isEmpty {
             UserDefaults(suiteName: Self.appGroupID)?.set(text, forKey: Self.pendingKey)
+            // Best effort: bring the app forward so the lookup shows without
+            // the user having to switch to it. If this fails the lookup still
+            // happens the next time the user opens the app.
+            openContainingApp()
         }
         extensionContext?.completeRequest(returningItems: nil)
+    }
+
+    /// Share extensions have no supported API to launch their containing app
+    /// (extensionContext.open only works for Today widgets). This walks the
+    /// responder chain to the host's UIApplication and calls the
+    /// open(_:options:completionHandler:) selector by name — the widely used
+    /// workaround. It also works on iOS 18, where the older openURL: selector
+    /// became a no-op. Trade-off: not a documented API, so it is isolated here
+    /// and easy to delete (the lookup then just waits for the next app open).
+    private func openContainingApp() {
+        guard let url = URL(string: "kjbreader://lookup") else { return }
+        var responder: UIResponder? = self
+        while let current = responder {
+            if let application = current as? UIApplication {
+                let modern = NSSelectorFromString("openURL:options:completionHandler:")
+                if application.responds(to: modern) {
+                    typealias OpenFn = @convention(c) (AnyObject, Selector, NSURL, NSDictionary, AnyObject?) -> Void
+                    let imp = application.method(for: modern)
+                    let open = unsafeBitCast(imp, to: OpenFn.self)
+                    open(application, modern, url as NSURL, NSDictionary(), nil)
+                    return
+                }
+                let legacy = NSSelectorFromString("openURL:")
+                if application.responds(to: legacy) {
+                    _ = application.perform(legacy, with: url)
+                }
+                return
+            }
+            responder = current.next
+        }
     }
 }

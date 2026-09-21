@@ -89,6 +89,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+        // kjbreader://lookup — fired by the KJBShare extension right after it
+        // stores the shared text, purely to bring this app to the foreground.
+        // The text itself is consumed in consumePendingLookup() when the app
+        // becomes active, so there is nothing else to do here.
+        if url.scheme?.lowercased() == "kjbreader" {
+            return true
+        }
         // Called when the app was launched with a url. Feel free to add additional processing here,
         // but if you want the App API to support tracking app url opens, make sure to keep this call
         return ApplicationDelegateProxy.shared.application(app, open: url, options: options)
