@@ -5,6 +5,7 @@ import QuickLinkCard from '@/components/home/QuickLinkCard';
 import OfflineStatusBanner from '@/components/OfflineStatusBanner';
 import IncognitoWarning from '@/components/IncognitoWarning';
 import ScriptureBanner from '@/components/ScriptureBanner';
+import { readNavTarget } from '@/lib/readNavTarget';
 
 const QUICK_LINKS = [
   { path: '/read', icon: BookOpen, label: 'Read the Bible', desc: <span className="notranslate" translate="no">KJB Pure Cambridge Edition</span>, iconGradient: 'from-emerald-500 to-teal-600' },
@@ -112,7 +113,7 @@ export default function HomePage() {
         {QUICK_LINKS.map((link) => (
           <QuickLinkCard
             key={link.path}
-            to={link.path}
+            to={link.path === '/read' ? readNavTarget() : link.path}
             icon={link.icon}
             label={link.label}
             desc={link.desc}

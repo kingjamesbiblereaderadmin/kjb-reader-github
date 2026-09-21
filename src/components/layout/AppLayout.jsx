@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { useSoftReload } from '@/lib/SoftReloadContext';
 import { getAccessibilityFont, applyAccessibilityFont } from '@/lib/accessibilityFont';
 import KjbLogo from '@/components/KjbLogo';
+import { readNavTarget } from '@/lib/readNavTarget';
 
 const scrollMainToTop = (fromPathname) => {
   // Instant, not smooth: this fires right before the page unmounts and the
@@ -79,19 +80,6 @@ const BOTTOM_NAV_SECONDARY = [
   { path: '/about', icon: Info, label: 'About' },
   { path: '/settings', icon: Settings, label: 'Settings' },
 ];
-
-// Where any "Read" entry point (desktop footer, hamburger menu, bottom-nav
-// fallback, cold-start route restore) should go: back to the reader's exact
-// last URL, including its search/gospel flags (?from=search&q=…) — so
-// leaving mid-step and tapping Read returns to the SAME step with the
-// "Searched" pill and stepper intact instead of a bare /read that drops them.
-const readNavTarget = () => {
-  try {
-    const u = localStorage.getItem('kjb-last-read-url');
-    if (u && u.startsWith('/read')) return u;
-  } catch {}
-  return '/read';
-};
 
 export default function AppLayout() {
   const location = useLocation();
