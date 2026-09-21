@@ -840,6 +840,11 @@ export function exportPrint(items, query, filters, options = {}) {
   
   let rows = '';
   if (isReading) {
+    // Paragraph blocks (paragraph mode) must be ALLOWED to break across columns
+    // and pages. With break-inside:avoid a whole pilcrow paragraph that doesn't
+    // fit in the space left jumps to the next page, leaving the foot of the
+    // page empty and (in two-column mode) filling only the first column of
+    // the next page. orphans/widows keep 3 lines together at either end.
     const currentParagraphs = [];
     let currentBlock = [];
     let isFirstParagraph = true;
@@ -847,7 +852,7 @@ export function exportPrint(items, query, filters, options = {}) {
     items.forEach(it => {
       if (it.isEndMarker) {
         if (currentBlock.length > 0) {
-          currentParagraphs.push(`<p style="margin:0 0 10pt 0; page-break-inside:avoid; break-inside:avoid;">${currentBlock.join('')}</p>`);
+          currentParagraphs.push(`<p style="margin:0 0 10pt 0; orphans:3; widows:3;">${currentBlock.join('')}</p>`);
           isFirstParagraph = false;
           currentBlock = [];
         }
@@ -856,7 +861,7 @@ export function exportPrint(items, query, filters, options = {}) {
       }
       if (it.isColophon || it.isSubscript) {
         if (currentBlock.length > 0) {
-          currentParagraphs.push(`<p style="margin:0 0 10pt 0; page-break-inside:avoid; break-inside:avoid;">${currentBlock.join('')}</p>`);
+          currentParagraphs.push(`<p style="margin:0 0 10pt 0; orphans:3; widows:3;">${currentBlock.join('')}</p>`);
           isFirstParagraph = false;
           currentBlock = [];
         }
@@ -867,7 +872,7 @@ export function exportPrint(items, query, filters, options = {}) {
 
       if (it.heading) {
         if (currentBlock.length > 0) {
-          currentParagraphs.push(`<p style="margin:0 0 10pt 0; page-break-inside:avoid; break-inside:avoid;">${currentBlock.join('')}</p>`);
+          currentParagraphs.push(`<p style="margin:0 0 10pt 0; orphans:3; widows:3;">${currentBlock.join('')}</p>`);
           isFirstParagraph = false;
           currentBlock = [];
         }
@@ -903,7 +908,7 @@ export function exportPrint(items, query, filters, options = {}) {
     });
 
     if (currentBlock.length > 0) {
-      currentParagraphs.push(`<p style="margin:0 0 10pt 0; page-break-inside:avoid; break-inside:avoid;">${currentBlock.join('')}</p>`);
+      currentParagraphs.push(`<p style="margin:0 0 10pt 0; orphans:3; widows:3;">${currentBlock.join('')}</p>`);
     }
 
     const now = new Date();
