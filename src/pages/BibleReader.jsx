@@ -812,12 +812,24 @@ export default function BibleReader() {
         if (qParam || isMultiResultNav) {
           searchClearedRef.current = false; setSearchTerm(qParam || term || '');
           setSearchResultIndex(index); setSearchTotalResults(results.length);
-        } else {
+        } else if (verseNum) {
           searchClearedRef.current = true;
           setSearchTerm('');
           setSearchResultIndex(0);
           setSearchTotalResults(0);
         }
+        // else: from=search carrying NEITHER `q` NOR `verse` — this is a
+        // RETURN to the reader (Home -> Read, or an app restart) on a
+        // search/reference session still live on this exact chapter. A fresh
+        // keyword navigation always carries `q`, and a fresh typed
+        // reference/passage jump always carries `verse` with a searchNav
+        // result that matches it, so this URL can only be the reader's own
+        // last-stamped session URL. Leave the session alone here: the mount
+        // effect has already restored term/index/total from the saved
+        // snapshot, and useToolbarState's restore re-applies the pill,
+        // stepper, filter and selection. The previous behaviour — clearing
+        // the term right here — is what made the session vanish the moment
+        // you left the reader and came back (web, Android and iOS alike).
         // The explicit URL target always wins over a stale search step.
         // Only step back into the results when one of them matches the exact
         // book/chapter/verse this navigation asked for (a live search bar
@@ -855,7 +867,12 @@ export default function BibleReader() {
         // position handling load the target. A genuine fresh jump (Table of
         // Contents, book selector, reference lookup) never carries `q`, so it
         // still clears exactly as before.
-        if (!qParam) {
+        // Only a verse-carrying jump with no matching result is a genuinely
+        // stale/fresh mismatch worth wiping. A return WITHOUT a verse (see the
+        // re-entry case above) must never reach this wipe — deleting
+        // kjb-search-* and kjb-reader-toolbar-state here is what permanently
+        // destroyed the live session the user never cleared.
+        if (!qParam && verseNum) {
           searchClearedRef.current = true;
           setSearchTerm(null); setSearchResultIndex(0); setSearchTotalResults(0);
           try {
