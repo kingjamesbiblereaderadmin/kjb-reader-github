@@ -158,10 +158,12 @@ export async function printChapterPdf(verses, book, pos, filterMode, selectedVer
 
 // Single entry point for every "print this chapter" action in the reader.
 export async function printChapter(verses, book, pos, filterMode, selectedVerses, colophon, columnMode = false, paragraphMode = false) {
-  // A filtered selection (a few chosen verses) always prints as a single
-  // column — two narrow columns for a verse or two looks wrong.
+  // Same rule as the reader on screen: columns only when there are enough
+  // verses to show (more than 6) — a verse or two in two narrow columns looks
+  // wrong. A longer selection still prints in columns (or paragraph mode).
   const filtered = filterMode && selectedVerses.size > 0;
-  const useColumns = columnMode && !filtered;
+  const shownCount = filtered ? verses.filter(v => selectedVerses.has(v.verse)).length : verses.length;
+  const useColumns = columnMode && shownCount > 6;
   if (useColumns && isIOSDevice()) {
     try {
       await printChapterPdf(verses, book, pos, filterMode, selectedVerses, colophon, paragraphMode);
