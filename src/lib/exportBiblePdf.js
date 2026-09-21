@@ -1267,3 +1267,5 @@ export async function exportBiblePdf(opts, onProgress = () => {}) {
   else await buildText(opts, bible, onProgress, format);
   onProgress(100, 'Done!');
 }
+// Shared with chapterPdf.js (single-chapter iOS print PDF)
+export { toSegments, hasPilcrow, stripEndMarker };
