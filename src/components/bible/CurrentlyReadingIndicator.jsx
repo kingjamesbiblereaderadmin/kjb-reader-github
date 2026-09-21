@@ -41,7 +41,13 @@ export default function CurrentlyReadingIndicator({
   let effectiveSearchTerm = searchTerm;
   if (!effectiveSearchTerm && !gospelMode && urlParams) {
     if (isFromSearch) {
-      effectiveSearchTerm = urlParams.get('q') || localStorage.getItem('kjb-search-term') || null;
+      // A typed reference ("John 3:16") leaves its label in kjb-search-term for
+      // the stepper, but it is NOT a keyword search - only a real keyword (or the
+      // URL's q) may produce the "Searched" pill; otherwise the same state showed
+      // "Searched" on one origin and "Reading" on the other.
+      const storedTerm = localStorage.getItem('kjb-search-term');
+      const storedIsKeyword = storedTerm && !/\d+\s*:\s*\d+/.test(storedTerm);
+      effectiveSearchTerm = urlParams.get('q') || (storedIsKeyword ? storedTerm : null) || null;
     }
   }
   const verseNum = pos.verse;

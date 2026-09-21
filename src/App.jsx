@@ -273,7 +273,25 @@ const AuthenticatedApp = () => {
     if (homeUpdate) {
       return 'home_update';
     }
+    // The previous launch ran offline and this one is online: the app just
+    // switched back from the offline copy (or the connection returned), so say
+    // "RECONNECTING" instead of "WELCOME BACK" / "LOOKING UP ...".
+    try {
+      if (hasVisited && localStorage.getItem('kjb-last-boot-online') === 'false'
+          && !(typeof navigator !== 'undefined' && navigator.onLine === false)) {
+        return 'reconnect';
+      }
+    } catch {}
     return hasVisited ? 'subsequent' : 'first_load';
+  }, []);
+
+  // Remember whether this launch is online, for the next launch's splash.
+  // (Written in an effect, not the memo above, so a StrictMode double-render
+  // can't consume the flag before the splash mode reads it.)
+  useEffect(() => {
+    try {
+      localStorage.setItem('kjb-last-boot-online', (typeof navigator !== 'undefined' && navigator.onLine === false) ? 'false' : 'true');
+    } catch {}
   }, []);
 
   const handleSplashDone = () => {
