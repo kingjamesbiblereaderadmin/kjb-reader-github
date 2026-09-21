@@ -26,34 +26,16 @@
 		<dict>
 			<!-- Predicate rule: activate whenever the share contains AT LEAST ONE
 			     text item, regardless of what else rides along. The earlier
-			     dictionary rule (SupportsText + SupportsWebURL/WebPage) makes
-			     the system require EVERY item in the share to be covered, and
-			     Notes (and other apps) attach extra representations of a
-			     selection, so "Look up in KJB Reader" never appeared for text
-			     selected in Notes. (A predicate of anything other than
-			     TRUEPREDICATE is App Review-safe.) -->
+			     dictionary rule (SupportsText + SupportsWebURL/WebPage) makes the
+			     system require EVERY item in the share to be covered, and Notes
+			     (like other apps) attaches extra representations of a selection,
+			     so "Look up in KJB Reader" never appeared for text selected in
+			     Notes. Safari shares (text + page URL) still match, since the text
+			     item is present. (Any predicate other than TRUEPREDICATE is App
+			     Review-safe.) ShareViewController looks up the TEXT only; a
+			     URL-only share is not matched at all. -->
 			<key>NSExtensionActivationRule</key>
 			<string>SUBQUERY (extensionItems, $extensionItem, SUBQUERY ($extensionItem.attachments, $attachment, ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.text").@count &gt;= 1).@count &gt;= 1</string>
-			<key>KJBLegacyActivationRuleNotes</key>
-			<dict>
-				<key>NSExtensionActivationSupportsTextWithMaxCount</key>
-				<integer>300</integer>
-				<!-- Safari (and most apps) attach the page URL alongside the
-				     selected/highlighted text. A rule declaring ONLY text
-				     support disqualifies the extension for those shares —
-				     the system requires every item type in the share to be
-				     covered by the rule — so "Look up in KJB Reader" never
-				     appeared when sharing highlighted text from a web
-				     page. Declaring one URL / web page alongside the text
-				     keeps text-only shares working and also matches the
-				     URL+text payloads. ShareViewController still looks up
-				     the TEXT only; a URL-only share finds no text and shows
-				     its normal "no text" handling. -->
-				<key>NSExtensionActivationSupportsWebURLWithMaxCount</key>
-				<integer>1</integer>
-				<key>NSExtensionActivationSupportsWebPageWithMaxCount</key>
-				<integer>1</integer>
-			</dict>
 		</dict>
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.share-services</string>
