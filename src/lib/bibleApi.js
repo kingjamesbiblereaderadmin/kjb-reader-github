@@ -62,6 +62,53 @@ export function normalizeLigatures(text = '') {
   return String(text).replace(/æ/g, 'ae').replace(/Æ/g, 'Ae');
 }
 
+// Word characters for whole-word boundaries: letters (both cases), the Æ/æ
+// ligature, and BOTH apostrophe forms (plain ' and typographic \u2019).
+// Treating these as word characters means searching "non" whole-word does NOT
+// match inside "Ænon", and "God" whole-word does NOT match inside
+// "God's" / "God\u2019s". Interpolated into character classes as
+// `[^${WORD_CHARS}]`, used with lookarounds as `(?<!${WORD_CHARS})`.
+export const WORD_CHARS = "A-Za-z\u00C6\u00E6\u2019'";
+
+// Modern e-style spellings -> the ligature form the PCE text actually prints.
+export const LIGATURE_WORD_MAP = {
+  judea: 'jud\u00e6a',
+  enon: '\u00e6non',
+  galilean: 'galil\u00e6an',
+  galileans: 'galil\u00e6ans',
+  thaddeus: 'thadd\u00e6us',
+  chaldeans: 'chald\u00e6ans',
+};
+
+// Every textual form of a search term that must be treated as equivalent:
+// the typed form, its ae <-> ligature spellings in BOTH directions (typed
+// "Caesar"/"AEnon" must highlight the printed "Cæsar"/"Ænon", and a typed
+// ligature must still match the ligature-normalized text the keyword search
+// matches against), and the printed ligature form of any mapped modern word
+// (typed "Judea"/"Enon" -> printed "Judæa"/"Ænon").
+export function buildTermVariants(term) {
+  const raw = String(term);
+  const variants = new Set([raw]);
+  const add = (v) => {
+    if (!v) return;
+    // Follow the typed term's capitalization shape so variants also work
+    // when the case-sensitive ("Match case") option is on.
+    if (/^[A-Z]/.test(raw) && /^[a-z]/.test(v)) v = v[0].toUpperCase() + v.slice(1);
+    variants.add(v);
+  };
+  if (/ae/i.test(raw)) add(raw.replace(/AE/g, '\u00c6').replace(/Ae/g, '\u00c6').replace(/ae/g, '\u00e6'));
+  if (/[\u00e6\u00c6]/.test(raw)) add(raw.replace(/\u00e6/g, 'ae').replace(/\u00c6/g, 'Ae'));
+  const mapped = LIGATURE_WORD_MAP[raw.toLowerCase()];
+  if (mapped) add(mapped);
+  // "ae"-spelled copy of every ligature variant: the keyword search matches
+  // against ligature-NORMALIZED text (see normalizeLigatures), so a ligature
+  // variant like "jud\u00e6a" also needs its "judaea" spelling to be found there.
+  for (const v of [...variants]) {
+    if (/[\u00e6\u00c6]/.test(v)) add(v.replace(/\u00e6/g, 'ae').replace(/\u00c6/g, 'Ae'));
+  }
+  return [...variants];
+}
+
 // Hyphen-tolerant regex pattern for a search term. The PCE text hyphenates
 // proper names ("Beer-sheba", "Kirjath-arba"), but users may type the modern
 // unhyphenated spelling ("Beersheba") or vice versa. Strip hyphens from the
@@ -69,12 +116,21 @@ export function normalizeLigatures(text = '') {
 // hyphen may appear between any two characters — matching the term with or
 // without hyphens in either direction. Used wherever a search term becomes
 // a regex for matching or highlighting (search, reader highlight, exports).
+// The pattern also folds in the apostrophe equivalence (plain ' and
+// typographic \u2019 match each other) and the ligature/spelling variants
+// from buildTermVariants, joined into a single alternation — so the keyword
+// search and every highlighter agree on what matches.
 export function hyphenTolerantPattern(term) {
-  return String(term)
+  const patternFor = (variant) => variant
     .replace(/-/g, '')
     .split('')
-    .map(ch => ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    // Both apostrophe forms (typed straight ' or typographic \u2019) become
+    // an equivalence class, so a term typed with either form matches text
+    // printed with either form.
+    .map(ch => (ch === "'" || ch === '\u2019') ? "['\\u2019]" : ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
     .join('-?');
+  const patterns = [...new Set(buildTermVariants(term).map(patternFor))];
+  return patterns.length === 1 ? patterns[0] : `(?:${patterns.join('|')})`;
 }
 
 // Strip trailing end markers and "Made in Australia" from verse text

@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import { mergeAdjacentBrackets, hyphenTolerantPattern } from '@/lib/bibleApi';
+import { mergeAdjacentBrackets, hyphenTolerantPattern, WORD_CHARS } from '@/lib/bibleApi';
 import { triggerDownload } from '@/lib/nativeDownload';
 import { nativePrintHtml } from '@/lib/nativePrint';
 
@@ -143,7 +143,7 @@ function countTermOccurrences(text, query, filters) {
   for (const term of terms) {
     const escaped = hyphenTolerantPattern(term);
     const re = ww
-      ? new RegExp(`(^|[^a-zA-Z'])(${escaped})(?=[^a-zA-Z']|$)`, cs ? 'g' : 'gi')
+      ? new RegExp(`(^|[^${WORD_CHARS}])(${escaped})(?=[^${WORD_CHARS}]|$)`, cs ? 'g' : 'gi')
       : new RegExp(`(${escaped})`, cs ? 'g' : 'gi');
     total += (clean.match(re) || []).length;
   }
@@ -280,7 +280,7 @@ function highlightTermText(text, query, filters) {
   for (const term of terms) {
     const escaped = hyphenTolerantPattern(term);
     const re = ww
-      ? new RegExp(`(^|[^a-zA-Z'])(${escaped})(?=[^a-zA-Z']|$)`, cs ? 'g' : 'gi')
+      ? new RegExp(`(^|[^${WORD_CHARS}])(${escaped})(?=[^${WORD_CHARS}]|$)`, cs ? 'g' : 'gi')
       : new RegExp(`(${escaped})`, cs ? 'g' : 'gi');
     let m;
     while ((m = re.exec(plainStr)) !== null) {
@@ -340,7 +340,7 @@ function buildRunsHighlightMask(runs, query, filters) {
   for (const term of terms) {
     const escaped = hyphenTolerantPattern(term);
     const re = ww
-      ? new RegExp(`(^|[^a-zA-Z'])(${escaped})(?=[^a-zA-Z']|$)`, cs ? 'g' : 'gi')
+      ? new RegExp(`(^|[^${WORD_CHARS}])(${escaped})(?=[^${WORD_CHARS}]|$)`, cs ? 'g' : 'gi')
       : new RegExp(`(${escaped})`, cs ? 'g' : 'gi');
     let m;
     while ((m = re.exec(plainStr)) !== null) {
@@ -385,7 +385,7 @@ function highlightTermHtml(html, query, filters) {
   for (const term of terms) {
     const escaped = hyphenTolerantPattern(term);
     const re = wholeWord
-      ? new RegExp(`(^|[^a-zA-Z'])(${escaped})(?=[^a-zA-Z']|$)`, flags)
+      ? new RegExp(`(^|[^${WORD_CHARS}])(${escaped})(?=[^${WORD_CHARS}]|$)`, flags)
       : new RegExp(`(${escaped})`, flags);
     let m;
     while ((m = re.exec(plainStr)) !== null) {

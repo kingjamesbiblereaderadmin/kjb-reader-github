@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { parseSearchTerms } from '@/lib/verseAnalysis';
-import { hyphenTolerantPattern as escapeRe } from '@/lib/bibleApi';
+import { hyphenTolerantPattern as escapeRe, WORD_CHARS } from '@/lib/bibleApi';
 
 // Distinct colour per result pill — cycled by chip index so each count chip
 // reads as a different colour.
@@ -50,8 +50,8 @@ function highlightAny(text, terms, keyPrefix) {
 function highlightInOrder(text, terms, keyPrefix, adjacent, caseSensitive, wholeWord) {
   if (!terms || terms.length === 0) return text;
   const flags = (caseSensitive ? '' : 'i');
-  const before = wholeWord ? `(?<![A-Za-z'])` : '';
-  const after = wholeWord ? `(?![A-Za-z'])` : '';
+  const before = wholeWord ? `(?<!${WORD_CHARS})` : '';
+  const after = wholeWord ? `(?!${WORD_CHARS})` : '';
 
   const mark = (str, key) => (
     <mark key={key} className={MARK_CLASS}>{str}</mark>

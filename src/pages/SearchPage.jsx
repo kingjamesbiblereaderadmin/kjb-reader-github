@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, BookOpen, Loader2, Filter, Copy, Download, CheckSquare, Square, X, BookMarked, ChevronDown, Share2, ChevronUp, ChevronDown as ChevronDownIcon, ChevronRight, Printer, FlaskConical } from 'lucide-react';
 import { getBibleData } from '@/lib/bibleCache';
-import { normalizeApostrophes, normalizeQueryApostrophes, normalizeLigatures, hyphenTolerantPattern } from '@/lib/bibleApi';
+import { normalizeApostrophes, normalizeQueryApostrophes, normalizeLigatures, hyphenTolerantPattern, WORD_CHARS } from '@/lib/bibleApi';
 import { BIBLE_BOOKS, OLD_TESTAMENT, NEW_TESTAMENT, BOOK_BY_API_NAME } from '@/lib/bibleData';
 import { parseReference, resolveBook, normalizeReferenceText } from '@/lib/parseReference';
 import { expandPassage } from '@/lib/expandPassage';
@@ -385,7 +385,7 @@ export default function SearchPage() {
           return multiTerms.every(term => {
             const esc = hyphenTolerantPattern(term);
             if (effectiveWholeWord) {
-              return new RegExp(`(^|[^a-z'])${esc}($|[^a-z'])`, 'i').test(cleanText);
+              return new RegExp(`(^|[^${WORD_CHARS}])${esc}($|[^${WORD_CHARS}])`, 'i').test(cleanText);
             }
             return new RegExp(esc, 'i').test(cleanText);
           });
@@ -393,13 +393,13 @@ export default function SearchPage() {
         if (effectiveCaseSensitive) {
           const esc = hyphenTolerantPattern(searchTerm);
           if (effectiveWholeWord) {
-            return new RegExp(`(^|[^A-Za-z'])${esc}($|[^A-Za-z'])`).test(cleanText);
+            return new RegExp(`(^|[^${WORD_CHARS}])${esc}($|[^${WORD_CHARS}])`).test(cleanText);
           }
           return new RegExp(esc).test(cleanText);
         }
         const esc = hyphenTolerantPattern(searchTermLower);
         if (effectiveWholeWord) {
-          return new RegExp(`(^|[^a-z'])${esc}($|[^a-z'])`, 'i').test(cleanText);
+          return new RegExp(`(^|[^${WORD_CHARS}])${esc}($|[^${WORD_CHARS}])`, 'i').test(cleanText);
         }
         return new RegExp(esc, 'i').test(cleanText);
       };
@@ -546,7 +546,7 @@ export default function SearchPage() {
               found = multiTerms.every(term => {
                 const esc = hyphenTolerantPattern(term);
                 if (effectiveWholeWord) {
-                  return new RegExp(`(^|[^a-z'])${esc}($|[^a-z'])`, 'i').test(searchText);
+                  return new RegExp(`(^|[^${WORD_CHARS}])${esc}($|[^${WORD_CHARS}])`, 'i').test(searchText);
                 }
                 return new RegExp(esc, 'i').test(searchText);
               });
@@ -572,14 +572,14 @@ export default function SearchPage() {
             if (effectiveCaseSensitive) {
               const esc = hyphenTolerantPattern(searchTerm);
               if (effectiveWholeWord) {
-                found = new RegExp(`(^|[^A-Za-z'])${esc}($|[^A-Za-z'])`).test(searchText);
+                found = new RegExp(`(^|[^${WORD_CHARS}])${esc}($|[^${WORD_CHARS}])`).test(searchText);
               } else {
                 found = new RegExp(esc).test(searchText);
               }
             } else {
               const esc = hyphenTolerantPattern(searchTermLower);
               if (effectiveWholeWord) {
-                found = new RegExp(`(^|[^a-z'])${esc}($|[^a-z'])`, 'i').test(searchText);
+                found = new RegExp(`(^|[^${WORD_CHARS}])${esc}($|[^${WORD_CHARS}])`, 'i').test(searchText);
               } else {
                 found = new RegExp(esc, 'i').test(searchText);
               }
@@ -689,7 +689,7 @@ export default function SearchPage() {
       const occRes = occTerms.map(t => {
         const esc = hyphenTolerantPattern(t);
         return effectiveWholeWord
-          ? new RegExp(`(?<![A-Za-z'])${esc}(?![A-Za-z'])`, effectiveCaseSensitive ? 'g' : 'gi')
+          ? new RegExp(`(?<!${WORD_CHARS})${esc}(?!${WORD_CHARS})`, effectiveCaseSensitive ? 'g' : 'gi')
           : new RegExp(esc, effectiveCaseSensitive ? 'g' : 'gi');
       });
       let totalOcc = 0;
@@ -1655,7 +1655,13 @@ export default function SearchPage() {
 
       {!loading && searched && results.length === 0 && (
         <div className="space-y-4">
-          <p className="font-sans text-sm text-muted-foreground text-center py-12 print:text-black">No results found for "{stripQuotes(getQueryFromUrl() || query)}".</p>
+          <div className="text-center py-12">
+            <p className="font-sans text-sm text-muted-foreground print:text-black">No results found for "{stripQuotes(getQueryFromUrl() || query)}".</p>
+            <p className="font-sans text-xs text-muted-foreground/70 mt-4 print:hidden">
+              If you think this is an error, please email{' '}
+              <a href="mailto:kingjamesbiblereader@outlook.sg" className="underline hover:text-foreground transition-colors">kingjamesbiblereader@outlook.sg</a>
+            </p>
+          </div>
           {showBookResult && (
             <div className="max-w-md mx-auto p-4 rounded-xl bg-primary/5 border border-primary/20 print:hidden">
               <p className="font-sans text-xs text-muted-foreground mb-3 text-center">

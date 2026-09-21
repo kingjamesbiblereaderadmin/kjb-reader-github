@@ -15,7 +15,7 @@
 
 import { getBibleData } from '@/lib/bibleCache';
 import { BOOK_BY_API_NAME, BIBLE_BOOKS } from '@/lib/bibleData';
-import { normalizeApostrophes, normalizeQueryApostrophes, normalizeLigatures, hyphenTolerantPattern } from '@/lib/bibleApi';
+import { normalizeApostrophes, normalizeQueryApostrophes, normalizeLigatures, hyphenTolerantPattern, WORD_CHARS } from '@/lib/bibleApi';
 import { SUBSCRIPTS } from '@/lib/bibleSubscripts';
 
 // Strip the leading pilcrow and its space.
@@ -350,8 +350,8 @@ export function matchesTerms(plainText, terms, caseSensitive, wholeWord, inOrder
   // boundary character that also separates it from the NEXT term. (Consuming
   // the trailing boundary was the bug that made whole-word "in order" and
   // "adjacent" phrase searches fail on consecutive words like "Lamb of God".)
-  const before = wholeWord ? `(?<![A-Za-z'])` : '';
-  const after = wholeWord ? `(?![A-Za-z'])` : '';
+  const before = wholeWord ? `(?<!${WORD_CHARS})` : '';
+  const after = wholeWord ? `(?!${WORD_CHARS})` : '';
 
   // Adjacent → single phrase: term1 <space(s)> term2 <space(s)> … in order.
   if (adjacent) {

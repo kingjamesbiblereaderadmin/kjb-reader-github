@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { ChevronDown, ArrowDown, ChevronRight } from 'lucide-react';
 import { BIBLE_BOOKS, BOOK_BY_API_NAME } from '@/lib/bibleData';
-import { hyphenTolerantPattern } from '@/lib/bibleApi';
+import { hyphenTolerantPattern, WORD_CHARS } from '@/lib/bibleApi';
 import SearchResultRow from '@/components/bible/SearchResultRow';
 
 const NT_BOOKS = new Set(BIBLE_BOOKS.filter(b => b.testament === 'NT' || BIBLE_BOOKS.indexOf(b) >= 39).map(b => b.apiName));
@@ -28,7 +28,7 @@ function countOccurrences(text, term, caseSensitive, wholeWord) {
     // Hyphen-tolerant: "Beersheba" matches "Beer-sheba" (and vice versa).
     const escaped = hyphenTolerantPattern(t);
     const re = wholeWord
-      ? new RegExp(`(?:^|[^A-Za-z'])${escaped}(?=$|[^A-Za-z'])`, caseSensitive ? 'g' : 'gi')
+      ? new RegExp(`(?:^|[^${WORD_CHARS}])${escaped}(?=$|[^${WORD_CHARS}])`, caseSensitive ? 'g' : 'gi')
       : new RegExp(escaped, caseSensitive ? 'g' : 'gi');
     total += (clean.match(re) || []).length;
   }
