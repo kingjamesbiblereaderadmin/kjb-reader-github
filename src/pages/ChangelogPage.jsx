@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.257', date: 'September 21, 2026', items: [
+    { tag: 'fix', text: 'Fixed searching for words with apostrophes (God\u2019s, Jacob\u2019s, Christ\u2019s). The Bible text prints the typographic apostrophe, so typed searches using a plain apostrophe never matched; searches now match either style and the highlight covers the whole word' },
+  ] },
   { version: 'v0.4.256', date: 'September 20, 2026', items: [
     { tag: 'improved', text: 'Keyword search highlighting now includes the punctuation attached to a matched word, so a hit like \u201Cgrace,\u201D is highlighted as one unit instead of leaving a stray comma or period outside the highlight' },
   ] },
@@ -295,7 +298,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.256
+            Current Version: v0.4.257
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
