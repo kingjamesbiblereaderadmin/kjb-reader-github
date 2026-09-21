@@ -16,7 +16,7 @@ import { TextSelect } from 'lucide-react';
 //
 // - iOS never lets third-party apps add buttons to the text-selection menu, so
 //   the equivalent is the Share sheet: the app ships a share extension
-//   ("Look up in KJB Reader", ios/App/Share). New share extensions are often
+//   (shown as the KJB Reader icon with a "Look Up" button, ios/App/Share). New share extensions are often
 //   switched off in the sheet's app row until the user enables them under
 //   "More", so that step is spelled out.
 export default function HighlightToSearchTip({ compact = false }) {
@@ -47,8 +47,9 @@ export default function HighlightToSearchTip({ compact = false }) {
           ) : (
             <ul className="font-sans text-xs text-muted-foreground leading-relaxed space-y-1 list-disc pl-4">
               <li>Highlight a verse reference (like <span className="notranslate" translate="no">Romans 3:25</span>) or any word in another app, such as Notes, Safari or Messages.</li>
-              <li>In the selection menu tap <strong>Share…</strong> (tap the <strong>›</strong> arrow if you don't see it), then choose <strong><span className="notranslate" translate="no">Look up in KJB Reader</span></strong> and tap <strong><span className="notranslate" translate="no">Look Up in KJB Reader</span></strong>.</li>
-              <li>Don't see it in the sharing options? Scroll the row of apps to the end, tap <strong>More</strong>, and switch on <strong><span className="notranslate" translate="no">Look up in KJB Reader</span></strong>.</li>
+              <li>In the selection menu tap <strong>Share…</strong> (tap the <strong>›</strong> arrow if you don't see it).</li>
+              <li>Tap the <strong><span className="notranslate" translate="no">KJB Reader</span></strong> icon, then press <strong>Look Up</strong>.</li>
+              <li>Don't see the <span className="notranslate" translate="no">KJB Reader</span> icon? Scroll the row of apps to the end, tap <strong>More</strong>, and switch on <strong><span className="notranslate" translate="no">KJB Reader</span></strong>.</li>
               <li><span className="notranslate" translate="no">KJB Reader</span> opens and jumps straight to the verse, or shows search results for a word or phrase.</li>
             </ul>
           )}
