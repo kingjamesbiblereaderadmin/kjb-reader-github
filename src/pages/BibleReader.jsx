@@ -791,17 +791,17 @@ export default function BibleReader() {
 
       if (isFromSearch) {
         let { term, index, results } = getSearchNav();
-        // Only a real keyword search carries a `q` param. A plain reference/passage
-        // jump from the search bar or ContentsPage also routes through from=search
-        // (to reuse the single-result highlight path) but has no `q` — it must NOT
-        // be tagged as an ongoing search context, or useToolbarState's focus-listener
-        // restore replays it (snapping the reader back to that single-verse filtered
-        // view) after the app is backgrounded and reopened.
-        // EXCEPTION: a multi-reference stepper (goToMultiReference / goToPassage)
-        // also has no `q` but carries 2+ results — it needs the same ongoing-context
-        // treatment as a keyword search so the prev/next stepper arrows render
-        // (CurrentlyReadingIndicator gates on totalResults > 1 + an active term)
-        // and the highlight survives the toolbar-state restore/focus cycle.
+        // Only a real keyword search carries a `q` param. Reference/passage
+        // jumps (search bar, Search page) and multi-reference steppers also
+        // route through from=search without `q`. Any of these whose saved
+        // searchNav results still match this exact URL target is an ONGOING
+        // session — keyword, multi-reference or single typed reference alike —
+        // and must keep its term/counts so the toolbar-state snapshot saves
+        // hasSearchContext and the session survives leaving the reader and
+        // coming back (Home -> Read). Clearing the term for single typed
+        // references here is what made references the only session type that
+        // vanished on return: the snapshot was saved without a search context,
+        // so nothing restored (and nothing protected) it.
         const qParam = urlParams.get('q');
         const isMultiResultNav = !qParam && results.length > 1;
         refJumpRef.current = !qParam && !isMultiResultNav && !!verseNum;
@@ -813,10 +813,25 @@ export default function BibleReader() {
           searchClearedRef.current = false; setSearchTerm(qParam || term || '');
           setSearchResultIndex(index); setSearchTotalResults(results.length);
         } else if (verseNum) {
-          searchClearedRef.current = true;
-          setSearchTerm('');
-          setSearchResultIndex(0);
-          setSearchTotalResults(0);
+          const refMatchIdx = results.findIndex((r) => r && r.abbr === urlBookObj.abbr
+            && parseInt(r.chapter, 10) === chapterNum
+            && ((r.verse ? parseInt(r.verse, 10) : null) === verseNum));
+          if (refMatchIdx >= 0) {
+            // A live single-result session (typed reference or passage) whose
+            // result matches this URL target: keep it as ongoing context so it
+            // persists exactly like a keyword session.
+            searchClearedRef.current = false;
+            setSearchTerm(term || '');
+            setSearchResultIndex(refMatchIdx);
+            setSearchTotalResults(results.length);
+          } else {
+            // No live result matches this verse-carrying target — don't tag it
+            // as ongoing search context (the mismatch wipe below handles it).
+            searchClearedRef.current = true;
+            setSearchTerm('');
+            setSearchResultIndex(0);
+            setSearchTotalResults(0);
+          }
         }
         // else: from=search carrying NEITHER `q` NOR `verse` — this is a
         // RETURN to the reader (Home -> Read, or an app restart) on a
