@@ -57,7 +57,8 @@ export function printHtml(innerHtml) {
   }
 }
 
-export function printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode = false, paragraphMode = false) {
+// Shared by the HTML print path and the iOS PDF path.
+function buildChapterPrintItems(verses, book, pos, filterMode, selectedVerses, colophon) {
   const versesToPrint = filterMode && selectedVerses.size > 0 
     ? verses.filter(v => selectedVerses.has(v.verse))
     : verses;
@@ -112,13 +113,58 @@ export function printChapterContents(verses, book, pos, filterMode, selectedVers
     ? `${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}`
     : `${book.name} ${pos.chapter}`;
 
-  exportVerses('print', itemsToPrint, queryStr, null, { 
+  return { itemsToPrint, queryStr };
+}
+
+// iOS (Safari, home-screen PWA, or the Capacitor shell).
+export function isIOSDevice() {
+  if (typeof navigator === 'undefined') return false;
+  return (typeof document !== 'undefined' && document.documentElement.classList.contains('kjb-native-ios')) ||
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function chapterLabel(pos, filterMode, selectedVerses) {
+  return filterMode && selectedVerses.size > 0 ? `Chapter ${pos.chapter}:${formatVerseRange([...selectedVerses])}` : `Chapter ${pos.chapter}`;
+}
+
+export function printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode = false, paragraphMode = false) {
+  const { itemsToPrint, queryStr } = buildChapterPrintItems(verses, book, pos, filterMode, selectedVerses, colophon);
+  exportVerses('print', itemsToPrint, queryStr, null, {
     titlePrefix: 'KJB Reading',
     bookName: book.name,
-    chapterText: filterMode && selectedVerses.size > 0 
-      ? `Chapter ${pos.chapter}:${formatVerseRange([...selectedVerses])}` 
-      : `Chapter ${pos.chapter}`,
+    chapterText: chapterLabel(pos, filterMode, selectedVerses),
     columnMode,
     paragraphMode
   });
+}
+
+// iOS ignores CSS multi-column layout when printing (live page AND the hidden
+// print iframe), so two-column mode came out as one column. Build a real
+// two-column PDF instead and hand it to the share sheet / PDF viewer, which
+// both offer Print. Loaded lazily so jsPDF isn't in the reader's main bundle.
+export async function printChapterPdf(verses, book, pos, filterMode, selectedVerses, colophon, paragraphMode = false) {
+  const { itemsToPrint, queryStr } = buildChapterPrintItems(verses, book, pos, filterMode, selectedVerses, colophon);
+  const { saveChapterPdf } = await import('./chapterPdf');
+  await saveChapterPdf({
+    items: itemsToPrint,
+    bookName: book.name,
+    chapterText: chapterLabel(pos, filterMode, selectedVerses),
+    footerLabel: queryStr,
+    fileBase: queryStr,
+    paragraphMode
+  });
+}
+
+// Single entry point for every "print this chapter" action in the reader.
+export async function printChapter(verses, book, pos, filterMode, selectedVerses, colophon, columnMode = false, paragraphMode = false) {
+  if (columnMode && isIOSDevice()) {
+    try {
+      await printChapterPdf(verses, book, pos, filterMode, selectedVerses, colophon, paragraphMode);
+      return;
+    } catch (e) {
+      console.error('[print] iOS chapter PDF failed, falling back to HTML print:', e);
+    }
+  }
+  printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode);
 }
