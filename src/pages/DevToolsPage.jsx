@@ -22,6 +22,9 @@ const TABS = [
 
 export default function DevToolsPage() {
   const [tab, setTab] = useState('text');
+  const [recorderOn, setRecorderOn] = useState(() => {
+    try { return localStorage.getItem('kjb-debug-recorder') === 'true'; } catch { return false; }
+  });
   const { user, isLoadingAuth } = useAuth();
 
   // Checking auth session.
@@ -60,6 +63,30 @@ export default function DevToolsPage() {
       <p className="font-sans text-xs text-muted-foreground mb-6">
         Signed in as {user.email || user.full_name || 'admin'} · Private admin utilities.
       </p>
+
+      <div className="flex items-center justify-between gap-4 mb-6 p-3 rounded-xl bg-secondary/60 border border-border">
+        <div>
+          <p className="font-sans text-sm font-medium text-foreground">Debug Recorder</p>
+          <p className="font-sans text-xs text-muted-foreground">
+            Shows a floating Rec button in the app. Start it, reproduce the issue, stop it, then copy or download the log to send for analysis.
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            try {
+              const next = localStorage.getItem('kjb-debug-recorder') !== 'true';
+              localStorage.setItem('kjb-debug-recorder', String(next));
+              window.dispatchEvent(new Event('kjb-debug-recorder-change'));
+              setRecorderOn(next);
+            } catch {}
+          }}
+          className={`px-3.5 py-2 rounded-lg text-xs font-medium transition-colors ${
+            recorderOn ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground hover:bg-accent/20'
+          }`}
+        >
+          {recorderOn ? 'On' : 'Off'}
+        </button>
+      </div>
 
       <div className="flex flex-wrap gap-2 mb-6">
         {TABS.map(t => {

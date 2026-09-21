@@ -12,6 +12,7 @@ import ShortcutsModal from '@/components/ShortcutsModal';
 import ScrollToTop from '@/components/ScrollToTop';
 import AutoUpdateHandler from '@/components/AutoUpdateHandler';
 import ProgressBar from '@/components/ProgressBar';
+import DebugRecorder from '@/components/dev/DebugRecorder';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { isNativeIos } from '@/lib/isNativeIos';
 
@@ -563,6 +564,8 @@ export default function AppLayout() {
       <DesktopFooter navigate={navigate} setMenuOpen={setMenuOpen} pathname={pathname} />
 
       {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
+
+      <DebugRecorder />
     </div>
     </AutoUpdateHandler>
   );
