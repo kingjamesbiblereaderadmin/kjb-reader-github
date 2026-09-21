@@ -121,7 +121,7 @@ function centerLines(doc, text, style, size, width, sb, color) {
  * items: same array printChapterContents feeds to exportVerses (verses plus
  * optional isSubscript / isColophon / isEndMarker entries).
  */
-export async function saveChapterPdf({ items, bookName, chapterText, footerLabel, fileBase, paragraphMode = false }) {
+export function buildChapterPdf({ items, bookName, chapterText, footerLabel, fileBase, paragraphMode = false }) {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const measure = makeMeasurer(doc);
   const fullW = PAGE_W - MARGIN * 2;
@@ -303,5 +303,10 @@ export async function saveChapterPdf({ items, bookName, chapterText, footerLabel
   }
 
   const name = `KJB-${String(fileBase || bookName || 'chapter').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}.pdf`;
+  return { doc, name };
+}
+
+export async function saveChapterPdf(opts) {
+  const { doc, name } = buildChapterPdf(opts);
   await triggerDownload(doc.output('blob'), name);
 }
