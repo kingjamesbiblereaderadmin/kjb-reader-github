@@ -41,7 +41,10 @@ enum SpotlightIndexer {
     /// Bump to make existing installs delete and rebuild the index. v5 also
     /// purges the per-verse rows older builds indexed: Spotlight can't hide
     /// them per-query, so they are gone entirely now (see header note).
-    private static let indexVersion = 6
+    /// v7 adds the "Look up “Peter” in verses" style rows for the numbered-book
+    /// groups (Samuel, Kings, Chronicles, Corinthians, Thessalonians, Timothy,
+    /// Peter) — typing "Peter" used to show only "1 Peter" and "2 Peter".
+    private static let indexVersion = 7
     private static let versionKey = "kjbSpotlightIndexVersion"
     private static let domain = "com.kingjamesbiblereader.twa.reader"
     private static let baseURL = "https://kingjamesbiblereader.com"
@@ -251,17 +254,21 @@ enum SpotlightIndexer {
             // offer looking the PHRASE up in the verse text. Spotlight can't
             // show options on a single result, so this is a second item.
             //
-            // Numbered books ("1 John", "2 Peter") are skipped: the number is
-            // not part of any phrase in the text, and Spotlight matches the
-            // "John" token inside "1 John", so typing "John" was returning
-            // "Look up “1 John”" and "Look up “2 John”" rows alongside (and
-            // sometimes instead of) the plain "Look up “John”" one.
-            if !book.name.first!.isNumber {
+            // Numbered books get ONE row per group, titled with the name
+            // WITHOUT its number ("Look up “Peter” in verses"), attached to the
+            // "1 …" book — the number is not part of any phrase in the text.
+            // Rows titled "Look up “1 John”"/"“2 John”" are not created (they
+            // matched the "John" token and crowded the plain "John" row), and a
+            // group whose base name is also an unnumbered book (John) already
+            // has its row, so it is not added twice.
+            if hasLookupRow(book) {
+                let term = baseName(book)
+                let isNumbered = book.name.first!.isNumber
                 items.append(makeItem(
                     id: "\(idPrefix)search:\(book.abbr)",
-                    title: "Look up “\(book.name)” in verses",
-                    description: "Search the Bible text for “\(book.name)” · King James Bible",
-                    keywords: ["search \(book.name)", "\(book.name) in verses"] + extras
+                    title: "Look up “\(term)” in verses",
+                    description: "Search the Bible text for “\(term)” · King James Bible",
+                    keywords: ["search \(term)", "\(term) in verses"] + (isNumbered ? [] : extras)
                 ))
             }
 
@@ -274,6 +281,22 @@ enum SpotlightIndexer {
             // ("1 Peter 3:16", ...) which open that chapter.
         }
         return items
+    }
+
+    /// "1 Peter" -> "Peter"; unnumbered names come back unchanged.
+    private static func baseName(_ book: Book) -> String {
+        let parts = book.name.split(separator: " ", maxSplits: 1).map(String.init)
+        if parts.count == 2, !parts[0].isEmpty, parts[0].allSatisfy({ $0.isNumber }) { return parts[1] }
+        return book.name
+    }
+
+    /// Every unnumbered book has a phrase-lookup row; a numbered group gets one
+    /// (on its "1 …" book) unless an unnumbered book already owns the base name.
+    private static func hasLookupRow(_ book: Book) -> Bool {
+        if !book.name.first!.isNumber { return true }
+        guard book.name.hasPrefix("1 ") else { return false }
+        let base = baseName(book)
+        return !books.contains { $0.name == base }
     }
 
     private static func makeItem(id: String, title: String, description: String, keywords: [String]) -> CSSearchableItem {
@@ -327,7 +350,7 @@ enum SpotlightIndexer {
         if parts.first == "search", parts.count > 1 {
             guard let book = books.first(where: { $0.abbr == parts[1] }) else { return nil }
             let allowed = CharacterSet.urlQueryAllowed.subtracting(CharacterSet(charactersIn: "&+=#"))
-            guard let encoded = book.name.addingPercentEncoding(withAllowedCharacters: allowed) else { return nil }
+            guard let encoded = baseName(book).addingPercentEncoding(withAllowedCharacters: allowed) else { return nil }
             return URL(string: "\(baseURL)/search?q=\(encoded)")
         }
 
