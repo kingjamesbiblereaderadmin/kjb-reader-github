@@ -9,18 +9,33 @@ let _term = '';
 let _gospelResults = [];
 let _gospelIndex = 0;
 
-// Load from localStorage on module init (handles page reloads)
-try {
-  const stored = localStorage.getItem('kjb-search-results');
-  if (stored) _results = JSON.parse(stored);
-  _index = parseInt(localStorage.getItem('kjb-search-index') || '0', 10);
-  _term = localStorage.getItem('kjb-search-term') || '';
-} catch {}
-try {
-  const g = localStorage.getItem('kjb-gospel-results');
-  if (g) _gospelResults = JSON.parse(g);
-  _gospelIndex = parseInt(localStorage.getItem('kjb-gospel-index') || '0', 10);
-} catch {}
+// Load from localStorage (module init, and again after the native iOS state
+// mirror pulls the other origin's state into localStorage - see main.jsx).
+function loadFromStorage() {
+  try {
+    const stored = localStorage.getItem('kjb-search-results');
+    _results = stored ? JSON.parse(stored) : [];
+    _index = parseInt(localStorage.getItem('kjb-search-index') || '0', 10);
+    _term = localStorage.getItem('kjb-search-term') || '';
+  } catch {}
+  try {
+    const g = localStorage.getItem('kjb-gospel-results');
+    _gospelResults = g ? JSON.parse(g) : [];
+    _gospelIndex = parseInt(localStorage.getItem('kjb-gospel-index') || '0', 10);
+  } catch {}
+}
+loadFromStorage();
+
+// This module is evaluated (via the header search bar) BEFORE main.jsx awaits
+// hydrateNativeStateMirror(), so its in-memory copy is read from the pre-hydration
+// localStorage. On the native iOS shell, a search made on the OTHER origin
+// (offline <-> online) only lands in localStorage during hydration, leaving the
+// in-memory results empty: the "Searched" pill restored (its term/total come from
+// localStorage) but the prev/next stepper had no results to step through.
+// main.jsx calls this right after hydration to re-sync.
+export function reloadSearchNavFromStorage() {
+  loadFromStorage();
+}
 
 export function setSearchNav(results, index, term) {
   _results = results;

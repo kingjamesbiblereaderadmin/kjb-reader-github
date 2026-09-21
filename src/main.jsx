@@ -9,6 +9,7 @@ import { isNativeIos } from '@/lib/isNativeIos'
 import { toast } from 'sonner'
 import { Preferences } from '@capacitor/preferences'
 import { SYNC_KEYS } from '@/lib/settingsSync'
+import { reloadSearchNavFromStorage } from '@/lib/searchNav'
 import { runPendingClear } from '@/lib/clearAllData'
 
 // ---------------------------------------------------------------------------
@@ -398,7 +399,7 @@ if (!rootElement) {
   // A "Clear All Data" run finishes here: wipe again BEFORE hydration and
   // before anything mounts, so nothing the old page wrote while unloading
   // (scroll/reading position, toolbar state) can survive or be re-synced.
-  runPendingClear().catch(() => {}).then(() => hydrateNativeStateMirror()).catch(() => {}).then(mountApp);
+  runPendingClear().catch(() => {}).then(() => hydrateNativeStateMirror()).catch(() => {}).then(() => { try { reloadSearchNavFromStorage(); } catch {} }).then(mountApp);
 }
 
 // Service worker registration for offline support and notifications.
