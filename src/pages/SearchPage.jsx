@@ -56,6 +56,39 @@ function parsePassage(input) {
   return { startBook, startCh, startV, endBook, endCh, endV };
 }
 
+// Text shared from another app (iOS Look Up / share sheet) is rarely a bare
+// reference: notes apps add list bullets or "1." numbering, several lines, a
+// leading word ("Read John 3:16"), or a trailing "(KJV)". Returns text that the
+// reference parsers can consume, or just the cleaned-up input when it is not
+// made up of references (so ordinary keyword searches are untouched).
+function extractReferenceText(raw) {
+  const direct = normalizeReferenceText(raw);
+  const isRef = (s) => !!s && (!!parseReference(s) || !!parsePassage(s) || isMultiReference(s));
+  if (isRef(direct)) return direct;
+  const lines = String(raw || '').split(/[\r\n\u2028\u2029]+/).map(l => l.trim()).filter(Boolean);
+  if (lines.length === 0 || lines.length > 12) return direct;
+  const cleaned = [];
+  for (const line of lines) {
+    const s = normalizeReferenceText(
+      line
+        .replace(/^[\s\u2022\u00B7\u25AA\u25E6\u2023*\u2013\u2014-]+/, '')   // bullets / dashes
+        .replace(/^\d{1,2}[.)]\s+/, '')                                         // "1. " list numbers
+        .replace(/\s*\((?:KJV|KJB|AV|PCE)\)\s*$/i, '')
+        .replace(/\s+(?:KJV|KJB|AV)\s*$/i, '')
+    );
+    const words = s.split(' ');
+    let found = null;
+    // Allow a few leading words ("Read John 3:16", "See: Romans 8:28") on short lines.
+    for (let i = 0; i < Math.min(4, words.length) && !found && words.length <= 7; i++) {
+      const cand = normalizeReferenceText(words.slice(i).join(' '));
+      if (isRef(cand)) found = cand;
+    }
+    if (!found) return direct; // not a reference line: treat the whole text as a keyword search
+    cleaned.push(found);
+  }
+  return cleaned.join(', ');
+}
+
 const OT_BOOKS = new Set(BIBLE_BOOKS.filter(b => b.testament === 'old').map(b => b.apiName));
 const NT_BOOKS = new Set(BIBLE_BOOKS.filter(b => b.testament === 'new').map(b => b.apiName));
 
@@ -217,10 +250,12 @@ export default function SearchPage() {
 
       // Check if the query is a scripture reference (by name OR abbreviation),
       // e.g. "jn 3:16", "gen 1", "1 cor 13:4-7", "psalm 23". If so, jump straight to it.
-      if (!isQuotedPhrase) {
+      {
         // Text handed over from another app (Look Up / share sheet) often has
-        // an en dash in ranges ("John 3:16\u201318"); normalise before matching.
-        const refText = normalizeReferenceText(searchTerm);
+        // an en dash in ranges ("John 3:16\u201318"), list bullets, or extra
+        // lines; extract/normalise before matching. Runs for quoted text too
+        // (a quoted reference is still a reference, never a verse phrase).
+        const refText = extractReferenceText(searchTerm);
         if (isMultiReference(refText)) {
           goToMultiReference(refText);
           setLoading(false);
@@ -784,7 +819,7 @@ export default function SearchPage() {
     const kw = query.trim();
     if (!kw) return;
 
-    const refKw = normalizeReferenceText(kw);
+    const refKw = extractReferenceText(kw);
 
     // Comma-separated multi-reference (e.g. "Romans 3:25, 1 Corinthians 15:1-4")
     if (isMultiReference(refKw)) {

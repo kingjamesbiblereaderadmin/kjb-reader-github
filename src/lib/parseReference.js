@@ -94,6 +94,7 @@ export function resolveBook(token) {
 // "John 3:16\u201318" is recognised as a range like "John 3:16-18".
 export function normalizeReferenceText(input) {
   return String(input || '')
+    .replace(/[\u200B-\u200F\u2028\u2029\u202A-\u202E\u2060-\u2064\uFEFF\uFFFC]/g, '')
     .replace(/[\u2010-\u2015\u2212\uFE58\uFE63\uFF0D]/g, '-')
     .replace(/\uFF1A/g, ':')
     .replace(/[\u00A0\u2007\u202F]/g, ' ')
