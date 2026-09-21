@@ -721,6 +721,32 @@
   .fixed, .sticky {
     position: static !important;
   }
+  /* Two-column reading mode on paper: WebKit fragments CSS columns across
+     printed pages, so the printed chapter keeps the printed-Bible look —
+     two balanced columns per page with the divider rule between them.
+     The reader sets column-count/gap/rule INLINE (sized for the phone
+     screen), so the print-tuned values need !important to win. */
+  .kjb-two-col {
+    column-gap: 0.75cm !important;
+    column-rule: 0.5pt solid hsl(var(--border)) !important;
+    text-align: justify !important;
+    -webkit-hyphens: auto !important;
+    hyphens: auto !important;
+  }
+  /* Verses and pilcrow paragraphs flow across column AND page breaks, like a
+     real printed Cambridge Bible. The avoid rule above (set for the
+     single-column layout) would strand half-empty columns instead of
+     filling them to the foot. Only the pilcrow glyph keeps its
+     break-after: avoid so a paragraph mark is never left stranded alone. */
+  .kjb-two-col *[id^="v"],
+  .kjb-two-col p,
+  .kjb-two-col > span {
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+  .kjb-two-col .pilcrow {
+    break-after: avoid;
+  }
 }
 /* iOS native shell (html.kjb-native-ios, added in src/main.jsx):
    WKWebView auto-zooms into any focused input/textarea/select whose font

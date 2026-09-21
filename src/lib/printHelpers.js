@@ -20,7 +20,7 @@ export function setPrintFrameUrl(iframe) {
 // Print arbitrary inner HTML via a hidden iframe (no new tab / about:blank),
 // with a cleaned page-URL footer on the last page — matching the reader print.
 export function printHtml(innerHtml) {
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>\u200B</title><style>@page { margin: 1.5cm; } body { margin: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }</style></head><body style="padding:20px;max-width:800px;margin:0 auto;color:#000;font-family:Georgia,serif;">${innerHtml}</body></html>`;
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>\u200B</title><style>@page { margin: 1.5cm; } body { margin: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }</style></head><body style="padding:20px;max-width:800px;margin:0 auto;color:#000;font-family:Georgia,serif;">${innerHtml}</body></html>`;
 
   // Android's bare WebView has no print UI to respond to window.print() (see
   // nativePrint.js) -- try the real native path first; only fall through to

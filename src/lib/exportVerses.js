@@ -911,7 +911,7 @@ export function exportPrint(items, query, filters, options = {}) {
     currentParagraphs.push(`<div style="margin-top: 30pt; padding-top: 10pt; border-top: 1px solid #eee; font-size: 10pt; color: #777; text-align: center; page-break-inside: avoid; break-inside: avoid; column-span: all;">${items.length} verse${items.length !== 1 ? 's' : ''} &mdash; King James Bible<br/>Printed on ${dateStr}</div>`);
 
     const content = currentParagraphs.join('');
-    rows = `<div style="text-align:justify;margin-top:20px;${options.columnMode ? 'column-count:2;column-gap:1.5cm;column-rule:1px solid #ccc;' : 'display:block;'}">${content}</div>`;
+    rows = `<div style="text-align:justify;margin-top:20px;${options.columnMode ? 'column-count:2;column-gap:1.5cm;column-rule:1px solid #ccc;-webkit-hyphens:auto;hyphens:auto;' : 'display:block;'}">${content}</div>`;
   } else {
     const showOcc = !isReading && !!query;
     rows = splitBySections(items, showOcc ? { query, filters } : null).map(sec => {
