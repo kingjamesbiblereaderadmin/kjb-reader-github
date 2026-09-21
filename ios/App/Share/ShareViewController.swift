@@ -52,16 +52,29 @@ class ShareViewController: UIViewController {
         let stateQueue = DispatchQueue(label: "kjb.share.text")
         let group = DispatchGroup()
         var found: String?
-        let plainText = UTType.plainText.identifier
+        // The activation rule matches ANY share containing public.text, so accept
+        // every text representation an app may offer (Notes can hand over rich
+        // text or raw data rather than a plain string). Plain text first.
+        let textTypes = [UTType.plainText.identifier, UTType.utf8PlainText.identifier,
+                         UTType.text.identifier, UTType.rtf.identifier]
 
         for item in items {
             for provider in item.attachments ?? [] {
-                guard provider.hasItemConformingToTypeIdentifier(plainText) else { continue }
+                guard let typeID = textTypes.first(where: { provider.hasItemConformingToTypeIdentifier($0) }) else { continue }
                 group.enter()
-                provider.loadItem(forTypeIdentifier: plainText, options: nil) { secured, _ in
+                provider.loadItem(forTypeIdentifier: typeID, options: nil) { secured, _ in
                     var candidate: String?
                     if let s = secured as? String { candidate = s }
+                    else if let a = secured as? NSAttributedString { candidate = a.string }
                     else if let url = secured as? URL { candidate = try? String(contentsOf: url, encoding: .utf8) }
+                    else if let data = secured as? Data {
+                        if typeID == UTType.rtf.identifier,
+                           let a = try? NSAttributedString(data: data, options: [:], documentAttributes: nil) {
+                            candidate = a.string
+                        } else {
+                            candidate = String(data: data, encoding: .utf8)
+                        }
+                    }
                     if let c = candidate, !c.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         // loadItem's completion can arrive on ANY queue (and
                         // possibly the main one), so guard the shared result
