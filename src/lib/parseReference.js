@@ -87,6 +87,22 @@ export function resolveBook(token) {
   return book || null;
 }
 
+// Clean up reference text that came from ANOTHER app (Look Up / share sheet,
+// pasted from a web page): en/em dashes and minus signs become "-", full-width
+// colons become ":", non-breaking spaces become spaces, and wrapping quotes/
+// parentheses or trailing punctuation ("(John 3:16\u201318).") are dropped, so
+// "John 3:16\u201318" is recognised as a range like "John 3:16-18".
+export function normalizeReferenceText(input) {
+  return String(input || '')
+    .replace(/[\u2010-\u2015\u2212\uFE58\uFE63\uFF0D]/g, '-')
+    .replace(/\uFF1A/g, ':')
+    .replace(/[\u00A0\u2007\u202F]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/^[\s"'\u201C\u201D\u2018\u2019(\[]+/, '')
+    .replace(/[\s"'\u201C\u201D\u2018\u2019)\].,;:!?]+$/, '')
+    .trim();
+}
+
 // Parse a reference string like "jn 3:16", "gen 1", "1 cor 13:4-7", "psalm 23"
 // Returns { abbr, chapter, verse, verseEnd } or null if not a reference
 export function parseReference(input) {

@@ -4,7 +4,7 @@ import { Search, BookOpen, Loader2, Filter, Copy, Download, CheckSquare, Square,
 import { getBibleData } from '@/lib/bibleCache';
 import { normalizeApostrophes, normalizeQueryApostrophes, normalizeLigatures, hyphenTolerantPattern } from '@/lib/bibleApi';
 import { BIBLE_BOOKS, OLD_TESTAMENT, NEW_TESTAMENT, BOOK_BY_API_NAME } from '@/lib/bibleData';
-import { parseReference, resolveBook } from '@/lib/parseReference';
+import { parseReference, resolveBook, normalizeReferenceText } from '@/lib/parseReference';
 import { expandPassage } from '@/lib/expandPassage';
 import { isMultiReference, expandMultiReference } from '@/lib/multiReference';
 import SearchResultsList from '@/components/bible/SearchResultsList';
@@ -218,18 +218,21 @@ export default function SearchPage() {
       // Check if the query is a scripture reference (by name OR abbreviation),
       // e.g. "jn 3:16", "gen 1", "1 cor 13:4-7", "psalm 23". If so, jump straight to it.
       if (!isQuotedPhrase) {
-        if (isMultiReference(searchTerm)) {
-          goToMultiReference(searchTerm);
+        // Text handed over from another app (Look Up / share sheet) often has
+        // an en dash in ranges ("John 3:16\u201318"); normalise before matching.
+        const refText = normalizeReferenceText(searchTerm);
+        if (isMultiReference(refText)) {
+          goToMultiReference(refText);
           setLoading(false);
           return;
         }
-        const passage = parsePassage(searchTerm);
+        const passage = parsePassage(refText);
         if (passage) {
           goToPassage(passage);
           setLoading(false);
           return;
         }
-        const ref = parseReference(searchTerm);
+        const ref = parseReference(refText);
         if (ref) {
           goToReference(ref);
           setLoading(false);
@@ -781,15 +784,17 @@ export default function SearchPage() {
     const kw = query.trim();
     if (!kw) return;
 
+    const refKw = normalizeReferenceText(kw);
+
     // Comma-separated multi-reference (e.g. "Romans 3:25, 1 Corinthians 15:1-4")
-    if (isMultiReference(kw)) {
-      goToMultiReference(kw);
+    if (isMultiReference(refKw)) {
+      goToMultiReference(refKw);
       return;
     }
 
     // Check for a cross-chapter / cross-book passage first (e.g. "John 3:16-4:2"
     // or "Matthew 28:1-Mark 1:5") — go straight to the reader as a passage.
-    const passage = parsePassage(kw);
+    const passage = parsePassage(refKw);
     if (passage) {
       goToPassage(passage);
       return;
@@ -799,7 +804,7 @@ export default function SearchPage() {
     // Use a clean navigation (NOT goToVerse) so we don't reuse the previous
     // keyword results as the search stepper — otherwise the reader would open
     // the first stale result instead of this reference.
-    const ref = parseReference(kw);
+    const ref = parseReference(refKw);
     if (ref) {
       goToReference(ref);
       return;
