@@ -13,16 +13,9 @@ import { getSearchNav, getGospelNav, setSearchIndex, setGospelIndex, clearGospel
 import { getOccurrenceLabel } from '@/lib/occurrenceLabel';
 import { getVerseHighlight } from '@/lib/verseHighlights';
 import { isVerseSaved } from '@/lib/savedVerses';
-import { printChapterContents } from '@/lib/printHelpers';
+import { printChapter, isIOSDevice } from '@/lib/printHelpers';
 import { nativePrintCurrentPage } from '@/lib/nativePrint';
 
-// iOS (Safari, PWA, or the Capacitor shell). iOS's print preview of the LIVE page
-// ignores CSS multi-column layout, so two-column mode printed as one column.
-const isIOSDevice = () => typeof navigator !== 'undefined' && (
-  (typeof document !== 'undefined' && document.documentElement.classList.contains('kjb-native-ios')) ||
-  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-);
 import { formatVerseRange } from '@/lib/readerHelpers';
 import { getFontFamilyValue } from '@/lib/readerFonts';
 import { isMobile } from '@/lib/readerPosition';
@@ -344,7 +337,7 @@ export default function ReaderToolbar({
           </DropdownMenu>
 
           <button
-            onClick={() => printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode)}
+            onClick={() => printChapter(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode)}
             title="Print"
             className="kjb-fixed-btn flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"
           >
@@ -489,7 +482,7 @@ export default function ReaderToolbar({
           }}
           onCopy={handleCopySelected} onCopyPerVerse={handleCopyPerVerse} onShareText={handleShareChapter} onShareTextPerVerse={handleSharePerVerse} onShareLink={handleShareLink}
           onReadSelected={handleReadSelected} onShowFull={() => { setFilterMode(false); setSelectMode(false); setSelectedVerses(new Set()); setShowFilterOverlay(false); }}
-          onPrintPage={() => { if (nativePrintCurrentPage()) return; if (columnMode && isIOSDevice()) { printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode); return; } window.print(); }} onPrintContents={() => printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode)}
+          onPrintPage={() => { if (nativePrintCurrentPage()) return; if (columnMode && isIOSDevice()) { printChapter(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode); return; } window.print(); }} onPrintContents={() => printChapter(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode)}
           onSave={handleSaveSelected} onHighlight={handleHighlightSelected}
         />
       )}
@@ -498,8 +491,8 @@ export default function ReaderToolbar({
         <ReadingRangeBar
           label={searchTerm ? (/\d+:\d+/.test(searchTerm) ? `Currently Reading: ${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}` : `Search: "${searchTerm}"`) : gospelMode ? 'Gospel' : lastReadingActive ? (lastReadingPos?.fromRandom ? 'Random Chapter' : 'Daily Verse') : `Reading ${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}`}
           filterMode={filterMode} copyFeedback={copyFeedback} shareFeedback={shareFeedback} shareLinkFeedback={shareLinkFeedback} saveFeedback={saveFeedback}
-          onCopy={handleCopySelected} onCopyPerVerse={handleCopyPerVerse} onShareText={handleShareChapter} onShareTextPerVerse={handleSharePerVerse} onShareLink={handleShareLink} onSave={handleSaveSelected} onPrintPage={() => { if (nativePrintCurrentPage()) return; if (columnMode && isIOSDevice()) { printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode); return; } window.print(); }}
-          onPrintContents={() => printChapterContents(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode)}
+          onCopy={handleCopySelected} onCopyPerVerse={handleCopyPerVerse} onShareText={handleShareChapter} onShareTextPerVerse={handleSharePerVerse} onShareLink={handleShareLink} onSave={handleSaveSelected} onPrintPage={() => { if (nativePrintCurrentPage()) return; if (columnMode && isIOSDevice()) { printChapter(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode); return; } window.print(); }}
+          onPrintContents={() => printChapter(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode)}
           onToggleView={() => {
             setFilterMode(prev => {
               const next = !prev; rangeHighlightRef.current = next; resultViewRef.current = next ? 'filter' : 'full';
