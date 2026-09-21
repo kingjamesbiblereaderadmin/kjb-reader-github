@@ -186,6 +186,7 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
         window.dispatchEvent(new CustomEvent('kjb-progress', { detail: { message: 'RECONNECTING\u2026', status: 'loading' } }));
         await pause(STEP_PAUSE_MS);
         window.dispatchEvent(new Event('kjb-progress-clear'));
+        try { const { markSwVersionApplied } = await import('@/lib/swVersionCheck'); await markSwVersionApplied(); } catch {}
         finishOnce();
         return;
       }
