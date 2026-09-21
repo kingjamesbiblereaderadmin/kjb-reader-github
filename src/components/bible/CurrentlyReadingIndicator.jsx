@@ -72,7 +72,12 @@ export default function CurrentlyReadingIndicator({
     reference = `${book.shortName} ${pos.chapter}${gospelVerses}`;
     clearLabel = 'Clear';
   } else if (effectiveSearchTerm) {
-    typeLabel = `Searched: "${effectiveSearchTerm}"`;
+    // A typed/looked-up verse or range ("Romans 3:25", "Ephesians 2:8-9") is a
+    // reference jump, not a keyword search: it reads "Reading", not "Searched".
+    // A reference LIST with a stepper ("Romans 3:25, Ephesians 2:8-9") and real
+    // keywords keep the "Searched" pill.
+    const isSingleReference = /\d+\s*:\s*\d+/.test(effectiveSearchTerm) && !(totalResults > 1);
+    typeLabel = isSingleReference ? 'Reading' : `Searched: "${effectiveSearchTerm}"`;
     const isStanza = book.abbr === 'PSA' && pos.chapter === 119 && selectedVerses && selectedVerses.size > 1;
     const searchVerses = isStanza
       ? ` (Stanza)`
