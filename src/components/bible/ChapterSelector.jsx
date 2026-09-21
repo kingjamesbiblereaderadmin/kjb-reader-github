@@ -52,7 +52,9 @@ export default function ChapterSelector({ totalChapters, currentChapter, onSelec
               Books
             </button>
           )}
-          <p className="font-serif text-sm font-semibold text-foreground truncate flex-1">{bookName}</p>
+          {/* Full book titles ("The First Epistle of Paul the Apostle to the
+              Corinthians") wrap onto extra lines instead of being clipped. */}
+          <p className="font-serif text-sm font-semibold text-foreground leading-snug break-words min-w-0 flex-1">{bookName}</p>
           {isPending && (
             <button
               data-vaul-no-drag
