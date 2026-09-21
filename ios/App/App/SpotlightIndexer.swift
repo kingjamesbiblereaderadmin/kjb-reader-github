@@ -9,8 +9,8 @@ import UniformTypeIdentifiers
  * "Romans 8" or "John 3" shows a KJB Reader result, and tapping it opens the
  * reader at that passage. Book rows open chapter 1.
  *
- * - 132 rows total: 66 book rows plus 66 "Look up … in verses"
- *   phrase-lookup rows, indexed from the table below. Tapping a book opens
+ * - 122 rows total: 66 book rows plus 56 "Look up … in verses"
+ *   phrase-lookup rows (one per unnumbered book, plus one per numbered group: Peter, Samuel, Kings, Chronicles, Corinthians, Thessalonians, Timothy), indexed from the table below. Tapping a book opens
  *   its chapter 1; the chapter is then picked in the app. Per-chapter rows
  *   are deliberately omitted (1,189 of them would bury the book rows for
  *   short names like Peter). Per-verse rows are deliberately omitted too:
