@@ -957,7 +957,14 @@ export default function SearchPage() {
 
   // Navigate to a single parsed reference. A single-book verse RANGE
   // (e.g. "John 3:16-18") carries verseEnd so the reader filters to ONLY those
-  // verses. A plain verse/chapter is a clean navigation.
+  // verses.
+  //
+  // A verse-level jump goes through the same single-result search-nav path as
+  // the header search bar's goTo() (setSearchNav + &from=search). Navigating to
+  // /read?...&verse=N WITHOUT from=search made useReaderUrlSync and the reader's
+  // position restore fight over the URL on a cold load (e.g. iOS Look Up opening
+  // /search?q=John 3:16): the URL flipped between ...&verse=16 and the bare
+  // chapter forever and the reader ended up on the whole chapter.
   const goToReference = useCallback((ref) => {
     try {
       localStorage.setItem('kjb-position', JSON.stringify({ abbr: ref.abbr, chapter: ref.chapter, verse: ref.verse || null, verseEnd: ref.verseEnd || null }));
@@ -967,10 +974,17 @@ export default function SearchPage() {
       // when the reference lands on the same chapter it was saved for.
       localStorage.removeItem('kjb-reader-toolbar-state');
     } catch {}
-    clearSearchNav();
-    const vParam = ref.verse ? `&verse=${ref.verse}` : '';
     const vEndParam = ref.verse && ref.verseEnd && ref.verseEnd > ref.verse ? `&verseEnd=${ref.verseEnd}` : '';
-    navigate(`/read?book=${ref.abbr}&chapter=${ref.chapter}${vParam}${vEndParam}`);
+    if (ref.verse) {
+      const b = BIBLE_BOOKS.find(bk => bk.abbr === ref.abbr);
+      const label = `${b ? b.shortName : ref.abbr} ${ref.chapter}:${ref.verse}${ref.verseEnd && ref.verseEnd > ref.verse ? `-${ref.verseEnd}` : ''}`;
+      setSearchNav([{ abbr: ref.abbr, chapter: ref.chapter, verse: ref.verse, verseEnd: ref.verseEnd || null }], 0, label);
+      navigate(`/read?book=${ref.abbr}&chapter=${ref.chapter}&verse=${ref.verse}${vEndParam}&from=search`);
+    } else {
+      // Whole-chapter reference ("John 3"): a clean navigation, no stale results.
+      clearSearchNav();
+      navigate(`/read?book=${ref.abbr}&chapter=${ref.chapter}`);
+    }
     setTimeout(() => { try { window.dispatchEvent(new Event('kjb-navigate')); } catch {} }, 0);
   }, [navigate]);
 
