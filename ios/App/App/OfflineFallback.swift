@@ -144,7 +144,52 @@ final class OfflineFallbackDelegate: NSObject, WKNavigationDelegate {
         if let lastAttempt = lastAttempt, Date().timeIntervalSince(lastAttempt) < 20 { return }
         lastAttempt = Date()
         CAPLog.print("[KJB] Trying the live site again")
-        webView.load(URLRequest(url: remoteURL))
+        // Reconnect to the page being shown (e.g. a Look Up result), not the
+        // home page, so coming back online doesn't throw the lookup away.
+        var target = remoteURL
+        if let current = webView.url, current.scheme == localURL.scheme, hasRoute(current),
+           var comps = URLComponents(url: remoteURL, resolvingAgainstBaseURL: false),
+           let src = URLComponents(url: current, resolvingAgainstBaseURL: false) {
+            comps.path = src.path
+            comps.percentEncodedQuery = src.percentEncodedQuery
+            comps.fragment = src.fragment
+            if let url = comps.url { target = url }
+        }
+        webView.load(URLRequest(url: target))
+    }
+
+    // MARK: - Deep links (Look Up, Spotlight)
+
+    /// True when the URL points at a specific page rather than the site root.
+    private func hasRoute(_ url: URL) -> Bool {
+        return (!url.path.isEmpty && url.path != "/") || url.query != nil
+    }
+
+    /// The bundled-copy URL for the same page (same path, query, fragment) as a
+    /// live-site URL, or nil when the URL isn't on the live site.
+    private func localEquivalent(of url: URL) -> URL? {
+        guard let host = url.host?.lowercased(), let remoteHost = remoteURL.host?.lowercased(),
+              host == remoteHost || host == "www." + remoteHost || "www." + host == remoteHost,
+              var comps = URLComponents(url: localURL, resolvingAgainstBaseURL: false),
+              let src = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
+        comps.path = src.path
+        comps.percentEncodedQuery = src.percentEncodedQuery
+        comps.fragment = src.fragment
+        return comps.url
+    }
+
+    /// Opens a live-site deep link (share-extension Look Up, Spotlight tap).
+    /// With no network path it goes straight to the same page in the bundled
+    /// copy, so the lookup still resolves offline instead of landing on home.
+    func openRoute(_ url: URL) {
+        guard let webView = webView else { return }
+        if !pathIsSatisfied, let local = localEquivalent(of: url) {
+            offline = true
+            webView.load(URLRequest(url: local))
+            scheduleReconnectTimer()
+        } else {
+            webView.load(URLRequest(url: url))
+        }
     }
 
     private func scheduleReconnectTimer() {
@@ -175,6 +220,21 @@ final class OfflineFallbackDelegate: NSObject, WKNavigationDelegate {
             // can offer.
             CAPLog.print("[KJB] Bundled copy failed to load: \(error.localizedDescription)")
             webView?.load(URLRequest(url: localURL))
+            return
+        }
+        // A specific live page (Look Up, Spotlight, in-app link) failed: show the
+        // SAME page from the bundled copy — even if the fallback is already up —
+        // instead of leaving the user on whatever was showing (usually home).
+        if let failedURL = failedURL, hasRoute(failedURL), let local = localEquivalent(of: failedURL) {
+            let alreadyShowing = webView?.url.map {
+                $0.scheme == localURL.scheme && $0.path == failedURL.path && $0.query == failedURL.query
+            } ?? false
+            if !alreadyShowing {
+                offline = true
+                CAPLog.print("[KJB] Live page unreachable — loading it from the bundled copy")
+                webView?.load(URLRequest(url: local))
+            }
+            scheduleReconnectTimer()
             return
         }
         if !offline {

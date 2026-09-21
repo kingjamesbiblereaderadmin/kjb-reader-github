@@ -62,7 +62,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 if attempt < 8 { self.loadWhenWebViewReady(url: url, attempt: attempt + 1) }
                 return
             }
-            webView.load(URLRequest(url: url))
+            // Route through the offline-fallback delegate so a lookup made
+            // with no connection opens the same page from the bundled copy.
+            if let fallback = webView.navigationDelegate as? OfflineFallbackDelegate {
+                fallback.openRoute(url)
+            } else {
+                webView.load(URLRequest(url: url))
+            }
         }
     }
 

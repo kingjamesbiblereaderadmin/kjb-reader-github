@@ -517,8 +517,13 @@
             } catch (e) {}
             if (bootText) {
               var hasVisited = localStorage.getItem('kjb-has-visited-app') === 'true';
+              // Must match SplashScreen.jsx's lookupSplashLabel() exactly (the
+              // CSS uppercases this) so a lookup shows ONE label, not
+              // "Looking up..." swapping to "Looking up "Romans 3:25"...".
+              var lookupQ = '';
+              try { lookupQ = (new URLSearchParams(location.search).get('q') || '').trim(); } catch (e) {}
               bootText.textContent = (location.pathname === '/search')
-                ? 'Looking up\u2026'
+                ? (lookupQ ? 'Looking up \u201C' + lookupQ + '\u201D\u2026' : 'Looking up\u2026')
                 : (hasVisited ? 'Welcome back to KJB Reader.' : 'Welcome to KJB Reader.');
             }
             // Use the base64-cached logo from localStorage if available (works
