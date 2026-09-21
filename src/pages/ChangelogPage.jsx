@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.259', date: 'September 21, 2026', items: [
+    { tag: 'fix', text: "Two search fixes: (1) searches combining ligature with apostrophe (typed 'Caesar's' for printed 'C\u00e6sar\u2019s') returned no results; variant transforms now cross-apply. (2) Long keyword searches could silently drop verses near the end of results because structural lines (Psalm titles etc.) consumed paging slots; they now stay anchored to their verse \u2014 e.g. 'right' was missing Revelation 22:14." },
+  ] },
   { version: 'v0.4.258', date: 'September 21, 2026', items: [
     { tag: 'fix', text: 'Fixed searching for words the Bible prints with the \u00c6 ligature (\u00c6non, Jud\u00e6a, C\u00e6sar, Galil\u00e6an). Typing AEnon, Judaea, Caesar \u2014 or the modern spellings Enon, Judea, Galileans \u2014 now finds and highlights every occurrence' },
     { tag: 'improved', text: 'The \u201CNo results\u201D screen now invites you to email kingjamesbiblereader@outlook.sg if a search looks wrong' },
@@ -302,7 +305,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.258
+            Current Version: v0.4.259
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).

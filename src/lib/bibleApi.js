@@ -67,7 +67,7 @@ export function normalizeLigatures(text = '') {
 // Treating these as word characters means searching "non" whole-word does NOT
 // match inside "Ænon", and "God" whole-word does NOT match inside
 // "God's" / "God\u2019s". Interpolated into character classes as
-// `[^${WORD_CHARS}]`, used with lookarounds as `(?<!${WORD_CHARS})`.
+// `[^${WORD_CHARS}]` and lookaround classes as `(?<![${WORD_CHARS}])`.
 export const WORD_CHARS = "A-Za-z\u00C6\u00E6\u2019'";
 
 // Modern e-style spellings -> the ligature form the PCE text actually prints.

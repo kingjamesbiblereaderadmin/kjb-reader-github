@@ -50,8 +50,8 @@ function highlightAny(text, terms, keyPrefix) {
 function highlightInOrder(text, terms, keyPrefix, adjacent, caseSensitive, wholeWord) {
   if (!terms || terms.length === 0) return text;
   const flags = (caseSensitive ? '' : 'i');
-  const before = wholeWord ? `(?<!${WORD_CHARS})` : '';
-  const after = wholeWord ? `(?!${WORD_CHARS})` : '';
+  const before = wholeWord ? `(?<![${WORD_CHARS}])` : '';
+  const after = wholeWord ? `(?![${WORD_CHARS}])` : '';
 
   const mark = (str, key) => (
     <mark key={key} className={MARK_CLASS}>{str}</mark>

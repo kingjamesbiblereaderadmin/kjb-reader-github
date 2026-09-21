@@ -689,7 +689,7 @@ export default function SearchPage() {
       const occRes = occTerms.map(t => {
         const esc = hyphenTolerantPattern(t);
         return effectiveWholeWord
-          ? new RegExp(`(?<!${WORD_CHARS})${esc}(?!${WORD_CHARS})`, effectiveCaseSensitive ? 'g' : 'gi')
+          ? new RegExp(`(?<![${WORD_CHARS}])${esc}(?![${WORD_CHARS}])`, effectiveCaseSensitive ? 'g' : 'gi')
           : new RegExp(esc, effectiveCaseSensitive ? 'g' : 'gi');
       });
       let totalOcc = 0;
