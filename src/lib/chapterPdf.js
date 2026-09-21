@@ -298,7 +298,8 @@ export function buildChapterPdf({ items, bookName, chapterText, footerLabel, fil
 
     // Footer.
     doc.setFont(FONT, 'normal'); doc.setFontSize(8); doc.setTextColor(120);
-    doc.text(`${footerLabel || bookName || ''} \u2014 King James Bible \u2014 page ${pg + 1} of ${totalPages}`,
+    const footerRef = bookName && chapterText ? `${bookName} \u2014 ${chapterText}` : (footerLabel || bookName || '');
+    doc.text(`${footerRef} \u2014 King James Bible \u2014 page ${pg + 1} of ${totalPages}`,
       PAGE_W / 2, PAGE_H - 28, { align: 'center' });
   }
 
