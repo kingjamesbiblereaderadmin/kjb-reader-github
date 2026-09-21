@@ -3,6 +3,8 @@ import { Smartphone, MonitorSmartphone, AlertCircle, CheckCircle2, ExternalLink 
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import { detectIncognito } from '@/lib/incognito';
 import HighlightToSearchTip from '@/components/settings/HighlightToSearchTip';
+import { isNativeAndroid } from '@/lib/isNativeAndroid';
+import { isNativeIos } from '@/lib/isNativeIos';
 
 const inIframe = () => {
   try { return window.self !== window.top; } catch (e) { return true; }
@@ -83,7 +85,11 @@ export function InstallAppSection({ expanded, isIncognito }) {
     });
   };
 
-  const effectiveIncognito = isIncognito || localIncognito;
+  // "Incognito" is meaningless inside the native apps (their WebView storage
+  // quota can look like a private window), and hiding this card there also
+  // hid the highlight-to-search tip. Only apply the incognito rule on the web.
+  const inNativeApp = isNativeAndroid() || isNativeIos();
+  const effectiveIncognito = !inNativeApp && (isIncognito || localIncognito);
 
   if (effectiveIncognito) return null;
 
