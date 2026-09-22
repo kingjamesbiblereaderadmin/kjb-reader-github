@@ -26,6 +26,20 @@ export function detectIncognito() {
 async function _runDetection() {
   if (typeof navigator === 'undefined') return false;
 
+  // Installed app windows can never be private — browsers don't offer
+  // "install" from incognito windows. The quota heuristics below can still
+  // false-positive inside installed windows (e.g. macOS with modest free
+  // disk reports a storage quota under the normal-window threshold), which
+  // wrongly showed the "GUEST MODE" splash in the installed app. So an
+  // installed window (Chrome/Edge "Install app", Safari "Add to Dock",
+  // iOS "Add to Home Screen") is always treated as a normal window.
+  try {
+    const displayMode = (window.matchMedia &&
+      (window.matchMedia('(display-mode: standalone)').matches ||
+       window.matchMedia('(display-mode: minimal-ui)').matches));
+    if (displayMode || navigator.standalone === true) return false;
+  } catch {}
+
   try {
     // Firefox private mode: IndexedDB is blocked / throws.
     const idbBlocked = await new Promise((resolve) => {
