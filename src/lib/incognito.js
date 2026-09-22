@@ -98,10 +98,14 @@ async function _runDetection() {
     // mode the temporary-storage quota is capped near the device-memory-derived
     // ceiling, whereas a normal window's quota is a large fraction of free disk.
     // The library's rule: private when quota < (deviceMemory_or_8 GB) * 1024^3 / 2.
-    if (navigator.storage && navigator.storage.estimate) {
+    // GATED to Chromium: navigator.deviceMemory only exists there, and Safari/
+    // Firefox report much smaller quotas (a fraction of FREE disk, which is
+    // routinely under the ceiling on a Mac), so running this rule there branded
+    // perfectly normal macOS windows as private — including on the home page.
+    if (navigator.deviceMemory && navigator.storage && navigator.storage.estimate) {
       try {
         const { quota } = await navigator.storage.estimate();
-        const deviceMemoryGB = navigator.deviceMemory || 8; // Chromium only
+        const deviceMemoryGB = navigator.deviceMemory;
         const ceiling = (deviceMemoryGB * 1024 * 1024 * 1024) / 2;
         if (typeof quota === 'number' && quota > 0 && quota < ceiling) {
           return true;
