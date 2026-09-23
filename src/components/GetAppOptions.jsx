@@ -88,9 +88,12 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
             <PlayIcon className="w-4 h-4" />
             <h3 className="font-sans text-sm font-bold text-foreground">Google Play</h3>
           </div>
-          <p className="font-sans text-xs text-emerald-800 dark:text-emerald-300">
-            Highlight text → right-click → <strong>Look up in <span className="notranslate" translate="no">KJB Reader</span></strong>
-          </p>
+          <div className="font-sans text-xs text-emerald-800 dark:text-emerald-300 space-y-0.5">
+            <p className="font-semibold">Includes the Look up feature</p>
+            <p>
+              Highlight text in any app → right-click → <strong>Look up in <span className="notranslate" translate="no">KJB Reader</span></strong>
+            </p>
+          </div>
           <div className="flex flex-wrap justify-center gap-2">
             <a
               href={PLAY_STORE_URL}
