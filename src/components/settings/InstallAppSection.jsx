@@ -5,6 +5,7 @@ import { detectIncognito } from '@/lib/incognito';
 import HighlightToSearchTip from '@/components/settings/HighlightToSearchTip';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { isNativeIos } from '@/lib/isNativeIos';
+import { InstallOptionCards } from '@/components/GetAppOptions';
 
 const inIframe = () => {
   try { return window.self !== window.top; } catch (e) { return true; }
@@ -156,6 +157,8 @@ export function InstallAppSection({ expanded, isIncognito }) {
               </div>
             </div>
             
+            {!inNativeApp && <InstallOptionCards onWebInstallFallback={revealGuide} />}
+
             <button
               onClick={() => {
                 if (!confirm('Reset the installation status? This will not uninstall the app — it only clears the "installed" flag so you can see the install prompt again.')) {
@@ -200,13 +203,7 @@ export function InstallAppSection({ expanded, isIncognito }) {
           </div>
         ) : (
           <div className="space-y-3">
-            <button
-              onClick={handleInstall}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary border border-primary text-primary-foreground font-sans text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <Smartphone className="w-4 h-4" />
-              Add to Home Screen
-            </button>
+            <InstallOptionCards onWebInstallFallback={revealGuide} />
             
             <div className="rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-900/40 p-4">
               <div className="flex items-start gap-3">

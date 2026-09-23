@@ -4,8 +4,8 @@ import { isNativeIos } from '@/lib/isNativeIos';
 const DISMISSED_KEY = 'kjb-install-dismissed';
 const INSTALLED_KEY = 'kjb-is-installed';
 
-// Google Play Store listing for the native Android app (package: kjbreader.app).
-export const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=kjbreader.app';
+// Google Play Store listing for the native Android app.
+export const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.kingjamesbiblereader.twa';
 
 // Android package id(s) this PWA is distributed as via PWABuilder / Play Store.
 // `navigator.getInstalledRelatedApps()` reports the installed package here for
@@ -13,7 +13,7 @@ export const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=kjb
 // a PWABuilder Android shell (the custom UA token / ?from flag were for the
 // abandoned Capacitor wrapper, and display-mode: standalone only matches when
 // asset-links verification succeeds).
-const TWA_PACKAGE_IDS = ['com.godisgracious1031m.kjbreader', 'kjbreader.app'];
+const TWA_PACKAGE_IDS = ['com.kingjamesbiblereader.twa'];
 
 // Async TWA detection. Returns true if the device reports this app as an
 // installed related app (works inside a verified PWABuilder TWA on Android).
