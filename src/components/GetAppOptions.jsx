@@ -31,7 +31,7 @@ export const canOfferPlayStore = () => !isInsideStoreApp();
 
 // The two option cards: Web App (current PWA install) + Google Play.
 // Used by the Home banner and the Settings "Install App" section.
-export function InstallOptionCards({ onWebInstallFallback }) {
+export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
   const { isInstalled, promptInstall } = useInstallPrompt();
   const showPlay = canOfferPlayStore();
   const onAndroid = isAndroidUA();
@@ -66,8 +66,9 @@ export function InstallOptionCards({ onWebInstallFallback }) {
   };
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className={playOnly ? 'grid gap-3' : 'grid gap-3 sm:grid-cols-2'}>
       {/* Option 1 — Web App (PWA) */}
+      {!playOnly && (
       <div className="rounded-xl border border-border bg-background/60 p-4 flex flex-col gap-2">
         <div className="flex items-center gap-2">
           <Globe className="w-4 h-4 text-primary" />
@@ -91,6 +92,7 @@ export function InstallOptionCards({ onWebInstallFallback }) {
           </button>
         )}
       </div>
+      )}
 
       {/* Option 2 — Google Play (native Android) */}
       {showPlay && (
