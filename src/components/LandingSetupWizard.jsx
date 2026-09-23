@@ -400,7 +400,7 @@ export default function LandingSetupWizard() {
             {/* Google Play option — shown on every web device (hidden inside the store apps) */}
             {canOfferPlayStore() && (
               <div className="mt-4">
-                <p className="font-sans text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                <p className="font-sans text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 text-center">
                   {actuallyInstalled ? 'Also available' : 'Or get it on Google Play'}
                 </p>
                 <InstallOptionCards playOnly />
