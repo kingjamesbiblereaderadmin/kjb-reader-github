@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Smartphone, Globe, CheckCircle2, ExternalLink, Share2, ChevronDown, Clock } from 'lucide-react';
-import { toast } from 'sonner';
+import { Smartphone, Globe, CheckCircle2, ExternalLink, ChevronDown, Clock } from 'lucide-react';
 import { useInstallPrompt, PLAY_STORE_URL, isNativeAndroidApp } from '@/hooks/useInstallPrompt';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { isNativeIos } from '@/lib/isNativeIos';
@@ -67,25 +66,6 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
   const { isInstalled, promptInstall } = useInstallPrompt();
   const showStores = canOfferPlayStore();
 
-  const handleSharePlay = async () => {
-    const data = {
-      title: 'KJB Reader on Google Play',
-      text: 'KJB Reader, a King James Bible reader app for Android:',
-      url: PLAY_STORE_URL,
-    };
-    try {
-      if (navigator.share) { await navigator.share(data); return; }
-    } catch (err) {
-      if (err?.name === 'AbortError') return; // user closed the share sheet
-    }
-    try {
-      await navigator.clipboard.writeText(PLAY_STORE_URL);
-      toast.success('Play Store link copied');
-    } catch {
-      toast.error('Could not copy the link');
-    }
-  };
-
   const handleWebInstall = async () => {
     try {
       const ok = await promptInstall();
@@ -149,13 +129,6 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
                 <ExternalLink className="w-4 h-4" />
                 Get it on Google Play
               </a>
-              <button
-                onClick={handleSharePlay}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-sans text-sm font-medium hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
-              >
-                <Share2 className="w-4 h-4" />
-                Share
-              </button>
             </div>
           </OptionCard>
 
