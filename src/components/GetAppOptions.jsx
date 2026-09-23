@@ -1,17 +1,11 @@
 import React from 'react';
-import { ChevronDown, Smartphone, Globe, CheckCircle2, ExternalLink, Sparkles, Share2 } from 'lucide-react';
+import { Smartphone, Globe, CheckCircle2, ExternalLink, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useInstallPrompt, PLAY_STORE_URL, isNativeAndroidApp } from '@/hooks/useInstallPrompt';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { isNativeIos } from '@/lib/isNativeIos';
 
 const TWA_FLAG_KEY = 'kjb-twa-app';
-
-const isAndroidUA = () =>
-  typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
-
-const isIosUA = () =>
-  typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent);
 
 // True when we're already running inside the Play Store app (Capacitor shell
 // or legacy TWA) — no point offering either install option there.
@@ -28,12 +22,10 @@ export const isInsideStoreApp = () => {
 export const canOfferPlayStore = () => !isInsideStoreApp();
 
 // The two option cards: Web App (current PWA install) + Google Play.
-// Used by the Home banner and the Settings "Install App" section.
+// Used by the landing wizard (playOnly) and the Settings "Install App" section.
 export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
   const { isInstalled, promptInstall } = useInstallPrompt();
   const showPlay = canOfferPlayStore();
-  const onAndroid = isAndroidUA();
-  const onIos = isIosUA();
 
   const handleSharePlay = async () => {
     const data = {
@@ -67,51 +59,39 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
     <div className={playOnly ? 'grid gap-3' : 'grid gap-3 sm:grid-cols-2'}>
       {/* Option 1 — Web App (PWA) */}
       {!playOnly && (
-      <div className="rounded-xl border border-border bg-background/60 p-4 flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <Globe className="w-4 h-4 text-primary" />
-          <h3 className="font-sans text-sm font-bold text-foreground">Web App</h3>
-        </div>
-        <p className="font-sans text-xs text-muted-foreground leading-relaxed flex-1">
-          Install straight from your browser. Lightweight, offline reading, no store needed.
-        </p>
-        {isInstalled ? (
-          <div className="flex items-center gap-1.5 font-sans text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-            <CheckCircle2 className="w-4 h-4" />
-            Installed
+        <div className="rounded-xl border border-border bg-background/60 p-4 flex flex-col items-center text-center gap-3">
+          <div className="flex items-center gap-2">
+            <Globe className="w-4 h-4 text-primary" />
+            <h3 className="font-sans text-sm font-bold text-foreground">Web App</h3>
           </div>
-        ) : (
-          <button
-            onClick={handleWebInstall}
-            className="self-start flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-opacity"
-          >
-            <Smartphone className="w-4 h-4" />
-            Add to Home Screen
-          </button>
-        )}
-      </div>
+          {isInstalled ? (
+            <div className="flex items-center gap-1.5 font-sans text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+              <CheckCircle2 className="w-4 h-4" />
+              Installed
+            </div>
+          ) : (
+            <button
+              onClick={handleWebInstall}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-opacity"
+            >
+              <Smartphone className="w-4 h-4" />
+              Add to Home Screen
+            </button>
+          )}
+        </div>
       )}
 
       {/* Option 2 — Google Play (native Android) */}
       {showPlay && (
-        <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/70 dark:bg-emerald-900/15 p-4 flex flex-col gap-2">
+        <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/70 dark:bg-emerald-900/15 p-4 flex flex-col items-center text-center gap-3">
           <div className="flex items-center gap-2">
             <PlayIcon className="w-4 h-4" />
             <h3 className="font-sans text-sm font-bold text-foreground">Google Play</h3>
-            <span className="ml-auto font-sans text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-emerald-600 text-white">
-              Android
-            </span>
           </div>
-          <p className="font-sans text-xs text-muted-foreground leading-relaxed">
-            The full native Android app, with automatic updates from the Play Store.
+          <p className="font-sans text-xs text-emerald-800 dark:text-emerald-300">
+            Highlight text → right-click → <strong>Look up in <span className="notranslate" translate="no">KJB Reader</span></strong>
           </p>
-          <p className="font-sans text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed flex items-start gap-1.5 flex-1">
-            <Sparkles className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-            <span>
-              Includes native features such as <strong>look up via highlight</strong> — select a verse in any app and open it in <span className="notranslate" translate="no">KJB Reader</span>.
-            </span>
-          </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap justify-center gap-2">
             <a
               href={PLAY_STORE_URL}
               target="_blank"
@@ -129,18 +109,6 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
               Share
             </button>
           </div>
-          {!onAndroid && (
-            <p className="font-sans text-[11px] text-muted-foreground leading-snug">
-              {onIos
-                ? 'For Android phones and tablets — share it with Android friends and family, or install it on your own Android device.'
-                : 'Opens the Play Store listing, where you can install it to your Android device — or share it with others.'}
-            </p>
-          )}
-          {isInstalled && (
-            <p className="font-sans text-[11px] text-muted-foreground leading-snug">
-              Already using the web app? You can keep it, or switch to the Play Store version for the extra features.
-            </p>
-          )}
         </div>
       )}
     </div>
