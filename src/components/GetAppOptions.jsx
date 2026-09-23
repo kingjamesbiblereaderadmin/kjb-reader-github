@@ -24,14 +24,17 @@ export const isInsideStoreApp = () => {
   return false;
 };
 
-// Web users (browser tab OR installed PWA) on anything but iOS can use Play.
-export const canOfferPlayStore = () => !isInsideStoreApp() && !isIosUA();
+// Shown to every web user (any device, browser tab OR installed PWA) so people
+// know the Play Store app exists. Only hidden inside the store apps themselves.
+export const canOfferPlayStore = () => !isInsideStoreApp();
 
 // The two option cards: Web App (current PWA install) + Google Play.
 // Used by the Home banner and the Settings "Install App" section.
 export function InstallOptionCards({ onWebInstallFallback }) {
   const { isInstalled, promptInstall } = useInstallPrompt();
   const showPlay = canOfferPlayStore();
+  const onAndroid = isAndroidUA();
+  const onIos = isIosUA();
 
   const handleWebInstall = async () => {
     try {
@@ -97,6 +100,13 @@ export function InstallOptionCards({ onWebInstallFallback }) {
             <ExternalLink className="w-4 h-4" />
             Get it on Google Play
           </a>
+          {!onAndroid && (
+            <p className="font-sans text-[11px] text-muted-foreground leading-snug">
+              {onIos
+                ? 'For Android phones and tablets. On iPhone/iPad, use the Web App option.'
+                : 'Opens the Play Store listing, where you can install it to your Android device.'}
+            </p>
+          )}
           {isInstalled && (
             <p className="font-sans text-[11px] text-muted-foreground leading-snug">
               Already using the web app? You can keep it, or switch to the Play Store version for the extra features.
@@ -108,15 +118,15 @@ export function InstallOptionCards({ onWebInstallFallback }) {
   );
 }
 
-// Collapsible Home-page banner. Shown to Android web users only — both plain
-// browser tabs and already-installed PWAs — never inside the Play Store app.
+// Collapsible Home-page banner. Shown to all web users on every device — plain
+// browser tabs and already-installed PWAs — never inside the store apps.
 export default function GetAppBanner() {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(() => {
     try { return localStorage.getItem(COLLAPSED_KEY) === 'true'; } catch { return false; }
   });
 
-  if (!isAndroidUA() || isInsideStoreApp()) return null;
+  if (isInsideStoreApp()) return null;
 
   const toggle = () => {
     const next = !collapsed;
