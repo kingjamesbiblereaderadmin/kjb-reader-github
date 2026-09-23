@@ -3,6 +3,12 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.272', date: 'September 23, 2026', items: [
+    { tag: 'improved', text: 'Bible-reference detection now runs on the exact kingjamesbiblereader.com/extension test page (with or without a trailing slash, including the www form), while all other pages on kingjamesbiblereader.com — including /extension-privacy and similarly named paths — remain excluded' },
+    { tag: 'fix', text: 'Recent search fixes are included: combined apostrophe and \u00c6-ligature variants now match (typed \u201CCaesar\u2019s\u201D finds printed \u201CC\u00e6sar\u2019s\u201D), and long searches no longer drop verses when Psalm headings or other structural lines occur in results' },
+    { tag: 'improved', text: 'Safari/iOS-specific improvements: painted verse references are tap-friendly, the toolbar fills the available viewport, and opening the print page is routed through the extension background without changing printing on macOS' },
+    { tag: 'ui', text: 'Safari\u2019s installed container display name is KJB Panel, while its extension/App Store listing remains KJB Reader - SidePanel' },
+  ] },
   { version: 'v0.4.259', date: 'September 21, 2026', items: [
     { tag: 'fix', text: "Two search fixes: (1) searches combining ligature with apostrophe (typed 'Caesar's' for printed 'C\u00e6sar\u2019s') returned no results; variant transforms now cross-apply. (2) Long keyword searches could silently drop verses near the end of results because structural lines (Psalm titles etc.) consumed paging slots; they now stay anchored to their verse \u2014 e.g. 'right' was missing Revelation 22:14." },
   ] },
@@ -305,7 +311,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.259
+            Current Version: v0.4.272
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).

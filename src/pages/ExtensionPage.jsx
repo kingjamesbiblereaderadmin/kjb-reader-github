@@ -11,7 +11,7 @@ const DEFAULT_URLS = {
   opera: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/1154a38a3_kjb-reader-opera-v04259.zip',
   edge: 'https://microsoftedge.microsoft.com/addons/detail/kjb-reader-sidepanel/bphmmbiepbhfnfijaapbmpimkkjdceee',
 };
-const DEFAULT_VERSION = 'v0.4.259';
+const DEFAULT_VERSION = 'v0.4.272';
 
 const EXAMPLES = [
   {
