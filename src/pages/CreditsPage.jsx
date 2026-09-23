@@ -13,7 +13,7 @@ import FontsSection from '@/components/credits/FontsSection';
 // small paddings so the grid stays even.
 
 const TM_CARDS = [
-  { owner: 'Apple Inc.', slug: 'apple', color: '#000000', darkColor: '#FFFFFF', marks: 'Apple, App Store, Xcode, WebKit, Safari, iPhone, iPad, iOS', extra: 'registered in the U.S. and other countries.', use: 'iOS development tools (Xcode, WebKit) and App Store distribution.' },
+  { owner: 'Apple Inc.', slug: 'apple', color: '#000000', darkColor: '#FFFFFF', marks: 'Apple, App Store, Xcode, WebKit, Safari, iPhone, iPad, iOS, macOS', extra: 'registered in the U.S. and other countries.', use: 'iOS development tools (Xcode, WebKit) and App Store distribution.' },
   { owner: 'Google LLC', slug: 'google', color: '#4285F4', marks: 'Google, Google Play, Google Play Console, Chrome, Android, Android Studio, YouTube', use: 'Android tooling and Play Store distribution; Google Fonts; browser-compatibility references.' },
   { owner: 'Microsoft Corporation', logo: 'microsoft', marks: 'Microsoft, Edge, Windows, Internet Explorer', use: 'Browser-compatibility references for the web app and extension.' },
   { owner: 'Oracle', slug: 'oracle', color: '#F80000', marks: 'Java', extra: 'Java is a registered trademark of Oracle and/or its affiliates.', use: 'The Java toolchain inside the Android app build.' },
