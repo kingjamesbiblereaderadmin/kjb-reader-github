@@ -520,6 +520,11 @@
   html[data-reader-font="times"] .kjb-reader-content:not(.cursive-em-style) *:not(sup):not(.font-sans):not(svg):not(svg *) {
     font-family: 'Times New Roman', Times, serif;
   }
+  /* Times New Roman italic (and its serif fallbacks on Android) reads visibly
+     larger than the roman at the same size — optically shrink [bracketed] words. */
+  html[data-reader-font="times"] .kjb-reader-content:not(.cursive-em-style) em {
+    font-size: 0.94em;
+  }
 
   /* ── App-wide accessibility fonts ──
      Applied via data attribute on <html>. Overrides every font across the app
