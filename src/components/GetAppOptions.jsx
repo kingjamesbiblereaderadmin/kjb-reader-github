@@ -89,9 +89,9 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
             <h3 className="font-sans text-sm font-bold text-foreground">Google Play</h3>
           </div>
           <div className="font-sans text-xs text-emerald-800 dark:text-emerald-300 space-y-0.5">
-            <p className="font-semibold">Includes the Look up feature</p>
+            <p className="font-semibold">Look up verses from any app</p>
             <p>
-              Highlight text in any app → right-click → <strong>Look up in <span className="notranslate" translate="no">KJB Reader</span></strong>
+              Highlight any word or verse, then choose <strong>Look up in <span className="notranslate" translate="no">KJB Reader</span></strong>. Only in the Play Store version.
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-2">
