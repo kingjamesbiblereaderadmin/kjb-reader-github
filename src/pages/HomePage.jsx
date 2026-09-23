@@ -4,7 +4,6 @@ import { BookOpen, Heart, Library, Info, List, Settings, Bookmark, FlaskConical 
 import QuickLinkCard from '@/components/home/QuickLinkCard';
 import OfflineStatusBanner from '@/components/OfflineStatusBanner';
 import IncognitoWarning from '@/components/IncognitoWarning';
-import GetAppBanner from '@/components/GetAppOptions';
 import ScriptureBanner from '@/components/ScriptureBanner';
 import { readNavTarget } from '@/lib/readNavTarget';
 
@@ -104,7 +103,6 @@ export default function HomePage() {
       <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-6">
       <OfflineStatusBanner />
       <IncognitoWarning />
-      <GetAppBanner />
 
       <div className="print:hidden">
         <ScriptureBanner />

@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import { ChevronDown, Smartphone, Globe, CheckCircle2, ExternalLink, Sparkles, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useInstallPrompt, PLAY_STORE_URL, isNativeAndroidApp } from '@/hooks/useInstallPrompt';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { isNativeIos } from '@/lib/isNativeIos';
 
-const COLLAPSED_KEY = 'kjb-getapp-collapsed';
 const TWA_FLAG_KEY = 'kjb-twa-app';
 
 const isAndroidUA = () =>
@@ -143,49 +141,6 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
               Already using the web app? You can keep it, or switch to the Play Store version for the extra features.
             </p>
           )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Collapsible Home-page banner. Shown to all web users on every device — plain
-// browser tabs and already-installed PWAs — never inside the store apps.
-export default function GetAppBanner() {
-  const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(() => {
-    try { return localStorage.getItem(COLLAPSED_KEY) === 'true'; } catch { return false; }
-  });
-
-  if (isInsideStoreApp()) return null;
-
-  const toggle = () => {
-    const next = !collapsed;
-    setCollapsed(next);
-    try { localStorage.setItem(COLLAPSED_KEY, String(next)); } catch {}
-  };
-
-  return (
-    <div className="print:hidden bg-card border border-border rounded-2xl mb-4 overflow-hidden shadow-sm">
-      <button
-        onClick={toggle}
-        aria-expanded={!collapsed}
-        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-secondary/50 transition-colors"
-      >
-        <PlayIcon className="w-5 h-5 shrink-0" />
-        <div className="flex-1 min-w-0">
-          <p className="font-sans text-sm font-semibold text-foreground">
-            <span className="notranslate" translate="no">KJB Reader</span> is now on Google Play
-          </p>
-          <p className="font-sans text-xs text-muted-foreground">
-            Choose web app or Play Store
-          </p>
-        </div>
-        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${collapsed ? '' : 'rotate-180'}`} />
-      </button>
-      {!collapsed && (
-        <div className="px-4 pb-4 pt-1">
-          <InstallOptionCards onWebInstallFallback={() => navigate('/settings')} />
         </div>
       )}
     </div>
