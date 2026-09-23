@@ -168,7 +168,7 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
             className="border-sky-200 dark:border-sky-900/40 bg-sky-50/70 dark:bg-sky-900/15"
           >
             <p className="font-sans text-xs text-sky-800 dark:text-sky-300">
-              An App Store version for iPhone, iPad and Mac is on the way. Until then, use the Web App.
+              An App Store version for iPhone, iPad and Mac is on the way. Check back in <strong>Settings → App Info</strong> when it's released.
             </p>
           </OptionCard>
         </div>
