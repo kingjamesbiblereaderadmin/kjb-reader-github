@@ -11,7 +11,12 @@ const READER_FONT_KEY = 'kjb-reader-font-family';
 // mode (line/paragraph/column) picks it up consistently.
 export function applyReaderFont(font) {
   const root = document.documentElement;
-  const valid = ['serif', 'sans-serif', 'monospace', 'cursive', 'comic-sans'];
+  // 'times' MUST be in this list: the reader applies the font-family itself via
+  // an inline style, but the CSS rules keyed on data-reader-font="times" (the
+  // Times New Roman family + the 0.94em optical shrink for italic words, which
+  // read larger than the roman at the same size) never matched while 'times'
+  // fell through to 'serif' — so Times italics rendered full-size.
+  const valid = ['serif', 'sans-serif', 'monospace', 'cursive', 'comic-sans', 'times'];
   root.setAttribute('data-reader-font', valid.includes(font) ? font : 'serif');
 }
 
