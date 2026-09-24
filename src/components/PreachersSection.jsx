@@ -75,7 +75,6 @@ export const PREACHERS = [
     desc: 'Big Red Preacher — KJB soul winner.',
     photo: 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/92d0ffb05_unnamed.png',
     links: [
-      'https://www.instagram.com/robert.potthoff/',
       'https://www.facebook.com/potthoff87',
       'https://www.instagram.com/big_red_preacher',
       'https://www.tiktok.com/@mission1611grace',
