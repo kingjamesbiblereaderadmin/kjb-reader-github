@@ -67,6 +67,7 @@ export const PREACHERS = [
     links: [
       'https://www.youtube.com/@Robertbreaker3',
       'https://www.tiktok.com/@robertbreaker',
+      'https://www.facebook.com/thecloudchurch.org/',
       'https://thecloudchurch.org/',
       'https://laiglesiadelanube.com/']
   },
