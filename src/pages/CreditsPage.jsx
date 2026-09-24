@@ -30,7 +30,7 @@ const TM_CARDS = [
   { owner: 'X Corp.', slug: 'x', color: '#000000', darkColor: '#FFFFFF', marks: 'X, the X logo, Twitter', use: 'Preacher social links opened in the device browser.' },
   { owner: 'Discord Inc.', slug: 'discord', color: '#5865F2', marks: 'Discord', use: 'Community server invite links.' },
   { owner: 'Rumble Inc.', slug: 'rumble', color: '#85C742', marks: 'Rumble', use: 'Ministry video links opened in the device browser.' },
-  { owner: 'Base44', logo: 'base44', wide: true, use: 'Web app hosting, backend, and optional user authentication.' }
+  { owner: 'Base44', logo: 'base44', use: 'Web app hosting, backend, and optional user authentication.' }
 ];
 
 function OwnerLogo({ card }) {
