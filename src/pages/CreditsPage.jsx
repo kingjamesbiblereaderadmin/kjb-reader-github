@@ -27,6 +27,7 @@ const TM_CARDS = [
   { owner: 'Kiwi Browser', slug: null, badge: 'bg-gradient-to-br from-lime-500 to-green-600', marks: 'Kiwi Browser', extra: 'trademark of its respective owner.', use: 'Browser-compatibility reference for the browser extension.' },
   { owner: 'Meta Platforms, Inc.', slug: 'meta', color: '#0467D1', marks: 'Instagram, Facebook', use: 'Ministry and preacher social links opened in the device browser.' },
   { owner: 'ByteDance Ltd.', slug: 'bytedance', color: '#3255D4', marks: 'TikTok', use: 'Ministry and preacher social links opened in the device browser.' },
+  { owner: 'X Corp.', slug: 'x', color: '#000000', darkColor: '#FFFFFF', marks: 'X, the X logo, Twitter', use: 'Preacher social links opened in the device browser.' },
   { owner: 'Discord Inc.', slug: 'discord', color: '#5865F2', marks: 'Discord', use: 'Community server invite links.' },
   { owner: 'Rumble Inc.', slug: 'rumble', color: '#85C742', marks: 'Rumble', use: 'Ministry video links opened in the device browser.' },
   { owner: 'Base44', logo: 'base44', wide: true, use: 'Web app hosting, backend, and optional user authentication.' }
