@@ -96,7 +96,8 @@ export const PREACHERS = [
     photo: 'https://yt3.googleusercontent.com/ZhXQ7IgQ6pHOkWcSZafGDHhOqbRecC5ZaJ7oX8FXLJAPHT59yDXcEPyNPKYNgNNa20IzJ5pWAg=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://www.tiktok.com/@av1611ministries',
-      'https://youtube.com/@av1611ministries']
+      'https://youtube.com/@av1611ministries',
+      'https://www.instagram.com/skybakker3/']
   },
   {
     name: 'Crown of Thorns',
