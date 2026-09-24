@@ -66,7 +66,7 @@ export const PREACHERS = [
     photo: 'https://yt3.googleusercontent.com/ytc/AIdro_mJGwX4Nio4c1LLI1ja79m1lHQIUJ53l-J42tlZcNCEk0w=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://www.youtube.com/@Robertbreaker3',
-      'https://www.tiktok.com/@robertbreaker',
+      'https://www.tiktok.com/@robertbreaker3',
       'https://www.facebook.com/thecloudchurch.org/',
       'https://thecloudchurch.org/',
       'https://laiglesiadelanube.com/']
