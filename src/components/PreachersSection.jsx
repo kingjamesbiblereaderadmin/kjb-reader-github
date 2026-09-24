@@ -129,7 +129,8 @@ export const PREACHERS = [
     desc: 'KJB preacher and Bible teacher on YouTube.',
     photo: 'https://yt3.googleusercontent.com/1B9oAx4QevNcFBzYYh9psQv21c8_OrLzd-DnUs6b2kBjMsPktc7S8uNluZpR51D8qJ_tM3aFLA=s176-c-k-c0x00ffffff-no-rj',
     links: [
-      'https://youtube.com/@jamesbrayall3?si=nXkuHAhyVvC_0KVg']
+      'https://youtube.com/@jamesbrayall3?si=nXkuHAhyVvC_0KVg',
+      'https://www.tiktok.com/@james.brayall.iii7']
   },
 ];
 
