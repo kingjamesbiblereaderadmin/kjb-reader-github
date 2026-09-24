@@ -39,7 +39,18 @@ function TikTokIcon({ className }) {
   );
 }
 
+function XIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
+const isX = (url) => /\/\/(www\.)?(x|twitter)\.com\//.test(url);
+
 function getLinkIcon(url) {
+  if (isX(url)) return <XIcon className="w-3.5 h-3.5" />;
   if (url.includes('youtube.com') || url.includes('youtu.be')) return <Youtube className="w-3.5 h-3.5" />;
   if (url.includes('tiktok.com')) return <TikTokIcon className="w-3.5 h-3.5" />;
   if (url.includes('facebook.com')) return <Facebook className="w-3.5 h-3.5" />;
@@ -49,6 +60,7 @@ function getLinkIcon(url) {
 }
 
 function getLinkLabel(url) {
+  if (isX(url)) return 'X';
   if (url.includes('youtube.com') || url.includes('youtu.be')) return 'YouTube';
   if (url.includes('tiktok.com')) return 'TikTok';
   if (url.includes('facebook.com')) return 'Facebook';
@@ -67,6 +79,7 @@ export const PREACHERS = [
     links: [
       'https://www.youtube.com/@Robertbreaker3',
       'https://www.tiktok.com/@robertbreaker3',
+      'https://x.com/Robert_Breaker',
       'https://www.facebook.com/thecloudchurch.org/',
       'https://thecloudchurch.org/',
       'https://laiglesiadelanube.com/']
