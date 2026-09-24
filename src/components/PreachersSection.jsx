@@ -78,6 +78,7 @@ export const PREACHERS = [
       'https://www.instagram.com/robert.potthoff/',
       'https://www.facebook.com/potthoff87',
       'https://www.instagram.com/big_red_preacher',
+      'https://www.tiktok.com/@mission1611grace',
       'https://mission1611.com/']
   },
   {
