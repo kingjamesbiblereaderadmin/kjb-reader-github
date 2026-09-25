@@ -94,7 +94,7 @@ export default function LandingPage() {
             }
             title="Legal & Legacy"
           >
-            <div className="grid sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Link
                 to="/privacy"
                 className="flex items-center gap-3 p-5 rounded-2xl bg-secondary/40 border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
