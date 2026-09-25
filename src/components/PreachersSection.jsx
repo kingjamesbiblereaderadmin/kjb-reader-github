@@ -78,18 +78,20 @@ export const PREACHERS = [
     photo: 'https://yt3.googleusercontent.com/ytc/AIdro_mJGwX4Nio4c1LLI1ja79m1lHQIUJ53l-J42tlZcNCEk0w=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://www.youtube.com/@Robertbreaker3',
+      'https://www.instagram.com/robertbreaker3/',
       'https://www.tiktok.com/@robertbreaker3',
       'https://x.com/Robert_Breaker',
       'https://www.facebook.com/thecloudchurch.org/',
       'https://thecloudchurch.org/',
-      'https://laiglesiadelanube.com/']
+      'https://laiglesiadelanube.com/',
+      'https://spanishbibleissue.com/']
   },
   {
     name: 'Robert Potthoff',
     desc: 'Big Red Preacher — KJB soul winner.',
     photo: 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/92d0ffb05_unnamed.png',
     links: [
-      'https://www.facebook.com/potthoff87',
+      'https://www.facebook.com/people/Mission-1611/61570948244190/',
       'https://www.instagram.com/big_red_preacher',
       'https://www.tiktok.com/@mission1611grace',
       'https://mission1611.com/']
@@ -101,16 +103,15 @@ export const PREACHERS = [
     links: [
       'https://www.seedofhopechurch.org/',
       'https://youtube.com/@ryan_poff',
-      'https://www.tiktok.com/@ryan_sohc']
+      'https://www.tiktok.com/@ryan_sohc',
+      'https://m.facebook.com/profile.php?id=61590619977678&name=xhp_nt__fb__action__open_user']
   },
   {
     name: 'Skyler (AV1611 Ministry)',
     desc: 'AV1611 Ministry — KJB defence and preaching.',
     photo: 'https://yt3.googleusercontent.com/ZhXQ7IgQ6pHOkWcSZafGDHhOqbRecC5ZaJ7oX8FXLJAPHT59yDXcEPyNPKYNgNNa20IzJ5pWAg=s176-c-k-c0x00ffffff-no-rj',
     links: [
-      'https://www.tiktok.com/@av1611ministries',
-      'https://youtube.com/@av1611ministries',
-      'https://www.instagram.com/skybakker3/']
+      'https://youtube.com/@av1611ministries']
   },
   {
     name: 'Crown of Thorns',
@@ -139,7 +140,7 @@ export const PREACHERS = [
   },
   {
     name: 'James Bray',
-    desc: 'KJB preacher and Bible teacher on YouTube.',
+    desc: 'KJB preacher and Bible teacher.',
     photo: 'https://yt3.googleusercontent.com/1B9oAx4QevNcFBzYYh9psQv21c8_OrLzd-DnUs6b2kBjMsPktc7S8uNluZpR51D8qJ_tM3aFLA=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://youtube.com/@jamesbrayall3?si=nXkuHAhyVvC_0KVg',
@@ -276,7 +277,7 @@ export default function PreachersSection({
               <PreacherAvatar preacher={p} />
               <span className="flex-1 min-w-0">
                 <span className="notranslate block font-sans text-sm font-semibold text-foreground truncate" translate="no">{p.name}</span>
-                <span className="block font-sans text-xs text-muted-foreground truncate">{p.desc}</span>
+                <span className="block font-sans text-xs text-muted-foreground">{p.desc}</span>
               </span>
               <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-amber-600 transition-colors flex-shrink-0" />
             </button>
