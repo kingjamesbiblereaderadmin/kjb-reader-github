@@ -368,6 +368,12 @@ export function parsePceText(text: string): BibleData {
       t = t.replace('[(but)', '[but');
       t = t.replace('[[but]]', '[but]');
     }
+
+    // PCE punctuation rule (mirrors src/lib/biblePceParser.js): trailing
+    // , . ; : ! ? directly after a closing italic bracket moves INSIDE the
+    // brackets ("thou [art,]"), matching the source's own ":" and ";"
+    // placement. Hyphens and closing parentheses are left untouched.
+    t = t.replace(/\]([.,;:!?]+)/g, '$1]');
     if (!data[currentBook][currentChapter]) data[currentBook][currentChapter] = [];
     const entry: VerseEntry = { verse: vs, text: t };
     if (pendingHeading) {

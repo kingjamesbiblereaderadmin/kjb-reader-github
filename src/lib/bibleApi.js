@@ -160,6 +160,17 @@ export function mergeAdjacentBrackets(text = '') {
   return out;
 }
 
+// PCE punctuation rule: trailing , . ; : ! ? that directly follows a closing
+// italics bracket moves INSIDE the bracket — "[art]," becomes "[art,]" — so the
+// punctuation renders and copies as part of the italic word, matching the PCE
+// source (which already prints ":" and ";" inside the brackets). Hyphens
+// ("[Ben]-[hadad]") and closing parentheses ("[above:])") are left untouched.
+// Applied at read time as well as at parse time so verses from an older cache
+// (parsed before the rule was added) are normalized too.
+export function normalizeBracketPunctuation(text = '') {
+  return String(text).replace(/\]([.,;:!?]+)/g, '$1]');
+}
+
 // Shared chapter cleaning — identical for the async and the synchronous path.
 function cleanChapterData(bible, bookApiName, chapter) {
   
@@ -168,7 +179,7 @@ function cleanChapterData(bible, bookApiName, chapter) {
 
   // Strip "Made in Australia" + merge adjacent [bracketed] words on all verses
   verses = verses.map(v => {
-    const cleaned = mergeAdjacentBrackets(stripMadeInAustralia(v.text));
+    const cleaned = normalizeBracketPunctuation(mergeAdjacentBrackets(stripMadeInAustralia(v.text)));
     return cleaned !== v.text ? { ...v, text: cleaned } : v;
   });
 
@@ -236,6 +247,7 @@ export function renderVerseText(text, searchTerm = null) {
   // Strip "Made in Australia" if it somehow appears in verse text
   let cleaned = text.replace(/\s*made\s+in\s+australia\.?\s*/gi, '');
   cleaned = mergeAdjacentBrackets(cleaned);
+  cleaned = normalizeBracketPunctuation(cleaned);
   cleaned = cleaned.replace(/[<>]|>>/g, '');
   // Normalize smart/curly apostrophes and quotes to plain ASCII to fix Edge rendering
   cleaned = cleaned

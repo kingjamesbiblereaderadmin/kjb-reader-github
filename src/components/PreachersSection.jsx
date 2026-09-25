@@ -88,7 +88,7 @@ export const PREACHERS = [
   },
   {
     name: 'Robert Potthoff',
-    desc: 'Big Red Preacher — KJB soul winner.',
+    desc: 'Big Red Preacher, KJB soul winner.',
     photo: 'https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/92d0ffb05_unnamed.png',
     links: [
       'https://www.facebook.com/people/Mission-1611/61570948244190/',
@@ -98,17 +98,17 @@ export const PREACHERS = [
   },
   {
     name: 'Ryan Poff',
-    desc: 'Seed of Hope Church — KJB pastor and preacher.',
+    desc: 'Seed of Hope Church, KJB pastor and preacher.',
     photo: 'https://yt3.googleusercontent.com/VF5lO3c2JpNd61mBrKtPFfUs08uFE66b6y6vf4eMDA6PN3lW025tEBT7varYSFmeG5-eZZ84gg=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://www.seedofhopechurch.org/',
       'https://youtube.com/@ryan_poff',
       'https://www.tiktok.com/@ryan_sohc',
-      'https://m.facebook.com/profile.php?id=61590619977678&name=xhp_nt__fb__action__open_user']
+      'https://m.facebook.com/profile.php?id=61590619977678']
   },
   {
     name: 'Skyler (AV1611 Ministry)',
-    desc: 'AV1611 Ministry — KJB defence and preaching.',
+    desc: 'AV1611 Ministry, KJB defence and preaching.',
     photo: 'https://yt3.googleusercontent.com/ZhXQ7IgQ6pHOkWcSZafGDHhOqbRecC5ZaJ7oX8FXLJAPHT59yDXcEPyNPKYNgNNa20IzJ5pWAg=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://youtube.com/@av1611ministries']
@@ -130,7 +130,7 @@ export const PREACHERS = [
   },
   {
     name: 'CPR Missions',
-    desc: 'Church Planting and Revival Missions — soul winning and church planting.',
+    desc: 'Church Planting and Revival Missions, soul winning and church planting.',
     photo: 'https://yt3.googleusercontent.com/DD0QKBtsaz7Jg_FaLihJT7RQWx2F4ftUL8hiRoZDDs7Iw11P8YcHgsdGxnZWP3Cz_YFPGXkW=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://www.youtube.com/channel/UCWBR5DmAi2XPMFRtb-wqHwg',
@@ -143,7 +143,7 @@ export const PREACHERS = [
     desc: 'KJB preacher and Bible teacher.',
     photo: 'https://yt3.googleusercontent.com/1B9oAx4QevNcFBzYYh9psQv21c8_OrLzd-DnUs6b2kBjMsPktc7S8uNluZpR51D8qJ_tM3aFLA=s176-c-k-c0x00ffffff-no-rj',
     links: [
-      'https://youtube.com/@jamesbrayall3?si=nXkuHAhyVvC_0KVg',
+      'https://youtube.com/@jamesbrayall3',
       'https://www.tiktok.com/@james.brayall.iii7']
   },
 ];

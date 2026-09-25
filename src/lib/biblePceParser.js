@@ -116,6 +116,13 @@ export function parsePceText(text) {
       t = t.replace('[[but]]', '[but]');
     }
 
+    // PCE punctuation rule: trailing , . ; : ! ? that directly follows a
+    // closing italic bracket moves INSIDE the brackets — "thou [art]," becomes
+    // "thou [art,]" — matching the PCE source, which already prints ":" and
+    // ";" inside the brackets. Hyphens ("[Ben]-[hadad]") and closing
+    // parentheses ("[above:])") are left untouched.
+    t = t.replace(/\]([.,;:!?]+)/g, '$1]');
+
     if (!data[currentBook][currentChapter]) data[currentBook][currentChapter] = [];
     const entry = { verse: vs, text: t };
     // Stamp any pending Psalm 119 acrostic letter heading onto this verse.

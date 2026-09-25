@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.273', date: 'September 25, 2026', items: [
+    { tag: 'fix', text: 'Punctuation attached to an italicized (bracketed) word now sits inside the brackets on screen and when copying, e.g. \u201Cthou [art,] and unto dust\u201D. The PCE source already prints \u201C:\u201D and \u201C;\u201D inside the brackets; commas and periods now follow the same rule' },
+    { tag: 'improved', text: 'Updated the Verified KJB Preachers list with corrected and expanded links' },
+  ] },
   { version: 'v0.4.272', date: 'September 23, 2026', items: [
     { tag: 'improved', text: 'Bible-reference detection now runs on the exact kingjamesbiblereader.com/extension test page (with or without a trailing slash, including the www form), while all other pages on kingjamesbiblereader.com — including /extension-privacy and similarly named paths — remain excluded' },
     { tag: 'fix', text: 'Recent search fixes are included: combined apostrophe and \u00c6-ligature variants now match (typed \u201CCaesar\u2019s\u201D finds printed \u201CC\u00e6sar\u2019s\u201D), and long searches no longer drop verses when Psalm headings or other structural lines occur in results' },
@@ -311,7 +315,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.272
+            Current Version: v0.4.273
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
