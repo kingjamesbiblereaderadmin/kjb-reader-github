@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ExternalLink, FileText, BookOpen, ShieldAlert, Globe, CheckCircle, ChevronDown, Youtube, Facebook, Copy, Printer, Mail, PlayCircle } from 'lucide-react';
 import { printHtml } from '@/lib/printHelpers';
-import { LinktreeIcon } from '@/components/ContactLinks';
+import { LinktreeIcon, TikTokIcon, InstagramIcon } from '@/components/ContactLinks';
 import CollapsibleCard from '@/components/landing/CollapsibleCard';
 import PreachersSection, { PREACHERS } from '@/components/PreachersSection';
 import PageHero from '@/components/PageHero';
@@ -336,7 +336,7 @@ export default function ResourcesPage() {
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
             <CopyButton 
-              text={`God is Gracious 1031 Ministries\nhttps://godisgracious1031ministriescom.odoo.com/\n\nYouTube\nhttps://youtube.com/@shawnr325av\n\nRumble\nhttps://rumble.com/user/Godisgracious1031\n\nLinktree\nhttps://linktr.ee/shawnr325av\n\nEmail\nkingjamesbiblereader@outlook.sg`} 
+              text={`God is Gracious 1031 Ministries\nhttps://godisgracious1031ministriescom.odoo.com/\n\nYouTube\nhttps://youtube.com/@shawnr325av\n\nRumble\nhttps://rumble.com/user/Godisgracious1031\n\nTikTok\nhttps://www.tiktok.com/@svdbyfaithinr325av\n\nInstagram\nhttps://www.instagram.com/svdbyfaithinhisbloodr325av/\n\nDiscord\nhttps://discord.com/users/faithinhisbloodr325av\n\nLinktree\nhttps://linktr.ee/shawnr325av\n\nEmail\nkingjamesbiblereader@outlook.sg`} 
               className="p-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 text-purple-600 dark:text-purple-400 transition-colors cursor-pointer" 
             />
             <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${expandedSections.ministry ? 'rotate-180' : ''}`} />
@@ -395,6 +395,60 @@ export default function ResourcesPage() {
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <CopyButton text="https://rumble.com/user/Godisgracious1031" className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors" />
+              <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors" />
+            </div>
+          </a>
+          <a
+            href="https://www.tiktok.com/@svdbyfaithinr325av"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+          >
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-slate-800 to-black">
+              <TikTokIcon className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">TikTok</p>
+              <p className="font-sans text-xs text-muted-foreground">@svdbyfaithinr325av</p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <CopyButton text="https://www.tiktok.com/@svdbyfaithinr325av" className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors" />
+              <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors" />
+            </div>
+          </a>
+          <a
+            href="https://www.instagram.com/svdbyfaithinhisbloodr325av/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+          >
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-fuchsia-500 via-rose-500 to-amber-500">
+              <InstagramIcon className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">Instagram</p>
+              <p className="font-sans text-xs text-muted-foreground">@svdbyfaithinhisbloodr325av</p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <CopyButton text="https://www.instagram.com/svdbyfaithinhisbloodr325av/" className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors" />
+              <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors" />
+            </div>
+          </a>
+          <a
+            href="https://discord.com/users/faithinhisbloodr325av"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+          >
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-indigo-500 to-violet-600">
+              <DiscordIcon className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-sans font-medium text-sm text-foreground group-hover:text-accent transition-colors">Discord</p>
+              <p className="font-sans text-xs text-muted-foreground">faithinhisbloodr325av</p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <CopyButton text="https://discord.com/users/faithinhisbloodr325av" className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors" />
               <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors" />
             </div>
           </a>
