@@ -116,7 +116,7 @@ jobs:
 
       - name: Upload screenshot and logcat
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: android-smoke-test-evidence
           path: |
