@@ -312,38 +312,49 @@
      worse than the original swash overhang did. */
   /* Column-safe verse spacing: use PADDING, not margin, for the vertical
      rhythm between verses in the two-column layout. Margins are truncated
-     at a column break, so a verse that starts at the top of the right column
-     sat flush against the fragmentainer edge — and WebKit clips content
-     that sits at (or is pulled above) that edge, which cut the top off the
-     verse's number (sup) / drop-cap on iOS. Padding is preserved at column
-     starts, so every column-leading verse keeps real space above its
-     first line and nothing can be clipped.
-     Values mirror the verse classes they replace (mt-3 / pilcrow mt-12),
-     so in-column rhythm is unchanged. */
+     at a column break; padding is not. The verse number is absolutely
+     positioned INSIDE its row (0.27em below the edge), so a column-leading
+     verse can sit flush against the fragmentainer edge with nothing pulled
+     above it to clip on WebKit.
+     The rhythm rides as BOTTOM padding on the verse ABOVE, never as top
+     padding on the verse below. A column's leading element — a whole verse
+     OR a mid-verse fragment continuing across the break — always starts
+     flush at the column's top edge, and so does verse 1 in the left column.
+     Only with bottom spacing do both columns therefore share ONE baseline
+     grid, like a printed Bible; with top padding, every column-2 leader sat
+     0.75rem + 0.15em above the left column's phase, so no line ever aligned
+     across the column rule. calc() folds in the 0.15em the verse row itself
+     used to add as top padding (zeroed in the row rule below), so the
+     in-column rhythm is unchanged (row pb 0.15em + 0.75rem + 0.15em). */
   .kjb-two-col > span {
     margin-top: 0 !important;
-    padding-top: 0.75rem;
+    padding-bottom: calc(0.75rem + 0.15em);
+  }
+  /* The verse row's top padding is folded into the bottom padding above, so
+     every element that leads a column starts at the exact same y and the two
+     columns' line grids stay in phase. */
+  .kjb-two-col > span > span.flex {
+    padding-top: 0 !important;
+  }
+  /* Verse 1 (the drop-cap verse, kept as a flex row) compensates for its
+     lost row padding-top inside the sup's own margin: 0.27em at the row's
+     font = 0.45em at the sup's 0.6em font, matching the absolutely
+     positioned numbers of every other verse (top: 0.27em below). */
+  .kjb-two-col > span[style*="flow-root"] > span.flex > sup {
+    margin-top: 0.45em !important;
   }
   /* Paragraph gap before a pilcrow (¶) verse rides on the verse ABOVE it as
-     bottom padding, not as top padding on the pilcrow verse itself. A pilcrow
-     verse that starts the second column therefore begins at the same height
-     as verse 1 (numbers + first line align across both column tops) — the
-     paragraph gap simply falls away at the column break instead of pushing
-     the paragraph down inside the new column. 2.25rem + the pilcrow verse's
-     own 0.75rem = the 3rem gap mid-column it replaces, so in-column paragraph
-     rhythm is unchanged. On browsers without :has, the gap gracefully
-     tightens to the standard verse rhythm — nothing breaks. */
+     extra bottom padding, so a pilcrow verse that leads the second column
+     still starts flush on the shared grid — the gap falls away at the column
+     break instead of pushing the paragraph down inside the new column.
+     calc(3rem + 0.15em) + the verse above's row padding-bottom (0.15em) =
+     the same 3rem + 0.3em mid-column paragraph gap the old top-padding
+     scheme produced, so in-column rhythm is unchanged. On browsers without
+     :has, the gap gracefully tightens to the standard verse rhythm —
+     nothing breaks. */
   .kjb-two-col > span:has(+ span[data-pilcrow='true']) {
-    padding-bottom: 2.25rem;
+    padding-bottom: calc(3rem + 0.15em);
   }
-  /* Every verse — including verse 1 — keeps the same leading padding, so
-     whichever verse happens to start the second column sits at exactly the
-     same height as verse 1: the two column tops (and their leading verse
-     numbers) line up. The old :first-child { padding-top: 0 } override only
-     zeroed the FIRST child of the container (verse 1), not the first verse
-     of each column — CSS has no "first element per column" selector — which
-     left the right column's first verse number sitting 0.75rem lower than
-     verse 1's. */
   /* Flex rows can't fragment across columns in WebKit (iOS): the verse number
      got orphaned at a column bottom and whole verses jumped to the next
      column, leaving big gaps. Use a plain block with the verse number
@@ -361,10 +372,9 @@
   .kjb-two-col > span:not([style*="flow-root"]) > span.flex > sup {
     position: absolute !important;
     left: 0.4em;
-    /* Row padding-top (0.15em) + the sup's flex margin-top (0.2em at the
-       sup's 0.6em font = 0.12em) — matches the drop-cap verse's number
-       height exactly, so verse 1's number and every other verse's number
-       sit at the same height. */
+    /* Matches verse 1's flexed number exactly — row top 0 plus the sup's
+       margin-top (0.45em at the sup's 0.6em font = 0.27em) — so verse 1's
+       number and every other verse's number sit at the same height. */
     top: 0.27em;
     margin: 0 !important;
   }
