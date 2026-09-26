@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.274', date: 'September 27, 2026', items: [
+    { tag: 'improved', text: 'Personal Ministry Links in the extension\u2019s Resources tab now include TikTok, Instagram and Discord, and the Rumble link points to rumble.com/user/Godisgracious1031.' },
+  ] },
   { version: 'v0.4.273', date: 'September 25, 2026', items: [
     { tag: 'fix', text: 'Punctuation attached to an italicized (bracketed) word now sits inside the brackets on screen and when copying, e.g. \u201Cthou [art,] and unto dust\u201D. The PCE source already prints \u201C:\u201D and \u201C;\u201D inside the brackets; commas and periods now follow the same rule' },
     { tag: 'improved', text: 'Updated the Verified KJB Preachers list with corrected and expanded links' },
@@ -315,7 +318,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.273
+            Current Version: v0.4.274
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
