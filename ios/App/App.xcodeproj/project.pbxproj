@@ -444,7 +444,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 85;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
-				CODE_SIGN_ENTITLEMENTS[sdk=macosx*] = App/App-mac.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = App/App-mac.entitlements;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -470,7 +470,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 85;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
-				CODE_SIGN_ENTITLEMENTS[sdk=macosx*] = App/App-mac.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = App/App-mac.entitlements;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -491,7 +491,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Share/KJBShare.entitlements;
-				CODE_SIGN_ENTITLEMENTS[sdk=macosx*] = Share/KJBShare-mac.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = Share/KJBShare-mac.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 85;
 				INFOPLIST_FILE = Share/Info.plist;
@@ -512,7 +512,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Share/KJBShare.entitlements;
-				CODE_SIGN_ENTITLEMENTS[sdk=macosx*] = Share/KJBShare-mac.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = Share/KJBShare-mac.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 85;
 				INFOPLIST_FILE = Share/Info.plist;
