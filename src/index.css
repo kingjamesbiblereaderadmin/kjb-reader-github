@@ -327,11 +327,14 @@
   .kjb-two-col > span[data-pilcrow='true'] {
     padding-top: 3rem;
   }
-  /* First verse of each column starts flush at the top (no leading gap),
-     so the left & right columns align at the same height */
-  .kjb-two-col > span:first-child {
-    padding-top: 0 !important;
-  }
+  /* Every verse — including verse 1 — keeps the same leading padding, so
+     whichever verse happens to start the second column sits at exactly the
+     same height as verse 1: the two column tops (and their leading verse
+     numbers) line up. The old :first-child { padding-top: 0 } override only
+     zeroed the FIRST child of the container (verse 1), not the first verse
+     of each column — CSS has no "first element per column" selector — which
+     left the right column's first verse number sitting 0.75rem lower than
+     verse 1's. */
   /* Flex rows can't fragment across columns in WebKit (iOS): the verse number
      got orphaned at a column bottom and whole verses jumped to the next
      column, leaving big gaps. Use a plain block with the verse number
