@@ -10,6 +10,7 @@ import { nativeShare } from '@/lib/nativeShare';
 import { ensureShyMap, getShyMap, injectShyHtml, installShyCopySanitizer } from '@/lib/softHyphens';
 import VersePopover from '@/components/bible/VersePopover';
 import SaveFolderPicker from '@/components/bible/SaveFolderPicker';
+import { useDropcapVars } from '@/lib/dropcapMetrics';
 
 export default function VerseText({ verse, highlight = false, id, bookName, abbr, chapter, isFirstVerse = false, paragraphMode = false, selectMode = false, highlightMode = false, activeHighlightColor = null, isSelected = false, onSelect, onActivateSelect, totalVerses = 0, colophon = null, subscript = null, isCursive = false, fontFamilyValue = null, zoomLevel = 100, hasSubscript = false, searchTerm = null, dropCap = false, columnMode = false, onVerseTap = null, isDirectJump = false }) {
   const bookEntry = BIBLE_BOOKS.find(b => b.abbr === abbr);
@@ -36,6 +37,9 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   const [clickPos, setClickPos] = useState(null);
   // Ticks a re-render once the soft-hyphen map finishes loading (below).
   const [, setShyTick] = useState(0);
+  // Measured drop-cap sizing for this chapter's font configuration (empty
+  // string while measuring or when unsupported — CSS fallback applies then).
+  const dropcapVars = useDropcapVars(paragraphMode);
 
   useEffect(() => {
     setCurrentText(verse.text);
@@ -167,8 +171,9 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     // already contains the letter cleanly. Two stacked boxes with mismatched
     // edges (group bg + letter tint) is what produced the visible "leak"
     // along the cap's top and left.
-    const groupStyle = dropHighlight && !selectMode
-      ? ` style="background-color:hsl(var(--background));"`
+    const groupBg = dropHighlight && !selectMode ? `background-color:hsl(var(--background));` : '';
+    const groupAttr = (groupBg || (dropCap && !isCursive && dropcapVars))
+      ? ` style="${dropCap && !isCursive ? dropcapVars : ''}${groupBg}"`
       : '';
     // Match the first letter that is part of the actual TEXT, skipping any
     // leading HTML tags (e.g. <em>, <span class="pilcrow">). Using a bare
@@ -183,7 +188,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
       : `<span class="kjb-dropcap-letter"${letterStyle}>$2</span>`;
     html = html.replace(
       /^((?:<[^>]+>|\s)*)([A-Za-z])/,
-      `$1<span class="kjb-dropcap-group${paragraphMode ? ' kjb-dropcap-group-para' : ''}"${groupStyle}>${groupInner}</span>`
+      `$1<span class="kjb-dropcap-group${paragraphMode ? ' kjb-dropcap-group-para' : ''}"${groupAttr}>${groupInner}</span>`
     );
   }
 

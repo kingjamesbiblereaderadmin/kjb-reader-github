@@ -629,22 +629,28 @@
        the cap and left exactly that gap, so it is gone. The cap's ink stays
        inside its line box (cap-height < ascent), so the multicol column
        edge in two-column mode can never slice the top off it either. */
-    font-size: min(3.7em, 55cqw);
-    line-height: 0.88;
+    /* --kjb-dc-f / --kjb-dc-lh come from dropcapMetrics.js, which measures
+       the browser's own font metrics at runtime and computes the pair that
+       puts the cap's baseline exactly on the second (indented) line's
+       baseline while its float box spans exactly two lines — correct on
+       every platform, since browsers measure the same fonts differently
+       (OS/2 win metrics on Windows Chromium vs hhea elsewhere). The em
+       values below are the static fallback for browsers without the
+       measurement API; the paragraph-mode rule below it overrides the
+       fallback for that mode's taller leading-loose (2.0) lines. */
+    font-size: min(var(--kjb-dc-f, 3.7em), 55cqw);
+    line-height: var(--kjb-dc-lh, 0.88);
     font-weight: 700;
     color: inherit;
     font-family: 'Cormorant Garamond', 'Merriweather', Georgia, serif;
   }
-  /* Paragraph mode: the verse text uses leading-loose (line-height 2.0), so
-     two body lines there measure 4.0em — NOT the 3.25em of the
-     leading-relaxed line/column modes the sizes above assume. Scale the cap
-     by the same ratio (4.55 × 0.88 ≈ 4.0em) so the letter still spans and
-     fills exactly the first two lines, with its baseline landing on the
-     indented (second) line's baseline — otherwise the cap stops short and
-     leaves the visible gap under the letter that the sizes above produce
-     in this mode. */
-  .kjb-dropcap-group-para .kjb-dropcap-letter {
-    font-size: min(4.55em, 55cqw);
+  /* Paragraph mode fallback (leading-loose = line-height 2.0): two body
+     lines measure 4.0em there, not the 3.25em the fallback above assumes.
+     Declared on the GROUP so a runtime-measured value on the group's inline
+     style still wins (an element-level declaration on the letter would
+     beat the inherited measurement). */
+  .kjb-dropcap-group-para {
+    --kjb-dc-f: 4.55em;
   }
   /* Verse number sits at the top-left of the group, beside the big letter. */
   /* Select-mode overlay around the drop-cap verse (verse 1). The big letter
