@@ -32,6 +32,7 @@ import { getLiveWorkerVersion, getDeployedWorkerVersion } from '@/lib/liveWorker
 import { isMobileDevice } from '@/lib/isMobileDevice';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { isNativeIos } from '@/lib/isNativeIos';
+import { getInstallSource } from '@/lib/installSource';
 
 const A11Y_FONTS = [
   { value: 'dyslexic', label: 'OpenDyslexic', desc: 'Designed for readers with dyslexia', preview: "'OpenDyslexic', 'Comic Sans MS', sans-serif" },
@@ -63,7 +64,7 @@ const isBookmarkBrowser = () => {
 };
 
 const LAST_REVISED = 'September 11th, 2026';
-const WORKER_VERSION = 'v20260926_2040';
+const WORKER_VERSION = 'v20260927_0135';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -966,6 +967,10 @@ export default function SettingsPage() {
               <div className="flex justify-between items-center font-sans text-sm gap-4">
                 <span className="text-muted-foreground shrink-0">Last Updated</span>
                 <span className="text-foreground font-medium text-right">{LAST_REVISED}</span>
+              </div>
+              <div className="flex justify-between items-center font-sans text-sm gap-4">
+                <span className="text-muted-foreground shrink-0">Installed From</span>
+                <span className="text-foreground font-medium text-right">{getInstallSource()}</span>
               </div>
               <div className="flex justify-between items-center font-sans text-sm gap-4">
                 <span className="text-muted-foreground shrink-0">Offline Support</span>

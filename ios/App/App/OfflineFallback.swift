@@ -572,6 +572,38 @@ func kjbInstallNativeBridges(on webView: WKWebView) {
     ucc.addUserScript(WKUserScript(source: kjbBridgeShim,
                                   injectionTime: .atDocumentStart,
                                   forMainFrameOnly: true))
+    // Settings -> App Info -> "Installed From" (see src/lib/installSource.js).
+    ucc.addUserScript(WKUserScript(source: "window.__KJB_INSTALL_SOURCE__ = '\(kjbInstallSource())';",
+                                  injectionTime: .atDocumentStart,
+                                  forMainFrameOnly: true))
+}
+
+// Where this copy of the app came from:
+//   "development" -- run from Xcode / ad-hoc (has an embedded provisioning profile)
+//   "testflight"  -- TestFlight build (sandbox receipt)
+//   "appstore"    -- App Store / Mac App Store
+// Prefixed with "mac-" when running as the Mac Catalyst build.
+func kjbInstallSource() -> String {
+    let isMac = ProcessInfo.processInfo.isMacCatalystApp
+    let prefix = isMac ? "mac-" : ""
+    let hasProfile =
+        Bundle.main.path(forResource: "embedded", ofType: "mobileprovision") != nil ||
+        Bundle.main.path(forResource: "embedded", ofType: "provisionprofile") != nil ||
+        FileManager.default.fileExists(atPath: Bundle.main.bundleURL
+            .appendingPathComponent("Contents/embedded.provisionprofile").path)
+    if Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt" {
+        return prefix + (hasProfile && !isMac ? "development" : "testflight")
+    }
+    if hasProfile && !isMac {
+        return prefix + "development"
+    }
+    // Mac store builds also carry a provisioning profile, so on Mac a
+    // missing receipt is what marks a local/Xcode run instead.
+    if isMac, let receipt = Bundle.main.appStoreReceiptURL,
+       !FileManager.default.fileExists(atPath: receipt.path) {
+        return prefix + "development"
+    }
+    return prefix + "appstore"
 }
 
 // MARK: - Notch chrome (full-bleed -> safe-area shell)

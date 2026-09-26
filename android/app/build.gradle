@@ -30,6 +30,10 @@ android {
     }
     defaultConfig {
         applicationId "com.kingjamesbiblereader.twa"
+        // Which channel this build is distributed through -- read by
+        // InstallSourceBridge (MainActivity) for Settings -> App Info ->
+        // "Installed From". build-android-ota.yml rewrites this to "apexhub".
+        buildConfigField "String", "DISTRIBUTION", "\"standard\""
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 79

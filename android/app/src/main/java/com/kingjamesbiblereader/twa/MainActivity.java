@@ -258,6 +258,11 @@ public class MainActivity extends BridgeActivity {
         // and nativeShare.js, which calls it when available.
         webView.addJavascriptInterface(new ShareBridge(this), "kjbShareBridge");
 
+        // Settings -> App Info -> "Installed From": tells the page whether
+        // this copy came from Google Play, ApexHub, or a sideloaded APK.
+        // See InstallSourceBridge below and src/lib/installSource.js.
+        webView.addJavascriptInterface(new InstallSourceBridge(this), "kjbInstallSourceBridge");
+
         // Covers a DIFFERENT download case than the bridge above: a plain
         // <a download href="https://..."> pointing at a REAL remote URL
         // (OfflineHtmlSection.jsx's "Download HTML File" link), rather than a
@@ -1291,6 +1296,51 @@ public class MainActivity extends BridgeActivity {
     // navigator.share(), which doesn't work by itself in a WebView embedded
     // inside a third-party app (see the comment on the addJavascriptInterface
     // call above).
+    // Exposed to JS as window.kjbInstallSourceBridge. get() returns JSON:
+    //   {"source": "play" | "apexhub" | "apk", "installer": "<package or empty>"}
+    // "apexhub" comes from the build itself (only build-android-ota.yml
+    // produces it), since an ApexHub/OTA install reports the package
+    // installer or this app itself as installer, not a store package.
+    private static class InstallSourceBridge {
+        private final MainActivity activity;
+
+        InstallSourceBridge(MainActivity activity) {
+            this.activity = activity;
+        }
+
+        @JavascriptInterface
+        public String get() {
+            String installer = null;
+            try {
+                String pkg = activity.getPackageName();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    installer = activity.getPackageManager()
+                            .getInstallSourceInfo(pkg).getInstallingPackageName();
+                } else {
+                    installer = activity.getPackageManager().getInstallerPackageName(pkg);
+                }
+            } catch (Exception ignored) {
+                // Unknown installer -- treated as a sideloaded APK below.
+            }
+            String source;
+            if ("apexhub".equals(BuildConfig.DISTRIBUTION)) {
+                source = "apexhub";
+            } else if ("com.android.vending".equals(installer)) {
+                source = "play";
+            } else {
+                source = "apk";
+            }
+            try {
+                org.json.JSONObject o = new org.json.JSONObject();
+                o.put("source", source);
+                o.put("installer", installer != null ? installer : "");
+                return o.toString();
+            } catch (Exception e) {
+                return "{\"source\":\"" + source + "\",\"installer\":\"\"}";
+            }
+        }
+    }
+
     private static class ShareBridge {
         private final MainActivity activity;
 

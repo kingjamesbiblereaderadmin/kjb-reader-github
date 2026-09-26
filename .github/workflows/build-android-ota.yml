@@ -165,6 +165,14 @@ jobs:
           }
           ''')
 
+          # 2b) Mark this build as the ApexHub distribution (Settings ->
+          # App Info -> "Installed From").
+          g = gradle.read_text()
+          old_marker = 'buildConfigField "String", "DISTRIBUTION", "\\"standard\\""'
+          if g.count(old_marker) != 1:
+              sys.exit(f"app/build.gradle: expected exactly one DISTRIBUTION marker, found {g.count(old_marker)}")
+          gradle.write_text(g.replace(old_marker, 'buildConfigField "String", "DISTRIBUTION", "\\"apexhub\\""'))
+
           # 3a) Manifest: the app and the SDK both declare
           # androidx.core.content.FileProvider, which Android allows only once.
           # Serve the SDK's authority from the app's existing provider instead
