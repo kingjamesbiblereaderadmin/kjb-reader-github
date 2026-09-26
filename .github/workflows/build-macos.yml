@@ -96,8 +96,8 @@ jobs:
             -authenticationKeyIssuerID '${{ secrets.ASC_ISSUER_ID }}' \
             CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
             SUPPORTS_MACCATALYST=YES \
-            SUPPORTED_PLATFORMS=macosx \
-            TARGETED_DEVICE_FAMILY=6 \
+            SUPPORTED_PLATFORMS="iphoneos iphonesimulator macosx" \
+            TARGETED_DEVICE_FAMILY="1,2,6" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO
 
