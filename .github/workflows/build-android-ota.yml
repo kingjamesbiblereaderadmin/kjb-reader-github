@@ -39,9 +39,10 @@ jobs:
       APEXHUB_PUBLIC_KEY: pk_live_C5tpgTk61HqmU9Y6sGn9MYl4XJkzL2vf
       APEXHUB_CHANNEL: ${{ inputs.channel }}
       APEXHUB_SDK_VERSION: ${{ inputs.sdk_version }}
-      # ApexHub is "Cert Locked" to this signing certificate -- the build
-      # fails below if the APK isn't signed with it.
-      APEXHUB_CERT_SHA256: '50:58:03:22:3B:58:80:FC:47:2E:CC:F3:10:6C:27:FC:39:83:B8:9C:C0:63:6F:E8:E6:83:15:3A:11:2E:EB:53'
+      # Release (upload) keystore certificate -- the build fails below if the
+      # APK isn't signed with it. ApexHub's "Cert Locked" fingerprint in the
+      # console must be set to this same value, or ApexHub rejects the upload.
+      APEXHUB_CERT_SHA256: '11:5B:40:33:09:AE:BE:91:88:4D:05:EA:06:85:CA:BB:1F:D3:F2:94:ED:58:78:85:6B:F0:E8:9D:CE:3E:60:87'
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
