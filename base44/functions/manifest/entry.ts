@@ -7,7 +7,7 @@ import { createClient, createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 // serve a stale sw.js for hours after a deploy, which prevented the update
 // prompt from ever firing). This endpoint is always served no-store, so the
 // version string here is the reliable source of truth for "what's deployed".
-const SW_VERSION = 'v20260926_2040';
+const SW_VERSION = 'v20260927_0321';
 
 const DEFAULT_ICONS = [
   // KJB Reader app icon (same art as the native Android launcher icon),
