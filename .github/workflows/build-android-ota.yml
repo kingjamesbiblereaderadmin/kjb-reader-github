@@ -101,6 +101,9 @@ jobs:
               // Needed on the COMPILE classpath so the Java hook can call the
               // SDK's suspend function (Continuation / Dispatchers).
               implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1"
+              // Aligns old kotlin-stdlib-jdk7/jdk8 pulled in by other libs with
+              // the SDK's newer stdlib (prevents "Duplicate class kotlin.*").
+              implementation platform("org.jetbrains.kotlin:kotlin-bom:1.9.24")
           }}
           ''')
 
@@ -182,15 +185,24 @@ jobs:
       - name: Build signed release APK
         working-directory: android
         run: |
+          set -o pipefail
           n=0
           until [ $n -ge 3 ]; do
-            ./gradlew --stacktrace assembleRelease && break
+            ./gradlew --stacktrace assembleRelease 2>&1 | tee build.log && break
             n=$((n+1))
             echo "Build attempt $n failed, retrying..."
             ./gradlew --stop || true
             sleep 5
           done
-          [ $n -lt 3 ] || { echo "Build failed after 3 attempts"; exit 1; }
+          if [ $n -ge 3 ]; then
+            # Surface the real Gradle error on the run summary page
+            # (the raw log is easy to miss).
+            MSG=$( { grep -E "^e: |error:|Could not (find|resolve)|Duplicate class|Execution failed" build.log | head -15
+                     sed -n '/What went wrong/,/Try:/p' build.log | head -25; } )
+            MSG=${MSG//'%'/'%25'}; MSG=${MSG//$'\n'/'%0A'}; MSG=${MSG//$'\r'/}
+            echo "::error title=Gradle build failed::${MSG:-see build log}"
+            exit 1
+          fi
           mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/kjbreader-apexhub.apk
 
       - name: Verify signature matches ApexHub cert lock
