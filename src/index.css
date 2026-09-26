@@ -617,8 +617,8 @@
        the big "N" in 1 Chronicles 8). Capping the letter at 55% of the
        actual column width keeps it floating on line one with the rest of
        the word beside it, at any zoom. Engines without container support
-       resolve cqw against the viewport, where the cap never binds — the old
-       3.4em behavior is preserved there. */
+       resolve cqw against the viewport, where the cap never binds — the
+       letter simply renders at its full em size there. */
     /* Drawn larger than the old 3.4em but with a proportionally tighter
        line-height, so the line box still measures EXACTLY two body lines
        (2 × leading-relaxed 1.625 = 3.25em; 3.7 × 0.88 ≈ 3.26em) while the
