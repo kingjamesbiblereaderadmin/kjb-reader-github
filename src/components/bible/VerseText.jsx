@@ -162,17 +162,14 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     // box (the letter carries its own tint in that case).
     // In select mode there is exactly ONE highlight layer instead: the group
     // box itself (its CSS `background-color: inherit` picks up the verse
-    // highlight). The letter keeps its normal -0.15em top lift, which pokes
-    // 0.51em (0.15 × the 3.4em glyph) above the group box — so shift the
-    // group up by that same amount and pad it back down, growing the single
-    // layer to cover the lifted letter. Two stacked boxes with mismatched
+    // highlight). The letter no longer carries a top lift, so the group box
+    // needs no compensating shift — its own padding (kjb-select-dropcap-box)
+    // already contains the letter cleanly. Two stacked boxes with mismatched
     // edges (group bg + letter tint) is what produced the visible "leak"
     // along the cap's top and left.
-    const groupStyle = dropHighlight && selectMode
-      ? ` style="padding-top:0.51em;margin-top:-0.51em;"`
-      : (dropHighlight
-        ? ` style="background-color:hsl(var(--background));"`
-        : '');
+    const groupStyle = dropHighlight && !selectMode
+      ? ` style="background-color:hsl(var(--background));"`
+      : '';
     // Match the first letter that is part of the actual TEXT, skipping any
     // leading HTML tags (e.g. <em>, <span class="pilcrow">). Using a bare
     // /[A-Za-z]/ would match the "e" inside a leading "<em>" tag and break it

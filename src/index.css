@@ -350,23 +350,10 @@
   .kjb-two-col > span:not([style*="flow-root"]) > span.flex > span.flex {
     display: block !important;
   }
-  /* The drop-cap lifts itself with a small negative top margin (-0.15em) to
-     fine-tune its two-line alignment. Inside a multicol fragmentainer, any
-     box pulled above its line is clipped at the column edge — slicing the
-     top off the cap (and the drop-cap verse number). In two-column mode the
-     cap stays inside its box: margin-top stays 0, and instead the glyph is
-     drawn larger with a proportionally tighter line-height, so its line box
-     still measures EXACTLY two body lines (2 × 1.625 = 3.25em; 3.7 × 0.88
-     ≈ 3.26em). The bigger letter then fills those two lines — cap-top sits
-     at the first line's cap height and the baseline sinks to (just past)
-     the second line's baseline — instead of riding high inside a box that
-     leaves a visible gap under the letter. The cap's ink stays inside its
-     box (cap-height < ascent), so nothing is clipped at the column edge. */
-  .kjb-two-col .kjb-dropcap-letter {
-    margin-top: 0;
-    font-size: min(3.7em, 55cqw);
-    line-height: 0.88;
-  }
+  /* The base .kjb-dropcap-letter rule above already keeps the letter fully
+     inside its own line box (no top lift, cap ink below the box top), so the
+     two-column multicol column edge can never slice the top off the cap or
+     the drop-cap verse number. */
 
   /* Extension page mockups: show the screenshot matching the browser's color
      scheme. The /extension page itself is always dark-themed, but the
@@ -632,29 +619,33 @@
        the word beside it, at any zoom. Engines without container support
        resolve cqw against the viewport, where the cap never binds — the old
        3.4em behavior is preserved there. */
-    font-size: min(3.4em, 55cqw);
-    line-height: 1;
+    /* Drawn larger than the old 3.4em but with a proportionally tighter
+       line-height, so the line box still measures EXACTLY two body lines
+       (2 × leading-relaxed 1.625 = 3.25em; 3.7 × 0.88 ≈ 3.26em) while the
+       glyph itself fills those two lines: cap-top sits at line 1's cap
+       height and the baseline lands on the second (indented, wrapped
+       beside the cap) line's baseline — no gap under the letter. The old
+       -0.15em top lift (0.15em of a 3.4em glyph ≈ half a body line) hoisted
+       the cap and left exactly that gap, so it is gone. The cap's ink stays
+       inside its line box (cap-height < ascent), so the multicol column
+       edge in two-column mode can never slice the top off it either. */
+    font-size: min(3.7em, 55cqw);
+    line-height: 0.88;
     font-weight: 700;
     color: inherit;
     font-family: 'Cormorant Garamond', 'Merriweather', Georgia, serif;
-    /* Lift the box so its bottom lands exactly at the 2-line mark (3.25em),
-       while keeping the cap-top near line 1's cap-top. */
-    margin-top: -0.15em;
   }
   /* Verse number sits at the top-left of the group, beside the big letter. */
   /* Select-mode overlay around the drop-cap verse (verse 1). The big letter
-     keeps its normal negative top lift (≈ half a text line) — a tight padding
-     box would clip it at the border, so this box adds enough top padding to
-     clear the full height of the T while it stays aligned with the text. */
+     now sits fully inside its own line box (the old top lift is gone), so a
+     modest padding box cleanly contains it while it stays aligned with the
+     text. */
   .kjb-select-dropcap-box {
     background: hsl(var(--primary) / 0.1);
     border: 1px solid hsl(var(--primary) / 0.3);
     border-radius: 0.4em;
-    /* Roomy top padding so the box fully contains the big letter even WITH its
-       normal -0.15em top lift (0.15em of a 3.4em glyph ≈ 0.5em of body text).
-       The lift itself is kept, NOT cancelled — it is what visually aligns the
-       cap's top with the first text line, exactly as in normal reading mode. */
-    padding: 0.55em 0.3em;
+    /* Light top padding keeps the big letter clear of the box border. */
+    padding: 0.2em 0.3em;
   }
   .kjb-dropcap-num {
     font-size: 0.62em;
