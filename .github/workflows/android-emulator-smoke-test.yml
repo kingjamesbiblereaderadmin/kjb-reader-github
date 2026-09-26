@@ -24,7 +24,7 @@ jobs:
     # doesn't exist anymore, macos-15-intel ran unaccelerated and never
     # finished booting). Ubuntu + KVM is the standard, well-documented,
     # actually-reliable setup for this action.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
