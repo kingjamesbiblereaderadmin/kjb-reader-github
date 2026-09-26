@@ -324,8 +324,17 @@
     margin-top: 0 !important;
     padding-top: 0.75rem;
   }
-  .kjb-two-col > span[data-pilcrow='true'] {
-    padding-top: 3rem;
+  /* Paragraph gap before a pilcrow (¶) verse rides on the verse ABOVE it as
+     bottom padding, not as top padding on the pilcrow verse itself. A pilcrow
+     verse that starts the second column therefore begins at the same height
+     as verse 1 (numbers + first line align across both column tops) — the
+     paragraph gap simply falls away at the column break instead of pushing
+     the paragraph down inside the new column. 2.25rem + the pilcrow verse's
+     own 0.75rem = the 3rem gap mid-column it replaces, so in-column paragraph
+     rhythm is unchanged. On browsers without :has, the gap gracefully
+     tightens to the standard verse rhythm — nothing breaks. */
+  .kjb-two-col > span:has(+ span[data-pilcrow='true']) {
+    padding-bottom: 2.25rem;
   }
   /* Every verse — including verse 1 — keeps the same leading padding, so
      whichever verse happens to start the second column sits at exactly the
@@ -342,12 +351,21 @@
   .kjb-two-col > span:not([style*="flow-root"]) > span.flex {
     display: block !important;
     position: relative;
-    padding-left: 2em !important;
+    /* Mirrors the flex row's exact gutter (0.4em row padding + 1.6em sup
+       width + 0.3em sup margin + 0.6em gap — the sup's own ems resolve at
+       its 0.6em font size: 0.4 + 0.96 + 0.18 + 0.6 = 2.14em), so the text
+       column edge lands exactly where the drop-cap verse's flex layout puts
+       it and every verse's text shares one left edge. */
+    padding-left: 2.14em !important;
   }
   .kjb-two-col > span:not([style*="flow-root"]) > span.flex > sup {
     position: absolute !important;
     left: 0.4em;
-    top: 0.3em;
+    /* Row padding-top (0.15em) + the sup's flex margin-top (0.2em at the
+       sup's 0.6em font = 0.12em) — matches the drop-cap verse's number
+       height exactly, so verse 1's number and every other verse's number
+       sit at the same height. */
+    top: 0.27em;
     margin: 0 !important;
   }
   .kjb-two-col > span:not([style*="flow-root"]) > span.flex > span.flex {
