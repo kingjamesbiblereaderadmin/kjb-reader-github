@@ -1,7 +1,7 @@
 // KJB Reader Service Worker v20260919_2155
 // Cache-first loading for offline support
 
-const CACHE_NAME = 'kjb-reader-v20260925_0150';
+const CACHE_NAME = 'kjb-reader-v20260926_2040';
 const LEGACY_CACHE_NAME = 'kjb-legacy-v11';
 // Persistent image cache — deliberately NOT versioned. Runtime-cached images
 // (preacher photos, extension page icons, mockups) used to be stored in
@@ -24,12 +24,12 @@ const APP_SHELL_FILES = [
 const PRECACHE_ASSETS = [
   'https://media.base44.com/images/public/6a05d76723afe58d80c589e8/2279e016e_8e738d108_cfb4bf781_Untitled.png',
   // PWA manifest icons — precached at install so the home-screen / installed
-  // icon works offline. Served same-origin via the pwaIcon function (cross-origin
+  // icon works offline. Static same-origin files in public/icons/ (cross-origin
   // base44.app URLs can time out on flaky mobile networks, leaving the installed
   // PWA with a blank home-screen icon).
-  '/functions/pwaIcon?size=192',
-  '/functions/pwaIcon?size=512',
-  '/functions/pwaIcon?size=maskable',
+  '/icons/kjb-icon-192.png',
+  '/icons/kjb-icon-512.png',
+  '/icons/kjb-maskable-512.png',
   // Soft-hyphen points for the two-column printed layout (src/lib/softHyphens.js)
   '/hyphenation.json',
   // Self-hosted OpenDyslexic fonts — precache at install so they're available

@@ -7,36 +7,14 @@ import { createClient, createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 // serve a stale sw.js for hours after a deploy, which prevented the update
 // prompt from ever firing). This endpoint is always served no-store, so the
 // version string here is the reliable source of truth for "what's deployed".
-const SW_VERSION = 'v20260920_0816';
+const SW_VERSION = 'v20260926_2040';
 
 const DEFAULT_ICONS = [
-  // User's hand-drawn "KJB Reader" signature logos (141x141). Declared at their
-  // true dimensions so PWABuilder's declared-vs-actual check passes. Kept as
-  // extra "any" entries; the 1024x1024 generated icon below remains the launcher.
-  {
-    src: "/functions/pwaIcon?size=sig",
-    sizes: "141x141",
-    type: "image/png",
-    purpose: "any"
-  },
-  {
-    src: "/functions/pwaIcon?size=sig2",
-    sizes: "141x141",
-    type: "image/png",
-    purpose: "any"
-  },
-  {
-    src: "/functions/pwaIcon?size=512",
-    sizes: "512x512",
-    type: "image/png",
-    purpose: "any"
-  },
-  {
-    src: "/functions/pwaIcon?size=maskable",
-    sizes: "512x512",
-    type: "image/png",
-    purpose: "maskable"
-  }
+  // KJB Reader app icon (same art as the native Android launcher icon),
+  // served as static same-origin files from public/icons/.
+  { src: "/icons/kjb-icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+  { src: "/icons/kjb-icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+  { src: "/icons/kjb-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" }
 ];
 
 const DEFAULT_SCREENSHOTS = [
@@ -146,25 +124,25 @@ Deno.serve(async (req) => {
         name: "Read the Bible",
         short_name: "Read",
         url: "/read",
-        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "512x512", type: "image/png" }]
+        icons: [{ src: "/icons/kjb-icon-512.png", sizes: "512x512", type: "image/png" }]
       },
       {
         name: "Search the Bible",
         short_name: "Search",
         url: "/search",
-        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "512x512", type: "image/png" }]
+        icons: [{ src: "/icons/kjb-icon-512.png", sizes: "512x512", type: "image/png" }]
       },
       {
         name: "Saved Verses",
         short_name: "Saved",
         url: "/saved",
-        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "512x512", type: "image/png" }]
+        icons: [{ src: "/icons/kjb-icon-512.png", sizes: "512x512", type: "image/png" }]
       },
       {
         name: "The Gospel",
         short_name: "Gospel",
         url: "/gospel",
-        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "512x512", type: "image/png" }]
+        icons: [{ src: "/icons/kjb-icon-512.png", sizes: "512x512", type: "image/png" }]
       }
     ],
     edge_side_panel: { preferred_width: 400 },
@@ -187,7 +165,7 @@ Deno.serve(async (req) => {
       {
         action: "/read",
         accept: { "text/plain": [".txt"], "text/html": [".html", ".htm"] },
-        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "512x512", type: "image/png" }],
+        icons: [{ src: "/icons/kjb-icon-512.png", sizes: "512x512", type: "image/png" }],
         launch_type: "single-client"
       }
     ],
@@ -198,7 +176,7 @@ Deno.serve(async (req) => {
         short_name: "KJB Verse",
         description: "Daily verse from the King James Bible",
         theme_color: "#0f1117",
-        icons: [{ src: "/functions/pwaIcon?size=512", sizes: "512x512", type: "image/png" }],
+        icons: [{ src: "/icons/kjb-icon-512.png", sizes: "512x512", type: "image/png" }],
         data: { type: "card", weight: 1 }
       }
     ],
