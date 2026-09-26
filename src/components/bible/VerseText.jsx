@@ -183,7 +183,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
       : `<span class="kjb-dropcap-letter"${letterStyle}>$2</span>`;
     html = html.replace(
       /^((?:<[^>]+>|\s)*)([A-Za-z])/,
-      `$1<span class="kjb-dropcap-group"${groupStyle}>${groupInner}</span>`
+      `$1<span class="kjb-dropcap-group${paragraphMode ? ' kjb-dropcap-group-para' : ''}"${groupStyle}>${groupInner}</span>`
     );
   }
 

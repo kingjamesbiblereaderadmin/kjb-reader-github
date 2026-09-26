@@ -635,6 +635,17 @@
     color: inherit;
     font-family: 'Cormorant Garamond', 'Merriweather', Georgia, serif;
   }
+  /* Paragraph mode: the verse text uses leading-loose (line-height 2.0), so
+     two body lines there measure 4.0em — NOT the 3.25em of the
+     leading-relaxed line/column modes the sizes above assume. Scale the cap
+     by the same ratio (4.55 × 0.88 ≈ 4.0em) so the letter still spans and
+     fills exactly the first two lines, with its baseline landing on the
+     indented (second) line's baseline — otherwise the cap stops short and
+     leaves the visible gap under the letter that the sizes above produce
+     in this mode. */
+  .kjb-dropcap-group-para .kjb-dropcap-letter {
+    font-size: min(4.55em, 55cqw);
+  }
   /* Verse number sits at the top-left of the group, beside the big letter. */
   /* Select-mode overlay around the drop-cap verse (verse 1). The big letter
      now sits fully inside its own line box (the old top lift is gone), so a
