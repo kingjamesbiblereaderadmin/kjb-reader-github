@@ -1,0 +1,157 @@
+name: Build macOS App
+
+# Builds the main KJB Reader app as a Mac Catalyst/macOS App Store package.
+# This is separate from Build iOS App and from the Safari extension workflow.
+concurrency:
+  group: build-macos
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: 'Upload the macOS package to App Store Connect'
+        required: false
+        default: 'upload'
+        type: choice
+        options: [upload, skip]
+      build_number:
+        description: 'Optional build number (blank = next App Store build number)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  build:
+    runs-on: macos-26
+    env:
+      APP_NAME: KJB Reader
+      BUNDLE_ID: com.kingjamesbiblereader.twa
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build web app and sync Capacitor
+        run: npm run build && npx cap sync ios
+
+      - name: Install CocoaPods
+        run: cd ios/App && pod install
+
+      - name: Determine build number
+        id: nextbuild
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.build_number }}" ]; then
+            NEXT="${{ inputs.build_number }}"
+          else
+            python3 -m venv /tmp/ascvenv
+            /tmp/ascvenv/bin/pip install pyjwt requests cryptography
+            NEXT=$(/tmp/ascvenv/bin/python scripts/asc-next-build.py)
+          fi
+          echo "next=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "macOS build number: $NEXT"
+
+      - name: Write App Store Connect API key
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+          if printf '%s' "$ASC_KEY_P8" | head -c 5 | grep -q 'BEGIN'; then
+            printf '%s\n' "$ASC_KEY_P8" > "$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+          else
+            printf '%s' "$ASC_KEY_P8" | base64 --decode > "$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+          fi
+
+      - name: Build unsigned macOS archive
+        env:
+          BUILD_NUMBER: ${{ steps.nextbuild.outputs.next }}
+        run: |
+          set -euxo pipefail
+          rm -rf build/macos build/derived-macos
+          xcodebuild archive \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -archivePath build/macos/KJB-Reader.xcarchive \
+            -derivedDataPath build/derived-macos \
+            -sdk macosx \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$HOME/.appstoreconnect/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8" \
+            -authenticationKeyID '${{ secrets.ASC_KEY_ID }}' \
+            -authenticationKeyIssuerID '${{ secrets.ASC_ISSUER_ID }}' \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
+            SUPPORTS_MACCATALYST=YES \
+            SUPPORTED_PLATFORMS=macosx \
+            TARGETED_DEVICE_FAMILY=6 \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Export signed macOS package
+        if: inputs.upload == 'upload'
+        env:
+          BUILD_NUMBER: ${{ steps.nextbuild.outputs.next }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euxo pipefail
+          mkdir -p build/macos-export
+          cat > build/macos-export/ExportOptions.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>export</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>teamID</key><string>$APPLE_TEAM_ID</string>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath build/macos/KJB-Reader.xcarchive \
+            -exportPath build/macos-export \
+            -exportOptionsPlist build/macos-export/ExportOptions.plist \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$HOME/.appstoreconnect/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8" \
+            -authenticationKeyID '${{ secrets.ASC_KEY_ID }}' \
+            -authenticationKeyIssuerID '${{ secrets.ASC_ISSUER_ID }}'
+          find build/macos-export -maxdepth 2 -type f -print
+
+      - name: Upload macOS package to App Store Connect
+        if: inputs.upload == 'upload'
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          set -euxo pipefail
+          PKG=$(find build/macos-export -maxdepth 1 -type f \( -name '*.pkg' -o -name '*.zip' \) | head -1)
+          test -n "$PKG"
+          xcrun altool --upload-package "$PKG" \
+            --type macos \
+            --apple-id 6813502666 \
+            --bundle-id "$BUNDLE_ID" \
+            --bundle-version "${{ steps.nextbuild.outputs.next }}" \
+            --apiKey "$ASC_KEY_ID" \
+            --apiIssuer "$ASC_ISSUER_ID"
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KJB-Reader-macOS
+          path: |
+            build/macos-export/*
+            build/macos/KJB-Reader.xcarchive
+          if-no-files-found: warn
+          retention-days: 14
