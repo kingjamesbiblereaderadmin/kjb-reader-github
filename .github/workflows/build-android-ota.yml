@@ -1,0 +1,245 @@
+name: Build Android (ApexHub OTA)
+
+# Separate, manual-only build of the native Android app WITH the ApexHub SDK
+# (OTA updates + analytics) for distribution through ApexHub.
+#
+# The SDK is injected at build time by this workflow only -- nothing is
+# committed to android/, so build-android.yml (Play Store build) and every
+# other workflow stay completely untouched. Do NOT upload this APK to Google
+# Play: self-updating via REQUEST_INSTALL_PACKAGES is against Play policy.
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'ApexHub release channel the app subscribes to'
+        type: choice
+        options: [stable, beta, nightly]
+        default: stable
+      sdk_version:
+        description: 'ApexHub SDK version (Maven Central, io.github.mr-perfect-252:sdk)'
+        default: '1.0.+'
+      release_notes:
+        description: 'Release notes shown in the in-app update dialog'
+        default: ''
+      mandatory:
+        description: 'Mandatory update (users cannot tap "Later")'
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/android/release.keystore
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      # Public key -- safe to embed in the APK (per ApexHub console).
+      APEXHUB_PUBLIC_KEY: pk_live_C5tpgTk61HqmU9Y6sGn9MYl4XJkzL2vf
+      APEXHUB_CHANNEL: ${{ inputs.channel }}
+      APEXHUB_SDK_VERSION: ${{ inputs.sdk_version }}
+      # ApexHub is "Cert Locked" to this signing certificate -- the build
+      # fails below if the APK isn't signed with it.
+      APEXHUB_CERT_SHA256: '50:58:03:22:3B:58:80:FC:47:2E:CC:F3:10:6C:27:FC:39:83:B8:9C:C0:63:6F:E8:E6:83:15:3A:11:2E:EB:53'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build web app (bundled into the APK as an offline fallback)
+        run: npm run build
+      - name: Sync Capacitor Android
+        run: |
+          mkdir -p android/app/src/main/assets
+          npx cap sync android
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-disabled: false
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4.0.4
+      - name: Generate Gradle wrapper (if missing)
+        working-directory: android
+        run: |
+          if [ ! -f gradlew ]; then
+            gradle wrapper --gradle-version 8.13
+          fi
+          chmod +x gradlew || true
+
+      - name: Inject ApexHub SDK (this workflow only)
+        working-directory: android
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, sys
+
+          key = os.environ["APEXHUB_PUBLIC_KEY"]
+          channel = os.environ["APEXHUB_CHANNEL"]
+          sdk_ver = os.environ["APEXHUB_SDK_VERSION"]
+          if not key.startswith(("pk_live_", "pk_test_")):
+              sys.exit("APEXHUB_PUBLIC_KEY must start with pk_live_ or pk_test_")
+
+          # 1) Gradle: SDK dependency + BuildConfig fields
+          gradle = pathlib.Path("app/build.gradle")
+          gradle.write_text(gradle.read_text() + f'''
+
+          // ---- Injected by build-android-ota.yml (not committed) ----
+          android {{
+              defaultConfig {{
+                  buildConfigField "String", "APEXHUB_PUBLIC_KEY", "\\"{key}\\""
+                  buildConfigField "String", "APEXHUB_CHANNEL", "\\"{channel}\\""
+              }}
+          }}
+          dependencies {{
+              implementation "io.github.mr-perfect-252:sdk:{sdk_ver}"
+              // Needed on the COMPILE classpath so the Java hook can call the
+              // SDK's suspend function (Continuation / Dispatchers).
+              implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1"
+          }}
+          ''')
+
+          # 2) Java hook class (app is pure Java; SDK is Kotlin)
+          src = pathlib.Path("app/src/main/java/com/kingjamesbiblereader/twa")
+          (src / "ApexHubOta.java").write_text('''package com.kingjamesbiblereader.twa;
+
+          import android.app.Activity;
+          import android.util.Log;
+          import com.apexhub.sdk.ApexHubConfig;
+          import com.apexhub.sdk.ApexHubUpdater;
+          import com.apexhub.sdk.UpdateStrategy;
+          import kotlin.Unit;
+          import kotlin.coroutines.Continuation;
+          import kotlin.coroutines.CoroutineContext;
+          import kotlinx.coroutines.Dispatchers;
+
+          /** ApexHub OTA hook -- only exists in the ApexHub OTA CI build. */
+          final class ApexHubOta {
+              private static final String TAG = "ApexHubOta";
+              private ApexHubOta() {}
+
+              static void onCreate(final Activity activity) {
+                  try {
+                      ApexHubConfig config = new ApexHubConfig(
+                              BuildConfig.APEXHUB_PUBLIC_KEY,
+                              null,                                   // packageName -> host app
+                              BuildConfig.APEXHUB_CHANNEL,
+                              com.apexhub.sdk.BuildConfig.DEFAULT_BASE_URL,
+                              6L,                                     // background check interval (hours)
+                              UpdateStrategy.FLEXIBLE,
+                              false);                                 // no downloads on metered data
+                      ApexHubUpdater updater = new ApexHubUpdater(activity.getApplicationContext(), config);
+                      updater.schedulePeriodicCheck("KJB Reader");
+
+                      ApexHubUpdater fg = new ApexHubUpdater(activity, config);
+                      // Foreground check -> dialog -> download -> install.
+                      // Network/download run on Dispatchers.IO inside the SDK.
+                      fg.checkAndPrompt(activity, new Continuation<Unit>() {
+                          @Override public CoroutineContext getContext() { return Dispatchers.getMain(); }
+                          @Override public void resumeWith(Object result) { /* SDK handles errors itself */ }
+                      });
+                  } catch (Throwable t) {
+                      // OTA must never take the app down.
+                      Log.w(TAG, "ApexHub init failed", t);
+                  }
+              }
+
+              static void onResume(Activity activity) {
+                  try {
+                      // Resume a pending install after the user grants
+                      // "Install unknown apps" in Settings.
+                      com.apexhub.sdk.ApkInstaller.INSTANCE.resumePendingInstall(activity);
+                  } catch (Throwable t) {
+                      Log.w(TAG, "resumePendingInstall failed", t);
+                  }
+              }
+          }
+          ''')
+
+          # 3) Two one-line hooks in MainActivity (fail loudly if anchors move)
+          ma = src / "MainActivity.java"
+          code = ma.read_text()
+          for anchor, hook in [
+              ("super.onCreate(savedInstanceState);", "ApexHubOta.onCreate(this);"),
+              ("super.onResume();", "ApexHubOta.onResume(this);"),
+          ]:
+              if code.count(anchor) != 1:
+                  sys.exit(f"MainActivity.java: expected exactly one '{anchor}', found {code.count(anchor)}")
+              code = code.replace(anchor, f"{anchor}\n        {hook}")
+          ma.write_text(code)
+          print("ApexHub SDK injected")
+          PY
+          git --no-pager diff --stat
+
+      - name: Restore persistent release keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$ANDROID_KEYSTORE_PATH"
+
+      - name: Build signed release APK
+        working-directory: android
+        run: |
+          n=0
+          until [ $n -ge 3 ]; do
+            ./gradlew --stacktrace assembleRelease && break
+            n=$((n+1))
+            echo "Build attempt $n failed, retrying..."
+            ./gradlew --stop || true
+            sleep 5
+          done
+          [ $n -lt 3 ] || { echo "Build failed after 3 attempts"; exit 1; }
+          mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/kjbreader-apexhub.apk
+
+      - name: Verify signature matches ApexHub cert lock
+        working-directory: android
+        run: |
+          BUILD_TOOLS_DIR=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)
+          APK=app/build/outputs/apk/release/kjbreader-apexhub.apk
+          "$BUILD_TOOLS_DIR/apksigner" verify --verbose "$APK"
+          ACTUAL=$("$BUILD_TOOLS_DIR/apksigner" verify --print-certs "$APK" \
+            | grep -m1 'SHA-256 digest' | awk '{print $NF}' | tr 'a-f' 'A-F')
+          EXPECTED=$(echo "$APEXHUB_CERT_SHA256" | tr -d ':' | tr 'a-f' 'A-F')
+          echo "APK cert:      $ACTUAL"
+          echo "ApexHub lock:  $EXPECTED"
+          [ "$ACTUAL" = "$EXPECTED" ] || { echo "::error::APK signing cert does not match ApexHub's locked certificate"; exit 1; }
+
+      - name: Publish release to ApexHub
+        # Secret CI/CD key (sk_live_...) -- server-side only, used here for the
+        # upload and never compiled into the APK. Set in repo Settings ->
+        # Secrets and variables -> Actions -> Secrets: APEXHUB_SECRET_KEY
+        # Upload endpoint from the ApexHub console, set as repo Variable:
+        # APEXHUB_UPLOAD_URL (step is skipped until it's set).
+        if: ${{ vars.APEXHUB_UPLOAD_URL != '' }}
+        working-directory: android
+        env:
+          APEXHUB_SECRET_KEY: ${{ secrets.APEXHUB_SECRET_KEY }}
+          APEXHUB_UPLOAD_URL: ${{ vars.APEXHUB_UPLOAD_URL }}
+          RELEASE_NOTES: ${{ inputs.release_notes }}
+          MANDATORY: ${{ inputs.mandatory }}
+        run: |
+          [ -n "$APEXHUB_SECRET_KEY" ] || { echo "::error::APEXHUB_SECRET_KEY secret is not set"; exit 1; }
+          APK=app/build/outputs/apk/release/kjbreader-apexhub.apk
+          VERSION_CODE=$(grep -m1 -E '^\s*versionCode\s+[0-9]+' app/build.gradle | awk '{print $2}')
+          VERSION_NAME=$(grep -m1 -E '^\s*versionName\s+"' app/build.gradle | sed -E 's/.*"(.*)".*/\1/')
+          SHA256=$(sha256sum "$APK" | awk '{print $1}')
+          echo "Publishing $VERSION_NAME ($VERSION_CODE) to channel $APEXHUB_CHANNEL"
+          curl --fail-with-body -sS -X POST "$APEXHUB_UPLOAD_URL" \
+            -H "Authorization: Bearer $APEXHUB_SECRET_KEY" \
+            -H "X-Api-Key: $APEXHUB_SECRET_KEY" \
+            -F "package_name=com.kingjamesbiblereader.twa" \
+            -F "version_code=$VERSION_CODE" \
+            -F "version_name=$VERSION_NAME" \
+            -F "channel=$APEXHUB_CHANNEL" \
+            -F "mandatory=$MANDATORY" \
+            -F "sha256=$SHA256" \
+            -F "release_notes=$RELEASE_NOTES" \
+            -F "apk=@$APK;type=application/vnd.android.package-archive"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v5
+        with:
+          name: android-apk-apexhub
+          path: android/app/build/outputs/apk/release/kjbreader-apexhub.apk
