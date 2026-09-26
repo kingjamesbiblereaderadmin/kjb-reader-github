@@ -236,7 +236,7 @@ jobs:
           EXPECTED=$(echo "$APEXHUB_CERT_SHA256" | tr -d ':' | tr 'a-f' 'A-F')
           echo "APK cert:      $ACTUAL"
           echo "ApexHub lock:  $EXPECTED"
-          [ "$ACTUAL" = "$EXPECTED" ] || { echo "::error::APK signing cert does not match ApexHub's locked certificate"; exit 1; }
+          [ "$ACTUAL" = "$EXPECTED" ] || { echo "::error title=Cert lock mismatch::APK is signed with ${ACTUAL} but ApexHub is locked to ${EXPECTED}"; exit 1; }
 
       - name: Publish release to ApexHub
         # Secret CI/CD key (sk_live_...) -- server-side only, used here for the
