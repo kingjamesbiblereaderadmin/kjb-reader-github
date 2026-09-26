@@ -164,6 +164,26 @@ jobs:
           }
           ''')
 
+          # 3a) Manifest: the app and the SDK both declare
+          # androidx.core.content.FileProvider, which Android allows only once.
+          # Serve the SDK's authority from the app's existing provider instead
+          # (file_paths.xml already covers cache-path ".", where the SDK
+          # downloads APKs).
+          mf = pathlib.Path("app/src/main/AndroidManifest.xml")
+          m = mf.read_text()
+          for old, new in [
+              ('<manifest xmlns:android="http://schemas.android.com/apk/res/android">',
+               '<manifest xmlns:android="http://schemas.android.com/apk/res/android"\n    xmlns:tools="http://schemas.android.com/tools">'),
+              ('android:authorities="${applicationId}.fileprovider"',
+               'android:authorities="${applicationId}.fileprovider;${applicationId}.apexhub.fileprovider"\n            tools:replace="android:authorities"'),
+              ('android:resource="@xml/file_paths"',
+               'android:resource="@xml/file_paths"\n                tools:replace="android:resource"'),
+          ]:
+              if m.count(old) != 1:
+                  sys.exit(f"AndroidManifest.xml: expected exactly one '{old}', found {m.count(old)}")
+              m = m.replace(old, new)
+          mf.write_text(m)
+
           # 3) Two one-line hooks in MainActivity (fail loudly if anchors move)
           ma = src / "MainActivity.java"
           code = ma.read_text()
