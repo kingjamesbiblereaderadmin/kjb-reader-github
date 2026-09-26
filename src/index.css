@@ -354,9 +354,18 @@
      fine-tune its two-line alignment. Inside a multicol fragmentainer, any
      box pulled above its line is clipped at the column edge — slicing the
      top off the cap (and the drop-cap verse number). In two-column mode the
-     cap stays inside its box; the 0.15em visual difference is imperceptible. */
+     cap stays inside its box: margin-top stays 0, and instead the glyph is
+     drawn larger with a proportionally tighter line-height, so its line box
+     still measures EXACTLY two body lines (2 × 1.625 = 3.25em; 3.7 × 0.88
+     ≈ 3.26em). The bigger letter then fills those two lines — cap-top sits
+     at the first line's cap height and the baseline sinks to (just past)
+     the second line's baseline — instead of riding high inside a box that
+     leaves a visible gap under the letter. The cap's ink stays inside its
+     box (cap-height < ascent), so nothing is clipped at the column edge. */
   .kjb-two-col .kjb-dropcap-letter {
     margin-top: 0;
+    font-size: min(3.7em, 55cqw);
+    line-height: 0.88;
   }
 
   /* Extension page mockups: show the screenshot matching the browser's color
