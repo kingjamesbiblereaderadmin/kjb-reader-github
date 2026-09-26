@@ -86,7 +86,7 @@ jobs:
             -workspace ios/App/App.xcworkspace \
             -scheme App \
             -configuration Release \
-            -destination 'generic/platform=macOS' \
+            -destination 'generic/platform=macOS,variant=Mac Catalyst' \
             -archivePath build/macos/KJB-Reader.xcarchive \
             -derivedDataPath build/derived-macos \
             -sdk macosx \
@@ -96,7 +96,6 @@ jobs:
             -authenticationKeyIssuerID '${{ secrets.ASC_ISSUER_ID }}' \
             CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
             SUPPORTS_MACCATALYST=YES \
-            SUPPORTED_PLATFORMS="iphoneos iphonesimulator macosx" \
             TARGETED_DEVICE_FAMILY="1,2,6" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO
