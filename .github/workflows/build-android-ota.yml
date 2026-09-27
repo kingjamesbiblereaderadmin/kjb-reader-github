@@ -137,6 +137,12 @@ jobs:
                               6L,                                     // background check interval (hours)
                               UpdateStrategy.FLEXIBLE,
                               false);                                 // no downloads on metered data
+                      if (android.os.Build.VERSION.SDK_INT >= 33
+                              && activity.checkSelfPermission("android.permission.POST_NOTIFICATIONS")
+                                  != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                          activity.requestPermissions(
+                                  new String[] { "android.permission.POST_NOTIFICATIONS" }, 9012);
+                      }
                       ApexHubUpdater updater = new ApexHubUpdater(activity.getApplicationContext(), config);
                       updater.schedulePeriodicCheck("KJB Reader");
 
@@ -191,6 +197,12 @@ jobs:
               if m.count(old) != 1:
                   sys.exit(f"AndroidManifest.xml: expected exactly one '{old}', found {m.count(old)}")
               m = m.replace(old, new)
+          # SDK v1.0.1 doesn't declare POST_NOTIFICATIONS, so on Android 13+
+          # the background "update available" notification is silently
+          # dropped (SDK docs, known-issues #2).
+          if "android.permission.POST_NOTIFICATIONS" not in m:
+              m = m.replace("</manifest>",
+                  '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n</manifest>', 1)
           mf.write_text(m)
 
           # 3) Two one-line hooks in MainActivity (fail loudly if anchors move)
@@ -251,23 +263,26 @@ jobs:
         # Secret CI/CD key (sk_live_...) -- server-side only, used here for the
         # upload and never compiled into the APK. Set in repo Settings ->
         # Secrets and variables -> Actions -> Secrets: APEXHUB_SECRET_KEY
-        # Upload endpoint from the ApexHub console, set as repo Variable:
-        # APEXHUB_UPLOAD_URL (step is skipped until it's set).
-        if: ${{ vars.APEXHUB_UPLOAD_URL != '' }}
+        # Endpoint: POST /api/releases/upload (ApexHub SDK docs,
+        # backend-api.md). Override with repo Variable APEXHUB_UPLOAD_URL.
         working-directory: android
         env:
           APEXHUB_SECRET_KEY: ${{ secrets.APEXHUB_SECRET_KEY }}
-          APEXHUB_UPLOAD_URL: ${{ vars.APEXHUB_UPLOAD_URL }}
+          APEXHUB_UPLOAD_URL: ${{ vars.APEXHUB_UPLOAD_URL || 'https://apex-hub-production.vercel.app/api/releases/upload' }}
           RELEASE_NOTES: ${{ inputs.release_notes }}
           MANDATORY: ${{ inputs.mandatory }}
         run: |
-          [ -n "$APEXHUB_SECRET_KEY" ] || { echo "::error::APEXHUB_SECRET_KEY secret is not set"; exit 1; }
+          if [ -z "$APEXHUB_SECRET_KEY" ]; then
+            echo "::warning title=Not published to ApexHub::APEXHUB_SECRET_KEY secret is not set -- APK is still available as a build artifact."
+            exit 0
+          fi
           APK=app/build/outputs/apk/release/kjbreader-apexhub.apk
           VERSION_CODE=$(grep -m1 -E '^\s*versionCode\s+[0-9]+' app/build.gradle | awk '{print $2}')
           VERSION_NAME=$(grep -m1 -E '^\s*versionName\s+"' app/build.gradle | sed -E 's/.*"(.*)".*/\1/')
           SHA256=$(sha256sum "$APK" | awk '{print $1}')
           echo "Publishing $VERSION_NAME ($VERSION_CODE) to channel $APEXHUB_CHANNEL"
-          curl --fail-with-body -sS -X POST "$APEXHUB_UPLOAD_URL" \
+          set +e
+          HTTP=$(curl -sS -o response.json -w '%{http_code}' -X POST "$APEXHUB_UPLOAD_URL" \
             -H "Authorization: Bearer $APEXHUB_SECRET_KEY" \
             -H "X-Api-Key: $APEXHUB_SECRET_KEY" \
             -F "package_name=com.kingjamesbiblereader.twa" \
@@ -277,7 +292,17 @@ jobs:
             -F "mandatory=$MANDATORY" \
             -F "sha256=$SHA256" \
             -F "release_notes=$RELEASE_NOTES" \
-            -F "apk=@$APK;type=application/vnd.android.package-archive"
+            -F "apk=@$APK;type=application/vnd.android.package-archive")
+          CURL_EXIT=$?
+          set -e
+          BODY=$(head -c 1500 response.json 2>/dev/null)
+          echo "ApexHub HTTP $HTTP: $BODY"
+          if [ $CURL_EXIT -ne 0 ] || [ "${HTTP:0:1}" != "2" ]; then
+            BODY=${BODY//'%'/'%25'}; BODY=${BODY//$'\n'/'%0A'}
+            echo "::error title=ApexHub upload failed (HTTP $HTTP)::${BODY:-curl exit $CURL_EXIT}"
+            exit 1
+          fi
+          echo "::notice title=Published to ApexHub::$VERSION_NAME ($VERSION_CODE) on $APEXHUB_CHANNEL"
 
       - name: Upload APK
         uses: actions/upload-artifact@v6
