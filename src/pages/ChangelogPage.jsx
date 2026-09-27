@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.275', date: 'September 27, 2026', items: [
+    { tag: 'ui', text: 'On Microsoft Edge, the side panel no longer shows the extension name twice. Edge\u2019s own native header already displays the name, so the panel\u2019s duplicate title text is now hidden (the logo and zoom/website controls remain)' },
+  ] },
   { version: 'v0.4.274', date: 'September 27, 2026', items: [
     { tag: 'improved', text: 'Personal Ministry Links in the extension\u2019s Resources tab now include TikTok, Instagram and Discord, and the Rumble link points to rumble.com/user/Godisgracious1031.' },
   ] },
