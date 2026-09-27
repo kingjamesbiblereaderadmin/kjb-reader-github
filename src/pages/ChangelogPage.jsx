@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.276', date: 'September 27, 2026', items: [
+    { tag: 'improved', text: 'Wildcard search highlighting now follows the Match word option: with Match word on, a wildcard pattern like \u201Clov?\u201D only highlights whole words, exactly matching the results list' },
+    { tag: 'fix', text: 'Fixed the sidebar highlight treating \u201C?\u201D as \u201Coptional previous character\u201D instead of a wildcard \u201Cany single character\u201D (e.g. \u201Clov?\u201D highlighted \u201Clo\u201D inside every word)' },
+  ] },
   { version: 'v0.4.275', date: 'September 27, 2026', items: [
     { tag: 'ui', text: 'On Microsoft Edge, the side panel no longer shows the extension name twice. Edge\u2019s own native header already displays the name, so the panel\u2019s duplicate title text is now hidden (the logo and zoom/website controls remain)' },
   ] },
