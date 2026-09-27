@@ -3,6 +3,12 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.277', date: 'September 27, 2026', items: [
+    { tag: 'fix', text: 'Same fixes as v0.4.276 (which Firefox users already have from AMO), now rolled out to all platforms:' },
+    { tag: 'improved', text: 'Wildcard search highlighting now follows the Match word option: with Match word on, a wildcard pattern like \u201Clov?\u201D only highlights whole words, exactly matching the results list' },
+    { tag: 'fix', text: 'Fixed the sidebar highlight treating \u201C?\u201D as \u201Coptional previous character\u201D instead of a wildcard \u201Cany single character\u201D (e.g. \u201Clov?\u201D highlighted \u201Clo\u201D inside every word)' },
+    { tag: 'fix', text: 'Fixed a rare conflict where clicking back into a comment or post compose box on some sites (Facebook, TikTok and other editors that render behind shadow DOM) failed to focus the box and typing couldn\u2019t be resumed: verse-link hit detection now always yields to editable areas' },
+  ] },
   { version: 'v0.4.276', date: 'September 27, 2026', items: [
     { tag: 'improved', text: 'Wildcard search highlighting now follows the Match word option: with Match word on, a wildcard pattern like \u201Clov?\u201D only highlights whole words, exactly matching the results list' },
     { tag: 'fix', text: 'Fixed the sidebar highlight treating \u201C?\u201D as \u201Coptional previous character\u201D instead of a wildcard \u201Cany single character\u201D (e.g. \u201Clov?\u201D highlighted \u201Clo\u201D inside every word)' },
