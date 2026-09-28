@@ -331,6 +331,23 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO
 
+      - name: Embed macOS App Sandbox entitlements in archive
+        run: |
+          set -euo pipefail
+          APP=build/macos/KJB-Reader.xcarchive/Products/Applications/App.app
+          EXT="$APP/PlugIns/KJBShare.appex"
+          test -d "$APP"
+          test -d "$EXT"
+          # The archive is intentionally built unsigned. Embed the macOS
+          # entitlements before export so exportArchive preserves them when
+          # it applies the App Store distribution signature.
+          codesign --force --sign - --timestamp=none \
+            --entitlements ios/App/Share/KJBShare-mac.entitlements "$EXT"
+          codesign --force --sign - --timestamp=none \
+            --entitlements ios/App/App/App-mac.entitlements "$APP"
+          codesign -d --entitlements :- "$APP" 2>&1 | grep -q 'com.apple.security.app-sandbox'
+          codesign -d --entitlements :- "$EXT" 2>&1 | grep -q 'com.apple.security.app-sandbox'
+
       - name: Export signed macOS package
         if: inputs.upload == 'upload'
         env:
