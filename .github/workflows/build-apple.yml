@@ -78,6 +78,7 @@ jobs:
             -destination 'generic/platform=iOS' \
             -derivedDataPath build/derived \
             CURRENT_PROJECT_VERSION=${{ steps.nextbuild.outputs.next }} \
+            MARKETING_VERSION="2.${{ github.run_number }}" \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
           APP=build/derived/Build/Products/Release-iphoneos/App.app
           VER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Info.plist")"
@@ -323,6 +324,7 @@ jobs:
             -authenticationKeyID '${{ secrets.ASC_KEY_ID }}' \
             -authenticationKeyIssuerID '${{ secrets.ASC_ISSUER_ID }}' \
             CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
+            MARKETING_VERSION="2.${{ github.run_number }}" \
             SUPPORTS_MACCATALYST=YES \
             TARGETED_DEVICE_FAMILY="1,2,6" \
             CODE_SIGNING_ALLOWED=NO \

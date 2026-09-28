@@ -21,27 +21,15 @@ jobs:
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@v5
-      - name: Apply custom version (if provided)
-        env:
-          INPUT_VERSION_CODE: ${{ inputs.version_code }}
-          INPUT_VERSION_NAME: ${{ inputs.version_name }}
+      - name: Set automatic version from GitHub run number
         run: |
+          set -euo pipefail
           GRADLE_FILE=android/app/build.gradle
-          if [ -n "$INPUT_VERSION_CODE" ]; then
-            if ! [[ "$INPUT_VERSION_CODE" =~ ^[0-9]+$ ]]; then
-              echo "::error::version_code must be a whole number, got '$INPUT_VERSION_CODE'"
-              exit 1
-            fi
-            sed -i -E "s/^([[:space:]]*versionCode )[0-9]+/\1$INPUT_VERSION_CODE/" "$GRADLE_FILE"
-          fi
-          if [ -n "$INPUT_VERSION_NAME" ]; then
-            if ! [[ "$INPUT_VERSION_NAME" =~ ^[0-9A-Za-z._-]+$ ]]; then
-              echo "::error::version_name may only contain letters, digits, '.', '_' or '-', got '$INPUT_VERSION_NAME'"
-              exit 1
-            fi
-            sed -i -E "s/^([[:space:]]*versionName )\"[^\"]*\"/\1\"$INPUT_VERSION_NAME\"/" "$GRADLE_FILE"
-          fi
-          echo "Building with:"
+          VERSION_CODE="$GITHUB_RUN_NUMBER"
+          VERSION_NAME="2.$GITHUB_RUN_NUMBER"
+          sed -i -E "s/^([[:space:]]*versionCode )[0-9]+/\1$VERSION_CODE/" "$GRADLE_FILE"
+          sed -i -E "s/^([[:space:]]*versionName )"[^"]*"/\1"$VERSION_NAME"/" "$GRADLE_FILE"
+          echo "Automatic Android version: $VERSION_NAME ($VERSION_CODE)"
           grep -E '^[[:space:]]*version(Code|Name) ' "$GRADLE_FILE"
       - uses: actions/setup-node@v5
         with:
