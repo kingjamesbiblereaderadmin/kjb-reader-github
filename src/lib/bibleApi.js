@@ -163,12 +163,19 @@ export function mergeAdjacentBrackets(text = '') {
 // PCE punctuation rule: trailing , . ; : ! ? that directly follows a closing
 // italics bracket moves INSIDE the bracket — "[art]," becomes "[art,]" — so the
 // punctuation renders and copies as part of the italic word, matching the PCE
-// source (which already prints ":" and ";" inside the brackets). Hyphens
-// ("[Ben]-[hadad]") and closing parentheses ("[above:])") are left untouched.
+// source (which already prints ":" and ";" inside the brackets). Closing
+// parentheses ("[above:])") are left untouched.
+// Bracket-merge rule: a hyphen or apostrophe that JOINS two bracketed words
+// merges them into ONE bracket — "[Ben]-[hadad]" → "[Ben-hadad]",
+// "[man]’[s]" → "[man’s]" — so the italic span covers the joining character
+// too. Runs BEFORE the punctuation pull-in so the pull-in can still apply to
+// the merged result.
 // Applied at read time as well as at parse time so verses from an older cache
 // (parsed before the rule was added) are normalized too.
 export function normalizeBracketPunctuation(text = '') {
-  return String(text).replace(/\]([.,;:!?]+)/g, '$1]');
+  return String(text)
+    .replace(/\](['\u2019-])\[/g, '$1')
+    .replace(/\]([.,;:!?]+)/g, '$1]');
 }
 
 // Shared chapter cleaning — identical for the async and the synchronous path.

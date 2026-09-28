@@ -119,8 +119,13 @@ export function parsePceText(text) {
     // PCE punctuation rule: trailing , . ; : ! ? that directly follows a
     // closing italic bracket moves INSIDE the brackets — "thou [art]," becomes
     // "thou [art,]" — matching the PCE source, which already prints ":" and
-    // ";" inside the brackets. Hyphens ("[Ben]-[hadad]") and closing
-    // parentheses ("[above:])") are left untouched.
+    // ";" inside the brackets. Parentheses ("[above:])") are left untouched.
+    // Bracket-merge rule: a hyphen or apostrophe that JOINS two bracketed
+    // words merges them into ONE bracket — "[Ben]-[hadad]" → "[Ben-hadad]",
+    // "[man]’[s]" → "[man’s]" — so the italic span covers the joining
+    // character too. Runs BEFORE the punctuation pull-in so the pull-in can
+    // still apply to the merged result.
+    t = t.replace(/\](['\u2019-])\[/g, '$1');
     t = t.replace(/\]([.,;:!?]+)/g, '$1]');
 
     if (!data[currentBook][currentChapter]) data[currentBook][currentChapter] = [];
