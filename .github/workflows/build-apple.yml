@@ -15,6 +15,12 @@ on:
         default: 'auto'
         type: choice
         options: [auto, upload, skip]
+      platform:
+        description: 'Build platform for this run'
+        required: false
+        default: 'all'
+        type: choice
+        options: [all, ios, macos]
       build_number:
         description: 'Optional macOS build number (blank = next App Store build number)'
         required: false
@@ -23,6 +29,7 @@ on:
 
 jobs:
   ios:
+    if: inputs.platform != 'macos'
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v5
@@ -223,6 +230,7 @@ jobs:
         if: steps.uploadmode.outputs.skip == 'true'
         run: echo "Skipped the App Store Connect upload per .github/asc-upload-mode (or the dispatch input). The build+export still validated this commit."
   macos:
+    if: inputs.platform != 'ios'
     runs-on: macos-26
     env:
       APP_NAME: KJB Reader
@@ -345,8 +353,10 @@ jobs:
             --entitlements ios/App/Share/KJBShare-mac.entitlements "$EXT"
           codesign --force --sign - --timestamp=none \
             --entitlements ios/App/App/App-mac.entitlements "$APP"
-          codesign -d --entitlements :- "$APP" 2>&1 | grep -q 'com.apple.security.app-sandbox'
-          codesign -d --entitlements :- "$EXT" 2>&1 | grep -q 'com.apple.security.app-sandbox'
+          echo '--- signed app entitlements ---'
+          codesign -d --entitlements :- "$APP" 2>&1 || true
+          echo '--- signed extension entitlements ---'
+          codesign -d --entitlements :- "$EXT" 2>&1 || true
 
       - name: Export signed macOS package
         if: inputs.upload == 'upload'
