@@ -29,7 +29,13 @@ jobs:
           VERSION_NAME="2.$GITHUB_RUN_NUMBER"
           export VERSION_NAME
           sed -i -E "s/^([[:space:]]*versionCode )[0-9]+/\1$VERSION_CODE/" "$GRADLE_FILE"
-          sed -i -E "s/^([[:space:]]*versionName )"[^"]*"/\1"$VERSION_NAME"/" "$GRADLE_FILE"
+          python3 - <<'PYVER'
+          import os, re
+          path = "android/app/build.gradle"
+          text = open(path).read()
+          text = re.sub(r'^(\s*versionName )"[^"]*"', r'\g<1>"' + os.environ["VERSION_NAME"] + '"', text, flags=re.MULTILINE)
+          open(path, "w").write(text)
+          PYVER
           echo "Automatic Android version: $VERSION_NAME ($VERSION_CODE)"
           grep -E '^[[:space:]]*version(Code|Name) ' "$GRADLE_FILE"
       - uses: actions/setup-node@v5
