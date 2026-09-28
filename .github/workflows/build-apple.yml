@@ -349,10 +349,10 @@ jobs:
           # The archive is intentionally built unsigned. Embed the macOS
           # entitlements before export so exportArchive preserves them when
           # it applies the App Store distribution signature.
-          codesign --force --sign - --timestamp=none \
-            --entitlements ios/App/Share/KJBShare-mac.entitlements "$EXT"
-          codesign --force --sign - --timestamp=none \
-            --entitlements ios/App/App/App-mac.entitlements "$APP"
+          codesign --force --deep --sign - --timestamp=none \
+            --entitlements ios/App/Share/KJBShare-mac.entitlements "$EXT" 2>&1
+          codesign --force --deep --sign - --timestamp=none \
+            --entitlements ios/App/App/App-mac.entitlements "$APP" 2>&1
           echo '--- signed app entitlements ---'
           codesign -d --entitlements :- "$APP" 2>&1 || true
           echo '--- signed extension entitlements ---'
