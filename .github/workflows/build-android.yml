@@ -27,6 +27,7 @@ jobs:
           GRADLE_FILE=android/app/build.gradle
           VERSION_CODE="$GITHUB_RUN_NUMBER"
           VERSION_NAME="2.$GITHUB_RUN_NUMBER"
+          export VERSION_NAME
           sed -i -E "s/^([[:space:]]*versionCode )[0-9]+/\1$VERSION_CODE/" "$GRADLE_FILE"
           sed -i -E "s/^([[:space:]]*versionName )"[^"]*"/\1"$VERSION_NAME"/" "$GRADLE_FILE"
           echo "Automatic Android version: $VERSION_NAME ($VERSION_CODE)"
