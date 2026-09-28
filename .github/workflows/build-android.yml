@@ -1,16 +1,6 @@
 name: Build Android
 on:
   workflow_dispatch:
-    inputs:
-      version_code:
-        description: 'versionCode (integer, e.g. 81). Leave blank to use build.gradle'
-        required: false
-        default: ''
-      version_name:
-        description: 'versionName (e.g. 1.80). Leave blank to use build.gradle'
-        required: false
-        default: ''
-
 jobs:
   build:
     runs-on: ubuntu-26.04
