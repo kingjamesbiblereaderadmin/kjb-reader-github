@@ -12,6 +12,11 @@ function normalizeMetaText(text) {
   normalized = normalized
     .replace(/([A-Za-z])[\u00B6\uFFFD](?=[A-Za-z])/g, "$1'")
     .replace(/([A-Za-z])[\u00B6\uFFFD](?=[^A-Za-z]|$)/g, "$1'");
+  // Bracket-merge rule (mirrors the verse parser): a hyphen or apostrophe
+  // that JOINS two bracketed words merges them into ONE bracket —
+  // "[Ben]-[hadad]" → "[Ben-hadad]", "[man]’[s]" → "[man’s]" — so the
+  // italic span covers the joining character too.
+  normalized = normalized.replace(/\](['\u2019-])\[/g, '$1');
   let prev;
   do {
     prev = normalized;

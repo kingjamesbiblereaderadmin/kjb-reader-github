@@ -338,6 +338,10 @@ export function renderColophonText(text, searchTerm = null) {
     .replace(/^[\u00B6\uFFFD]\s*/, '');
   // Convert replacement-char/pilcrow apostrophes (e.g. "David�s" → "David's")
   normalized = normalizeApostrophes(normalized);
+  // Bracket-merge rule (mirrors the verse parser): a hyphen or apostrophe
+  // that JOINS two bracketed words merges them into ONE bracket so the
+  // italic span covers the joining character too.
+  normalized = normalized.replace(/\](['\u2019-])\[/g, '$1');
   normalized = mergeAdjacentBrackets(normalized);
   normalized = escapeHtml(normalized);
   const parts = normalized.split(/\[([^\]]+)\]/g);
@@ -356,6 +360,10 @@ export function renderSubscriptText(text, searchTerm = null) {
     .replace(/\u201C/g, '"').replace(/\u201D/g, '"');
   // Convert replacement-char/pilcrow apostrophes to real apostrophes
   normalized = normalizeApostrophes(normalized);
+  // Bracket-merge rule (mirrors the verse parser): a hyphen or apostrophe
+  // that JOINS two bracketed words merges them into ONE bracket so the
+  // italic span covers the joining character too.
+  normalized = normalized.replace(/\](['\u2019-])\[/g, '$1');
   normalized = mergeAdjacentBrackets(normalized);
   normalized = escapeHtml(normalized);
   const parts = normalized.split(/\[([^\]]+)\]/g);
