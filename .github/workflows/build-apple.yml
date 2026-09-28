@@ -336,7 +336,6 @@ jobs:
             MARKETING_VERSION="2.${{ github.run_number }}" \
             DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
             CODE_SIGN_STYLE=Automatic \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
             SUPPORTS_MACCATALYST=YES \
             TARGETED_DEVICE_FAMILY="1,2,6" \
             CODE_SIGNING_ALLOWED=YES \
