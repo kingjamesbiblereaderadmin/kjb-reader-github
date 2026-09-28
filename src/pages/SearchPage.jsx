@@ -1659,7 +1659,7 @@ export default function SearchPage() {
             <p className="font-sans text-sm text-muted-foreground print:text-black">No results found for "{stripQuotes(getQueryFromUrl() || query)}".</p>
             <p className="font-sans text-xs text-muted-foreground/70 mt-4 print:hidden">
               If you think this is an error, please email{' '}
-              <a href="mailto:kingjamesbiblereader@outlook.sg" className="underline hover:text-foreground transition-colors">kingjamesbiblereader@outlook.sg</a>
+              <a href="mailto:kingjamesbiblereader@outlook.sg" className="underline text-inherit hover:text-foreground transition-colors">kingjamesbiblereader@outlook.sg</a>
             </p>
           </div>
           {showBookResult && (
