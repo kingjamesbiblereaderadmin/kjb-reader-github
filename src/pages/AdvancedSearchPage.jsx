@@ -184,19 +184,65 @@ export default function AdvancedSearchPage() {
     return m;
   }, [results]);
 
-  // Page in the next batch. With a metric sort (e.g. Italics), newly shown
-  // verses often belong to book groups that sit ABOVE the button (results are
-  // sorted by the metric, ties in Bible order, then grouped by book) — so
-  // without a scroll the click looks like nothing happened. Jump to the first
-  // newly-shown row so the new content is actually on screen.
-  const handleShowMore = useCallback(() => {
-    const firstNew = visible;
-    setVisible(v => v + PAGE_SIZE);
-    setTimeout(() => {
-      const el = document.querySelector(`[data-result-idx="${firstNew}"]`);
-      if (el) el.scrollIntoView({ block: 'start' });
-    }, 60);
-  }, [visible]);
+  // Metric sorts (e.g. Italics) interleave books: ties fall back to Bible
+  // order, so the same book's rows keep appearing in separate blocks — grouping
+  // them by book would insert new pages into groups ABOVE the viewport. A
+  // flat, true-sorted list instead means every new batch appends at the bottom
+  // and infinite scroll simply continues downward.
+  const useFlat = filters.sortKey !== 'none' && filters.sortKey !== 'canonical';
+  const flatVisible = useMemo(() => results.slice(0, visible), [results, visible]);
+
+  // One result row (select-mode wrapper or plain), shared by the flat list
+  // and the grouped view.
+  const renderRow = useCallback((r) => {
+    const k = keyOf(r);
+    if (selectMode) {
+      const checked = selectedKeys.has(k);
+      return (
+        <button
+          key={k}
+          type="button"
+          data-result-idx={indexByKey.get(k)}
+          onClick={() => toggleSelect(r)}
+          style={{ scrollMarginTop: bandH + 8 }}
+          className={`w-full flex items-start gap-3 text-left rounded-2xl transition-colors ${
+            checked ? 'ring-2 ring-primary rounded-2xl' : ''
+          }`}
+        >
+          <span className="mt-4 shrink-0">
+            {checked
+              ? <CheckSquare className="w-5 h-5 text-primary" />
+              : <Square className="w-5 h-5 text-muted-foreground" />}
+          </span>
+          <span className="flex-1 pointer-events-none">
+            <AdvancedResultRow record={r} sortKey={filters.sortKey} sortLabel={sortLabel} filters={filters} />
+          </span>
+        </button>
+      );
+    }
+    return (
+      <div key={k} data-result-idx={indexByKey.get(k)} style={{ scrollMarginTop: bandH + 8 }}>
+        <AdvancedResultRow record={r} sortKey={filters.sortKey} sortLabel={sortLabel} filters={filters} />
+      </div>
+    );
+  }, [selectMode, selectedKeys, toggleSelect, indexByKey, bandH, filters, sortLabel]);
+
+  // Infinite scroll: load the next batch automatically when the sentinel near
+  // the end of the list comes within 800px. Each 50-row batch pushes the
+  // sentinel back out of range, so loading continues one batch per approach to
+  // the bottom — the list keeps growing downward with no button taps.
+  const sentinelRef = useRef(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !records || isEmpty) return;
+    if (visible >= results.length) return;
+    const io = new IntersectionObserver(
+      (entries) => { if (entries.some(e => e.isIntersecting)) setVisible(v => v + PAGE_SIZE); },
+      { rootMargin: '800px 0px' }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [records, results, visible, isEmpty]);
 
   const sortLabel = useMemo(
     () => NUMERIC_METRICS.find(m => m.key === filters.sortKey)?.label.toLowerCase() || '',
@@ -406,7 +452,10 @@ export default function AdvancedSearchPage() {
               </div>
             ) : (
               <div className="space-y-8">
-                {groupedVisible.map(t => {
+                {useFlat ? (
+                  <div className="space-y-3">{flatVisible.map(r => renderRow(r))}</div>
+                ) : (
+                groupedVisible.map(t => {
                   const tCollapsed = collapsedGroups.has(t.key);
                   const tCount = totalCounts.t.get(t.key) || 0;
                   return (
@@ -436,51 +485,16 @@ export default function AdvancedSearchPage() {
                           </h3>
                           <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${bCollapsed ? '-rotate-90' : ''}`} />
                         </button>
-                        {!bCollapsed && b.rows.map(r => {
-                          const k = keyOf(r);
-                          if (selectMode) {
-                            const checked = selectedKeys.has(k);
-                            return (
-                              <button
-                                key={k}
-                                type="button"
-                                data-result-idx={indexByKey.get(k)}
-                                onClick={() => toggleSelect(r)}
-                                style={{ scrollMarginTop: bandH + 8 }}
-                                className={`w-full flex items-start gap-3 text-left rounded-2xl transition-colors ${
-                                  checked ? 'ring-2 ring-primary rounded-2xl' : ''
-                                }`}
-                              >
-                                <span className="mt-4 shrink-0">
-                                  {checked
-                                    ? <CheckSquare className="w-5 h-5 text-primary" />
-                                    : <Square className="w-5 h-5 text-muted-foreground" />}
-                                </span>
-                                <span className="flex-1 pointer-events-none">
-                                  <AdvancedResultRow record={r} sortKey={filters.sortKey} sortLabel={sortLabel} filters={filters} />
-                                </span>
-                              </button>
-                            );
-                          }
-                          return (
-                            <div key={k} data-result-idx={indexByKey.get(k)} style={{ scrollMarginTop: bandH + 8 }}>
-                              <AdvancedResultRow record={r} sortKey={filters.sortKey} sortLabel={sortLabel} filters={filters} />
-                            </div>
-                          );
-                        })}
+                        {!bCollapsed && b.rows.map(r => renderRow(r))}
                       </div>
                       );
                     })}
                   </div>
                   );
-                })}
+                })
+                )}
                 {visible < results.length && (
-                  <button
-                    onClick={handleShowMore}
-                    className="w-full py-3 rounded-xl bg-secondary/50 border border-border text-foreground font-sans text-sm font-medium hover:border-accent transition-colors"
-                  >
-                    Show more ({(results.length - visible).toLocaleString()} remaining)
-                  </button>
+                  <div ref={sentinelRef} aria-hidden="true" style={{ height: 1 }} />
                 )}
               </div>
             )}
