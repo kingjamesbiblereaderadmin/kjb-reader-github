@@ -252,6 +252,22 @@ export default function AdvancedSearchPage() {
     return () => io.disconnect();
   }, [records, results, visible, isEmpty]);
 
+  // Metric sorts: since ties fall back to Bible order, every row with the same
+  // metric value is contiguous — so group the visible rows by value into
+  // collapsible sections ("1 italics (2)", "2 italics (10)", …) in sort order.
+  const flatMetricGroups = useMemo(() => {
+    if (!useFlat) return [];
+    const groups = [];
+    const map = new Map();
+    for (const r of flatVisible) {
+      const v = r.metrics[filters.sortKey];
+      let g = map.get(v);
+      if (!g) { g = { value: v, rows: [] }; map.set(v, g); groups.push(g); }
+      g.rows.push(r);
+    }
+    return groups;
+  }, [useFlat, flatVisible, filters.sortKey]);
+
   const handleReset = useCallback(() => { setFilters(defaultFilters()); setForceShow(false); }, []);
 
   // Which filter options would still return verses given the current filters.
@@ -456,7 +472,27 @@ export default function AdvancedSearchPage() {
             ) : (
               <div className="space-y-8">
                 {useFlat ? (
-                  <div className="space-y-3">{flatVisible.map(r => renderRow(r))}</div>
+                  <div className="space-y-5">
+                    {flatMetricGroups.map(g => {
+                      const gKey = `m:${g.value}`;
+                      const gCollapsed = collapsedGroups.has(gKey);
+                      return (
+                      <div key={gKey} className="space-y-3">
+                        <button
+                          onClick={(e) => toggleGroup(gKey, e.currentTarget)}
+                          className="w-full flex items-center justify-between gap-2 border-b-2 border-accent/40 pb-1.5 text-left"
+                        >
+                          <h2 className="font-serif text-xl font-bold text-foreground">
+                            <span className="font-sans text-sm font-normal text-muted-foreground">{g.value.toLocaleString()}</span> {sortLabel}
+                            <span className="font-sans text-sm font-normal text-muted-foreground"> ({g.rows.length.toLocaleString()})</span>
+                          </h2>
+                          <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${gCollapsed ? '-rotate-90' : ''}`} />
+                        </button>
+                        {!gCollapsed && g.rows.map(r => renderRow(r))}
+                      </div>
+                      );
+                    })}
+                  </div>
                 ) : (
                 groupedVisible.map(t => {
                   const tCollapsed = collapsedGroups.has(t.key);
