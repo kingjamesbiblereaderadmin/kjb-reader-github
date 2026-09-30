@@ -176,6 +176,28 @@ export default function AdvancedSearchPage() {
     [results, selectedKeys]
   );
 
+  // Global position of each record within the full sorted result list, so the
+  // "Show more" button can scroll to the first newly-shown row.
+  const indexByKey = useMemo(() => {
+    const m = new Map();
+    results.forEach((r, i) => m.set(keyOf(r), i));
+    return m;
+  }, [results]);
+
+  // Page in the next batch. With a metric sort (e.g. Italics), newly shown
+  // verses often belong to book groups that sit ABOVE the button (results are
+  // sorted by the metric, ties in Bible order, then grouped by book) — so
+  // without a scroll the click looks like nothing happened. Jump to the first
+  // newly-shown row so the new content is actually on screen.
+  const handleShowMore = useCallback(() => {
+    const firstNew = visible;
+    setVisible(v => v + PAGE_SIZE);
+    setTimeout(() => {
+      const el = document.querySelector(`[data-result-idx="${firstNew}"]`);
+      if (el) el.scrollIntoView({ block: 'start' });
+    }, 60);
+  }, [visible]);
+
   const sortLabel = useMemo(
     () => NUMERIC_METRICS.find(m => m.key === filters.sortKey)?.label.toLowerCase() || '',
     [filters.sortKey]
@@ -422,7 +444,9 @@ export default function AdvancedSearchPage() {
                               <button
                                 key={k}
                                 type="button"
+                                data-result-idx={indexByKey.get(k)}
                                 onClick={() => toggleSelect(r)}
+                                style={{ scrollMarginTop: bandH + 8 }}
                                 className={`w-full flex items-start gap-3 text-left rounded-2xl transition-colors ${
                                   checked ? 'ring-2 ring-primary rounded-2xl' : ''
                                 }`}
@@ -439,7 +463,9 @@ export default function AdvancedSearchPage() {
                             );
                           }
                           return (
-                            <AdvancedResultRow key={k} record={r} sortKey={filters.sortKey} sortLabel={sortLabel} filters={filters} />
+                            <div key={k} data-result-idx={indexByKey.get(k)} style={{ scrollMarginTop: bandH + 8 }}>
+                              <AdvancedResultRow record={r} sortKey={filters.sortKey} sortLabel={sortLabel} filters={filters} />
+                            </div>
                           );
                         })}
                       </div>
@@ -450,7 +476,7 @@ export default function AdvancedSearchPage() {
                 })}
                 {visible < results.length && (
                   <button
-                    onClick={() => setVisible(v => v + PAGE_SIZE)}
+                    onClick={handleShowMore}
                     className="w-full py-3 rounded-xl bg-secondary/50 border border-border text-foreground font-sans text-sm font-medium hover:border-accent transition-colors"
                   >
                     Show more ({(results.length - visible).toLocaleString()} remaining)
