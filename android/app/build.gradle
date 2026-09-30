@@ -38,6 +38,20 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 85
         versionName "1.84"
+        // OTA-only numbering; Play builds keep their existing version step.
+        // Stamp the literals too, because the ApexHub upload reads this file.
+        if (System.getenv('APEXHUB_CHANNEL') && System.getenv('GITHUB_RUN_NUMBER')) {
+            def otaCode = 113 + Integer.parseInt(System.getenv('GITHUB_RUN_NUMBER'))
+            def otaName = "2.${otaCode}"
+            versionCode otaCode
+            versionName otaName
+            def gradleFile = project.buildFile
+            def stamped = gradleFile.getText('UTF-8')
+                .replaceFirst(/(?m)^(\s*versionCode\s+)\d+/, '${1}' + otaCode)
+                .replaceFirst(/(?m)^(\s*versionName\s+)"[^"]*"/, '${1}"' + otaName + '"')
+            gradleFile.write(stamped, 'UTF-8')
+            println "Automatic OTA version: ${otaName} (${otaCode})"
+        }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
