@@ -101,6 +101,21 @@ export default function AdvancedSearchPage() {
   // action button + breathing room. Used as bottom padding on the scroll area.
   const footerPad = footerMode === 'two' ? 200 : footerMode === 'one' ? 150 : 90;
 
+  // Height of the sticky group header (Testament / metric title), measured
+  // live — the sticky book headers anchor just below it so both stay visible
+  // while a long list scrolls underneath.
+  const [groupHeaderH, setGroupHeaderH] = useState(0);
+  const groupHeaderRO = useRef(null);
+  const groupHeaderRef = useCallback((el) => {
+    if (groupHeaderRO.current) { groupHeaderRO.current.disconnect(); groupHeaderRO.current = null; }
+    if (!el) return;
+    const update = () => setGroupHeaderH(el.offsetHeight);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    groupHeaderRO.current = ro;
+  }, []);
+
   const toggleGroup = useCallback((groupKey, el) => {
     setCollapsedGroups(prev => {
       const next = new Set(prev);
@@ -486,14 +501,15 @@ export default function AdvancedSearchPage() {
               <div className="space-y-8">
                 {useFlat ? (
                   <div className="space-y-5">
-                    {flatMetricGroups.map(g => {
+                    {flatMetricGroups.map((g, gi) => {
                       const gKey = `m:${g.value}`;
                       const gCollapsed = collapsedGroups.has(gKey);
                       return (
                       <div key={gKey} className="space-y-3">
                         <button
+                          ref={gi === 0 ? groupHeaderRef : undefined}
                           onClick={(e) => toggleGroup(gKey, e.currentTarget)}
-                          className="w-full flex items-center justify-between gap-2 border-b-2 border-accent/40 pb-1.5 text-left"
+                          className="w-full flex items-center justify-between gap-2 sticky top-0 z-20 bg-background border-b-2 border-accent/40 pb-1.5 text-left"
                         >
                           <h2 className="font-serif text-xl font-bold text-foreground">
                             <span className="font-sans text-sm font-normal text-muted-foreground">{g.value.toLocaleString()}</span> {sortLabel}
@@ -507,14 +523,15 @@ export default function AdvancedSearchPage() {
                     })}
                   </div>
                 ) : (
-                groupedVisible.map(t => {
+                groupedVisible.map((t, ti) => {
                   const tCollapsed = collapsedGroups.has(t.key);
                   const tCount = totalCounts.t.get(t.key) || 0;
                   return (
                   <div key={t.key} className="space-y-5">
                     <button
+                      ref={ti === 0 ? groupHeaderRef : undefined}
                       onClick={(e) => toggleGroup(t.key, e.currentTarget)}
-                      className="w-full flex items-center justify-between gap-2 border-b-2 border-accent/40 pb-1.5 text-left"
+                      className="w-full flex items-center justify-between gap-2 sticky top-0 z-20 bg-background border-b-2 border-accent/40 pb-1.5 text-left"
                     >
                       <h2 className="font-serif text-2xl font-bold text-foreground">
                         {t.label} <span className="font-sans text-sm font-normal text-muted-foreground">({tCount.toLocaleString()})</span>
@@ -530,7 +547,7 @@ export default function AdvancedSearchPage() {
                         <button
                           onClick={(e) => toggleGroup(bKey, e.currentTarget)}
                           className="w-full flex items-center justify-between gap-2 sticky bg-background py-1 z-10 text-left rounded-md"
-                          style={{ top: 0 }}
+                          style={{ top: groupHeaderH }}
                         >
                           <h3 className="font-serif text-lg font-semibold text-primary">
                             <span className="notranslate">{b.label}</span> <span className="font-sans text-xs font-normal text-muted-foreground">({bCount.toLocaleString()})</span>
