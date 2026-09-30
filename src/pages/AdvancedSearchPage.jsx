@@ -40,6 +40,23 @@ export default function AdvancedSearchPage() {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+  // Fixed shell: the page fills the scroll container's visible height exactly
+  // (measured live, accounting for the bottom-nav padding), so the band and
+  // filter panel stay put and only the results list scrolls in its own panel.
+  const [shellH, setShellH] = useState(0);
+  useEffect(() => {
+    const scroller = document.getElementById('kjb-scroll');
+    if (!scroller) return;
+    const update = () => {
+      const cs = getComputedStyle(scroller);
+      setShellH(scroller.clientHeight - parseFloat(cs.paddingTop || '0') - parseFloat(cs.paddingBottom || '0'));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(scroller);
+    return () => ro.disconnect();
+  }, []);
+
   // Collapsed Testament / Book groups (keys stored in a Set = collapsed).
   const [collapsedGroups, setCollapsedGroups] = useState(() => new Set());
 
@@ -92,12 +109,7 @@ export default function AdvancedSearchPage() {
       // On expand, jump the header into view — accounting for the sticky app
       // header so the Testament title isn't hidden behind it.
       if (wasCollapsed && el) {
-        requestAnimationFrame(() => {
-          const headerEl = document.querySelector('[data-kjb-app-header]');
-          const headerH = headerEl ? headerEl.getBoundingClientRect().height : 0;
-          const top = el.getBoundingClientRect().top + window.scrollY - headerH - 8;
-          window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-        });
+        requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }));
       }
       return next;
     });
@@ -247,7 +259,7 @@ export default function AdvancedSearchPage() {
     if (visible >= results.length) return;
     const io = new IntersectionObserver(
       (entries) => { if (entries.some(e => e.isIntersecting)) setVisible(v => v + PAGE_SIZE); },
-      { rootMargin: '800px 0px' }
+      { root: resultsRef.current, rootMargin: '800px 0px' }
     );
     io.observe(el);
     return () => io.disconnect();
@@ -350,11 +362,14 @@ export default function AdvancedSearchPage() {
   }, [results, visible]);
 
   return (
-    <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 pt-10 pb-32">
+    <div
+      className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 pt-8 pb-4 flex flex-col"
+      style={shellH ? { height: shellH } : undefined}
+    >
       {/* Anchored band: page title → beta notice → result count + toolbar.
           Pins to the top of the scroll container so these controls stay
           visible while the results scroll underneath. */}
-      <div ref={bandRef} className="sticky top-0 z-30 bg-background">
+      <div ref={bandRef} className="shrink-0">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 mb-4">
             <FlaskConical className="w-7 h-7 text-white" />
@@ -413,31 +428,28 @@ export default function AdvancedSearchPage() {
       </div>
 
       {records === null && !error && (
-        <div className="flex flex-col items-center justify-center py-24 gap-3">
+        <div className="shrink-0 flex flex-col items-center justify-center py-24 gap-3">
           <Loader2 className="w-6 h-6 animate-spin text-primary/70" />
           <p className="font-sans text-sm text-muted-foreground">Analysing every verse, superscription & colophon…</p>
         </div>
       )}
 
       {error && (
-        <div className="rounded-2xl bg-destructive/10 border border-destructive/40 p-4 max-w-lg mx-auto">
+        <div className="shrink-0 rounded-2xl bg-destructive/10 border border-destructive/40 p-4 max-w-lg mx-auto">
           <p className="font-sans text-sm text-destructive">{error} Make sure the Bible has downloaded, then try again.</p>
         </div>
       )}
 
       {records && !error && (
-        <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6 items-start">
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6 items-stretch">
           {/* Desktop filter column — sticky, with its own independent scroll
               so a long filter list scrolls on its own without moving the page. */}
-          <div
-            className="hidden lg:block sticky overflow-y-auto overscroll-contain pr-1 pb-8 scrollbar-hide"
-            style={{ top: bandH + 16, maxHeight: `calc(100vh - ${bandH + 32}px)` }}
-          >
+          <div className="hidden lg:block overflow-y-auto overscroll-contain pr-1 pb-8 kjb-scroll-visible">
             <AdvancedFilterPanel filters={filters} onChange={setFilters} onReset={handleReset} availability={availability} metricRanges={metricRanges} textDraft={textDraft} onTextDraftChange={setTextDraft} />
           </div>
 
           {/* Results column */}
-          <div ref={resultsRef} style={{ scrollMarginTop: bandH }}>
+          <div ref={resultsRef} id="kjb-adv-results" className="overflow-y-auto overscroll-contain kjb-scroll-visible pb-2">
             {selectMode && !isEmpty && results.length > 0 && (
               <div className="flex items-center gap-3 mb-4">
                 <button
@@ -517,8 +529,8 @@ export default function AdvancedSearchPage() {
                       <div key={b.key} className="space-y-3">
                         <button
                           onClick={(e) => toggleGroup(bKey, e.currentTarget)}
-                          className="w-full flex items-center justify-between gap-2 sticky bg-background/90 backdrop-blur-sm py-1 z-10 text-left"
-                          style={{ top: bandH }}
+                          className="w-full flex items-center justify-between gap-2 sticky bg-background py-1 z-10 text-left rounded-md"
+                          style={{ top: 0 }}
                         >
                           <h3 className="font-serif text-lg font-semibold text-primary">
                             <span className="notranslate">{b.label}</span> <span className="font-sans text-xs font-normal text-muted-foreground">({bCount.toLocaleString()})</span>
@@ -542,7 +554,7 @@ export default function AdvancedSearchPage() {
         </div>
       )}
 
-      <ScrollToTop />
+      <ScrollToTop targetId="kjb-adv-results" />
 
       {/* Mobile filter drawer */}
       {showFilters && records && (

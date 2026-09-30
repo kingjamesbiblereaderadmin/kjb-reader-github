@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronUp } from 'lucide-react';
 
-export default function ScrollToTop() {
+export default function ScrollToTop({ targetId }) {
   const [visible, setVisible] = useState(false);
   const [footerHeight, setFooterHeight] = useState(80);
 
   useEffect(() => {
-    const scroller = document.getElementById('kjb-scroll');
+    const scroller = (targetId && document.getElementById(targetId)) || document.getElementById('kjb-scroll');
     const target = scroller || window;
     const getY = () => (scroller ? scroller.scrollTop : window.scrollY);
     const handleScroll = () => {
@@ -44,7 +44,7 @@ export default function ScrollToTop() {
   }, []);
 
   const scrollToTop = () => {
-    const scroller = document.getElementById('kjb-scroll');
+    const scroller = (targetId && document.getElementById(targetId)) || document.getElementById('kjb-scroll');
     if (scroller) scroller.scrollTo({ top: 0, behavior: 'smooth' });
     else window.scrollTo({ top: 0, behavior: 'smooth' });
   };
