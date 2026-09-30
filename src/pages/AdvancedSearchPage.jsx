@@ -22,6 +22,20 @@ export default function AdvancedSearchPage() {
   // all 31,102 verses). "Show results" flips this on to force-display them.
   const [forceShow, setForceShow] = useState(false);
   const resultsRef = useRef(null);
+  // Height of the anchored band (title → beta → count/toolbar). Measured live
+  // so the sticky filter column and the sticky book headers can sit just below
+  // it no matter how tall the band is at any moment.
+  const bandRef = useRef(null);
+  const [bandH, setBandH] = useState(0);
+  useEffect(() => {
+    const el = bandRef.current;
+    if (!el) return;
+    const update = () => setBandH(el.offsetHeight);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   // Collapsed Testament / Book groups (keys stored in a Set = collapsed).
   const [collapsedGroups, setCollapsedGroups] = useState(() => new Set());
 
@@ -249,48 +263,30 @@ export default function AdvancedSearchPage() {
 
   return (
     <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 pt-10 pb-32">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 mb-4">
-          <FlaskConical className="w-7 h-7 text-white" />
-        </div>
-        <h1 className="font-serif text-4xl font-bold text-foreground mb-2">Advanced Search</h1>
-        <p className="font-sans text-sm text-muted-foreground max-w-md mx-auto">
-          Research the King James Bible by verse properties — length, pilcrows, italics, capitals, punctuation and more.
-        </p>
-        <div className="mt-4 w-16 h-px bg-accent mx-auto" />
-      </div>
-
-      <div className="max-w-md mx-auto mb-8 rounded-xl bg-amber-50 dark:bg-amber-900/15 border border-amber-200 dark:border-amber-900/40 p-4">
-        <p className="font-sans text-xs text-amber-700 dark:text-amber-400 font-medium leading-relaxed text-center">
-          ⚠️ Advanced Search is in <strong>beta</strong>. If you run into any issues, please contact me at{' '}
-          <a href="mailto:kingjamesbiblereader@outlook.sg" className="underline">kingjamesbiblereader@outlook.sg</a>.
-        </p>
-      </div>
-
-      {records === null && !error && (
-        <div className="flex flex-col items-center justify-center py-24 gap-3">
-          <Loader2 className="w-6 h-6 animate-spin text-primary/70" />
-          <p className="font-sans text-sm text-muted-foreground">Analysing every verse, superscription & colophon…</p>
-        </div>
-      )}
-
-      {error && (
-        <div className="rounded-2xl bg-destructive/10 border border-destructive/40 p-4 max-w-lg mx-auto">
-          <p className="font-sans text-sm text-destructive">{error} Make sure the Bible has downloaded, then try again.</p>
-        </div>
-      )}
-
-      {records && !error && (
-        <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6 items-start">
-          {/* Desktop filter column — sticky, with its own independent scroll
-              so a long filter list scrolls on its own without moving the page. */}
-          <div className="hidden lg:block sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto overscroll-contain pr-1 pb-8 scrollbar-hide">
-            <AdvancedFilterPanel filters={filters} onChange={setFilters} onReset={handleReset} availability={availability} metricRanges={metricRanges} textDraft={textDraft} onTextDraftChange={setTextDraft} />
+      {/* Anchored band: page title → beta notice → result count + toolbar.
+          Pins to the top of the scroll container so these controls stay
+          visible while the results scroll underneath. */}
+      <div ref={bandRef} className="sticky top-0 z-30 bg-background">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 mb-4">
+            <FlaskConical className="w-7 h-7 text-white" />
           </div>
+          <h1 className="font-serif text-4xl font-bold text-foreground mb-2">Advanced Search</h1>
+          <p className="font-sans text-sm text-muted-foreground max-w-md mx-auto">
+            Research the King James Bible by verse properties — length, pilcrows, italics, capitals, punctuation and more.
+          </p>
+          <div className="mt-4 w-16 h-px bg-accent mx-auto" />
+        </div>
 
-          {/* Results column */}
-          <div ref={resultsRef} className="scroll-mt-4">
+        <div className="max-w-md mx-auto mb-8 rounded-xl bg-amber-50 dark:bg-amber-900/15 border border-amber-200 dark:border-amber-900/40 p-4">
+          <p className="font-sans text-xs text-amber-700 dark:text-amber-400 font-medium leading-relaxed text-center">
+            ⚠️ Advanced Search is in <strong>beta</strong>. If you run into any issues, please contact me at{' '}
+            <a href="mailto:kingjamesbiblereader@outlook.sg" className="underline">kingjamesbiblereader@outlook.sg</a>.
+          </p>
+        </div>
+
+        {records && !error && (
+          <>
             {/* Result count + mobile filter button */}
             <div className="flex items-center justify-between gap-3 mb-3">
               <p className="font-sans text-sm text-muted-foreground">
@@ -324,7 +320,36 @@ export default function AdvancedSearchPage() {
                 </button>
               </div>
             )}
+          </>
+        )}
+      </div>
 
+      {records === null && !error && (
+        <div className="flex flex-col items-center justify-center py-24 gap-3">
+          <Loader2 className="w-6 h-6 animate-spin text-primary/70" />
+          <p className="font-sans text-sm text-muted-foreground">Analysing every verse, superscription & colophon…</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="rounded-2xl bg-destructive/10 border border-destructive/40 p-4 max-w-lg mx-auto">
+          <p className="font-sans text-sm text-destructive">{error} Make sure the Bible has downloaded, then try again.</p>
+        </div>
+      )}
+
+      {records && !error && (
+        <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6 items-start">
+          {/* Desktop filter column — sticky, with its own independent scroll
+              so a long filter list scrolls on its own without moving the page. */}
+          <div
+            className="hidden lg:block sticky overflow-y-auto overscroll-contain pr-1 pb-8 scrollbar-hide"
+            style={{ top: bandH + 16, maxHeight: `calc(100vh - ${bandH + 32}px)` }}
+          >
+            <AdvancedFilterPanel filters={filters} onChange={setFilters} onReset={handleReset} availability={availability} metricRanges={metricRanges} textDraft={textDraft} onTextDraftChange={setTextDraft} />
+          </div>
+
+          {/* Results column */}
+          <div ref={resultsRef} style={{ scrollMarginTop: bandH }}>
             {selectMode && !isEmpty && results.length > 0 && (
               <div className="flex items-center gap-3 mb-4">
                 <button
@@ -381,7 +406,8 @@ export default function AdvancedSearchPage() {
                       <div key={b.key} className="space-y-3">
                         <button
                           onClick={(e) => toggleGroup(bKey, e.currentTarget)}
-                          className="w-full flex items-center justify-between gap-2 sticky top-0 bg-background/90 backdrop-blur-sm py-1 z-10 text-left"
+                          className="w-full flex items-center justify-between gap-2 sticky bg-background/90 backdrop-blur-sm py-1 z-10 text-left"
+                          style={{ top: bandH }}
                         >
                           <h3 className="font-serif text-lg font-semibold text-primary">
                             <span className="notranslate">{b.label}</span> <span className="font-sans text-xs font-normal text-muted-foreground">({bCount.toLocaleString()})</span>
