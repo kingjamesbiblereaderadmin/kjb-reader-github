@@ -8,7 +8,10 @@ import AdvancedFilterPanel from '@/components/search/AdvancedFilterPanel';
 import AdvancedResultRow from '@/components/search/AdvancedResultRow';
 import AdvancedResultsToolbar from '@/components/search/AdvancedResultsToolbar';
 
-const PAGE_SIZE = 50;
+// Show the full result set on the page at once — no "Show more" clicking.
+// The infinite-scroll sentinel below only kicks in beyond this safety cap
+// (e.g. "Show all verses" with no filters set) so the page never freezes.
+const PAGE_SIZE = 2000;
 
 export default function AdvancedSearchPage() {
   const [records, setRecords] = useState(null);   // null = loading
