@@ -195,6 +195,11 @@ export default function AdvancedSearchPage() {
   const useFlat = filters.sortKey !== 'none' && filters.sortKey !== 'canonical';
   const flatVisible = useMemo(() => results.slice(0, visible), [results, visible]);
 
+  const sortLabel = useMemo(
+    () => NUMERIC_METRICS.find(m => m.key === filters.sortKey)?.label.toLowerCase() || '',
+    [filters.sortKey]
+  );
+
   // One result row (select-mode wrapper or plain), shared by the flat list
   // and the grouped view.
   const renderRow = useCallback((r) => {
@@ -246,11 +251,6 @@ export default function AdvancedSearchPage() {
     io.observe(el);
     return () => io.disconnect();
   }, [records, results, visible, isEmpty]);
-
-  const sortLabel = useMemo(
-    () => NUMERIC_METRICS.find(m => m.key === filters.sortKey)?.label.toLowerCase() || '',
-    [filters.sortKey]
-  );
 
   const handleReset = useCallback(() => { setFilters(defaultFilters()); setForceShow(false); }, []);
 
