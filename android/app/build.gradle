@@ -47,8 +47,8 @@ android {
             versionName otaName
             def gradleFile = project.buildFile
             def stamped = gradleFile.getText('UTF-8')
-                .replaceFirst(/(?m)^(\s*versionCode\s+)\d+/, '${1}' + otaCode)
-                .replaceFirst(/(?m)^(\s*versionName\s+)"[^"]*"/, '${1}"' + otaName + '"')
+                .replaceFirst(/(?m)^(\s*versionCode\s+)\d+/) { match, prefix -> prefix + otaCode }
+                .replaceFirst(/(?m)^(\s*versionName\s+)"[^"]*"/) { match, prefix -> prefix + '"' + otaName + '"' }
             gradleFile.write(stamped, 'UTF-8')
             println "Automatic OTA version: ${otaName} (${otaCode})"
         }
