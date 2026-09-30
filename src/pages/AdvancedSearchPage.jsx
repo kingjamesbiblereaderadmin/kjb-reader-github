@@ -7,6 +7,7 @@ import {
 import AdvancedFilterPanel from '@/components/search/AdvancedFilterPanel';
 import AdvancedResultRow from '@/components/search/AdvancedResultRow';
 import AdvancedResultsToolbar from '@/components/search/AdvancedResultsToolbar';
+import ScrollToTop from '@/components/ScrollToTop';
 
 // Show the full result set on the page at once — no "Show more" clicking.
 // The infinite-scroll sentinel below only kicks in beyond this safety cap
@@ -392,7 +393,7 @@ export default function AdvancedSearchPage() {
 
             {/* Export / copy / print + select toggle */}
             {!isEmpty && results.length > 0 && (
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
                 <AdvancedResultsToolbar records={results} selectedRecords={selectMode ? selectedRecords : null} filters={filters} />
                 <button
                   onClick={() => { setSelectMode(m => !m); setSelectedKeys(new Set()); }}
@@ -540,6 +541,8 @@ export default function AdvancedSearchPage() {
           </div>
         </div>
       )}
+
+      <ScrollToTop />
 
       {/* Mobile filter drawer */}
       {showFilters && records && (
