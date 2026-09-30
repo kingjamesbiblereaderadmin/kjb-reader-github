@@ -384,24 +384,7 @@ export default function AdvancedSearchPage() {
       {/* Anchored band: page title → beta notice → result count + toolbar.
           Pins to the top of the scroll container so these controls stay
           visible while the results scroll underneath. */}
-      <div ref={bandRef} className="shrink-0">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 mb-4">
-            <FlaskConical className="w-7 h-7 text-white" />
-          </div>
-          <h1 className="font-serif text-4xl font-bold text-foreground mb-2">Advanced Search</h1>
-          <p className="font-sans text-sm text-muted-foreground max-w-md mx-auto">
-            Research the King James Bible by verse properties — length, pilcrows, italics, capitals, punctuation and more.
-          </p>
-          <div className="mt-4 w-16 h-px bg-accent mx-auto" />
-        </div>
-
-        <div className="max-w-md mx-auto mb-8 rounded-xl bg-amber-50 dark:bg-amber-900/15 border border-amber-200 dark:border-amber-900/40 p-4">
-          <p className="font-sans text-xs text-amber-700 dark:text-amber-400 font-medium leading-relaxed text-center">
-            ⚠️ Advanced Search is in <strong>beta</strong>. If you run into any issues, please contact me at{' '}
-            <a href="mailto:kingjamesbiblereader@outlook.sg" className="underline">kingjamesbiblereader@outlook.sg</a>.
-          </p>
-        </div>
+      <div ref={bandRef} className="shrink-0 pb-4">
 
         {records && !error && (
           <>
@@ -423,7 +406,7 @@ export default function AdvancedSearchPage() {
 
             {/* Export / copy / print + select toggle */}
             {!isEmpty && results.length > 0 && (
-              <div className="flex flex-wrap items-center justify-between gap-2 pb-8">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <AdvancedResultsToolbar records={results} selectedRecords={selectMode ? selectedRecords : null} filters={filters} />
                 <button
                   onClick={() => { setSelectMode(m => !m); setSelectedKeys(new Set()); }}
@@ -465,6 +448,26 @@ export default function AdvancedSearchPage() {
 
           {/* Results column */}
           <div ref={resultsRef} id="kjb-adv-results" className="overflow-y-auto overscroll-contain kjb-scroll-visible pb-2">
+            {/* Scrollable intro: the title and beta notice scroll away with the
+                list — only the options row above stays anchored. */}
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 mb-4">
+                <FlaskConical className="w-7 h-7 text-white" />
+              </div>
+              <h1 className="font-serif text-4xl font-bold text-foreground mb-2">Advanced Search</h1>
+              <p className="font-sans text-sm text-muted-foreground max-w-md mx-auto">
+                Research the King James Bible by verse properties — length, pilcrows, italics, capitals, punctuation and more.
+              </p>
+              <div className="mt-4 w-16 h-px bg-accent mx-auto" />
+            </div>
+
+            <div className="max-w-md mx-auto mb-8 rounded-xl bg-amber-50 dark:bg-amber-900/15 border border-amber-200 dark:border-amber-900/40 p-4">
+              <p className="font-sans text-xs text-amber-700 dark:text-amber-400 font-medium leading-relaxed text-center">
+                ⚠️ Advanced Search is in <strong>beta</strong>. If you run into any issues, please contact me at{' '}
+                <a href="mailto:kingjamesbiblereader@outlook.sg" className="underline">kingjamesbiblereader@outlook.sg</a>.
+              </p>
+            </div>
+
             {selectMode && !isEmpty && results.length > 0 && (
               <div className="flex items-center gap-3 mb-4">
                 <button
