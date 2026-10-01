@@ -10,6 +10,7 @@ const DEFAULT_URLS = {
   firefox: 'https://addons.mozilla.org/en-US/firefox/addon/kjb-reader-sidepanel/',
   opera: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/1154a38a3_kjb-reader-opera-v04259.zip',
   edge: 'https://microsoftedge.microsoft.com/addons/detail/kjb-reader-sidepanel/bphmmbiepbhfnfijaapbmpimkkjdceee',
+  mac: 'https://apps.apple.com/us/app/kjb-reader-sidepanel/id6813502666',
 };
 const DEFAULT_VERSION = 'v0.4.272';
 
@@ -103,6 +104,8 @@ export default function ExtensionPage() {
       edge: DEFAULT_URLS.edge,
       firefox: cfg.firefox || DEFAULT_URLS.firefox,
       opera: cfg.opera || DEFAULT_URLS.opera,
+      // Mac App Store is pinned to the official listing.
+      mac: DEFAULT_URLS.mac,
     });
     if (cfg.version) setVersion(cfg.version);
     setShowInstructions(cfg.show_instructions !== false);
@@ -255,6 +258,24 @@ export default function ExtensionPage() {
                 <Puzzle className="w-5 h-5" />
                 Get for Opera
               </span>
+            </a>
+            <a
+              href={urls.mac}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Download on the Mac App Store"
+              className="inline-flex flex-col items-center justify-start self-start transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <span className="inline-flex items-center gap-2.5 h-[58px] px-5 rounded-lg shadow-lg bg-black text-white border border-neutral-600">
+                <svg viewBox="0 0 24 24" className="w-7 h-7 fill-current" aria-hidden="true">
+                  <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" />
+                </svg>
+                <span className="flex flex-col items-start leading-tight text-left">
+                  <span className="font-sans text-[10px] font-normal">Download on the</span>
+                  <span className="font-sans text-lg font-semibold -mt-0.5">Mac App Store</span>
+                </span>
+              </span>
+              <span className="font-sans text-[11px] font-medium text-transparent mt-1" aria-hidden="true">&nbsp;</span>
             </a>
           </div>
         </div>
