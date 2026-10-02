@@ -1,5 +1,5 @@
 import { getBibleData, getBibleDataSync, isBibleCached } from '@/lib/bibleCache';
-import { COLOPHONS, SUBSCRIPTS, PSALM_119_SECTIONS } from '@/lib/bibleSubscripts';
+import { COLOPHONS, SUBSCRIPTS } from '@/lib/bibleSubscripts';
 import { loadOverrides, applyOverrides, getSubscriptOverride, getColophonOverride, getEndMarkerOverride } from '@/lib/bibleTextOverrides';
 
 // Default closing end-marker labels shown after the final chapter of the OT
@@ -200,19 +200,6 @@ function cleanChapterData(bible, bookApiName, chapter) {
     }
   }
   
-  // Psalm 119: guarantee the 22 Hebrew acrostic stanza headings (ALEPH…TAU)
-  // above every 8-verse section, even on devices whose cached Bible was parsed
-  // before the parser stamped headings. The hardcoded map is authoritative —
-  // it matches the PCE source exactly, so stamp it onto each stanza-start
-  // verse (1, 9, 17, …) unless a heading is already present.
-  if (bookApiName === 'Psalms' && chapter === 119) {
-    verses = verses.map(v => {
-      const n = parseInt(v.verse, 10);
-      const h = PSALM_119_SECTIONS[n];
-      return h && !v.heading ? { ...v, heading: h } : v;
-    });
-  }
-
   // Apply shared, database-backed verse corrections (if any are loaded).
   verses = applyOverrides(bookApiName, chapter, verses);
 
