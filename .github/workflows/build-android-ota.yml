@@ -277,8 +277,17 @@ jobs:
             exit 0
           fi
           APK=app/build/outputs/apk/release/kjbreader-apexhub.apk
-          VERSION_CODE=$(grep -m1 -E '^\s*versionCode\s+[0-9]+' app/build.gradle | awk '{print $2}')
-          VERSION_NAME=$(grep -m1 -E '^\s*versionName\s+"' app/build.gradle | sed -E 's/.*"(.*)".*/\1/')
+          # Read the version from the built APK itself so the uploaded
+          # version_code always equals the OTA version baked into the app
+          # (113 + run number), never a stale literal in build.gradle.
+          BUILD_TOOLS_DIR=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)
+          BADGING=$("$BUILD_TOOLS_DIR/aapt2" dump badging "$APK")
+          VERSION_CODE=$(echo "$BADGING" | sed -n "s/.*versionCode='\([0-9]*\)'.*/\1/p" | head -1)
+          VERSION_NAME=$(echo "$BADGING" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p" | head -1)
+          if [ -z "$VERSION_CODE" ] || [ "$VERSION_CODE" -le 113 ]; then
+            echo "::error title=Bad OTA version::APK versionCode is '${VERSION_CODE}', expected 113 + run number (> 113)"
+            exit 1
+          fi
           SHA256=$(sha256sum "$APK" | awk '{print $1}')
           echo "Publishing $VERSION_NAME ($VERSION_CODE) to channel $APEXHUB_CHANNEL"
           set +e
