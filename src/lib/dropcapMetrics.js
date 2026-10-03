@@ -116,12 +116,20 @@ export function dropcapVarsStyle(paragraphMode) {
   const fams = activeFamilies();
   const key = `${H}|${fams.text}|${fams.cap}`;
   if (cache.key === key) return cache.style;
-  cache = { key, style: '' };
+  // Each measurement writes ONLY into its own cache entry. Previously the
+  // callback wrote to whatever `cache` was current when it resolved, so a
+  // slow measurement for an earlier font (e.g. the default serif stack still
+  // waiting on its web font while the Comic Sans stack — a system font —
+  // resolved instantly) landed last and overwrote the new font's values with
+  // the old font's, leaving the cap sized/positioned for the wrong font.
+  const entry = { key, style: '' };
+  cache = entry;
   computeStyle(H, fams).then((style) => {
-    cache.style = style;
-    listeners.forEach((l) => l());
+    entry.style = style;
+    // Only re-render if this is still the active configuration.
+    if (cache === entry) listeners.forEach((l) => l());
   }).catch(() => {});
-  return cache.style;
+  return entry.style;
 }
 
 // React binding: re-renders the verse once the measured values arrive and
