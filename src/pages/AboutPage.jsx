@@ -286,7 +286,7 @@ export default function AboutPage() {
       </div>
 
       {/* Links */}
-      <ColorSection collapsible edge="from-emerald-500 to-teal-400" iconBg="from-emerald-500 to-teal-500" eyebrow="Reach us" icon={<Globe className="w-5 h-5" />} title="Ministry & links">
+      <ColorSection collapsible edge="from-emerald-500 to-teal-400" iconBg="from-emerald-500 to-teal-500" eyebrow="Reach us" icon={<Globe className="w-5 h-5" />} title="Links & Contact">
         <ContactLinks />
       </ColorSection>
 
