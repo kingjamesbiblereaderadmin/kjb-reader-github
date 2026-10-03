@@ -3,6 +3,19 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.283', date: 'October 3, 2026', items: [
+    { tag: 'fix', text: 'Fixed reply/compose boxes on X (Twitter), Facebook, TikTok and other social sites stealing focus or becoming untypable: a verse reference in the post above a reply box had a small invisible click fringe that could reach into the compose box, blocking caret placement and popping the reader open. Clicks on a reference\u2019s own text are unchanged and still open the reader' },
+  ] },
+  { version: 'v0.4.282', date: 'September 28, 2026', items: [
+    { tag: 'improved', text: 'Supplied words joined by an apostrophe or hyphen now share one set of italic brackets, matching the printed page: \u201Che taketh [a] [man\u2019s] life\u201D and \u201C[Ben-hadad]\u201D instead of split brackets like \u201C[a] [man]\u2019[s]\u201D and \u201C[Ben]-[hadad]\u201D. Copy and search treat the joined words the same way' },
+  ] },
+  { version: 'v0.4.281', date: 'September 28, 2026', items: [
+    { tag: 'fix', text: 'Verse clicks open the reader on the first click again, the way v0.4.146 did. When the side panel cannot open or fails to answer a lookup, the in-page reader steps in \u2014 but only after the side panel has been given a brief chance to acknowledge the verse, so nothing appears twice. Tabs are never mis-flagged by a failed panel open' },
+    { tag: 'improved', text: 'Standalone/PWA windows and Firefox open the in-page reader directly on click, with no routing round-trip' },
+  ] },
+  { version: 'v0.4.280', date: 'September 28, 2026', items: [
+    { tag: 'fix', text: 'On Microsoft Edge, verse lookups are back to the classic behavior: clicking a reference opens the docked side panel, and the in-page reader appears only when no panel is available \u2014 the same flow as Chrome. The separate popup lookup window fallback is gone' },
+  ] },
   { version: 'v0.4.277', date: 'September 27, 2026', items: [
     { tag: 'fix', text: 'Same fixes as v0.4.276 (which Firefox users already have from AMO), now rolled out to all platforms:' },
     { tag: 'improved', text: 'Wildcard search highlighting now follows the Match word option: with Match word on, a wildcard pattern like \u201Clov?\u201D only highlights whole words, exactly matching the results list' },
