@@ -3,6 +3,12 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.288', date: 'October 4, 2026', items: [
+    { tag: 'fix', text: 'Clicking autocomplete/autosuggest dropdown items (e.g. X @-mentions, site search suggestions) no longer triggers the KJB Reader overlay \u2014 those clicks now go to the page as intended' },
+    { tag: 'new', text: 'kjb-guard isolation \u2014 typed text in compose boxes and editors is never touched by reference detection, fixing focus/caret issues on sites like X (Twitter)' },
+    { tag: 'improved', text: 'Book abbreviation detection recognizes short forms such as "Deu" and "Dt" for Deuteronomy' },
+    { tag: 'improved', text: 'After extension updates, the new version\u2019s script now automatically takes over pages still running an old script, without needing a hard refresh' },
+  ] },
   { version: 'v0.4.284', date: 'October 3, 2026', items: [
     { tag: 'fix', text: 'Fixed click interception on sites that layer UI over verse references (Facebook\u2019s post and comment dialogs, \u201CWrite a comment...\u201D placeholders, sticky headers, dropdown menus, nav links, cookie bars, embedded content): the reader no longer steals those clicks, so compose boxes keep taking focus and stay typable after navigating around a page. Clicks on a reference\u2019s own visible text still open the reader exactly as before' },
   ] },
@@ -348,7 +354,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.284
+            Current Version: v0.4.288
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
