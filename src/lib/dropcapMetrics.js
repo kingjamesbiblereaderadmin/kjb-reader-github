@@ -134,6 +134,19 @@ async function ensureFonts(fams) {
   }
 }
 
+// Cap height (em) of a font: ink height of a capital N, via canvas.
+function capHeight(weight, family) {
+  try {
+    if (!ctx) ctx = document.createElement('canvas').getContext('2d');
+    if (!ctx) return 0.7;
+    ctx.font = `${weight} 100px ${family}`;
+    const a = ctx.measureText('N').actualBoundingBoxAscent;
+    return typeof a === 'number' && a > 20 && a < 150 ? a / 100 : 0.7;
+  } catch {
+    return 0.7;
+  }
+}
+
 async function computeStyle(H, fams) {
   try {
     await ensureFonts(fams);
@@ -146,10 +159,20 @@ async function computeStyle(H, fams) {
     // The cap's baseline within its box is  F×L/2 + F×capHalf = H + F×capHalf,
     // so  F = (line2Baseline − H) / capHalf.
     if (!(m.capHalf > 0)) return '';
-    const F = (m.line2Baseline - H) / m.capHalf;
+    // That alone fixes the baseline but leaves the cap's TOP below line 1's
+    // cap line when the cap font's cap-height is small relative to its
+    // ascent (Atkinson, OpenDyslexic, Comic). So size by cap-height instead:
+    // the ink should run from line 1's cap line to line 2's baseline, i.e.
+    // F = (H + textCapHeight) / capCapHeight. The box stays two lines tall
+    // (L = 2H/F) and a vertical shift (dy) puts the baseline back on line 2.
+    const tCap = capHeight(400, fams.text);
+    const cCap = capHeight(700, fams.cap);
+    const F = (H + tCap) / cCap;
     const L = (2 * H) / F;
-    if (!Number.isFinite(F) || !Number.isFinite(L) || F <= 0.5 || F > 12 || L <= 0 || L > 4) return '';
-    return `--kjb-dc-f:${F.toFixed(3)}em;--kjb-dc-lh:${L.toFixed(3)};`;
+    // Baseline of the cap inside its box is H + F*capHalf; target is line2Baseline.
+    const dy = (m.line2Baseline - (H + F * m.capHalf)) / F;
+    if (!Number.isFinite(F) || !Number.isFinite(L) || !Number.isFinite(dy) || F <= 0.5 || F > 12 || L <= 0 || L > 4 || Math.abs(dy) > 1) return '';
+    return `--kjb-dc-f:${F.toFixed(3)}em;--kjb-dc-lh:${L.toFixed(3)};--kjb-dc-dy:${dy.toFixed(3)}em;`;
   } catch {
     return '';
   }
