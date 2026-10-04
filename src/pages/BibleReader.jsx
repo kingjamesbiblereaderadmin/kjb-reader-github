@@ -20,6 +20,7 @@ import { getSearchNav, setSearchNav, setSearchIndex, clearSearchNav, getGospelNa
 import { getGospelResults } from '@/lib/gospelVerses';
 import { getOccurrenceLabel, scrollToOccurrence, emphasizeOccurrence } from '@/lib/occurrenceLabel';
 import { useReaderUrlSync } from '@/lib/useReaderUrlSync';
+import useColumnLeaderFlush from '@/lib/useColumnLeaderFlush';
 import { useReaderNavigation } from '@/lib/useReaderNavigation';
 import { readScrollCache, saveScrollCache, saveScrollY } from '@/lib/scrollCache';
 import { useToolbarState } from '@/lib/useToolbarState';
@@ -530,6 +531,10 @@ export default function BibleReader() {
   usePinchZoom(readerContentRef, zoomLevel, setZoomPersist);
 
   const columnsContainerRef = useRef(null);
+  // Keep a pilcrow verse that leads the second column flush with the column
+  // top (matching the left column), while mid-column pilcrow verses keep
+  // their paragraph gap above.
+  useColumnLeaderFlush(columnsContainerRef, [columnMode, paragraphMode, zoomLevel, fontFamily, verses, pos?.abbr, pos?.chapter]);
   const posRef = useRef(pos);
   useEffect(() => { posRef.current = pos; }, [pos]);
   const book = BIBLE_BOOKS.find(b => b.abbr === pos.abbr) || BIBLE_BOOKS[0];
