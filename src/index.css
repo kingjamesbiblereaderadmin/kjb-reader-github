@@ -682,6 +682,10 @@
        fallback for that mode's taller leading-loose (2.0) lines. */
     font-size: min(var(--kjb-dc-f, 3.7em), 55cqw);
     line-height: var(--kjb-dc-lh, 0.88);
+    /* Vertical nudge (measured) that puts the baseline back on line 2 after
+       sizing the cap by cap-height. Relative, so it never affects layout. */
+    position: relative;
+    top: var(--kjb-dc-dy, 0);
     font-weight: 700;
     color: inherit;
     font-family: 'Cormorant Garamond', 'Merriweather', Georgia, serif;
