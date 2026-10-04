@@ -168,9 +168,14 @@ async function computeStyle(H, fams) {
     const tCap = capHeight(400, fams.text);
     const cCap = capHeight(700, fams.cap);
     const F = (H + tCap) / cCap;
-    const L = (2 * H) / F;
-    // Baseline of the cap inside its box is H + F*capHalf; target is line2Baseline.
-    const dy = (m.line2Baseline - (H + F * m.capHalf)) / F;
+    // The float box is made a hair SHORTER than two lines (0.06em). At some
+    // zoom levels sub-pixel rounding (toFixed + pixel snapping) left it a
+    // fraction of a pixel TALLER than two lines, which pushed line 3 to stay
+    // indented beside the cap while the letter only covered two lines.
+    const boxH = 2 * H - 0.06;
+    const L = boxH / F;
+    // Baseline of the cap inside its box is boxH/2 + F*capHalf; target is line2Baseline.
+    const dy = (m.line2Baseline - (boxH / 2 + F * m.capHalf)) / F;
     if (!Number.isFinite(F) || !Number.isFinite(L) || !Number.isFinite(dy) || F <= 0.5 || F > 12 || L <= 0 || L > 4 || Math.abs(dy) > 1) return '';
     return `--kjb-dc-f:${F.toFixed(3)}em;--kjb-dc-lh:${L.toFixed(3)};--kjb-dc-dy:${dy.toFixed(3)}em;`;
   } catch {
