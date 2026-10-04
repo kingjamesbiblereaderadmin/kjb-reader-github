@@ -4,13 +4,17 @@
 // baseline landing on the second (indented) line's baseline. A single fixed
 // em size cannot do that everywhere: browsers derive the inline text-box
 // metrics from different font tables per platform (Chromium on Windows uses
-// the OS/2 usWin metrics; Safari/macOS and Linux builds use hhea), so the
-// same font measures much taller on one platform than the other — a size
-// that fills two lines on one platform visibly overshoots or undershoots on
-// another. Instead, this module measures the browser's OWN metrics for the
-// active reading font and the cap font via canvas — the same engine that
-// performs the line layout — and computes the exact font-size / line-height
-// pair, applied as CSS custom properties on the drop-cap group.
+// the OS/2 usWin metrics; Safari/macOS and Linux builds use hhea), and the
+// accessibility fonts make it worse — OpenDyslexic's regular and bold faces
+// even carry DIFFERENT ascent/descent values (descent 0.54em vs 0.36em), so
+// a cap sized from one face sits visibly low against text set in the other.
+//
+// Instead of trusting font tables, this module measures the browser's OWN
+// layout: it renders a hidden probe that goes through the same CSS cascade
+// as the real verse (reading font, accessibility font, line-height) and reads
+// back where the baselines actually land. It then computes the exact
+// font-size / line-height pair, applied as CSS custom properties on the
+// drop-cap group. (Canvas font metrics are kept only as a fallback.)
 
 import React, { useEffect, useState } from 'react';
 import { getFontFamilyValue } from '@/lib/readerFonts';
@@ -49,6 +53,51 @@ function activeFamilies() {
   return { text: VERSE_DEFAULT, cap: CAP_DEFAULT };
 }
 
+// ── Measurement 1 (primary): real layout probe ─────────────────────────────
+// Returns { line2Baseline, capHalf } in em, where
+//   line2Baseline = baseline of the 2nd text line, from the top of line 1
+//   capHalf       = (ascent − descent) / 2 of the cap font as the layout
+//                   engine actually uses it (baseline offset of a line box
+//                   of height 1em is 0.5 + capHalf)
+function probeLayout(H) {
+  let host = null;
+  try {
+    if (typeof document === 'undefined' || !document.body) return null;
+    host = document.createElement('div');
+    host.className = 'kjb-reader-content';
+    host.setAttribute('aria-hidden', 'true');
+    host.style.cssText =
+      'position:absolute;left:-99999px;top:0;width:4000px;visibility:hidden;' +
+      'pointer-events:none;font-size:100px;font-style:normal;';
+    // Zero-size inline-block: its bottom edge sits exactly on the baseline.
+    const M = '<span style="display:inline-block;width:0;height:0;vertical-align:baseline"></span>';
+    host.innerHTML =
+      `<div style="line-height:${H};font-weight:400;">${M}Mg<br>${M}Mg</div>` +
+      `<div style="font-size:0;line-height:0;"><span class="kjb-dropcap-letter" style="display:inline;font-size:100px;line-height:1;">${M}M</span></div>`;
+    document.body.appendChild(host);
+
+    const textBox = host.children[0];
+    const capBox = host.children[1];
+    const marks = textBox.querySelectorAll('span');
+    const capMark = capBox.querySelector('.kjb-dropcap-letter > span');
+    if (marks.length < 2 || !capMark) return null;
+
+    const textTop = textBox.getBoundingClientRect().top;
+    const b1 = marks[0].getBoundingClientRect().bottom - textTop;
+    const b2 = marks[1].getBoundingClientRect().bottom - textTop;
+    const capTop = capBox.getBoundingClientRect().top;
+    const capBase = capMark.getBoundingClientRect().bottom - capTop;
+
+    if (![b1, b2, capBase].every(Number.isFinite) || b1 <= 0 || b2 <= b1 || capBase <= 0) return null;
+    return { line2Baseline: b2 / 100, capHalf: capBase / 100 - 0.5 };
+  } catch {
+    return null;
+  } finally {
+    if (host && host.parentNode) host.parentNode.removeChild(host);
+  }
+}
+
+// ── Measurement 2 (fallback): canvas font metrics ──────────────────────────
 let ctx = null;
 function measure(weight, family) {
   try {
@@ -64,33 +113,40 @@ function measure(weight, family) {
   }
 }
 
+function canvasLayout(H, fams) {
+  const t = measure(400, fams.text);
+  const c = measure(700, fams.cap);
+  if (!t || !c) return null;
+  const halfLeading = (H - (t.A + t.D)) / 2;
+  return { line2Baseline: H + halfLeading + t.A, capHalf: (c.A - c.D) / 2 };
+}
+
+// Make sure the real faces (not their fallbacks) are loaded before measuring,
+// otherwise the fallback font's metrics get measured — and cached — instead.
+async function ensureFonts(fams) {
+  if (!document.fonts?.load) return;
+  await Promise.all([
+    document.fonts.load(`700 100px ${fams.cap}`, 'Mg'),
+    document.fonts.load(`400 100px ${fams.text}`, 'Mg'),
+  ]).catch(() => {});
+  if (document.fonts.ready) {
+    await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 2500))]).catch(() => {});
+  }
+}
+
 async function computeStyle(H, fams) {
   try {
-    // Make sure the web fonts (not their fallbacks) are loaded, so the
-    // measured metrics are the ones the reader will actually lay out with.
-    if (document.fonts?.load) {
-      await Promise.all([
-        document.fonts.load(`700 100px ${fams.cap}`),
-        document.fonts.load(`400 100px ${fams.text}`),
-      ]).catch(() => {});
-    }
-    const t = measure(400, fams.text);
-    const c = measure(700, fams.cap);
-    if (!t || !c) return '';
-    // Baseline of the second text line, measured from the top of the first
-    // line box (where the float is anchored):
-    //   line2Baseline = H + halfLeading + ascent
-    const halfLeading = (H - (t.A + t.D)) / 2;
-    const line2Baseline = H + halfLeading + t.A;
+    await ensureFonts(fams);
+    const m = probeLayout(H) || canvasLayout(H, fams);
+    if (!m) return '';
     // Solve for the cap's font-size F and line-height L so that:
     //   (1) F × L = two text lines (the float box clears after line 2, so
     //       the text unindents exactly at line 3), and
     //   (2) the cap's baseline sits on line 2's baseline.
-    // Substituting L = 2H/F into the cap's baseline position within its box
-    // yields F = (line2Baseline − H) / ((capAscent − capDescent) / 2).
-    const denom = (c.A - c.D) / 2;
-    if (denom <= 0) return '';
-    const F = (line2Baseline - H) / denom;
+    // The cap's baseline within its box is  F×L/2 + F×capHalf = H + F×capHalf,
+    // so  F = (line2Baseline − H) / capHalf.
+    if (!(m.capHalf > 0)) return '';
+    const F = (m.line2Baseline - H) / m.capHalf;
     const L = (2 * H) / F;
     if (!Number.isFinite(F) || !Number.isFinite(L) || F <= 0.5 || F > 12 || L <= 0 || L > 4) return '';
     return `--kjb-dc-f:${F.toFixed(3)}em;--kjb-dc-lh:${L.toFixed(3)};`;
@@ -107,21 +163,34 @@ export function subscribeDropcapMetrics(listener) {
   return () => listeners.delete(listener);
 }
 
+// A web font finishing its download changes the real metrics after we may
+// have measured a fallback. Drop the cache and re-measure (bounded, so a
+// misbehaving font can never cause a re-measure loop).
+let fontInvalidations = 0;
+if (typeof document !== 'undefined' && document.fonts?.addEventListener) {
+  let timer = null;
+  document.fonts.addEventListener('loadingdone', () => {
+    if (fontInvalidations >= 6) return;
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      fontInvalidations += 1;
+      cache = { key: null, style: '' };
+      listeners.forEach((l) => l());
+    }, 60);
+  });
+}
+
 // Returns the CSS custom-property style string for the drop-cap group, or ''
-// while measuring / when the browser lacks the needed metrics API (the CSS
-// then keeps its static fallback sizes). Kicks off (and caches) the async
-// measurement per unique configuration (line-height + font stacks).
+// while measuring / when measurement isn't possible (the CSS then keeps its
+// static fallback sizes). Kicks off (and caches) the async measurement per
+// unique configuration (line-height + font stacks).
 export function dropcapVarsStyle(paragraphMode) {
   const H = paragraphMode ? PARA_MODE_LH : LINE_MODE_LH;
   const fams = activeFamilies();
   const key = `${H}|${fams.text}|${fams.cap}`;
   if (cache.key === key) return cache.style;
-  // Each measurement writes ONLY into its own cache entry. Previously the
-  // callback wrote to whatever `cache` was current when it resolved, so a
-  // slow measurement for an earlier font (e.g. the default serif stack still
-  // waiting on its web font while the Comic Sans stack — a system font —
-  // resolved instantly) landed last and overwrote the new font's values with
-  // the old font's, leaving the cap sized/positioned for the wrong font.
+  // Each measurement writes ONLY into its own cache entry, so a slow
+  // measurement for an earlier font can't overwrite the current font's values.
   const entry = { key, style: '' };
   cache = entry;
   computeStyle(H, fams).then((style) => {
