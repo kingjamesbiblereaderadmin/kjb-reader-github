@@ -364,7 +364,15 @@
      :has, the gap gracefully tightens to the standard verse rhythm —
      nothing breaks. */
   .kjb-two-col > span:has(+ span[data-pilcrow='true']) {
-    padding-bottom: calc(3rem + 0.15em);
+    /* The extra paragraph gap is a MARGIN (2.25rem) on top of the standard
+       0.75rem + 0.15em padding — same 3rem + 0.15em total rhythm in-column.
+       As padding it travelled WITH the verse above: when that verse ended at
+       the bottom of column 1 its padding spilled into the top of column 2 and
+       pushed the column-leading pilcrow verse down, off the left column's
+       baseline grid. Margins are truncated at an unforced column break, so
+       the gap now falls away there and the verse starts flush at the top. */
+    padding-bottom: calc(0.75rem + 0.15em);
+    margin-bottom: 2.25rem;
   }
   /* Flex rows can't fragment across columns in WebKit (iOS): the verse number
      got orphaned at a column bottom and whole verses jumped to the next
