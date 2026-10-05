@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.289', date: 'October 5, 2026', items: [
+    { tag: 'improved', text: 'Updated the KJB Knights Discord invite link in the Resources tab (the previous invite had expired)' },
+  ] },
   { version: 'v0.4.288', date: 'October 4, 2026', items: [
     { tag: 'fix', text: 'Clicking autocomplete/autosuggest dropdown items (e.g. X @-mentions, site search suggestions) no longer triggers the KJB Reader overlay \u2014 those clicks now go to the page as intended' },
     { tag: 'new', text: 'kjb-guard isolation \u2014 typed text in compose boxes and editors is never touched by reference detection, fixing focus/caret issues on sites like X (Twitter)' },
@@ -354,7 +357,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.288
+            Current Version: v0.4.289
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
