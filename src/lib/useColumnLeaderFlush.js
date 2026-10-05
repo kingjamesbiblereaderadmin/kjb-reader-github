@@ -9,6 +9,11 @@ import { useEffect } from 'react';
 // CSS can't express "first verse in its column", so this hook measures:
 // any pilcrow verse that is the topmost verse in its column gets the gap
 // above it zeroed; every other pilcrow verse keeps its paragraph gap.
+// The same applies to ANY verse leading the second column (not just pilcrow
+// ones): when the previous verse ends exactly at the bottom of column 1, its
+// bottom spacing (padding + row padding) spills into the top of column 2 and
+// pushes the leading verse and its number down, off the left column's top
+// line. That spacing is zeroed for the verse above a column-2 leader.
 // Overrides are re-evaluated on resize/reflow and reverted when a verse is
 // no longer a column leader, with a bounded settle loop so a layout that
 // flip-flops falls back to the plain CSS defaults instead of oscillating.
@@ -22,8 +27,17 @@ export default function useColumnLeaderFlush(containerRef, deps) {
 
     const applied = new Set();
 
+    const rowOf = (el) => Array.from(el.children).find((c) => c.tagName === 'SPAN' && c.classList.contains('flex')) || null;
+
+    const clearOne = (el) => {
+      el.style.marginBottom = '';
+      el.style.paddingBottom = '';
+      const row = rowOf(el);
+      if (row) row.style.paddingBottom = '';
+    };
+
     const clearAll = () => {
-      applied.forEach((el) => { el.style.marginBottom = ''; });
+      applied.forEach(clearOne);
       applied.clear();
     };
 
@@ -53,22 +67,30 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       if (!leaders.size) return false;
       let changed = false;
 
-      // Apply: a pilcrow verse leading a column → zero the gap above it.
+      const rect = container.getBoundingClientRect();
+      const midX = rect.left + rect.width / 2;
+
+      // Apply: a verse leading a column → zero the spacing above it, but only
+      // when the verse before it sits wholly in the previous column. A verse
+      // split across the break has a bounding box spanning both columns, and
+      // its spacing is real mid-column rhythm that must stay.
       leaders.forEach((leader) => {
-        if (leader.dataset.pilcrow !== 'true') return;
         const prev = leader.previousElementSibling;
-        if (prev && prev.tagName === 'SPAN' && !applied.has(prev)) {
-          prev.style.marginBottom = '0px';
-          applied.add(prev);
-          changed = true;
-        }
+        if (!prev || prev.tagName !== 'SPAN' || applied.has(prev)) return;
+        if (prev.getBoundingClientRect().right > midX) return;
+        prev.style.marginBottom = '0px';
+        prev.style.paddingBottom = '0px';
+        const row = rowOf(prev);
+        if (row) row.style.paddingBottom = '0px';
+        applied.add(prev);
+        changed = true;
       });
 
-      // Revert: no longer a pilcrow leader → restore the CSS paragraph gap.
+      // Revert: no longer a column leader → restore the CSS verse spacing.
       Array.from(applied).forEach((el) => {
         const follower = el.nextElementSibling;
-        if (!follower || !leaders.has(follower) || follower.dataset.pilcrow !== 'true') {
-          el.style.marginBottom = '';
+        if (!follower || !leaders.has(follower)) {
+          clearOne(el);
           applied.delete(el);
           changed = true;
         }
