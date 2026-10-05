@@ -29,6 +29,23 @@ export default function useColumnLeaderFlush(containerRef, deps) {
 
     const rowOf = (el) => Array.from(el.children).find((c) => c.tagName === 'SPAN' && c.classList.contains('flex')) || null;
 
+    // True when the verse sits wholly in column 1, OR its only presence in
+    // column 2 is a spacing-only fragment (WebKit/iOS turns spilled bottom
+    // padding into a tiny box fragment in column 2, which makes its bounding
+    // box span both columns). A genuinely split verse has a column-2 fragment
+    // at least a text line tall, so it is rejected.
+    const endsInColumnOne = (el, midX) => {
+      const rects = Array.from(el.getClientRects());
+      const spill = rects.filter((r) => r.left >= midX - 1 && r.height > 0);
+      if (!spill.length) return el.getBoundingClientRect().right <= midX + 1;
+      const row = rowOf(el);
+      const cs = window.getComputedStyle(el);
+      const rcs = row ? window.getComputedStyle(row) : null;
+      const spacing = (parseFloat(cs.paddingBottom) || 0) + (rcs ? parseFloat(rcs.paddingBottom) || 0 : 0);
+      const spillH = spill.reduce((s, r) => s + r.height, 0);
+      return spillH <= spacing + 2;
+    };
+
     const clearOne = (el) => {
       el.style.marginBottom = '';
       el.style.paddingBottom = '';
@@ -77,7 +94,7 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       leaders.forEach((leader) => {
         const prev = leader.previousElementSibling;
         if (!prev || prev.tagName !== 'SPAN' || applied.has(prev)) return;
-        if (prev.getBoundingClientRect().right > midX) return;
+        if (!endsInColumnOne(prev, midX)) return;
         prev.style.marginBottom = '0px';
         prev.style.paddingBottom = '0px';
         const row = rowOf(prev);
