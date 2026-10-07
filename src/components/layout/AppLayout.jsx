@@ -720,7 +720,7 @@ function BottomNav({ pathname, navigate }) {
   // Bar mode - ultra-thin footer strip with only the chevron toggle (no icons)
   if (showMode === 'bar') {
     return (
-      <nav className="print:hidden sm:hidden fixed left-0 right-0 bottom-0 z-50 bg-card/80 backdrop-blur-md border-t border-border/50" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <nav data-kjb-bottom-nav className="print:hidden sm:hidden fixed left-0 right-0 bottom-0 z-50 bg-card/80 backdrop-blur-md border-t border-border/50" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="w-full max-w-[120rem] mx-auto px-2 sm:px-8 lg:px-12">
           <button
             type="button"
@@ -736,7 +736,7 @@ function BottomNav({ pathname, navigate }) {
   }
 
   return (
-    <nav className="print:hidden sm:hidden fixed left-0 right-0 bottom-0 z-50 bg-card/70 backdrop-blur-xl border-t border-border/60 overflow-hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <nav data-kjb-bottom-nav className="print:hidden sm:hidden fixed left-0 right-0 bottom-0 z-50 bg-card/70 backdrop-blur-xl border-t border-border/60 overflow-hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="w-full max-w-[120rem] mx-auto px-2 sm:px-8 lg:px-12">
         {/* Primary row: 5 nav items + chevron toggle button */}
         <div className="flex items-stretch">
