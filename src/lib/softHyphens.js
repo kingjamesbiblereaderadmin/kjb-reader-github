@@ -52,9 +52,94 @@ export function injectShyHtml(html, map) {
   return out;
 }
 
+// ---------------------------------------------------------------------------
+// Fallback break points for words that are NOT in hyphenation.json (inflected
+// forms like "Philistines", rare names, and text added later through overrides).
+// Without any break point such a word can't hyphenate, so when it doesn't fit
+// on a narrow line (e.g. beside the drop cap) the browser splits it with no
+// hyphen at all ("Philistin" / "es"). Two cheap fallbacks, in order:
+//   1. reuse the break points of the word's stem (philistine -> philistines)
+//   2. for long words (7+ letters), a simple vowel/consonant syllable split
+// Short words (under 7 letters) are left whole, like a printed Bible does.
+
+const ONSETS = new Set([
+  'th', 'sh', 'ch', 'ph', 'wh', 'bl', 'br', 'cl', 'cr', 'dr', 'fl', 'fr',
+  'gl', 'gr', 'pl', 'pr', 'tr', 'sc', 'sk', 'sl', 'sm', 'sn', 'sp', 'st', 'sw',
+]);
+const SUFFIXES = [
+  'es', 's', 'ed', 'd', 'eth', 'th', 'est', 'st', 'ing', 'ly', 'ness', 'ful',
+  'er', 'ers', 'ite', 'ites', 'ish',
+];
+const fallbackCache = new Map();
+
+function ownPoints(map, w) {
+  return Object.prototype.hasOwnProperty.call(map, w) ? map[w] : null;
+}
+
+// Dictionary-style minimums: at least 2 letters stay before the hyphen and 3 after.
+function keepValid(pts, len, minLeft) {
+  return pts.filter((p) => p >= minLeft && len - p >= 3);
+}
+
+function stemPoints(w, map) {
+  for (const suf of SUFFIXES) {
+    if (w.length - suf.length < 4 || !w.endsWith(suf)) continue;
+    const stem = w.slice(0, w.length - suf.length);
+    for (const s of [stem, stem + 'e']) {
+      const sp = ownPoints(map, s);
+      if (!sp) continue;
+      const pts = keepValid(sp.filter((p) => p <= stem.length), w.length, 2);
+      if (pts.length) return pts;
+    }
+  }
+  return null;
+}
+
+function isVowelAt(w, i) {
+  const c = w[i];
+  return 'aeiou'.indexOf(c) !== -1 || (c === 'y' && i > 0);
+}
+
+// Break between vowel groups: V-CV, VC-CV, and before a consonant cluster's
+// natural onset (th, sh, ch, str...). Never inside a vowel group.
+function syllablePoints(w) {
+  const n = w.length;
+  const pts = [];
+  let prevEnd = -1;
+  let i = 0;
+  while (i < n) {
+    if (!isVowelAt(w, i)) { i++; continue; }
+    let j = i;
+    while (j < n && isVowelAt(w, j)) j++;
+    if (prevEnd >= 0 && i > prevEnd) {
+      const cluster = w.slice(prevEnd, i);
+      let onset = 1;
+      if (cluster.length === 2 && ONSETS.has(cluster)) onset = 2;
+      else if (cluster.length >= 3 && ONSETS.has(cluster.slice(-2))) onset = 2;
+      pts.push(i - onset);
+    }
+    prevEnd = j;
+    i = j;
+  }
+  return keepValid(pts, n, 3);
+}
+
+function fallbackPoints(w, map) {
+  if (fallbackCache.has(w)) return fallbackCache.get(w);
+  let pts = stemPoints(w, map);
+  if (!pts && w.length >= 7) {
+    const sp = syllablePoints(w);
+    if (sp.length) pts = sp;
+  }
+  pts = pts && pts.length ? pts : null;
+  fallbackCache.set(w, pts);
+  return pts;
+}
+
 function hyphenateText(text, map) {
   return text.replace(/[A-Za-z]{5,}/g, (word) => {
-    const pts = map[word.toLowerCase()];
+    const lw = word.toLowerCase();
+    const pts = ownPoints(map, lw) || fallbackPoints(lw, map);
     if (!pts) return word;
     let out = '';
     let k = 0;
