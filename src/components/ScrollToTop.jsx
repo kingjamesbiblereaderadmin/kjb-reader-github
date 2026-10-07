@@ -17,14 +17,11 @@ export default function ScrollToTop({ targetId }) {
     // Calculate footer height based on nav mode
     const updateFooterHeight = () => {
       try {
-        const showMode = localStorage.getItem('kjb-footer-mode') || 'one';
-        // Mobile footer: one row = ~56px, two rows = ~112px, none = 0
-        // Add safe area inset for bottom
-        const safeArea = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat-bottom') || '0');
-        const baseHeight = showMode === 'two' ? 112 : showMode === 'one' ? 56 : 0;
-        // Sit half over the bottom nav (overlapping it) instead of floating
-        // fully above it with a gap — a standard floating-action-button look.
-        setFooterHeight(baseHeight / 2 + safeArea + 8);
+        // Measure the real bottom nav (includes safe-area padding) so the
+        // button always sits fully inside the reading area, above the footer.
+        const nav = document.querySelector('[data-kjb-bottom-nav]');
+        const navHeight = nav ? nav.getBoundingClientRect().height : 0;
+        setFooterHeight(Math.round(navHeight) + 12);
       } catch {
         setFooterHeight(80);
       }
