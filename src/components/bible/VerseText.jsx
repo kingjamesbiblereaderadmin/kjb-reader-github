@@ -581,7 +581,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
                 {isSelected ? <CheckSquare className="w-[1.1em] h-[1.1em]" /> : <Square className="w-[1.1em] h-[1.1em] text-muted-foreground" />}
               </span>
             )}
-            <span className="kjb-dropcap-col flex-1 min-w-0 leading-relaxed break-words text-left">
+            <span className={`kjb-dropcap-col flex-1 min-w-0 leading-relaxed ${columnMode ? '' : 'break-words'} text-left`}>
               <span
                 className={`kjb-verse-text notranslate inline [&_em]:italic [&_em]:text-foreground/75 box-decoration-clone rounded transition-colors duration-200 py-[0.1em] ${isHighlighted ? hlPadX : 'px-[0.3em]'} ${isCursive ? 'cursive-em-style' : ''} ${isHighlighted ? highlightBg : (!selectMode ? 'hover:bg-secondary/60' : '')}`}
                 style={{ display: 'inline', ...(isCursive ? { fontSize: `${zoomLevel / 100 * 1.125}rem` } : textStyle) }}
