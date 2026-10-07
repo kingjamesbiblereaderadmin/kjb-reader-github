@@ -105,12 +105,15 @@ function isVowelAt(w, i) {
 function syllablePoints(w) {
   const n = w.length;
   const pts = [];
+  // A final "-ed" after anything but t/d is silent (purchased, fashioned): its
+  // "e" is not a syllable of its own, so no break lands before it.
+  const silentE = w.endsWith('ed') && 'td'.indexOf(w[n - 3]) === -1 ? n - 2 : -1;
   let prevEnd = -1;
   let i = 0;
   while (i < n) {
-    if (!isVowelAt(w, i)) { i++; continue; }
+    if (i === silentE || !isVowelAt(w, i)) { i++; continue; }
     let j = i;
-    while (j < n && isVowelAt(w, j)) j++;
+    while (j < n && j !== silentE && isVowelAt(w, j)) j++;
     if (prevEnd >= 0 && i > prevEnd) {
       const cluster = w.slice(prevEnd, i);
       let onset = 1;
