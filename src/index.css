@@ -288,8 +288,15 @@
        two-column view ("Benjam" + "in" in 1 Chronicles 8). overflow-wrap:
        break-word is the true last resort — hyphenation opportunities are
        always tried first, and only a word with no break point at all that is
-       wider than the column falls through to it. */
-    overflow-wrap: break-word;
+       wider than the column falls through to it.
+       UPDATE (Oct 2026): rule is now "hyphen or move to the next line, never a
+       bare split". Single-syllable words (which, strength, brought) have no
+       valid hyphen point, and at high zoom / small phones / beside the drop
+       cap break-word split them bare ("Philistin" + "es"). `normal` makes such
+       a word wrap whole to the next line (below the drop cap if needed). The
+       only trade-off: a single unbreakable word wider than the entire column
+       overflows instead of splitting. */
+    overflow-wrap: normal;
   }
   /* Verses are allowed to split across the column break (like a real
      printed two-column Bible) so the browser can fill each column all the
