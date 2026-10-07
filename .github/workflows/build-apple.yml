@@ -320,6 +320,7 @@ jobs:
         run: |
           set -euxo pipefail
           rm -rf build/macos build/derived-macos
+          mkdir -p build
           xcodebuild archive \
             -workspace ios/App/App.xcworkspace \
             -scheme App \
@@ -339,7 +340,31 @@ jobs:
             SUPPORTS_MACCATALYST=YES \
             TARGETED_DEVICE_FAMILY="1,2,6" \
             CODE_SIGNING_ALLOWED=YES \
-            CODE_SIGNING_REQUIRED=YES
+            CODE_SIGNING_REQUIRED=YES 2>&1 | tee build/macos-archive.log
+
+      # xcodebuild exits 65 for almost everything and the real reason is buried
+      # in the log. On failure, surface the error lines as annotations + the job
+      # summary and keep the full log as an artifact.
+      - name: Report macOS archive errors
+        if: failure() && hashFiles('build/macos-archive.log') != ''
+        run: |
+          PAT='error:|ARCHIVE FAILED|No profiles|No signing certificate|Provisioning profile|requires a provisioning|certificate|Maximum number'
+          grep -E "$PAT" build/macos-archive.log | sort -u | head -25 | while IFS= read -r line; do
+            echo "::error title=macOS archive::${line:0:400}"
+          done
+          {
+            echo '### macOS archive errors'
+            echo '```'
+            grep -E "$PAT" build/macos-archive.log | sort -u | head -60
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload macOS archive log
+        if: failure() && hashFiles('build/macos-archive.log') != ''
+        uses: actions/upload-artifact@v6
+        with:
+          name: macos-archive-log
+          path: build/macos-archive.log
 
       - name: Export signed macOS package
         if: inputs.upload == 'upload'
