@@ -33,10 +33,47 @@ def log(msg):
     print(f"[asc-next-build] {msg}", file=sys.stderr)
 
 
+def revoke_stale_mac_dev_certs():
+    """Best-effort: revoke Mac Catalyst (MAC_SOFTWARE_DEVELOPMENT) certificates.
+
+    Each CI macOS build signs on a fresh runner keychain, so Xcode mints a new
+    Mac Catalyst dev cert every run. They accumulate on the Apple Developer
+    account until the certificate quota is hit, and the archive then fails
+    with "Choose a certificate to revoke. Your account has reached the maximum
+    number of certificates." / "No signing certificate 'Mac Development'
+    found". Revoking them before the build frees the quota. They are useless
+    outside the run that made them (the private key lives only on that
+    runner's keychain), and only this type is touched -- never distribution
+    or iOS development certificates.
+    """
+    try:
+        resp = requests.get(
+            f"{BASE}/v1/certificates?filter[certificateType]=MAC_SOFTWARE_DEVELOPMENT&limit=200",
+            headers=H, timeout=30)
+        resp.raise_for_status()
+        certs = resp.json().get("data", [])
+        if not certs:
+            log("no Mac Catalyst development certificates to revoke")
+            return
+        log(f"revoking {len(certs)} stale Mac Catalyst development certificate(s)")
+        for c in certs:
+            name = (c.get("attributes") or {}).get("displayName")
+            dr = requests.delete(f"{BASE}/v1/certificates/{c['id']}", headers=H, timeout=30)
+            log(f"{c['id']} ({name}): "
+                + ("revoked" if dr.status_code in (200, 204) else f"HTTP {dr.status_code}"))
+    except Exception as e:  # never let this diagnostics side task break the build
+        log(f"certificate revocation skipped (best effort): {e}")
+
+
 token = jwt.encode(
     {"iss": ISSUER, "iat": int(time.time()), "exp": int(time.time()) + 1200, "aud": "appstoreconnect-v1"},
     KEY_P8, algorithm="ES256", headers={"kid": KEY_ID})
 H = {"Authorization": f"Bearer {token}"}
+
+# The macOS job runs this script right before the archive step, so this is the
+# one place every macOS build passes through that already holds the ASC key:
+# clear the stale-certificate quota before Xcode needs to mint a fresh cert.
+revoke_stale_mac_dev_certs()
 
 r = requests.get(f"{BASE}/v1/apps?filter[bundleId]=com.kingjamesbiblereader.twa&limit=1", headers=H)
 r.raise_for_status()
