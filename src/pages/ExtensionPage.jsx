@@ -194,9 +194,15 @@ export default function ExtensionPage() {
 
           {/* Browser compatibility notice */}
           <div className="max-w-2xl mx-auto rounded-xl px-4 py-3 mb-5 bg-primary/10 border border-primary/35">
-            <p className="font-sans text-xs leading-relaxed text-primary">
-              <strong>Desktop, Mac &amp; iOS</strong> — Available for Chrome, Edge, Brave, Firefox, and Opera on desktop, and for macOS and iOS Safari on the App Store. Also tested on Microsoft Edge mobile. Other mobile browsers may not support browser extensions.
+            <p className="font-sans text-xs font-semibold leading-relaxed text-primary mb-1.5">
+              Desktop + Limited Mobile Support
             </p>
+            <ul className="font-sans text-xs leading-relaxed text-primary list-disc list-inside space-y-0.5 text-left">
+              <li>Chrome, Edge, Brave, Firefox, and Opera on desktop</li>
+              <li>macOS and iOS Safari via the App Store</li>
+              <li>Also tested on Microsoft Edge mobile</li>
+              <li>Other mobile browsers may not support browser extensions</li>
+            </ul>
           </div>
 
           {/* Subtitle */}
