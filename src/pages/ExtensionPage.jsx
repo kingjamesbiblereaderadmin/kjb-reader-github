@@ -195,7 +195,7 @@ export default function ExtensionPage() {
           {/* Browser compatibility notice */}
           <div className="max-w-2xl mx-auto rounded-xl px-4 py-3 mb-5 bg-primary/10 border border-primary/35">
             <p className="font-sans text-xs leading-relaxed text-primary">
-              <strong>Desktop &amp; Mac</strong> — Available for Chrome, Edge, Brave, Firefox, and Opera on desktop, and for macOS on the Mac App Store. Also tested on Microsoft Edge mobile. Other mobile browsers may not support browser extensions.
+              <strong>Desktop, Mac &amp; iOS</strong> — Available for Chrome, Edge, Brave, Firefox, and Opera on desktop, and for macOS and iOS Safari on the App Store. Also tested on Microsoft Edge mobile. Other mobile browsers may not support browser extensions.
             </p>
           </div>
 
@@ -263,7 +263,7 @@ export default function ExtensionPage() {
               href={urls.mac}
               target="_blank"
               rel="noopener noreferrer"
-              title="Download on the Mac App Store"
+              title="Download on the App Store (macOS &amp; iOS)"
               className="inline-flex flex-col items-center justify-start self-start transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
               <span className="inline-flex items-center gap-2.5 h-[58px] px-5 rounded-lg shadow-lg bg-black text-white border border-neutral-600">
@@ -272,7 +272,7 @@ export default function ExtensionPage() {
                 </svg>
                 <span className="flex flex-col items-start leading-tight text-left">
                   <span className="font-sans text-[10px] font-normal">Download on the</span>
-                  <span className="font-sans text-lg font-semibold -mt-0.5">Mac App Store</span>
+                  <span className="font-sans text-lg font-semibold -mt-0.5">App Store</span>
                 </span>
               </span>
               <span className="font-sans text-[11px] font-medium text-transparent mt-1" aria-hidden="true">&nbsp;</span>
