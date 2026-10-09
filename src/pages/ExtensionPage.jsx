@@ -8,11 +8,11 @@ import { Globe, ArrowLeft, Search, BookOpen, Sparkles, MousePointer2, Heart, Dow
 const DEFAULT_URLS = {
   chrome: 'https://chromewebstore.google.com/detail/kjb-reader-sidepanel/gbnipepkpenjgdpjfepgcgddmgbofmah',
   firefox: 'https://addons.mozilla.org/en-US/firefox/addon/kjb-reader-sidepanel/',
-  opera: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/35a9f99fe_kjb-reader-opera-v04290.zip',
+  opera: 'https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/6b63026c2_kjb-reader-opera-v04291.zip',
   edge: 'https://microsoftedge.microsoft.com/addons/detail/kjb-reader-sidepanel/bphmmbiepbhfnfijaapbmpimkkjdceee',
   mac: 'https://apps.apple.com/us/app/kjb-reader-sidepanel/id6813502666',
 };
-const DEFAULT_VERSION = 'v0.4.290';
+const DEFAULT_VERSION = 'v0.4.291';
 
 const EXAMPLES = [
   {
