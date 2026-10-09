@@ -30,7 +30,7 @@ on:
 jobs:
   ios:
     if: inputs.platform != 'macos'
-    runs-on: macos-26
+    runs-on: xcode-27
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -231,7 +231,7 @@ jobs:
         run: echo "Skipped the App Store Connect upload per .github/asc-upload-mode (or the dispatch input). The build+export still validated this commit."
   macos:
     if: inputs.platform != 'ios'
-    runs-on: macos-26
+    runs-on: xcode-27
     env:
       APP_NAME: KJB Reader
       BUNDLE_ID: com.kingjamesbiblereader.twa
