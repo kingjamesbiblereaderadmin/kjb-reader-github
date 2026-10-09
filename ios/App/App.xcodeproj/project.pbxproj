@@ -442,13 +442,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 87;
+				CURRENT_PROJECT_VERSION = 88;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = App/App-mac.entitlements;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.79;
+				MARKETING_VERSION = 1.80;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.kingjamesbiblereader.twa;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
@@ -468,13 +468,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 87;
+				CURRENT_PROJECT_VERSION = 88;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = App/App-mac.entitlements;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.79;
+				MARKETING_VERSION = 1.80;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kingjamesbiblereader.twa;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -493,11 +493,11 @@
 				CODE_SIGN_ENTITLEMENTS = Share/KJBShare.entitlements;
 				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = Share/KJBShare-mac.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 87;
+				CURRENT_PROJECT_VERSION = 88;
 				INFOPLIST_FILE = Share/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				MARKETING_VERSION = 1.79;
+				MARKETING_VERSION = 1.80;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kingjamesbiblereader.twa.KJBShare;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -514,11 +514,11 @@
 				CODE_SIGN_ENTITLEMENTS = Share/KJBShare.entitlements;
 				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = Share/KJBShare-mac.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 87;
+				CURRENT_PROJECT_VERSION = 88;
 				INFOPLIST_FILE = Share/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				MARKETING_VERSION = 1.79;
+				MARKETING_VERSION = 1.80;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kingjamesbiblereader.twa.KJBShare;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;

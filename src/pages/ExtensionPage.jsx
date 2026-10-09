@@ -195,7 +195,7 @@ export default function ExtensionPage() {
           {/* Browser compatibility notice */}
           <div className="max-w-2xl mx-auto rounded-xl px-4 py-3 mb-5 bg-primary/10 border border-primary/35">
             <p className="font-sans text-xs leading-relaxed text-primary">
-              <strong>Desktop &amp; Edge Mobile</strong> — Available for Chrome, Edge, Brave, Firefox, and Opera on desktop. Also tested on Microsoft Edge mobile. Other mobile browsers may not support browser extensions.
+              <strong>Desktop &amp; Mac</strong> — Available for Chrome, Edge, Brave, Firefox, and Opera on desktop, and for macOS on the Mac App Store. Also tested on Microsoft Edge mobile. Other mobile browsers may not support browser extensions.
             </p>
           </div>
 
