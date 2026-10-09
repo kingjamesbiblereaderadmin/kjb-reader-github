@@ -36,8 +36,8 @@ android {
         buildConfigField "String", "DISTRIBUTION", "\"standard\""
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 86
-        versionName "1.85"
+        versionCode 87
+        versionName "1.86"
         // OTA-only numbering; Play builds keep their existing version step.
         // Stamp the literals too, because the ApexHub upload reads this file.
         if (System.getenv('APEXHUB_CHANNEL') && System.getenv('GITHUB_RUN_NUMBER')) {
