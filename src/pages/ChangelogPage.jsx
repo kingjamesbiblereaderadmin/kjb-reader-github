@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.290', date: 'October 9, 2026', items: [
+    { tag: 'ui', text: 'New hand-drawn KJB Reader icon across the toolbar and app' },
+    { tag: 'improved', text: 'Safari App Store release moves to version 1.0 (iOS and macOS); the extension engine is unchanged' },
+  ] },
   { version: 'v0.4.289', date: 'October 5, 2026', items: [
     { tag: 'improved', text: 'Updated the KJB Knights Discord invite link in the Resources tab (the previous invite had expired)' },
   ] },
@@ -357,7 +361,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.289
+            Current Version: v0.4.290
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
