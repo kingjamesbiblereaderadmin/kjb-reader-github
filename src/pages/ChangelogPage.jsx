@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.292', date: 'October 9, 2026', items: [
+    { tag: 'improved', text: 'Updated the extension toolbar icon to the hand-drawn KJB Reader icon' },
+  ] },
   { version: 'v0.4.291', date: 'October 9, 2026', items: [
     { tag: 'improved', text: 'Restored the classic extension toolbar icon' },
   ] },
@@ -364,7 +367,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.291
+            Current Version: v0.4.292
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
