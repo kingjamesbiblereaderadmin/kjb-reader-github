@@ -60,7 +60,7 @@ function OptionCard({ id, title, icon, defaultOpen, className, children }) {
   );
 }
 
-// Web App (PWA) + Android (Google Play) + iOS/macOS (coming soon).
+// Web App (PWA) + Android (Google Play) + iOS (App Store, live) + macOS (coming soon).
 // Used by the landing wizard (playOnly = store cards only) and Settings → Install App.
 export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
   const { isInstalled, promptInstall } = useInstallPrompt();
@@ -132,21 +132,61 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
             </div>
           </OptionCard>
 
-          {/* iOS / macOS — coming soon */}
+          {/* iOS — App Store (now live) */}
           <OptionCard
-            id="apple"
-            title="Coming soon to iOS / macOS"
-            icon={<Clock className="w-4 h-4 text-sky-600 dark:text-sky-400" />}
-            defaultOpen={false}
+            id="ios"
+            title="Get on iOS"
+            icon={<AppleIcon className="w-4 h-4" />}
+            defaultOpen={true}
             className="border-sky-200 dark:border-sky-900/40 bg-sky-50/70 dark:bg-sky-900/15"
           >
-            <p className="font-sans text-xs text-sky-800 dark:text-sky-300">
-              An App Store version for iPhone, iPad and Mac is on the way. Check back in <strong>Settings → App Info</strong> when it's released.
-            </p>
+            <div className="font-sans text-xs text-sky-800 dark:text-sky-300 space-y-0.5">
+              <p className="font-semibold">Now available on iPhone &amp; iPad</p>
+              <p>
+                The full KJB with offline reading, straight from the App Store.
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-2">
+              <a
+                href={APP_STORE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black text-white font-sans text-sm font-medium hover:bg-neutral-800 transition-colors"
+              >
+                <AppleIcon className="w-4 h-4" />
+                Download on the App Store
+              </a>
+            </div>
           </OptionCard>
         </div>
       )}
+
+      {/* macOS — still in App Review */}
+      {showStores && (
+        <OptionCard
+          id="mac"
+          title="macOS — Coming Soon"
+          icon={<Clock className="w-4 h-4 text-sky-600 dark:text-sky-400" />}
+          defaultOpen={false}
+          className="border-sky-200 dark:border-sky-900/40 bg-sky-50/70 dark:bg-sky-900/15"
+        >
+          <p className="font-sans text-xs text-sky-800 dark:text-sky-300">
+            A Mac App Store version is still in App Review. Check back in <strong>Settings → App Info</strong> when it's released.
+          </p>
+        </OptionCard>
+      )}
     </div>
+  );
+}
+
+// Verified live iOS listing — used everywhere the App Store option appears.
+export const APP_STORE_URL = 'https://apps.apple.com/us/app/kjb-reader/id6813352869';
+
+function AppleIcon({ className = '' }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
+      <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" />
+    </svg>
   );
 }
 
