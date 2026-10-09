@@ -4,7 +4,7 @@ import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
   { version: 'v0.4.290', date: 'October 9, 2026', items: [
-    { tag: 'ui', text: 'New hand-drawn KJB Reader icon across the toolbar and app' },
+    { tag: 'improved', text: 'New hand-drawn KJB Reader icon across the toolbar and app' },
     { tag: 'improved', text: 'Safari App Store release moves to version 1.0 (iOS and macOS); the extension engine is unchanged' },
   ] },
   { version: 'v0.4.289', date: 'October 5, 2026', items: [
