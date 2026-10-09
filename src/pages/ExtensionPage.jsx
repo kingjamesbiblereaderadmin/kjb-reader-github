@@ -200,8 +200,7 @@ export default function ExtensionPage() {
             <ul className="font-sans text-xs leading-relaxed text-primary list-disc list-inside space-y-0.5 text-left">
               <li>Chrome, Edge, Brave, Firefox, and Opera on desktop</li>
               <li>macOS and iOS Safari via the App Store</li>
-              <li>Also tested on Microsoft Edge mobile</li>
-              <li>Other mobile browsers may not support browser extensions</li>
+              <li>Also tested on Microsoft Edge mobile — other mobile browsers may not support browser extensions</li>
             </ul>
           </div>
 
@@ -251,8 +250,8 @@ export default function ExtensionPage() {
                 src="https://blog.mozilla.org/addons/files/2015/11/AMO-button_1.png"
                 alt="Get the Add-on for Firefox"
                 className="h-[58px] w-auto rounded-lg shadow-lg"
-              />
-              <span className="font-sans text-[11px] font-medium text-transparent mt-1" aria-hidden="true">&nbsp;</span>
+                />
+                <span className="font-sans text-[11px] font-medium text-muted-foreground mt-1">Works on mobile</span>
             </a>
             <a
               href={urls.opera}
