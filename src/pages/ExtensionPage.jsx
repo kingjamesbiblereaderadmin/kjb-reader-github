@@ -12,7 +12,7 @@ const DEFAULT_URLS = {
   edge: 'https://microsoftedge.microsoft.com/addons/detail/kjb-reader-sidepanel/bphmmbiepbhfnfijaapbmpimkkjdceee',
   mac: 'https://apps.apple.com/us/app/kjb-reader-sidepanel/id6813502666',
 };
-const DEFAULT_VERSION = 'v0.4.272';
+const DEFAULT_VERSION = 'v0.4.290';
 
 const EXAMPLES = [
   {

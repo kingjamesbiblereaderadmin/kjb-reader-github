@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import BulletItem from '@/components/BulletItem';
 import { ExternalLink, CheckCircle, Users, ChevronDown, ChevronLeft, ChevronRight, Youtube, Facebook, Instagram, Link as LinkIcon, Copy, Globe } from 'lucide-react';
 
 function CopyButton({ text, className }) {
@@ -244,8 +245,9 @@ export default function PreachersSection({
             />
           </div>
           <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-3 mb-3">{preacher.desc}</p>
-          <div className="space-y-2">
+          <ul className="space-y-2">
             {preacher.links.map((url) =>
+              <BulletItem key={url} dotClassName="bg-amber-500">
               <a
                 key={url}
                 href={url}
@@ -262,13 +264,15 @@ export default function PreachersSection({
                 <CopyButton text={url} className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-amber-600 transition-colors flex-shrink-0" />
                 <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-amber-600 transition-colors flex-shrink-0" />
               </a>
+              </BulletItem>
             )}
-          </div>
+          </ul>
         </div>
       ) : (
         /* ---- Directory view: compact cards, one per preacher ---- */
-        <div className="p-5 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <ul className="p-5 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
           {PREACHERS.map((p) => (
+            <BulletItem key={p.name} dotClassName="bg-amber-500">
             <button
               key={p.name}
               onClick={() => setSelected(p.name)}
@@ -281,8 +285,9 @@ export default function PreachersSection({
               </span>
               <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-amber-600 transition-colors flex-shrink-0" />
             </button>
+            </BulletItem>
           ))}
-        </div>
+        </ul>
       ))}
     </div>
   );
