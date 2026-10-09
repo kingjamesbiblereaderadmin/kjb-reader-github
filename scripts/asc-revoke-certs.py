@@ -53,11 +53,15 @@ def get_all(headers, url):
 
 def main():
     headers = {"Authorization": "Bearer " + token()}
-    certs = get_all(
-        headers,
-        "https://api.appstoreconnect.apple.com/v1/certificates"
-        "?filter%5BcertificateType%5D=MAC_SOFTWARE_DEVELOPMENT&limit=200",
-    )
+    # Apple now rejects the MAC_SOFTWARE_DEVELOPMENT filter (HTTP 400). List
+    # everything and keep only CI-minted ("Created via API") DEVELOPMENT certs.
+    certs = [
+        c for c in get_all(
+            headers, "https://api.appstoreconnect.apple.com/v1/certificates?limit=200"
+        )
+        if c.get("attributes", {}).get("certificateType") == "DEVELOPMENT"
+        and c.get("attributes", {}).get("displayName") == "Created via API"
+    ]
     if not certs:
         print("No Mac Catalyst development certificates on the account. Nothing to revoke.")
         return

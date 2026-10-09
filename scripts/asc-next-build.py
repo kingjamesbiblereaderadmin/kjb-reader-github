@@ -47,11 +47,16 @@ def revoke_stale_mac_dev_certs():
     or iOS development certificates.
     """
     try:
-        resp = requests.get(
-            f"{BASE}/v1/certificates?filter[certificateType]=MAC_SOFTWARE_DEVELOPMENT&limit=200",
-            headers=H, timeout=30)
+        # Apple removed the MAC_SOFTWARE_DEVELOPMENT filter value (HTTP 400);
+        # Mac Catalyst dev certs now come back as plain DEVELOPMENT. List them
+        # all and keep only the ones CI minted ("Created via API") so a
+        # developer's personal certificate and every distribution/installer
+        # certificate are never touched.
+        resp = requests.get(f"{BASE}/v1/certificates?limit=200", headers=H, timeout=30)
         resp.raise_for_status()
-        certs = resp.json().get("data", [])
+        certs = [c for c in resp.json().get("data", [])
+                 if (c.get("attributes") or {}).get("certificateType") == "DEVELOPMENT"
+                 and (c.get("attributes") or {}).get("displayName") == "Created via API"]
         if not certs:
             log("no Mac Catalyst development certificates to revoke")
             return
