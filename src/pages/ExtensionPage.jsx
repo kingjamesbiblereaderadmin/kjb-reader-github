@@ -283,7 +283,6 @@ export default function ExtensionPage() {
                       <span className="font-sans text-lg font-semibold -mt-0.5">App Store</span>
                     </span>
                   </span>
-                  <span className="font-sans text-[11px] font-medium text-muted-foreground mt-1">iPhone · iPad · Mac</span>
                 </a>
               </div>
             </div>
