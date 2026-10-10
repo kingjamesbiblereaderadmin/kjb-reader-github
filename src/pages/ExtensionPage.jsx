@@ -199,7 +199,7 @@ export default function ExtensionPage() {
               <p className="font-sans text-xs font-semibold uppercase tracking-wider text-primary">KJB Reader everywhere</p>
               <p className="font-sans text-sm text-foreground mt-1">Read, search, and look up Bible verses from any web page.</p>
               <p className="font-sans text-[11px] text-muted-foreground mt-1 leading-relaxed">
-                Desktop + limited mobile support: Chrome, Edge, Brave, Firefox, and Opera on desktop · macOS and iOS via the App Store · also tested on Microsoft Edge mobile
+                Desktop + limited mobile support: Chrome, Edge, Brave, Firefox, and Opera on desktop · macOS and iOS via the App Store · also tested on Microsoft Edge and Firefox on mobile
               </p>
             </div>
 
