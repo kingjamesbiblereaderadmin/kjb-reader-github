@@ -93,7 +93,8 @@ export default function ExtensionPage() {
   const [urls, setUrls] = useState(DEFAULT_URLS);
   const [version, setVersion] = useState(DEFAULT_VERSION);
   const [showInstructions, setShowInstructions] = useState(true);
-  const [heroIcon, setHeroIcon] = useState('https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/679d87279_icon128.png');
+  // Hand-drawn KJB Reader icon (the v0.4.292 extension toolbar icon)
+  const [heroIcon, setHeroIcon] = useState('https://base44.app/api/apps/6a8011c360ff52dad38eb2f3/files/mp/public/6a8011c360ff52dad38eb2f3/04085881f_kjb-512.png');
   const [mockups, setMockups] = useState(MOCKUPS);
 
   const applyConfig = (cfg) => {
@@ -209,79 +210,100 @@ export default function ExtensionPage() {
             Read, search, and look up Bible verses from any web page.
           </p>
 
-          {/* Download buttons */}
-          <div className="flex flex-row flex-wrap items-start justify-center gap-3 w-full sm:w-auto">
-            <a
-              href={urls.chrome}
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Get for Chrome/Brave — Chrome Web Store"
-              className="inline-flex flex-col items-center justify-start self-start transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <img
-                src="https://developer.chrome.com/static/docs/webstore/branding/image/HRs9MPufa1J1h5glNhut.png"
-                alt="Available in the Chrome Web Store"
-                className="h-[58px] w-auto rounded-lg shadow-lg"
-              />
-              <span className="font-sans text-[11px] font-medium text-transparent mt-1" aria-hidden="true">&nbsp;</span>
-            </a>
-            <a
-              href={urls.edge}
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Get for Microsoft Edge — Edge Add-ons"
-              className="inline-flex flex-col items-center justify-start self-start transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <img
-                src="https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/add-ons-badge-images/microsoft-edge-add-ons-badge.png"
-                alt="Get it from Microsoft Edge"
-                className="h-[58px] w-auto rounded-lg shadow-lg"
-              />
-              <span className="font-sans text-[11px] font-medium text-muted-foreground mt-1">Works on mobile</span>
-            </a>
-            <a
-              href={urls.firefox}
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Get for Firefox — addons.mozilla.org"
-              className="inline-flex flex-col items-center justify-start self-start transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <img
-                src="https://blog.mozilla.org/addons/files/2015/11/AMO-button_1.png"
-                alt="Get the Add-on for Firefox"
-                className="h-[58px] w-auto rounded-lg shadow-lg"
-                />
-                <span className="font-sans text-[11px] font-medium text-muted-foreground mt-1">Works on mobile</span>
-            </a>
-            <a
-              href={urls.opera}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex flex-col items-center justify-center self-start gap-2 px-8 py-4 rounded-xl font-sans text-base font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg bg-green-500 hover:bg-green-600"
-            >
-              <span className="inline-flex items-center gap-2">
-                <Puzzle className="w-5 h-5" />
-                Get for Opera
-              </span>
-            </a>
-            <a
-              href={urls.mac}
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Download on the App Store (macOS &amp; iOS)"
-              className="inline-flex flex-col items-center justify-start self-start transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <span className="inline-flex items-center gap-2.5 h-[58px] px-5 rounded-lg shadow-lg bg-black text-white border border-neutral-600">
-                <svg viewBox="0 0 24 24" className="w-7 h-7 fill-current" aria-hidden="true">
-                  <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" />
-                </svg>
-                <span className="flex flex-col items-start leading-tight text-left">
-                  <span className="font-sans text-[10px] font-normal">Download on the</span>
-                  <span className="font-sans text-lg font-semibold -mt-0.5">App Store</span>
-                </span>
-              </span>
-              <span className="font-sans text-[11px] font-medium text-transparent mt-1" aria-hidden="true">&nbsp;</span>
-            </a>
+          {/* KJB Reader everywhere — one unified download card */}
+          <div className="max-w-3xl mx-auto rounded-2xl border border-border bg-card shadow-lg overflow-hidden text-left">
+            <div className="px-5 py-3 bg-muted/40 border-b border-border text-center">
+              <p className="font-sans text-xs font-semibold uppercase tracking-wider text-primary">KJB Reader everywhere</p>
+              <p className="font-sans text-[11px] text-muted-foreground mt-0.5">One reader, one Bible — everywhere you study</p>
+            </div>
+
+            {/* Browser extension group */}
+            <div className="px-5 pt-4 pb-5">
+              <p className="font-sans text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3 text-center">Browser Extension</p>
+              <div className="flex flex-row flex-wrap items-start justify-center gap-3">
+                <a
+                  href={urls.chrome}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Get for Chrome/Brave — Chrome Web Store"
+                  className="inline-flex flex-col items-center justify-start self-start transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <img
+                    src="https://developer.chrome.com/static/docs/webstore/branding/image/HRs9MPufa1J1h5glNhut.png"
+                    alt="Available in the Chrome Web Store"
+                    className="h-[58px] w-auto rounded-lg shadow-lg"
+                  />
+                  <span className="font-sans text-[11px] font-medium text-transparent mt-1" aria-hidden="true">&nbsp;</span>
+                </a>
+                <a
+                  href={urls.edge}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Get for Microsoft Edge — Edge Add-ons"
+                  className="inline-flex flex-col items-center justify-start self-start transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <img
+                    src="https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/add-ons-badge-images/microsoft-edge-add-ons-badge.png"
+                    alt="Get it from Microsoft Edge"
+                    className="h-[58px] w-auto rounded-lg shadow-lg"
+                  />
+                  <span className="font-sans text-[11px] font-medium text-muted-foreground mt-1">Works on mobile</span>
+                </a>
+                <a
+                  href={urls.firefox}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Get for Firefox — addons.mozilla.org"
+                  className="inline-flex flex-col items-center justify-start self-start transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <img
+                    src="https://blog.mozilla.org/addons/files/2015/11/AMO-button_1.png"
+                    alt="Get the Add-on for Firefox"
+                    className="h-[58px] w-auto rounded-lg shadow-lg"
+                    />
+                    <span className="font-sans text-[11px] font-medium text-muted-foreground mt-1">Works on mobile</span>
+                </a>
+                <a
+                  href={urls.opera}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex flex-col items-center justify-center self-start gap-2 px-8 py-4 rounded-xl font-sans text-base font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg bg-green-500 hover:bg-green-600"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Puzzle className="w-5 h-5" />
+                    Get for Opera
+                  </span>
+                </a>
+              </div>
+            </div>
+
+            {/* Apple devices group — iPhone, iPad, Mac */}
+            <div className="px-5 pt-4 pb-5 border-t border-border">
+              <p className="font-sans text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3 text-center">Apple — iPhone · iPad · Mac</p>
+              <div className="flex flex-col items-center">
+                <a
+                  href={urls.mac}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Download on the App Store (iPhone, iPad &amp; Mac)"
+                  className="inline-flex flex-col items-center transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <span className="inline-flex items-center gap-2.5 h-[58px] px-5 rounded-lg shadow-lg bg-black text-white border border-neutral-600">
+                    <svg viewBox="0 0 24 24" className="w-7 h-7 fill-current" aria-hidden="true">
+                      <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" />
+                    </svg>
+                    <span className="flex flex-col items-start leading-tight text-left">
+                      <span className="font-sans text-[10px] font-normal">Download on the</span>
+                      <span className="font-sans text-lg font-semibold -mt-0.5">App Store</span>
+                    </span>
+                  </span>
+                  <span className="font-sans text-[11px] font-medium text-muted-foreground mt-1">iPhone · iPad · Mac</span>
+                </a>
+                <p className="font-sans text-xs text-muted-foreground mt-3 text-center">
+                  The full KJB Reader app — same reading experience in the Safari app and side panel on all Apple devices.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
