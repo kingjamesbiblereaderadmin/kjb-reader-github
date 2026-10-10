@@ -294,7 +294,7 @@ export default function ExtensionPage() {
           <h2 className="font-serif text-2xl font-bold text-foreground mb-6 text-center">See It In Action</h2>
           <div className="w-full rounded-xl border border-border bg-card shadow-lg overflow-hidden">
             <img
-              src="https://media.base44.com/images/public/6a8011c360ff52dad38eb2f3/b38904652_62b1eeff0_unified-all-browsers.png"
+              src="https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/a8bde5fe6_kjb-promo-v4.png"
               alt="KJB Reader Extension preview"
               loading="lazy"
               className="w-full h-auto"
