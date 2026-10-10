@@ -285,9 +285,6 @@ export default function ExtensionPage() {
                   </span>
                   <span className="font-sans text-[11px] font-medium text-muted-foreground mt-1">iPhone · iPad · Mac</span>
                 </a>
-                <p className="font-sans text-xs text-muted-foreground mt-3 text-center">
-                  A Safari app extension that adds the KJB Reader side panel — look up verses, read chapters, and search while you browse, on iPhone, iPad and Mac.
-                </p>
               </div>
             </div>
           </div>
