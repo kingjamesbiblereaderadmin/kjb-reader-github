@@ -94,7 +94,7 @@ export default function ExtensionPage() {
   const [version, setVersion] = useState(DEFAULT_VERSION);
   const [showInstructions, setShowInstructions] = useState(true);
   // Hand-drawn KJB Reader icon (the v0.4.292 extension toolbar icon)
-  const [heroIcon, setHeroIcon] = useState('https://base44.app/api/apps/6a8011c360ff52dad38eb2f3/files/mp/public/6a8011c360ff52dad38eb2f3/04085881f_kjb-512.png');
+  const [heroIcon, setHeroIcon] = useState('https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/9bf3c0615_kjb-icon-128.png');
   const [mockups, setMockups] = useState(MOCKUPS);
 
   const applyConfig = (cfg) => {
