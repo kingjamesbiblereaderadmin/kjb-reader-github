@@ -4,8 +4,8 @@ import Capacitor
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
-    var window: UIWindow?
-
+    // UIScene lifecycle adoption (required for iOS 27 SDK binaries): the
+    // window now belongs to SceneDelegate; this delegate no longer holds one.
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Install the offline-fallback navigation delegate on Capacitor's
         // bridge view controller before it loads (see OfflineFallback.swift).
@@ -57,7 +57,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     private func loadWhenWebViewReady(url: URL, attempt: Int) {
         DispatchQueue.main.asyncAfter(deadline: .now() + (attempt == 0 ? 0.4 : 1.0)) { [weak self] in
             guard let self else { return }
-            guard let bridgeVC = self.window?.rootViewController as? CAPBridgeViewController,
+            guard let bridgeVC = Self.activeBridgeViewController(),
                   let webView = bridgeVC.bridge?.webView else {
                 if attempt < 8 { self.loadWhenWebViewReady(url: url, attempt: attempt + 1) }
                 return
@@ -70,6 +70,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 webView.load(URLRequest(url: url))
             }
         }
+    }
+
+    func application(_ application: UIApplication,
+                     configurationForConnecting connectingSceneSession: UISceneSession) -> UISceneConfiguration {
+        let config = UISceneConfiguration(name: "Main", sessionRole: connectingSceneSession.role)
+        config.delegateClass = SceneDelegate.self
+        return config
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
@@ -88,6 +95,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+    }
+
+    /// Scene-lifecycle replacement for the old `self.window?.rootViewController`
+    /// lookup: find the key window across connected window scenes.
+    static func activeBridgeViewController() -> CAPBridgeViewController? {
+        for scene in UIApplication.shared.connectedScenes {
+            guard let windowScene = scene as? UIWindowScene else { continue }
+            for window in windowScene.windows where window.isKeyWindow {
+                if let vc = window.rootViewController as? CAPBridgeViewController {
+                    return vc
+                }
+            }
+        }
+        return nil
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
