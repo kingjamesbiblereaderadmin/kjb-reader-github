@@ -286,7 +286,7 @@ export default function ExtensionPage() {
                   <span className="font-sans text-[11px] font-medium text-muted-foreground mt-1">iPhone · iPad · Mac</span>
                 </a>
                 <p className="font-sans text-xs text-muted-foreground mt-3 text-center">
-                  The full KJB Reader app — same reading experience in the Safari app and side panel on all Apple devices.
+                  KJB Reader for iPhone, iPad and Mac — read, search, and look up verses with the side panel in Safari.
                 </p>
               </div>
             </div>
