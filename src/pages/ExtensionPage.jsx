@@ -193,28 +193,14 @@ export default function ExtensionPage() {
             <span className="font-sans text-xs font-semibold text-primary">{version}</span>
           </div>
 
-          {/* Browser compatibility notice */}
-          <div className="max-w-2xl mx-auto rounded-xl px-4 py-3 mb-5 bg-primary/10 border border-primary/35">
-            <p className="font-sans text-xs font-semibold leading-relaxed text-primary mb-1.5">
-              Desktop + Limited Mobile Support
-            </p>
-            <ul className="font-sans text-xs leading-relaxed text-primary list-disc list-inside space-y-0.5 text-left">
-              <li>Chrome, Edge, Brave, Firefox, and Opera on desktop</li>
-              <li>macOS and iOS Safari via the App Store</li>
-              <li>Also tested on Microsoft Edge mobile — other mobile browsers may not support browser extensions</li>
-            </ul>
-          </div>
-
-          {/* Subtitle */}
-          <p className="font-sans text-base mb-6 text-muted-foreground">
-            Read, search, and look up Bible verses from any web page.
-          </p>
-
           {/* KJB Reader everywhere — one unified download card */}
           <div className="max-w-3xl mx-auto rounded-2xl border border-border bg-card shadow-lg overflow-hidden text-left">
-            <div className="px-5 py-3 bg-muted/40 border-b border-border text-center">
+            <div className="px-5 py-4 bg-muted/40 border-b border-border text-center">
               <p className="font-sans text-xs font-semibold uppercase tracking-wider text-primary">KJB Reader everywhere</p>
-              <p className="font-sans text-[11px] text-muted-foreground mt-0.5">One reader, one Bible — everywhere you study</p>
+              <p className="font-sans text-sm text-foreground mt-1">Read, search, and look up Bible verses from any web page.</p>
+              <p className="font-sans text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                Desktop + limited mobile support: Chrome, Edge, Brave, Firefox, and Opera on desktop · macOS and iOS via the App Store · also tested on Microsoft Edge mobile
+              </p>
             </div>
 
             {/* Browser extension group */}
