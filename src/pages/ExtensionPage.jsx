@@ -366,27 +366,19 @@ export default function ExtensionPage() {
           <ol className="space-y-3 font-sans text-sm leading-relaxed text-foreground/90">
             <li className="flex items-start gap-3">
               <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground bg-primary">1</span>
-              <span>Download the .zip file using the button above</span>
+              <span>Install from your browser&rsquo;s official store — click the matching button above: Chrome Web Store (Chrome), Microsoft Edge Add-ons (Edge), Firefox Add-ons (Firefox), or the ZIP download (Opera).</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground bg-primary">2</span>
-              <span>Extract/unzip the downloaded file</span>
+              <span>Safari on iPhone, iPad and Mac — click &lsquo;Download on the App Store&rsquo; above.</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground bg-primary">3</span>
-              <span>Open Chrome and go to <code className="px-1.5 py-0.5 rounded font-sans text-xs bg-muted text-primary">chrome://extensions</code></span>
+              <span>Once installed, pin the KJB Reader icon to your toolbar and click any Bible reference on a page to open it in the side panel.</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground bg-primary">4</span>
-              <span>Enable &lsquo;Developer mode&rsquo; (toggle in top right)</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground bg-primary">5</span>
-              <span>Click &lsquo;Load unpacked&rsquo; and select the extracted folder</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground bg-primary">6</span>
-              <span>The KJB SidePanel icon will appear in your toolbar</span>
+              <span>If references don&rsquo;t respond on some sites, enable the extension&rsquo;s permissions: on Safari, open Settings &rarr; Safari &rarr; Extensions &rarr; KJB Reader (Mac: Safari &rarr; Settings &rarr; Extensions) and turn on &lsquo;Allow Search Page Results&rsquo;, &lsquo;Allow in Private Windows&rsquo; and &lsquo;Allow on Every Website&rsquo;; on Chrome, Edge and Firefox, open your browser&rsquo;s extensions settings for KJB Reader and allow it in InPrivate/Incognito/private windows and on all websites.</span>
             </li>
           </ol>
         </div>
