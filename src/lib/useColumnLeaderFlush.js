@@ -14,6 +14,11 @@ import { useEffect } from 'react';
 // bottom spacing (padding + row padding) spills into the top of column 2 and
 // pushes the leading verse and its number down, off the left column's top
 // line. That spacing is zeroed for the verse above a column-2 leader.
+// Finally: a pilcrow verse (paragraph start) must not be the LAST verse of
+// column 1 with its paragraph continuing in column 2. CSS can't say that, so
+// the verse that ends column 1 gets `break-before: column` when it is a
+// pilcrow verse, moving the whole paragraph start to the top of column 2.
+// Only one verse is ever forced per layout (no cascading).
 // Overrides are re-evaluated on resize/reflow and reverted when a verse is
 // no longer a column leader, with a bounded settle loop so a layout that
 // flip-flops falls back to the plain CSS defaults instead of oscillating.
@@ -26,6 +31,7 @@ export default function useColumnLeaderFlush(containerRef, deps) {
     }
 
     const applied = new Set();
+    let forced = null;
 
     const rowOf = (el) => Array.from(el.children).find((c) => c.tagName === 'SPAN' && c.classList.contains('flex')) || null;
 
@@ -53,9 +59,18 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       if (row) row.style.paddingBottom = '';
     };
 
+    const clearForced = () => {
+      if (forced) {
+        forced.style.breakBefore = '';
+        forced.style.webkitColumnBreakBefore = '';
+        forced = null;
+      }
+    };
+
     const clearAll = () => {
       applied.forEach(clearOne);
       applied.clear();
+      clearForced();
     };
 
     // The topmost verse span in each of the two columns.
@@ -86,6 +101,23 @@ export default function useColumnLeaderFlush(containerRef, deps) {
 
       const rect = container.getBoundingClientRect();
       const midX = rect.left + rect.width / 2;
+
+      // Pilcrow verse ending column 1 → push it to the top of column 2.
+      if (!forced) {
+        for (const leader of leaders) {
+          if (leader.getBoundingClientRect().left < midX) continue;
+          const prev = leader.previousElementSibling;
+          if (!prev || prev.tagName !== 'SPAN') continue;
+          if (prev.getAttribute('data-pilcrow') !== 'true') continue;
+          const before = prev.previousElementSibling;
+          if (!before || before.tagName !== 'SPAN') continue;
+          if (!endsInColumnOne(prev, midX)) continue;
+          prev.style.breakBefore = 'column';
+          prev.style.webkitColumnBreakBefore = 'always';
+          forced = prev;
+          return true;
+        }
+      }
 
       // Apply: a verse leading a column → zero the spacing above it, but only
       // when the verse before it sits wholly in the previous column. A verse
