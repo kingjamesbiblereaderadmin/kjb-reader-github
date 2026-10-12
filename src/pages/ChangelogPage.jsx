@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.303', date: 'October 12, 2026', items: [
+    { tag: 'improved', text: 'Copy: Plain multi-verse copies are now one flowing paragraph: verses join with single spaces (pilcrow paragraph marks keep their space, as printed in the source), and the whole text is wrapped in quotes followed by the verse ref and (KJB), matching the single-verse copy format. Applies to search-results group copy and select-bar copies, consecutive and non-consecutive. Copy: Full is unchanged.' },
+  ] },
   { version: 'v0.4.292', date: 'October 9, 2026', items: [
     { tag: 'improved', text: 'Updated the extension toolbar icon to the hand-drawn KJB Reader icon' },
   ] },
