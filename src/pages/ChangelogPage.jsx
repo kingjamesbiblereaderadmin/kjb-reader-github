@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.306', date: 'October 13, 2026', items: [
+    { tag: 'fix', text: "Edge's side panel header now stays on one row, with the logo and \"KJB Reader - SidePanel\" title on the left and the zoom controls and website button right-aligned, instead of stacking under the title in narrow panels. Other browsers unchanged." },
+  ] },
   { version: 'v0.4.305', date: 'October 13, 2026', items: [
     { tag: 'fix', text: 'Fixed the mobile header: mobile browsers (Edge on Android, Chrome, Samsung, Opera Mobile) were picking up the desktop centre-only styling, which hid the in-panel logo and title on phones. Mobile now always keeps the logo and "KJB Reader - SidePanel" title on one header row, with the zoom controls and website button right-aligned. Desktop side panels are unchanged.' },
   ] },
@@ -376,7 +379,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.305
+            Current Version: v0.4.306
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
