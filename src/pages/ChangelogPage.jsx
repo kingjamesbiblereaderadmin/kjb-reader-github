@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
+  { version: 'v0.4.304', date: 'October 13, 2026', items: [
+    { tag: 'ui', text: 'Mobile keeps the in-panel logo and "KJB Reader - SidePanel" title on one header row, with the zoom controls and website button right-aligned beside the branding' },
+  ] },
   { version: 'v0.4.303', date: 'October 12, 2026', items: [
     { tag: 'improved', text: 'Copy: Plain multi-verse copies are now one flowing paragraph: verses join with single spaces (pilcrow paragraph marks keep their space, as printed in the source), and the whole text is wrapped in quotes followed by the verse ref and (KJB), matching the single-verse copy format. Applies to search-results group copy and select-bar copies, consecutive and non-consecutive. Copy: Full is unchanged.' },
   ] },
@@ -370,7 +373,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.292
+            Current Version: v0.4.304
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
