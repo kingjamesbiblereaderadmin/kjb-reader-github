@@ -222,24 +222,6 @@ export default function ResourcesPage() {
             </ul>
           </div>
 
-          <div className="border-t-2 border-indigo-300/70 dark:border-indigo-700/70 -mt-1 mb-4" />
-
-          <div>
-            <h3 className="notranslate font-sans font-semibold text-sm text-foreground mb-1">KJB Knights Server</h3>
-            <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-3">
-              My and my friends' <span className="notranslate" translate="no">Discord</span> server — feel free to join.
-            </p>
-            <div className="flex items-center gap-3 flex-wrap">
-              <a
-                href="https://discord.gg/wNSSCABPrv"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                Join KJB Knights <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            </div>
-          </div>
         </CollapsibleCard>
       </div>
 
