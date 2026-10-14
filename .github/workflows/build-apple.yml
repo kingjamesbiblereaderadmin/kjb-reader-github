@@ -27,7 +27,7 @@ on:
         default: ''
         type: string
       marketing_version:
-        description: 'Marketing version override (blank = 2.<run_number>)'
+        description: 'Marketing version override (blank = 2.<run_number>, auto-bumped past any closed ASC version)'
         required: false
         default: ''
         type: string
@@ -65,6 +65,20 @@ jobs:
           echo "next=$NEXT" >> "$GITHUB_OUTPUT"
           echo "Next build number: $NEXT"
 
+      - name: Resolve marketing version (queries ASC, avoids collisions)
+        id: nextver
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          REQUESTED: ${{ inputs.marketing_version || format('2.{0}', github.run_number) }}
+        run: |
+          python3 -m venv /tmp/ascvenv 2>/dev/null || true
+          /tmp/ascvenv/bin/pip install -q pyjwt requests cryptography
+          NEXT=$(/tmp/ascvenv/bin/python scripts/asc-next-version.py --app 6813352869 --platform IOS --requested "$REQUESTED")
+          echo "version=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "Next marketing version: $NEXT (requested: $REQUESTED)"
+
       - name: Write signing key
         env:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
@@ -94,7 +108,7 @@ jobs:
             -destination 'generic/platform=iOS' \
             -derivedDataPath build/derived \
             CURRENT_PROJECT_VERSION=${{ steps.nextbuild.outputs.next }} \
-            MARKETING_VERSION="${{ inputs.marketing_version || format('2.{0}', github.run_number) }}" \
+            MARKETING_VERSION="${{ steps.nextver.outputs.version }}" \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
           APP=build/derived/Build/Products/Release-iphoneos/App.app
           VER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Info.plist")"
@@ -284,6 +298,20 @@ jobs:
           echo "next=$NEXT" >> "$GITHUB_OUTPUT"
           echo "macOS build number: $NEXT"
 
+      - name: Resolve marketing version (queries ASC, avoids collisions)
+        id: nextver
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          REQUESTED: ${{ inputs.marketing_version || format('2.{0}', github.run_number) }}
+        run: |
+          python3 -m venv /tmp/ascvenv 2>/dev/null || true
+          /tmp/ascvenv/bin/pip install -q pyjwt requests cryptography
+          NEXT=$(/tmp/ascvenv/bin/python scripts/asc-next-version.py --app 6813352869 --platform MAC_OS --requested "$REQUESTED")
+          echo "version=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "Next marketing version: $NEXT (requested: $REQUESTED)"
+
       - name: Write App Store Connect API key
         env:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
@@ -348,7 +376,7 @@ jobs:
             -authenticationKeyID '${{ secrets.ASC_KEY_ID }}' \
             -authenticationKeyIssuerID '${{ secrets.ASC_ISSUER_ID }}' \
             CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
-            MARKETING_VERSION="${{ inputs.marketing_version || format('2.{0}', github.run_number) }}" \
+            MARKETING_VERSION="${{ steps.nextver.outputs.version }}" \
             DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
             CODE_SIGN_STYLE=Automatic \
             SUPPORTS_MACCATALYST=YES \
