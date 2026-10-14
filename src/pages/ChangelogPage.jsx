@@ -2,12 +2,18 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
-const CHANGELOG = [
+const CHANGELOG_RAW = [
+  { version: 'v0.4.309', date: 'October 15, 2026', items: [
+    { tag: 'improved', text: 'Resource links and preachers now copy as bullet points (bullets appear in the copied text only, not in the panel).' },
+  ] },
+  { version: 'v0.4.308', date: 'October 15, 2026', items: [
+    { tag: 'new', text: 'Gospel tab "Copy" now copies just the gospel; the new "Copy All" button copies the whole page including the extra resources and preachers.' },
+  ] },
   { version: 'v0.4.307', date: 'October 15, 2026', items: [
     { tag: 'removed', text: 'Removed the KJB Knights personal Discord server section from the extension Resources tab and the website Resources page. The KJB Reader Discord bot remains unchanged.' },
   ] },
   { version: 'v0.4.306', date: 'October 13, 2026', items: [
-    { tag: 'fix', text: "Edge's side panel header now stays on one row, with the logo and \"KJB Reader - SidePanel\" title on the left and the zoom controls and website button right-aligned, instead of stacking under the title in narrow panels. Other browsers unchanged." },
+    { tag: 'improved', text: "Edge's side panel header now stays on one row, with the logo and \"KJB Reader - SidePanel\" title on the left and the zoom controls and website button right-aligned, instead of stacking under the title in narrow panels. Other browsers unchanged." },
   ] },
   { version: 'v0.4.305', date: 'October 13, 2026', items: [
     { tag: 'fix', text: 'Fixed the mobile header: mobile browsers (Edge on Android, Chrome, Samsung, Opera Mobile) were picking up the desktop centre-only styling, which hid the in-panel logo and title on phones. Mobile now always keeps the logo and "KJB Reader - SidePanel" title on one header row, with the zoom controls and website button right-aligned. Desktop side panels are unchanged.' },
@@ -299,6 +305,17 @@ const CHANGELOG = [
   { version: 'v0.4.65', date: 'August 9, 2026', items: ['Initial Opera build with sidebar, verse lookup, search, and reference detection'] },
 ];
 
+// Every item is normalized to { tag, text }: objects keep their tag, plain
+// strings are auto-classified, so no entry can ever render without a tag.
+const CHANGELOG = CHANGELOG_RAW.map((entry) => ({
+  ...entry,
+  items: entry.items.map((it) => (
+    typeof it === 'object' && it.tag
+      ? it
+      : { tag: classifyItem(typeof it === 'object' ? (it.text || '') : it), text: typeof it === 'object' ? (it.text || '') : it }
+  )),
+}));
+
 // Category styles: each maps to a label, chip classes, badge classes, and a
 // left-border accent color. Categories are detected from the first verb of
 // each changelog item.
@@ -327,6 +344,18 @@ const CATEGORIES = {
     badge: 'bg-gradient-to-r from-purple-500 to-fuchsia-600 text-white border-purple-600/40',
     accent: 'border-l-purple-500',
   },
+  fixed: {
+    label: 'Fixed',
+    chip: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-300/60 dark:border-emerald-500/30',
+    badge: 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white border-emerald-600/40',
+    accent: 'border-l-emerald-500',
+  },
+  removed: {
+    label: 'Removed',
+    chip: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300 border border-rose-300/60 dark:border-rose-500/30',
+    badge: 'bg-gradient-to-r from-rose-500 to-red-600 text-white border-rose-600/40',
+    accent: 'border-l-rose-500',
+  },
 };
 
 function classifyItem(item) {
@@ -337,9 +366,15 @@ function classifyItem(item) {
   return 'ui';
 }
 
+function itemCategory(item) {
+  const tag = typeof item === 'object' ? item.tag : classifyItem(item);
+  return CATEGORIES[tag] ? tag : classifyItem(typeof item === 'object' ? (item.text || '') : item);
+}
+
 function dominantCategory(items) {
-  const counts = { new: 0, fix: 0, improved: 0, ui: 0 };
-  items.forEach((it) => { counts[typeof it === 'object' ? it.tag : classifyItem(it)]++; });
+  const counts = {};
+  Object.keys(CATEGORIES).forEach((k) => { counts[k] = 0; });
+  items.forEach((it) => { counts[itemCategory(it)]++; });
   let best = 'ui', max = -1;
   for (const k of Object.keys(counts)) {
     if (counts[k] > max) { max = counts[k]; best = k; }
@@ -382,7 +417,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.307
+            Current Version: v0.4.309
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
@@ -420,7 +455,7 @@ export default function ChangelogPage() {
                 </div>
                 <ul className="space-y-2.5">
                   {entry.items.map((item, i) => {
-                    const itemCat = typeof item === 'object' ? item.tag : classifyItem(item);
+                    const itemCat = itemCategory(item);
                     const itemStyle = CATEGORIES[itemCat];
                     return (
                       <li key={i} className="flex items-start gap-2.5 font-sans text-sm leading-relaxed text-foreground/90">
