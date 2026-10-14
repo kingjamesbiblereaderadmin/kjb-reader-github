@@ -80,12 +80,12 @@ const FEATURES = [
   {
     icon: Heart,
     title: 'Gospel Tab',
-    desc: <>Built-in salvation guide with <span className="notranslate" translate="no">1 Corinthians 15:1-4</span> and <span className="notranslate" translate="no">Romans 3:25</span> — copy the gospel on its own, or everything including the verified KJB preachers.</>,
+    desc: <>Built-in salvation guide with <span className="notranslate" translate="no">1 Corinthians 15:1-4, Romans 3:25</span>, and verified KJB preachers.</>,
   },
   {
     icon: Link2,
     title: 'Resources Tab',
-    desc: 'Quick links to KJBI.org, the KJB Discord bot, KJB defence materials, verified KJB preachers, and ministry links — and copying the page gives a clean bullet-point list.',
+    desc: 'Quick links to KJBI.org, Discord bot, KJB defence materials, and ministry websites.',
   },
 ];
 
