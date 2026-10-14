@@ -6,7 +6,6 @@ import { LinktreeIcon, TikTokIcon, InstagramIcon } from '@/components/ContactLin
 import CollapsibleCard from '@/components/landing/CollapsibleCard';
 import PreachersSection, { PREACHERS } from '@/components/PreachersSection';
 import PageHero from '@/components/PageHero';
-import BulletItem from '@/components/BulletItem';
 
 function CopyButton({ text, className }) {
   const [copied, setCopied] = useState(false);
@@ -197,7 +196,6 @@ export default function ResourcesPage() {
               Use the <span className="notranslate">KJB Reader</span> bot in your own <span className="notranslate" translate="no">Discord</span> account or add it to a server for daily verses and verse search directly in <span className="notranslate" translate="no">Discord</span>.
             </p>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <BulletItem dotClassName="bg-indigo-500">
               <a
                 href="https://discord.com/oauth2/authorize?client_id=1529303667348606996&scope=applications.commands&integration_type=1"
                 target="_blank"
@@ -207,8 +205,6 @@ export default function ResourcesPage() {
                 <span className="font-sans font-semibold text-sm text-foreground group-hover:text-accent transition-colors">📱 Personal Install</span>
                 <span className="font-sans text-xs text-muted-foreground leading-relaxed">Adds slash commands to your Discord account — works in DMs, group DMs, and any server.</span>
               </a>
-              </BulletItem>
-              <BulletItem dotClassName="bg-indigo-500">
               <a
                 href="https://discord.com/oauth2/authorize?client_id=1529303667348606996&scope=bot+applications.commands&permissions=378494381072"
                 target="_blank"
@@ -218,7 +214,6 @@ export default function ResourcesPage() {
                 <span className="font-sans font-semibold text-sm text-foreground group-hover:text-accent transition-colors">🏠 Server Install</span>
                 <span className="font-sans text-xs text-muted-foreground leading-relaxed">Bot joins a server for daily verse delivery and searching up verses and keywords.</span>
               </a>
-              </BulletItem>
             </ul>
           </div>
 
@@ -331,7 +326,6 @@ export default function ResourcesPage() {
         </button>
         {expandedSections.ministry && (
         <ul className="p-5 pt-4 space-y-2">
-          <BulletItem dotClassName="bg-purple-500">
           <a
             href="https://godisgracious1031ministriescom.odoo.com/"
             target="_blank"
@@ -350,8 +344,6 @@ export default function ResourcesPage() {
               <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors" />
             </div>
           </a>
-          </BulletItem>
-          <BulletItem dotClassName="bg-purple-500">
           <a
             href="https://youtube.com/@shawnr325av"
             target="_blank"
@@ -370,8 +362,6 @@ export default function ResourcesPage() {
               <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors" />
             </div>
           </a>
-          </BulletItem>
-          <BulletItem dotClassName="bg-purple-500">
           <a
             href="https://rumble.com/user/Godisgracious1031"
             target="_blank"
@@ -390,8 +380,6 @@ export default function ResourcesPage() {
               <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors" />
             </div>
           </a>
-          </BulletItem>
-          <BulletItem dotClassName="bg-purple-500">
           <a
             href="https://www.tiktok.com/@svdbyfaithinr325av"
             target="_blank"
@@ -410,8 +398,6 @@ export default function ResourcesPage() {
               <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors" />
             </div>
           </a>
-          </BulletItem>
-          <BulletItem dotClassName="bg-purple-500">
           <a
             href="https://www.instagram.com/svdbyfaithinhisbloodr325av/"
             target="_blank"
@@ -430,8 +416,6 @@ export default function ResourcesPage() {
               <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors" />
             </div>
           </a>
-          </BulletItem>
-          <BulletItem dotClassName="bg-purple-500">
           <a
             href="https://discord.com/users/faithinhisbloodr325av"
             target="_blank"
@@ -450,8 +434,6 @@ export default function ResourcesPage() {
               <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors" />
             </div>
           </a>
-          </BulletItem>
-          <BulletItem dotClassName="bg-purple-500">
           <a
             href="https://linktr.ee/shawnr325av"
             target="_blank"
@@ -470,8 +452,6 @@ export default function ResourcesPage() {
               <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors" />
             </div>
           </a>
-          </BulletItem>
-          <BulletItem dotClassName="bg-purple-500">
           <a
             href="mailto:kingjamesbiblereader@outlook.sg"
             className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
@@ -485,7 +465,6 @@ export default function ResourcesPage() {
             </div>
             <CopyButton text="kingjamesbiblereader@outlook.sg" className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors flex-shrink-0" />
           </a>
-          </BulletItem>
         </ul>
         )}
       </div>
