@@ -463,3 +463,21 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+
+  # Keep the app English (UK) only: strip en-US localizations wherever ASC
+  # currently allows it. Best-effort and never fails the build -- while a
+  # version is under review ASC refuses locale deletions app-wide (409);
+  # the next run after the review clears performs the cleanup.
+  asc-uk-only-metadata:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Strip en-US localizations (best-effort)
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: python3 scripts/asc-strip-enus.py
