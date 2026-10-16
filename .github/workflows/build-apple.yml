@@ -475,7 +475,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install Python deps (script imports jwt/requests at module top)
+        run: pip install --quiet pyjwt requests cryptography
       - name: Strip en-US localizations (best-effort)
+        continue-on-error: true
         env:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
