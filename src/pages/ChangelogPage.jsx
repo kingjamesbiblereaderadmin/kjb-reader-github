@@ -3,6 +3,18 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG_RAW = [
+  { version: 'v0.4.313', date: 'October 16, 2026', items: [
+    { tag: 'improved', text: 'The action rows now stay visible while you scroll — Results keeps Select / Copy All / Copy: Full at the top, and the Gospel (Copy / Copy All / Print) and Resources (Copy / Print) toolbars stick to the top of the panel.' },
+  ] },
+  { version: 'v0.4.312', date: 'October 15, 2026', items: [
+    { tag: 'fixed', text: 'At heavy zoom the header title now shrinks smoothly, keeping the full "KJB Reader - SidePanel" visible instead of clipping to just "KJB Reader".' },
+  ] },
+  { version: 'v0.4.311', date: 'October 15, 2026', items: [
+    { tag: 'improved', text: 'Chrome\'s side panel now shows the in-panel logo and "KJB Reader - SidePanel" title like Edge, Firefox and Safari. Opera remains centre-only.' },
+  ] },
+  { version: 'v0.4.310', date: 'October 15, 2026', items: [
+    { tag: 'improved', text: 'Firefox and desktop Safari side panels keep the header on one row — logo and title on the left, zoom controls and website button on the right — instead of stacking in narrow panels.' },
+  ] },
   { version: 'v0.4.309', date: 'October 15, 2026', items: [
     { tag: 'improved', text: 'Resource links and preachers now copy as bullet points (bullets appear in the copied text only, not in the panel).' },
   ] },
@@ -417,7 +429,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.309
+            Current Version: v0.4.313
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
