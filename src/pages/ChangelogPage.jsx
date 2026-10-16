@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG_RAW = [
+  { version: 'v0.4.314', date: 'October 17, 2026', items: [
+    { tag: 'new', text: 'While any advanced search filter is active, a reminder chip under the search bar shows exactly which filters are on — Match whole word, Testament, Book, Case sensitive, or Wildcards off — and clicking it opens the advanced panel, so search results never appear mysteriously short because of a forgotten filter.' },
+  ] },
   { version: 'v0.4.313', date: 'October 16, 2026', items: [
     { tag: 'improved', text: 'The action rows now stay visible while you scroll — Results keeps Select / Copy All / Copy: Full at the top, and the Gospel (Copy / Copy All / Print) and Resources (Copy / Print) toolbars stick to the top of the panel.' },
   ] },
@@ -429,7 +432,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.313
+            Current Version: v0.4.314
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
