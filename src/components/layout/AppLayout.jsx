@@ -81,6 +81,7 @@ const BOTTOM_NAV_SECONDARY = [
   { path: '/saved', icon: Bookmark, label: 'Saved' },
   { path: '/about', icon: Info, label: 'About' },
   { path: '/settings', icon: Settings, label: 'Settings' },
+  { path: '/accessibility', icon: Accessibility, label: 'Accessibility' },
 ];
 
 export default function AppLayout() {
@@ -799,7 +800,7 @@ function BottomNav({ pathname, navigate }) {
 
         {/* Secondary row - shown when two rows - 4 per line */}
         {showMode === 'two' && (
-          <div className="grid grid-cols-4 border-t border-border">
+          <div className="grid grid-cols-5 border-t border-border">
             {BOTTOM_NAV_SECONDARY.map(item => {
               const Icon = item.icon;
               const active = pathname === item.path;
