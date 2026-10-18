@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Heart, Library, Info, List, Settings, Bookmark, FlaskConical } from 'lucide-react';
+import { BookOpen, Heart, Library, Info, List, Settings, Bookmark, FlaskConical, Accessibility } from 'lucide-react';
 import QuickLinkCard from '@/components/home/QuickLinkCard';
 import OfflineStatusBanner from '@/components/OfflineStatusBanner';
 import IncognitoWarning from '@/components/IncognitoWarning';
@@ -16,6 +16,7 @@ const QUICK_LINKS = [
   { path: '/resources', icon: Library, label: 'Resources', desc: 'KJB defence & study', iconGradient: 'from-violet-500 to-purple-600' },
   { path: '/about', icon: Info, label: 'About', desc: 'Ministry & links', iconGradient: 'from-sky-500 to-cyan-600' },
   { path: '/settings', icon: Settings, label: 'Settings', desc: 'Offline downloads & info', iconGradient: 'from-slate-500 to-slate-700' },
+  { path: '/accessibility', icon: Accessibility, label: 'Accessibility', desc: 'Dyslexia & low-vision fonts', iconGradient: 'from-slate-500 to-slate-700' },
 ];
 
 export default function HomePage() {
@@ -109,7 +110,8 @@ export default function HomePage() {
       </div>
 
       {/* Quick links */}
-      <div className="print:hidden grid grid-cols-[repeat(auto-fit,minmax(15rem,1fr))] lg:grid-cols-4 gap-3 sm:gap-4 mb-6 auto-rows-fr mt-2">
+      {/* 9 cards with Read spanning 2 columns = 10 cells = two even rows of 5 on desktop */}
+      <div className="print:hidden grid grid-cols-[repeat(auto-fit,minmax(15rem,1fr))] lg:grid-cols-5 gap-3 sm:gap-4 mb-6 auto-rows-fr mt-2">
         {QUICK_LINKS.map((link) => (
           <QuickLinkCard
             key={link.path}
@@ -118,6 +120,7 @@ export default function HomePage() {
             label={link.label}
             desc={link.desc}
             iconGradient={link.iconGradient}
+            className={link.path === '/read' ? 'sm:col-span-2' : ''}
           />
         ))}
       </div>
