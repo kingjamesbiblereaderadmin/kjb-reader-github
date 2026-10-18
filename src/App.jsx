@@ -45,6 +45,7 @@ const loaders = {
   ForgotPassword: () => import('@/pages/ForgotPassword.jsx').catch((err) => { console.error('Failed to load ForgotPassword:', err); throw err; }),
   ResetPassword: () => import('@/pages/ResetPassword.jsx').catch((err) => { console.error('Failed to load ResetPassword:', err); throw err; }),
   Contact: () => import('@/pages/ContactPage').catch((err) => { console.error('Failed to load ContactPage:', err); throw err; }),
+  Accessibility: () => import('@/pages/AccessibilityPage').catch((err) => { console.error('Failed to load AccessibilityPage:', err); throw err; }),
   Register: () => import('@/pages/Register.jsx').catch((err) => { console.error('Failed to load Register:', err); throw err; }),
   OAuthConsent: () => import('@/pages/OAuthConsent.jsx').catch((err) => { console.error('Failed to load OAuthConsent:', err); throw err; }),
 
@@ -95,6 +96,7 @@ const LoginPage = lazy(loaders.Login);
 const ForgotPasswordPage = lazy(loaders.ForgotPassword);
 const ResetPasswordPage = lazy(loaders.ResetPassword);
 const ContactPage = lazy(loaders.Contact);
+const AccessibilityPage = lazy(loaders.Accessibility);
 const RegisterPage = lazy(loaders.Register);
 const OAuthConsentPage = lazy(loaders.OAuthConsent);
 const CreditsPage = lazy(loaders.Credits);
@@ -338,6 +340,7 @@ const AuthenticatedApp = () => {
             <Route path="/terms" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><TermsOfServicePage /></SafeAreaPad></Suspense>} />
             <Route path="/privacy" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><PrivacyPolicyPage /></SafeAreaPad></Suspense>} />
             <Route path="/contact" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><ContactPage /></SafeAreaPad></Suspense>} />
+            <Route path="/accessibility" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><AccessibilityPage /></SafeAreaPad></Suspense>} />
             <Route path="/salvation" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><SalvationPage /></SafeAreaPad></Suspense>} />
             <Route path="/discord" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><DiscordInvitePage /></SafeAreaPad></Suspense>} />
             <Route path="/extension" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><ExtensionPage /></SafeAreaPad></Suspense>} />
