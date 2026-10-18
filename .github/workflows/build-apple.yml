@@ -76,11 +76,34 @@ KJB READER - MAIN APP (ready to launch)
 
 No pod install, no terminal needed. The web build is already synced in.
 EOF
+          mkdir -p /tmp/xcstage/OPEN-ME-IN-XCODE.xcworkspace
+          cat > /tmp/xcstage/OPEN-ME-IN-XCODE.xcworkspace/contents.xcworkspacedata <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:ios/App/App.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:ios/App/Pods/Pods.xcodeproj">
+   </FileRef>
+</Workspace>
+EOF
       - uses: actions/upload-artifact@v6
         with:
           name: KJB-Reader-Main-Xcode
           path: /tmp/xcstage/
           retention-days: 14
+
+      - name: Verify the staged Xcode project builds standalone (as delivered)
+        # Proves the delivered zip opens and builds exactly like a fresh
+        # unzip on a Mac: build the staged copy from its root workspace,
+        # not from the repo checkout.
+        run: |
+          xcodebuild -workspace /tmp/xcstage/OPEN-ME-IN-XCODE.xcworkspace \
+            -scheme App -configuration Debug -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath /tmp/xcverify CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
       - name: Determine next build number (queries ASC, avoids collisions)
         id: nextbuild
         env:
