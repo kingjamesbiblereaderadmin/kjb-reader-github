@@ -2,6 +2,30 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Accessibility as AccessibilityIcon, ArrowLeft } from 'lucide-react';
 
+function FontDemo({ fontFamily }) {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <div>
+      <button
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border text-foreground font-sans text-sm font-medium hover:border-accent hover:text-accent transition-all duration-200"
+      >
+        {open ? 'Hide' : 'Try now'}
+      </button>
+      {open && (
+        <div className="mt-3 rounded-2xl border border-border bg-background p-5 shadow-sm">
+          <p style={{ fontFamily }} className="text-lg text-foreground leading-loose">
+            &ldquo;For God so loved the world, that he gave his only begotten Son, that whosoever
+            believeth in him should not perish, but have everlasting life.&rdquo;
+            <span className="block font-sans text-sm text-muted-foreground mt-2">John 3:16</span>
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Section({ title, children }) {
   return (
     <div className="bg-gradient-to-br from-card via-card to-accent/15 border border-accent/25 backdrop-blur-xl rounded-2xl p-6 sm:p-7 mb-5 shadow-lg shadow-black/[0.03]">
@@ -15,7 +39,7 @@ function Section({ title, children }) {
 
 export default function AccessibilityPage() {
   const navigate = useNavigate();
-  const goBack = () => navigate(-1);
+  const goBack = () => navigate('/');
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
       <div className="w-full max-w-3xl mx-auto px-5 sm:px-8 lg:px-12 py-10 pb-24">
@@ -53,6 +77,7 @@ export default function AccessibilityPage() {
             rotating or swapping similar letters such as b and d. Enable it from Settings &rarr; Fonts
             and it applies across the entire app — reading, search results, and generated exports.
           </p>
+          <FontDemo fontFamily="'OpenDyslexic', 'Comic Sans MS', sans-serif" />
         </Section>
 
         <Section title="Atkinson Hyperlegible">
@@ -62,6 +87,7 @@ export default function AccessibilityPage() {
             at small sizes or low resolution, and it also improves legibility for everyone. Enable it
             from Settings &rarr; Fonts and it works throughout the app.
           </p>
+          <FontDemo fontFamily="'Atkinson Hyperlegible', system-ui, sans-serif" />
         </Section>
 
         <Section title="Adjustable text size">
