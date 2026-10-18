@@ -318,7 +318,7 @@ jobs:
       - name: Upload iOS artifact
         uses: actions/upload-artifact@v6
         with:
-          name: KJB-Reader-iOS
+          name: KJB-Reader-MAIN-iOS
           path: |
             build/ipa/App.ipa
             build/App.xcarchive
@@ -547,7 +547,7 @@ jobs:
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v6
         with:
-          name: KJB-Reader-macOS
+          name: KJB-Reader-MAIN-macOS
           path: |
             build/macos-export/*
             build/macos/KJB-Reader.xcarchive
