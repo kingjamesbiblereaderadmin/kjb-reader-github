@@ -59,36 +59,32 @@ jobs:
         # artifact must carry (same relative depth) or Xcode fails with
         # "Unable to resolve module dependency: 'Capacitor'".
         run: |
-          mkdir -p /tmp/xcstage/ios /tmp/xcstage/node_modules/@capacitor
+          mkdir -p /tmp/xcstage/ios /tmp/xcstage/node_modules/@capacitor /tmp/xcstage/OPEN-ME-IN-XCODE.xcworkspace
           cp -RL ios/App /tmp/xcstage/ios/App
           for p in ios app preferences screen-orientation share; do
             cp -RL "node_modules/@capacitor/$p" "/tmp/xcstage/node_modules/@capacitor/$p"
           done
-          cat > /tmp/xcstage/README.txt <<'EOF'
-KJB READER - MAIN APP (ready to launch)
+          printf '%s\n' \
+            "KJB READER - MAIN APP (ready to launch)" \
+            "" \
+            "1. Double-click OPEN-ME-IN-XCODE.xcworkspace (this folder's icon)." \
+            "   Do NOT open App.xcodeproj on its own - the Capacitor module only" \
+            "   loads through the workspace, and opening the bare project shows" \
+            "   'Unable to resolve module dependency: Capacitor'." \
+            "2. Pick a simulator or your device." \
+            "3. Press Cmd+R." \
+            "" \
+            "No pod install, no terminal. The web build is already synced in." \
+            > /tmp/xcstage/README.txt
+          printf '%s\n' \
+            '<?xml version="1.0" encoding="UTF-8"?>' \
+            '<Workspace' \
+            '   version = "1.0">' \
+            '   <FileRef location = "group:ios/App/App.xcodeproj"></FileRef>' \
+            '   <FileRef location = "group:ios/App/Pods/Pods.xcodeproj"></FileRef>' \
+            '</Workspace>' \
+            > /tmp/xcstage/OPEN-ME-IN-XCODE.xcworkspace/contents.xcworkspacedata
 
-1. Open "ios/App/App.xcworkspace"   <-- the WORKSPACE, not App.xcodeproj!
-   (The Capacitor module comes from the Pods project, which only the
-   workspace loads. Opening App.xcodeproj alone gives the error
-   "Unable to resolve module dependency: 'Capacitor'".)
-2. Pick a simulator or your device.
-3. Press Cmd+R.
-
-No pod install, no terminal needed. The web build is already synced in.
-EOF
-          mkdir -p /tmp/xcstage/OPEN-ME-IN-XCODE.xcworkspace
-          cat > /tmp/xcstage/OPEN-ME-IN-XCODE.xcworkspace/contents.xcworkspacedata <<'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<Workspace
-   version = "1.0">
-   <FileRef
-      location = "group:ios/App/App.xcodeproj">
-   </FileRef>
-   <FileRef
-      location = "group:ios/App/Pods/Pods.xcodeproj">
-   </FileRef>
-</Workspace>
-EOF
       - uses: actions/upload-artifact@v6
         with:
           name: KJB-Reader-Main-Xcode
