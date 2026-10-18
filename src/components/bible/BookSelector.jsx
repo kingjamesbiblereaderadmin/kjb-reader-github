@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { OLD_TESTAMENT, NEW_TESTAMENT } from '@/lib/bibleData';
 
-export default function BookSelector({ currentAbbr, onSelect, onClose, initialTestament, inline }) {
+export default function BookSelector({ currentAbbr, onSelect, onClose, initialTestament, inline, bare }) {
   const [tab, setTab] = useState(initialTestament === 'new' ? 'new' : 'old');
   const scrollRef = useRef(null);
   const panelRef = useRef(null);
@@ -63,8 +63,13 @@ export default function BookSelector({ currentAbbr, onSelect, onClose, initialTe
     <div
       ref={inline ? panelRef : null}
       style={inline && inlineMaxH ? { maxHeight: inlineMaxH } : undefined}
-      className={`bg-card border border-border rounded-2xl shadow-2xl overflow-hidden max-h-[70vh] flex flex-col relative ${
-        inline ? 'w-full shadow-lg' : 'w-[95vw] max-w-md sm:max-w-2xl lg:max-w-3xl'
+      className={`bg-card border border-border rounded-2xl overflow-hidden flex flex-col relative ${
+        bare
+          // Inside the mobile sheet: fill the sheet's full width and height so
+          // the list expands to fit at any App Zoom (rem-based max-w/vh caps
+          // shrank it when zoomed out).
+          ? 'w-full flex-1 min-h-0'
+          : inline ? 'w-full shadow-lg max-h-[70vh]' : 'w-[95vw] max-w-md sm:max-w-2xl lg:max-w-3xl shadow-2xl max-h-[70vh]'
       }`}>
       {/* Testament tabs */}
       <div className="grid grid-cols-2 gap-1 p-2 border-b border-border">
