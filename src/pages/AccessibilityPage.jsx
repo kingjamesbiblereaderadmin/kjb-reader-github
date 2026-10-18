@@ -1,11 +1,23 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Accessibility as AccessibilityIcon, ArrowLeft } from 'lucide-react';
+import { Accessibility as AccessibilityIcon, ArrowLeft, Check } from 'lucide-react';
+import { getAccessibilityFont, setAccessibilityFont } from '@/lib/accessibilityFont';
 
-function FontDemo({ fontFamily }) {
+function FontDemo({ fontFamily, value, label }) {
   const [open, setOpen] = React.useState(false);
+  const [active, setActive] = React.useState(() => getAccessibilityFont() === value);
+  React.useEffect(() => {
+    const sync = () => setActive(getAccessibilityFont() === value);
+    window.addEventListener('storage', sync);
+    window.addEventListener('kjb-fonts-changed', sync);
+    return () => {
+      window.removeEventListener('storage', sync);
+      window.removeEventListener('kjb-fonts-changed', sync);
+    };
+  }, [value]);
   return (
     <div>
+      <div className="flex flex-wrap items-center gap-2">
       <button
         onClick={() => setOpen(!open)}
         aria-expanded={open}
@@ -13,6 +25,17 @@ function FontDemo({ fontFamily }) {
       >
         {open ? 'Hide' : 'Try now'}
       </button>
+      <button
+        onClick={() => setAccessibilityFont(active ? 'default' : value)}
+        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-sans text-sm font-medium transition-all duration-200 active:scale-[0.98] ${
+          active
+            ? 'bg-primary text-primary-foreground shadow-sm'
+            : 'border border-primary text-primary hover:bg-primary/10'
+        }`}
+      >
+        {active ? <><Check className="w-4 h-4" /> Turned on</> : <>Turn on {label}</>}
+      </button>
+      </div>
       {open && (
         <div className="mt-3 rounded-2xl border border-border bg-background p-5 shadow-sm">
           <p style={{ fontFamily }} className="text-lg text-foreground leading-loose">
@@ -83,7 +106,7 @@ export default function AccessibilityPage() {
             rotating or swapping similar letters such as b and d. Enable it from Settings &rarr; Fonts
             and it applies across the entire app — reading, search results, and generated exports.
           </p>
-          <FontDemo fontFamily="'OpenDyslexic', 'Comic Sans MS', sans-serif" />
+          <FontDemo fontFamily="'OpenDyslexic', 'Comic Sans MS', sans-serif" value="dyslexic" label="OpenDyslexic" />
         </Section>
 
         <Section title="Atkinson Hyperlegible">
@@ -93,7 +116,7 @@ export default function AccessibilityPage() {
             at small sizes or low resolution, and it also improves legibility for everyone. Enable it
             from Settings &rarr; Fonts and it works throughout the app.
           </p>
-          <FontDemo fontFamily="'Atkinson Hyperlegible', system-ui, sans-serif" />
+          <FontDemo fontFamily="'Atkinson Hyperlegible', system-ui, sans-serif" value="hyperlegible" label="Atkinson Hyperlegible" />
         </Section>
 
         <Section title="Adjustable text size">

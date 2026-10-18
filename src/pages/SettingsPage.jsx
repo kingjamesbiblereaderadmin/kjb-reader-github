@@ -586,6 +586,13 @@ export default function SettingsPage() {
               Disable
             </button>
           )}
+          <Link
+            to="/accessibility"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-transparent border border-border text-foreground font-sans text-sm font-medium hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            About Accessibility
+          </Link>
         </div>
         )}
       </div>
