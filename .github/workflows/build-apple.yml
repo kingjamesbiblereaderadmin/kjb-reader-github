@@ -64,6 +64,18 @@ jobs:
           for p in ios app preferences screen-orientation share; do
             cp -RL "node_modules/@capacitor/$p" "/tmp/xcstage/node_modules/@capacitor/$p"
           done
+          cat > /tmp/xcstage/README.txt <<'EOF'
+KJB READER - MAIN APP (ready to launch)
+
+1. Open "ios/App/App.xcworkspace"   <-- the WORKSPACE, not App.xcodeproj!
+   (The Capacitor module comes from the Pods project, which only the
+   workspace loads. Opening App.xcodeproj alone gives the error
+   "Unable to resolve module dependency: 'Capacitor'".)
+2. Pick a simulator or your device.
+3. Press Cmd+R.
+
+No pod install, no terminal needed. The web build is already synced in.
+EOF
       - uses: actions/upload-artifact@v6
         with:
           name: KJB-Reader-Main-Xcode
