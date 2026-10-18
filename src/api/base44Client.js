@@ -28,5 +28,12 @@ export const base44 = createClient({
   token,
   functionsVersion,
   requiresAuth: false,
-  appBaseUrl
+  appBaseUrl,
+  // Owner opted out of analytics: the SDK defaults this to TRUE and fires an
+  // "init" event to base44.app/api/apps/{id}/analytics/track/batch the moment
+  // the client is constructed — this is the request that kept appearing even
+  // with the vite plugin's analyticsTracker: false. The plugin flag only
+  // governs the plugin's own page-view tracker; the client's tracker is
+  // controlled HERE.
+  analytics: { enabled: false }
 });
