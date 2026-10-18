@@ -193,6 +193,17 @@ export default function ExtensionPage() {
             <span className="font-sans text-xs font-semibold text-primary">{version}</span>
           </div>
 
+          {/* Promo banner — 1x webp with 2x retina srcset */}
+          <img
+            src="https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/533592980_out-landing-1024x688.webp"
+            srcSet="https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/81d9e1945_out-landing-2048x1376.webp 2x"
+            alt="KJB Reader Extension promo: side panel screenshots across Chrome, Edge, Firefox, Opera and Safari"
+            width="1024"
+            height="688"
+            loading="lazy"
+            className="block mx-auto w-full max-w-3xl h-auto rounded-2xl shadow-lg mb-6"
+          />
+
           {/* KJB Reader everywhere — one unified download card */}
           <div className="max-w-3xl mx-auto rounded-2xl border border-border bg-card shadow-lg overflow-hidden text-left">
             <div className="px-5 py-4 bg-muted/40 border-b border-border text-center">
