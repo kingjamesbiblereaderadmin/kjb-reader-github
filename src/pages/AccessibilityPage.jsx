@@ -16,9 +16,10 @@ function FontDemo({ fontFamily }) {
       {open && (
         <div className="mt-3 rounded-2xl border border-border bg-background p-5 shadow-sm">
           <p style={{ fontFamily }} className="text-lg text-foreground leading-loose">
-            &ldquo;For God so loved the world, that he gave his only begotten Son, that whosoever
-            believeth in him should not perish, but have everlasting life.&rdquo;
-            <span className="block font-sans text-sm text-muted-foreground mt-2">John 3:16</span>
+            &ldquo;Whom God hath set forth to be a propitiation through faith in his blood, to
+            declare his righteousness for the remission of sins that are past, through the
+            forbearance of God;&rdquo;
+            <span className="block font-sans text-sm text-muted-foreground mt-2">Romans 3:25</span>
           </p>
         </div>
       )}
@@ -39,7 +40,10 @@ function Section({ title, children }) {
 
 export default function AccessibilityPage() {
   const navigate = useNavigate();
-  const goBack = () => navigate('/');
+  const goBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate('/');
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
       <div className="w-full max-w-3xl mx-auto px-5 sm:px-8 lg:px-12 py-10 pb-24">
