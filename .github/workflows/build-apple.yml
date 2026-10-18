@@ -54,10 +54,18 @@ jobs:
         run: cd ios/App && pod install
 
       - name: Attach the fully-resolved Xcode project (web synced + Pods installed)
-        uses: actions/upload-artifact@v6
+        # Capacitor pods are local path pods (node_modules) — CocoaPods stores
+        # them in Pods/ as SYMLINKS, which upload-artifact strips, leaving a
+        # Pods project whose sources are missing ("Unable to resolve module
+        # dependency: 'Capacitor'"). Dereference with cp -RL so the artifact
+        # carries the real source files and builds standalone.
+        run: |
+          mkdir -p /tmp/xcstage/ios
+          cp -RL ios/App /tmp/xcstage/ios/App
+      - uses: actions/upload-artifact@v6
         with:
           name: KJB-Reader-Main-Xcode
-          path: ios/
+          path: /tmp/xcstage/ios/
           retention-days: 14
       - name: Determine next build number (queries ASC, avoids collisions)
         id: nextbuild
