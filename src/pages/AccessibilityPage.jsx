@@ -41,8 +41,10 @@ function Section({ title, children }) {
 export default function AccessibilityPage() {
   const navigate = useNavigate();
   const goBack = () => {
-    if (window.history.length > 1) navigate(-1);
-    else navigate('/');
+    // history.length includes other documents and preview-frame entries; only
+    // React Router's index confirms that there is an in-app page to return to.
+    if (window.history.state?.idx > 0) navigate(-1);
+    else navigate('/', { replace: true });
   };
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
