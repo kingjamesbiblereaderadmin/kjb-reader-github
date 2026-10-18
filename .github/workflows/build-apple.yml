@@ -170,13 +170,28 @@ jobs:
         run: /tmp/ascvenv/bin/python scripts/asc-ensure-app-groups.py
       - name: Export IPA (signs with Apple Distribution)
         run: |
-          xcodebuild -exportArchive -archivePath build/App.xcarchive \
-            -exportOptionsPlist ios/ci/ExportOptions-runtime.plist \
-            -exportPath build/ipa \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8 \
-            -authenticationKeyID ${{ secrets.ASC_KEY_ID }} \
-            -authenticationKeyIssuerID ${{ secrets.ASC_ISSUER_ID }} \
+          # Retry once: xcodebuild -exportArchive intermittently fails with
+          # "data couldn't be read" when the App Store Connect profile
+          # download hiccups; a second attempt goes through.
+          try_export () {
+            xcodebuild -exportArchive -archivePath build/App.xcarchive \
+              -exportOptionsPlist ios/ci/ExportOptions-runtime.plist \
+              -exportPath build/ipa \
+              -allowProvisioningUpdates \
+              -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8 \
+              -authenticationKeyID ${{ secrets.ASC_KEY_ID }} \
+              -authenticationKeyIssuerID ${{ secrets.ASC_ISSUER_ID }}
+          }
+          try_export || { sleep 30; try_export; }
+
+      - name: Upload distribution diagnostics on export failure
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: ios-export-diagnostics
+          path: /var/folders/**/App_*.xcdistributionlogs/**
+          if-no-files-found: ignore
+          retention-days: 7 \
       # The archive is assembled by hand from an unsigned build, so confirm the
       # signed IPA really carries the share extension and the App Group
       # entitlement on both the app and the extension. A missing extension fails
