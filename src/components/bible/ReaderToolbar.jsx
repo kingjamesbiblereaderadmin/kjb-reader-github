@@ -86,8 +86,9 @@ export default function ReaderToolbar({
               />
             </div>
           )}
-          <SelectorSheet open={showBookPicker && isMobile()} onClose={() => setShowBookPicker(false)} title="Select Book">
+          <SelectorSheet tall open={showBookPicker && isMobile()} onClose={() => setShowBookPicker(false)} title="Select Book">
             <BookSelector
+              bare
               currentAbbr={pos.abbr}
               onSelect={(b, isTitlePage, showChapter) => {
                 if (isTitlePage) { navigate(b.abbr, 0); setShowBookPicker(false); }
