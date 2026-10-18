@@ -48,17 +48,17 @@ jobs:
         run: npm install
       - name: Build web + sync
         run: npm run build && npx cap sync ios
-      - name: Attach the configured Xcode project (web build synced)
+      - name: Prepare iOS offline bundle
+        run: node scripts/prepare-ios-offline.js
+      - name: Install pods
+        run: cd ios/App && pod install
+
+      - name: Attach the fully-resolved Xcode project (web synced + Pods installed)
         uses: actions/upload-artifact@v6
         with:
           name: KJB-Reader-Main-Xcode
           path: ios/
           retention-days: 14
-
-      - name: Prepare iOS offline bundle
-        run: node scripts/prepare-ios-offline.js
-      - name: Install pods
-        run: cd ios/App && pod install
       - name: Determine next build number (queries ASC, avoids collisions)
         id: nextbuild
         env:
