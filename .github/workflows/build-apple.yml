@@ -48,6 +48,13 @@ jobs:
         run: npm install
       - name: Build web + sync
         run: npm run build && npx cap sync ios
+      - name: Attach the configured Xcode project (web build synced)
+        uses: actions/upload-artifact@v6
+        with:
+          name: KJB-Reader-Main-Xcode
+          path: ios/
+          retention-days: 14
+
       - name: Prepare iOS offline bundle
         run: node scripts/prepare-ios-offline.js
       - name: Install pods
