@@ -363,6 +363,13 @@ jobs:
           set -euxo pipefail
           rm -rf build/macos build/derived-macos
           mkdir -p build
+          # Xcode contacts the Apple developer portal to create/download the
+          # Mac Catalyst profile. A dropped connection there surfaces as
+          # "The network connection was lost" followed by a misleading "No
+          # profiles for ... were found" — transient, so retry those only.
+          attempt=1
+          while true; do
+          set +e
           xcodebuild archive \
             -workspace ios/App/App.xcworkspace \
             -scheme App \
@@ -383,6 +390,18 @@ jobs:
             TARGETED_DEVICE_FAMILY="1,2,6" \
             CODE_SIGNING_ALLOWED=YES \
             CODE_SIGNING_REQUIRED=YES 2>&1 | tee build/macos-archive.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          if [ "$rc" -eq 0 ]; then break; fi
+          if [ "$attempt" -lt 3 ] && grep -qiE 'network connection was lost|could not connect to the server|request timed out|not connected to the internet' build/macos-archive.log; then
+            attempt=$((attempt + 1))
+            echo "Transient network error talking to Apple; retrying (attempt $attempt of 3)"
+            sleep 20
+            rm -rf build/macos build/derived-macos
+            continue
+          fi
+          exit "$rc"
+          done
 
       # xcodebuild exits 65 for almost everything and the real reason is buried
       # in the log. On failure, surface the error lines as annotations + the job
