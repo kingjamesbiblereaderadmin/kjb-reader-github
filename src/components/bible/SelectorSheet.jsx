@@ -12,7 +12,7 @@ import { X } from 'lucide-react';
  * work normally, and it only closes via the X button or a backdrop tap that
  * starts on the backdrop itself.
  */
-export default function SelectorSheet({ open, onClose, title, children }) {
+export default function SelectorSheet({ open, onClose, title, children, tall = false }) {
   // Lock body scroll while the sheet is open.
   useEffect(() => {
     if (!open) return;
@@ -33,7 +33,7 @@ export default function SelectorSheet({ open, onClose, title, children }) {
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onPointerDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
       />
-      <div className="relative flex flex-col rounded-t-2xl bg-card border-t border-border max-h-[80vh] shadow-2xl animate-in slide-in-from-bottom duration-200">
+      <div className={`relative flex flex-col rounded-t-2xl bg-card border-t border-border shadow-2xl animate-in slide-in-from-bottom duration-200 ${tall ? 'h-[80vh] h-[80dvh]' : 'max-h-[80vh]'}`}>
         <div className="mx-auto mt-3 mb-2 w-10 h-1.5 rounded-full bg-border flex-shrink-0" />
         <div className="flex items-center justify-center relative pb-3 flex-shrink-0 px-4">
           {title && (
@@ -46,7 +46,7 @@ export default function SelectorSheet({ open, onClose, title, children }) {
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="overflow-y-auto flex-1 px-4 pb-6">
+        <div className={tall ? 'flex flex-col flex-1 min-h-0 px-4 pb-6' : 'overflow-y-auto flex-1 px-4 pb-6'} style={tall ? { paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' } : undefined}>
           {children}
         </div>
       </div>
