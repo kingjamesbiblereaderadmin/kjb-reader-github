@@ -252,6 +252,15 @@ jobs:
       - name: Upload skipped (build-only)
         if: steps.uploadmode.outputs.skip == 'true'
         run: echo "Skipped the App Store Connect upload per .github/asc-upload-mode (or the dispatch input). The build+export still validated this commit."
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: KJB-Reader-iOS
+          path: |
+            build/ipa/App.ipa
+            build/App.xcarchive
+          if-no-files-found: warn
+          retention-days: 14
   macos:
     if: inputs.platform != 'ios'
     runs-on: xcode-27
