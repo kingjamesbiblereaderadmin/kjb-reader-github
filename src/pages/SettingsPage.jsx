@@ -545,6 +545,15 @@ export default function SettingsPage() {
           </div>
           <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${expandedSections.accessibility ? 'rotate-180' : ''}`} />
         </button>
+        <div className="px-5 pt-4">
+          <Link
+            to="/accessibility"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-br from-rose-500 to-red-500 text-white font-sans text-sm font-medium shadow-md shadow-rose-500/20 hover:brightness-105 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <Accessibility className="w-4 h-4" />
+            About Accessibility
+          </Link>
+        </div>
         {expandedSections.accessibility && (
         <div className="px-5 pb-6 pt-2 space-y-3">
           <div className="flex items-center gap-2">
@@ -586,13 +595,6 @@ export default function SettingsPage() {
               Disable
             </button>
           )}
-          <Link
-            to="/accessibility"
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-transparent border border-border text-foreground font-sans text-sm font-medium hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-            About Accessibility
-          </Link>
         </div>
         )}
       </div>
