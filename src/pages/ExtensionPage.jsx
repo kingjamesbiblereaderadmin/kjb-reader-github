@@ -195,11 +195,12 @@ export default function ExtensionPage() {
 
           {/* Promo banner — 1x webp with 2x retina srcset */}
           <img
-            src="https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/533592980_out-landing-1024x688.webp"
-            srcSet="https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/81d9e1945_out-landing-2048x1376.webp 2x"
+            src="https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/69cee693f_landing-clear-1280x925.webp"
+            srcSet="https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/878e5bbf0_landing-clear-2560x1850.webp 2x"
             alt="KJB Reader Extension promo: side panel screenshots across Chrome, Edge, Firefox, Opera and Safari"
-            width="1024"
-            height="688"
+            width="1280"
+            height="925"
+            style={{ width: '100%', height: 'auto' }}
             loading="lazy"
             className="block mx-auto w-full max-w-3xl h-auto rounded-2xl shadow-lg mb-6"
           />
