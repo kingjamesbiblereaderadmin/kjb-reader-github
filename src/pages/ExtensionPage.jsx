@@ -195,8 +195,8 @@ export default function ExtensionPage() {
 
           {/* Promo banner — 1x webp with 2x retina srcset */}
           <img
-            src="https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/69cee693f_landing-clear-1280x925.webp"
-            srcSet="https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/878e5bbf0_landing-clear-2560x1850.webp 2x"
+            src="https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/9c5ef8858_out-landing-clear-1280x925.webp"
+            srcSet="https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/b8f20c221_out-landing-clear-2560x1850.webp 2x"
             alt="KJB Reader Extension promo: side panel screenshots across Chrome, Edge, Firefox, Opera and Safari"
             width="1280"
             height="925"
