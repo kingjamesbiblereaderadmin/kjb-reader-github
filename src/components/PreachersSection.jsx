@@ -93,7 +93,7 @@ export const PREACHERS = [
     links: [
       'https://www.facebook.com/people/Mission-1611/61570948244190/',
       'https://www.instagram.com/big_red_preacher',
-      'https://www.tiktok.com/@mission1611grace',
+      'https://www.tiktok.com/@bigredpreacher87',
       'https://mission1611.com/']
   },
   {
