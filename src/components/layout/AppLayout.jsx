@@ -373,6 +373,34 @@ export default function AppLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Native iOS (Capacitor): env(safe-area-inset-top) can under-report (even 0)
+  // while the WKWebView draws edge-to-edge under the status bar, colliding the
+  // header with it. Set --kjb-app-safe-top ONLY in the native app on a narrow
+  // portrait screen AND when env() under-reports; everywhere else it stays 0px.
+  useEffect(() => {
+    const applyNativeSafeTop = () => {
+      try {
+        const isNative = !!(window.Capacitor && (window.Capacitor.isNativePortal === true || (typeof window.Capacitor.getPlatform === 'function' && window.Capacitor.getPlatform() === 'ios')));
+        const portrait = window.matchMedia('(orientation: portrait)').matches;
+        const narrow = window.innerWidth <= 500;
+        const probe = document.createElement('div');
+        probe.style.cssText = 'position:fixed;top:env(safe-area-inset-top);visibility:hidden;pointer-events:none;height:0';
+        document.body.appendChild(probe);
+        const reported = probe.offsetTop;
+        probe.remove();
+        const needs = isNative && portrait && narrow && reported < 40;
+        document.documentElement.style.setProperty('--kjb-app-safe-top', needs ? '50px' : '0px');
+      } catch (e) { /* no-op */ }
+    };
+    applyNativeSafeTop();
+    window.addEventListener('resize', applyNativeSafeTop);
+    window.addEventListener('orientationchange', applyNativeSafeTop);
+    return () => {
+      window.removeEventListener('resize', applyNativeSafeTop);
+      window.removeEventListener('orientationchange', applyNativeSafeTop);
+    };
+  }, []);
+
   // Legacy reader gets no layout chrome - just render the outlet
   if (isLegacy) {
     return <Outlet />;
@@ -381,7 +409,7 @@ export default function AppLayout() {
   return (
     <AutoUpdateHandler>
     <div data-kjb-app-root className="h-[100dvh] bg-gradient-to-br from-background via-accent/5 to-background flex flex-col overflow-hidden">
-      <header data-kjb-app-header className={`print:hidden border-b border-border/60 bg-card/70 backdrop-blur-xl z-50 flex-shrink-0 ${hideHeader ? 'hidden' : ''}`} style={{ paddingTop: 'env(safe-area-inset-top)', paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}>
+      <header data-kjb-app-header className={`print:hidden border-b border-border/60 bg-card/70 backdrop-blur-xl z-50 flex-shrink-0 ${hideHeader ? 'hidden' : ''}`} style={{ paddingTop: 'max(env(safe-area-inset-top), var(--kjb-app-safe-top, 0px))', paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}>
         <div className="w-full max-w-[120rem] mx-auto px-3 xs:px-5 sm:px-8 lg:px-12 h-14 flex items-center gap-1.5 xs:gap-2 sm:gap-3">
           {/* Logo / Back Button */}
           {pathname === '/' ? (
@@ -464,7 +492,7 @@ export default function AppLayout() {
           <>
             <div
               className="fixed inset-x-0 bottom-0 z-[60] bg-black/50 backdrop-blur-sm"
-              style={{ top: 'calc(3.5rem + env(safe-area-inset-top))' }}
+              style={{ top: 'calc(3.5rem + env(safe-area-inset-top) + var(--kjb-app-safe-top, 0px))' }}
               onClick={() => setMenuOpen(false)}
             />
             <div data-kjb-menu className="absolute top-full right-0 left-0 z-[61] bg-card backdrop-blur-xl border-b border-border/60 shadow-lg shadow-black/[0.05] overflow-y-auto overscroll-contain" style={{ maxHeight: 'calc(100dvh - 3.5rem - env(safe-area-inset-top) - env(safe-area-inset-bottom))' }}>
