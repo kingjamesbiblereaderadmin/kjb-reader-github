@@ -580,7 +580,7 @@ export default function AdvancedSearchPage() {
       {showFilters && records && (
         <div className="lg:hidden fixed inset-0 z-50 flex h-[100dvh]">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowFilters(false)} />
-          <div className="relative ml-auto w-[88%] max-w-sm h-[100dvh] bg-background flex flex-col shadow-2xl">
+          <div className="relative ml-auto w-[88%] max-w-sm h-[100dvh] bg-background flex flex-col shadow-2xl" style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }}>
             <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0">
               <h2 className="font-serif text-lg font-semibold text-foreground">Filters</h2>
               <button onClick={() => setShowFilters(false)} className="p-2 rounded-lg hover:bg-secondary">
@@ -595,7 +595,7 @@ export default function AdvancedSearchPage() {
             </div>
             <div
               className="shrink-0 px-5 pt-3 bg-background border-t border-border/60"
-              style={{ paddingBottom: `calc(1rem + ${footerPad}px)` }}
+              style={{ paddingBottom: `calc(1rem + ${footerPad}px + env(safe-area-inset-bottom, 0px))` }}
             >
               <button
                 onClick={() => { if (noFilters) setForceShow(true); setShowFilters(false); }}

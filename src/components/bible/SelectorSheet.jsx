@@ -33,7 +33,10 @@ export default function SelectorSheet({ open, onClose, title, children, tall = f
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onPointerDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
       />
-      <div className={`relative flex flex-col rounded-t-2xl bg-card border-t border-border shadow-2xl animate-in slide-in-from-bottom duration-200 ${tall ? 'h-[80vh] h-[80dvh]' : 'max-h-[80vh]'}`}>
+      <div
+        className={`relative flex flex-col rounded-t-2xl bg-card border-t border-border shadow-2xl animate-in slide-in-from-bottom duration-200 ${tall ? 'h-[80vh] h-[80dvh]' : 'max-h-[80vh]'}`}
+        style={{ paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)', ...(tall ? { paddingTop: 'env(safe-area-inset-top, 0px)' } : {}) }}
+      >
         <div className="mx-auto mt-3 mb-2 w-10 h-1.5 rounded-full bg-border flex-shrink-0" />
         <div className="flex items-center justify-center relative pb-3 flex-shrink-0 px-4">
           {title && (
@@ -42,11 +45,12 @@ export default function SelectorSheet({ open, onClose, title, children, tall = f
           <button
             onClick={onClose}
             className="absolute right-4 p-1 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+            style={{ right: 'max(1rem, env(safe-area-inset-right, 0px))' }}
           >
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className={tall ? 'flex flex-col flex-1 min-h-0 px-4 pb-6' : 'overflow-y-auto flex-1 px-4 pb-6'} style={tall ? { paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' } : undefined}>
+        <div className={tall ? 'flex flex-col flex-1 min-h-0 px-4 pb-6' : 'overflow-y-auto flex-1 px-4 pb-6'} style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}>
           {children}
         </div>
       </div>

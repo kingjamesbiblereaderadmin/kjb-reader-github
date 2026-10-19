@@ -17,7 +17,7 @@ export default function LightboxModal({
   return (
     <div
       className="fixed inset-0 z-[200] flex items-start sm:items-center justify-center bg-black/90 backdrop-blur-sm overflow-y-auto py-6"
-      style={{ width: '100vw', height: '100vh', top: 0, left: 0 }}
+      style={{ width: '100vw', height: '100vh', top: 0, left: 0, paddingLeft: 'calc(1rem + env(safe-area-inset-left, 0px))', paddingRight: 'calc(1rem + env(safe-area-inset-right, 0px))', paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))', paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();

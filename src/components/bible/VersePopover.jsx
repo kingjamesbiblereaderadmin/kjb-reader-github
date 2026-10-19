@@ -1,4 +1,5 @@
 import React, { useState, useLayoutEffect, useRef } from 'react';
+import { getSafeAreaInsets } from '@/lib/safeArea';
 
 /**
  * Auto-positioning wrapper for the verse action popover.
@@ -19,6 +20,9 @@ export default function VersePopover({ children, point }) {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const margin = 8;
+      const insets = getSafeAreaInsets();
+      const marginX0 = Math.max(8, insets.left);
+      const marginX1 = Math.max(8, insets.right);
 
       // The sticky toolbar covers the top of the screen and the footer nav
       // covers the bottom — keep the popover clear of both. The
@@ -30,7 +34,7 @@ export default function VersePopover({ children, point }) {
       const headerH = toolbarEl ? toolbarEl.getBoundingClientRect().bottom : 96;
       const footerH = 96;
       const usableTop = headerH + margin;
-      const usableBottom = vh - footerH - margin;
+      const usableBottom = vh - footerH - margin - insets.bottom;
 
       const anchorX = point?.x ?? vw / 2;
       const anchorY = point?.y ?? vh / 2;
@@ -50,10 +54,10 @@ export default function VersePopover({ children, point }) {
       let top = flipUp ? anchorY - popHeight - margin : anchorY + margin;
       top = Math.max(usableTop, Math.min(top, usableBottom - popHeight));
 
-      const maxWidth = vw - margin * 2;
+      const maxWidth = vw - marginX0 - marginX1;
       const width = Math.min(popRect.width, maxWidth);
       let left = anchorX - width / 2;
-      left = Math.max(margin, Math.min(left, vw - margin - width));
+      left = Math.max(marginX0, Math.min(left, vw - marginX1 - width));
 
       setStyle({ position: 'fixed', top, left, maxWidth, maxHeight, opacity: 1 });
     };

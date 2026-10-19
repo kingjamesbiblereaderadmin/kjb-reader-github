@@ -503,7 +503,7 @@ export default function AppLayout() {
                 </span>
                 <Switch checked={autoRotate} onCheckedChange={toggleAutoRotate} />
               </div>
-              <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 pt-4 flex flex-wrap gap-2.5" style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}>
+              <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 pt-4 flex flex-wrap gap-2.5" style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }}>
                 {NAV_ITEMS.map(item => {
                   const Icon = item.icon;
                   const active = item.path === '/' ? pathname === '/' : pathname === item.path;
@@ -726,7 +726,7 @@ function BottomNav({ pathname, navigate }) {
   if (showMode === 'bar') {
     return (
       <nav data-kjb-bottom-nav className="print:hidden sm:hidden fixed left-0 right-0 bottom-0 z-50 bg-card/80 backdrop-blur-md border-t border-border/50" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <div className="w-full max-w-[120rem] mx-auto px-2 sm:px-8 lg:px-12">
+        <div className="w-full max-w-[120rem] mx-auto px-2 sm:px-8 lg:px-12" style={{ paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }}>
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); cycleShowMode(); }}
@@ -742,7 +742,7 @@ function BottomNav({ pathname, navigate }) {
 
   return (
     <nav data-kjb-bottom-nav className="print:hidden sm:hidden fixed left-0 right-0 bottom-0 z-50 bg-card/70 backdrop-blur-xl border-t border-border/60 overflow-hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      <div className="w-full max-w-[120rem] mx-auto px-2 sm:px-8 lg:px-12">
+      <div className="w-full max-w-[120rem] mx-auto px-2 sm:px-8 lg:px-12" style={{ paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }}>
         {/* Primary row: 5 nav items + chevron toggle button */}
         <div className="flex items-stretch">
           {BOTTOM_NAV_PRIMARY.map(item => {
