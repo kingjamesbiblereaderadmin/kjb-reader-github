@@ -373,34 +373,6 @@ export default function AppLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Native iOS (Capacitor): env(safe-area-inset-top) can under-report (even 0)
-  // while the WKWebView draws edge-to-edge under the status bar, colliding the
-  // header with it. Set --kjb-app-safe-top ONLY in the native app on a narrow
-  // portrait screen AND when env() under-reports; everywhere else it stays 0px.
-  useEffect(() => {
-    const applyNativeSafeTop = () => {
-      try {
-        const isNative = !!(window.Capacitor && (window.Capacitor.isNativePortal === true || (typeof window.Capacitor.getPlatform === 'function' && window.Capacitor.getPlatform() === 'ios')));
-        const portrait = window.matchMedia('(orientation: portrait)').matches;
-        const narrow = window.innerWidth <= 500;
-        const probe = document.createElement('div');
-        probe.style.cssText = 'position:fixed;top:env(safe-area-inset-top);visibility:hidden;pointer-events:none;height:0';
-        document.body.appendChild(probe);
-        const reported = probe.offsetTop;
-        probe.remove();
-        const needs = isNative && portrait && narrow && reported < 40;
-        document.documentElement.style.setProperty('--kjb-app-safe-top', needs ? '50px' : '0px');
-      } catch (e) { /* no-op */ }
-    };
-    applyNativeSafeTop();
-    window.addEventListener('resize', applyNativeSafeTop);
-    window.addEventListener('orientationchange', applyNativeSafeTop);
-    return () => {
-      window.removeEventListener('resize', applyNativeSafeTop);
-      window.removeEventListener('orientationchange', applyNativeSafeTop);
-    };
-  }, []);
-
   // Legacy reader gets no layout chrome - just render the outlet
   if (isLegacy) {
     return <Outlet />;
