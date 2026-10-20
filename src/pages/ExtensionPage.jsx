@@ -193,16 +193,15 @@ export default function ExtensionPage() {
             <span className="font-sans text-xs font-semibold text-primary">{version}</span>
           </div>
 
-          {/* Promo banner — 1x webp with 2x retina srcset */}
+          {/* Promo hero — 1280x800 promo across all five browsers */}
           <img
-            src="https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/9c5ef8858_out-landing-clear-1280x925.webp"
-            srcSet="https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/b8f20c221_out-landing-clear-2560x1850.webp 2x"
-            alt="KJB Reader Extension promo: side panel screenshots across Chrome, Edge, Firefox, Opera and Safari"
+            src="https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/f2388306c_out-landing-1280x800.png"
+            alt="KJB Reader Extension promo: five browser panels showing Psalm 119, 1 Corinthians 15:1-4, Romans 3:25, the Gospel tab and Resources"
             width="1280"
-            height="925"
+            height="800"
             style={{ width: '100%', height: 'auto' }}
             loading="lazy"
-            className="block mx-auto w-full max-w-3xl h-auto rounded-2xl shadow-lg mb-6"
+            className="block mx-auto w-full h-auto rounded-2xl shadow-lg mb-6"
           />
 
           {/* KJB Reader everywhere — one unified download card */}
