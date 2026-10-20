@@ -100,6 +100,14 @@ jobs:
             -scheme App -configuration Debug -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath /tmp/xcverify CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+      - name: Upload simulator app (runs in Simulator.app without Xcode)
+        uses: actions/upload-artifact@v6
+        with:
+          name: KJB-Reader-MAIN-simapp
+          path: /tmp/xcverify/Build/Products/Debug-iphonesimulator/App.app
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Determine next build number (queries ASC, avoids collisions)
         id: nextbuild
         env:
