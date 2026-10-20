@@ -195,7 +195,7 @@ export default function ExtensionPage() {
 
           {/* Promo hero — 1280x800 promo across all five browsers */}
           <img
-            src="https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/f2388306c_out-landing-1280x800.png"
+            src="https://base44.app/api/apps/6a713d810d97fdb5921ed14e/files/mp/public/6a713d810d97fdb5921ed14e/215cf8b6c_out-landing-1280x800-v2.png"
             alt="KJB Reader Extension promo: five browser panels showing Psalm 119, 1 Corinthians 15:1-4, Romans 3:25, the Gospel tab and Resources"
             width="1280"
             height="800"
