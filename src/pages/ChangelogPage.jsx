@@ -3,6 +3,11 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG_RAW = [
+  { version: '2.241.0', date: 'October 20, 2026', items: [
+    { tag: 'fix', text: 'Fixed a large empty gap that appeared between the iPhone status bar and the app header (most visible on iPhone Duo), caused by a hardcoded 50px status-bar pad that doubled up with the system\u2019s own inset. Shipped in iOS build 384 (App Store Connect, today); the underlying web fix is commit abc6e4d and is already live on the site.' },
+    { tag: 'improved', text: 'Top spacing now uses Apple\u2019s dynamic safe-area inset (env(safe-area-inset-top)) everywhere \u2014 app header, hamburger menu, and all pages \u2014 so the header sits right below the status bar with even margins on every device and every iPhone Duo pose (outer display, inner display, folded).' },
+    { tag: 'improved', text: 'The fix also ships in the offline-fallback copy bundled with the iOS app, so it is visible with no connection.' },
+  ] },
   { version: 'v0.4.315', date: 'October 18, 2026', items: [
     { tag: 'new', text: 'Accessibility fonts: a new "Aa" button in the panel header offers the OpenDyslexic and Atkinson Hyperlegible typefaces — the same accessibility choices as the main app — bundled locally so the panel makes no network requests. The choice is remembered and applies across the whole panel.' },
   ] },
