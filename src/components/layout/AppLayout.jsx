@@ -381,7 +381,7 @@ export default function AppLayout() {
   return (
     <AutoUpdateHandler>
     <div data-kjb-app-root className="h-[100dvh] bg-gradient-to-br from-background via-accent/5 to-background flex flex-col overflow-hidden">
-      <header data-kjb-app-header className={`print:hidden border-b border-border/60 bg-card/70 backdrop-blur-xl z-50 flex-shrink-0 ${hideHeader ? 'hidden' : ''}`} style={{ paddingTop: 'max(env(safe-area-inset-top), var(--kjb-app-safe-top, 0px))', paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}>
+      <header data-kjb-app-header className={`print:hidden border-b border-border/60 bg-card/70 backdrop-blur-xl z-50 flex-shrink-0 ${hideHeader ? 'hidden' : ''}`} style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}>
         <div className="w-full max-w-[120rem] mx-auto px-3 xs:px-5 sm:px-8 lg:px-12 h-14 flex items-center gap-1.5 xs:gap-2 sm:gap-3">
           {/* Logo / Back Button */}
           {pathname === '/' ? (
@@ -464,7 +464,7 @@ export default function AppLayout() {
           <>
             <div
               className="fixed inset-x-0 bottom-0 z-[60] bg-black/50 backdrop-blur-sm"
-              style={{ top: 'calc(3.5rem + env(safe-area-inset-top) + var(--kjb-app-safe-top, 0px))' }}
+              style={{ top: 'calc(3.5rem + env(safe-area-inset-top, 0px))' }}
               onClick={() => setMenuOpen(false)}
             />
             <div data-kjb-menu className="absolute top-full right-0 left-0 z-[61] bg-card backdrop-blur-xl border-b border-border/60 shadow-lg shadow-black/[0.05] overflow-y-auto overscroll-contain" style={{ maxHeight: 'calc(100dvh - 3.5rem - env(safe-area-inset-top) - env(safe-area-inset-bottom))', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }}>
