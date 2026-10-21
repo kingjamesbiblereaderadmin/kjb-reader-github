@@ -54,7 +54,7 @@ export default function BookSelector({ currentAbbr, onSelect, onClose, initialTe
         }`}
       >
         <span className="notranslate">{book.name}</span>
-        <span className="ml-2 text-xs text-muted-foreground">{book.chapters} ch.</span>
+        <span className={`ml-2 text-xs ${active ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>{book.chapters} ch.</span>
       </button>
     );
   };
