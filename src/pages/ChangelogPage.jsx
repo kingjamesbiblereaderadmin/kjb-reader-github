@@ -3,6 +3,11 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG_RAW = [
+  { version: 'v0.4.319', date: 'October 21, 2026', items: [
+    { tag: 'improved', text: "The Read tab's Previous/Next chapter buttons now cross book boundaries: going back from chapter 1 opens the last chapter of the previous book, and going forward from a book's last chapter opens chapter 1 of the next book. They only grey out at the very ends of the Bible (Genesis 1 and Revelation 22)." },
+    { tag: 'new', text: 'Reopening the panel now returns you to what you were on before: the last tab you used (Read, Gospel or Resources), the chapter you were reading in Read, and your exact position in it. Clicking a verse on a page still takes over the view exactly as before.' },
+    { tag: 'fixed', text: 'Detected verse references now always keep the page\'s own font colour — pages with soft-grey or otherwise low-contrast text no longer have their verse references recoloured. The dotted underline, pointer cursor and solid hover underline are unchanged.' },
+  ] },
   { version: 'v0.4.315', date: 'October 18, 2026', items: [
     { tag: 'new', text: 'Accessibility fonts: a new "Aa" button in the panel header offers the OpenDyslexic and Atkinson Hyperlegible typefaces — the same accessibility choices as the main app — bundled locally so the panel makes no network requests. The choice is remembered and applies across the whole panel.' },
   ] },
