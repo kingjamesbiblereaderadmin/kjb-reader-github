@@ -47,13 +47,15 @@ export default function DiscordInvitePage() {
       </div>
       <div className="w-full max-w-3xl mx-auto px-5 sm:px-8 lg:px-12 py-10 pb-24">
         {/* Back link */}
-        <Link
-          to="/"
-          className="inline-flex items-center gap-1.5 font-sans text-sm text-muted-foreground hover:text-accent transition-colors mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to KJB Reader
-        </Link>
+        <div className="text-center mb-6">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 font-sans text-sm text-muted-foreground hover:text-accent transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to KJB Reader
+          </Link>
+        </div>
 
         {/* Header */}
         <div className="text-center mb-8">

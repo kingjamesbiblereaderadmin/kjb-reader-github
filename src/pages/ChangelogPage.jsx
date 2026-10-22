@@ -425,7 +425,7 @@ export default function ChangelogPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-slate-900 dark:to-purple-950 text-foreground">
       <div className="w-full max-w-[900px] mx-auto px-5 sm:px-8 lg:px-12 py-10 pb-24">
-        <div className="mb-8">
+        <div className="text-center mb-8">
           <Link
             to="/extension"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-transparent border border-border font-sans text-sm font-medium text-muted-foreground hover:text-foreground hover:border-accent transition-all duration-200"
@@ -497,6 +497,16 @@ export default function ChangelogPage() {
               </div>
             );
           })}
+        </div>
+
+        <div className="text-center mt-8">
+          <Link
+            to="/extension"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-transparent border border-border font-sans text-sm font-medium text-muted-foreground hover:text-foreground hover:border-accent transition-all duration-200"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Extension
+          </Link>
         </div>
       </div>
     </div>
