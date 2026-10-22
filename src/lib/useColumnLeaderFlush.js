@@ -20,8 +20,9 @@ import { useEffect } from 'react';
 // pilcrow verse, moving the whole paragraph start to the top of column 2.
 // Only one verse is ever forced per layout (no cascading).
 // Split-tail gap: when the verse above a pilcrow verse is split across the
-// column break, the paragraph gap is carried as bottom padding (never
-// truncated) instead of margin-bottom, same total spacing (3rem + 0.15em).
+// column break, the paragraph gap rides on the pilcrow verse itself as top
+// padding — a split element bottom padding renders in column 1 on WebKit,
+// never under its column-2 tail, so iOS saw no gap.
 // Overrides are re-evaluated on resize/reflow and reverted when a verse is
 // no longer a column leader, with a bounded settle loop so a layout that
 // flip-flops falls back to the plain CSS defaults instead of oscillating.
