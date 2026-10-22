@@ -25,6 +25,9 @@ import { useEffect } from 'react';
 // Overrides are re-evaluated on resize/reflow and reverted when a verse is
 // no longer a column leader, with a bounded settle loop so a layout that
 // flip-flops falls back to the plain CSS defaults instead of oscillating.
+// OWNER UPDATE 2026-10-22: a pilcrow (¶) verse that LEADS a column now keeps
+// its paragraph gap — carried as the leader's own top padding — instead of
+// losing it at the column break (1 Samuel 7:9 rendered with no space above).
 export default function useColumnLeaderFlush(containerRef, deps) {
   useEffect(() => {
     const container = containerRef.current;
