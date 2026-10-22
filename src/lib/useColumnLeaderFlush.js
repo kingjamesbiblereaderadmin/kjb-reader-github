@@ -56,7 +56,6 @@ export default function useColumnLeaderFlush(containerRef, deps) {
     const clearOne = (el) => {
       el.style.marginBottom = '';
       el.style.paddingBottom = '';
-      el.style.paddingTop = '';
       const row = rowOf(el);
       if (row) row.style.paddingBottom = '';
     };
@@ -137,7 +136,8 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       // its spacing is real mid-column rhythm that must stay.
       // OWNER UPDATE (2026-10-22): a pilcrow (¶) verse at the VERY TOP of a
       // column is treated like any other leader — the paragraph gap above it
-      // is zeroed (e.g. 1 Samuel 7:9).
+      // is zeroed (e.g. 1 Samuel 7:9). Only a verse STARTING at the column
+      // top qualifies: a verse continuing from column 1 keeps its gap.
       leaders.forEach((leader) => {
         if (textRectsOf(leader)[0]?.left < midX - 1) return;
         const prev = leader.previousElementSibling;
