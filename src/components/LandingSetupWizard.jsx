@@ -305,7 +305,7 @@ export default function LandingSetupWizard() {
             {isIncognito && (
               <div className="rounded-xl bg-amber-50 dark:bg-amber-900/15 border border-amber-200 dark:border-amber-900/40 p-3 mb-3 text-left">
                 <p className="font-sans text-xs text-amber-700 dark:text-amber-400 font-medium leading-snug">
-                  You're in a private window. App install and notifications won't work, and settings will be erased when you close this window.
+                  You're in a private window. App install won't work, and settings will be erased when you close this window.
                 </p>
               </div>
             )}

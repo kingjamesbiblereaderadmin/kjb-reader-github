@@ -21,7 +21,7 @@ export default function IncognitoWarning() {
       <div className="min-w-0">
         <p className="font-sans text-sm font-semibold text-amber-700 dark:text-amber-400">You're in a private window (Incognito, InPrivate, or Guest)</p>
         <p className="font-sans text-xs text-amber-700/80 dark:text-amber-400/80 mt-0.5 leading-relaxed">
-          Offline downloads, app install and notifications won't work here, and your settings will be erased when you close this window. Open the app in a normal window for the full experience.
+          Offline downloads and app install won't work here, and your settings will be erased when you close this window. Open the app in a normal window for the full experience.
         </p>
       </div>
     </div>
