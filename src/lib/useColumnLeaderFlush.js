@@ -25,9 +25,8 @@ import { useEffect } from 'react';
 // Overrides are re-evaluated on resize/reflow and reverted when a verse is
 // no longer a column leader, with a bounded settle loop so a layout that
 // flip-flops falls back to the plain CSS defaults instead of oscillating.
-// OWNER UPDATE 2026-10-22: a pilcrow (¶) verse that LEADS a column now keeps
-// its paragraph gap — carried as the leader's own top padding — instead of
-// losing it at the column break (1 Samuel 7:9 rendered with no space above).
+// OWNER UPDATE 2026-10-22: a pilcrow (¶) verse at the VERY TOP of a column
+// loses its paragraph gap like any other leader (e.g. 1 Samuel 7:9).
 export default function useColumnLeaderFlush(containerRef, deps) {
   useEffect(() => {
     const container = containerRef.current;
@@ -133,23 +132,10 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       // when the verse before it sits wholly in the previous column. A verse
       // split across the break has a bounding box spanning both columns, and
       // its spacing is real mid-column rhythm that must stay.
-      // EXCEPTION (owner request 2026-10-22): a pilcrow (¶) verse leading a
-      // column KEEPS its paragraph gap. The gap normally rides on the verse
-      // above as margin-bottom, which the column break truncates — so a
-      // pilcrow verse at a column top rendered with no space above it at all
-      // (e.g. 1 Samuel 7:9). Carry the gap as the leader's OWN top padding
-      // instead: it is always visible at the column top. calc(3rem + 0.15em)
-      // matches the total mid-column paragraph gap (2.25rem margin + 0.75rem
-      // + 0.15em standard verse rhythm).
+      // OWNER UPDATE (2026-10-22): a pilcrow (¶) verse at the VERY TOP of a
+      // column is treated like any other leader — the paragraph gap above it
+      // is zeroed (e.g. 1 Samuel 7:9).
       leaders.forEach((leader) => {
-        if (leader.getAttribute('data-pilcrow') === 'true') {
-          if (!applied.has(leader)) {
-            leader.style.paddingTop = 'calc(3rem + 0.15em)';
-            applied.add(leader);
-            changed = true;
-          }
-          return;
-        }
         const prev = leader.previousElementSibling;
         if (!prev || prev.tagName !== 'SPAN' || applied.has(prev)) return;
         if (!endsInColumnOne(prev, midX)) return;
@@ -162,8 +148,6 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       });
 
       // Revert: no longer a column leader → restore the CSS verse spacing.
-      // (An element that is ITSELF a leader keeps its override — that is the
-      // pilcrow leader holding its paragraph gap as top padding.)
       Array.from(applied).forEach((el) => {
         if (leaders.has(el)) return;
         const follower = el.nextElementSibling;
