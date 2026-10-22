@@ -71,10 +71,16 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       }
     };
 
+    const clearTailGap = (prev) => {
+      clearOne(prev);
+      const follower = prev.nextElementSibling;
+      if (follower) follower.style.paddingTop = '';
+    };
+
     const clearAll = () => {
       applied.forEach(clearOne);
       applied.clear();
-      tailGap.forEach(clearOne);
+      tailGap.forEach(clearTailGap);
       tailGap.clear();
       clearForced();
     };
@@ -152,9 +158,8 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       });
 
       // Split-tail gap: the verse above a pilcrow verse that is split across
-      // the column break keeps its paragraph gap in column 2 as bottom
-      // padding (never truncated) instead of margin-bottom — same total
-      // spacing (3rem + 0.15em) above the pilcrow verse.
+      // the column break keeps its paragraph gap in column 2 — carried as
+      // the pilcrow verse's own top padding (same 3rem + 0.15em spacing).
       const wanted = new Set();
       for (const el of Array.from(container.children)) {
         if (el.tagName !== 'SPAN' || el.getAttribute('data-pilcrow') !== 'true') continue;
@@ -169,13 +174,21 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       wanted.forEach((prev) => {
         if (tailGap.has(prev)) return;
         prev.style.marginBottom = '0px';
-        prev.style.paddingBottom = 'calc(3rem + 0.15em)';
+        // The paragraph gap rides on the PILCROW VERSE's own top padding,
+        // never as the split verse's bottom padding: WebKit/IOS renders a
+        // fragment's bottom padding back in column 1, not under its
+        // column-2 tail, so the padding-bottom version produced NO visible
+        // gap on iOS (the pilcrow verse sat flush under the tail). The
+        // follower here is mid-column (its verse's tail sits above it), so
+        // its top padding renders identically in every engine.
+        const follower = prev.nextElementSibling;
+        if (follower) follower.style.paddingTop = 'calc(3rem + 0.15em)';
         tailGap.add(prev);
         changed = true;
       });
       Array.from(tailGap).forEach((el) => {
         if (!wanted.has(el)) {
-          clearOne(el);
+          clearTailGap(el);
           tailGap.delete(el);
           changed = true;
         }
