@@ -66,9 +66,22 @@
         src="https://media.base44.com/images/public/6a05d76723afe58d80c589e8/8e738d108_cfb4bf781_Untitled.png"
         alt="KJB Reader Logo"
       />
-      <h1>You're Offline</h1>
-      <p>This page isn't available without a connection. Please reconnect to the internet and try again.</p>
+      <h1 id="offline-title">You're Offline</h1>
+      <p id="offline-text">This page isn't available without a connection. Please reconnect to the internet and try again.</p>
       <button onclick="location.reload()">Retry</button>
+      <script>
+        // Inside an embed/iframe (Base44 editor preview, third-party embeds),
+        // "You're Offline" reads like the visitor's connection is down — but
+        // framed contexts usually lose the app's own storage/connection
+        // (partitioned storage, blocked service workers). Say so instead.
+        try {
+          if (window.self !== window.top) {
+            document.getElementById('offline-title').textContent = 'Preview Unavailable';
+            document.getElementById('offline-text').textContent =
+              'This embedded window lost its connection to the app. Open kingjamesbiblereader.com in a full browser window for the complete experience.';
+          }
+        } catch (e) {}
+      </script>
     </div>
   </body>
 </html>
