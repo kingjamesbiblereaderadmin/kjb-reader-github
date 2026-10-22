@@ -58,9 +58,13 @@ const hyphenTolerant = (s: string) =>
 function buildMatcher(query, { wholeWord, caseSensitive, wildcard }) {
   let pattern;
   if (wildcard) {
+    // '*' becomes a BOUNDED any-run ('[\s\S]{0,64}') instead of '.*' — an
+    // unbounded run lets chained wildcards (e.g. '*a*a*a*...z') backtrack
+    // catastrophically and pin the CPU (ReDoS). 64 chars is far more than any
+    // real word gap in verse text.
     pattern = "";
     for (const ch of query) {
-      if (ch === "*") pattern += ".*";
+      if (ch === "*") pattern += "[\\s\\S]{0,64}";
       else if (ch === "?") pattern += ".";
       else if (ch === "-") pattern += "-?";
       else pattern += escapeRegex(ch);
@@ -93,9 +97,15 @@ export default async function (req) {
     const query = String(body.query || "").trim().replace(/[\u2018\u2019]/g, "'");
     if (!query) return json({ error: "query required" }, 400);
 
+    // Abuse caps: bound query length and wildcard count so a crafted request
+    // can't drive expensive regex work over the whole Bible (ReDoS guard).
+    if (query.length > 200) return json({ error: "query too long (max 200 chars)" }, 400);
     const wholeWord = body.whole_word === true;
     const caseSensitive = body.case_sensitive === true;
     const wildcard = body.wildcard === true;
+    if (wildcard && (query.match(/\*/g) || []).length > 8) {
+      return json({ error: "too many wildcards (max 8)" }, 400);
+    }
     const testament = String(body.testament || "all").toLowerCase();
     const bookFilter = body.book ? String(body.book).trim() : null;
 

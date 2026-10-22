@@ -299,9 +299,17 @@ Deno.serve(async (req) => {
         return json({ error: 'query required' }, { status: 400 });
       }
 
+      // Abuse caps: bound query length and wildcard count so a crafted
+      // request can't drive expensive regex work over the whole Bible (ReDoS guard).
+      if (query.length > 200) {
+        return json({ error: 'query too long (max 200 chars)' }, { status: 400 });
+      }
       const caseSensitive = body.caseSensitive === true;
       const wholeWord = body.wholeWord === true;
       const wildcard = body.wildcard === true;
+      if (wildcard && (query.match(/\*/g) || []).length > 8) {
+        return json({ error: 'too many wildcards (max 8)' }, { status: 400 });
+      }
       const testament = String(body.testament || 'all').toLowerCase();
       const bookFilter = body.book ? String(body.book).trim() : null;
       const limit = Number.isFinite(body.limit) ? Math.min(body.limit, 500) : 100;
@@ -336,9 +344,11 @@ Deno.serve(async (req) => {
       const buildMatcher = (text) => {
         let pattern;
         if (wildcard) {
+          // Bounded any-run instead of '.*' — prevents catastrophic
+          // backtracking from chained wildcards (ReDoS).
           pattern = '';
           for (const ch of text) {
-            if (ch === '*') pattern += '.*';
+            if (ch === '*') pattern += '[\\s\\S]{0,64}';
             else if (ch === '?') pattern += '.';
             else pattern += escapeRegex(ch);
           }
