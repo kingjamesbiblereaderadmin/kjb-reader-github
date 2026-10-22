@@ -19,6 +19,9 @@ import { useEffect } from 'react';
 // the verse that ends column 1 gets `break-before: column` when it is a
 // pilcrow verse, moving the whole paragraph start to the top of column 2.
 // Only one verse is ever forced per layout (no cascading).
+// Split-tail gap: when the verse above a pilcrow verse is split across the
+// column break, the paragraph gap is carried as bottom padding (never
+// truncated) instead of margin-bottom, same total spacing (3rem + 0.15em).
 // Overrides are re-evaluated on resize/reflow and reverted when a verse is
 // no longer a column leader, with a bounded settle loop so a layout that
 // flip-flops falls back to the plain CSS defaults instead of oscillating.
@@ -31,6 +34,7 @@ export default function useColumnLeaderFlush(containerRef, deps) {
     }
 
     const applied = new Set();
+    const tailGap = new Set();
     let forced = null;
 
     const rowOf = (el) => Array.from(el.children).find((c) => c.tagName === 'SPAN' && c.classList.contains('flex')) || null;
@@ -70,6 +74,8 @@ export default function useColumnLeaderFlush(containerRef, deps) {
     const clearAll = () => {
       applied.forEach(clearOne);
       applied.clear();
+      tailGap.forEach(clearOne);
+      tailGap.clear();
       clearForced();
     };
 
@@ -141,6 +147,36 @@ export default function useColumnLeaderFlush(containerRef, deps) {
         if (!follower || !leaders.has(follower)) {
           clearOne(el);
           applied.delete(el);
+          changed = true;
+        }
+      });
+
+      // Split-tail gap: the verse above a pilcrow verse that is split across
+      // the column break keeps its paragraph gap in column 2 as bottom
+      // padding (never truncated) instead of margin-bottom — same total
+      // spacing (3rem + 0.15em) above the pilcrow verse.
+      const wanted = new Set();
+      for (const el of Array.from(container.children)) {
+        if (el.tagName !== 'SPAN' || el.getAttribute('data-pilcrow') !== 'true') continue;
+        const prev = el.previousElementSibling;
+        if (!prev || prev.tagName !== 'SPAN' || applied.has(prev)) continue;
+        if ((prev.getAttribute('style') || '').includes('flow-root')) continue;
+        const rects = Array.from(prev.getClientRects()).filter((r) => r.height > 0);
+        if (!rects.some((r) => r.left < midX - 1)) continue;
+        if (endsInColumnOne(prev, midX)) continue;
+        wanted.add(prev);
+      }
+      wanted.forEach((prev) => {
+        if (tailGap.has(prev)) return;
+        prev.style.marginBottom = '0px';
+        prev.style.paddingBottom = 'calc(3rem + 0.15em)';
+        tailGap.add(prev);
+        changed = true;
+      });
+      Array.from(tailGap).forEach((el) => {
+        if (!wanted.has(el)) {
+          clearOne(el);
+          tailGap.delete(el);
           changed = true;
         }
       });
