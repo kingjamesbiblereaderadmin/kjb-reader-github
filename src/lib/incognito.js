@@ -23,6 +23,67 @@ export function detectIncognito() {
   return _incognitoPromise;
 }
 
+
+// ── IndexedDB durability timing (Chromium incognito/guest side-channel) ──
+// Chrome/Edge/Brave/Opera randomize incognito storage QUOTAS, so quota checks
+// miss them. But incognito/guest IndexedDB runs on an IN-MEMORY backend: a
+// commit with durability "strict" (which forces an fsync on a real disk
+// backend) is a no-op in memory. Measure strict vs relaxed commit times:
+// ratio ≈ 1.0 → in-memory backend → private; ratio > 1.3 → real disk →
+// normal. The ratio is self-normalizing across hardware (same device on
+// both sides of the division). Abstains (null) if the durability hint
+// isn't honored at all.
+function _idbCommitTime(durability) {
+  return new Promise((resolve) => {
+    let db = null;
+    const finish = (v) => {
+      try { if (db) db.close(); } catch {}
+      try { window.indexedDB.deleteDatabase('kjb-idb-dur-probe'); } catch {}
+      resolve(v);
+    };
+    let open;
+    try {
+      open = window.indexedDB.open('kjb-idb-dur-probe');
+    } catch {
+      resolve(null);
+      return;
+    }
+    open.onerror = () => resolve(null);
+    open.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('s')) d.createObjectStore('s');
+    };
+    open.onsuccess = () => {
+      db = open.result;
+      const t0 = performance.now();
+      try {
+        const tx = db.transaction('s', 'readwrite', { durability });
+        const store = tx.objectStore('s');
+        for (let i = 0; i < 25; i += 1) store.put({ i, blob: 'x'.repeat(512) }, i);
+        tx.oncomplete = () => finish(performance.now() - t0);
+        tx.onerror = () => finish(null);
+        tx.onabort = () => finish(null);
+      } catch {
+        finish(null);
+      }
+    };
+  });
+}
+
+async function _idbDurabilityRatio() {
+  if (typeof window === 'undefined' || !window.indexedDB || !window.performance) return null;
+  const ratios = [];
+  for (let r = 0; r < 3; r += 1) {
+    const relaxed = await _idbCommitTime('relaxed');
+    const strict = await _idbCommitTime('strict');
+    if (!relaxed || !strict || relaxed <= 0) continue;
+    ratios.push(strict / relaxed);
+  }
+  if (!ratios.length) return null;
+  ratios.sort((a, b) => a - b);
+  return ratios[Math.floor(ratios.length / 2)];
+}
+
 async function _runDetection() {
   if (typeof navigator === 'undefined') return false;
 
@@ -41,6 +102,44 @@ async function _runDetection() {
   } catch {}
 
   try {
+    // ── Modern checks (v1.8-era techniques, highest confidence first) ──
+
+    // Engine fingerprint without the user agent: the RangeError message from
+    // toFixed(-1) is engine-specific — length 44/43 = JavaScriptCore
+    // (Safari/WebKit), 51 = V8 (Chrome/Edge/Brave/Opera), 25 = SpiderMonkey
+    // (Firefox). Brave claims to be Chrome and everything on iOS is WebKit,
+    // so UA strings lie.
+    let engineMessage = '';
+    try { (-1).toFixed(-1); } catch (e) { engineMessage = String(e.message); }
+
+    // OPFS probe — Safari private: navigator.storage.getDirectory() rejects
+    // with "unknown transient reason"; Firefox private rejects with a
+    // Security error. Only those exact signals count (other failures, e.g.
+    // storage pressure, must not produce a false positive).
+    if (navigator.storage && typeof navigator.storage.getDirectory === 'function') {
+      try {
+        await navigator.storage.getDirectory();
+      } catch (err) {
+        const msg = String((err && (err.message || err.name)) || err);
+        if (/unknown transient reason/i.test(msg)) return true;
+        if (/security\s*error/i.test(msg)) return true;
+      }
+    }
+
+    // V8 (Chrome/Edge/Brave/Opera incl. InPrivate/Guest): IndexedDB
+    // durability timing side-channel. Quotas were randomized by Google, but
+    // incognito/guest still runs storage in memory, so strict-durability
+    // commits take the same time as relaxed ones. ratio < 1.15 → private;
+    // >= 1.3 → real disk (definitely a normal window); between → abstain and
+    // fall through to the older heuristics.
+    if (engineMessage.length === 51 && window.indexedDB) {
+      const ratio = await _idbDurabilityRatio();
+      if (ratio !== null) {
+        if (ratio < 1.15) return true;
+        if (ratio >= 1.3) return false;
+      }
+    }
+
     // Firefox private mode: IndexedDB is blocked / throws.
     const idbBlocked = await new Promise((resolve) => {
       try {
