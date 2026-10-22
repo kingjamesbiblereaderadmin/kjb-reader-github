@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG_RAW = [
+  { version: 'v0.4.320', date: 'October 22, 2026', items: [
+    { tag: 'new', text: 'Resources: added Evangelist Joshua Michael (Bible Believer AV1611 Gospel) to the Verified KJB Preachers list, with his YouTube, TikTok, Instagram and Facebook links.' },
+  ] },
   { version: 'v0.4.319', date: 'October 21, 2026', items: [
     { tag: 'improved', text: "The Read tab's Previous/Next chapter buttons now cross book boundaries: going back from chapter 1 opens the last chapter of the previous book, and going forward from a book's last chapter opens chapter 1 of the next book. They only grey out at the very ends of the Bible (Genesis 1 and Revelation 22)." },
     { tag: 'new', text: 'Reopening the panel now returns you to what you were on before: the last tab you used (Read, Gospel or Resources), the chapter you were reading in Read, and your exact position in it. Clicking a verse on a page still takes over the view exactly as before.' },
@@ -440,7 +443,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.315
+            Current Version: v0.4.320
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
