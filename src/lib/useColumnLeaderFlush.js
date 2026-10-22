@@ -20,8 +20,9 @@ import { useEffect } from 'react';
 // pilcrow verse, moving the whole paragraph start to the top of column 2.
 // Only one verse is ever forced per layout (no cascading).
 // Split-tail gap: when the verse above a pilcrow verse is split across the
-// column break, the paragraph gap is carried as bottom padding (never
-// truncated) instead of margin-bottom, same total spacing (3rem + 0.15em).
+// column break, the paragraph gap rides on the pilcrow verse itself as top
+// padding — a split element bottom padding renders in column 1 on WebKit,
+// never under its column-2 tail, so iOS saw no gap.
 // Overrides are re-evaluated on resize/reflow and reverted when a verse is
 // no longer a column leader, with a bounded settle loop so a layout that
 // flip-flops falls back to the plain CSS defaults instead of oscillating.
@@ -68,10 +69,16 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       }
     };
 
+    const clearTailGap = (prev) => {
+      clearOne(prev);
+      const follower = prev.nextElementSibling;
+      if (follower) follower.style.paddingTop = '';
+    };
+
     const clearAll = () => {
       applied.forEach(clearOne);
       applied.clear();
-      tailGap.forEach(clearOne);
+      tailGap.forEach(clearTailGap);
       tailGap.clear();
       clearForced();
     };
@@ -165,9 +172,8 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       });
 
       // Split-tail gap: the verse above a pilcrow verse that is split across
-      // the column break keeps its paragraph gap in column 2 as bottom
-      // padding (never truncated) instead of margin-bottom — same total
-      // spacing (3rem + 0.15em) above the pilcrow verse.
+      // the column break keeps its paragraph gap in column 2 — carried as
+      // the pilcrow verse's own top padding (same 3rem + 0.15em spacing).
       const wanted = new Set();
       for (const el of Array.from(container.children)) {
         if (el.tagName !== 'SPAN' || el.getAttribute('data-pilcrow') !== 'true') continue;
@@ -182,13 +188,21 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       wanted.forEach((prev) => {
         if (tailGap.has(prev)) return;
         prev.style.marginBottom = '0px';
-        prev.style.paddingBottom = 'calc(3rem + 0.15em)';
+        // The paragraph gap rides on the PILCROW VERSE's own top padding,
+        // never as the split verse's bottom padding: WebKit/IOS renders a
+        // fragment's bottom padding back in column 1, not under its
+        // column-2 tail, so the padding-bottom version produced NO visible
+        // gap on iOS (the pilcrow verse sat flush under the tail). The
+        // follower here is mid-column (its verse's tail sits above it), so
+        // its top padding renders identically in every engine.
+        const follower = prev.nextElementSibling;
+        if (follower) follower.style.paddingTop = 'calc(3rem + 0.15em)';
         tailGap.add(prev);
         changed = true;
       });
       Array.from(tailGap).forEach((el) => {
         if (!wanted.has(el)) {
-          clearOne(el);
+          clearTailGap(el);
           tailGap.delete(el);
           changed = true;
         }
