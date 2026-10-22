@@ -41,21 +41,16 @@ export default function useColumnLeaderFlush(containerRef, deps) {
 
     const rowOf = (el) => Array.from(el.children).find((c) => c.tagName === 'SPAN' && c.classList.contains('flex')) || null;
 
-    // True when the verse sits wholly in column 1, OR its only presence in
-    // column 2 is a spacing-only fragment (WebKit/iOS turns spilled bottom
-    // padding into a tiny box fragment in column 2, which makes its bounding
-    // box span both columns). A genuinely split verse has a column-2 fragment
-    // at least a text line tall, so it is rejected.
+    // Measure the inline scripture, not the outer verse box: WebKit can
+    // spill bottom padding into column 2 without any text there. Conversely,
+    // a short real continuation must still count, even at the smallest zoom.
+    const textRectsOf = (el) => {
+      const text = el.querySelector('.kjb-verse-text');
+      return Array.from((text || el).getClientRects()).filter((r) => r.width > 0 && r.height > 0);
+    };
     const endsInColumnOne = (el, midX) => {
-      const rects = Array.from(el.getClientRects());
-      const spill = rects.filter((r) => r.left >= midX - 1 && r.height > 0);
-      if (!spill.length) return el.getBoundingClientRect().right <= midX + 1;
-      const row = rowOf(el);
-      const cs = window.getComputedStyle(el);
-      const rcs = row ? window.getComputedStyle(row) : null;
-      const spacing = (parseFloat(cs.paddingBottom) || 0) + (rcs ? parseFloat(rcs.paddingBottom) || 0 : 0);
-      const spillH = spill.reduce((s, r) => s + r.height, 0);
-      return spillH <= spacing + 2;
+      const rects = textRectsOf(el);
+      return rects.length > 0 && rects.every((r) => r.left < midX - 1);
     };
 
     const clearOne = (el) => {
@@ -82,22 +77,30 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       clearForced();
     };
 
-    // The topmost verse span in each of the two columns.
+    // Find what is REALLY at the top, including a verse continuing from
+    // column 1. The first whole verse below that continuation is NOT a leader
+    // and must keep its paragraph gap. Re-measure after every zoom/reflow.
     const leadersOf = () => {
       const rect = container.getBoundingClientRect();
       if (!rect.width) return new Set();
       const midX = rect.left + rect.width / 2;
-      const spans = Array.from(container.children).filter((el) => el.tagName === 'SPAN');
+      const spans = Array.from(container.children)
+        .filter((el) => el.tagName === 'SPAN')
+        .map((el) => ({ el, rects: textRectsOf(el) }));
       const leaders = new Set();
       for (let colIdx = 0; colIdx < 2; colIdx += 1) {
         let leader = null;
         let minTop = Infinity;
-        for (const el of spans) {
-          const r = el.getBoundingClientRect();
-          if ((r.left >= midX ? 1 : 0) !== colIdx) continue;
-          if (r.top < minTop) { minTop = r.top; leader = el; }
+        for (const span of spans) {
+          for (const r of span.rects) {
+            if ((r.left >= midX - 1 ? 1 : 0) !== colIdx) continue;
+            if (r.top < minTop) { minTop = r.top; leader = span; }
+          }
         }
-        if (leader) leaders.add(leader);
+        // Only a verse STARTING here may have its preceding gap removed.
+        if (leader && (leader.rects[0].left >= midX - 1 ? 1 : 0) === colIdx) {
+          leaders.add(leader.el);
+        }
       }
       return leaders;
     };
@@ -136,9 +139,13 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       // column is treated like any other leader — the paragraph gap above it
       // is zeroed (e.g. 1 Samuel 7:9).
       leaders.forEach((leader) => {
+        if (textRectsOf(leader)[0]?.left < midX - 1) return;
         const prev = leader.previousElementSibling;
         if (!prev || prev.tagName !== 'SPAN' || applied.has(prev)) return;
         if (!endsInColumnOne(prev, midX)) return;
+        // Rebalancing may turn a split tail into the verse above a leader.
+        // Transfer its override so tail-gap cleanup cannot restore the gap.
+        tailGap.delete(prev);
         prev.style.marginBottom = '0px';
         prev.style.paddingBottom = '0px';
         const row = rowOf(prev);
@@ -149,7 +156,6 @@ export default function useColumnLeaderFlush(containerRef, deps) {
 
       // Revert: no longer a column leader → restore the CSS verse spacing.
       Array.from(applied).forEach((el) => {
-        if (leaders.has(el)) return;
         const follower = el.nextElementSibling;
         if (!follower || !leaders.has(follower)) {
           clearOne(el);
@@ -168,7 +174,7 @@ export default function useColumnLeaderFlush(containerRef, deps) {
         const prev = el.previousElementSibling;
         if (!prev || prev.tagName !== 'SPAN' || applied.has(prev)) continue;
         if ((prev.getAttribute('style') || '').includes('flow-root')) continue;
-        const rects = Array.from(prev.getClientRects()).filter((r) => r.height > 0);
+        const rects = textRectsOf(prev);
         if (!rects.some((r) => r.left < midX - 1)) continue;
         if (endsInColumnOne(prev, midX)) continue;
         wanted.add(prev);
@@ -208,12 +214,19 @@ export default function useColumnLeaderFlush(containerRef, deps) {
     // Any reflow (resize, zoom, font load, soft-hyphen map) re-measures.
     const ro = new ResizeObserver(schedule);
     ro.observe(container);
+    const mo = new MutationObserver(schedule);
+    mo.observe(container, { childList: true, subtree: true, characterData: true });
+    document.fonts?.addEventListener('loadingdone', schedule);
     window.addEventListener('resize', schedule);
+    window.visualViewport?.addEventListener('resize', schedule);
 
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      mo.disconnect();
+      document.fonts?.removeEventListener('loadingdone', schedule);
       window.removeEventListener('resize', schedule);
+      window.visualViewport?.removeEventListener('resize', schedule);
       clearAll();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
