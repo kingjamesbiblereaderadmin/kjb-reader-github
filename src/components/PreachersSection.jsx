@@ -146,6 +146,16 @@ export const PREACHERS = [
       'https://youtube.com/@jamesbrayall3',
       'https://www.tiktok.com/@james.brayall.iii7']
   },
+  {
+    name: 'Evangelist Joshua Michael',
+    desc: 'Bible Believer AV1611 Gospel, KJB evangelist and preacher.',
+    photo: 'https://yt3.googleusercontent.com/Icvm7AB4TCElhmfxyim3J1DJtRvPgsyNPLWsU_XzdMHCN2bLveYyVIq1mRg3x6rZc9sqovcO=s176-c-k-c0x00ffffff-no-rj',
+    links: [
+      'https://youtube.com/@biblebeliever1611avgospel',
+      'https://www.tiktok.com/@biblebelieverav1611',
+      'https://www.instagram.com/evan.gelistjoshuamichael',
+      'https://www.facebook.com/share/19fDBL25qe/']
+  },
 ];
 
 const initials = (name) =>
