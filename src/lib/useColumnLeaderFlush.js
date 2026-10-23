@@ -180,11 +180,45 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       return changed;
     };
 
+    // Temporary on-device diagnostics: add ?kjbdebug=1 to the URL (or set
+    // localStorage kjbdebug=1) to show what the hook measures.
+    let debugEl = null;
+    let passes = 0;
+    let fellBack = false;
+    const debugOn = (() => {
+      try { return /[?&]kjbdebug=1/.test(window.location.search) || window.localStorage.getItem('kjbdebug') === '1'; } catch { return false; }
+    })();
+    const renderDebug = () => {
+      if (!debugOn) return;
+      if (!debugEl) {
+        debugEl = document.createElement('pre');
+        debugEl.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99999;margin:0;padding:4px 6px;font:10px/1.25 monospace;background:rgba(0,0,0,.85);color:#0f0;pointer-events:none;white-space:pre-wrap;max-height:40vh;overflow:hidden;';
+        document.body.appendChild(debugEl);
+      }
+      const rect = container.getBoundingClientRect();
+      const cs = window.getComputedStyle(container);
+      const colTop = rect.top + (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.paddingTop) || 0);
+      const midX = rect.left + rect.width / 2;
+      const f = (n) => Math.round(n);
+      const lines = [`build 0845 passes:${passes} fellBack:${fellBack} W:${f(rect.width)} colTop:${f(colTop)} midX:${f(midX)}`];
+      Array.from(container.children).forEach((el) => {
+        if (el.tagName !== 'SPAN' || el.getAttribute('data-pilcrow') !== 'true') return;
+        const r = el.getBoundingClientRect();
+        const prev = el.previousElementSibling;
+        const pr = prev ? Array.from(prev.getClientRects()).map((q) => `${f(q.left)},${f(q.top)},${f(q.height)}`).join(' | ') : '-';
+        lines.push(`${el.id} t:${f(r.top)} l:${f(r.left)} pt:${window.getComputedStyle(el).paddingTop} inl:${el.style.paddingTop || '-'} z:${topZeroed.has(el)} prev[${pr}]`);
+      });
+      debugEl.textContent = lines.slice(0, 14).join('\n');
+    };
+
     let raf = 0;
     const settle = () => {
       let i = 0;
       while (pass() && i < 8) i += 1;
-      if (i >= 8) clearAll();
+      fellBack = i >= 8;
+      if (fellBack) clearAll();
+      passes = i;
+      renderDebug();
     };
     settle();
 
@@ -204,6 +238,7 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       cancelAnimationFrame(raf);
       ro.disconnect();
       window.removeEventListener('resize', schedule);
+      if (debugEl) debugEl.remove();
       clearAll();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
