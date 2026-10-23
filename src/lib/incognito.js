@@ -87,6 +87,16 @@ async function _idbDurabilityRatio() {
 async function _runDetection() {
   if (typeof navigator === 'undefined') return false;
 
+  // Native app shells (Android/iOS WebView) can never be private windows —
+  // the browser heuristics below all misfire there (no standalone display
+  // mode, WebView reports a small storage quota), which wrongly showed the
+  // "You're in a private window" banner inside the Play Store app.
+  try {
+    const { isNativeAndroid } = await import('@/lib/isNativeAndroid');
+    const { isNativeIos } = await import('@/lib/isNativeIos');
+    if (isNativeAndroid() || isNativeIos()) return false;
+  } catch {}
+
   // Installed app windows can never be private — browsers don't offer
   // "install" from incognito windows. The quota heuristics below can still
   // false-positive inside installed windows (e.g. macOS with modest free
