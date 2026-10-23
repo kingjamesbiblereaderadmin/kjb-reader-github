@@ -39,21 +39,22 @@ export default function useColumnLeaderFlush(containerRef, deps) {
 
     const rowOf = (el) => Array.from(el.children).find((c) => c.tagName === 'SPAN' && c.classList.contains('flex')) || null;
 
-    // True when the verse sits wholly in column 1, OR its only presence in
-    // column 2 is a spacing-only fragment (WebKit/iOS turns spilled bottom
-    // padding into a tiny box fragment in column 2, which makes its bounding
-    // box span both columns). A genuinely split verse has a column-2 fragment
-    // at least a text line tall, so it is rejected.
+    // True when the verse's visible TEXT ends in column 1. A Range over the
+    // verse's contents reports glyph line boxes only, so a spacing-only spill
+    // (WebKit/iOS fragments spilled bottom padding into a padding-only box in
+    // column 2) produces NO column-2 text rect, while a genuinely split verse
+    // always has a text line there. The previous height-arithmetic check
+    // (spill fragment height vs padding) mis-classified on iOS whenever the
+    // spill fragment measured a few px taller than the padding itself, which
+    // left the paragraph gap above a pilcrow verse leading column 2.
     const endsInColumnOne = (el, midX) => {
-      const rects = Array.from(el.getClientRects());
-      const spill = rects.filter((r) => r.left >= midX - 1 && r.height > 0);
-      if (!spill.length) return el.getBoundingClientRect().right <= midX + 1;
-      const row = rowOf(el);
-      const cs = window.getComputedStyle(el);
-      const rcs = row ? window.getComputedStyle(row) : null;
-      const spacing = (parseFloat(cs.paddingBottom) || 0) + (rcs ? parseFloat(rcs.paddingBottom) || 0 : 0);
-      const spillH = spill.reduce((s, r) => s + r.height, 0);
-      return spillH <= spacing + 2;
+      if (typeof document.createRange !== 'function') {
+        return el.getBoundingClientRect().right <= midX + 1;
+      }
+      const range = document.createRange();
+      try { range.selectNodeContents(el); } catch { return el.getBoundingClientRect().right <= midX + 1; }
+      const rects = Array.from(range.getClientRects());
+      return !rects.some((r) => r.width > 0 && r.height > 1 && r.left >= midX - 1);
     };
 
     const clearOne = (el) => {
@@ -117,10 +118,10 @@ export default function useColumnLeaderFlush(containerRef, deps) {
         for (const leader of leaders) {
           if (leader.getBoundingClientRect().left < midX) continue;
           const prev = leader.previousElementSibling;
-          if (!prev || prev.tagName !== 'SPAN') continue;
+          if (!prev) continue;
           if (prev.getAttribute('data-pilcrow') !== 'true') continue;
           const before = prev.previousElementSibling;
-          if (!before || before.tagName !== 'SPAN') continue;
+          if (!before) continue;
           if (!endsInColumnOne(prev, midX)) continue;
           prev.style.breakBefore = 'column';
           prev.style.webkitColumnBreakBefore = 'always';
@@ -135,7 +136,7 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       // its spacing is real mid-column rhythm that must stay.
       leaders.forEach((leader) => {
         const prev = leader.previousElementSibling;
-        if (!prev || prev.tagName !== 'SPAN' || applied.has(prev)) return;
+        if (!prev || applied.has(prev)) return;
         if (!endsInColumnOne(prev, midX)) return;
         prev.style.marginBottom = '0px';
         prev.style.paddingBottom = '0px';
@@ -176,7 +177,7 @@ export default function useColumnLeaderFlush(containerRef, deps) {
         let leaderByRelation = false;
         if (!atTop && r.left >= midX - 1) {
           const prev = el.previousElementSibling;
-          if (prev && prev.tagName === 'SPAN' && endsInColumnOne(prev, midX)) leaderByRelation = true;
+          if (prev && endsInColumnOne(prev, midX)) leaderByRelation = true;
         }
         if ((atTop || leaderByRelation) && !topZeroed.has(el)) {
           el.style.paddingTop = '0px';
@@ -211,7 +212,7 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       const colTop = rect.top + (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.paddingTop) || 0);
       const midX = rect.left + rect.width / 2;
       const f = (n) => Math.round(n);
-      const lines = [`build 1023 passes:${passes} fellBack:${fellBack} W:${f(rect.width)} colTop:${f(colTop)} midX:${f(midX)}`];
+      const lines = [`build 1024 passes:${passes} fellBack:${fellBack} W:${f(rect.width)} colTop:${f(colTop)} midX:${f(midX)}`];
       Array.from(container.children).forEach((el) => {
         if (el.tagName !== 'SPAN' || el.getAttribute('data-pilcrow') !== 'true') return;
         const r = el.getBoundingClientRect();
