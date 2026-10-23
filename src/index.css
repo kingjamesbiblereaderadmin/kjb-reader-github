@@ -369,34 +369,24 @@
        drop-cap verse's first text line. */
     line-height: 2.7083em;
   }
-  /* Paragraph gap before a pilcrow (¶) verse rides on the verse ABOVE it as
-     extra bottom padding, so a pilcrow verse that leads the second column
-     still starts flush on the shared grid — the gap falls away at the column
-     break instead of pushing the paragraph down inside the new column.
-     calc(3rem + 0.15em) + the verse above's row padding-bottom (0.15em) =
-     the same 3rem + 0.3em mid-column paragraph gap the old top-padding
-     scheme produced, so in-column rhythm is unchanged. On browsers without
-     :has, the gap gracefully tightens to the standard verse rhythm —
-     nothing breaks. */
-  .kjb-two-col > span:has(+ span[data-pilcrow='true']) {
-    /* The extra paragraph gap is a MARGIN (2.25rem) on top of the standard
-       0.75rem + 0.15em padding — same 3rem + 0.15em total rhythm in-column.
-       As padding it travelled WITH the verse above: when that verse ended at
-       the bottom of column 1 its padding spilled into the top of column 2 and
-       pushed the column-leading pilcrow verse down, off the left column's
-       baseline grid. Margins are truncated at an unforced column break, so
-       the gap now falls away there and the verse starts flush at the top. */
-    padding-bottom: calc(0.75rem + 0.15em);
-    margin-bottom: 2.25rem;
+  /* Paragraph gap before a pilcrow (¶) verse is the pilcrow verse's OWN top
+     padding (2.25rem) on top of the verse above's standard bottom spacing —
+     same 3rem + 0.3em mid-column gap as before. It used to ride on the verse
+     ABOVE (margin/padding-bottom), but when that verse is split across the
+     column break WebKit (iOS WKWebView) paints its bottom spacing in column 1,
+     never under its column-2 tail, so the pilcrow verse sat flush under the
+     tail with no gap. A pilcrow verse never splits (break-inside: avoid), so
+     its own top padding renders identically in every engine. When it is the
+     topmost verse of a column, useColumnLeaderFlush zeroes this padding so the
+     verse starts flush on the shared baseline grid. */
+  .kjb-two-col > span[data-pilcrow='true'] {
+    padding-top: 2.25rem;
   }
-  /* EXCEPTION: the drop-cap verse. The big letter already spans two full
-     lines, and the paragraph gap right under it made the following pilcrow
-     verse (e.g. Genesis 1:2) jump down and break the cap's flush bottom.
-     The drop-cap verse keeps only the standard verse rhythm — no extra
-     pilcrow gap. */
-  .kjb-two-col > span[style*="flow-root"]:has(+ span[data-pilcrow='true']) {
-    margin-bottom: 0;
-    padding-bottom: calc(0.75rem + 0.15em);
+  /* EXCEPTION: the verse right after the drop-cap verse. The big letter
+     already spans two full lines, and a paragraph gap there made the pilcrow
+     verse (e.g. Genesis 1:2) jump down and break the cap's flush bottom. */
+  .kjb-two-col > span[style*="flow-root"] + span[data-pilcrow='true'] {
+    padding-top: 0;
   }
   /* Flex rows can't fragment across columns in WebKit (iOS): the verse number
      got orphaned at a column bottom and whole verses jumped to the next
