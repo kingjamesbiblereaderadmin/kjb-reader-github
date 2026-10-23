@@ -62,3 +62,17 @@ export function getInstallSource() {
 
   return isStandalonePwa() ? 'Installed Web App (PWA)' : 'Web Browser';
 }
+
+// The native shell's own version (versionName on Android, MARKETING_VERSION
+// on iOS), read from the Capacitor App plugin. Returns null on the web —
+// callers show the row only for native installs.
+export async function getNativeAppVersion() {
+  try {
+    if (!isNativeAndroid() && !isNativeIos()) return null;
+    const { App } = await import('@capacitor/app');
+    const info = await App.getInfo();
+    return info?.version || info?.build || null;
+  } catch {
+    return null;
+  }
+}

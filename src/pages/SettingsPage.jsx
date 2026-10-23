@@ -32,7 +32,7 @@ import { getLiveWorkerVersion, getDeployedWorkerVersion } from '@/lib/liveWorker
 import { isMobileDevice } from '@/lib/isMobileDevice';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { isNativeIos } from '@/lib/isNativeIos';
-import { getInstallSource } from '@/lib/installSource';
+import { getInstallSource, getNativeAppVersion } from '@/lib/installSource';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 
 const A11Y_FONTS = [
@@ -85,6 +85,13 @@ export default function SettingsPage() {
   // Reliable PWA install detection (display-mode + persisted flag +
   // getInstalledRelatedApps) for the App Info "PWA Status" row.
   const { isInstalled: pwaInstalled } = useInstallPrompt();
+  // Native shell version — only set when running inside the Android/iOS app.
+  const [nativeVersion, setNativeVersion] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    getNativeAppVersion().then((v) => { if (!cancelled && v) setNativeVersion(v); });
+    return () => { cancelled = true; };
+  }, []);
   // The ACTUAL running service worker's version, read live from the SW itself.
   // Falls back to the hardcoded WORKER_VERSION constant only if the SW can't be
   // reached (dev, unsupported browser, or not yet controlling the page).
@@ -999,6 +1006,12 @@ export default function SettingsPage() {
                 <span className="text-muted-foreground shrink-0">{getInstallSource() === 'Web Browser' ? 'Opened In' : 'Installed From'}</span>
                 <span className="text-foreground font-medium text-right">{getInstallSource()}</span>
               </div>
+              {nativeVersion && (
+                <div className="flex justify-between items-center font-sans text-sm gap-4">
+                  <span className="text-muted-foreground shrink-0">App Version</span>
+                  <span className="text-foreground font-medium text-right">{nativeVersion}</span>
+                </div>
+              )}
               <div className="flex justify-between items-center font-sans text-sm gap-4">
                 <span className="text-muted-foreground shrink-0">Offline Support</span>
                 <span className="text-foreground font-medium text-right flex items-center gap-1">
