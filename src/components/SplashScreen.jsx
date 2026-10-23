@@ -58,6 +58,9 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
       : 'WELCOME TO KJB READER.'
   );
   const [isIncognito, setIsIncognito] = useState(false);
+  // Set when this boot runs in a context that gets NO splash at all
+  // (embedded frame, private/guest window) — renders null immediately.
+  const [noSplash, setNoSplash] = useState(false);
   // progress: 0-100 for a determinate bar (during downloads); null = indeterminate
   const [progress, setProgress] = useState(null);
   const doneRef = useRef(false);
@@ -194,7 +197,21 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
       // Wait for incognito detection to complete before starting splash flow
       const detectedIncognito = await detectIncognito();
       setIsIncognito(detectedIncognito);
-      
+
+      // Embedded frames (iframes/embeds) and private/guest windows get NO
+      // splash and NO offline download — not on first launch, not on any
+      // launch. They're transient contexts where persistent cache and PWA
+      // install don't apply, so hand off to the app immediately.
+      const embedded = (() => { try { return window.self !== window.top; } catch { return true; } })();
+      if (detectedIncognito || embedded) {
+        console.log('[Splash] Private/guest or embedded context — skipping splash and offline download');
+        setNoSplash(true);
+        hideBootSplash();
+        try { const { markSwVersionApplied } = await import('@/lib/swVersionCheck'); await markSwVersionApplied(); } catch {}
+        finishOnce();
+        return;
+      }
+
       let isFirstVisit = mode === 'first_load';
 
       console.log('[KJB Splash] Mode:', mode, 'Incognito:', detectedIncognito);
@@ -354,7 +371,7 @@ export default function SplashScreen({ isFadingOut, onDone, mode = 'first_load',
     });
   }, [isVisible, mode]);
 
-  if (!isVisible) return null;
+  if (!isVisible || noSplash) return null;
 
   // Theme-aware splash colors: light bg in light mode, dark bg in dark mode —
   // matching the boot placeholder in index.html so there's no flash/white box.
