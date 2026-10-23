@@ -167,11 +167,22 @@ export default function useColumnLeaderFlush(containerRef, deps) {
         const r = el.getBoundingClientRect();
         if (!r.height) continue;
         const atTop = Math.abs(r.top - colTop) <= 2;
-        if (atTop && !topZeroed.has(el)) {
+        // WebKit/iOS fallback: a pilcrow verse leading column 2 (its previous
+        // sibling sits wholly in column 1) is a column leader even when
+        // fragment geometry leaves its measured top a few px below colTop —
+        // which made the paragraph gap survive on iOS. Only applied for
+        // column 2: mid-column in column 1 every verse's prev sits wholly in
+        // column 1, and column 1's only leader is verse 1 (never a pilcrow).
+        let leaderByRelation = false;
+        if (!atTop && r.left >= midX - 1) {
+          const prev = el.previousElementSibling;
+          if (prev && prev.tagName === 'SPAN' && endsInColumnOne(prev, midX)) leaderByRelation = true;
+        }
+        if ((atTop || leaderByRelation) && !topZeroed.has(el)) {
           el.style.paddingTop = '0px';
           topZeroed.add(el);
           changed = true;
-        } else if (!atTop && topZeroed.has(el)) {
+        } else if (!atTop && !leaderByRelation && topZeroed.has(el)) {
           clearTop(el);
           topZeroed.delete(el);
           changed = true;
@@ -200,7 +211,7 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       const colTop = rect.top + (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.paddingTop) || 0);
       const midX = rect.left + rect.width / 2;
       const f = (n) => Math.round(n);
-      const lines = [`build 0845 passes:${passes} fellBack:${fellBack} W:${f(rect.width)} colTop:${f(colTop)} midX:${f(midX)}`];
+      const lines = [`build 1023 passes:${passes} fellBack:${fellBack} W:${f(rect.width)} colTop:${f(colTop)} midX:${f(midX)}`];
       Array.from(container.children).forEach((el) => {
         if (el.tagName !== 'SPAN' || el.getAttribute('data-pilcrow') !== 'true') return;
         const r = el.getBoundingClientRect();
