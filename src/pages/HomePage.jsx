@@ -111,9 +111,10 @@ export default function HomePage() {
 
       {/* Quick links */}
       {/* 9 equal cards = a perfectly even 3×3 grid on desktop.
-          1 column on phones; 2 columns on tablets, where the 9th card spans
-          both columns so it isn't orphaned on its own half-width row. */}
-      <div className="print:hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 sm:max-lg:[&>*:last-child]:col-span-2 gap-3 sm:gap-4 mb-6 auto-rows-fr mt-2">
+          1 column on phones; 2 columns on tablets, where rows can't be even,
+          so "Read the Bible" (first card) spans the full width and the other
+          8 cards (Accessibility included) fill 4 even rows beneath it. */}
+      <div className="print:hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 sm:max-lg:[&>*:first-child]:col-span-2 gap-3 sm:gap-4 mb-6 auto-rows-fr mt-2">
         {QUICK_LINKS.map((link) => (
           <QuickLinkCard
             key={link.path}
