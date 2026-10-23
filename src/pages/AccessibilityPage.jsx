@@ -128,13 +128,14 @@ export default function AccessibilityPage() {
 
         <Section title="Dark mode">
           <p>
-            The KJB Reader app and the website both support dark mode. Use the moon button in the
-            header to switch between light and dark, which is easier on the eyes in low light and
-            for readers who are sensitive to bright screens.
+            The website supports dark mode via a toggle. Use the moon button in the header to
+            switch between light and dark, which is easier on the eyes in low light and for
+            readers who are sensitive to bright screens.
           </p>
           <p>
-            The browser extension doesn&rsquo;t have its own toggle. It follows the appearance your
-            browser is set to, so it switches to dark or light along with your browser.
+            The browser extension&rsquo;s side panel doesn&rsquo;t have its own toggle. Its
+            appearance is based on your device settings, so it switches to dark or light along
+            with your device.
           </p>
         </Section>
 
