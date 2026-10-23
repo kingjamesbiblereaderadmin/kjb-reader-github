@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG_RAW = [
+  { version: 'v0.4.321', date: 'October 23, 2026', items: [
+    { tag: 'improved', text: "Pilcrow (paragraph) verses now leave a line of space above them in the Read tab and in search results, matching the printed Bible's paragraph breaks; the first verse stays flush at the top." },
+    { tag: 'improved', text: 'Copied verses keep the same paragraph breaks: Copy Chapter, Copy Selected and Copy All insert a blank line above pilcrow verses, and Copy: Plain starts a new paragraph for them. Each verse\'s own pilcrow decides, based on the verses you copied, not the chapter.' },
+  ] },
   { version: 'v0.4.320', date: 'October 22, 2026', items: [
     { tag: 'new', text: 'Resources: added Evangelist Joshua Michael (Bible Believer AV1611 Gospel) to the Verified KJB Preachers list, with his YouTube, TikTok, Instagram and Facebook links.' },
   ] },
@@ -443,7 +447,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.320
+            Current Version: v0.4.321
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
