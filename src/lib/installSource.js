@@ -13,7 +13,7 @@ import { isNativeIos } from '@/lib/isNativeIos';
 
 const ANDROID_LABELS = {
   play: 'Google Play',
-  apexhub: 'ApexHub',
+  apexhub: 'Apex Hub',
   apk: 'APK (sideloaded)',
 };
 
