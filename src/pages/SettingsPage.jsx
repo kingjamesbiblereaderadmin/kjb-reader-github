@@ -33,6 +33,7 @@ import { isMobileDevice } from '@/lib/isMobileDevice';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { isNativeIos } from '@/lib/isNativeIos';
 import { getInstallSource } from '@/lib/installSource';
+import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 
 const A11Y_FONTS = [
   { value: 'dyslexic', label: 'OpenDyslexic', desc: 'Designed for readers with dyslexia', preview: "'OpenDyslexic', 'Comic Sans MS', sans-serif" },
@@ -81,6 +82,9 @@ export default function SettingsPage() {
   const [a11yFont, setA11yFont] = useState(getAccessibilityFont);
   const [bookmarkBrowser] = useState(isBookmarkBrowser);
   const [isIncognito, setIsIncognito] = useState(false);
+  // Reliable PWA install detection (display-mode + persisted flag +
+  // getInstalledRelatedApps) for the App Info "PWA Status" row.
+  const { isInstalled: pwaInstalled } = useInstallPrompt();
   // The ACTUAL running service worker's version, read live from the SW itself.
   // Falls back to the hardcoded WORKER_VERSION constant only if the SW can't be
   // reached (dev, unsupported browser, or not yet controlling the page).
@@ -992,7 +996,7 @@ export default function SettingsPage() {
                 <span className="text-foreground font-medium text-right">{LAST_REVISED}</span>
               </div>
               <div className="flex justify-between items-center font-sans text-sm gap-4">
-                <span className="text-muted-foreground shrink-0">Installed From</span>
+                <span className="text-muted-foreground shrink-0">{getInstallSource() === 'Web Browser' ? 'Opened In' : 'Installed From'}</span>
                 <span className="text-foreground font-medium text-right">{getInstallSource()}</span>
               </div>
               <div className="flex justify-between items-center font-sans text-sm gap-4">
@@ -1020,18 +1024,15 @@ export default function SettingsPage() {
                 <div className="flex justify-between items-center font-sans text-sm gap-4">
                   <span className="text-muted-foreground shrink-0">PWA Status</span>
                   <span className="text-foreground font-medium text-right flex items-center gap-1">
-                    {(() => {
-                      try {
-                        const dmFullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
-                        const dmStandalone = window.matchMedia('(display-mode: standalone)').matches;
-                        const dmMinimal = window.matchMedia('(display-mode: minimal-ui)').matches;
-                        const dmOverlay = window.matchMedia('(display-mode: window-controls-overlay)').matches;
-                        if (dmFullscreen || dmStandalone || dmMinimal || dmOverlay || navigator.standalone === true) {
-                          return <><CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Installed</>;
-                        }
-                      } catch {}
-                      return <><Smartphone className="w-3.5 h-3.5 text-muted-foreground" /> Browser</>;
-                    })()}
+                    {inIframe() ? (
+                      <><AlertCircle className="w-3.5 h-3.5 text-amber-600" /> Preview</>
+                    ) : isIncognito ? (
+                      <><AlertCircle className="w-3.5 h-3.5 text-amber-600" /> Guest Mode</>
+                    ) : pwaInstalled ? (
+                      <><CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Installed</>
+                    ) : (
+                      <><Smartphone className="w-3.5 h-3.5 text-muted-foreground" /> Browser</>
+                    )}
                   </span>
                 </div>
               )}
