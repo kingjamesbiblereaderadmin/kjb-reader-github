@@ -155,6 +155,20 @@ export default function SettingsPage() {
     try { localStorage.setItem('kjb-debug-diagnostics', String(checked)); } catch {}
   };
 
+  // Layout diagnostics toggle (Advanced) -- shows the green measurement strip
+  // from useColumnLeaderFlush in the reader (two-column mode). Read by the
+  // reader when it mounts, so open a chapter after switching it on.
+  const [layoutDebug, setLayoutDebugState] = useState(() => {
+    try { return localStorage.getItem('kjbdebug') === '1'; } catch { return false; }
+  });
+  const toggleLayoutDebug = (checked) => {
+    setLayoutDebugState(checked);
+    try {
+      if (checked) localStorage.setItem('kjbdebug', '1');
+      else localStorage.removeItem('kjbdebug');
+    } catch {}
+  };
+
   const VERSE_FONTS = [
     { value: 'serif', label: 'Serif (Merriweather)' },
     { value: 'sans-serif', label: 'Sans Serif (Inter)' },
@@ -1071,6 +1085,16 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <Switch checked={debugDiagnostics} onCheckedChange={toggleDebugDiagnostics} />
+              </div>
+              <div className="flex items-center justify-between gap-4 mt-4">
+                <div className="flex items-center gap-2">
+                  <Wrench className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="font-sans text-sm text-foreground font-medium">Layout Diagnostics</p>
+                    <p className="font-sans text-xs text-muted-foreground mt-0.5">Shows a green measurement strip at the bottom of the reader (two-column mode). Open a chapter after turning it on.</p>
+                  </div>
+                </div>
+                <Switch checked={layoutDebug} onCheckedChange={toggleLayoutDebug} />
               </div>
             </div>
 
