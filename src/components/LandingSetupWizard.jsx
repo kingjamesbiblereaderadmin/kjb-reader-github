@@ -68,6 +68,13 @@ const isEdgeDesktop = () => {
   return /edg/i.test(ua) && !/iphone|ipad|ipod|android/i.test(ua);
 };
 
+// iPhone/iPad browsers other than Safari (Edge, Chrome, Firefox, Opera) usually
+// have no "Add to Home Screen" — the install steps must point to Safari.
+const isIOSNonSafari = () => {
+  const ua = navigator.userAgent;
+  return /iphone|ipad|ipod/i.test(ua) && /CriOS|FxiOS|EdgiOS|OPiOS|OPT\//i.test(ua);
+};
+
 const isBookmarkBrowser = () => {
   const ua = navigator.userAgent;
   const isFirefox = /firefox/i.test(ua);
@@ -375,7 +382,9 @@ export default function LandingSetupWizard() {
                   <div className="bg-secondary/40 border border-border rounded-xl p-3 text-left">
                     <p className="font-sans text-xs text-foreground leading-relaxed">
                       <strong>Manual Installation:</strong><br />
-                      {isIOS() ? (
+                      {isIOS() && isIOSNonSafari() ? (
+                        <>This browser can't add apps to your home screen on iPhone/iPad. Open this page in <strong>Safari</strong>, tap the <strong>Share</strong> icon, then select <strong>"Add to Home Screen"</strong>.</>
+                      ) : isIOS() ? (
                         <>Tap the <strong>Share</strong> icon, then select <strong>"Add to Home Screen"</strong>.</>
                       ) : isEdgeMobile() ? (
                         <>Tap <strong>Menu (⋯)</strong> → <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.</>
