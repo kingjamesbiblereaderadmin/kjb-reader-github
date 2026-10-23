@@ -1000,7 +1000,9 @@ export default function SettingsPage() {
               </p>
               <div className="flex justify-between items-center font-sans text-sm gap-4">
                 <span className="text-muted-foreground shrink-0">Last Updated</span>
-                <span className="text-foreground font-medium text-right">{LAST_REVISED}</span>
+                <span className="text-foreground font-medium text-right">
+                  {nativeVersion ? nativeVersion : (liveWorkerVersion || WORKER_VERSION)}
+                </span>
               </div>
               <div className="flex justify-between items-center font-sans text-sm gap-4">
                 <span className="text-muted-foreground shrink-0">{getInstallSource() === 'Web Browser' ? 'Opened In' : 'Installed From'}</span>
