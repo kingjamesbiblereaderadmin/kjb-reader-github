@@ -19,10 +19,9 @@ import { useEffect } from 'react';
 // the verse that ends column 1 gets `break-before: column` when it is a
 // pilcrow verse, moving the whole paragraph start to the top of column 2.
 // Only one verse is ever forced per layout (no cascading).
-// Split-tail gap: when the verse above a pilcrow verse is split across the
-// column break, the paragraph gap rides on the pilcrow verse itself as top
-// padding — a split element bottom padding renders in column 1 on WebKit,
-// never under its column-2 tail, so iOS saw no gap.
+// Paragraph gap: a pilcrow verse carries its OWN top padding (index.css) so
+// the gap renders under a split verse's column-2 tail on WebKit/iOS too. When
+// that verse is the topmost thing in its column the hook zeroes the padding.
 // Overrides are re-evaluated on resize/reflow and reverted when a verse is
 // no longer a column leader, with a bounded settle loop so a layout that
 // flip-flops falls back to the plain CSS defaults instead of oscillating.
@@ -35,7 +34,7 @@ export default function useColumnLeaderFlush(containerRef, deps) {
     }
 
     const applied = new Set();
-    const tailGap = new Set();
+    const topZeroed = new Set();
     let forced = null;
 
     const rowOf = (el) => Array.from(el.children).find((c) => c.tagName === 'SPAN' && c.classList.contains('flex')) || null;
@@ -72,17 +71,15 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       }
     };
 
-    const clearTailGap = (prev) => {
-      clearOne(prev);
-      const follower = prev.nextElementSibling;
-      if (follower) follower.style.paddingTop = '';
+    const clearTop = (el) => {
+      el.style.paddingTop = '';
     };
 
     const clearAll = () => {
       applied.forEach(clearOne);
       applied.clear();
-      tailGap.forEach(clearTailGap);
-      tailGap.clear();
+      topZeroed.forEach(clearTop);
+      topZeroed.clear();
       clearForced();
     };
 
@@ -158,42 +155,28 @@ export default function useColumnLeaderFlush(containerRef, deps) {
         }
       });
 
-      // Split-tail gap: the verse above a pilcrow verse that is split across
-      // the column break keeps its paragraph gap in column 2 — carried as
-      // the pilcrow verse's own top padding (same 3rem + 0.15em spacing).
-      const wanted = new Set();
+      // Pilcrow verse that is the topmost thing in its column -> drop its own
+      // paragraph gap (padding-top from index.css) so it starts flush on the
+      // shared baseline grid. Measured on the verse's OWN box (a pilcrow verse
+      // never splits: break-inside: avoid), so it does not depend on how the
+      // engine fragments the verse above it.
+      const cs = window.getComputedStyle(container);
+      const colTop = rect.top + (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.paddingTop) || 0);
       for (const el of Array.from(container.children)) {
         if (el.tagName !== 'SPAN' || el.getAttribute('data-pilcrow') !== 'true') continue;
-        const prev = el.previousElementSibling;
-        if (!prev || prev.tagName !== 'SPAN' || applied.has(prev)) continue;
-        if ((prev.getAttribute('style') || '').includes('flow-root')) continue;
-        const rects = Array.from(prev.getClientRects()).filter((r) => r.height > 0);
-        if (!rects.some((r) => r.left < midX - 1)) continue;
-        if (endsInColumnOne(prev, midX)) continue;
-        wanted.add(prev);
-      }
-      wanted.forEach((prev) => {
-        if (tailGap.has(prev)) return;
-        prev.style.marginBottom = '0px';
-        // The paragraph gap rides on the PILCROW VERSE's own top padding,
-        // never as the split verse's bottom padding: WebKit/IOS renders a
-        // fragment's bottom padding back in column 1, not under its
-        // column-2 tail, so the padding-bottom version produced NO visible
-        // gap on iOS (the pilcrow verse sat flush under the tail). The
-        // follower here is mid-column (its verse's tail sits above it), so
-        // its top padding renders identically in every engine.
-        const follower = prev.nextElementSibling;
-        if (follower) follower.style.paddingTop = 'calc(3rem + 0.15em)';
-        tailGap.add(prev);
-        changed = true;
-      });
-      Array.from(tailGap).forEach((el) => {
-        if (!wanted.has(el)) {
-          clearTailGap(el);
-          tailGap.delete(el);
+        const r = el.getBoundingClientRect();
+        if (!r.height) continue;
+        const atTop = Math.abs(r.top - colTop) <= 2;
+        if (atTop && !topZeroed.has(el)) {
+          el.style.paddingTop = '0px';
+          topZeroed.add(el);
+          changed = true;
+        } else if (!atTop && topZeroed.has(el)) {
+          clearTop(el);
+          topZeroed.delete(el);
           changed = true;
         }
-      });
+      }
       return changed;
     };
 
