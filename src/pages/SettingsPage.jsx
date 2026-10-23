@@ -65,6 +65,22 @@ const isBookmarkBrowser = () => {
 };
 
 const LAST_REVISED = 'September 11th, 2026';
+
+// Store release dates for the native shells — bump these whenever a new build
+// ships to Google Play / the App Store.
+const NATIVE_LAST_UPDATED = { android: 'October 23rd, 2026', ios: 'October 23rd, 2026' };
+
+// Non-native: the date the live web build went live, derived from the live
+// worker version stamp (vYYYYMMDD_HHMM).
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+function formatVersionDate(version) {
+  const m = /^v(\d{4})(\d{2})(\d{2})_/.exec(version || '');
+  if (!m) return null;
+  const day = String(parseInt(m[3], 10));
+  const suffix = (['11', '12', '13'].includes(day)) ? 'th' :
+    day.endsWith('1') ? 'st' : day.endsWith('2') ? 'nd' : day.endsWith('3') ? 'rd' : 'th';
+  return `${MONTH_NAMES[parseInt(m[2], 10) - 1]} ${day}${suffix}, ${m[1]}`;
+}
 const WORKER_VERSION = 'v20261023_1101';
 
 export default function SettingsPage() {
@@ -1001,7 +1017,9 @@ export default function SettingsPage() {
               <div className="flex justify-between items-center font-sans text-sm gap-4">
                 <span className="text-muted-foreground shrink-0">Last Updated</span>
                 <span className="text-foreground font-medium text-right">
-                  {nativeVersion ? nativeVersion : (liveWorkerVersion || WORKER_VERSION)}
+                  {nativeVersion
+                    ? NATIVE_LAST_UPDATED[isNativeAndroid() ? 'android' : 'ios']
+                    : (formatVersionDate(liveWorkerVersion) || LAST_REVISED)}
                 </span>
               </div>
               <div className="flex justify-between items-center font-sans text-sm gap-4">
