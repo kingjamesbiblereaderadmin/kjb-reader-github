@@ -64,13 +64,11 @@ export default function useColumnLeaderFlush(containerRef, deps) {
         const entry = entries.find((item) => item.el === el);
         return entry?.rects.length > 0 && entry.rects.every((r) => r.left < midX - 1);
       };
-      const prev = right.el.previousElementSibling;
-      // Preserve the existing rule that a paragraph start must not be left
-      // alone at the foot of column 1 with its continuation in column 2.
-      const moveParagraph = prev?.getAttribute('data-pilcrow') === 'true'
-        && prev.previousElementSibling && endsOnLeft(prev);
+      // CSS keeps a pilcrow verse with the following verse before we measure.
+      // Only pin that actual boundary: moving its predecessor here would
+      // override the browser's paragraph placement and trigger another balance.
       const startsOnRight = right.rects.every((r) => r.left >= midX - 1);
-      const boundary = moveParagraph ? prev : startsOnRight ? right.el : null;
+      const boundary = startsOnRight ? right.el : null;
       if (!boundary || boundary.tagName !== 'SPAN') return;
       boundary.style.breakBefore = 'column';
       boundary.style.webkitColumnBreakBefore = 'always';

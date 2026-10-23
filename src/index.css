@@ -320,6 +320,10 @@
     .kjb-two-col > span[data-pilcrow='true'] {
       -webkit-column-break-inside: avoid;
       break-inside: avoid;
+      /* Keep the paragraph start with the following verse in the natural
+         layout, before painting. JS must not move it again after measuring. */
+      -webkit-column-break-after: avoid;
+      break-after: avoid-column;
     }
   }
   /* Dancing Script's connected letterforms and swashes extend visibly past
