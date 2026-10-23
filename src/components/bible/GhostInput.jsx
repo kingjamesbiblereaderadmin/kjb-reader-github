@@ -106,7 +106,7 @@ const GhostInput = React.forwardRef(function GhostInput(
   };
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full min-w-0">
       {/* Ghost layer — sits behind the input, shows typed text transparent + completion faded */}
       {ghost && (
         <div
