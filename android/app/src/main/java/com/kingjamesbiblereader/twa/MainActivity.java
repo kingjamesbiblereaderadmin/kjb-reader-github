@@ -1297,7 +1297,8 @@ public class MainActivity extends BridgeActivity {
     // inside a third-party app (see the comment on the addJavascriptInterface
     // call above).
     // Exposed to JS as window.kjbInstallSourceBridge. get() returns JSON:
-    //   {"source": "play" | "apexhub" | "apk", "installer": "<package or empty>"}
+    //   {"source": "play" | "apexhub" | "apk", "installer": "<package or empty>",
+    //    "builtAt": "YYYY-MM-DD workflow build date, or empty"}
     // "apexhub" comes from the build itself (only build-android-ota.yml
     // produces it), since an ApexHub/OTA install reports the package
     // installer or this app itself as installer, not a store package.
@@ -1334,6 +1335,7 @@ public class MainActivity extends BridgeActivity {
                 org.json.JSONObject o = new org.json.JSONObject();
                 o.put("source", source);
                 o.put("installer", installer != null ? installer : "");
+                o.put("builtAt", BuildConfig.BUILD_DATE);
                 return o.toString();
             } catch (Exception e) {
                 return "{\"source\":\"" + source + "\",\"installer\":\"\"}";

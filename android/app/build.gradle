@@ -34,6 +34,9 @@ android {
         // InstallSourceBridge (MainActivity) for Settings -> App Info ->
         // "Installed From". build-android-ota.yml rewrites this to "apexhub".
         buildConfigField "String", "DISTRIBUTION", "\"standard\""
+        // Date (YYYY-MM-DD, UTC) the GitHub workflow built this APK/AAB; shown in
+        // Settings -> App Info -> "Last Updated". Empty for local builds.
+        buildConfigField "String", "BUILD_DATE", "\"${System.getenv('KJB_BUILD_DATE') ?: ''}\""
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 89

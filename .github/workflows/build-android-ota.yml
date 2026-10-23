@@ -45,6 +45,8 @@ jobs:
       APEXHUB_CERT_SHA256: '11:5B:40:33:09:AE:BE:91:88:4D:05:EA:06:85:CA:BB:1F:D3:F2:94:ED:58:78:85:6B:F0:E8:9D:CE:3E:60:87'
     steps:
       - uses: actions/checkout@v5
+      - name: Stamp build date (shown in Settings -> Last Updated)
+        run: echo "KJB_BUILD_DATE=$(date -u +%Y-%m-%d)" >> "$GITHUB_ENV"
       - uses: actions/setup-node@v5
         with:
           node-version: '22'

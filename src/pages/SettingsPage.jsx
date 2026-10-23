@@ -32,7 +32,7 @@ import { getLiveWorkerVersion, getDeployedWorkerVersion } from '@/lib/liveWorker
 import { isMobileDevice } from '@/lib/isMobileDevice';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { isNativeIos } from '@/lib/isNativeIos';
-import { getInstallSource, getNativeAppVersion } from '@/lib/installSource';
+import { getInstallSource, getNativeAppVersion, getNativeBuildDate } from '@/lib/installSource';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 
 const A11Y_FONTS = [
@@ -66,8 +66,9 @@ const isBookmarkBrowser = () => {
 
 const LAST_REVISED = 'September 11th, 2026';
 
-// Store release dates for the native shells — bump these whenever a new build
-// ships to Google Play / the App Store.
+// Fallback release dates for native builds that carry no workflow date stamp
+// (local/Xcode builds). Workflow builds show their own build date instead
+// (KJB_BUILD_DATE on Android, KJBBuildDate in Info.plist on iOS/Mac).
 const NATIVE_LAST_UPDATED = { android: 'October 23rd, 2026', ios: 'October 23rd, 2026' };
 
 // Non-native: the date the live web build went live, derived from the live
@@ -1018,7 +1019,7 @@ export default function SettingsPage() {
                 <span className="text-muted-foreground shrink-0">Last Updated</span>
                 <span className="text-foreground font-medium text-right">
                   {nativeVersion
-                    ? NATIVE_LAST_UPDATED[isNativeAndroid() ? 'android' : 'ios']
+                    ? (formatVersionDate(`v${(getNativeBuildDate() || '').replace(/-/g, '')}_`) || NATIVE_LAST_UPDATED[isNativeAndroid() ? 'android' : 'ios'])
                     : (formatVersionDate(liveWorkerVersion) || LAST_REVISED)}
                 </span>
               </div>

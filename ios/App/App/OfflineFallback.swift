@@ -573,7 +573,7 @@ func kjbInstallNativeBridges(on webView: WKWebView) {
                                   injectionTime: .atDocumentStart,
                                   forMainFrameOnly: true))
     // Settings -> App Info -> "Installed From" (see src/lib/installSource.js).
-    ucc.addUserScript(WKUserScript(source: "window.__KJB_INSTALL_SOURCE__ = '\(kjbInstallSource())';",
+    ucc.addUserScript(WKUserScript(source: "window.__KJB_INSTALL_SOURCE__ = '\(kjbInstallSource())'; window.__KJB_BUILD_DATE__ = '\(kjbBuildDate())';",
                                   injectionTime: .atDocumentStart,
                                   forMainFrameOnly: true))
 }
@@ -583,6 +583,13 @@ func kjbInstallNativeBridges(on webView: WKWebView) {
 //   "testflight"  -- TestFlight build (sandbox receipt)
 //   "appstore"    -- App Store / Mac App Store
 // Prefixed with "mac-" when running as the Mac Catalyst build.
+// Date (YYYY-MM-DD) the GitHub workflow built this app; stamped into Info.plist
+// as KJBBuildDate. Empty for local/Xcode builds.
+func kjbBuildDate() -> String {
+    let raw = Bundle.main.object(forInfoDictionaryKey: "KJBBuildDate") as? String ?? ""
+    return raw.filter { $0.isNumber || $0 == "-" }
+}
+
 func kjbInstallSource() -> String {
     let isMac = ProcessInfo.processInfo.isMacCatalystApp
     let prefix = isMac ? "mac-" : ""

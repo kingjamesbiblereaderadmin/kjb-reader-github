@@ -63,6 +63,23 @@ export function getInstallSource() {
   return isStandalonePwa() ? 'Installed Web App (PWA)' : 'Web Browser';
 }
 
+// Date (YYYY-MM-DD) the GitHub workflow built this native app, or null for
+// the website / local builds without a stamp.
+export function getNativeBuildDate() {
+  try {
+    let raw = null;
+    if (isNativeAndroid()) {
+      const json = window.kjbInstallSourceBridge?.get?.();
+      raw = json ? JSON.parse(json).builtAt : null;
+    } else if (isNativeIos()) {
+      raw = window.__KJB_BUILD_DATE__;
+    }
+    return /^\d{4}-\d{2}-\d{2}$/.test(raw || '') ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
 // The native shell's own version (versionName on Android, MARKETING_VERSION
 // on iOS), read from the Capacitor App plugin. Returns null on the web —
 // callers show the row only for native installs.

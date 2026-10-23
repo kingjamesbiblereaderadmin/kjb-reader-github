@@ -11,6 +11,8 @@ jobs:
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@v5
+      - name: Stamp build date (shown in Settings -> Last Updated)
+        run: echo "KJB_BUILD_DATE=$(date -u +%Y-%m-%d)" >> "$GITHUB_ENV"
       - name: Set automatic version from GitHub run number
         run: |
           set -euo pipefail

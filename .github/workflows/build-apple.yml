@@ -46,6 +46,12 @@ jobs:
         with: { node-version: 22 }
       - name: Install deps
         run: npm install
+      - name: Stamp build date into Info.plist (shown in Settings -> Last Updated)
+        run: |
+          D="$(date -u +%Y-%m-%d)"
+          PB=/usr/libexec/PlistBuddy
+          "$PB" -c "Set :KJBBuildDate $D" ios/App/App/Info.plist 2>/dev/null || "$PB" -c "Add :KJBBuildDate string $D" ios/App/App/Info.plist
+          echo "Stamped KJBBuildDate=$D"
       - name: Build web + sync
         run: npm run build && npx cap sync ios
       - name: Prepare iOS offline bundle
@@ -354,6 +360,12 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Stamp build date into Info.plist (shown in Settings -> Last Updated)
+        run: |
+          D="$(date -u +%Y-%m-%d)"
+          PB=/usr/libexec/PlistBuddy
+          "$PB" -c "Set :KJBBuildDate $D" ios/App/App/Info.plist 2>/dev/null || "$PB" -c "Add :KJBBuildDate string $D" ios/App/App/Info.plist
+          echo "Stamped KJBBuildDate=$D"
       - name: Build web app and sync Capacitor
         run: npm run build && npx cap sync ios
 

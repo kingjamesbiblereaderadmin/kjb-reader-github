@@ -126,6 +126,18 @@ export default function AccessibilityPage() {
           </p>
         </Section>
 
+        <Section title="Dark mode">
+          <p>
+            The KJB Reader app and the website both support dark mode. Use the moon button in the
+            header to switch between light and dark, which is easier on the eyes in low light and
+            for readers who are sensitive to bright screens.
+          </p>
+          <p>
+            The browser extension doesn&rsquo;t have its own toggle. It follows the appearance your
+            browser is set to, so it switches to dark or light along with your browser.
+          </p>
+        </Section>
+
         <Section title="Works offline">
           <p>
             The entire Bible is bundled with the app, so every one of these features works without an
