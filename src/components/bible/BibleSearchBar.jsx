@@ -524,7 +524,7 @@ export default function BibleSearchBar({ onClose }) {
             onKeyDown={handleKeyDown}
             placeholder={hasRoomForPlaceholder ? 'Search...' : ''}
             leftPadClass="pl-9"
-            inputClassName="w-full pl-9 pr-8 py-1.5 h-9 rounded-lg bg-secondary border border-border text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors truncate"
+            inputClassName={`w-full min-w-0 pl-9 ${query ? 'pr-8' : 'pr-2'} py-1.5 h-9 rounded-lg bg-secondary border border-border text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors truncate`}
           />
           {query && (
             <button
