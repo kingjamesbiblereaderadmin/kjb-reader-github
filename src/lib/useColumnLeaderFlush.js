@@ -1,202 +1,94 @@
-import { useEffect } from 'react';
+import { useLayoutEffect } from 'react';
+import columnTextRects from '@/lib/columnTextRects';
 
-// Two-column layout: a pilcrow (¶) verse carries a paragraph gap ABOVE it
-// (the previous verse's margin-bottom, from the :has rule in index.css).
-// That gap is correct mid-column, but when the break between columns falls
-// right before a pilcrow verse, the gap carries into the top of the column
-// and pushes that verse down — breaking the shared baseline grid with the
-// other column (CSS engines don't reliably truncate it at the break).
-// CSS can't express "first verse in its column", so this hook measures:
-// any pilcrow verse that is the topmost verse in its column gets the gap
-// above it zeroed; every other pilcrow verse keeps its paragraph gap.
-// The same applies to ANY verse leading the second column (not just pilcrow
-// ones): when the previous verse ends exactly at the bottom of column 1, its
-// bottom spacing (padding + row padding) spills into the top of column 2 and
-// pushes the leading verse and its number down, off the left column's top
-// line. That spacing is zeroed for the verse above a column-2 leader.
-// Finally: a pilcrow verse (paragraph start) must not be the LAST verse of
-// column 1 with its paragraph continuing in column 2. CSS can't say that, so
-// the verse that ends column 1 gets `break-before: column` when it is a
-// pilcrow verse, moving the whole paragraph start to the top of column 2.
-// Only one verse is ever forced per layout (no cascading).
-// Paragraph gap: a pilcrow verse carries its OWN top padding (index.css) so
-// the gap renders under a split verse's column-2 tail on WebKit/iOS too. When
-// that verse is the topmost thing in its column the hook zeroes the padding.
-// Overrides are re-evaluated on resize/reflow and reverted when a verse is
-// no longer a column leader, with a bounded settle loop so a layout that
-// flip-flops falls back to the plain CSS defaults instead of oscillating.
+// Measure the natural column break once, then keep that break while removing
+// its spacing. Rebalancing after each padding change could move the leader
+// back to column 1, restore its gap, and make the old settle loop discard ALL
+// corrections. External reflows start from the natural layout again.
 export default function useColumnLeaderFlush(containerRef, deps) {
-  useEffect(() => {
+  useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container) return undefined;
-    if (typeof window.matchMedia === 'function' && window.matchMedia('print').matches) {
-      return undefined;
-    }
+    const printing = () => typeof window.matchMedia === 'function' && window.matchMedia('print').matches;
+    if (printing()) return undefined;
 
     const applied = new Set();
     const topZeroed = new Set();
     let forced = null;
-
     const rowOf = (el) => Array.from(el.children).find((c) => c.tagName === 'SPAN' && c.classList.contains('flex')) || null;
-
-    // True when the verse's visible TEXT ends in column 1. A Range over the
-    // verse's contents reports glyph line boxes only, so a spacing-only spill
-    // (WebKit/iOS fragments spilled bottom padding into a padding-only box in
-    // column 2) produces NO column-2 text rect, while a genuinely split verse
-    // always has a text line there. The previous height-arithmetic check
-    // (spill fragment height vs padding) mis-classified on iOS whenever the
-    // spill fragment measured a few px taller than the padding itself, which
-    // left the paragraph gap above a pilcrow verse leading column 2.
-    const endsInColumnOne = (el, midX) => {
-      if (typeof document.createRange !== 'function') {
-        return el.getBoundingClientRect().right <= midX + 1;
-      }
-      const range = document.createRange();
-      try { range.selectNodeContents(el); } catch { return el.getBoundingClientRect().right <= midX + 1; }
-      const rects = Array.from(range.getClientRects());
-      return !rects.some((r) => r.width > 0 && r.height > 1 && r.left >= midX - 1);
-    };
-
-    const clearOne = (el) => {
-      el.style.marginBottom = '';
-      el.style.paddingBottom = '';
-      const row = rowOf(el);
-      if (row) row.style.paddingBottom = '';
-    };
-
-    const clearForced = () => {
+    const clearAll = () => {
+      applied.forEach((el) => {
+        el.style.marginBottom = '';
+        el.style.paddingBottom = '';
+        const row = rowOf(el);
+        if (row) row.style.paddingBottom = '';
+      });
+      applied.clear();
+      topZeroed.forEach((el) => { el.style.paddingTop = ''; });
+      topZeroed.clear();
       if (forced) {
         forced.style.breakBefore = '';
         forced.style.webkitColumnBreakBefore = '';
         forced = null;
       }
     };
-
-    const clearTop = (el) => {
-      el.style.paddingTop = '';
+    const flushTop = (el) => {
+      if (el.getAttribute('data-pilcrow') !== 'true') return;
+      el.style.paddingTop = '0px';
+      topZeroed.add(el);
     };
 
-    const clearAll = () => {
-      applied.forEach(clearOne);
-      applied.clear();
-      topZeroed.forEach(clearTop);
-      topZeroed.clear();
-      clearForced();
-    };
-
-    // The topmost verse span in each of the two columns.
-    const leadersOf = () => {
-      const rect = container.getBoundingClientRect();
-      if (!rect.width) return new Set();
-      const midX = rect.left + rect.width / 2;
-      const spans = Array.from(container.children).filter((el) => el.tagName === 'SPAN');
-      const leaders = new Set();
-      for (let colIdx = 0; colIdx < 2; colIdx += 1) {
-        let leader = null;
-        let minTop = Infinity;
-        for (const el of spans) {
-          const r = el.getBoundingClientRect();
-          if ((r.left >= midX ? 1 : 0) !== colIdx) continue;
-          if (r.top < minTop) { minTop = r.top; leader = el; }
-        }
-        if (leader) leaders.add(leader);
-      }
-      return leaders;
-    };
-
-    // One reconcile pass. Returns true when the DOM changed (re-measure needed).
     const pass = () => {
-      const leaders = leadersOf();
-      if (!leaders.size) return false;
-      let changed = false;
-
-      const rect = container.getBoundingClientRect();
-      const midX = rect.left + rect.width / 2;
-
-      // Pilcrow verse ending column 1 → push it to the top of column 2.
-      if (!forced) {
-        for (const leader of leaders) {
-          if (leader.getBoundingClientRect().left < midX) continue;
-          const prev = leader.previousElementSibling;
-          if (!prev) continue;
-          if (prev.getAttribute('data-pilcrow') !== 'true') continue;
-          const before = prev.previousElementSibling;
-          if (!before) continue;
-          if (!endsInColumnOne(prev, midX)) continue;
-          prev.style.breakBefore = 'column';
-          prev.style.webkitColumnBreakBefore = 'always';
-          forced = prev;
-          return true;
-        }
-      }
-
-      // Apply: a verse leading a column → zero the spacing above it, but only
-      // when the verse before it sits wholly in the previous column. A verse
-      // split across the break has a bounding box spanning both columns, and
-      // its spacing is real mid-column rhythm that must stay.
-      leaders.forEach((leader) => {
-        const prev = leader.previousElementSibling;
-        if (!prev || applied.has(prev)) return;
-        if (!endsInColumnOne(prev, midX)) return;
-        prev.style.marginBottom = '0px';
-        prev.style.paddingBottom = '0px';
-        const row = rowOf(prev);
+      const bounds = container.getBoundingClientRect();
+      if (!bounds.width) return;
+      const midX = bounds.left + bounds.width / 2;
+      const entries = Array.from(container.children).map((el) => ({ el, rects: columnTextRects(el) }));
+      // A split verse counts as the column's leader too. Its tail must keep
+      // the following paragraph's gap, rather than being mistaken for padding.
+      const leaderIn = (right) => {
+        let leader = null;
+        let top = Infinity;
+        entries.forEach((entry) => entry.rects.forEach((r) => {
+          if ((r.left >= midX - 1) === right && r.top < top) {
+            leader = entry;
+            top = r.top;
+          }
+        }));
+        return leader;
+      };
+      const left = leaderIn(false);
+      if (left && left.rects.every((r) => r.left < midX - 1)) flushTop(left.el);
+      const right = leaderIn(true);
+      if (!right) return;
+      const endsOnLeft = (el) => {
+        const entry = entries.find((item) => item.el === el);
+        return entry?.rects.length > 0 && entry.rects.every((r) => r.left < midX - 1);
+      };
+      const prev = right.el.previousElementSibling;
+      // Preserve the existing rule that a paragraph start must not be left
+      // alone at the foot of column 1 with its continuation in column 2.
+      const moveParagraph = prev?.getAttribute('data-pilcrow') === 'true'
+        && prev.previousElementSibling && endsOnLeft(prev);
+      const startsOnRight = right.rects.every((r) => r.left >= midX - 1);
+      const boundary = moveParagraph ? prev : startsOnRight ? right.el : null;
+      if (!boundary || boundary.tagName !== 'SPAN') return;
+      boundary.style.breakBefore = 'column';
+      boundary.style.webkitColumnBreakBefore = 'always';
+      forced = boundary;
+      flushTop(boundary);
+      const before = boundary.previousElementSibling;
+      if (before?.tagName === 'SPAN' && endsOnLeft(before)) {
+        before.style.marginBottom = '0px';
+        before.style.paddingBottom = '0px';
+        const row = rowOf(before);
         if (row) row.style.paddingBottom = '0px';
-        applied.add(prev);
-        changed = true;
-      });
-
-      // Revert: no longer a column leader → restore the CSS verse spacing.
-      Array.from(applied).forEach((el) => {
-        const follower = el.nextElementSibling;
-        if (!follower || !leaders.has(follower)) {
-          clearOne(el);
-          applied.delete(el);
-          changed = true;
-        }
-      });
-
-      // Pilcrow verse that is the topmost thing in its column -> drop its own
-      // paragraph gap (padding-top from index.css) so it starts flush on the
-      // shared baseline grid. Measured on the verse's OWN box (a pilcrow verse
-      // never splits: break-inside: avoid), so it does not depend on how the
-      // engine fragments the verse above it.
-      const cs = window.getComputedStyle(container);
-      const colTop = rect.top + (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.paddingTop) || 0);
-      for (const el of Array.from(container.children)) {
-        if (el.tagName !== 'SPAN' || el.getAttribute('data-pilcrow') !== 'true') continue;
-        const r = el.getBoundingClientRect();
-        if (!r.height) continue;
-        const atTop = Math.abs(r.top - colTop) <= 2;
-        // WebKit/iOS fallback: a pilcrow verse leading column 2 (its previous
-        // sibling sits wholly in column 1) is a column leader even when
-        // fragment geometry leaves its measured top a few px below colTop —
-        // which made the paragraph gap survive on iOS. Only applied for
-        // column 2: mid-column in column 1 every verse's prev sits wholly in
-        // column 1, and column 1's only leader is verse 1 (never a pilcrow).
-        let leaderByRelation = false;
-        if (!atTop && r.left >= midX - 1) {
-          const prev = el.previousElementSibling;
-          if (prev && endsInColumnOne(prev, midX)) leaderByRelation = true;
-        }
-        if ((atTop || leaderByRelation) && !topZeroed.has(el)) {
-          el.style.paddingTop = '0px';
-          topZeroed.add(el);
-          changed = true;
-        } else if (!atTop && !leaderByRelation && topZeroed.has(el)) {
-          clearTop(el);
-          topZeroed.delete(el);
-          changed = true;
-        }
+        applied.add(before);
       }
-      return changed;
     };
 
     // Temporary on-device diagnostics: add ?kjbdebug=1 to the URL (or set
     // localStorage kjbdebug=1) to show what the hook measures.
     let debugEl = null;
-    let passes = 0;
-    let fellBack = false;
     const debugOn = (() => {
       try { return /[?&]kjbdebug=1/.test(window.location.search) || window.localStorage.getItem('kjbdebug') === '1'; } catch { return false; }
     })();
@@ -212,7 +104,7 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       const colTop = rect.top + (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.paddingTop) || 0);
       const midX = rect.left + rect.width / 2;
       const f = (n) => Math.round(n);
-      const lines = [`build 1024 passes:${passes} fellBack:${fellBack} W:${f(rect.width)} colTop:${f(colTop)} midX:${f(midX)}`];
+      const lines = [`build 1025 boundary:${forced?.id || 'natural'} W:${f(rect.width)} colTop:${f(colTop)} midX:${f(midX)}`];
       Array.from(container.children).forEach((el) => {
         if (el.tagName !== 'SPAN' || el.getAttribute('data-pilcrow') !== 'true') return;
         const r = el.getBoundingClientRect();
@@ -224,32 +116,45 @@ export default function useColumnLeaderFlush(containerRef, deps) {
     };
 
     let raf = 0;
+    let disposed = false;
+    let settledSize = null;
     const settle = () => {
-      let i = 0;
-      while (pass() && i < 8) i += 1;
-      fellBack = i >= 8;
-      if (fellBack) clearAll();
-      passes = i;
+      clearAll();
+      if (!printing()) pass();
+      const r = container.getBoundingClientRect();
+      settledSize = { width: r.width, height: r.height };
       renderDebug();
     };
-    settle();
-
     const schedule = () => {
+      if (disposed) return;
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        clearAll();
-        settle();
-      });
+      raf = requestAnimationFrame(settle);
     };
-    // Any reflow (resize, zoom, font load, soft-hyphen map) re-measures.
-    const ro = new ResizeObserver(schedule);
-    ro.observe(container);
+    settle();
+    // Ignore size changes caused by our own spacing correction. Font loads
+    // and text/class changes are observed separately, even at the same size.
+    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(() => {
+      const r = container.getBoundingClientRect();
+      if (!settledSize || Math.abs(r.width - settledSize.width) > 0.5 || Math.abs(r.height - settledSize.height) > 0.5) schedule();
+    }) : null;
+    ro?.observe(container);
+    const mo = new MutationObserver(schedule);
+    mo.observe(container, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] });
+    document.fonts?.ready.then(schedule);
+    document.fonts?.addEventListener('loadingdone', schedule);
     window.addEventListener('resize', schedule);
+    window.addEventListener('beforeprint', clearAll);
+    window.addEventListener('afterprint', schedule);
 
     return () => {
+      disposed = true;
       cancelAnimationFrame(raf);
-      ro.disconnect();
+      ro?.disconnect();
+      mo.disconnect();
+      document.fonts?.removeEventListener('loadingdone', schedule);
       window.removeEventListener('resize', schedule);
+      window.removeEventListener('beforeprint', clearAll);
+      window.removeEventListener('afterprint', schedule);
       if (debugEl) debugEl.remove();
       clearAll();
     };

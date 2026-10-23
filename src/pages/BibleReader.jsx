@@ -534,7 +534,7 @@ export default function BibleReader() {
   // Keep a pilcrow verse that leads the second column flush with the column
   // top (matching the left column), while mid-column pilcrow verses keep
   // their paragraph gap above.
-  useColumnLeaderFlush(columnsContainerRef, [columnMode, paragraphMode, zoomLevel, fontFamily, verses, pos?.abbr, pos?.chapter]);
+  useColumnLeaderFlush(columnsContainerRef, [columnMode, paragraphMode, zoomLevel, fontFamily, a11yFont, verses, loading, error, filterMode, selectedVerses, selectMode, pos?.abbr, pos?.chapter]);
   const posRef = useRef(pos);
   useEffect(() => { posRef.current = pos; }, [pos]);
   const book = BIBLE_BOOKS.find(b => b.abbr === pos.abbr) || BIBLE_BOOKS[0];
