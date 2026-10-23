@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-import { Settings, Download, CheckCircle2, AlertCircle, Loader2, Trash2, Smartphone, MonitorSmartphone, Eye, EyeOff, ZoomIn, ZoomOut, Palette, Upload, Crop, Type, ChevronDown, CheckCircle, ExternalLink, Shield, MessageCircle, Youtube, RotateCcw, Accessibility, Keyboard, Star, Server, Globe, Mail, PlayCircle, Link2, FileText, Lock, Wrench } from 'lucide-react';
+import { Settings, Download, CheckCircle2, AlertCircle, Loader2, Trash2, MonitorSmartphone, Eye, EyeOff, ZoomIn, ZoomOut, Palette, Upload, Crop, Type, ChevronDown, CheckCircle, ExternalLink, Shield, MessageCircle, Youtube, RotateCcw, Accessibility, Keyboard, Star, Server, Globe, Mail, PlayCircle, Link2, FileText, Lock, Wrench } from 'lucide-react';
 import ShortcutsList from '@/components/ShortcutsList';
 import PageHero from '@/components/PageHero';
 
@@ -1020,19 +1020,14 @@ export default function SettingsPage() {
                   )}
                 </span>
               </div>
-              {!isNativeAndroid() && !isNativeIos() && (
+              {/* Only shown when this actually IS an installed PWA — hidden in
+                  plain browser tabs, previews and guest/private windows where
+                  "PWA" doesn't apply. */}
+              {!isNativeAndroid() && !isNativeIos() && pwaInstalled && !inIframe() && !isIncognito && (
                 <div className="flex justify-between items-center font-sans text-sm gap-4">
                   <span className="text-muted-foreground shrink-0">PWA Status</span>
                   <span className="text-foreground font-medium text-right flex items-center gap-1">
-                    {inIframe() ? (
-                      <><AlertCircle className="w-3.5 h-3.5 text-amber-600" /> Preview</>
-                    ) : isIncognito ? (
-                      <><AlertCircle className="w-3.5 h-3.5 text-amber-600" /> Guest Mode</>
-                    ) : pwaInstalled ? (
-                      <><CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Installed</>
-                    ) : (
-                      <><Smartphone className="w-3.5 h-3.5 text-muted-foreground" /> Browser</>
-                    )}
+                    <CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Installed
                   </span>
                 </div>
               )}
