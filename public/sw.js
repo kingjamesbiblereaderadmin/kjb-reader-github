@@ -1,7 +1,7 @@
-// KJB Reader Service Worker v20261024_2359
+// KJB Reader Service Worker v20261025_0019
 // Cache-first loading for offline support
 
-const CACHE_NAME = 'kjb-reader-v20261024_2359';
+const CACHE_NAME = 'kjb-reader-v20261025_0019';
 const LEGACY_CACHE_NAME = 'kjb-legacy-v11';
 // Persistent image cache — deliberately NOT versioned. Runtime-cached images
 // (preacher photos, extension page icons, mockups) used to be stored in
