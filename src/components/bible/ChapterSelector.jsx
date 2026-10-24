@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { ArrowLeft, ArrowRight, BookOpen } from 'lucide-react';
+import { getVisibleBottom, watchVisibleBottom } from '@/lib/visibleBottom';
 
 // Two roles, one component:
 // - Normal mode (no onWholeBook): the current book's chapter grid, opened
@@ -21,15 +22,9 @@ export default function ChapterSelector({ totalChapters, currentChapter, onSelec
     const measure = () => {
       if (!panelRef.current) return;
       const top = panelRef.current.getBoundingClientRect().top;
-      const scrollEl = document.getElementById('kjb-scroll');
-      const visibleBottom = scrollEl
-        ? scrollEl.getBoundingClientRect().bottom
-        : window.innerHeight;
-      setInlineMaxH(Math.max(240, visibleBottom - top - 24));
+      setInlineMaxH(Math.max(160, getVisibleBottom() - top - 12));
     };
-    measure();
-    window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
+    return watchVisibleBottom(measure);
   }, [inline, bare]);
 
   return (
