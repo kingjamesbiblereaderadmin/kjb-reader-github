@@ -82,7 +82,7 @@ function formatVersionDate(version) {
     day.endsWith('1') ? 'st' : day.endsWith('2') ? 'nd' : day.endsWith('3') ? 'rd' : 'th';
   return `${MONTH_NAMES[parseInt(m[2], 10) - 1]} ${day}${suffix}, ${m[1]}`;
 }
-const WORKER_VERSION = 'v20261025_0019';
+const WORKER_VERSION = 'v20261025_0716';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
