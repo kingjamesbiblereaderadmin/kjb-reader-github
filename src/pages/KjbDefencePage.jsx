@@ -311,7 +311,8 @@ export default function KjbDefencePage() {
           </button>
           <button
             onClick={() => {
-              const text = `KJB Defence\n\n${categories.map((cat) => `${cat.name}\n\n${cat.items.map((i) => `${i.title}\n${i.desc}\n${i.url}`).join('\n\n')}`).join('\n\n')}`;
+              const bullet = (i) => `• ${i.title}\n  ${i.desc}\n  ${i.url}`;
+              const text = `KJB Defence:\n\n${categories.map((cat) => `${cat.name}\n\n${cat.items.map(bullet).join('\n\n')}`).join('\n\n')}`;
               navigator.clipboard.writeText(text);
               toast.success('Copied all resources to clipboard.');
             }}
@@ -370,7 +371,7 @@ export default function KjbDefencePage() {
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
                       <CopyButton
-                        text={`${cat.name}\n\n${cat.items.map((i) => `${i.title}\n${i.desc}\n${i.url}`).join('\n\n')}`}
+                        text={`${cat.name}:\n\n${cat.items.map((i) => `• ${i.title}\n  ${i.desc}\n  ${i.url}`).join('\n\n')}`}
                         className={`p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/10 ${cat.style.color} cursor-pointer`}
                       />
                       <ChevronDown className={`w-4 h-4 ${cat.style.color} transition-transform ${isOpen ? 'rotate-180' : ''}`} />
