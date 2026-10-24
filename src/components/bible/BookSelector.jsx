@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { OLD_TESTAMENT, NEW_TESTAMENT } from '@/lib/bibleData';
+import { getVisibleBottom, watchVisibleBottom } from '@/lib/visibleBottom';
 
 export default function BookSelector({ currentAbbr, onSelect, onClose, initialTestament, inline, bare }) {
   const [tab, setTab] = useState(initialTestament === 'new' ? 'new' : 'old');
@@ -15,19 +16,12 @@ export default function BookSelector({ currentAbbr, onSelect, onClose, initialTe
     const measure = () => {
       if (!panelRef.current) return;
       const top = panelRef.current.getBoundingClientRect().top;
-      // The page scrolls inside the app's own scroll container (#kjb-scroll),
-      // with the footer sitting below it — not the raw window. Cap the panel
-      // to that container's visible bottom edge so it never runs under the
-      // footer, regardless of how tall the footer is or how far you've scrolled.
-      const scrollEl = document.getElementById('kjb-scroll');
-      const visibleBottom = scrollEl
-        ? scrollEl.getBoundingClientRect().bottom
-        : window.innerHeight;
-      setInlineMaxH(Math.max(240, visibleBottom - top - 24));
+      // Cap the panel to the space above the footer (the phone footer is
+      // fixed over the scroll container), and re-measure whenever the footer
+      // opens/closes/changes rows so it always scales down to fit.
+      setInlineMaxH(Math.max(160, getVisibleBottom() - top - 12));
     };
-    measure();
-    window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
+    return watchVisibleBottom(measure);
   }, [inline]);
 
   // Reset the book list to the top whenever the testament tab changes, so a
