@@ -726,7 +726,7 @@ function BottomNav({ pathname, navigate }) {
   // Bar mode - ultra-thin footer strip with only the chevron toggle (no icons)
   if (showMode === 'bar') {
     return (
-      <nav data-kjb-bottom-nav className="print:hidden sm:hidden fixed left-0 right-0 bottom-0 z-50 bg-card/80 backdrop-blur-md border-t border-border/50" style={{ paddingBottom: 'env(safe-area-inset-bottom)', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }}>
+      <nav data-kjb-bottom-nav className="print:hidden sm:hidden fixed left-0 right-0 bottom-0 z-50 bg-card/80 backdrop-blur-md border-t border-border/50" style={{ paddingBottom: 'min(env(safe-area-inset-bottom, 0px), 0.25rem)', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }}>
         <div className="w-full max-w-[120rem] mx-auto px-2 sm:px-8 lg:px-12">
           <button
             type="button"
