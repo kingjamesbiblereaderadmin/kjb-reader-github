@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Shield, FileText, Mail, Globe, Youtube, ArrowRight, Heart, MonitorSmartphone, PlayCircle, Link2, Instagram } from 'lucide-react';
 import LandingSetupWizard from '@/components/LandingSetupWizard';
 import ScriptureBanner from '@/components/ScriptureBanner';
 import CollapsibleCard from '@/components/landing/CollapsibleCard';
 import KjbLogo from '@/components/KjbLogo';
+import { getLastUpdatedDate } from '@/lib/versionDate';
 
 function TikTokIcon({ className }) {
   return (
@@ -22,9 +23,16 @@ function DiscordIcon({ className }) {
   );
 }
 
-const LAST_UPDATED = 'September 4th, 2026';
+// Same source as Settings > App Info (shared in src/lib/versionDate.js).
+const LAST_UPDATED = 'September 11th, 2026';
 
 export default function LandingPage() {
+  const [lastUpdated, setLastUpdated] = useState(LAST_UPDATED);
+  useEffect(() => {
+    let cancelled = false;
+    getLastUpdatedDate().then((d) => { if (!cancelled && d) setLastUpdated(d); });
+    return () => { cancelled = true; };
+  }, []);
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
       <div className="w-full max-w-3xl mx-auto px-5 sm:px-8 lg:px-12 py-10 pb-24">
@@ -186,7 +194,7 @@ export default function LandingPage() {
         </CollapsibleCard>
 
         <p className="text-center font-sans text-xs text-muted-foreground mt-8">
-          © {new Date().getFullYear()} <span className="notranslate" translate="no">KJB Reader</span> · Last updated: {LAST_UPDATED}
+          © {new Date().getFullYear()} <span className="notranslate" translate="no">KJB Reader</span> · Last updated: {lastUpdated}
         </p>
       </div>
     </div>

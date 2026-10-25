@@ -29,6 +29,7 @@ import { getAccessibilityFont, setAccessibilityFont } from '@/lib/accessibilityF
 import { getAutoRotate, setAutoRotate as persistAutoRotate } from '@/lib/autoRotate';
 import { detectIncognito } from '@/lib/incognito';
 import { getLiveWorkerVersion, getDeployedWorkerVersion } from '@/lib/liveWorkerVersion';
+import { formatVersionDate, NATIVE_LAST_UPDATED } from '@/lib/versionDate';
 import { isMobileDevice } from '@/lib/isMobileDevice';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { isNativeIos } from '@/lib/isNativeIos';
@@ -69,19 +70,9 @@ const LAST_REVISED = 'September 11th, 2026';
 // Fallback release dates for native builds that carry no workflow date stamp
 // (local/Xcode builds). Workflow builds show their own build date instead
 // (KJB_BUILD_DATE on Android, KJBBuildDate in Info.plist on iOS/Mac).
-const NATIVE_LAST_UPDATED = { android: 'October 23rd, 2026', ios: 'October 23rd, 2026' };
-
 // Non-native: the date the live web build went live, derived from the live
-// worker version stamp (vYYYYMMDD_HHMM).
-const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-function formatVersionDate(version) {
-  const m = /^v(\d{4})(\d{2})(\d{2})_/.exec(version || '');
-  if (!m) return null;
-  const day = String(parseInt(m[3], 10));
-  const suffix = (['11', '12', '13'].includes(day)) ? 'th' :
-    day.endsWith('1') ? 'st' : day.endsWith('2') ? 'nd' : day.endsWith('3') ? 'rd' : 'th';
-  return `${MONTH_NAMES[parseInt(m[2], 10) - 1]} ${day}${suffix}, ${m[1]}`;
-}
+// worker version stamp (vYYYYMMDD_HHMM) — shared with the landing footer in
+// src/lib/versionDate.js.
 const WORKER_VERSION = 'v20261025_0716';
 
 export default function SettingsPage() {
