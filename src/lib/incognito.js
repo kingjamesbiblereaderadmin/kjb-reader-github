@@ -235,6 +235,7 @@ async function _runDetection() {
       });
       // The legacy filesystem API can fail for reasons other than private mode.
       void privateViaFS;
+    }
   } catch {
     // ignore — fall through to "not incognito"
   }
