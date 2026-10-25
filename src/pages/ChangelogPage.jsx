@@ -3,6 +3,18 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG_RAW = [
+  { version: 'v0.4.324', date: 'October 25, 2026', items: [
+    { tag: 'new', text: 'Advanced search filters (whole word, Testament scope, Book, case sensitivity, wildcards) are now restored when the panel reopens, so a restored search reproduces the exact same results.' },
+  ] },
+  { version: 'v0.4.323', date: 'October 25, 2026', items: [
+    { tag: 'improved', text: 'Removed the unused "tabs" permission; nothing changes in how the panel works.' },
+  ] },
+  { version: 'v0.4.322', date: 'October 25, 2026', items: [
+    { tag: 'fix', text: 'Search highlighting now matches hyphenated spellings both ways: "Bethel" finds "Beth-el" and vice versa.' },
+    { tag: 'new', text: 'The panel remembers your search results and clicked-verse lookups, with their highlights and scroll position, when reopened.' },
+    { tag: 'fix', text: 'Clicking a detected verse reference is more reliable on pages with overlays stacked over it.' },
+    { tag: 'fix', text: 'Editorial "This is the end of the Epistle" lines are no longer shown; the original "Written to the Romans..." subscription lines are kept.' },
+  ] },
   { version: 'v0.4.321', date: 'October 23, 2026', items: [
     { tag: 'improved', text: "Pilcrow (paragraph) verses now leave a line of space above them in the Read tab and in search results, matching the printed Bible's paragraph breaks; the first verse stays flush at the top." },
     { tag: 'improved', text: 'Copied verses keep the same paragraph breaks: Copy Chapter, Copy Selected and Copy All insert a blank line above pilcrow verses, and Copy: Plain starts a new paragraph for them. Each verse\'s own pilcrow decides, based on the verses you copied, not the chapter.' },
@@ -447,7 +459,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.321
+            Current Version: v0.4.324
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
