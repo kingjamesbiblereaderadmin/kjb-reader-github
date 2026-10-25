@@ -334,14 +334,15 @@ export default function AppLayout() {
   const [footerMode, setFooterMode] = useState(() => {
     try {
       const saved = localStorage.getItem('kjb-footer-mode');
-      return ['two', 'one', 'bar', 'none'].includes(saved) ? saved : 'one';
+      if (saved === 'none') return 'bar';
+      return ['two', 'one', 'bar'].includes(saved) ? saved : 'one';
     } catch { return 'one'; }
   });
   useEffect(() => {
     const onStorage = () => {
       try {
         const saved = localStorage.getItem('kjb-footer-mode');
-        setFooterMode(['two', 'one', 'bar', 'none'].includes(saved) ? saved : 'one');
+        setFooterMode(saved === 'none' ? 'bar' : (['two', 'one', 'bar'].includes(saved) ? saved : 'one'));
       } catch {}
     };
     window.addEventListener('kjb-footer-mode-change', onStorage);
@@ -538,7 +539,7 @@ export default function AppLayout() {
       <main
         id="kjb-scroll"
         className="flex-1 overflow-y-auto sm:!pb-0 relative"
-        style={{ paddingBottom: `calc(${footerMode === 'bar' ? '2.5rem' : footerMode === 'two' ? '7rem' : '4rem'} + env(safe-area-inset-bottom))`, paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}
+        style={{ paddingBottom: `calc(${footerMode === 'bar' ? '1.25rem' : footerMode === 'two' ? '7rem' : '4rem'} + env(safe-area-inset-bottom))`, paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}
       >
         <div key={reloadKey} className={isReloading ? 'opacity-50 pointer-events-none' : ''}>
           <Outlet />
