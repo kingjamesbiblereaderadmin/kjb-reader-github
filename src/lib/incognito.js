@@ -3,12 +3,10 @@
 // (service workers, storage and push are often blocked or wiped), so the UI
 // shows a warning banner.
 //
-// Modern browsers no longer cap incognito storage as aggressively, so the old
-// quota-only heuristic missed many cases. We now combine several signals:
-//  1. Storage quota relative to device memory (the most reliable on Chromium).
-//  2. Failure to open IndexedDB (Firefox private mode blocks it).
-//  3. localStorage being unavailable.
-// Resolves to a boolean (defaults to false on any error).
+// Browsers do not expose a standard, reliable API for private/guest mode.
+// Quotas, storage availability, and timing can vary in ordinary tabs, so weak
+// signals must not be treated as proof of private browsing. We prefer a false
+// result over incorrectly warning users that a normal tab is private.
 //
 // The result is memoized: the first call runs the actual detection and every
 // subsequent call (from any component) reuses the same promise. This ensures
