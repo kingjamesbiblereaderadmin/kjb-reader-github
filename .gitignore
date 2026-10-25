@@ -34,3 +34,7 @@ ios/App/public/
 
 # scratch/verification files
 /tmp/
+
+# Local browser binaries used only for UI probes
+.chromium/
+.chromium-libs/
