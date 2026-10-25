@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG_RAW = [
+  { version: 'v0.4.325', date: 'October 25, 2026', items: [
+    { tag: 'improved', text: 'Copy All in Copy: Plain mode now gives every verse its own bullet, one bullet per line with a blank line between verses; Full mode keeps the centered chapter block.' },
+  ] },
   { version: 'v0.4.324', date: 'October 25, 2026', items: [
     { tag: 'new', text: 'Advanced search filters (whole word, Testament scope, Book, case sensitivity, wildcards) are now restored when the panel reopens, so a restored search reproduces the exact same results.' },
   ] },
@@ -459,7 +462,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.324
+            Current Version: v0.4.325
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
