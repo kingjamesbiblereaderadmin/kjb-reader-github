@@ -142,13 +142,8 @@ async function _runDetection() {
     // commits take the same time as relaxed ones. ratio < 1.15 → private;
     // >= 1.3 → real disk (definitely a normal window); between → abstain and
     // fall through to the older heuristics.
-    if (engineMessage.length === 51 && window.indexedDB) {
-      const ratio = await _idbDurabilityRatio();
-      if (ratio !== null) {
-        if (ratio < 1.15) return true;
-        if (ratio >= 1.3) return false;
-      }
-    }
+    // Timing-based storage probes are noisy and can misclassify ordinary tabs.
+    // Do not use them to determine private browsing.
 
     // Firefox private mode: IndexedDB is blocked / throws.
     const idbBlocked = await new Promise((resolve) => {
@@ -164,7 +159,8 @@ async function _runDetection() {
         resolve(true);
       }
     });
-    if (idbBlocked) return true;
+    // An IndexedDB failure alone is not proof of private mode; it can be blocked
+    // by browser policy or storage restrictions in a normal window.
 
     // localStorage unavailable (some private modes block writes).
     try {
@@ -172,7 +168,7 @@ async function _runDetection() {
       localStorage.setItem(k, '1');
       localStorage.removeItem(k);
     } catch {
-      return true;
+      // Storage may be restricted in a normal window; don't infer private mode.
     }
 
     // Chromium (Chrome/Edge/Brave) Incognito / InPrivate / Guest — PRIMARY.
@@ -199,7 +195,7 @@ async function _runDetection() {
           resolve(false);
         }
       });
-      if (privateViaQuota) return true;
+      // Quota thresholds are not reliable enough to classify private mode.
     }
 
     // Chromium (Chrome/Edge/Brave) Incognito / InPrivate / Guest — SECONDARY.
@@ -216,9 +212,10 @@ async function _runDetection() {
         const { quota } = await navigator.storage.estimate();
         const deviceMemoryGB = navigator.deviceMemory;
         const ceiling = (deviceMemoryGB * 1024 * 1024 * 1024) / 2;
-        if (typeof quota === 'number' && quota > 0 && quota < ceiling) {
-          return true;
-        }
+        // Quota varies with free disk space and browser policy in normal tabs;
+        // don't classify based on this threshold.
+        void quota;
+        void ceiling;
       } catch {}
     }
 
@@ -238,8 +235,8 @@ async function _runDetection() {
           resolve(true);
         }
       });
-      return privateViaFS;
-    }
+      // The legacy filesystem API can fail for reasons other than private mode.
+      void privateViaFS;
   } catch {
     // ignore — fall through to "not incognito"
   }
