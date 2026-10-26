@@ -215,16 +215,17 @@ export default function BibleReader() {
       return next;
     });
   };
-  // When the FIRST verse is tapped, the tap bar mounts inside the sticky
-  // toolbar and grows it, which can leave the tapped verse hidden under it.
-  // Scroll that verse to just below the (now taller) toolbar. Later taps that
-  // build a multi-verse selection don't scroll, so the page doesn't jump.
-  const prevTappedCountRef = useRef(0);
+  // Every time a verse is tapped (added to the selection), scroll it to just
+  // below the sticky toolbar. The tap bar mounts inside the toolbar and grows
+  // it, which can otherwise leave the tapped verse hidden underneath.
+  // Un-tapping a verse does not scroll.
+  const prevTappedRef = useRef(new Set());
   useEffect(() => {
-    const was = prevTappedCountRef.current;
-    prevTappedCountRef.current = tappedVerses.size;
-    if (was !== 0 || tappedVerses.size !== 1) return;
-    const vNum = [...tappedVerses][0];
+    const prev = prevTappedRef.current;
+    prevTappedRef.current = tappedVerses;
+    const added = [...tappedVerses].filter((n) => !prev.has(n));
+    if (added.length !== 1) return;
+    const vNum = added[0];
     const timers = [0, 80, 250].map((ms) => setTimeout(() => scrollToVerseEl(vNum), ms));
     return () => timers.forEach(clearTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
