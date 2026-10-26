@@ -73,7 +73,7 @@ const LAST_REVISED = 'September 11th, 2026';
 // Non-native: the date the live web build went live, derived from the live
 // worker version stamp (vYYYYMMDD_HHMM) — shared with the landing footer in
 // src/lib/versionDate.js.
-const WORKER_VERSION = 'v20261026_0955';
+const WORKER_VERSION = 'v20261026_1650';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -993,7 +993,8 @@ export default function SettingsPage() {
                 <div>
                   <p className="font-sans text-sm font-medium">Automatic Updates</p>
                   <p className="font-sans text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                    This app connects to the internet in the background to automatically apply new features, typo corrections, and security fixes. You never have to refresh manually!
+                    When you're online, new features, typo corrections, and security fixes are applied automatically in the background — no manual refresh needed. The offline copy is separate: it only updates when you update the app from where you installed it.
+
                   </p>
                 </div>
               </div>
