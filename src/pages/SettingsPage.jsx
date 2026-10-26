@@ -994,7 +994,6 @@ export default function SettingsPage() {
                   <p className="font-sans text-sm font-medium">Automatic Updates</p>
                   <p className="font-sans text-xs text-muted-foreground mt-0.5 leading-relaxed">
                     When you're online, new features, typo corrections, and security fixes are applied automatically in the background — no manual refresh needed. The offline copy is separate: it only updates when you update the app from where you installed it.
-
                   </p>
                 </div>
               </div>
