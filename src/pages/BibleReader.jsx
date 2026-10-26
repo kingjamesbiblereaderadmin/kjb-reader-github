@@ -1206,6 +1206,10 @@ export default function BibleReader() {
         // saved scroll offset for this chapter instead of landing at the top.
         if (!p.verse) freshNavRef.current = true;
         setHighlightVerse(p.verse || null);
+        // Same verse already highlighted (state unchanged) means the scroll effect
+        // won't re-run, so scroll explicitly — otherwise re-opening a verse after
+        // scrolling away never jumps back to the top of it.
+        if (p.verse) [0, 60, 250, 700].forEach((ms) => setTimeout(() => scrollToVerseEl(p.verse, ms === 0), ms));
         return;
       }
 
@@ -1257,6 +1261,7 @@ export default function BibleReader() {
       const sameChapter = posRef.current.abbr === p.abbr
         && parseInt(posRef.current.chapter, 10) === parseInt(p.chapter, 10);
       if (!sameChapter) loadChapter(p.abbr, p.chapter, p.verse || null, isRange ? p.verseEnd : null);
+      else if (p.verse) [0, 60, 250, 700].forEach((ms) => setTimeout(() => scrollToVerseEl(p.verse, ms === 0), ms));
     };
     window.addEventListener('kjb-navigate', applyRequestedPosition);
     return () => window.removeEventListener('kjb-navigate', applyRequestedPosition);
