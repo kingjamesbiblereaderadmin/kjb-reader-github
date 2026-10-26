@@ -25,13 +25,29 @@ export function useChapterScrollRestore({
       // chapter painted at the top first and only then scrolled to the verse,
       // so the top of the chapter visibly flashed by on every search jump.
       scrollToVerseEl(highlightVerse, true);
-      const scrollToVerse = () => scrollToVerseEl(highlightVerse);
+      // Stop re-asserting the position the moment the user scrolls themselves.
+      const verseScroller = document.getElementById('kjb-scroll') || window;
+      let userTookOver = false;
+      const takeover = () => { userTookOver = true; };
+      verseScroller.addEventListener('touchstart', takeover, { once: true, passive: true });
+      verseScroller.addEventListener('wheel', takeover, { once: true, passive: true });
+      const scrollToVerse = () => { if (!userTookOver) scrollToVerseEl(highlightVerse); };
       const t1 = setTimeout(scrollToVerse, 50), t2 = setTimeout(scrollToVerse, 200), t3 = setTimeout(scrollToVerse, 600);
       const container = document.querySelector('.kjb-reader-content');
       let ro = null;
-      if (container && window.ResizeObserver) { ro = new ResizeObserver(scrollToVerse); ro.observe(container); }
+      if (container && window.ResizeObserver) {
+        ro = new ResizeObserver(scrollToVerse);
+        ro.observe(container);
+        // The sticky toolbar changes height when the Currently Reading / tap bar
+        // appears or wraps; re-aim at the verse when that happens.
+        if (topRef && topRef.current) ro.observe(topRef.current);
+      }
       const tStop = setTimeout(() => ro && ro.disconnect(), 2000);
-      return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(tStop); ro && ro.disconnect(); };
+      return () => {
+        clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(tStop); ro && ro.disconnect();
+        verseScroller.removeEventListener('touchstart', takeover);
+        verseScroller.removeEventListener('wheel', takeover);
+      };
     }
     // When returning from home/navigation, check lastReading for daily verse highlight
     const lastReadingRaw = localStorage.getItem('kjb-last-reading');
