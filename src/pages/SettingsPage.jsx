@@ -73,7 +73,7 @@ const LAST_REVISED = 'September 11th, 2026';
 // Non-native: the date the live web build went live, derived from the live
 // worker version stamp (vYYYYMMDD_HHMM) — shared with the landing footer in
 // src/lib/versionDate.js.
-const WORKER_VERSION = 'v20261026_0126';
+const WORKER_VERSION = 'v20261026_0142';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
