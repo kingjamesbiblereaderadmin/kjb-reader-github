@@ -206,8 +206,18 @@ export default function PreachersSection({
 
   const preacher = selected ? PREACHERS.find((p) => p.name === selected) : null;
 
+  // Swapping the card grid for the (shorter) detail view leaves the page scrolled
+  // past the section, so jump back to the top of it whenever the view changes.
+  const rootRef = useRef(null);
+  const firstRunRef = useRef(true);
+  useEffect(() => {
+    if (firstRunRef.current) { firstRunRef.current = false; return; }
+    if (!groupOpen) return;
+    rootRef.current?.scrollIntoView({ block: 'start', behavior: 'auto' });
+  }, [selected]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
-    <div className="mb-8 bg-amber-100/60 dark:bg-card border border-amber-200 dark:border-border rounded-2xl overflow-hidden">
+    <div ref={rootRef} style={{ scrollMarginTop: '1rem' }} className="mb-8 bg-amber-100/60 dark:bg-card border border-amber-200 dark:border-border rounded-2xl overflow-hidden">
       <button
         onClick={toggleGroup}
         className="w-full flex items-start justify-between gap-4 p-5 bg-white/70 dark:bg-secondary/50 hover:bg-white/80 dark:hover:bg-secondary/80 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-left"
@@ -278,11 +288,11 @@ export default function PreachersSection({
       ) : (
         /* ---- Directory view: compact cards, one per preacher ---- */
         <ul className="p-5 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {PREACHERS.map((p) => (
+          {PREACHERS.map((p, i) => (
             <button
               key={p.name}
               onClick={() => setSelected(p.name)}
-              className="group flex items-center gap-3 p-3.5 bg-card border border-border rounded-xl text-left hover:border-amber-300/60 hover:bg-amber-50/40 dark:hover:bg-amber-900/10 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+              className={`group flex items-center gap-3 p-3.5 bg-card border border-border rounded-xl text-left hover:border-amber-300/60 hover:bg-amber-50/40 dark:hover:bg-amber-900/10 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] ${PREACHERS.length % 2 === 1 && i === PREACHERS.length - 1 ? 'sm:col-span-2' : ''}`}
             >
               <PreacherAvatar preacher={p} />
               <span className="flex-1 min-w-0">
