@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG_RAW = [
+  { version: 'v0.4.328', date: 'October 27, 2026', items: [
+    { tag: 'fixed', text: 'Results select bar: the scroll-to-top circle now rises above the bar instead of overlapping the Cancel button.' },
+    { tag: 'fixed', text: 'The Copy button keeps its white label on hover instead of turning invisible.' },
+  ] },
   { version: 'v0.4.327', date: 'October 27, 2026', items: [
     { tag: 'fixed', text: 'Copy All in Copy: Plain mode: a group of verses now copies as one flowing quoted paragraph — verses joined with spaces and the range reference at the end (e.g. - 1 Peter 2:6-8 (KJB)) — instead of one bullet per verse. A lone verse in mixed results keeps its bullet, now placed outside the quotation marks.' },
   ] },
@@ -468,7 +472,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.327
+            Current Version: v0.4.328
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
