@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG_RAW = [
+  { version: 'v0.4.331', date: 'October 27, 2026', items: [
+    { tag: 'fixed', text: 'Copy: Plain now marks every copied item with an external bullet — group quotes, single verses, and Copy Selected copies alike.' },
+  ] },
   { version: 'v0.4.330', date: 'October 27, 2026', items: [
     { tag: 'fixed', text: 'Copy All of a group whose verses skip some now always marks each quoted verse line with an external bullet, even when it is the only group in the results.' },
   ] },
@@ -478,7 +481,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.330
+            Current Version: v0.4.331
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
