@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG_RAW = [
+  { version: 'v0.4.329', date: 'October 27, 2026', items: [
+    { tag: 'fixed', text: 'Copying a group whose verses skip some (e.g. verses 7 and 9) no longer claims a range like 7-9 and no longer merges them into one quote — each verse copies as its own quoted line with its own single-verse reference.' },
+  ] },
   { version: 'v0.4.328', date: 'October 27, 2026', items: [
     { tag: 'fixed', text: 'Results select bar: the scroll-to-top circle now rises above the bar instead of overlapping the Cancel button.' },
     { tag: 'fixed', text: 'The Copy button keeps its white label on hover instead of turning invisible.' },
@@ -472,7 +475,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.328
+            Current Version: v0.4.329
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
