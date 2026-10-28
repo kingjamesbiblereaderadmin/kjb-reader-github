@@ -187,15 +187,20 @@ export default function DownloadPage() {
           <h2 className="font-sans text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Trademarks
           </h2>
-          <p className="font-sans text-[11px] leading-relaxed text-muted-foreground">
-            Google Play and the Google Play logo are trademarks of Google LLC. Android is a
-            trademark of Google LLC. Apple, the Apple logo, App Store, iOS, macOS and Safari are
-            trademarks of Apple Inc., registered in the U.S. and other countries. Chrome and the
-            Chrome logo are trademarks of Google LLC. Microsoft Edge and the Microsoft Edge logo
-            are trademarks of Microsoft Corporation. Firefox and the Firefox logo are trademarks
-            of the Mozilla Foundation. Opera and the Opera logo are trademarks of Opera Software
-            AS.
-          </p>
+          <ul className="font-sans text-[11px] leading-relaxed text-muted-foreground divide-y divide-border/60">
+            <li className="py-1.5 first:pt-0">Google Play and the Google Play logo are trademarks of Google LLC.</li>
+            <li className="py-1.5">Android is a trademark of Google LLC.</li>
+            <li className="py-1.5">
+              Apple, the Apple logo, App Store, iOS, macOS and Safari are trademarks of Apple Inc.,
+              registered in the U.S. and other countries.
+            </li>
+            <li className="py-1.5">Chrome and the Chrome logo are trademarks of Google LLC.</li>
+            <li className="py-1.5">
+              Microsoft Edge and the Microsoft Edge logo are trademarks of Microsoft Corporation.
+            </li>
+            <li className="py-1.5">Firefox and the Firefox logo are trademarks of the Mozilla Foundation.</li>
+            <li className="py-1.5 last:pb-0">Opera and the Opera logo are trademarks of Opera Software AS.</li>
+          </ul>
           <p className="font-sans text-[11px] leading-relaxed text-muted-foreground/80">
             All other trademarks are the property of their respective owners. Use of these names,
             logos and brands does not imply any affiliation with or endorsement by their owners.
