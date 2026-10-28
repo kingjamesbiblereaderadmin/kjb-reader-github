@@ -403,7 +403,7 @@ export default function LandingSetupWizard() {
                 )}
               </div>
             ) : !actuallyInstalled ? (
-              <p className="font-sans text-xs text-muted-foreground">You can install the app later from Settings.</p>
+              <p className="font-sans text-xs text-muted-foreground">You can install the app later from Settings → App Info / Install App.</p>
             ) : null}
 
             {/* Google Play option — shown on every web device (hidden inside the store apps) */}

@@ -171,7 +171,7 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
           className="border-sky-200 dark:border-sky-900/40 bg-sky-50/70 dark:bg-sky-900/15"
         >
           <p className="font-sans text-xs text-sky-800 dark:text-sky-300">
-            A Mac App Store version is still in App Review. Check back in <strong>Settings → App Info</strong> when it's released.
+            A Mac App Store version is still in App Review. Check back in <strong>Settings → App Info / Install App</strong> when it's released.
           </p>
         </OptionCard>
       )}
