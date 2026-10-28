@@ -190,7 +190,7 @@ export default function DownloadPage() {
               </span>
               <span className="flex flex-col min-w-0 text-left">
                 <span className="font-sans text-sm font-semibold text-foreground leading-tight">Extension help:</span>
-                <span className="font-sans text-xs text-muted-foreground leading-tight">Features &amp; Photos</span>
+                <span className="font-sans text-xs text-muted-foreground leading-tight">Features &amp; Screenshots</span>
               </span>
               <span className="flex items-center justify-center w-7 h-7 rounded-full ml-auto shrink-0 bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white shadow-sm opacity-70 group-hover:opacity-100 transition-opacity">
                 <ArrowRight className="w-3.5 h-3.5" />
