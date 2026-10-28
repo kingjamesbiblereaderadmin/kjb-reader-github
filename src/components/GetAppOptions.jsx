@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Smartphone, Globe, CheckCircle2, ExternalLink, ChevronDown, Clock } from 'lucide-react';
+import { Smartphone, Globe, CheckCircle2, ExternalLink, ChevronDown, Clock, Copy, Check, Share2 } from 'lucide-react';
 import { useInstallPrompt, PLAY_STORE_URL, isNativeAndroidApp } from '@/hooks/useInstallPrompt';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { isNativeIos } from '@/lib/isNativeIos';
@@ -60,9 +60,88 @@ function OptionCard({ id, title, icon, defaultOpen, className, children }) {
   );
 }
 
+// Store link row. Default = the original full-width label button. With
+// `compact` (used on /download) the label is shortened and copy + share
+// icon buttons sit beside it.
+function StoreLinkRow({ href, fullLabel, shortLabel, icon, buttonClass, actionClass, shareText, compact }) {
+  const [copied, setCopied] = useState(false);
+
+  const link = (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`flex items-center gap-2 rounded-xl font-sans text-sm font-medium transition-colors ${compact ? 'px-3 py-2' : 'px-4 py-2'} ${buttonClass}`}
+    >
+      {icon}
+      {compact ? shortLabel : fullLabel}
+    </a>
+  );
+
+  if (!compact) {
+    return <div className="flex flex-wrap justify-center gap-2 mt-auto">{link}</div>;
+  }
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(href);
+    } catch {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = href;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      } catch {}
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  const share = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'KJB Reader', text: shareText, url: href });
+      } catch (err) {
+        if (err?.name !== 'AbortError') await copy();
+      }
+    } else {
+      await copy();
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center gap-2 mt-auto">
+      {link}
+      <button
+        type="button"
+        onClick={copy}
+        aria-label={copied ? 'Link copied' : 'Copy link'}
+        title={copied ? 'Copied!' : 'Copy link'}
+        className={`flex items-center justify-center w-9 h-9 rounded-xl border touch-manipulation transition-colors ${actionClass}`}
+      >
+        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+      </button>
+      <button
+        type="button"
+        onClick={share}
+        aria-label="Share link"
+        title="Share link"
+        className={`flex items-center justify-center w-9 h-9 rounded-xl border touch-manipulation transition-colors ${actionClass}`}
+      >
+        <Share2 className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
+
 // Web App (PWA) + Android (Google Play) + iOS (App Store, live) + macOS (coming soon).
 // Used by the landing wizard (playOnly = store cards only) and Settings → Install App.
-export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
+// `storeActions` (used on /download) shortens the store buttons and adds copy/share.
+export function InstallOptionCards({ onWebInstallFallback, playOnly = false, storeActions = false }) {
   const { isInstalled, promptInstall } = useInstallPrompt();
   const showStores = canOfferPlayStore();
 
@@ -137,17 +216,16 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
                 </li>
               </ul>
             </div>
-            <div className="flex flex-wrap justify-center gap-2 mt-auto">
-              <a
-                href={PLAY_STORE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white font-sans text-sm font-medium hover:bg-emerald-700 transition-colors"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Get it on Google Play
-              </a>
-            </div>
+            <StoreLinkRow
+              href={PLAY_STORE_URL}
+              fullLabel="Get it on Google Play"
+              shortLabel="Google Play"
+              icon={<ExternalLink className="w-4 h-4" />}
+              buttonClass="bg-emerald-600 text-white hover:bg-emerald-700"
+              actionClass="border-emerald-300 dark:border-emerald-700 bg-white/70 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50"
+              shareText="KJB Reader on Google Play"
+              compact={storeActions}
+            />
           </OptionCard>
 
           {/* iOS — App Store (now live) */}
@@ -186,17 +264,16 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
                 </li>
               </ul>
             </div>
-            <div className="flex flex-wrap justify-center gap-2 mt-auto">
-              <a
-                href={APP_STORE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black text-white font-sans text-sm font-medium hover:bg-neutral-800 transition-colors"
-              >
-                <AppleIcon className="w-4 h-4" />
-                Download on the App Store
-              </a>
-            </div>
+            <StoreLinkRow
+              href={APP_STORE_URL}
+              fullLabel="Download on the App Store"
+              shortLabel="App Store"
+              icon={<AppleIcon className="w-4 h-4" />}
+              buttonClass="bg-black text-white hover:bg-neutral-800"
+              actionClass="border-sky-300 dark:border-sky-700 bg-white/70 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/50"
+              shareText="KJB Reader on the App Store"
+              compact={storeActions}
+            />
           </OptionCard>
         </div>
       )}
