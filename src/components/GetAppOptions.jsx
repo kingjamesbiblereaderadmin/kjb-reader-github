@@ -146,6 +146,28 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
                 The full KJB with offline reading, straight from the App Store.
               </p>
             </div>
+            <div className="rounded-xl border border-sky-200 dark:border-sky-800/60 bg-white/70 dark:bg-sky-950/40 px-3 py-2.5">
+              <p className="font-sans text-xs font-semibold text-sky-900 dark:text-sky-200 mb-1">
+                Look up verses from any app
+              </p>
+              <ul className="font-sans text-xs text-sky-800 dark:text-sky-300 leading-relaxed space-y-1 list-disc pl-4">
+                <li>
+                  Highlight a verse reference (like{' '}
+                  <span className="notranslate" translate="no">Romans 3:25</span>) or any word in another app,
+                  such as Notes, Safari or Messages.
+                </li>
+                <li>
+                  In the selection menu tap <strong>Share…</strong>, then the{' '}
+                  <strong><span className="notranslate" translate="no">KJB Reader</span></strong> icon, then{' '}
+                  <strong>Look Up</strong>.
+                </li>
+                <li>
+                  Don't see the <span className="notranslate" translate="no">KJB Reader</span> icon? Scroll the
+                  row of apps to the end, tap <strong>More</strong>, and switch on{' '}
+                  <strong><span className="notranslate" translate="no">KJB Reader</span></strong>.
+                </li>
+              </ul>
+            </div>
             <div className="flex flex-wrap justify-center gap-2">
               <a
                 href={APP_STORE_URL}
