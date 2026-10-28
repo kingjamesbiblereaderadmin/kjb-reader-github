@@ -22,40 +22,40 @@ const EXTENSION_LINKS = [
     label: 'Chrome',
     cta: 'Chrome Web Store',
     Icon: ChromeIcon,
-    tile: 'bg-amber-50 dark:bg-amber-900/25 ring-1 ring-amber-200/70 dark:ring-amber-900/40',
-    hover: 'hover:border-amber-300 dark:hover:border-amber-800/60 hover:bg-amber-50/60 dark:hover:bg-amber-900/10',
+    hover: 'hover:border-amber-300 hover:shadow-amber-500/20 dark:hover:border-amber-800/60',
+    accent: 'from-amber-400 to-amber-600',
   },
   {
     key: 'edge',
     label: 'Edge',
     cta: 'Edge Add-ons',
     Icon: EdgeIcon,
-    tile: 'bg-sky-50 dark:bg-sky-900/25 ring-1 ring-sky-200/70 dark:ring-sky-900/40',
-    hover: 'hover:border-sky-300 dark:hover:border-sky-800/60 hover:bg-sky-50/60 dark:hover:bg-sky-900/10',
+    hover: 'hover:border-sky-300 hover:shadow-sky-500/20 dark:hover:border-sky-800/60',
+    accent: 'from-sky-400 to-sky-600',
   },
   {
     key: 'firefox',
     label: 'Firefox',
     cta: 'Firefox Add-ons',
     Icon: FirefoxIcon,
-    tile: 'bg-orange-50 dark:bg-orange-900/25 ring-1 ring-orange-200/70 dark:ring-orange-900/40',
-    hover: 'hover:border-orange-300 dark:hover:border-orange-800/60 hover:bg-orange-50/60 dark:hover:bg-orange-900/10',
+    hover: 'hover:border-orange-300 hover:shadow-orange-500/20 dark:hover:border-orange-800/60',
+    accent: 'from-orange-400 to-rose-500',
   },
   {
     key: 'opera',
     label: 'Opera',
     cta: 'Download ZIP',
     Icon: OperaIcon,
-    tile: 'bg-rose-50 dark:bg-rose-900/25 ring-1 ring-rose-200/70 dark:ring-rose-900/40',
-    hover: 'hover:border-rose-300 dark:hover:border-rose-800/60 hover:bg-rose-50/60 dark:hover:bg-rose-900/10',
+    hover: 'hover:border-rose-300 hover:shadow-rose-500/20 dark:hover:border-rose-800/60',
+    accent: 'from-rose-400 to-red-600',
   },
   {
     key: 'mac',
     label: 'Safari (Mac)',
     cta: 'Mac App Store',
     Icon: SafariIcon,
-    tile: 'bg-indigo-50 dark:bg-indigo-900/25 ring-1 ring-indigo-200/70 dark:ring-indigo-900/40',
-    hover: 'hover:border-indigo-300 dark:hover:border-indigo-800/60 hover:bg-indigo-50/60 dark:hover:bg-indigo-900/10',
+    hover: 'hover:border-indigo-300 hover:shadow-indigo-500/20 dark:hover:border-indigo-800/60',
+    accent: 'from-sky-400 to-indigo-600',
   },
 ];
 
@@ -110,10 +110,11 @@ export default function DownloadPage() {
         </header>
 
         {/* Apps */}
-        <section className="rounded-2xl border border-sky-200/70 dark:border-sky-900/40 bg-gradient-to-br from-emerald-50/70 via-sky-50/60 to-indigo-50/60 dark:from-emerald-900/10 dark:via-sky-900/10 dark:to-indigo-900/10 p-4 sm:p-5 space-y-4">
+        <section className="relative overflow-hidden rounded-3xl border border-emerald-200/80 dark:border-emerald-900/50 bg-gradient-to-br from-emerald-50/80 via-sky-50/70 to-indigo-50/70 dark:from-emerald-900/15 dark:via-sky-900/15 dark:to-indigo-900/15 p-4 sm:p-5 space-y-4 shadow-xl shadow-emerald-900/10 dark:shadow-black/40 ring-1 ring-white/60 dark:ring-white/5">
+          <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent dark:via-white/20" aria-hidden="true" />
           <div className="flex items-center gap-3">
-            <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-sky-600 shadow-md shadow-emerald-500/25">
-              <Smartphone className="w-5 h-5 text-white" />
+            <span className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-sky-600 shadow-lg shadow-emerald-500/35 ring-1 ring-white/40">
+              <Smartphone className="w-6 h-6 text-white" />
             </span>
             <div className="text-left">
               <h2 className="font-serif text-xl font-semibold leading-tight">Apps</h2>
@@ -135,10 +136,11 @@ export default function DownloadPage() {
         </div>
 
         {/* Browser extension quick links */}
-        <section id="extension" className="rounded-2xl border border-violet-200/70 dark:border-violet-900/40 bg-gradient-to-br from-violet-50/70 via-fuchsia-50/50 to-indigo-50/60 dark:from-violet-900/10 dark:via-fuchsia-900/10 dark:to-indigo-900/10 p-4 sm:p-5 space-y-4">
+        <section id="extension" className="relative overflow-hidden rounded-3xl border border-violet-200/80 dark:border-violet-900/50 bg-gradient-to-br from-violet-50/80 via-fuchsia-50/60 to-indigo-50/70 dark:from-violet-900/15 dark:via-fuchsia-900/15 dark:to-indigo-900/15 p-4 sm:p-5 space-y-4 shadow-xl shadow-violet-900/10 dark:shadow-black/40 ring-1 ring-white/60 dark:ring-white/5">
+          <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent dark:via-white/20" aria-hidden="true" />
           <div className="flex items-center gap-3">
-            <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-md shadow-violet-500/25">
-              <Puzzle className="w-5 h-5 text-white" />
+            <span className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-lg shadow-violet-500/35 ring-1 ring-white/40">
+              <Puzzle className="w-6 h-6 text-white" />
             </span>
             <div className="text-left">
               <h2 className="font-serif text-xl font-semibold leading-tight">Browser Extension</h2>
@@ -148,24 +150,28 @@ export default function DownloadPage() {
             </div>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
-            {EXTENSION_LINKS.map(({ key, label, cta, Icon, tile, hover }, i) => (
+            {EXTENSION_LINKS.map(({ key, label, cta, Icon, hover, accent }, i) => (
               <a
                 key={key}
                 href={urls[key]}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl border border-border bg-card transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${hover} ${
+                className={`group flex items-center gap-3 px-3.5 py-3 rounded-2xl border border-border/80 bg-card shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${hover} ${
                   i === EXTENSION_LINKS.length - 1 ? 'sm:col-span-2' : ''
                 }`}
               >
-                <span className={`flex items-center justify-center w-9 h-9 rounded-lg shrink-0 ${tile}`}>
-                  <Icon className="w-5 h-5" />
+                <span className="flex items-center justify-center w-11 h-11 rounded-xl shrink-0 bg-white dark:bg-zinc-900 ring-1 ring-black/5 dark:ring-white/10 shadow-sm">
+                  <Icon className="w-6 h-6" />
                 </span>
                 <span className="flex flex-col min-w-0 text-left">
                   <span className="font-sans text-sm font-semibold text-foreground leading-tight">{label}</span>
                   <span className="font-sans text-xs text-muted-foreground truncate">{cta}</span>
                 </span>
-                <ExternalLink className="w-4 h-4 ml-auto shrink-0 text-muted-foreground opacity-60 group-hover:opacity-100 transition-opacity" />
+                <span
+                  className={`flex items-center justify-center w-7 h-7 rounded-full ml-auto shrink-0 bg-gradient-to-br ${accent} text-white shadow-sm opacity-70 group-hover:opacity-100 transition-opacity`}
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </span>
               </a>
             ))}
           </div>
@@ -175,6 +181,26 @@ export default function DownloadPage() {
           >
             Extension features, screenshots &amp; install help →
           </Link>
+        </section>
+
+        {/* Trademarks */}
+        <section className="rounded-2xl border border-border/70 bg-muted/30 px-4 py-3.5 space-y-2">
+          <h2 className="font-sans text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Trademarks
+          </h2>
+          <p className="font-sans text-[11px] leading-relaxed text-muted-foreground">
+            Google Play and the Google Play logo are trademarks of Google LLC. Android is a
+            trademark of Google LLC. Apple, the Apple logo, App Store, iOS, macOS and Safari are
+            trademarks of Apple Inc., registered in the U.S. and other countries. Chrome and the
+            Chrome logo are trademarks of Google LLC. Microsoft Edge and the Microsoft Edge logo
+            are trademarks of Microsoft Corporation. Firefox and the Firefox logo are trademarks
+            of the Mozilla Foundation. Opera and the Opera logo are trademarks of Opera Software
+            AS.
+          </p>
+          <p className="font-sans text-[11px] leading-relaxed text-muted-foreground/80">
+            All other trademarks are the property of their respective owners. Use of these names,
+            logos and brands does not imply any affiliation with or endorsement by their owners.
+          </p>
         </section>
       </div>
     </div>
