@@ -1,4 +1,4 @@
-// KJB Reader Service Worker v20261029_0735
+// KJB Reader Service Worker v20261029_0736
 // Cache-first loading for offline support
 
 const CACHE_NAME = 'kjb-reader-v20261029_0736';
