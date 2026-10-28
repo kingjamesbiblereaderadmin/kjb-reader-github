@@ -9,6 +9,7 @@ import OfflineHtmlSection from '@/components/bible/OfflineHtmlSection';
 import ThemeColorPicker from '@/components/bible/ThemeColorPicker';
 import { Switch } from '@/components/ui/switch';
 import { InstallAppSection } from '@/components/settings/InstallAppSection';
+import DownloadOptionsButton from '@/components/settings/DownloadOptionsButton';
 import { base44 } from '@/api/base44Client';
 import { clearAllUserData } from '@/lib/clearAllData';
 import {
@@ -998,13 +999,7 @@ export default function SettingsPage() {
                 </div>
               </div>
             </div>
-            <Link
-              to="/download"
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mb-4 rounded-xl bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-opacity"
-            >
-              <Download className="w-4 h-4" />
-              Download Options
-            </Link>
+            <DownloadOptionsButton className="mb-4" />
             <div className="space-y-2">
               <div className="flex justify-between items-center font-sans text-sm gap-4">
                 <span className="text-muted-foreground shrink-0">Bible Text</span>

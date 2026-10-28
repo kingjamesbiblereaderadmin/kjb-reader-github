@@ -120,7 +120,7 @@ export function InstallAppSection({ expanded, isIncognito }) {
           className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-opacity"
         >
           <Download className="w-4 h-4" />
-          Download Options
+          {isInstalled ? 'Download for other platforms' : 'Download Options'}
         </Link>
         
 
