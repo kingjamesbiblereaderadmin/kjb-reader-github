@@ -37,6 +37,7 @@ const loaders = {
   Salvation: () => import('@/pages/SalvationPage').catch((err) => { console.error('Failed to load SalvationPage:', err); throw err; }),
   DiscordInvite: () => import('@/pages/DiscordInvitePage.jsx').catch((err) => { console.error('Failed to load DiscordInvitePage:', err); throw err; }),
   Extension: () => import('@/pages/ExtensionPage.jsx').catch((err) => { console.error('Failed to load ExtensionPage:', err); throw err; }),
+  Download: () => import('@/pages/DownloadPage.jsx').catch((err) => { console.error('Failed to load DownloadPage:', err); throw err; }),
   ExtensionPrivacy: () => import('@/pages/ExtensionPrivacyPage.jsx').catch((err) => { console.error('Failed to load ExtensionPrivacyPage:', err); throw err; }),
   ExtensionTerms: () => import('@/pages/ExtensionTermsPage.jsx').catch((err) => { console.error('Failed to load ExtensionTermsPage:', err); throw err; }),
   ExtensionLicense: () => import('@/pages/ExtensionLicensePage.jsx').catch((err) => { console.error('Failed to load ExtensionLicensePage:', err); throw err; }),
@@ -88,6 +89,7 @@ const TermsOfServicePage = lazy(loaders.Terms);
 const SalvationPage = lazy(loaders.Salvation);
 const DiscordInvitePage = lazy(loaders.DiscordInvite);
 const ExtensionPage = lazy(loaders.Extension);
+const DownloadPage = lazy(loaders.Download);
 const ExtensionPrivacyPage = lazy(loaders.ExtensionPrivacy);
 const ExtensionTermsPage = lazy(loaders.ExtensionTerms);
 const ExtensionLicensePage = lazy(loaders.ExtensionLicense);
@@ -344,6 +346,7 @@ const AuthenticatedApp = () => {
             <Route path="/salvation" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><SalvationPage /></SafeAreaPad></Suspense>} />
             <Route path="/discord" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><DiscordInvitePage /></SafeAreaPad></Suspense>} />
             <Route path="/extension" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><ExtensionPage /></SafeAreaPad></Suspense>} />
+            <Route path="/download" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><DownloadPage /></SafeAreaPad></Suspense>} />
             <Route path="/extension-privacy" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><ExtensionPrivacyPage /></SafeAreaPad></Suspense>} />
             <Route path="/extension/privacy" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><ExtensionPrivacyPage /></SafeAreaPad></Suspense>} />
             <Route path="/extension-terms" element={<Suspense fallback={<RouteLoader />}><SafeAreaPad><ExtensionTermsPage /></SafeAreaPad></Suspense>} />
