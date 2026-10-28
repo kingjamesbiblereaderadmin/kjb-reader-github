@@ -132,7 +132,7 @@ export default function DownloadPage() {
               </p>
             </div>
           </div>
-          <InstallOptionCards />
+          <InstallOptionCards storeActions />
         </section>
 
         {/* Divider */}
