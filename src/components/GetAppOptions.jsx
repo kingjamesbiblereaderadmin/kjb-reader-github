@@ -37,7 +37,7 @@ function OptionCard({ id, title, icon, defaultOpen, className, children }) {
   };
 
   return (
-    <div className={`rounded-xl border overflow-hidden ${className}`}>
+    <div className={`rounded-xl border overflow-hidden h-full flex flex-col ${className}`}>
       <button
         type="button"
         onClick={toggle}
@@ -52,7 +52,7 @@ function OptionCard({ id, title, icon, defaultOpen, className, children }) {
         <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="px-4 pb-4 flex flex-col items-center text-center gap-3">
+        <div className="px-4 pb-4 flex flex-col flex-1 items-center text-center gap-3">
           {children}
         </div>
       )}
@@ -104,7 +104,7 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
       )}
 
       {showStores && (
-        <div className="grid gap-3 sm:grid-cols-2 items-start">
+        <div className="grid gap-3 sm:grid-cols-2">
           {/* Android — Google Play */}
           <OptionCard
             id="android"
@@ -113,6 +113,10 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
             defaultOpen={true}
             className="border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950"
           >
+            <div className="font-sans text-xs text-emerald-800 dark:text-emerald-300 space-y-0.5">
+              <p className="font-semibold">Now available on Android</p>
+              <p>The full KJB with offline reading, straight from Google Play.</p>
+            </div>
             <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-white/70 dark:bg-emerald-950/40 px-3 py-2.5">
               <p className="font-sans text-xs font-semibold text-emerald-900 dark:text-emerald-200 mb-1">
                 Look up verses from any app
@@ -133,7 +137,7 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
                 </li>
               </ul>
             </div>
-            <div className="flex flex-wrap justify-center gap-2">
+            <div className="flex flex-wrap justify-center gap-2 mt-auto">
               <a
                 href={PLAY_STORE_URL}
                 target="_blank"
@@ -182,7 +186,7 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
                 </li>
               </ul>
             </div>
-            <div className="flex flex-wrap justify-center gap-2">
+            <div className="flex flex-wrap justify-center gap-2 mt-auto">
               <a
                 href={APP_STORE_URL}
                 target="_blank"
