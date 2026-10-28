@@ -448,6 +448,36 @@ jobs:
           cp ios/App/App/App-mac.entitlements ios/App/App/App.entitlements
           cp ios/App/Share/KJBShare-mac.entitlements ios/App/Share/KJBShare.entitlements
 
+      - name: List Mac Catalyst development profiles (read-only)
+        continue-on-error: true
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          /tmp/ascvenv/bin/python - <<'PYPROFILES'
+          import os, time, jwt, requests
+          key_path = os.path.expanduser("~/.appstoreconnect/private_keys/AuthKey_" + os.environ["ASC_KEY_ID"] + ".p8")
+          key = open(key_path).read()
+          token = jwt.encode({"iss": os.environ["ASC_ISSUER_ID"], "iat": int(time.time()), "exp": int(time.time()) + 900, "aud": "appstoreconnect-v1"}, key, algorithm="ES256", headers={"kid": os.environ["ASC_KEY_ID"]})
+          prefix = "Mac Catalyst Team Provisioning Profile: com.kingjamesbiblereader.twa"
+          url = "https://api.appstoreconnect.apple.com/v1/profiles"
+          params = {"filter[profileType]": "MAC_CATALYST_APP_DEVELOPMENT", "limit": 200}
+          found = 0
+          while url:
+              r = requests.get(url, params=params, headers={"Authorization": "Bearer " + token})
+              r.raise_for_status()
+              body = r.json()
+              for p in body.get("data", []):
+                  a = p.get("attributes", {})
+                  if (a.get("name") or "").startswith(prefix):
+                      found += 1
+                      print("%s | %s | %s | %s" % (p.get("id"), a.get("name"), a.get("profileState"), a.get("expirationDate")))
+              url = (body.get("links") or {}).get("next")
+              params = None
+          if found == 0:
+              print("none found")
+          PYPROFILES
+
       - name: Build signed macOS archive
         env:
           BUILD_NUMBER: ${{ steps.nextbuild.outputs.next }}
