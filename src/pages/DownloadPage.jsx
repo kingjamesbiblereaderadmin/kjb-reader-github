@@ -110,7 +110,7 @@ export default function DownloadPage() {
         </header>
 
         {/* Apps */}
-        <section className="relative overflow-hidden rounded-3xl border border-emerald-200/80 dark:border-emerald-900/50 bg-gradient-to-br from-emerald-50/80 via-sky-50/70 to-indigo-50/70 dark:from-emerald-900/15 dark:via-sky-900/15 dark:to-indigo-900/15 p-4 sm:p-5 space-y-4 shadow-xl shadow-emerald-900/10 dark:shadow-black/40 ring-1 ring-white/60 dark:ring-white/5">
+        <section className="relative overflow-hidden rounded-3xl border border-emerald-300 dark:border-emerald-800 bg-gradient-to-br from-emerald-100 via-sky-100 to-indigo-100 dark:from-emerald-950 dark:via-sky-950 dark:to-indigo-950 p-4 sm:p-5 space-y-4 shadow-xl shadow-emerald-900/15 dark:shadow-black/50">
           <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent dark:via-white/20" aria-hidden="true" />
           <div className="flex flex-col items-center text-center gap-2">
             <span className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-sky-600 shadow-lg shadow-emerald-500/35 ring-1 ring-white/40">
@@ -136,7 +136,7 @@ export default function DownloadPage() {
         </div>
 
         {/* Browser extension quick links */}
-        <section id="extension" className="relative overflow-hidden rounded-3xl border border-violet-200/80 dark:border-violet-900/50 bg-gradient-to-br from-violet-50/80 via-fuchsia-50/60 to-indigo-50/70 dark:from-violet-900/15 dark:via-fuchsia-900/15 dark:to-indigo-900/15 p-4 sm:p-5 space-y-4 shadow-xl shadow-violet-900/10 dark:shadow-black/40 ring-1 ring-white/60 dark:ring-white/5">
+        <section id="extension" className="relative overflow-hidden rounded-3xl border border-violet-300 dark:border-violet-800 bg-gradient-to-br from-violet-100 via-fuchsia-100 to-indigo-100 dark:from-violet-950 dark:via-fuchsia-950 dark:to-indigo-950 p-4 sm:p-5 space-y-4 shadow-xl shadow-violet-900/15 dark:shadow-black/50">
           <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent dark:via-white/20" aria-hidden="true" />
           <div className="flex flex-col items-center text-center gap-2">
             <span className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-lg shadow-violet-500/35 ring-1 ring-white/40">
@@ -183,7 +183,7 @@ export default function DownloadPage() {
         </section>
 
         {/* Trademarks */}
-        <section className="rounded-2xl border border-border/70 bg-muted/30 px-4 py-3.5 space-y-2">
+        <section className="rounded-2xl border border-border bg-muted px-4 py-3.5 space-y-2">
           <h2 className="font-sans text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Trademarks
           </h2>

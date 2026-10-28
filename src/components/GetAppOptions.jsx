@@ -84,7 +84,7 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
           title="Web App"
           icon={<Globe className="w-4 h-4 text-primary" />}
           defaultOpen={true}
-          className="border-border bg-background/60"
+          className="border-border bg-card"
         >
           {isInstalled ? (
             <div className="flex items-center gap-1.5 font-sans text-xs font-semibold text-emerald-700 dark:text-emerald-400">
@@ -111,7 +111,7 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
             title="Get on Android"
             icon={<PlayIcon className="w-4 h-4" />}
             defaultOpen={true}
-            className="border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/70 dark:bg-emerald-900/15"
+            className="border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950"
           >
             <div className="font-sans text-xs text-emerald-800 dark:text-emerald-300 space-y-0.5">
               <p className="font-semibold">Look up verses from any app</p>
@@ -138,7 +138,7 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
             title="Get on iOS"
             icon={<AppleIcon className="w-4 h-4" />}
             defaultOpen={true}
-            className="border-sky-200 dark:border-sky-900/40 bg-sky-50/70 dark:bg-sky-900/15"
+            className="border-sky-300 dark:border-sky-800 bg-sky-50 dark:bg-sky-950"
           >
             <div className="font-sans text-xs text-sky-800 dark:text-sky-300 space-y-0.5">
               <p className="font-semibold">Now available on iPhone &amp; iPad</p>
