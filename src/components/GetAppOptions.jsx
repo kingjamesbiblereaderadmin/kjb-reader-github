@@ -117,11 +117,11 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
               <p className="font-semibold">Now available on Android</p>
               <p>The full KJB with offline reading, straight from Google Play.</p>
             </div>
-            <div className="w-full flex-1 rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-white/70 dark:bg-emerald-950/40 px-3 py-2.5">
+            <div className="w-full flex-1 flex flex-col rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-white/70 dark:bg-emerald-950/40 px-3 py-2.5">
               <p className="font-sans text-xs font-semibold text-emerald-900 dark:text-emerald-200 mb-1">
                 Look up verses from any app
               </p>
-              <ul className="font-sans text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed space-y-1 list-disc pl-4">
+              <ul className="flex-1 grid grid-rows-3 gap-y-1 font-sans text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed list-disc pl-4">
                 <li>
                   Highlight any word, phrase or verse in another app and{' '}
                   <span className="notranslate" translate="no">KJB Reader</span> can appear right in the selection
@@ -164,11 +164,11 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
                 The full KJB with offline reading, straight from the App Store.
               </p>
             </div>
-            <div className="w-full flex-1 rounded-xl border border-sky-200 dark:border-sky-800/60 bg-white/70 dark:bg-sky-950/40 px-3 py-2.5">
+            <div className="w-full flex-1 flex flex-col rounded-xl border border-sky-200 dark:border-sky-800/60 bg-white/70 dark:bg-sky-950/40 px-3 py-2.5">
               <p className="font-sans text-xs font-semibold text-sky-900 dark:text-sky-200 mb-1">
                 Look up verses from any app
               </p>
-              <ul className="font-sans text-xs text-sky-800 dark:text-sky-300 leading-relaxed space-y-1 list-disc pl-4">
+              <ul className="flex-1 grid grid-rows-3 gap-y-1 font-sans text-xs text-sky-800 dark:text-sky-300 leading-relaxed list-disc pl-4">
                 <li>
                   Highlight a verse reference (like{' '}
                   <span className="notranslate" translate="no">Romans 3:25</span>) or any word in another app,
