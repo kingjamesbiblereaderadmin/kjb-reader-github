@@ -70,11 +70,21 @@ export default function useColumnLeaderFlush(containerRef, deps) {
       const startsOnRight = right.rects.every((r) => r.left >= midX - 1);
       const boundary = startsOnRight ? right.el : null;
       if (!boundary || boundary.tagName !== 'SPAN') return;
-      boundary.style.breakBefore = 'column';
-      boundary.style.webkitColumnBreakBefore = 'always';
-      forced = boundary;
-      flushTop(boundary);
-      const before = boundary.previousElementSibling;
+      // A pilcrow (¶) verse must never be the LAST verse of column 1: when it
+      // ends the left column and the verse after it opens column 2, pin the
+      // pilcrow verse itself to the top of column 2, so its paragraph never
+      // starts stranded at the foot of the column.
+      const gapBefore = boundary.previousElementSibling;
+      const pilcrowEndingLeft = gapBefore?.tagName === 'SPAN'
+        && gapBefore.getAttribute('data-pilcrow') === 'true'
+        && endsOnLeft(gapBefore);
+      const pin = pilcrowEndingLeft ? gapBefore : boundary;
+      pin.style.breakBefore = 'column';
+      pin.style.webkitColumnBreakBefore = 'always';
+      forced = pin;
+      flushTop(pin);
+      // Whatever now sits at the foot of column 1 must not add trailing space.
+      const before = pin.previousElementSibling;
       if (before?.tagName === 'SPAN' && endsOnLeft(before)) {
         before.style.marginBottom = '0px';
         before.style.paddingBottom = '0px';
