@@ -158,13 +158,6 @@ export default function DownloadPage() {
               </p>
             </div>
           </div>
-          <Link
-            to="/extension"
-            className="group flex items-center justify-center gap-2 w-full px-4 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-500/30 ring-1 ring-white/25 hover:shadow-xl hover:-translate-y-0.5 transition-all font-sans text-sm font-semibold text-center"
-          >
-            Extension features, screenshots &amp; install help
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-          </Link>
           <div className="grid gap-2 sm:grid-cols-2">
             {EXTENSION_LINKS.map(({ key, label, cta, Icon, hover, accent }) => (
               <a
@@ -189,6 +182,13 @@ export default function DownloadPage() {
               </a>
             ))}
           </div>
+          <Link
+            to="/extension"
+            className="group flex items-center justify-center gap-2 w-full px-4 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-500/30 ring-1 ring-white/25 hover:shadow-xl hover:-translate-y-0.5 transition-all font-sans text-sm font-semibold text-center"
+          >
+            Extension help
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+          </Link>
         </section>
 
         {/* Trademarks */}
