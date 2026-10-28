@@ -113,11 +113,25 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false }) {
             defaultOpen={true}
             className="border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950"
           >
-            <div className="font-sans text-xs text-emerald-800 dark:text-emerald-300 space-y-0.5">
-              <p className="font-semibold">Look up verses from any app</p>
-              <p>
-                Highlight any word or verse, then choose <strong>Look up in <span className="notranslate" translate="no">KJB Reader</span></strong>. Only in the Play Store version.
+            <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-white/70 dark:bg-emerald-950/40 px-3 py-2.5">
+              <p className="font-sans text-xs font-semibold text-emerald-900 dark:text-emerald-200 mb-1">
+                Look up verses from any app
               </p>
+              <ul className="font-sans text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed space-y-1 list-disc pl-4">
+                <li>
+                  Highlight any word, phrase or verse in another app and{' '}
+                  <span className="notranslate" translate="no">KJB Reader</span> can appear right in the selection
+                  menu to search for it.
+                </li>
+                <li>
+                  On some phones this needs a one-time toggle: check your phone's{' '}
+                  <strong>Settings → text selection menu / app actions</strong> (naming varies by manufacturer)
+                  and enable <strong><span className="notranslate" translate="no">KJB Reader</span></strong>.
+                </li>
+                <li>
+                  Don't see that option? It may already work automatically. Play Store version only.
+                </li>
+              </ul>
             </div>
             <div className="flex flex-wrap justify-center gap-2">
               <a
