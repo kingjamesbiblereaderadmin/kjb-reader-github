@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Globe, ArrowLeft, Search, BookOpen, Sparkles, MousePointer2, Heart, Download, Chrome, Link2, Shield, Puzzle, FileText, Scale, History } from 'lucide-react';
 
@@ -90,6 +90,14 @@ const FEATURES = [
 ];
 
 export default function ExtensionPage() {
+  const navigate = useNavigate();
+  const goBack = () => {
+    // Return to wherever the visitor came from (e.g. /download); fall back to
+    // Resources when this page was opened directly.
+    const idx = window.history.state?.idx;
+    if (typeof idx === 'number' && idx > 0) navigate(-1);
+    else navigate('/resources');
+  };
   const [urls, setUrls] = useState(DEFAULT_URLS);
   const [version, setVersion] = useState(DEFAULT_VERSION);
   const [showInstructions, setShowInstructions] = useState(true);
@@ -168,13 +176,14 @@ export default function ExtensionPage() {
       <div className="w-full max-w-[1200px] mx-auto px-5 sm:px-8 lg:px-12 py-10 pb-24">
         {/* Back button */}
         <div className="mb-8 flex justify-center">
-          <Link
-            to="/resources"
+          <button
+            type="button"
+            onClick={goBack}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-transparent border border-border font-sans text-sm font-medium text-muted-foreground hover:text-foreground hover:border-accent transition-all duration-200"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Resources
-          </Link>
+            Back
+          </button>
         </div>
 
         {/* Hero */}
