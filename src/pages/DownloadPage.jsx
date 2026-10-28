@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, ArrowRight, Download, ExternalLink, Puzzle, Smartphone } from 'lucide-react';
 import { InstallOptionCards } from '@/components/GetAppOptions';
@@ -60,7 +60,13 @@ const EXTENSION_LINKS = [
 ];
 
 export default function DownloadPage() {
+  const navigate = useNavigate();
   const [urls, setUrls] = useState(DEFAULT_URLS);
+
+  const goBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate('/');
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -89,13 +95,16 @@ export default function DownloadPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-50/70 via-background to-background dark:from-sky-950/20 dark:via-background dark:to-background text-foreground">
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-8">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-1.5 font-sans text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to <span className="notranslate" translate="no">KJB Reader</span>
-        </Link>
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={goBack}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-card border border-border text-foreground font-sans text-sm font-medium hover:border-accent hover:shadow-sm transition-all duration-200"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
+        </div>
 
         <header className="text-center space-y-2">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 shadow-lg shadow-sky-500/30">
