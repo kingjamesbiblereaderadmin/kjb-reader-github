@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Smartphone, MonitorSmartphone, AlertCircle, CheckCircle2, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Smartphone, MonitorSmartphone, AlertCircle, CheckCircle2, ExternalLink, Download } from 'lucide-react';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import { detectIncognito } from '@/lib/incognito';
 import HighlightToSearchTip from '@/components/settings/HighlightToSearchTip';
@@ -113,6 +114,14 @@ export function InstallAppSection({ expanded, isIncognito }) {
 
         {/* Android app tip -- self-hides entirely on web/iOS/non-native */}
         <HighlightToSearchTip />
+
+        <Link
+          to="/download"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-opacity"
+        >
+          <Download className="w-4 h-4" />
+          All downloads: apps &amp; browser extension
+        </Link>
         
 
         {isInstalled ? (
