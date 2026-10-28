@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Download, ExternalLink, Puzzle, Smartphone } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Download, ExternalLink, Puzzle, Smartphone } from 'lucide-react';
 import { InstallOptionCards } from '@/components/GetAppOptions';
 import { ChromeIcon, EdgeIcon, FirefoxIcon, OperaIcon, SafariIcon } from '@/components/BrowserIcons';
 
@@ -112,11 +112,11 @@ export default function DownloadPage() {
         {/* Apps */}
         <section className="relative overflow-hidden rounded-3xl border border-emerald-200/80 dark:border-emerald-900/50 bg-gradient-to-br from-emerald-50/80 via-sky-50/70 to-indigo-50/70 dark:from-emerald-900/15 dark:via-sky-900/15 dark:to-indigo-900/15 p-4 sm:p-5 space-y-4 shadow-xl shadow-emerald-900/10 dark:shadow-black/40 ring-1 ring-white/60 dark:ring-white/5">
           <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent dark:via-white/20" aria-hidden="true" />
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col items-center text-center gap-2">
             <span className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-sky-600 shadow-lg shadow-emerald-500/35 ring-1 ring-white/40">
               <Smartphone className="w-6 h-6 text-white" />
             </span>
-            <div className="text-left">
+            <div>
               <h2 className="font-serif text-xl font-semibold leading-tight">Apps</h2>
               <p className="font-sans text-xs text-muted-foreground">
                 Android, iOS and the web app
@@ -138,27 +138,32 @@ export default function DownloadPage() {
         {/* Browser extension quick links */}
         <section id="extension" className="relative overflow-hidden rounded-3xl border border-violet-200/80 dark:border-violet-900/50 bg-gradient-to-br from-violet-50/80 via-fuchsia-50/60 to-indigo-50/70 dark:from-violet-900/15 dark:via-fuchsia-900/15 dark:to-indigo-900/15 p-4 sm:p-5 space-y-4 shadow-xl shadow-violet-900/10 dark:shadow-black/40 ring-1 ring-white/60 dark:ring-white/5">
           <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent dark:via-white/20" aria-hidden="true" />
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col items-center text-center gap-2">
             <span className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-lg shadow-violet-500/35 ring-1 ring-white/40">
               <Puzzle className="w-6 h-6 text-white" />
             </span>
-            <div className="text-left">
+            <div>
               <h2 className="font-serif text-xl font-semibold leading-tight">Browser Extension</h2>
               <p className="font-sans text-xs text-muted-foreground">
                 Turn Bible references on any web page into clickable links
               </p>
             </div>
           </div>
+          <Link
+            to="/extension"
+            className="group flex items-center justify-center gap-2 w-full px-4 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-500/30 ring-1 ring-white/25 hover:shadow-xl hover:-translate-y-0.5 transition-all font-sans text-sm font-semibold text-center"
+          >
+            Extension features, screenshots &amp; install help
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+          </Link>
           <div className="grid gap-2 sm:grid-cols-2">
-            {EXTENSION_LINKS.map(({ key, label, cta, Icon, hover, accent }, i) => (
+            {EXTENSION_LINKS.map(({ key, label, cta, Icon, hover, accent }) => (
               <a
                 key={key}
                 href={urls[key]}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`group flex items-center gap-3 px-3.5 py-3 rounded-2xl border border-border/80 bg-card shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${hover} ${
-                  i === EXTENSION_LINKS.length - 1 ? 'sm:col-span-2' : ''
-                }`}
+                className={`group flex items-center gap-3 px-3.5 py-3 rounded-2xl border border-border/80 bg-card shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${hover}`}
               >
                 <span className="flex items-center justify-center w-11 h-11 rounded-xl shrink-0 bg-white dark:bg-zinc-900 ring-1 ring-black/5 dark:ring-white/10 shadow-sm">
                   <Icon className="w-6 h-6" />
@@ -175,12 +180,6 @@ export default function DownloadPage() {
               </a>
             ))}
           </div>
-          <Link
-            to="/extension"
-            className="inline-flex items-center gap-1.5 font-sans text-sm font-medium text-violet-700 dark:text-violet-400 hover:underline"
-          >
-            Extension features, screenshots &amp; install help →
-          </Link>
         </section>
 
         {/* Trademarks */}
