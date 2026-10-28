@@ -181,14 +181,22 @@ export default function DownloadPage() {
                 </span>
               </a>
             ))}
+            <Link
+              to="/extension"
+              className="group flex items-center gap-3 px-3.5 py-3 rounded-2xl border border-border/80 bg-card shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-violet-500/20 dark:hover:border-violet-800/60"
+            >
+              <span className="flex items-center justify-center w-11 h-11 rounded-xl shrink-0 bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-sm">
+                <Puzzle className="w-5 h-5 text-white" />
+              </span>
+              <span className="flex flex-col min-w-0 text-left">
+                <span className="font-sans text-sm font-semibold text-foreground leading-tight">Extension help</span>
+                <span className="font-sans text-xs text-muted-foreground truncate">Features &amp; instructions</span>
+              </span>
+              <span className="flex items-center justify-center w-7 h-7 rounded-full ml-auto shrink-0 bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white shadow-sm opacity-70 group-hover:opacity-100 transition-opacity">
+                <ArrowRight className="w-3.5 h-3.5" />
+              </span>
+            </Link>
           </div>
-          <Link
-            to="/extension"
-            className="group flex items-center justify-center gap-2 w-full px-4 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-500/30 ring-1 ring-white/25 hover:shadow-xl hover:-translate-y-0.5 transition-all font-sans text-sm font-semibold text-center"
-          >
-            Extension help
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-          </Link>
         </section>
 
         {/* Trademarks */}
