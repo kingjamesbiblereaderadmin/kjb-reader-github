@@ -412,7 +412,7 @@ export default function LandingSetupWizard() {
                 <p className="font-sans text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 text-center">
                   {actuallyInstalled ? 'Also available' : 'Or get the app'}
                 </p>
-                <InstallOptionCards playOnly />
+                <InstallOptionCards playOnly storeActions />
               </div>
             )}
           </div>
