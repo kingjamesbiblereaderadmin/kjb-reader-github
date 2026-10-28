@@ -1003,7 +1003,7 @@ export default function SettingsPage() {
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mb-4 rounded-xl bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-opacity"
             >
               <Download className="w-4 h-4" />
-              Download apps &amp; browser extension
+              Download Options
             </Link>
             <div className="space-y-2">
               <div className="flex justify-between items-center font-sans text-sm gap-4">
