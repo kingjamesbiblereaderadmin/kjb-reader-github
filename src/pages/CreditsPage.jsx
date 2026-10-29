@@ -300,6 +300,10 @@ export default function CreditsPage() {
               <span className="text-accent mt-1">•</span>
               <span><strong className="text-foreground">AI Disclaimer:</strong> This app was built with the assistance of artificial intelligence (AI). AI-generated code and content may contain errors. The King James Bible text itself is not AI-generated. Please report any issues so we can correct them.</span>
             </p>
+            <p className="font-sans text-sm text-foreground/85 leading-relaxed flex items-start gap-2">
+              <span className="text-accent mt-1">•</span>
+              <span><strong className="text-foreground">Narration Disclaimer:</strong> The Listen player&apos;s voice is synthetic AI-generated speech, not a human reading. It reads the unaltered KJV text, though pacing, emphasis, and the pronunciation of some names may differ from a spoken reading. Use it as an aid to reading, not as an authoritative recitation.</span>
+            </p>
           </div>
           <div className="rounded-xl bg-secondary/60 border border-border px-4 py-3 mt-4">
             <p className="font-sans text-xs text-muted-foreground leading-relaxed">© 2026 <span className="notranslate" translate="no">Shawn Poh Hanlin</span>. This app is public domain and freely shareable.</p>
