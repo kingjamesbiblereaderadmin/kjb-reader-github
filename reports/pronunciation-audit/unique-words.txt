@@ -3030,7 +3030,6 @@ determined
 detest
 detestable
 deuel
-deuteronomy
 device
 devices
 devil
@@ -3431,7 +3430,6 @@ eber
 ebiasaph
 ebony
 ebronah
-ecclesiastes
 ed
 edar
 eden
@@ -3896,7 +3894,6 @@ exhorted
 exhorteth
 exhorting
 exile
-exodus
 exorcists
 expectation
 expected
@@ -4601,7 +4598,6 @@ general
 generally
 generation
 generations
-genesis
 gennesaret
 gentile
 gentiles
@@ -6602,7 +6598,6 @@ leviathan
 levite
 levites
 levitical
-leviticus
 levy
 lewd
 lewdly

@@ -1,24 +1,30 @@
 {
-  "source": "android/app/src/main/assets/bible/pce-bible.txt",
   "sourceBytes": 4345930,
-  "lineCount": 33863,
-  "chapterHeadings": 1189,
+  "lines": 33863,
+  "detectedBooks": 34,
+  "chapterHeadings": 1039,
   "numberedVerseLines": 29913,
-  "uniqueWordForms": 12586,
-  "totalWordOccurrences": 793182,
+  "unnumberedFirstVerses": 1039,
+  "reconstructedVerseCount": 30952,
+  "uniqueWordForms": 12581,
+  "totalWordOccurrences": 793283,
   "hyphenatedWordForms": 266,
-  "longWordForms": 430,
-  "heuristicNameCandidates": 3312,
-  "checks": {
-    "containsGenesis": true,
-    "containsRevelation": true,
-    "containsMizpeh": true,
-    "containsMizpah": true,
-    "expectedChapterCount": 1189,
-    "expectedVerseCount": 31102
+  "apostropheWordForms": 0,
+  "longWordForms": 429,
+  "rareWordForms": 5429,
+  "reviewCandidates": 8767,
+  "bookCoverage": {
+    "beginsGenesis": true,
+    "endsRevelation": false
   },
-  "outputs": [
-    "unique-words.json",
-    "unique-words.txt"
+  "expected": {
+    "chapters": 1189,
+    "verses": 31102
+  },
+  "integrityPass": false,
+  "notes": [
+    "Text-only heuristic audit: candidates are not confirmed pronunciation errors.",
+    "Audio pronunciation must be checked against generated samples.",
+    "Verse 1 is unnumbered in this source format and is reconstructed as chapter verse 1."
   ]
 }

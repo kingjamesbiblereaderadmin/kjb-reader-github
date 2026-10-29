@@ -1,57 +1,80 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const source = process.argv[2] || 'public/pce-bible.txt';
+const source = process.argv[2] || 'android/app/src/main/assets/bible/pce-bible.txt';
 const outDir = process.argv[3] || 'reports/pronunciation-audit';
-const text = fs.readFileSync(source, 'utf8');
+const raw = fs.readFileSync(source, 'utf8');
+const lines = raw.replace(/\r\n?/g, '\n').split('\n');
 fs.mkdirSync(outDir, { recursive: true });
-const lines = text.replace(/\r\n?/g, '\n').split('\n');
+const bookNames = new Set(['GENESIS','EXODUS','LEVITICUS','NUMBERS','DEUTERONOMY','JOSHUA','JUDGES','RUTH','1 SAMUEL','2 SAMUEL','1 KINGS','2 KINGS','1 CHRONICLES','2 CHRONICLES','EZRA','NEHEMIAH','ESTHER','JOB','PSALMS','PSALM','PROVERBS','ECCLESIASTES','SONG OF SOLOMON','ISAIAH','JEREMIAH','LAMENTATIONS','EZEKIEL','DANIEL','HOSEA','JOEL','AMOS','OBADIAH','JONAH','MICAH','NAHUM','HABAKKUK','ZEPHANIAH','HAGGAI','ZECHARIAH','MALACHI','MATTHEW','MARK','LUKE','JOHN','ACTS','ROMANS','1 CORINTHIANS','2 CORINTHIANS','GALATIANS','EPHESIANS','PHILIPPIANS','COLOSSIANS','1 THESSALONIANS','2 THESSALONIANS','1 TIMOTHY','2 TIMOTHY','TITUS','PHILEMON','HEBREWS','JAMES','1 PETER','2 PETER','1 JOHN','2 JOHN','3 JOHN','JUDE','REVELATION']);
+const normalizeBook = t => t.toUpperCase().replace(/[.,:;]+$/,'').replace(/\s+/g,' ').trim();
 const tokenRe = /[A-Za-z]+(?:['’][A-Za-z]+)*(?:-[A-Za-z]+(?:['’][A-Za-z]+)*)*/g;
-const counts = new Map();
-const refs = new Map();
-let book = 'Unknown', chapter = 0, verse = 0;
-const chapterLine = /^(?:CHAPTER|PSALM)\s+(\d+)$/i;
-const verseLine = /^(\d+)\s+(.*)$/;
-const bookCandidates = new Set([
-'GENESIS','EXODUS','LEVITICUS','NUMBERS','DEUTERONOMY','JOSHUA','JUDGES','RUTH','EZRA','NEHEMIAH','ESTHER','JOB','PSALMS','PSALM','PROVERBS','ECCLESIASTES','ISAIAH','JEREMIAH','LAMENTATIONS','EZEKIEL','DANIEL','HOSEA','JOEL','AMOS','OBADIAH','JONAH','MICAH','NAHUM','HABAKKUK','ZEPHANIAH','HAGGAI','ZECHARIAH','MALACHI','MATTHEW','MARK','LUKE','JOHN','ACTS','ROMANS','GALATIANS','EPHESIANS','PHILIPPIANS','COLOSSIANS','TITUS','PHILEMON','HEBREWS','JAMES','JUDE','REVELATION','CORINTHIANS','THESSALONIANS','TIMOTHY','PETER']);
-const bookTitle = /^(?:THE\s+)?(?:(?:FIRST|SECOND|THIRD|FOURTH|FIFTH)\s+BOOK\b|BOOK\s+OF\b|GOSPEL\b|EPISTLE\b|THE\s+PROPHET\b|THE\s+REVELATION\b|PSALMS?\b|GENESIS\.?$|EXODUS\.?$|LEVITICUS\.?$|NUMBERS\.?$|DEUTERONOMY\.?$|JOSHUA\.?$|JUDGES\.?$|RUTH\.?$|JOB\.?$|EZRA\.?$|NEHEMIAH\.?$|ESTHER\.?$|PROVERBS\.?$|ECCLESIASTES\b|ISAIAH\.?$|JEREMIAH\.?$|LAMENTATIONS\b|EZEKIEL\.?$|DANIEL\.?$|HOSEA\.?$|JOEL\.?$|AMOS\.?$|OBADIAH\.?$|JONAH\.?$|MICAH\.?$|NAHUM\.?$|HABAKKUK\.?$|ZEPHANIAH\.?$|HAGGAI\.?$|ZECHARIAH\.?$|MALACHI\.?$|ACTS\b|ROMANS\.?$|GALATIANS\.?$|EPHESIANS\.?$|PHILIPPIANS\.?$|COLOSSIANS\.?$|TITUS\.?$|PHILEMON\.?$|HEBREWS\.?$|JAMES\.?$|JUDE\.?$|REVELATION\b)/i;
-let verseLines = 0, chapterLines = 0, doubleSpaceLines = 0;
-const unnumberedWords = [];
-for (const raw of lines) {
-  const t = raw.trim();
+const counts = new Map(), refs = new Map(), variants = new Map(), wordContext = new Map();
+let book = 'Unknown', chapter = 0, verse = 0, awaitingFirstVerse = false;
+let chapters = 0, numberedVerseLines = 0, unnumberedFirstVerses = 0, verseRecords = 0, bodyLines = 0;
+let sourceEnd = false;
+const verseTextRecords = [];
+for (const rawLine of lines) {
+  const t = rawLine.trim();
   if (!t) continue;
-  const cm = t.match(chapterLine);
-  if (cm) { chapter = Number(cm[1]); verse = 1; chapterLines++; continue; }
-  const vm = raw.match(/^\s*(\d+)(\s+)(.*)$/);
-  if (vm && chapter) { verse = Number(vm[1]); verseLines++; if (vm[2].length >= 2) doubleSpaceLines++; }
-  else if (chapter && verse === 1 && !/^CHAPTER\s/i.test(t)) { /* unnumbered first verse or superscription */ }
-  else if (!chapter && bookTitle.test(t)) { book = t; }
-  const clean = t.replace(/^\d+\s+/, '').replace(/[\[\]¶]/g, ' ');
+  const normalized = normalizeBook(t);
+  if (bookNames.has(normalized)) { book = normalized; chapter = 0; verse = 0; awaitingFirstVerse = false; continue; }
+  const cm = t.match(/^CHAPTER\s+(\d+)$/i);
+  if (cm) { chapter = Number(cm[1]); verse = 0; awaitingFirstVerse = true; chapters++; continue; }
+  if (/^THE END\.?$/i.test(t)) { sourceEnd = true; continue; }
+  if (!chapter || sourceEnd) continue;
+  let content = t;
+  const vm = t.match(/^(\d+)\s+(.+)$/);
+  if (vm) { verse = Number(vm[1]); content = vm[2]; numberedVerseLines++; awaitingFirstVerse = false; }
+  else if (awaitingFirstVerse) { verse = 1; unnumberedFirstVerses++; awaitingFirstVerse = false; }
+  else {
+    // Unnumbered section headings / psalm superscriptions are preserved as audit context
+    // but aren't assigned a guessed verse number.
+    content = t;
+  }
+  bodyLines++;
+  const ref = `${book} ${chapter}:${verse || '?'}`;
+  verseTextRecords.push({ ref, text: content });
+  const clean = content.replace(/[\[\]¶�]/g, ' ');
   for (const match of clean.matchAll(tokenRe)) {
     const original = match[0], key = original.toLocaleLowerCase('en');
     counts.set(key, (counts.get(key) || 0) + 1);
     if (!refs.has(key)) refs.set(key, []);
-    if (refs.get(key).length < 12) refs.get(key).push(`${book} ${chapter}:${verse}`);
+    if (refs.get(key).length < 20 && !refs.get(key).includes(ref)) refs.get(key).push(ref);
+    if (!variants.has(key)) variants.set(key, new Set());
+    variants.get(key).add(original);
+    if (!wordContext.has(key)) wordContext.set(key, content.slice(Math.max(0, match.index - 50), Math.min(content.length, match.index + original.length + 50)).replace(/\s+/g,' '));
   }
 }
-const unique = [...counts.keys()].sort((a,b)=>a.localeCompare(b));
-const allWords = unique.map(word => ({word, occurrences: counts.get(word), sampleReferences: refs.get(word)}));
-fs.writeFileSync(path.join(outDir, 'unique-words.json'), JSON.stringify(allWords, null, 2));
-fs.writeFileSync(path.join(outDir, 'unique-words.txt'), unique.join('\n')+'\n');
-const hyphenated = allWords.filter(x => x.word.includes('-'));
-const longWords = allWords.filter(x => x.word.replace(/[^a-z]/g,'').length >= 12);
-const likelyNames = allWords.filter(x => /(?:iah|iah|el|iel|ezar|ezer|shua|sheba|ph|ch|th|z|x)/i.test(x.word) && x.word.length >= 5);
-const report = {
- source, sourceBytes: Buffer.byteLength(text), lineCount: lines.length,
- chapterHeadings: chapterLines, numberedVerseLines: verseLines,
- uniqueWordForms: unique.length, totalWordOccurrences: allWords.reduce((s,x)=>s+x.occurrences,0),
- hyphenatedWordForms: hyphenated.length, longWordForms: longWords.length,
- heuristicNameCandidates: likelyNames.length,
- checks: { containsGenesis: /GENESIS/i.test(text), containsRevelation: /REVELATION/i.test(text), containsMizpeh: /\bMizpeh\b/i.test(text), containsMizpah: /\bMizpah\b/i.test(text), expectedChapterCount: 1189, expectedVerseCount: 31102 },
- outputs: ['unique-words.json','unique-words.txt']
+const words = [...counts.keys()].sort((a,b)=>a.localeCompare(b));
+const rows = words.map(word => ({ word, occurrences: counts.get(word), variants: [...variants.get(word)].sort(), sampleReferences: refs.get(word), context: wordContext.get(word) }));
+const csvEscape = v => '"' + String(v ?? '').replace(/"/g,'""') + '"';
+fs.writeFileSync(path.join(outDir,'unique-words.json'), JSON.stringify(rows,null,2));
+fs.writeFileSync(path.join(outDir,'unique-words.txt'), words.join('\n')+'\n');
+fs.writeFileSync(path.join(outDir,'unique-words.csv'), ['word,occurrences,variants,sample_references,context', ...rows.map(r => [r.word,r.occurrences,r.variants.join(' | '),r.sampleReferences.join(' | '),r.context].map(csvEscape).join(','))].join('\n'));
+const hyphenated = rows.filter(r => r.word.includes('-'));
+const apostropheWords = rows.filter(r => /['’]/.test(r.word));
+const longWords = rows.filter(r => r.word.replace(/[^a-z]/g,'').length >= 12);
+const rareWords = rows.filter(r => r.occurrences <= 3 && r.word.length >= 6);
+const caps = rows.filter(r => r.variants.some(v => /[A-Z]/.test(v) && !/^[A-Z]+$/.test(v)) && r.word.length >= 3);
+const spellingCandidates = rows.filter(r => /(?:ae|oe|ph|ch|sh|th|iah|iel|ezar|ezer|sheba|kirjath|zaphnath|melch|nebuch|zerubb|caperna|mizp[ae])/i.test(r.word) && r.word.length >= 5);
+const suspicious = new Map();
+for (const r of [...hyphenated,...apostropheWords,...longWords,...rareWords,...caps,...spellingCandidates]) suspicious.set(r.word,r);
+const candidates = [...suspicious.values()].sort((a,b)=>b.occurrences-a.occurrences || a.word.localeCompare(b.word));
+fs.writeFileSync(path.join(outDir,'hyphenated-words.json'),JSON.stringify(hyphenated,null,2));
+fs.writeFileSync(path.join(outDir,'long-words.json'),JSON.stringify(longWords,null,2));
+fs.writeFileSync(path.join(outDir,'rare-words.json'),JSON.stringify(rareWords,null,2));
+fs.writeFileSync(path.join(outDir,'pronunciation-review-candidates.json'),JSON.stringify(candidates,null,2));
+const expected = { chapters:1189, verses:31102 };
+const checks = {
+ sourceBytes: Buffer.byteLength(raw), lines: lines.length, detectedBooks: [...new Set(verseTextRecords.map(x=>x.ref.split(' ').slice(0,-1).join(' ')))].length,
+ chapterHeadings: chapters, numberedVerseLines, unnumberedFirstVerses, reconstructedVerseCount: numberedVerseLines + unnumberedFirstVerses,
+ uniqueWordForms: words.length, totalWordOccurrences: rows.reduce((s,r)=>s+r.occurrences,0),
+ hyphenatedWordForms: hyphenated.length, apostropheWordForms: apostropheWords.length, longWordForms: longWords.length,
+ rareWordForms: rareWords.length, reviewCandidates: candidates.length,
+ bookCoverage: { beginsGenesis: verseTextRecords[0]?.ref.startsWith('GENESIS 1:'), endsRevelation: verseTextRecords.at(-1)?.ref.startsWith('REVELATION 22:') },
+ expected, integrityPass: chapters===expected.chapters && numberedVerseLines+unnumberedFirstVerses===expected.verses,
+ notes: ['Text-only heuristic audit: candidates are not confirmed pronunciation errors.', 'Audio pronunciation must be checked against generated samples.', 'Verse 1 is unnumbered in this source format and is reconstructed as chapter verse 1.']
 };
-fs.writeFileSync(path.join(outDir, 'summary.json'), JSON.stringify(report, null, 2));
-fs.writeFileSync(path.join(outDir, 'hyphenated-words.json'), JSON.stringify(hyphenated, null, 2));
-fs.writeFileSync(path.join(outDir, 'long-words.json'), JSON.stringify(longWords, null, 2));
-fs.writeFileSync(path.join(outDir, 'likely-name-candidates.json'), JSON.stringify(likelyNames, null, 2));
-console.log(JSON.stringify(report, null, 2));
+fs.writeFileSync(path.join(outDir,'summary.json'),JSON.stringify(checks,null,2));
+console.log(JSON.stringify(checks,null,2));
