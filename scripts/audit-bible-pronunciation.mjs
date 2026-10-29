@@ -6,11 +6,14 @@ const outDir = process.argv[3] || 'reports/pronunciation-audit';
 const raw = fs.readFileSync(source, 'utf8');
 const lines = raw.replace(/\r\n?/g, '\n').split('\n');
 fs.mkdirSync(outDir, { recursive: true });
-const bookNames = new Set(['GENESIS','EXODUS','LEVITICUS','NUMBERS','DEUTERONOMY','JOSHUA','JUDGES','RUTH','1 SAMUEL','2 SAMUEL','1 KINGS','2 KINGS','1 CHRONICLES','2 CHRONICLES','EZRA','NEHEMIAH','ESTHER','JOB','PSALMS','PSALM','PROVERBS','ECCLESIASTES','SONG OF SOLOMON','ISAIAH','JEREMIAH','LAMENTATIONS','EZEKIEL','DANIEL','HOSEA','JOEL','AMOS','OBADIAH','JONAH','MICAH','NAHUM','HABAKKUK','ZEPHANIAH','HAGGAI','ZECHARIAH','MALACHI','MATTHEW','MARK','LUKE','JOHN','ACTS','ROMANS','1 CORINTHIANS','2 CORINTHIANS','GALATIANS','EPHESIANS','PHILIPPIANS','COLOSSIANS','1 THESSALONIANS','2 THESSALONIANS','1 TIMOTHY','2 TIMOTHY','TITUS','PHILEMON','HEBREWS','JAMES','1 PETER','2 PETER','1 JOHN','2 JOHN','3 JOHN','JUDE','REVELATION']);
+const titleSource = fs.readFileSync('src/lib/bibleBookTitles.js', 'utf8');
+const titleMap = Object.fromEntries([...titleSource.matchAll(/^\s*'([^']+)'\s*:\s*'([^']+)'/gm)].map(m => [m[1].replace(/[.,]/g, '').replace(/\s+/g, ' ').trim().toUpperCase(), m[2]]));
+const bookNames = new Set(Object.values(titleMap).map(x => x.toUpperCase()).concat(['GENESIS','EXODUS','LEVITICUS','NUMBERS','DEUTERONOMY','JOSHUA','JUDGES','RUTH','1 SAMUEL','2 SAMUEL','1 KINGS','2 KINGS','1 CHRONICLES','2 CHRONICLES','EZRA','NEHEMIAH','ESTHER','JOB','PSALMS','PROVERBS','ECCLESIASTES','SONG OF SOLOMON','ISAIAH','JEREMIAH','LAMENTATIONS','EZEKIEL','DANIEL','HOSEA','JOEL','AMOS','OBADIAH','JONAH','MICAH','NAHUM','HABAKKUK','ZEPHANIAH','HAGGAI','ZECHARIAH','MALACHI','MATTHEW','MARK','LUKE','JOHN','ACTS','ROMANS','1 CORINTHIANS','2 CORINTHIANS','GALATIANS','EPHESIANS','PHILIPPIANS','COLOSSIANS','1 THESSALONIANS','2 THESSALONIANS','1 TIMOTHY','2 TIMOTHY','TITUS','PHILEMON','HEBREWS','JAMES','1 PETER','2 PETER','1 JOHN','2 JOHN','3 JOHN','JUDE','REVELATION']));
 const normalizeBook = t => t.toUpperCase().replace(/[.,:;]+$/,'').replace(/\s+/g,' ').trim();
 const tokenRe = /[A-Za-z]+(?:['’][A-Za-z]+)*(?:-[A-Za-z]+(?:['’][A-Za-z]+)*)*/g;
 const counts = new Map(), refs = new Map(), variants = new Map(), wordContext = new Map();
 let book = 'Unknown', chapter = 0, verse = 0, awaitingFirstVerse = false;
+let titleBuffer = [];
 let chapters = 0, numberedVerseLines = 0, unnumberedFirstVerses = 0, verseRecords = 0, bodyLines = 0;
 let sourceEnd = false;
 const verseTextRecords = [];
@@ -18,11 +21,19 @@ for (const rawLine of lines) {
   const t = rawLine.trim();
   if (!t) continue;
   const normalized = normalizeBook(t);
-  if (bookNames.has(normalized)) { book = normalized; chapter = 0; verse = 0; awaitingFirstVerse = false; continue; }
+  if (bookNames.has(normalized)) { book = normalized; chapter = 0; verse = 0; awaitingFirstVerse = false; titleBuffer = []; continue; }
   const cm = t.match(/^(?:CHAPTER|PSALM)\s+(\d+)$/i);
-  if (cm) { chapter = Number(cm[1]); verse = 0; awaitingFirstVerse = true; chapters++; if (/^PSALM\s/i.test(t)) book = 'PSALMS'; continue; }
+  if (cm) {
+    chapter = Number(cm[1]); verse = 0; awaitingFirstVerse = true; chapters++;
+    if (/^PSALM\s/i.test(t)) book = 'Psalms';
+    const joinedTitle = titleBuffer.join(' ').replace(/[.,]/g, '').replace(/\s+/g, ' ').trim().toUpperCase();
+    const exact = titleMap[joinedTitle];
+    const partial = Object.entries(titleMap).sort((a,b)=>b[0].length-a[0].length).find(([key])=>joinedTitle.includes(key));
+    if (exact) book = exact; else if (partial) book = partial[1];
+    titleBuffer = []; continue;
+  }
   if (/^THE END\.?$/i.test(t)) { sourceEnd = true; continue; }
-  if (!chapter || sourceEnd) continue;
+  if (!chapter || sourceEnd) { if (/^[A-Z0-9 ,.;:'-]+$/.test(t) && t.length > 1 && !/^THE END\.?$/.test(t)) titleBuffer.push(t); continue; }
   let content = t;
   const vm = t.match(/^(\d+)\s+(.+)$/);
   if (vm) { verse = Number(vm[1]); content = vm[2]; numberedVerseLines++; awaitingFirstVerse = false; }
