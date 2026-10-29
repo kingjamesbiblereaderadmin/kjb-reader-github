@@ -234,7 +234,10 @@ export default function CreditsPage() {
           <div className="rounded-xl bg-secondary/60 border border-border px-4 py-3 mt-4 space-y-2">
             <p className="font-sans text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Licensing</p>
             <p className="font-sans text-xs text-foreground/85 leading-relaxed">
-              Narration is produced by <strong className="text-foreground">NVIDIA Magpie TTS</strong>, used only through NVIDIA&apos;s hosted inference service (NVIDIA Riva / NVIDIA NIM). That use is governed by NVIDIA&apos;s API trial terms of service and the published licence for the Magpie model.
+              Narration is produced by <strong className="text-foreground">NVIDIA Magpie TTS Multilingual</strong> (RivaTTS_MagpieTTS_Multilingual v4.0), which NVIDIA publishes as ready for commercial use under the <strong className="text-foreground">NVIDIA Open Model License Agreement</strong>. This app reaches it only through NVIDIA&apos;s hosted inference service (NVIDIA Riva / NVIDIA NIM), governed by the NVIDIA Software License Agreement and the Product-Specific Terms for NVIDIA AI Products.
+            </p>
+            <p className="font-sans text-xs text-foreground/85 leading-relaxed">
+              Access from this app currently goes through NVIDIA&apos;s public <strong className="text-foreground">API trial service</strong>, which NVIDIA licenses for evaluation and internal testing only — not for production use. Shipping narration inside the released Android and iOS apps therefore requires a commercial NVIDIA licence: a licensed NVIDIA AI Enterprise deployment of the NIM, or self-hosting the model under the Open Model License. Until that is in place, Listen is offered as a beta, evaluation feature.
             </p>
             <p className="font-sans text-xs text-foreground/85 leading-relaxed">
               No model weights are downloaded, bundled, or redistributed with KJB Reader — the app only sends the text of the chapter being listened to and receives the audio back.
