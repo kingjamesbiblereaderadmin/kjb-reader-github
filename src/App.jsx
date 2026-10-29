@@ -132,6 +132,12 @@ function preloadAllRoutes() {
     // pollute the browser's failed-module map. Already-cached chunks still
     // load fine on demand via the SW.
     if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+    // Also skip on a very weak connection — preloading every route competes
+    // with the page the reader is actually trying to open.
+    try {
+      const c = navigator.connection;
+      if (c && (c.saveData || c.effectiveType === 'slow-2g' || c.effectiveType === '2g')) return;
+    } catch {}
 
     const imports = Object.values(loaders).map(fn => fn().catch(() => {}));
 
