@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Pause, Play, SkipBack, SkipForward, Square, AlertCircle, Repeat } from 'lucide-react';
 import { buildSpeechChunks, speechWeight } from '@/lib/ttsChunks';
 import { setSpeakingVerses, clearSpeakingVerses } from '@/lib/speakingVerses';
-import { keepVerseInView } from '@/lib/keepVerseInView';
+import { keepVerseInView, scrollToChapterTop } from '@/lib/keepVerseInView';
 
 const PREFERRED_LANGUAGE = 'en-US';
 
@@ -276,6 +276,10 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
         : `${bookName}, Chapter ${p?.chapter}.`;
     lastAnnouncedBook = abbr;
     playedKeyRef.current = `${p?.abbr}:${p?.chapter}`;
+    // Show what is being announced: jump to the chapter's heading — the top of
+    // the book for its first chapter — even if the reader had scrolled far
+    // down the page.
+    if (introRef.current) scrollToChapterTop();
     playFrom(fromIndex);
   }, [book?.name, book?.shortName, playFrom]);
 
