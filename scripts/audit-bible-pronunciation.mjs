@@ -35,10 +35,8 @@ for (const rawLine of lines) {
     }
     chapter = incomingChapter; verse = 0; awaitingFirstVerse = true; chapters++;
     if (/^PSALM\s/i.test(t)) book = 'Psalms';
-    const joinedTitle = titleBuffer.join(' ').replace(/[.,]/g, '').replace(/\s+/g, ' ').trim().toUpperCase();
-    const exact = titleMap[joinedTitle];
-    const partial = Object.entries(titleMap).sort((a,b)=>b[0].length-a[0].length).find(([key])=>joinedTitle.includes(key));
-    if (exact) book = exact; else if (partial) book = partial[1];
+    // Canonical book order is authoritative here because PCE headings use historical
+    // aliases (e.g. First through Fourth Book of Kings) that don't match modern names.
     titleBuffer = []; continue;
   }
   if (/^THE END\.?$/i.test(t)) { sourceEnd = true; continue; }
