@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { base44 } from '@/api/base44Client';
 import { Pause, Play, SkipBack, SkipForward, Square, AlertCircle, Repeat } from 'lucide-react';
 import { buildSpeechChunks, speechWeight } from '@/lib/ttsChunks';
+import { getCachedAudio, saveCachedAudio } from '@/lib/ttsAudioCache';
 import { setSpeakingVerses, clearSpeakingVerses } from '@/lib/speakingVerses';
 import { keepVerseInView, scrollToChapterTop } from '@/lib/keepVerseInView';
 
@@ -118,21 +119,38 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
 
     const text = chunkIndex === 0 && introRef.current ? `${introRef.current} ${chunk.text}` : chunk.text;
     const run = runRef.current;
-    const attempt = async (language) => base44.functions.invoke('nvidiaMagpieTts', {
+    // Include the actual speech text in the cache key so changes to pronunciation
+    // rules or verse content never reuse stale audio for a different passage.
+    const cacheKey = `en-US:${text}`;
+    const cached = await getCachedAudio(cacheKey);
+    if (run !== runRef.current) return null;
+    if (cached?.audioBase64) {
+      const cachedUrl = base64ToBlobUrl(cached.audioBase64, cached.contentType);
+      urlsRef.current.set(chunkIndex, cachedUrl);
+      languageRef.current = 'en-US';
+      setLocale('en-US');
+      return cachedUrl;
+    }
+
+    // When offline, report a clear message rather than waiting on a failed request.
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      throw new Error('This passage is not saved for offline listening yet. Connect to the internet and play it once to cache the audio.');
+    }
+    const response = await base44.functions.invoke('nvidiaMagpieTts', {
       action: 'synthesize',
       text,
-      language,
+      language: 'en-US',
     });
-
-    let response;
-    response = await attempt('en-US');
     const data = response?.data;
     if (!data?.success || !data?.audioBase64) throw new Error(data?.error || 'NVIDIA did not return audio.');
     languageRef.current = 'en-US';
     setLocale('en-US');
 
     if (run !== runRef.current) return null; // stopped while awaiting
-    const url = base64ToBlobUrl(response.data.audioBase64, response.data.contentType);
+    const contentType = data.contentType || 'audio/wav';
+    // Save in the background; IndexedDB/quota failures must not interrupt playback.
+    void saveCachedAudio(cacheKey, data.audioBase64, contentType);
+    const url = base64ToBlobUrl(data.audioBase64, contentType);
     urlsRef.current.set(chunkIndex, url);
     return url;
   }, [chunks]);
