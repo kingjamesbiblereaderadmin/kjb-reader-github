@@ -635,6 +635,30 @@ shibboleth=shib-uh-leth
 zaphnath-paaneah=zaf-nath-pay-nee-ah
 beersheba=beer-shee-buh
 kiriath=kir-ee-ath
+nazareth=naz-uh-reth
+ashtoreth=ash-tuh-reth
+topheth=toh-feth
+chinnereth=kin-uh-reth
+harosheth=hair-oh-sheth
+hammoleketh=ham-oh-lek-eth
+shallecheth=shal-ek-eth
+dabbasheth=dab-uh-sheth
+sophereth=soh-feh-reth
+aijeleth=ah-ee-jel-eth
+pochereth=pok-eh-reth
+hazarmaveth=haz-ar-may-veth
+jerubbesheth=jer-ub-uh-sheth
+meshullemeth=mesh-ul-eh-meth
+tanhumeth=tan-hoo-meth
+alameth=al-uh-meth
+alemeth=al-eh-meth
+mispereth=mis-peh-reth
+peleth=peh-leth
+remeth=ray-meth
+zereth=zeh-reth
+zoheleth=zoh-heh-leth
+zoheth=zoh-eth
+tebeth=tay-beth
 `;
 
 // Built once at module load: word → respelling.
@@ -652,10 +676,70 @@ export const SPEECH_HINTS = (() => {
   return map;
 })();
 
+// ── Archaic verb endings (goeth, knowest) ──
+// The engine treats "knowest" like a superlative ("NO-ist") and reads "maketh"
+// as one flat syllable. Splitting the ending off with a hyphen ("know-est")
+// makes it speak the ending as its own syllable, which is how the KJV reads.
+//
+// Stems whose final "e" is shared with the ending (maketh = make + eth) lose
+// that "e" when the word is split, which changes the vowel ("mak-eth" =
+// "MACK-eth"). For those the "e" is put back: "make-eth". Every stem below was
+// taken from the KJV text itself.
+const SILENT_E_STEMS = new Set(`
+abid abod accus acknowledg advantag agre appeas approv aris aveng awak bad bak
+baptiz bar bas becam becom behav believ bereav bit blasphem brak breath bridl
+calv cam car caus ceas chanc chang charg chas chastis choic choos cleans cleav
+clos cloth com consum continu convinc coupl creat curs deceiv declar declin
+defil describ deserv desir despis devis disguis dissolv distribut divid divin
+driv endur enlarg entangl entic escap execut exercis fad fin fle forgav forgiv
+forsak fram frustrat gav giv grav griev grop handl har hast hat hid hir hop
+humbl imagin imput inclin increas inquir intermeddl judg kindl lad leav lik liv
+loath lodg loos los loth lov mad mak meddl mov nam observ oppos overcom overtak
+perceiv persecut persuad pierc pin pleas prais prepar preserv procur profan prov
+provid provok purg purpos pursu rag rais rebuk receiv recompens refus rejoic
+reliev remov reprov requir rescu reserv restor reveng revil rid ris rul
+sacrific salut sav scourg seduc separat serv settl shak sham shin slid smit smot
+spak spar sprinkl ston strik striv stumbl subdu suffic swar tak tast treasur
+trembl troubl valu vil wak wast weav wip writ
+di li ow se us
+`.split(/\s+/).filter(Boolean));
+
+// End in "-eth"/"-est" but are not archaic verbs.
+const NOT_ARCHAIC = new Set([
+  'teeth', 'priest', 'priests', 'forest', 'forests', 'request', 'requests',
+  'interest', 'interests', 'manifest', 'protest', 'daleth',
+  'best', 'chest', 'guest', 'lest', 'nest', 'rest', 'west', 'wrest',
+]);
+
+// Forms whose stem cannot be rebuilt by rule.
+const IRREGULAR_ENDINGS = {
+  doeth: 'duh-eth',
+  doest: 'duh-est',
+  doth: 'duth',
+  dost: 'dust',
+};
+
+// Splits "-eth"/"-est" off a verb; returns '' when the word should be left alone.
+function splitArchaicEnding(word) {
+  const suffix = word.endsWith('eth') ? 'eth' : word.endsWith('est') ? 'est' : '';
+  if (!suffix) return '';
+  const stem = word.slice(0, -3);
+  if (stem.length < 3) return '';
+  if (NOT_ARCHAIC.has(word)) return '';
+  // Ordinals: twentieth, thirtieth … (but glorifieth, testifieth still split).
+  if (word.endsWith('tieth')) return '';
+  return SILENT_E_STEMS.has(stem) ? `${stem}e-${suffix}` : `${stem}-${suffix}`;
+}
+
 // Respells one word; returns it untouched when there is no hint.
 export function respellForSpeech(word) {
   if (!word) return word;
-  return SPEECH_HINTS.get(String(word).toLowerCase()) || word;
+  const key = String(word).toLowerCase();
+  const hinted = SPEECH_HINTS.get(key);
+  if (hinted) return hinted;
+  const irregular = IRREGULAR_ENDINGS[key];
+  if (irregular) return irregular;
+  return splitArchaicEnding(key) || word;
 }
 
 // Applies the hints to a whole passage. Whole words only, hyphenated names
