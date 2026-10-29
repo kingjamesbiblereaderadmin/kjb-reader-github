@@ -10,7 +10,7 @@ import SelectActionBar from '@/components/bible/SelectActionBar';
 import ReadingRangeBar from '@/components/bible/ReadingRangeBar';
 import VerseTapBar from '@/components/bible/VerseTapBar';
 import ListenControl from '@/components/bible/ListenControl';
-import { getSearchNav, getGospelNav, setSearchIndex, setGospelIndex, clearGospelNav, clearSearchNav } from '@/lib/searchNav';
+import { getSearchNav, getGospelNav, setSearchIndex, setGospelIndex, clearGospelNav } from '@/lib/searchNav';
 import { getOccurrenceLabel } from '@/lib/occurrenceLabel';
 import { getVerseHighlight } from '@/lib/verseHighlights';
 import { isVerseSaved } from '@/lib/savedVerses';
