@@ -220,7 +220,7 @@ export default function CreditsPage() {
           <div className="space-y-2.5">
             {[
               [<span key="n"><strong className="text-foreground">NVIDIA Magpie text-to-speech</strong></span>, 'synthesises the narration in the Listen player, running on NVIDIA Riva / NVIDIA NIM cloud inference.'],
-              [<span key="s"><strong className="text-foreground">Synthetic speech</strong></span>, 'the voice is computer-generated from the KJV text — no human recording is used anywhere in the app.'],
+              [<span key="s"><strong className="text-foreground">Synthetic speech</strong></span>, 'the voice is computer-generated from the KJB text — no human recording is used anywhere in the app.'],
               [<span key="p"><strong className="text-foreground">Speech pronunciation hints</strong></span>, 'names such as Nebuchadnezzar and Baal, the archaic -eth and -est verb endings, and words like shew are respelled for the voice only. The printed Bible text is never altered.'],
               [<span key="c"><strong className="text-foreground">Offline listening</strong></span>, 'audio is generated on NVIDIA\'s servers, so the first playback of a chapter needs an internet connection. Played chapters are cached on the device and play again offline.'],
               [<span key="b"><strong className="text-foreground">Beta</strong></span>, 'the Listen player is still being refined — voices, pacing and pronunciation may change between updates.'],
@@ -240,7 +240,7 @@ export default function CreditsPage() {
               No model weights are downloaded, bundled, or redistributed with KJB Reader — the app only sends the text of the chapter being listened to and receives the audio back.
             </p>
             <p className="font-sans text-xs text-foreground/85 leading-relaxed">
-              The returned audio is used solely to read the KJV text aloud inside the app and is cached on your own device for offline listening. It is never sold, sublicensed, or used to train another model.
+              The returned audio is used solely to read the KJB text aloud inside the app and is cached on your own device for offline listening. It is never sold, sublicensed, or used to train another model.
             </p>
             <p className="font-sans text-xs text-foreground/85 leading-relaxed">
               Narration does not alter the text: the King James Bible stays public domain, and the speech-only pronunciation hints exist only in the audio, never in the reading text.
@@ -317,7 +317,7 @@ export default function CreditsPage() {
             </p>
             <p className="font-sans text-sm text-foreground/85 leading-relaxed flex items-start gap-2">
               <span className="text-accent mt-1">•</span>
-              <span><strong className="text-foreground">Narration Disclaimer:</strong> The Listen player&apos;s voice is synthetic AI-generated speech, not a human reading. It reads the unaltered KJV text, though pacing, emphasis, and the pronunciation of some names may differ from a spoken reading. Use it as an aid to reading, not as an authoritative recitation.</span>
+              <span><strong className="text-foreground">Narration Disclaimer:</strong> The Listen player&apos;s voice is synthetic AI-generated speech, not a human reading. It reads the unaltered KJB text, though pacing, emphasis, and the pronunciation of some names may differ from a spoken reading. Use it as an aid to reading, not as an authoritative recitation.</span>
             </p>
           </div>
           <div className="rounded-xl bg-secondary/60 border border-border px-4 py-3 mt-4">

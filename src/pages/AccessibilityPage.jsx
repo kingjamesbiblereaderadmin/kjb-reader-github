@@ -149,7 +149,7 @@ export default function AccessibilityPage() {
           <p>
             The voice is synthetic text-to-speech (currently marked <strong>Beta</strong>), not a
             human recording, so pacing and the pronunciation of some names may differ from a spoken
-            reading. It reads the unaltered KJV text — the pronunciation hints used for the voice
+            reading. It reads the unaltered KJB text — the pronunciation hints used for the voice
             never change what is printed on screen.
           </p>
           <p>
