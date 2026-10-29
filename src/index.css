@@ -386,12 +386,10 @@
   .kjb-two-col > span[data-pilcrow='true'] {
     padding-top: 2.25rem;
   }
-  /* EXCEPTION: the verse right after the drop-cap verse. The big letter
-     already spans two full lines, and a paragraph gap there made the pilcrow
-     verse (e.g. Genesis 1:2) jump down and break the cap's flush bottom. */
-  .kjb-two-col > span[style*="flow-root"] + span[data-pilcrow='true'] {
-    padding-top: 0;
-  }
+  /* The verse right after the drop-cap verse keeps the SAME paragraph gap as
+     every other pilcrow verse. The cap only occupies verse 1's own lines, so
+     the gap below it opens a clean paragraph break (e.g. 2 Samuel 11:2)
+     without disturbing the cap's alignment. */
   /* Flex rows can't fragment across columns in WebKit (iOS): the verse number
      got orphaned at a column bottom and whole verses jumped to the next
      column, leaving big gaps. Use a plain block with the verse number
