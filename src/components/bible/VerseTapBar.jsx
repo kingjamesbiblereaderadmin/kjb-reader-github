@@ -1,16 +1,19 @@
 import React from 'react';
-import { Highlighter, Copy, Share2, Bookmark, X, ChevronDown } from 'lucide-react';
+import { Highlighter, Copy, Share2, Bookmark, X, ChevronDown, Play } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { HIGHLIGHT_COLORS } from '@/lib/highlightColors';
 
 // Slim action bar shown under the main reader toolbar when a single verse is
 // tapped in normal reading mode — replaces the old floating tap-anchored
 // popover so the options never risk overlapping the verse text or toolbar.
-export default function VerseTapBar({ label, isHighlighted, isSaved, copyFeedback, shareFeedback, saveFeedback, onToggleHighlight, onCopy, onShare, onSave, onClose }) {
+export default function VerseTapBar({ label, isHighlighted, isSaved, copyFeedback, shareFeedback, saveFeedback, onToggleHighlight, onCopy, onShare, onSave, onPlay, onClose }) {
   return (
     <div className="mt-2 pt-2 border-t border-border flex items-center gap-2 overflow-x-auto scrollbar-hide">
       <span className="font-sans text-xs text-muted-foreground font-medium whitespace-nowrap">{label}</span>
       <div className="w-px h-4 bg-border" />
+      <button onClick={onPlay} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary hover:bg-accent/20 text-foreground font-sans text-xs font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap">
+        <Play className="w-3.5 h-3.5" /> Play from here
+      </button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-sans text-xs font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap ${isHighlighted ? 'bg-accent/20 text-accent' : 'bg-secondary hover:bg-accent/20 text-foreground'}`}>

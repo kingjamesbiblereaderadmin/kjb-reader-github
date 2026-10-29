@@ -28,7 +28,7 @@ function base64ToBlobUrl(base64, contentType) {
 // synthesized chunk by chunk and played back to back; finishing a chapter
 // continues into the next one. The book is announced on the first chapter of
 // a listening session (and on each new book), later chapters as "Chapter N".
-export default function ListenControl({ verses, book, pos, disabled, loading, goNext, isLastChapterLastBook, chapterSubscript, colophon, endMarker, titlePageText }) {
+export default function ListenControl({ verses, book, pos, disabled, loading, goNext, isLastChapterLastBook, chapterSubscript, colophon, endMarker, titlePageText, playFromVerse }) {
   const chunks = useMemo(() => buildSpeechChunks(verses, undefined, { titlePage: titlePageText, superscription: chapterSubscript, colophon, endMarker }), [verses, titlePageText, chapterSubscript, colophon, endMarker]);
   const [active, setActive] = useState(false);
   const [status, setStatus] = useState('idle'); // idle | loading | playing | paused
@@ -42,7 +42,6 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   // Verse the reader chose to start listening from (1 = the chapter's start).
   const [startVerse, setStartVerse] = useState(1);
   const [startVerseChosen, setStartVerseChosen] = useState(false);
-  const [showVersePicker, setShowVersePicker] = useState(false);
 
   const audioRef = useRef(null);
   const urlsRef = useRef(new Map()); // chunk index -> blob url
@@ -286,7 +285,6 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   useEffect(() => {
     setStartVerse(1);
     setStartVerseChosen(false);
-    setShowVersePicker(false);
   }, [passageKey]);
 
   // Continue into the chapter we just advanced to, once its verses are in.
@@ -300,21 +298,22 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     startChapter();
   }, [passageKey, loading, chunks, releaseAll, startChapter, stop]);
 
-  // Choose the verse to start from. While nothing is playing it only sets the
-  // starting point (used by the next play); while listening it jumps there.
-  const startFrom = (verse) => {
-    const num = Number(verse) || 1;
-    setStartVerse(num);
-    setStartVerseChosen(true);
-    setShowVersePicker(false);
-    if (!(active && status !== 'idle')) { keepVerseInView(num, true); return; }
-    const target = chunkForVerse(num);
+  // "Play from here" (verse tap menu in the reader): begin this chapter at
+  // that verse, whether or not something is already playing.
+  useEffect(() => {
+    if (!playFromVerse?.nonce) return;
+    if (`${playFromVerse.abbr}:${playFromVerse.chapter}` !== passageKey) return;
+    const target = chunkForVerse(playFromVerse.verse);
     if (target < 0) return;
-    introRef.current = ''; // the chapter was already announced
-    const audio = audioRef.current;
-    if (audio) { audio.onended = null; audio.onerror = null; audio.ontimeupdate = null; audio.pause(); }
+    setStartVerse(playFromVerse.verse);
+    setStartVerseChosen(true);
+    if (activeRef.current) {
+      introRef.current = ''; // this chapter was already announced
+      const audio = audioRef.current;
+      if (audio) { audio.onended = null; audio.onerror = null; audio.ontimeupdate = null; audio.pause(); }
+    }
     playFrom(target);
-  };
+  }, [playFromVerse?.nonce]);
 
   const toggle = () => {
     if (status === 'loading') return;
@@ -375,36 +374,6 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   return (
     <div role="group" aria-label="Listen to this chapter" className="kjb-listen-row print:hidden w-full">
       <div className="flex items-center justify-center gap-2 w-full max-w-[120rem] mx-auto">
-      <div className="relative flex-none">
-        <button
-          type="button"
-          onClick={() => setShowVersePicker(p => !p)}
-          disabled={!canListen || busy}
-          title={`Start listening from verse ${startVerse}`}
-          aria-label={`Start listening from verse ${startVerse}`}
-          className={`flex h-10 flex-none items-center gap-1.5 rounded-xl border border-border px-3 font-sans text-[11px] font-medium transition-colors touch-manipulation disabled:opacity-30 ${startVerse > 1 ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}
-        >
-          <ListOrdered className="h-4 w-4 flex-none" />
-          <span className="whitespace-nowrap">v.{startVerse}</span>
-        </button>
-        {showVersePicker && !isMobile() && (
-          <div className="kjb-popover-panel absolute top-full left-0 mt-1 z-[100]">
-            <VerseGrid
-              verseCount={verses.length}
-              currentVerse={startVerse}
-              onSelect={startFrom}
-            />
-          </div>
-        )}
-        <SelectorSheet open={showVersePicker && isMobile()} onClose={() => setShowVersePicker(false)} title="Start listening from verse">
-          <VerseGrid
-            bare
-            verseCount={verses.length}
-            currentVerse={startVerse}
-            onSelect={startFrom}
-          />
-        </SelectorSheet>
-      </div>
       <button
         type="button"
         onClick={() => jumpTo(index - 1)}
