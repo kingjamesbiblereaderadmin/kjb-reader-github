@@ -2,23 +2,19 @@
 export const TTS_MAX_CHARS = 1600;
 const PAUSE_WEIGHT = { ',': 3, ';': 5, ':': 4, '.': 8, '!': 8, '?': 8 };
 
-// These substitutions affect speech only; the KJB text shown, searched and copied is untouched.
-// Use conservative pronunciation respellings only for words reported to be spoken incorrectly.
+// Speech-only pronunciation hints. The canonical KJB text remains unchanged everywhere else.
 const PRONUNCIATION_RULES = [
-  // Familiar KJB names whose spelling commonly misleads English TTS engines.
-  [/\\bMizpeh\\b/gi, 'Miz-puh'],
-  [/\\bBeersheba\\b/gi, 'Beer-sheba'],
-  [/\\bBeer-sheba\\b/gi, 'Beer-sheba'],
-  [/\\bKirjath\\b/gi, 'Kir-jath'],
-  [/\\bKiriath\\b/gi, 'Kir-ee-ath'],
-  [/\\bMaher-shalal-hash-baz\\b/gi, 'Maher-shalal-hash-baz'],
-  [/\\bNebuchadnezzar\\b/gi, 'Neb-yoo-kad-nez-er'],
-  [/\\bCapernaum\\b/gi, 'Kuh-per-nay-um'],
-  [/\\bZerubbabel\\b/gi, 'Zer-ub-uh-bel'],
-  [/\\bMelchisedec\\b/gi, 'Mel-kiz-uh-dek'],
-  [/\\bMelchizedek\\b/gi, 'Mel-kiz-uh-dek'],
-  [/\\bShibboleth\\b/gi, 'Shib-uh-leth'],
-  [/\\bZaphnath-paaneah\\b/gi, 'Zaf-nath-pay-nee-ah'],
+  [/\bMizpeh\b/gi, 'Miz-puh'],
+  [/\bBeersheba\b/gi, 'Beer-sheba'],
+  [/\bKirjath\b/gi, 'Kir-jath'],
+  [/\bKiriath\b/gi, 'Kir-ee-ath'],
+  [/\bNebuchadnezzar\b/gi, 'Neb-yoo-kad-nez-er'],
+  [/\bCapernaum\b/gi, 'Kuh-per-nay-um'],
+  [/\bZerubbabel\b/gi, 'Zer-ub-uh-bel'],
+  [/\bMelchisedec\b/gi, 'Mel-kiz-uh-dek'],
+  [/\bMelchizedek\b/gi, 'Mel-kiz-uh-dek'],
+  [/\bShibboleth\b/gi, 'Shib-uh-leth'],
+  [/\bZaphnath-paaneah\b/gi, 'Zaf-nath-pay-nee-ah'],
 ];
 
 export function speechWeight(text) {
@@ -29,13 +25,12 @@ export function speechWeight(text) {
 
 export function verseToSpeech(text) {
   let spoken = String(text || '')
-    .replace(/[\\[\\]]/g, '')
-    // In this parsed Bible source, the replacement character is used both for
-    // apostrophes and paragraph marks. Preserve possessives before removing marks.
-    .replace(/([A-Za-z])�(?=[sS]\\b)/g, "$1'")
-    .replace(/([A-Za-z])�(?=\\s|$)/g, "$1'")
+    .replace(/[\[\]]/g, '')
+    // This source uses a replacement character for apostrophes as well as paragraph markers.
+    .replace(/([A-Za-z])�(?=[sS]\b)/g, "$1'")
+    .replace(/([A-Za-z])�(?=\s|$)/g, "$1'")
     .replace(/[¶�]/g, ' ')
-    .replace(/\\s+/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim();
   for (const [pattern, replacement] of PRONUNCIATION_RULES) spoken = spoken.replace(pattern, replacement);
   return spoken;
@@ -56,8 +51,6 @@ function splitLong(text, max) {
   return parts;
 }
 
-// Special sections are separate chunks so they are read in order without being
-// falsely highlighted as a numbered verse.
 export function buildSpeechChunks(verses, max = TTS_MAX_CHARS, sections = {}) {
   const chunks = [];
   const addSection = (kind, value) => {
