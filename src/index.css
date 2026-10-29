@@ -944,3 +944,14 @@ html.kjb-native-ios select {
 .dark .border-t.border-border {
   border-top-width: 1.5px;
 }
+
+/* Listen player: sits clear of the phone bottom nav, and near the bottom
+   edge on wider screens where that nav is hidden. */
+.kjb-listen-player {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem);
+}
+@media (min-width: 640px) {
+  .kjb-listen-player {
+    bottom: 1.5rem;
+  }
+}

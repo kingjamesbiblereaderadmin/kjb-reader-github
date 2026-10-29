@@ -9,6 +9,7 @@ import CurrentlyReadingIndicator from '@/components/bible/CurrentlyReadingIndica
 import SelectActionBar from '@/components/bible/SelectActionBar';
 import ReadingRangeBar from '@/components/bible/ReadingRangeBar';
 import VerseTapBar from '@/components/bible/VerseTapBar';
+import ListenControl from '@/components/bible/ListenControl';
 import { getSearchNav, getGospelNav, setSearchIndex, setGospelIndex, clearGospelNav, clearSearchNav } from '@/lib/searchNav';
 import { getOccurrenceLabel } from '@/lib/occurrenceLabel';
 import { getVerseHighlight } from '@/lib/verseHighlights';
@@ -313,6 +314,8 @@ export default function ReaderToolbar({
             <span className="hidden lg:inline">{columnOn ? '2-Col' : '1-Col'}</span>
           </button>
           <button onClick={toggleSelectMode} title="Select verses" className={`kjb-fixed-btn flex-none flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-xs font-medium transition-all duration-200 touch-manipulation h-10  whitespace-nowrap ${selectMode ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}><CheckSquare className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Select</span></button>
+
+          <ListenControl verses={verses} book={book} pos={pos} disabled={verseCount === 0} />
 
            <DropdownMenu onOpenChange={(open) => { if (open) closeAllMenus(); }}>
             <DropdownMenuTrigger asChild>
