@@ -84,14 +84,22 @@ async function fetchWithRetry(url, retries = 5, expectPilcrows = false, onProgre
   // serves it straight from the APK's assets), so navigator.onLine is
   // irrelevant to it and would otherwise wrongly block a real offline launch.
   const isBundledLocalAsset = url.startsWith('/__native/');
-  if (!isBundledLocalAsset && typeof navigator !== 'undefined' && navigator.onLine === false) {
+  // On the website/PWA the same text file ships at /pce-bible.txt and is
+  // precached by the service worker, so an offline fetch is served from that
+  // cache rather than the network — the same "bundled with the app" behaviour
+  // the native builds get (Android from APK assets, iOS from its offline copy).
+  const isWebBundledText = url === REMOTE_PCE_TEXT_FILE_URL;
+  const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
+  if (!isBundledLocalAsset && !isWebBundledText && offline) {
     throw new Error('Offline — skipping network fetch');
   }
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      // Add timestamp to bypass browser/CDN cache
+      // Add timestamp to bypass browser/CDN cache. Not while offline: the
+      // service worker matches the precached /pce-bible.txt entry by its exact
+      // URL, and a ?t=… query string would miss it.
       const separator = url.includes('?') ? '&' : '?';
-      const cacheBusterUrl = `${url}${separator}t=${Date.now()}`;
+      const cacheBusterUrl = offline ? url : `${url}${separator}t=${Date.now()}`;
       
       // Use AbortSignal for timeout (20 seconds per attempt — the file is ~4MB)
       const controller = new AbortController();

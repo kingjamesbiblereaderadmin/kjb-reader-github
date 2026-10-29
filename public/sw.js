@@ -264,6 +264,12 @@ const PRECACHE_ASSETS = [
   '/icons/kjb-maskable-512.png',
   // Soft-hyphen points for the two-column printed layout (src/lib/softHyphens.js)
   '/hyphenation.json',
+  // The full Pure Cambridge Edition Bible text (all 66 books, 31,102 verses).
+  // Precached at install so the website/PWA ships the Bible the way the native
+  // apps do (Android: APK assets, iOS: bundled offline copy) — the reader, and
+  // therefore Listen narration of every book, works from the very first launch
+  // without a separate download.
+  '/pce-bible.txt',
   // Self-hosted OpenDyslexic fonts — precache at install so they're available
   // offline immediately, not just after the first page that uses them.
   '/fonts/OpenDyslexic-regular.woff',
