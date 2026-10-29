@@ -28,8 +28,8 @@ function base64ToBlobUrl(base64, contentType) {
 // synthesized chunk by chunk and played back to back; finishing a chapter
 // continues into the next one. The book is announced on the first chapter of
 // a listening session (and on each new book), later chapters as "Chapter N".
-export default function ListenControl({ verses, book, pos, disabled, loading, goNext, isLastChapterLastBook }) {
-  const chunks = useMemo(() => buildSpeechChunks(verses), [verses]);
+export default function ListenControl({ verses, book, pos, disabled, loading, goNext, isLastChapterLastBook, chapterSubscript, colophon, endMarker }) {
+  const chunks = useMemo(() => buildSpeechChunks(verses, undefined, { superscription: chapterSubscript, colophon, endMarker }), [verses, chapterSubscript, colophon, endMarker]);
   const [active, setActive] = useState(false);
   const [status, setStatus] = useState('idle'); // idle | loading | playing | paused
   const [index, setIndex] = useState(0);
@@ -113,6 +113,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
       action: 'synthesize',
       text,
       language,
+      voice: voiceRef.current || undefined,
     });
 
     let response;
@@ -155,6 +156,11 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     const p = posRef.current;
     const intro = chunkIndex === 0 && introRef.current ? speechWeight(introRef.current) : 0;
     const spans = chunk.spans?.length ? chunk.spans : chunk.verses.map(verse => ({ verse, weight: 1 }));
+    if (!spans.length) {
+      lastSpokenRef.current = null;
+      setSpeakingVerses(p?.abbr, p?.chapter, [], true);
+      return;
+    }
     const total = spans.reduce((sum, span) => sum + span.weight, intro);
     const spoken = (elapsed / duration) * total;
     // Still on "Book, Chapter N." — that belongs to the chapter heading.
