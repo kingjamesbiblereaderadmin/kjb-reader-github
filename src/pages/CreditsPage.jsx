@@ -19,6 +19,7 @@ const TM_CARDS = [
   { owner: 'Oracle', slug: 'oracle', color: '#F80000', marks: 'Java', extra: 'Java is a registered trademark of Oracle and/or its affiliates.', use: 'The Java toolchain inside the Android app build.' },
   { owner: 'Gradle, Inc.', slug: 'gradle', color: '#02303A', darkColor: '#5FC8CE', marks: 'Gradle', use: 'Build tool that compiles and signs the Android app.' },
   { owner: 'Anthropic PBC', slug: 'anthropic', color: '#191919', darkColor: '#D4A27F', marks: 'Claude', use: 'AI assistance used to help generate the app code.' },
+  { owner: 'NVIDIA Corporation', slug: 'nvidia', color: '#76B900', marks: 'NVIDIA, NVIDIA Riva, NVIDIA NIM, Magpie', use: 'Text-to-speech that reads the Bible aloud in the Listen player.' },
   { owner: 'Linktree Pty Ltd', slug: 'linktree', color: '#43E559', marks: 'Linktree', use: 'Ministry and preacher link pages opened in the device browser.' },
   { owner: 'The Document Foundation', slug: 'libreoffice', color: '#18A303', marks: 'LibreOffice', use: 'en-US Liang hyphenation patterns for the two-column reading layout.' },
   { owner: 'Mozilla Foundation', slug: 'firefoxbrowser', color: '#FF7139', marks: 'Mozilla, Firefox', use: 'Browser-compatibility reference for the web app and extension.' },
@@ -212,6 +213,24 @@ export default function CreditsPage() {
         {/* Fonts */}
         <Section edge="from-purple-500 to-fuchsia-400" iconBg="from-purple-500 to-fuchsia-500" eyebrow="Typography" icon={<Type className="w-5 h-5" />} title="Fonts">
           <FontsSection />
+        </Section>
+
+        {/* Speech / Listen */}
+        <Section edge="from-emerald-500 to-teal-400" iconBg="from-emerald-500 to-teal-500" eyebrow="Audio" icon={<Mic className="w-5 h-5" />} title="Speech &amp; Listening">
+          <div className="space-y-2.5">
+            {[
+              [<span key="n"><strong className="text-foreground">NVIDIA Magpie text-to-speech</strong></span>, 'synthesises the narration in the Listen player, running on NVIDIA Riva / NVIDIA NIM cloud inference.'],
+              [<span key="s"><strong className="text-foreground">Synthetic speech</strong></span>, 'the voice is computer-generated from the KJV text — no human recording is used anywhere in the app.'],
+              [<span key="p"><strong className="text-foreground">Speech pronunciation hints</strong></span>, 'names such as Nebuchadnezzar and Baal, the archaic -eth and -est verb endings, and words like shew are respelled for the voice only. The printed Bible text is never altered.'],
+              [<span key="c"><strong className="text-foreground">Offline listening</strong></span>, 'audio is generated on NVIDIA\'s servers, so the first playback of a chapter needs an internet connection. Played chapters are cached on the device and play again offline.'],
+              [<span key="b"><strong className="text-foreground">Beta</strong></span>, 'the Listen player is still being refined — voices, pacing and pronunciation may change between updates.'],
+            ].map(([name, purpose], i) => (
+              <p key={i} className="font-sans text-sm text-foreground/85 leading-relaxed flex items-start gap-2">
+                <span className="text-accent mt-1">•</span>
+                <span>{name} <span className="text-muted-foreground">— {purpose}</span></span>
+              </p>
+            ))}
+          </div>
         </Section>
 
         {/* Built With & Thanks */}
