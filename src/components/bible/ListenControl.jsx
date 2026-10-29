@@ -1,9 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Pause, Play, SkipBack, SkipForward, Square, AlertCircle, Repeat } from 'lucide-react';
+import { Pause, Play, SkipBack, SkipForward, Square, AlertCircle, Repeat, ListOrdered } from 'lucide-react';
 import { buildSpeechChunks, speechWeight } from '@/lib/ttsChunks';
 import { setSpeakingVerses, clearSpeakingVerses } from '@/lib/speakingVerses';
 import { keepVerseInView } from '@/lib/keepVerseInView';
+import VerseGrid from '@/components/bible/VerseGrid';
+import SelectorSheet from '@/components/bible/SelectorSheet';
+import { isMobile } from '@/lib/readerPosition';
 
 const PREFERRED_LANGUAGE = 'en-US';
 
@@ -39,6 +42,9 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   const [continueReading, setContinueReading] = useState(() => {
     try { return localStorage.getItem(CONTINUE_KEY) !== 'off'; } catch { return true; }
   });
+  // Verse the reader chose to start listening from (1 = the chapter's start).
+  const [startVerse, setStartVerse] = useState(1);
+  const [showVersePicker, setShowVersePicker] = useState(false);
 
   const audioRef = useRef(null);
   const urlsRef = useRef(new Map()); // chunk index -> blob url
@@ -63,6 +69,9 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
 
   posRef.current = pos;
   const passageKey = `${pos?.abbr || ''}:${pos?.chapter || ''}`;
+
+  // The playback part that contains a given verse.
+  const chunkForVerse = useCallback((verse) => chunks.findIndex(chunk => chunk.verses.includes(Number(verse))), [chunks]);
 
   const releaseAll = useCallback(() => {
     urlsRef.current.forEach(url => URL.revokeObjectURL(url));
@@ -275,6 +284,12 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     stop();
   }, [passageKey, stop]);
 
+  // A new chapter starts listening from its first verse again.
+  useEffect(() => {
+    setStartVerse(1);
+    setShowVersePicker(false);
+  }, [passageKey]);
+
   // Continue into the chapter we just advanced to, once its verses are in.
   useEffect(() => {
     if (!pendingAdvanceRef.current) return;
@@ -285,6 +300,21 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     releaseAll();
     startChapter();
   }, [passageKey, loading, chunks, releaseAll, startChapter, stop]);
+
+  // Choose the verse to start from. While nothing is playing it only sets the
+  // starting point (used by the next play); while listening it jumps there.
+  const startFrom = (verse) => {
+    const num = Number(verse) || 1;
+    setStartVerse(num);
+    setShowVersePicker(false);
+    if (!(active && status !== 'idle')) { keepVerseInView(num, true); return; }
+    const target = chunkForVerse(num);
+    if (target < 0) return;
+    introRef.current = ''; // the chapter was already announced
+    const audio = audioRef.current;
+    if (audio) { audio.onended = null; audio.onerror = null; audio.ontimeupdate = null; audio.pause(); }
+    playFrom(target);
+  };
 
   const toggle = () => {
     if (status === 'loading') return;
@@ -303,11 +333,15 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
       if (verse) keepVerseInView(verse, true);
       return;
     }
-    // Carry on from the verse last read in this chapter (never a later one —
-    // the reader should hear it from where they left off).
+    // A chosen starting verse wins; otherwise carry on from the verse last
+    // read in this chapter (never a later one — the reader should hear it
+    // from where they left off).
     let from = 0;
     const resume = lastPosRef.current;
-    if (resume && resume.key === passageKey) {
+    if (startVerse > 1) {
+      const picked = chunkForVerse(startVerse);
+      if (picked > 0) from = picked;
+    } else if (resume && resume.key === passageKey) {
       const found = chunks.findIndex(chunk => chunk.verses.includes(resume.verse));
       if (found > 0) from = found;
     }
@@ -341,6 +375,36 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   return (
     <div role="group" aria-label="Listen to this chapter" className="kjb-listen-row print:hidden w-full">
       <div className="flex items-center justify-center gap-2 w-full max-w-[120rem] mx-auto">
+      <div className="relative flex-none">
+        <button
+          type="button"
+          onClick={() => setShowVersePicker(p => !p)}
+          disabled={!canListen || busy}
+          title={`Start listening from verse ${startVerse}`}
+          aria-label={`Start listening from verse ${startVerse}`}
+          className={`flex h-10 flex-none items-center gap-1.5 rounded-xl border border-border px-3 font-sans text-[11px] font-medium transition-colors touch-manipulation disabled:opacity-30 ${startVerse > 1 ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}
+        >
+          <ListOrdered className="h-4 w-4 flex-none" />
+          <span className="whitespace-nowrap">v.{startVerse}</span>
+        </button>
+        {showVersePicker && !isMobile() && (
+          <div className="kjb-popover-panel absolute top-full left-0 mt-1 z-[100]">
+            <VerseGrid
+              verseCount={verses.length}
+              currentVerse={startVerse}
+              onSelect={startFrom}
+            />
+          </div>
+        )}
+        <SelectorSheet open={showVersePicker && isMobile()} onClose={() => setShowVersePicker(false)} title="Start listening from verse">
+          <VerseGrid
+            bare
+            verseCount={verses.length}
+            currentVerse={startVerse}
+            onSelect={startFrom}
+          />
+        </SelectorSheet>
+      </div>
       <button
         type="button"
         onClick={() => jumpTo(index - 1)}

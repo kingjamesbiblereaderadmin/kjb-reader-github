@@ -4,7 +4,11 @@ const PAUSE_WEIGHT = { ',': 3, ';': 5, ':': 4, '.': 8, '!': 8, '?': 8 };
 
 // Speech-only pronunciation hints. The canonical KJB text remains unchanged everywhere else.
 const PRONUNCIATION_RULES = [
-  [/\bMizpeh\b/gi, 'Miz-puh'],
+  // Force syllable-based speech instead of letting the voice spell this name.
+  [/\bMizpeh\b/gi, 'Miz puh'],
+  [/\bMizpah\b/gi, 'Miz pah'],
+  [/\bMizpeh's\b/gi, "Miz puh's"],
+  [/\bMizpah's\b/gi, "Miz pah's"],
   [/\bBeersheba\b/gi, 'Beer-sheba'],
   [/\bKirjath\b/gi, 'Kir-jath'],
   [/\bKiriath\b/gi, 'Kir-ee-ath'],
