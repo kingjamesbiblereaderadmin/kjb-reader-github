@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Loader2, Pause, Play, SkipBack, SkipForward, Square, AlertCircle, Repeat } from 'lucide-react';
+import { Pause, Play, SkipBack, SkipForward, Square, AlertCircle, Repeat } from 'lucide-react';
 import { buildSpeechChunks, speechWeight } from '@/lib/ttsChunks';
 import { setSpeakingVerses, clearSpeakingVerses } from '@/lib/speakingVerses';
 import { keepVerseInView } from '@/lib/keepVerseInView';
@@ -331,11 +331,15 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
         type="button"
         onClick={toggle}
         disabled={!canListen || busy}
-        title={status === 'playing' ? 'Pause' : 'Play this chapter'}
-        aria-label={status === 'playing' ? 'Pause' : 'Play this chapter'}
-        className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-primary text-primary-foreground hover:opacity-90 transition-opacity touch-manipulation disabled:opacity-40"
+        title={busy ? 'Preparing audio…' : status === 'playing' ? 'Pause' : 'Play this chapter'}
+        aria-label={busy ? 'Preparing audio' : status === 'playing' ? 'Pause' : 'Play this chapter'}
+        className={`flex h-10 flex-none items-center justify-center overflow-hidden rounded-full bg-primary text-primary-foreground hover:opacity-90 transition-all duration-300 touch-manipulation disabled:opacity-70 ${busy ? 'gap-2 px-4' : 'w-10'}`}
       >
-        {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : status === 'playing' ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+        {/* Preparing audio: the circle widens into a small pill, then returns
+            to a circle once playback starts. */}
+        {busy
+          ? <span className="whitespace-nowrap font-sans text-xs font-medium">Loading…</span>
+          : status === 'playing' ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
       </button>
       <button
         type="button"
@@ -372,17 +376,11 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
         <span className="hidden xs:inline">{continueReading ? 'Continuous' : 'Single'}</span>
       </button>
       </div>
-      {(error || busy) && (
+      {error && (
         <div aria-live="polite" className="mt-2 flex justify-center">
-          {error ? (
-            <span className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-secondary px-3 py-1.5 font-sans text-[11px] font-medium text-destructive shadow-sm">
-              <AlertCircle className="h-3.5 w-3.5 flex-none" /> {error}
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-2 rounded-xl border border-border bg-secondary px-3 py-1.5 font-sans text-[11px] font-medium text-secondary-foreground shadow-sm">
-              <Loader2 className="h-3.5 w-3.5 flex-none animate-spin" /> Preparing audio…
-            </span>
-          )}
+          <span className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-secondary px-3 py-1.5 font-sans text-[11px] font-medium text-destructive shadow-sm">
+            <AlertCircle className="h-3.5 w-3.5 flex-none" /> {error}
+          </span>
         </div>
       )}
     </div>
