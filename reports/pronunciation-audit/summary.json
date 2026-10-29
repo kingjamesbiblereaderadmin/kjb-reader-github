@@ -23,8 +23,9 @@
   },
   "integrityPass": true,
   "notes": [
-    "Text-only heuristic audit: candidates are not confirmed pronunciation errors.",
-    "Audio pronunciation must be checked against generated samples.",
-    "Verse 1 is unnumbered in this source format and is reconstructed as chapter verse 1."
+    "Text audit covers the full PCE source and maps references across all 66 canonical books using canonical book order.",
+    "Review candidates are heuristic flags, not confirmed pronunciation errors.",
+    "Audio samples have not yet been synthesized/listened to, so audio pronunciation remains unverified.",
+    "Verse 1 is unnumbered in the source and reconstructed as chapter verse 1."
   ]
 }
