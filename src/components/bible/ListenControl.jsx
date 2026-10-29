@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { base44 } from '@/api/base44Client';
 import { Headphones, Loader2, Pause, Play, Square, AlertCircle } from 'lucide-react';
 import { buildSpeechChunks } from '@/lib/ttsChunks';
+import { setSpeakingVerses, clearSpeakingVerses } from '@/lib/speakingVerses';
 
 const PREFERRED_LANGUAGE = 'en-GB';
 const FALLBACK_LANGUAGE = 'en-US';
@@ -19,8 +20,10 @@ function base64ToBlobUrl(base64, contentType) {
 
 // Reads the current chapter aloud through the server-side NVIDIA Magpie
 // function. Chapters longer than the function's 1,800-character limit are
-// synthesized chunk by chunk and played back to back.
-export default function ListenControl({ verses, book, pos, disabled }) {
+// synthesized chunk by chunk and played back to back; finishing a chapter
+// continues into the next one. The book is announced on the first chapter of
+// a listening session (and on each new book), later chapters as "Chapter N".
+export default function ListenControl({ verses, book, pos, disabled, loading, goNext, isLastChapterLastBook }) {
   const chunks = useMemo(() => buildSpeechChunks(verses), [verses]);
   const [active, setActive] = useState(false);
   const [status, setStatus] = useState('idle'); // idle | loading | playing | paused
@@ -33,6 +36,15 @@ export default function ListenControl({ verses, book, pos, disabled }) {
   const prefetchRef = useRef(new Map()); // chunk index -> in-flight promise
   const languageRef = useRef(PREFERRED_LANGUAGE);
   const runRef = useRef(0); // invalidates callbacks from a stopped run
+  const introRef = useRef('');
+  const sessionBookRef = useRef(null); // book already announced this session
+  const posRef = useRef(pos);
+  const activeRef = useRef(false);
+  const pendingAdvanceRef = useRef(false);
+  const playedKeyRef = useRef('');
+
+  posRef.current = pos;
+  const passageKey = `${pos?.abbr || ''}:${pos?.chapter || ''}`;
 
   const releaseAll = useCallback(() => {
     urlsRef.current.forEach(url => URL.revokeObjectURL(url));
@@ -40,8 +52,9 @@ export default function ListenControl({ verses, book, pos, disabled }) {
     prefetchRef.current.clear();
   }, []);
 
-  const stop = useCallback(() => {
+  const stop = useCallback((resetSession = true) => {
     runRef.current += 1;
+    pendingAdvanceRef.current = false;
     const audio = audioRef.current;
     if (audio) {
       audio.onended = null;
@@ -51,26 +64,27 @@ export default function ListenControl({ verses, book, pos, disabled }) {
       audio.load();
     }
     releaseAll();
+    clearSpeakingVerses();
+    if (resetSession) sessionBookRef.current = null;
+    activeRef.current = false;
     setActive(false);
     setStatus('idle');
     setIndex(0);
     setError('');
   }, [releaseAll]);
 
-  // Any chapter (or book) change ends playback for the previous passage.
-  const passageKey = `${pos?.abbr || ''}:${pos?.chapter || ''}`;
-  useEffect(() => { stop(); }, [passageKey, stop]);
-
   useEffect(() => () => {
     runRef.current += 1;
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    clearSpeakingVerses();
     releaseAll();
   }, [releaseAll]);
 
   const synthesize = useCallback(async (chunkIndex) => {
-    const text = chunks[chunkIndex];
-    if (!text) return null;
+    const chunk = chunks[chunkIndex];
+    if (!chunk) return null;
 
+    const text = chunkIndex === 0 && introRef.current ? `${introRef.current} ${chunk.text}` : chunk.text;
     const run = runRef.current;
     const attempt = async (language) => base44.functions.invoke('nvidiaMagpieTts', {
       action: 'synthesize',
@@ -85,7 +99,7 @@ export default function ListenControl({ verses, book, pos, disabled }) {
       if (!data?.success || !data?.audioBase64) throw new Error(data?.error || 'NVIDIA did not return audio.');
     } catch (firstError) {
       // English (UK) may be rejected by this model — fall back to (US) once
-      // and remember the working locale for the rest of the chapter.
+      // and remember the working locale for the rest of the session.
       if (languageRef.current !== FALLBACK_LANGUAGE) {
         response = await attempt(FALLBACK_LANGUAGE);
         const data = response?.data;
@@ -109,10 +123,22 @@ export default function ListenControl({ verses, book, pos, disabled }) {
     prefetchRef.current.set(chunkIndex, job);
   }, [chunks.length, synthesize]);
 
+  const advanceChapter = useCallback(() => {
+    clearSpeakingVerses();
+    const current = posRef.current;
+    if (!goNext || isLastChapterLastBook) { stop(); return; }
+    playedKeyRef.current = `${current.abbr}:${current.chapter}`;
+    pendingAdvanceRef.current = true;
+    setStatus('loading');
+    const moved = goNext(true);
+    if (!moved) { pendingAdvanceRef.current = false; stop(); }
+  }, [goNext, isLastChapterLastBook, stop]);
+
   const playFrom = useCallback(async (chunkIndex) => {
-    if (chunkIndex >= chunks.length) { stop(); return; }
+    if (chunkIndex >= chunks.length) { advanceChapter(); return; }
 
     setActive(true);
+    activeRef.current = true;
     setError('');
     setIndex(chunkIndex);
     const run = runRef.current;
@@ -138,7 +164,10 @@ export default function ListenControl({ verses, book, pos, disabled }) {
     audioRef.current = audio;
     if (audio.src !== url) audio.src = url;
 
-    audio.onended = () => { playFrom(chunkIndex + 1); };
+    audio.onended = () => {
+      if (chunkIndex + 1 < chunks.length) playFrom(chunkIndex + 1);
+      else advanceChapter();
+    };
     audio.onerror = () => {
       if (run !== runRef.current) return;
       setError('This part of the chapter could not be played.');
@@ -149,13 +178,45 @@ export default function ListenControl({ verses, book, pos, disabled }) {
       await audio.play();
       if (run !== runRef.current) return;
       setStatus('playing');
+      const p = posRef.current;
+      setSpeakingVerses(p?.abbr, p?.chapter, chunks[chunkIndex].verses);
       prefetch(chunkIndex + 1);
     } catch {
       if (run !== runRef.current) return;
       setError('Tap play to start listening.');
       setStatus('paused');
     }
-  }, [chunks.length, prefetch, stop, synthesize]);
+  }, [advanceChapter, chunks, prefetch, stop, synthesize]);
+
+  // Opening a chapter: announce the book the first time (and on every new
+  // book), then just the chapter number while continuing the same book.
+  const startChapter = useCallback(() => {
+    const p = posRef.current;
+    const bookName = book?.name || book?.shortName || '';
+    introRef.current = sessionBookRef.current === p?.abbr
+      ? `Chapter ${p?.chapter}.`
+      : `${bookName}, Chapter ${p?.chapter}.`;
+    sessionBookRef.current = p?.abbr || null;
+    playedKeyRef.current = `${p?.abbr}:${p?.chapter}`;
+    playFrom(0);
+  }, [book?.name, book?.shortName, playFrom]);
+
+  // A chapter change the reader did NOT trigger by itself ends playback.
+  useEffect(() => {
+    if (pendingAdvanceRef.current || !activeRef.current) return;
+    stop();
+  }, [passageKey, stop]);
+
+  // Continue into the chapter we just advanced to, once its verses are in.
+  useEffect(() => {
+    if (!pendingAdvanceRef.current) return;
+    if (passageKey === playedKeyRef.current) return;
+    if (loading) return;
+    if (!chunks.length) { stop(); return; } // e.g. a title page
+    pendingAdvanceRef.current = false;
+    releaseAll();
+    startChapter();
+  }, [passageKey, loading, chunks, releaseAll, startChapter, stop]);
 
   const toggle = () => {
     if (status === 'loading') return;
@@ -170,7 +231,7 @@ export default function ListenControl({ verses, book, pos, disabled }) {
       prefetch(index + 1);
       return;
     }
-    playFrom(index);
+    startChapter();
   };
 
   const canListen = chunks.length > 0 && !disabled;
@@ -180,7 +241,7 @@ export default function ListenControl({ verses, book, pos, disabled }) {
     <>
       <button
         type="button"
-        onClick={() => (active ? stop() : playFrom(0))}
+        onClick={() => (active ? stop() : startChapter())}
         disabled={!canListen}
         title={active ? 'Stop listening' : 'Listen to this chapter'}
         aria-label={active ? 'Stop listening' : 'Listen to this chapter'}
@@ -216,7 +277,7 @@ export default function ListenControl({ verses, book, pos, disabled }) {
             </div>
             <button
               type="button"
-              onClick={stop}
+              onClick={() => stop()}
               aria-label="Stop listening"
               className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-border text-foreground hover:bg-secondary"
             >

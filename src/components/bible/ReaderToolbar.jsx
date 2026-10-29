@@ -31,7 +31,7 @@ export default function ReaderToolbar({
   showBookPicker, setShowBookPicker, showChapterPicker, setShowChapterPicker,
   showVersePicker, setShowVersePicker, showZoomPopover, setShowZoomPopover,
   showFontPopover, setShowFontPopover, pendingBook, setPendingBook,
-  navigate, handleVersePick, verseCount, chapterSubscript, colophon,
+  navigate, handleVersePick, verseCount, chapterSubscript, colophon, loading,
   highlightVerse, highlightSection, selectMode, selectedVerses, filterMode,
   setSelectMode, setFilterMode, setSelectedVerses, setHighlightedVerses,
   setShowFilterOverlay, setHighlightVerse, setHighlightSection, setTappedVerses,
@@ -315,7 +315,11 @@ export default function ReaderToolbar({
           </button>
           <button onClick={toggleSelectMode} title="Select verses" className={`kjb-fixed-btn flex-none flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-xs font-medium transition-all duration-200 touch-manipulation h-10  whitespace-nowrap ${selectMode ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}><CheckSquare className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Select</span></button>
 
-          <ListenControl verses={verses} book={book} pos={pos} disabled={verseCount === 0} />
+          <ListenControl
+            verses={verses} book={book} pos={pos}
+            disabled={verseCount === 0} loading={loading}
+            goNext={goNext} isLastChapterLastBook={isLastChapterLastBook}
+          />
 
            <DropdownMenu onOpenChange={(open) => { if (open) closeAllMenus(); }}>
             <DropdownMenuTrigger asChild>

@@ -1,6 +1,7 @@
 // Turns a chapter's verses into speech-sized chunks for the NVIDIA Magpie TTS
 // function, which rejects anything over 1,800 characters. Text goes out exactly
 // as read — only the reader's own markup (italic brackets, pilcrows) is removed.
+// Each chunk also lists the verses it covers, so playback can highlight them.
 
 export const TTS_MAX_CHARS = 1600; // headroom under the backend's 1,800 limit
 
@@ -28,21 +29,28 @@ function splitLong(text, max) {
   return parts;
 }
 
-// Returns an array of plain-text chunks, each within `max` characters.
+// Returns [{ text, verses: [numbers] }], each chunk within `max` characters.
 export function buildSpeechChunks(verses, max = TTS_MAX_CHARS) {
   const chunks = [];
-  let current = '';
+  let current = null;
+
+  const push = (piece, verseNumber) => {
+    if (!current) current = { text: piece, verses: [verseNumber] };
+    else if (current.text.length + 1 + piece.length <= max) {
+      current.text += ` ${piece}`;
+      if (!current.verses.includes(verseNumber)) current.verses.push(verseNumber);
+    } else {
+      chunks.push(current);
+      current = { text: piece, verses: [verseNumber] };
+    }
+  };
 
   for (const verse of verses || []) {
     const text = verseToSpeech(verse.text);
     if (!text) continue;
-
+    const verseNumber = parseInt(verse.verse, 10);
     const pieces = text.length > max ? splitLong(text, max) : [text];
-    for (const piece of pieces) {
-      if (!current) current = piece;
-      else if (current.length + 1 + piece.length <= max) current += ` ${piece}`;
-      else { chunks.push(current); current = piece; }
-    }
+    for (const piece of pieces) push(piece, verseNumber);
   }
   if (current) chunks.push(current);
   return chunks;

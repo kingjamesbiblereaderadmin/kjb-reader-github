@@ -11,6 +11,7 @@ import { ensureShyMap, getShyMap, injectShyHtml, installShyCopySanitizer } from 
 import VersePopover from '@/components/bible/VersePopover';
 import SaveFolderPicker from '@/components/bible/SaveFolderPicker';
 import { useDropcapVars } from '@/lib/dropcapMetrics';
+import { SPEAKING_EVENT, isSpeakingVerse } from '@/lib/speakingVerses';
 
 export default function VerseText({ verse, highlight = false, id, bookName, abbr, chapter, isFirstVerse = false, paragraphMode = false, selectMode = false, highlightMode = false, activeHighlightColor = null, isSelected = false, onSelect, onActivateSelect, totalVerses = 0, colophon = null, subscript = null, isCursive = false, fontFamilyValue = null, zoomLevel = 100, hasSubscript = false, searchTerm = null, dropCap = false, columnMode = false, onVerseTap = null, isDirectJump = false }) {
   const bookEntry = BIBLE_BOOKS.find(b => b.abbr === abbr);
@@ -26,6 +27,16 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     window.addEventListener('kjb-highlights-changed', sync);
     return () => window.removeEventListener('kjb-highlights-changed', sync);
   }, []);
+  // Follows the Listen player: the verse being read aloud is tinted until
+  // the audio moves on.
+  const [speaking, setSpeaking] = useState(false);
+  useEffect(() => {
+    const sync = () => setSpeaking(isSpeakingVerse(abbr, chapter, verse.verse));
+    sync();
+    window.addEventListener(SPEAKING_EVENT, sync);
+    return () => window.removeEventListener(SPEAKING_EVENT, sync);
+  }, [abbr, chapter, verse.verse]);
+  const speakingAttr = speaking ? 'true' : undefined;
   const persistedColor = getVerseHighlight(abbr, chapter, verse.verse);
   const showHighlight = !!persistedColor;
 
@@ -492,7 +503,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     // Pilcrow verse: render as a block (new paragraph) with gap above, no indent
     if (hasPilcrow && !isFirstVerse) {
       return (
-        <span id={id} data-pilcrow="true" className="block relative mt-12 scroll-mt-24">
+        <span id={id} data-pilcrow="true" data-speaking={speakingAttr} className="block relative mt-12 scroll-mt-24">
           {stanzaHeading}
           <span
             onClick={handleVerseClick}
@@ -518,7 +529,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     }
     // Normal inline verse
     return (
-      <span id={id} className="inline relative scroll-mt-24">
+      <span id={id} data-speaking={speakingAttr} className="inline relative scroll-mt-24">
         {stanzaHeading}
         <span
           onClick={handleVerseClick}
@@ -566,7 +577,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   // floated/pulled back via CSS so it still begins at the left margin.
   if (dropCap) {
     return (
-      <span id={id} className="block relative mt-2 scroll-mt-24" style={{ display: 'flow-root' }}>
+      <span id={id} data-speaking={speakingAttr} className="block relative mt-2 scroll-mt-24" style={{ display: 'flow-root' }}>
         {stanzaHeading}
         <span
           onClick={handleVerseClick}
@@ -595,7 +606,7 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     );
   }
   return (
-    <span id={id} data-pilcrow={hasPilcrow && !isFirstVerse ? 'true' : undefined} className={`block relative scroll-mt-24 ${hasPilcrow && !isFirstVerse ? 'mt-12' : 'mt-3'}`}>
+    <span id={id} data-pilcrow={hasPilcrow && !isFirstVerse ? 'true' : undefined} data-speaking={speakingAttr} className={`block relative scroll-mt-24 ${hasPilcrow && !isFirstVerse ? 'mt-12' : 'mt-3'}`}>
       {stanzaHeading}
       <span
         onClick={handleVerseClick}

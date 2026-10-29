@@ -945,6 +945,14 @@ html.kjb-native-ios select {
   border-top-width: 1.5px;
 }
 
+/* The verse currently being read aloud by the Listen player: a soft tint on
+   the text itself, distinct from a saved reader highlight. */
+[data-speaking="true"] .kjb-verse-text {
+  background-color: hsl(var(--primary) / 0.16);
+  border-radius: 0.15em;
+  transition: background-color 0.2s ease;
+}
+
 /* Listen player: sits clear of the phone bottom nav, and near the bottom
    edge on wider screens where that nav is hidden. */
 .kjb-listen-player {
