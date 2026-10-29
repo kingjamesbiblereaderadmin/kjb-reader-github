@@ -32,6 +32,7 @@ const loaders = {
   LegacyReader: () => import('@/pages/LegacyReader.jsx').catch((err) => { console.error('Failed to load LegacyReader:', err); throw err; }),
   BibleTxt: () => import('@/pages/BibleTxt.jsx').catch((err) => { console.error('Failed to load BibleTxt:', err); throw err; }),
   DevTools: () => import('@/pages/DevToolsPage.jsx').catch((err) => { console.error('Failed to load DevToolsPage:', err); throw err; }),
+  TtsTest: () => import('@/pages/TtsTestPage.jsx').catch((err) => { console.error('Failed to load TtsTestPage:', err); throw err; }),
   Landing: () => import('@/pages/LandingPage').catch((err) => { console.error('Failed to load LandingPage:', err); throw err; }),
   Terms: () => import('@/pages/TermsOfServicePage').catch((err) => { console.error('Failed to load TermsOfServicePage:', err); throw err; }),
   Salvation: () => import('@/pages/SalvationPage').catch((err) => { console.error('Failed to load SalvationPage:', err); throw err; }),
@@ -84,6 +85,7 @@ const PrivacyPolicyPage = lazy(loaders.Privacy);
 const LegacyReader = lazy(loaders.LegacyReader);
 const BibleTxt = lazy(loaders.BibleTxt);
 const DevToolsPage = lazy(loaders.DevTools);
+const TtsTestPage = lazy(loaders.TtsTest);
 const LandingPage = lazy(loaders.Landing);
 const TermsOfServicePage = lazy(loaders.Terms);
 const SalvationPage = lazy(loaders.Salvation);
@@ -371,6 +373,7 @@ const AuthenticatedApp = () => {
               <Route path="/manifest-screenshots" element={<Suspense fallback={<RouteLoader />}><FadeIn><ManifestScreenshots /></FadeIn></Suspense>} />
               <Route path="/legacy" element={<Suspense fallback={<RouteLoader />}><FadeIn><LegacyReader /></FadeIn></Suspense>} />
               <Route path="/dev-tools" element={<Suspense fallback={<RouteLoader />}><FadeIn><DevToolsPage /></FadeIn></Suspense>} />
+              <Route path="/tts-test" element={<Suspense fallback={<RouteLoader />}><FadeIn><TtsTestPage /></FadeIn></Suspense>} />
               <Route path="/espanol" element={<Suspense fallback={<RouteLoader />}><FadeIn><SpanishResourcesPage /></FadeIn></Suspense>} />
             </Route>
             <Route path="/bible.txt" element={<Suspense fallback={null}><BibleTxt /></Suspense>} />
