@@ -659,6 +659,10 @@ zereth=zeh-reth
 zoheleth=zoh-heh-leth
 zoheth=zoh-eth
 tebeth=tay-beth
+bosheth=boh-sheth
+sibboleth=sib-oh-leth
+hareth=hair-eth
+jetheth=jeh-theth
 `;
 
 // Built once at module load: word → respelling.
@@ -700,15 +704,17 @@ provid provok purg purpos pursu rag rais rebuk receiv recompens refus rejoic
 reliev remov reprov requir rescu reserv restor reveng revil rid ris rul
 sacrific salut sav scourg seduc separat serv settl shak sham shin slid smit smot
 spak spar sprinkl ston strik striv stumbl subdu suffic swar tak tast treasur
-trembl troubl valu vil wak wast weav wip writ
+trickl rattl trembl troubl valu vil wak wast weav wip writ
 di li ow se us
 `.split(/\s+/).filter(Boolean));
 
 // End in "-eth"/"-est" but are not archaic verbs.
 const NOT_ARCHAIC = new Set([
   'teeth', 'priest', 'priests', 'forest', 'forests', 'request', 'requests',
-  'interest', 'interests', 'manifest', 'protest', 'daleth',
+  'interest', 'interests', 'manifest', 'protest', 'detest', 'daleth',
   'best', 'chest', 'guest', 'lest', 'nest', 'rest', 'west', 'wrest',
+  'cheth', 'sheth', 'twentieth', 'thirtieth', 'fortieth', 'fiftieth',
+  'sixtieth', 'seventieth', 'eightieth', 'ninetieth',
 ]);
 
 // Forms whose stem cannot be rebuilt by rule.
@@ -726,8 +732,6 @@ function splitArchaicEnding(word) {
   const stem = word.slice(0, -3);
   if (stem.length < 2) return '';
   if (NOT_ARCHAIC.has(word)) return '';
-  // Ordinals: twentieth, thirtieth … (but glorifieth, testifieth still split).
-  if (word.endsWith('tieth')) return '';
   return SILENT_E_STEMS.has(stem) ? `${stem}e-${suffix}` : `${stem}-${suffix}`;
 }
 
