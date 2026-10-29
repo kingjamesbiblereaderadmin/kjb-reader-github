@@ -79,7 +79,6 @@ const BOTTOM_NAV_PRIMARY = [
 const BOTTOM_NAV_SECONDARY = [
   { path: '/resources', icon: Library, label: 'Resources' },
   { path: '/saved', icon: Bookmark, label: 'Saved' },
-  { path: '/about', icon: Info, label: 'About' },
   { path: '/settings', icon: Settings, label: 'Settings' },
   { path: '/accessibility', icon: Accessibility, label: 'Accessibility' },
 ];
