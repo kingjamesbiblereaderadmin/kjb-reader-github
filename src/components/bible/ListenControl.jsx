@@ -503,7 +503,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
       </button>
       <button
         type="button"
-        onClick={() => setShowInfo(v => !v)
+        onClick={() => setShowInfo(v => !v)}
         aria-expanded={showInfo}
         title="About Listen (beta)"
         aria-label="About Listen (beta)"
