@@ -5,7 +5,20 @@ const PAUSE_WEIGHT = { ',': 3, ';': 5, ':': 4, '.': 8, '!': 8, '?': 8 };
 // These substitutions affect speech only; the KJB text shown, searched and copied is untouched.
 // Use conservative pronunciation respellings only for words reported to be spoken incorrectly.
 const PRONUNCIATION_RULES = [
+  // Familiar KJB names whose spelling commonly misleads English TTS engines.
   [/\\bMizpeh\\b/gi, 'Miz-puh'],
+  [/\\bBeersheba\\b/gi, 'Beer-sheba'],
+  [/\\bBeer-sheba\\b/gi, 'Beer-sheba'],
+  [/\\bKirjath\\b/gi, 'Kir-jath'],
+  [/\\bKiriath\\b/gi, 'Kir-ee-ath'],
+  [/\\bMaher-shalal-hash-baz\\b/gi, 'Maher-shalal-hash-baz'],
+  [/\\bNebuchadnezzar\\b/gi, 'Neb-yoo-kad-nez-er'],
+  [/\\bCapernaum\\b/gi, 'Kuh-per-nay-um'],
+  [/\\bZerubbabel\\b/gi, 'Zer-ub-uh-bel'],
+  [/\\bMelchisedec\\b/gi, 'Mel-kiz-uh-dek'],
+  [/\\bMelchizedek\\b/gi, 'Mel-kiz-uh-dek'],
+  [/\\bShibboleth\\b/gi, 'Shib-uh-leth'],
+  [/\\bZaphnath-paaneah\\b/gi, 'Zaf-nath-pay-nee-ah'],
 ];
 
 export function speechWeight(text) {
@@ -17,6 +30,10 @@ export function speechWeight(text) {
 export function verseToSpeech(text) {
   let spoken = String(text || '')
     .replace(/[\\[\\]]/g, '')
+    // In this parsed Bible source, the replacement character is used both for
+    // apostrophes and paragraph marks. Preserve possessives before removing marks.
+    .replace(/([A-Za-z])�(?=[sS]\\b)/g, "$1'")
+    .replace(/([A-Za-z])�(?=\\s|$)/g, "$1'")
     .replace(/[¶�]/g, ' ')
     .replace(/\\s+/g, ' ')
     .trim();
@@ -51,6 +68,7 @@ export function buildSpeechChunks(verses, max = TTS_MAX_CHARS, sections = {}) {
     }
   };
 
+  if (sections.titlePage) addSection('title-page', sections.titlePage);
   if (sections.superscription) addSection('superscription', sections.superscription);
 
   for (const verse of verses || []) {
