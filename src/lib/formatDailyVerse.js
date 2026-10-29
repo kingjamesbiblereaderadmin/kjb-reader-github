@@ -80,7 +80,10 @@ export function formatVerseShare({ text, ref, url, title, subscript, heading, co
   if (subscript) quoteInner.push(withPilcrow(subscript));
   quoteInner.push(clean);
   if (colophon) quoteInner.push(withPilcrow(colophon));
-  parts.push(`“${quoteInner.join('\n\n')}” - ${ref}`);
+  // Reference always carries the translation tag, e.g. "John 3:16 (KJB)" —
+  // matches search-result copies. Guarded so a ref that already has it isn't doubled.
+  const refWithTag = /\(KJB\)\s*$/.test(String(ref || '')) ? ref : `${ref} (KJB)`;
+  parts.push(`“${quoteInner.join('\n\n')}” - ${refWithTag}`);
   if (url) parts.push(`Read more: <${url}>`);
   return parts.join('\n\n');
 }
