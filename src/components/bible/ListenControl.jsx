@@ -1,10 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Loader2, Pause, Play, SkipBack, SkipForward, Square, AlertCircle } from 'lucide-react';
+import { Loader2, Pause, Play, SkipBack, SkipForward, Square, AlertCircle, Repeat } from 'lucide-react';
 import { buildSpeechChunks, speechWeight } from '@/lib/ttsChunks';
 import { setSpeakingVerses, clearSpeakingVerses } from '@/lib/speakingVerses';
+import { keepVerseInView } from '@/lib/keepVerseInView';
 
 const PREFERRED_LANGUAGE = 'en-US';
+
+// Silence between verses, and the longer paragraph pause before a ¶ verse.
+const VERSE_GAP_MS = 550;
+const PARAGRAPH_GAP_MS = 1050;
+const CONTINUE_KEY = 'kjb-listen-continue';
 
 function errorMessage(error) {
   return error?.response?.data?.error || error?.message || 'Could not generate speech. Please try again.';
@@ -29,6 +35,10 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   const [index, setIndex] = useState(0);
   const [error, setError] = useState('');
   const [, setLocale] = useState(PREFERRED_LANGUAGE);
+  // "Continue" = keep reading into the next chapter when this one finishes.
+  const [continueReading, setContinueReading] = useState(() => {
+    try { return localStorage.getItem(CONTINUE_KEY) !== 'off'; } catch { return true; }
+  });
 
   const audioRef = useRef(null);
   const urlsRef = useRef(new Map()); // chunk index -> blob url
@@ -41,6 +51,11 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   const activeRef = useRef(false);
   const pendingAdvanceRef = useRef(false);
   const playedKeyRef = useRef('');
+  const gapTimerRef = useRef(null); // pause between verses
+  const lastSpokenRef = useRef(null); // verse last scrolled to
+  const continueRef = useRef(continueReading);
+
+  continueRef.current = continueReading;
 
   posRef.current = pos;
   const passageKey = `${pos?.abbr || ''}:${pos?.chapter || ''}`;
@@ -63,6 +78,9 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
       audio.removeAttribute('src');
       audio.load();
     }
+    clearTimeout(gapTimerRef.current);
+    gapTimerRef.current = null;
+    lastSpokenRef.current = null;
     releaseAll();
     clearSpeakingVerses();
     if (resetSession) sessionBookRef.current = null;
@@ -75,6 +93,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
 
   useEffect(() => () => {
     runRef.current += 1;
+    clearTimeout(gapTimerRef.current);
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     clearSpeakingVerses();
     releaseAll();
@@ -136,6 +155,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     const spoken = (elapsed / duration) * total;
     // Still on "Book, Chapter N." — that belongs to the chapter heading.
     if (spoken < intro) {
+      lastSpokenRef.current = null;
       setSpeakingVerses(p?.abbr, p?.chapter, [], true);
       return;
     }
@@ -145,12 +165,19 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
       walked += span.weight;
       if (spoken <= walked) { verse = span.verse; break; }
     }
+    // Follow along: if the spoken verse has scrolled out of sight, bring it back.
+    if (verse !== lastSpokenRef.current) {
+      lastSpokenRef.current = verse;
+      keepVerseInView(verse);
+    }
     setSpeakingVerses(p?.abbr, p?.chapter, [verse]);
   }, [chunks]);
 
   const playFrom = useCallback(async (chunkIndex) => {
     if (chunkIndex >= chunks.length) { advanceChapter(); return; }
 
+    clearTimeout(gapTimerRef.current);
+    gapTimerRef.current = null;
     setActive(true);
     activeRef.current = true;
     setError('');
@@ -179,8 +206,19 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     if (audio.src !== url) audio.src = url;
 
     audio.onended = () => {
-      if (chunkIndex + 1 < chunks.length) playFrom(chunkIndex + 1);
-      else advanceChapter();
+      if (run !== runRef.current) return;
+      if (chunkIndex + 1 < chunks.length) {
+        // A breath after each verse, and a full paragraph pause before a ¶ verse.
+        const delay = chunks[chunkIndex + 1]?.pilcrow ? PARAGRAPH_GAP_MS : VERSE_GAP_MS;
+        clearTimeout(gapTimerRef.current);
+        gapTimerRef.current = setTimeout(() => {
+          if (run === runRef.current) playFrom(chunkIndex + 1);
+        }, delay);
+      } else if (continueRef.current) {
+        advanceChapter();
+      } else {
+        stop();
+      }
     };
     audio.onerror = () => {
       if (run !== runRef.current) return;
@@ -197,6 +235,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
         if (run === runRef.current) speakAt(chunkIndex, audio.currentTime, audio.duration);
       };
       prefetch(chunkIndex + 1);
+      prefetch(chunkIndex + 2);
     } catch {
       if (run !== runRef.current) return;
         setError('Tap play to start listening.');
@@ -245,6 +284,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
       audioRef.current.play().catch(() => {});
       setStatus('playing');
       prefetch(index + 1);
+      prefetch(index + 2);
       return;
     }
     startChapter();
@@ -254,7 +294,10 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   // next chapter, exactly like finishing a part does.
   const jumpTo = (target) => {
     if (!active || busy) return;
-    if (target >= chunks.length) { advanceChapter(); return; }
+    if (target >= chunks.length) {
+      if (continueRef.current) advanceChapter(); else stop();
+      return;
+    }
     const audio = audioRef.current;
     if (target === index && audio) {
       audio.currentTime = 0;
@@ -313,6 +356,20 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
         className={btn}
       >
         <Square className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          const next = !continueReading;
+          setContinueReading(next);
+          try { localStorage.setItem(CONTINUE_KEY, next ? 'on' : 'off'); } catch {}
+        }}
+        aria-pressed={continueReading}
+        title={continueReading ? 'Continuous: carries on into the next chapter' : 'Single chapter: stops at the end of this chapter'}
+        className={`flex h-10 flex-none items-center gap-1.5 rounded-xl border border-border px-3 font-sans text-[11px] font-medium transition-colors touch-manipulation ${continueReading ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}
+      >
+        <Repeat className="h-4 w-4 flex-none" />
+        <span className="hidden xs:inline">{continueReading ? 'Continuous' : 'Single'}</span>
       </button>
       </div>
       {(error || busy) && (

@@ -41,40 +41,30 @@ function splitLong(text, max) {
   return parts;
 }
 
-// Returns [{ text, verses: [numbers], spans: [{ verse, weight }] }], each chunk
-// within `max` characters. `weight` is how much of this chunk's speaking time
-// belongs to that verse (punctuation counted as its pause), used to time the
-// read-aloud highlight inside the chunk.
+// Returns [{ text, verses: [numbers], pilcrow, spans: [{ verse, weight }] }],
+// each chunk within `max` characters. One verse per chunk, so playback can take
+// a breath between verses (and a longer one where a ¶ paragraph starts) and the
+// read-aloud highlight is exact. `pilcrow` marks a chunk whose verse begins a
+// new paragraph. `weight` is how much of the chunk's speaking time belongs to
+// that verse (punctuation counted as its pause).
 export function buildSpeechChunks(verses, max = TTS_MAX_CHARS) {
   const chunks = [];
-  let current = null;
-
-  const start = (piece, verseNumber) => {
-    current = { text: piece, verses: [verseNumber], spans: [{ verse: verseNumber, weight: speechWeight(piece) }] };
-  };
-
-  const push = (piece, verseNumber) => {
-    if (!current) { start(piece, verseNumber); return; }
-    if (current.text.length + 1 + piece.length <= max) {
-      current.text += ` ${piece}`;
-      if (!current.verses.includes(verseNumber)) current.verses.push(verseNumber);
-      const weight = speechWeight(piece) + 1;
-      const last = current.spans[current.spans.length - 1];
-      if (last.verse === verseNumber) last.weight += weight;
-      else current.spans.push({ verse: verseNumber, weight });
-    } else {
-      chunks.push(current);
-      start(piece, verseNumber);
-    }
-  };
 
   for (const verse of verses || []) {
     const text = verseToSpeech(verse.text);
     if (!text) continue;
     const verseNumber = parseInt(verse.verse, 10);
+    const pilcrow = /¶/.test(verse.text || '');
     const pieces = text.length > max ? splitLong(text, max) : [text];
-    for (const piece of pieces) push(piece, verseNumber);
+    pieces.forEach((piece, partIndex) => {
+      chunks.push({
+        text: piece,
+        verses: [verseNumber],
+        pilcrow: partIndex === 0 && pilcrow,
+        spans: [{ verse: verseNumber, weight: speechWeight(piece) }],
+      });
+    });
   }
-  if (current) chunks.push(current);
+
   return chunks;
 }
