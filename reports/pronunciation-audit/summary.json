@@ -1,13 +1,13 @@
 {
   "sourceBytes": 4345930,
   "lines": 33863,
-  "detectedBooks": 34,
-  "chapterHeadings": 1039,
+  "detectedBooks": 35,
+  "chapterHeadings": 1189,
   "numberedVerseLines": 29913,
-  "unnumberedFirstVerses": 1039,
-  "reconstructedVerseCount": 30952,
+  "unnumberedFirstVerses": 1189,
+  "reconstructedVerseCount": 31102,
   "uniqueWordForms": 12581,
-  "totalWordOccurrences": 793283,
+  "totalWordOccurrences": 793133,
   "hyphenatedWordForms": 266,
   "apostropheWordForms": 0,
   "longWordForms": 429,
@@ -21,7 +21,7 @@
     "chapters": 1189,
     "verses": 31102
   },
-  "integrityPass": false,
+  "integrityPass": true,
   "notes": [
     "Text-only heuristic audit: candidates are not confirmed pronunciation errors.",
     "Audio pronunciation must be checked against generated samples.",

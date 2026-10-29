@@ -19,8 +19,8 @@ for (const rawLine of lines) {
   if (!t) continue;
   const normalized = normalizeBook(t);
   if (bookNames.has(normalized)) { book = normalized; chapter = 0; verse = 0; awaitingFirstVerse = false; continue; }
-  const cm = t.match(/^CHAPTER\s+(\d+)$/i);
-  if (cm) { chapter = Number(cm[1]); verse = 0; awaitingFirstVerse = true; chapters++; continue; }
+  const cm = t.match(/^(?:CHAPTER|PSALM)\s+(\d+)$/i);
+  if (cm) { chapter = Number(cm[1]); verse = 0; awaitingFirstVerse = true; chapters++; if (/^PSALM\s/i.test(t)) book = 'PSALMS'; continue; }
   if (/^THE END\.?$/i.test(t)) { sourceEnd = true; continue; }
   if (!chapter || sourceEnd) continue;
   let content = t;
