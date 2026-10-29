@@ -4,21 +4,31 @@
 
 export const SPEAKING_EVENT = 'kjb-speaking-changed';
 
-let state = { abbr: null, chapter: null, verses: [] };
+let state = { abbr: null, chapter: null, verses: [], intro: false };
 
-export function setSpeakingVerses(abbr, chapter, verseNumbers) {
+export function setSpeakingVerses(abbr, chapter, verseNumbers, intro = false) {
   const next = {
     abbr: abbr || null,
     chapter: chapter == null ? null : Number(chapter),
     verses: (verseNumbers || []).map(Number),
+    intro: !!intro,
   };
   const same = state.abbr === next.abbr
     && state.chapter === next.chapter
+    && state.intro === next.intro
     && state.verses.length === next.verses.length
     && state.verses.every((n, i) => n === next.verses[i]);
   if (same) return;
   state = next;
   window.dispatchEvent(new CustomEvent(SPEAKING_EVENT));
+}
+
+// The player announces the book and chapter before the first verse; that part
+// of the audio belongs to the chapter heading, not to any verse.
+export function isSpeakingIntro(abbr, chapter) {
+  return state.intro
+    && state.abbr === abbr
+    && state.chapter === Number(chapter);
 }
 
 export function clearSpeakingVerses() {

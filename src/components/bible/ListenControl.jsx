@@ -1,11 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Loader2, Pause, Play, SkipBack, SkipForward, Square, AlertCircle } from 'lucide-react';
-import { buildSpeechChunks } from '@/lib/ttsChunks';
+import { toast } from 'sonner';
+import { buildSpeechChunks, speechWeight } from '@/lib/ttsChunks';
 import { setSpeakingVerses, clearSpeakingVerses } from '@/lib/speakingVerses';
 
 const PREFERRED_LANGUAGE = 'en-GB';
 const FALLBACK_LANGUAGE = 'en-US';
+const LOADING_TOAST_ID = 'kjb-listen-loading';
+
+const showLoadingToast = (message = 'Preparing audio…') => toast.loading(message, { id: LOADING_TOAST_ID });
 
 function errorMessage(error) {
   return error?.response?.data?.error || error?.message || 'Could not generate speech. Please try again.';
@@ -66,6 +70,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     }
     releaseAll();
     clearSpeakingVerses();
+    toast.dismiss(LOADING_TOAST_ID);
     if (resetSession) sessionBookRef.current = null;
     activeRef.current = false;
     setActive(false);
@@ -78,6 +83,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     runRef.current += 1;
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     clearSpeakingVerses();
+    toast.dismiss(LOADING_TOAST_ID);
     releaseAll();
   }, [releaseAll]);
 
@@ -131,27 +137,34 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     playedKeyRef.current = `${current.abbr}:${current.chapter}`;
     pendingAdvanceRef.current = true;
     setStatus('loading');
+    showLoadingToast('Loading the next chapter…');
     const moved = goNext(true);
     if (!moved) { pendingAdvanceRef.current = false; stop(); }
   }, [goNext, isLastChapterLastBook, stop]);
 
   // The TTS service returns audio only, with no word timings, so the verse
-  // being read is estimated from how much of the chunk's speech belongs to it.
-  // Chunks stay under ~1,600 characters, which keeps that estimate tight.
+  // being read is estimated from how much of the chunk's speaking time belongs
+  // to it (punctuation counted as the pause it is spoken with). Chunks stay
+  // under ~1,600 characters, which keeps that estimate tight.
   const speakAt = useCallback((chunkIndex, elapsed, duration) => {
     const chunk = chunks[chunkIndex];
     if (!chunk || !isFinite(duration) || duration <= 0) return;
-    const intro = chunkIndex === 0 ? (introRef.current ? introRef.current.length + 1 : 0) : 0;
-    const spans = chunk.spans?.length ? chunk.spans : chunk.verses.map(verse => ({ verse, chars: 1 }));
-    const total = spans.reduce((sum, span) => sum + span.chars, intro);
+    const p = posRef.current;
+    const intro = chunkIndex === 0 && introRef.current ? speechWeight(introRef.current) : 0;
+    const spans = chunk.spans?.length ? chunk.spans : chunk.verses.map(verse => ({ verse, weight: 1 }));
+    const total = spans.reduce((sum, span) => sum + span.weight, intro);
     const spoken = (elapsed / duration) * total;
-    let walked = 0;
+    // Still on "Book, Chapter N." — that belongs to the chapter heading.
+    if (spoken < intro) {
+      setSpeakingVerses(p?.abbr, p?.chapter, [], true);
+      return;
+    }
+    let walked = intro;
     let verse = spans[spans.length - 1].verse;
     for (const span of spans) {
-      walked += span.chars;
+      walked += span.weight;
       if (spoken <= walked) { verse = span.verse; break; }
     }
-    const p = posRef.current;
     setSpeakingVerses(p?.abbr, p?.chapter, [verse]);
   }, [chunks]);
 
@@ -167,12 +180,14 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     let url = urlsRef.current.get(chunkIndex);
     if (!url) {
       setStatus('loading');
+      showLoadingToast();
       try {
         const pending = prefetchRef.current.get(chunkIndex);
         if (pending) url = await pending;
         if (!url) url = await synthesize(chunkIndex);
       } catch (err) {
         if (run !== runRef.current) return;
+        toast.dismiss(LOADING_TOAST_ID);
         setError(errorMessage(err));
         setStatus('paused');
         return;
@@ -198,6 +213,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     try {
       await audio.play();
       if (run !== runRef.current) return;
+      toast.dismiss(LOADING_TOAST_ID);
       setStatus('playing');
       speakAt(chunkIndex, audio.currentTime, audio.duration);
       audio.ontimeupdate = () => {
@@ -206,6 +222,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
       prefetch(chunkIndex + 1);
     } catch {
       if (run !== runRef.current) return;
+      toast.dismiss(LOADING_TOAST_ID);
       setError('Tap play to start listening.');
       setStatus('paused');
     }

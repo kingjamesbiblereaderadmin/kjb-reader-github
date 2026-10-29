@@ -953,6 +953,23 @@ html.kjb-native-ios select {
   transition: background-color 0.2s ease;
 }
 
+/* While the Listen player announces "Book, Chapter N." the chapter heading
+   carries the read-aloud marker instead of a verse. */
+[data-speaking-intro="true"] .kjb-book-title,
+[data-speaking-intro="true"] .kjb-chapter-heading {
+  display: inline-block;
+  color: hsl(var(--primary));
+  background-color: hsl(var(--primary) / 0.14);
+  border-radius: 0.3em;
+  padding-inline: 0.4em;
+  transition: background-color 0.2s ease;
+}
+
+.kjb-speaking-intro [data-testid="kjb-running-head-book"],
+.kjb-speaking-intro [data-testid="kjb-running-head-chapter"] {
+  color: hsl(var(--primary));
+}
+
 /* Listen row: the audio controls under the reader toolbar. */
 .kjb-listen-row button {
   -webkit-tap-highlight-color: transparent;

@@ -1,10 +1,21 @@
 // Turns a chapter's verses into speech-sized chunks for the NVIDIA Magpie TTS
 // function, which rejects anything over 1,800 characters. Text goes out exactly
 // as read — only the reader's own markup (italic brackets, pilcrows) is removed.
-// Each chunk also lists the verses it covers and how many spoken characters
-// belong to each of them, so playback can follow along verse by verse.
+// Each chunk also lists the verses it covers and roughly how much speaking time
+// each of them takes, so playback can follow along verse by verse.
 
 export const TTS_MAX_CHARS = 1600; // headroom under the backend's 1,800 limit
+
+// Punctuation is spoken as a pause, so it takes more time than a plain letter.
+// Counting it at its character length made the highlight run ahead of the voice
+// at every comma and full stop; these weights approximate the pauses.
+const PAUSE_WEIGHT = { ',': 3, ';': 5, ':': 4, '.': 8, '!': 8, '?': 8 };
+
+export function speechWeight(text) {
+  let weight = 0;
+  for (const char of String(text || '')) weight += PAUSE_WEIGHT[char] || 1;
+  return weight;
+}
 
 export function verseToSpeech(text) {
   return String(text || '')
@@ -30,15 +41,16 @@ function splitLong(text, max) {
   return parts;
 }
 
-// Returns [{ text, verses: [numbers], spans: [{ verse, chars }] }], each chunk
-// within `max` characters. `chars` is how much of this chunk's speech belongs
-// to that verse, used to time the read-aloud highlight inside the chunk.
+// Returns [{ text, verses: [numbers], spans: [{ verse, weight }] }], each chunk
+// within `max` characters. `weight` is how much of this chunk's speaking time
+// belongs to that verse (punctuation counted as its pause), used to time the
+// read-aloud highlight inside the chunk.
 export function buildSpeechChunks(verses, max = TTS_MAX_CHARS) {
   const chunks = [];
   let current = null;
 
   const start = (piece, verseNumber) => {
-    current = { text: piece, verses: [verseNumber], spans: [{ verse: verseNumber, chars: piece.length }] };
+    current = { text: piece, verses: [verseNumber], spans: [{ verse: verseNumber, weight: speechWeight(piece) }] };
   };
 
   const push = (piece, verseNumber) => {
@@ -46,9 +58,10 @@ export function buildSpeechChunks(verses, max = TTS_MAX_CHARS) {
     if (current.text.length + 1 + piece.length <= max) {
       current.text += ` ${piece}`;
       if (!current.verses.includes(verseNumber)) current.verses.push(verseNumber);
+      const weight = speechWeight(piece) + 1;
       const last = current.spans[current.spans.length - 1];
-      if (last.verse === verseNumber) last.chars += piece.length + 1;
-      else current.spans.push({ verse: verseNumber, chars: piece.length + 1 });
+      if (last.verse === verseNumber) last.weight += weight;
+      else current.spans.push({ verse: verseNumber, weight });
     } else {
       chunks.push(current);
       start(piece, verseNumber);

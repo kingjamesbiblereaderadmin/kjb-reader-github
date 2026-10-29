@@ -28,7 +28,7 @@ function readZoomScale() {
   }
 }
 
-export default function RunningHead({ bookName, chapter, baseFontRem, isCursive }) {
+export default function RunningHead({ bookName, chapter, baseFontRem, isCursive, speakingIntro = false }) {
   const containerRef = useRef(null);
   const leftRef = useRef(null);
   const rightRef = useRef(null);
@@ -129,7 +129,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
   const fontSize = `${baseFontRem * scale}rem`;
 
   return (
-    <div className={`kjb-running-head mb-6 print:hidden ${isCursive ? 'cursive-em-style' : 'font-serif'}`}>
+    <div className={`kjb-running-head mb-6 print:hidden ${isCursive ? 'cursive-em-style' : 'font-serif'} ${speakingIntro ? 'kjb-speaking-intro' : ''}`}>
       <div
         ref={containerRef}
         data-testid="kjb-running-head"
