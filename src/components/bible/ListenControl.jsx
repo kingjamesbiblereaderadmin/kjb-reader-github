@@ -113,7 +113,6 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
       action: 'synthesize',
       text,
       language,
-      voice: voiceRef.current || undefined,
     });
 
     let response;
