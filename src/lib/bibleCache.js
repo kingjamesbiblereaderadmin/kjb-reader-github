@@ -7,6 +7,12 @@ import { saveToIndexedDB, loadFromIndexedDB, clearIndexedDB } from '@/lib/bibleI
 import { COLOPHONS } from '@/lib/bibleSubscripts';
 import { parsePceText } from '@/lib/biblePceParser';
 import { canUseNativeBundledAssets } from '@/lib/nativeOfflineAssets';
+import { isWeakConnection } from '@/lib/connectionQuality';
+
+// If no bytes arrive for this long, the download is considered stalled and the
+// attempt is aborted. Resets on every chunk, so a slow-but-moving download on a
+// weak connection still completes while a dead one fails fast.
+const STALL_TIMEOUT_MS = 15000;
 
 // Bump this version string whenever the Bible text file changes — every client
 // will then re-download and re-parse fresh. Replaces the old remote VERSION.txt
@@ -101,16 +107,31 @@ async function fetchWithRetry(url, retries = 5, expectPilcrows = false, onProgre
       const separator = url.includes('?') ? '&' : '?';
       const cacheBusterUrl = offline ? url : `${url}${separator}t=${Date.now()}`;
       
-      // Use AbortSignal for timeout (20 seconds per attempt — the file is ~4MB)
+      // Stall timeout: aborts if nothing arrives for STALL_TIMEOUT_MS. It is
+      // re-armed on every received chunk and stays armed while the BODY is
+      // downloading (previously it was cleared as soon as headers arrived, so a
+      // connection that stalled mid-download hung forever).
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
-      
-      const res = await fetch(cacheBusterUrl, { 
-        cache: 'no-store', 
-        mode: 'cors',
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
+      let timeoutId = null;
+      const armStallTimer = () => {
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => controller.abort(), STALL_TIMEOUT_MS);
+      };
+      armStallTimer();
+
+      let res;
+      try {
+        res = await fetch(cacheBusterUrl, { 
+          cache: 'no-store', 
+          mode: 'cors',
+          signal: controller.signal
+        });
+      } catch (e) {
+        clearTimeout(timeoutId);
+        throw e;
+      }
+      armStallTimer();
+      try {
       
       console.log('[FETCH] Attempt', attempt, '- Status:', res.status, '- URL:', url.substring(0, 80));
       if (!res.ok) {
@@ -128,7 +149,7 @@ async function fetchWithRetry(url, retries = 5, expectPilcrows = false, onProgre
       // available or there's no Content-Length header.
       const total = parseInt(res.headers.get('Content-Length') || '0', 10);
       let buf;
-      if (onProgress && res.body && res.body.getReader && total > 0) {
+      if (res.body && res.body.getReader) {
         const reader = res.body.getReader();
         const chunks = [];
         let received = 0;
@@ -137,8 +158,11 @@ async function fetchWithRetry(url, retries = 5, expectPilcrows = false, onProgre
           if (done) break;
           chunks.push(value);
           received += value.length;
+          armStallTimer();
           // Reserve 0–90% for the download; parsing/saving uses the rest.
-          onProgress(Math.min(90, Math.round((received / total) * 90)), 'Downloading Bible text...');
+          if (onProgress && total > 0) {
+            onProgress(Math.min(90, Math.round((received / total) * 90)), 'Downloading Bible text...');
+          }
         }
         const merged = new Uint8Array(received);
         let offset = 0;
@@ -170,6 +194,9 @@ async function fetchWithRetry(url, retries = 5, expectPilcrows = false, onProgre
       }
       
       return text;
+      } finally {
+        clearTimeout(timeoutId);
+      }
     } catch (err) {
       console.error('Fetch attempt ' + attempt + '/' + retries + ' failed:', err.message);
       if (attempt === retries) throw err;
