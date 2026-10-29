@@ -20,7 +20,10 @@ function bytesToBase64(bytes: Uint8Array): string {
 Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "POST required." }, 405);
 
-  const apiKey = Deno.env.get("NVIDIA_API_KEY");
+  // Base44 secrets should contain the raw NVIDIA API key. Normalize common copy/paste
+  // mistakes (surrounding quotes, whitespace, or an already-added "Bearer " prefix).
+  const rawApiKey = Deno.env.get("NVIDIA_API_KEY") || "";
+  const apiKey = rawApiKey.trim().replace(/^("|')|("|')$/g, "").replace(/^Bearer\s+/i, "").trim();
   if (!apiKey) {
     return json({
       error: "NVIDIA_API_KEY is not configured. Add it as a server-side secret in your Base44 app settings, then retry.",
