@@ -1,7 +1,7 @@
 // KJB Reader Service Worker v20261029_1431
 // Cache-first loading for offline support
 
-const CACHE_NAME = 'kjb-reader-v20261029_1431';
+const CACHE_NAME = 'kjb-reader-v20261030_0720';
 const LEGACY_CACHE_NAME = 'kjb-legacy-v11';
 // Persistent image cache — deliberately NOT versioned. Runtime-cached images
 // (preacher photos, extension page icons, mockups) used to be stored in
@@ -519,17 +519,41 @@ self.addEventListener('fetch', (event) => {
       // stale cached index.html (long HTTP max-age), keeping the old chunks and
       // old app code running so no update ever appears (desktop "updated" only
       // because it was hard-refreshed). Offline still falls back to the cache.
-      fetch(request, { cache: 'no-store' }).then((response) => {
-        if (response && response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+      // WEAK-INTERNET GUARD: on a very slow / stalled connection fetch() can
+      // hang for minutes before failing, leaving a blank/frozen app even
+      // though a cached copy is sitting right there. Race the network against
+      // a short timeout; if it loses AND we have a cached shell, serve the
+      // cache immediately. The network request keeps going and refreshes the
+      // cache in the background for next time. With no cached shell at all
+      // (first ever visit) we just wait on the network.
+      (async () => {
+        const cachedShell = async () =>
+          (await caches.match(request)) || (await caches.match('/index.html')) || null;
+        const netPromise = fetch(request, { cache: 'no-store' }).then((response) => {
+          if (response && response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        });
+        const have = await cachedShell();
+        if (!have) {
+          try { return await netPromise; }
+          catch { return (await caches.match('/offline.html')) || Response.error(); }
         }
-        return response;
-      }).catch(() =>
-        caches.match(request).then((cached) =>
-          cached || caches.match('/index.html').then((idx) => idx || caches.match('/offline.html'))
-        )
-      )
+        netPromise.catch(() => {}); // avoid unhandled rejection if it loses the race
+        const TIMEOUT = Symbol('timeout');
+        try {
+          const winner = await Promise.race([
+            netPromise,
+            new Promise((resolve) => setTimeout(() => resolve(TIMEOUT), NAV_NETWORK_TIMEOUT_MS)),
+          ]);
+          if (winner === TIMEOUT) return have;
+          return winner;
+        } catch {
+          return have;
+        }
+      })()
     );
     return;
   }
@@ -540,15 +564,28 @@ self.addEventListener('fetch', (event) => {
   // /functions/manifest endpoint the app now links to.
   if (url.pathname === '/manifest.json' || url.pathname.startsWith('/manifest.json?') ||
       url.pathname === '/functions/manifest' || url.pathname.startsWith('/functions/manifest?')) {
-    event.respondWith(
-      fetch(request).then((response) => {
+    event.respondWith((async () => {
+      const cached = await caches.match(request);
+      const netPromise = fetch(request).then((response) => {
         if (response && response.ok) {
           const copy = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
         }
         return response;
-      }).catch(() => caches.match(request))
-    );
+      });
+      if (!cached) return netPromise;
+      netPromise.catch(() => {});
+      const TIMEOUT = Symbol('timeout');
+      try {
+        const winner = await Promise.race([
+          netPromise,
+          new Promise((resolve) => setTimeout(() => resolve(TIMEOUT), NAV_NETWORK_TIMEOUT_MS)),
+        ]);
+        return winner === TIMEOUT ? cached : winner;
+      } catch {
+        return cached;
+      }
+    })());
     return;
   }
 
