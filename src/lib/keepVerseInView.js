@@ -8,7 +8,14 @@ function clearBand() {
   const toolbar = document.querySelector('[data-kjb-reader-toolbar-wrap]');
   const nav = document.querySelector('[data-kjb-bottom-nav]');
   const top = (toolbar ? toolbar.getBoundingClientRect().bottom : 200) + 8;
-  const bottom = (nav ? nav.getBoundingClientRect().top : viewportBottom) - 12;
+  // The phone bottom nav is hidden on wider screens (sm:hidden), where it is
+  // still in the DOM but reports a zero rect — its `top` of 0 would collapse
+  // the clear area below `top` and stop the reader following along entirely.
+  let bottom = viewportBottom - 12;
+  if (nav) {
+    const rect = nav.getBoundingClientRect();
+    if (rect.height > 0 && rect.top > 0) bottom = Math.min(bottom, rect.top - 12);
+  }
   return { top, bottom };
 }
 
