@@ -458,6 +458,12 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
         <Repeat className="h-4 w-4 flex-none" />
         <span className="hidden xs:inline">{continueReading ? 'Continuous' : 'Single'}</span>
       </button>
+      <span
+        title="Listen is in beta — voices, pacing and pronunciation are still being refined."
+        className="flex h-5 flex-none items-center rounded-full border border-accent/40 bg-accent/10 px-1.5 font-sans text-[9px] font-semibold uppercase leading-none tracking-wider text-accent"
+      >
+        Beta
+      </span>
       </div>
       {error && (
         <div aria-live="polite" className="mt-2 flex justify-center">

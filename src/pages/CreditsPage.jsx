@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, BookOpen, Type, Wrench, Info, ArrowLeft, Scale } from 'lucide-react';
+import { Heart, BookOpen, Type, Wrench, Info, ArrowLeft, Scale, Mic } from 'lucide-react';
 import FontsSection from '@/components/credits/FontsSection';
 
 // A simple, static credits / acknowledgements page.
