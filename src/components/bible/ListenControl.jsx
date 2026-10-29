@@ -259,9 +259,11 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   const startChapter = useCallback((fromIndex = 0) => {
     const p = posRef.current;
     const bookName = book?.name || book?.shortName || '';
-    introRef.current = sessionBookRef.current === p?.abbr
-      ? `Chapter ${p?.chapter}.`
-      : `${bookName}, Chapter ${p?.chapter}.`;
+    introRef.current = p?.chapter === 0
+      ? ''
+      : sessionBookRef.current === p?.abbr
+        ? `Chapter ${p?.chapter}.`
+        : `${bookName}, Chapter ${p?.chapter}.`;
     sessionBookRef.current = p?.abbr || null;
     playedKeyRef.current = `${p?.abbr}:${p?.chapter}`;
     playFrom(fromIndex);
