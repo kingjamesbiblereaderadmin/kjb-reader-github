@@ -19,7 +19,6 @@ const TM_CARDS = [
   { owner: 'Oracle', slug: 'oracle', color: '#F80000', marks: 'Java', extra: 'Java is a registered trademark of Oracle and/or its affiliates.', use: 'The Java toolchain inside the Android app build.' },
   { owner: 'Gradle, Inc.', slug: 'gradle', color: '#02303A', darkColor: '#5FC8CE', marks: 'Gradle', use: 'Build tool that compiles and signs the Android app.' },
   { owner: 'Anthropic PBC', slug: 'anthropic', color: '#191919', darkColor: '#D4A27F', marks: 'Claude', use: 'AI assistance used to help generate the app code.' },
-  { owner: 'NVIDIA Corporation', slug: 'nvidia', color: '#76B900', marks: 'NVIDIA, NVIDIA Riva, NVIDIA NIM, Magpie', use: 'Text-to-speech that reads the Bible aloud in the Listen player.' },
   { owner: 'Linktree Pty Ltd', slug: 'linktree', color: '#43E559', marks: 'Linktree', use: 'Ministry and preacher link pages opened in the device browser.' },
   { owner: 'The Document Foundation', slug: 'libreoffice', color: '#18A303', marks: 'LibreOffice', use: 'en-US Liang hyphenation patterns for the two-column reading layout.' },
   { owner: 'Mozilla Foundation', slug: 'firefoxbrowser', color: '#FF7139', marks: 'Mozilla, Firefox', use: 'Browser-compatibility reference for the web app and extension.' },
@@ -219,10 +218,10 @@ export default function CreditsPage() {
         <Section edge="from-emerald-500 to-teal-400" iconBg="from-emerald-500 to-teal-500" eyebrow="Audio" icon={<Mic className="w-5 h-5" />} title="Speech &amp; Listening">
           <div className="space-y-2.5">
             {[
-              [<span key="n"><strong className="text-foreground">NVIDIA Magpie text-to-speech</strong></span>, 'synthesises the narration in the Listen player, running on NVIDIA Riva / NVIDIA NIM cloud inference.'],
+              [<span key="n"><strong className="text-foreground">Your device&apos;s own voice</strong></span>, 'the Listen player speaks with the text-to-speech voice built into your phone, tablet or computer — the same one your system accessibility settings use.'],
               [<span key="s"><strong className="text-foreground">Synthetic speech</strong></span>, 'the voice is computer-generated from the KJB text — no human recording is used anywhere in the app.'],
               [<span key="p"><strong className="text-foreground">Speech pronunciation hints</strong></span>, 'names such as Nebuchadnezzar and Baal, the archaic -eth and -est verb endings, and words like shew are respelled for the voice only. The printed Bible text is never altered.'],
-              [<span key="c"><strong className="text-foreground">Offline listening</strong></span>, 'audio is generated on NVIDIA\'s servers, so the first playback of a chapter needs an internet connection. Played chapters are cached on the device and play again offline.'],
+              [<span key="c"><strong className="text-foreground">Free and offline</strong></span>, 'narration needs no account, no API key and no subscription, and the chapter text never leaves your device. With a voice installed in your system settings, listening works with no internet connection at all.'],
               [<span key="b"><strong className="text-foreground">Beta</strong></span>, 'the Listen player is still being refined — voices, pacing and pronunciation may change between updates.'],
             ].map(([name, purpose], i) => (
               <p key={i} className="font-sans text-sm text-foreground/85 leading-relaxed flex items-start gap-2">
@@ -232,21 +231,15 @@ export default function CreditsPage() {
             ))}
           </div>
           <div className="rounded-xl bg-secondary/60 border border-border px-4 py-3 mt-4 space-y-2">
-            <p className="font-sans text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Licensing</p>
+            <p className="font-sans text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">On-device narration</p>
             <p className="font-sans text-xs text-foreground/85 leading-relaxed">
-              Narration is produced by <strong className="text-foreground">NVIDIA Magpie TTS Multilingual</strong> (RivaTTS_MagpieTTS_Multilingual v4.0), which NVIDIA publishes as ready for commercial use under the <strong className="text-foreground">NVIDIA Open Model License Agreement</strong>. This app reaches it only through NVIDIA&apos;s hosted inference service (NVIDIA Riva / NVIDIA NIM), governed by the NVIDIA Software License Agreement and the Product-Specific Terms for NVIDIA AI Products.
+              Listen uses the speech synthesis built into your operating system — for example the speech services on Android, or the system voices on iOS, iPadOS, macOS and Windows. KJB Reader does not run its own speech model, does not send the chapter text to any speech service, and holds no speech licence to pass on.
             </p>
             <p className="font-sans text-xs text-foreground/85 leading-relaxed">
-              Access from this app currently goes through NVIDIA&apos;s public <strong className="text-foreground">API trial service</strong>, which NVIDIA licenses for evaluation and internal testing only — not for production use. Shipping narration inside the released Android and iOS apps therefore requires a commercial NVIDIA licence: a licensed NVIDIA AI Enterprise deployment of the NIM, or self-hosting the model under the Open Model License. Until that is in place, Listen is offered as a beta, evaluation feature.
+              Nothing is downloaded or bundled for narration: the words are spoken by your own device, with the voice installed in your system settings. The voice therefore differs from device to device, and some systems offer additional voices (including higher-quality ones) free from their settings.
             </p>
             <p className="font-sans text-xs text-foreground/85 leading-relaxed">
-              No model weights are downloaded, bundled, or redistributed with KJB Reader — the app only sends the text of the chapter being listened to and receives the audio back.
-            </p>
-            <p className="font-sans text-xs text-foreground/85 leading-relaxed">
-              The returned audio is used solely to read the KJB text aloud inside the app and is cached on your own device for offline listening. It is never sold, sublicensed, or used to train another model.
-            </p>
-            <p className="font-sans text-xs text-foreground/85 leading-relaxed">
-              Narration does not alter the text: the King James Bible stays public domain, and the speech-only pronunciation hints exist only in the audio, never in the reading text.
+              Narration does not alter the text: the King James Bible stays public domain, and the speech-only pronunciation hints exist only in the spoken output, never in the reading text.
             </p>
           </div>
         </Section>
@@ -320,7 +313,7 @@ export default function CreditsPage() {
             </p>
             <p className="font-sans text-sm text-foreground/85 leading-relaxed flex items-start gap-2">
               <span className="text-accent mt-1">•</span>
-              <span><strong className="text-foreground">Narration Disclaimer:</strong> The Listen player&apos;s voice is synthetic AI-generated speech, not a human reading. It reads the unaltered KJB text, though pacing, emphasis, and the pronunciation of some names may differ from a spoken reading. Use it as an aid to reading, not as an authoritative recitation.</span>
+              <span><strong className="text-foreground">Narration Disclaimer:</strong> The Listen player uses your device&apos;s built-in text-to-speech voice, not a human reading. It reads the unaltered KJB text, though pacing, emphasis, and the pronunciation of some names may differ from a spoken reading, and the voice varies by device. Use it as an aid to reading, not as an authoritative recitation.</span>
             </p>
           </div>
           <div className="rounded-xl bg-secondary/60 border border-border px-4 py-3 mt-4">

@@ -154,12 +154,9 @@ export default function AccessibilityPage() {
           </p>
           <p>
             Continuous mode carries on into the next chapter; Single mode stops at the end of the
-            current one. Audio is generated online the first time a chapter is played, then cached on
-            your device, so chapters you have already listened to play again offline.
-          </p>
-          <p>
-            Licensing and credits for the narration engine are listed on the{' '}
-            <Link to="/credits" className="text-primary hover:underline">About &amp; Credits</Link> page.
+            current one. It speaks with the voice built into your own device, so it is free, needs no
+            connection, and the chapter text never leaves your device. If no voice is installed yet,
+            add one in your system&rsquo;s text-to-speech settings.
           </p>
         </Section>
 
