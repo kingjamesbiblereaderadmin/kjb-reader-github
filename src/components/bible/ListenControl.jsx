@@ -1,12 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Pause, Play, SkipBack, SkipForward, Square, AlertCircle, Repeat, ListOrdered } from 'lucide-react';
+import { Pause, Play, SkipBack, SkipForward, Square, AlertCircle, Repeat } from 'lucide-react';
 import { buildSpeechChunks, speechWeight } from '@/lib/ttsChunks';
 import { setSpeakingVerses, clearSpeakingVerses } from '@/lib/speakingVerses';
 import { keepVerseInView } from '@/lib/keepVerseInView';
-import VerseGrid from '@/components/bible/VerseGrid';
-import SelectorSheet from '@/components/bible/SelectorSheet';
-import { isMobile } from '@/lib/readerPosition';
 
 const PREFERRED_LANGUAGE = 'en-US';
 
