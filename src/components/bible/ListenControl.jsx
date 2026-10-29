@@ -29,7 +29,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   const [status, setStatus] = useState('idle'); // idle | loading | playing | paused
   const [index, setIndex] = useState(0);
   const [error, setError] = useState('');
-  const [locale, setLocale] = useState(PREFERRED_LANGUAGE);
+  const [, setLocale] = useState(PREFERRED_LANGUAGE);
 
   const audioRef = useRef(null);
   const urlsRef = useRef(new Map()); // chunk index -> blob url
@@ -277,14 +277,10 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   const isActive = active && status !== 'idle';
   const skipDisabled = !isActive || busy;
   const btn = 'flex h-10 w-10 flex-none items-center justify-center rounded-full border border-border bg-secondary text-secondary-foreground hover:bg-accent/20 transition-colors touch-manipulation disabled:opacity-30';
-  const label = `${book?.shortName || book?.name || ''} ${pos?.chapter ?? ''}`.trim();
 
   return (
-    <div
-      role="group"
-      aria-label="Listen to this chapter"
-      className="kjb-listen-row print:hidden flex items-center gap-2 w-full max-w-[120rem] mx-auto mt-2"
-    >
+    <div role="group" aria-label="Listen to this chapter" className="kjb-listen-row print:hidden w-full">
+      <div className="flex items-center justify-center gap-2 w-full max-w-[120rem] mx-auto">
       <button
         type="button"
         onClick={() => jumpTo(index - 1)}
@@ -325,20 +321,12 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
       >
         <Square className="h-4 w-4" />
       </button>
-      <div className="min-w-0 flex-1" aria-live="polite">
-        <p className="truncate font-sans text-xs font-semibold text-foreground notranslate">
-          {isActive ? label : 'Listen'}
-        </p>
-        <p className="truncate font-sans text-[11px] text-muted-foreground">
-          {error
-            ? <span className="inline-flex items-center gap-1 text-destructive"><AlertCircle className="h-3 w-3" /> {error}</span>
-            : busy
-              ? 'Preparing audio…'
-              : status === 'playing' || status === 'paused'
-                ? `Part ${index + 1} of ${chunks.length}${status === 'paused' ? ' · Paused' : ''}${locale === FALLBACK_LANGUAGE ? ' · English (US)' : ''}`
-                : 'Tap play to hear this chapter'}
-        </p>
       </div>
+      {error && (
+        <p aria-live="polite" className="mt-1.5 flex items-center justify-center gap-1 text-center font-sans text-[11px] text-destructive">
+          <AlertCircle className="h-3 w-3 flex-none" /> {error}
+        </p>
+      )}
     </div>
   );
 }

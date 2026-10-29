@@ -462,11 +462,13 @@ export default function ReaderToolbar({
         )}
       </div>
 
-      <ListenControl
-        verses={verses} book={book} pos={pos}
-        disabled={verseCount === 0} loading={loading}
-        goNext={goNext} isLastChapterLastBook={isLastChapterLastBook}
-      />
+      <div className="mt-3 pt-3 border-t border-border">
+        <ListenControl
+          verses={verses} book={book} pos={pos}
+          disabled={verseCount === 0} loading={loading}
+          goNext={goNext} isLastChapterLastBook={isLastChapterLastBook}
+        />
+      </div>
 
       {/* Single unified toolbar - SelectActionBar for multi-select mode, ReadingRangeBar for search/gospel/daily/navigation */}
       {selectMode && (
