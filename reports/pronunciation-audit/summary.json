@@ -1,0 +1,24 @@
+{
+  "source": "android/app/src/main/assets/bible/pce-bible.txt",
+  "sourceBytes": 4345930,
+  "lineCount": 33863,
+  "chapterHeadings": 1189,
+  "numberedVerseLines": 29913,
+  "uniqueWordForms": 12586,
+  "totalWordOccurrences": 793182,
+  "hyphenatedWordForms": 266,
+  "longWordForms": 430,
+  "heuristicNameCandidates": 3312,
+  "checks": {
+    "containsGenesis": true,
+    "containsRevelation": true,
+    "containsMizpeh": true,
+    "containsMizpah": true,
+    "expectedChapterCount": 1189,
+    "expectedVerseCount": 31102
+  },
+  "outputs": [
+    "unique-words.json",
+    "unique-words.txt"
+  ]
+}
