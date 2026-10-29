@@ -1757,7 +1757,8 @@ export default function BibleReader() {
           showFontPopover={showFontPopover} setShowFontPopover={setShowFontPopover}
           pendingBook={pendingBook} setPendingBook={setPendingBook}
           navigate={navigate} handleVersePick={handleVersePick}
-          verseCount={verseCount} chapterSubscript={chapterSubscript} colophon={colophon} loading={loading}
+          verseCount={verseCount} chapterSubscript={chapterSubscript} colophon={colophon}
+          endMarker={resolveEndMarker(book?.apiName, pos.chapter)} loading={loading}
           highlightVerse={highlightVerse} highlightSection={highlightSection}
           selectMode={selectMode} selectedVerses={selectedVerses} filterMode={filterMode}
           setSelectMode={setSelectMode} setFilterMode={setFilterMode} setSelectedVerses={setSelectedVerses}
