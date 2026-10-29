@@ -22,7 +22,7 @@ function getVoicesList(payload) {
 }
 
 export default function TtsTestPage() {
-  const [language, setLanguage] = useState('en-GB');
+  const [language, setLanguage] = useState('en-US');
   const [text, setText] = useState(SAMPLE_TEXT);
   const [voices, setVoices] = useState([]);
   const [voice, setVoice] = useState('');
@@ -94,15 +94,14 @@ export default function TtsTestPage() {
       </div>
 
       <div className="my-5 rounded-xl border border-border bg-card p-4 text-sm text-foreground">
-        <div className="flex items-start gap-2"><Languages className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><p><strong>English (UK) is selected by default.</strong> NVIDIA's published Magpie Multilingual locale list currently shows English (US), not English (UK). This test checks the actual API response; if en-GB is rejected, try en-US to verify the API key and audio pipeline separately.</p></div>
+        <div className="flex items-start gap-2"><Languages className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><p><strong>English (US) is selected by default.</strong> This test uses the supported en-US locale for NVIDIA Magpie Multilingual.</p></div>
       </div>
 
       <section className="space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm">
         <div>
           <label htmlFor="tts-language" className="mb-2 block text-sm font-medium text-foreground">Language / accent</label>
           <select id="tts-language" value={language} onChange={e => { setLanguage(e.target.value); setVoice(''); }} className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-foreground">
-            <option value="en-GB">English (UK) — requested</option>
-            <option value="en-US">English (US) — documented Magpie locale</option>
+            <option value="en-US">English (US) — supported Magpie locale</option>
           </select>
         </div>
         <div>

@@ -1,15 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Loader2, Pause, Play, SkipBack, SkipForward, Square, AlertCircle } from 'lucide-react';
-import { toast } from 'sonner';
 import { buildSpeechChunks, speechWeight } from '@/lib/ttsChunks';
 import { setSpeakingVerses, clearSpeakingVerses } from '@/lib/speakingVerses';
 
 const PREFERRED_LANGUAGE = 'en-GB';
 const FALLBACK_LANGUAGE = 'en-US';
-const LOADING_TOAST_ID = 'kjb-listen-loading';
-
-const showLoadingToast = (message = 'Preparing audio…') => toast.loading(message, { id: LOADING_TOAST_ID });
 
 function errorMessage(error) {
   return error?.response?.data?.error || error?.message || 'Could not generate speech. Please try again.';
@@ -70,7 +66,6 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     }
     releaseAll();
     clearSpeakingVerses();
-    toast.dismiss(LOADING_TOAST_ID);
     if (resetSession) sessionBookRef.current = null;
     activeRef.current = false;
     setActive(false);
@@ -83,7 +78,6 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     runRef.current += 1;
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     clearSpeakingVerses();
-    toast.dismiss(LOADING_TOAST_ID);
     releaseAll();
   }, [releaseAll]);
 
@@ -137,7 +131,6 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     playedKeyRef.current = `${current.abbr}:${current.chapter}`;
     pendingAdvanceRef.current = true;
     setStatus('loading');
-    showLoadingToast('Loading the next chapter…');
     const moved = goNext(true);
     if (!moved) { pendingAdvanceRef.current = false; stop(); }
   }, [goNext, isLastChapterLastBook, stop]);
@@ -180,15 +173,13 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     let url = urlsRef.current.get(chunkIndex);
     if (!url) {
       setStatus('loading');
-      showLoadingToast();
       try {
         const pending = prefetchRef.current.get(chunkIndex);
         if (pending) url = await pending;
         if (!url) url = await synthesize(chunkIndex);
       } catch (err) {
         if (run !== runRef.current) return;
-        toast.dismiss(LOADING_TOAST_ID);
-        setError(errorMessage(err));
+            setError(errorMessage(err));
         setStatus('paused');
         return;
       }
@@ -213,8 +204,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     try {
       await audio.play();
       if (run !== runRef.current) return;
-      toast.dismiss(LOADING_TOAST_ID);
-      setStatus('playing');
+        setStatus('playing');
       speakAt(chunkIndex, audio.currentTime, audio.duration);
       audio.ontimeupdate = () => {
         if (run === runRef.current) speakAt(chunkIndex, audio.currentTime, audio.duration);
@@ -222,8 +212,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
       prefetch(chunkIndex + 1);
     } catch {
       if (run !== runRef.current) return;
-      toast.dismiss(LOADING_TOAST_ID);
-      setError('Tap play to start listening.');
+        setError('Tap play to start listening.');
       setStatus('paused');
     }
   }, [advanceChapter, chunks, prefetch, speakAt, stop, synthesize]);
@@ -339,11 +328,13 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
         <Square className="h-4 w-4" />
       </button>
       </div>
-      {error && (
-        <p aria-live="polite" className="mt-1.5 flex items-center justify-center gap-1 text-center font-sans text-[11px] text-destructive">
-          <AlertCircle className="h-3 w-3 flex-none" /> {error}
-        </p>
-      )}
+      <p aria-live="polite" className="mt-1 flex min-h-[1rem] items-center justify-center gap-1 text-center font-sans text-[11px]">
+        {error
+          ? <span className="inline-flex items-center gap-1 text-destructive"><AlertCircle className="h-3 w-3 flex-none" /> {error}</span>
+          : busy
+            ? <span className="inline-flex items-center gap-1.5 text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Preparing audio…</span>
+            : null}
+      </p>
     </div>
   );
 }
