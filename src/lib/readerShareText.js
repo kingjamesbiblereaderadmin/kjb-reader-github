@@ -123,7 +123,7 @@ export function buildPerVerseText({ verses, selectedVerses, selectedSections, bo
   if (colophon && (selectedSections.has('colophon') || (!anySectionToggled && includesLast))) {
     parts.push(`¶ ${cleanVerseText(colophon).replace(/^[\u00B6\uFFFD¶]\s*/, '')}`);
   }
-  if (!isMultiVerse) parts.push(`— ${ref}`);
+  if (!isMultiVerse) parts.push(`— ${ref} (KJB)`);
   parts.push(`Read more: <${url}>`);
   return parts.join('\n\n');
 }
