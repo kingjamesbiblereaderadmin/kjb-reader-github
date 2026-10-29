@@ -4,8 +4,7 @@ import { Loader2, Pause, Play, SkipBack, SkipForward, Square, AlertCircle } from
 import { buildSpeechChunks, speechWeight } from '@/lib/ttsChunks';
 import { setSpeakingVerses, clearSpeakingVerses } from '@/lib/speakingVerses';
 
-const PREFERRED_LANGUAGE = 'en-GB';
-const FALLBACK_LANGUAGE = 'en-US';
+const PREFERRED_LANGUAGE = 'en-US';
 
 function errorMessage(error) {
   return error?.response?.data?.error || error?.message || 'Could not generate speech. Please try again.';
@@ -94,23 +93,11 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     });
 
     let response;
-    try {
-      response = await attempt(languageRef.current);
-      const data = response?.data;
-      if (!data?.success || !data?.audioBase64) throw new Error(data?.error || 'NVIDIA did not return audio.');
-    } catch (firstError) {
-      // English (UK) may be rejected by this model — fall back to (US) once
-      // and remember the working locale for the rest of the session.
-      if (languageRef.current !== FALLBACK_LANGUAGE) {
-        response = await attempt(FALLBACK_LANGUAGE);
-        const data = response?.data;
-        if (!data?.success || !data?.audioBase64) throw new Error(data?.error || 'NVIDIA did not return audio.');
-        languageRef.current = FALLBACK_LANGUAGE;
-        setLocale(FALLBACK_LANGUAGE);
-      } else {
-        throw firstError;
-      }
-    }
+    response = await attempt('en-US');
+    const data = response?.data;
+    if (!data?.success || !data?.audioBase64) throw new Error(data?.error || 'NVIDIA did not return audio.');
+    languageRef.current = 'en-US';
+    setLocale('en-US');
 
     if (run !== runRef.current) return null; // stopped while awaiting
     const url = base64ToBlobUrl(response.data.audioBase64, response.data.contentType);
