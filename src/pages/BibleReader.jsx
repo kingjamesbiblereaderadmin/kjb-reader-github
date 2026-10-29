@@ -1758,7 +1758,13 @@ export default function BibleReader() {
           pendingBook={pendingBook} setPendingBook={setPendingBook}
           navigate={navigate} handleVersePick={handleVersePick}
           verseCount={verseCount} chapterSubscript={chapterSubscript} colophon={colophon}
-          endMarker={resolveEndMarker(book?.apiName, pos.chapter)} loading={loading}
+          endMarker={resolveEndMarker(book?.apiName, pos.chapter)}
+          titlePageText={isViewingTitlePage ? (pos.abbr === 'GEN'
+            ? "The Holy Bible. Containing the Old and New Testaments. Translated out of the original tongues, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches. Authorised King James Bible."
+            : pos.abbr === 'MAT'
+              ? "The New Testament of our Lord and Saviour Jesus Christ. Translated out of the original Greek, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches."
+              : `${book?.testament === 'new' ? 'New Testament' : 'Old Testament'}. ${book?.name || ''}. ${book?.chapters || 0} ${book?.chapters === 1 ? 'chapter' : 'chapters'}.`) : null}
+          loading={loading}
           highlightVerse={highlightVerse} highlightSection={highlightSection}
           selectMode={selectMode} selectedVerses={selectedVerses} filterMode={filterMode}
           setSelectMode={setSelectMode} setFilterMode={setFilterMode} setSelectedVerses={setSelectedVerses}
