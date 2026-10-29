@@ -28,8 +28,8 @@ function base64ToBlobUrl(base64, contentType) {
 // synthesized chunk by chunk and played back to back; finishing a chapter
 // continues into the next one. The book is announced on the first chapter of
 // a listening session (and on each new book), later chapters as "Chapter N".
-export default function ListenControl({ verses, book, pos, disabled, loading, goNext, isLastChapterLastBook, chapterSubscript, colophon, endMarker }) {
-  const chunks = useMemo(() => buildSpeechChunks(verses, undefined, { superscription: chapterSubscript, colophon, endMarker }), [verses, chapterSubscript, colophon, endMarker]);
+export default function ListenControl({ verses, book, pos, disabled, loading, goNext, isLastChapterLastBook, chapterSubscript, colophon, endMarker, titlePageText }) {
+  const chunks = useMemo(() => buildSpeechChunks(verses, undefined, { titlePage: titlePageText, superscription: chapterSubscript, colophon, endMarker }), [verses, titlePageText, chapterSubscript, colophon, endMarker]);
   const [active, setActive] = useState(false);
   const [status, setStatus] = useState('idle'); // idle | loading | playing | paused
   const [index, setIndex] = useState(0);
@@ -278,7 +278,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     if (!pendingAdvanceRef.current) return;
     if (passageKey === playedKeyRef.current) return;
     if (loading) return;
-    if (!chunks.length) { stop(); return; } // e.g. a title page
+    if (!chunks.length) { stop(); return; }
     pendingAdvanceRef.current = false;
     releaseAll();
     startChapter();
