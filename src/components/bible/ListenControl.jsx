@@ -3,6 +3,8 @@ import { Pause, Play, SkipBack, SkipForward, Square, AlertCircle, Repeat, Info }
 import { verseToSpeech } from '@/lib/ttsChunks';
 import { setSpeakingVerses, clearSpeakingVerses } from '@/lib/speakingVerses';
 import { keepVerseInView, scrollToChapterTop } from '@/lib/keepVerseInView';
+import { useChapterAudio } from '@/lib/chapterAudio';
+import PrerenderedAudioPlayer from '@/components/bible/PrerenderedAudioPlayer';
 
 // Silence between verses, and the longer paragraph pause before a ¶ verse.
 const VERSE_GAP_MS = 350;
@@ -95,6 +97,9 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
 
   posRef.current = pos;
   const passageKey = `${pos?.abbr || ''}:${pos?.chapter || ''}`;
+  // A chapter that has been rendered to a real audio file plays that file;
+  // chapters without one fall back to the device's own voice below.
+  const chapterAudio = useChapterAudio(pos?.abbr, pos?.chapter);
 
   const synth = typeof window !== 'undefined' && 'speechSynthesis' in window ? window.speechSynthesis : null;
 
@@ -322,6 +327,18 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     }
     beginPlayback(target < 0 ? 0 : target, ''); // this chapter is already announced
   };
+
+  if (chapterAudio) {
+    return (
+      <PrerenderedAudioPlayer
+        chapterAudio={chapterAudio}
+        pos={pos}
+        goNext={goNext}
+        isLastChapterLastBook={isLastChapterLastBook}
+        playFromVerse={playFromVerse}
+      />
+    );
+  }
 
   const canListen = items.length > 0 && !disabled;
   const busy = status === 'loading';

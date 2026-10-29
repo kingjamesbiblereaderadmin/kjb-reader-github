@@ -55,6 +55,7 @@ const loaders = {
   Spanish: () => import('@/pages/SpanishResourcesPage.jsx').catch((err) => { console.error('Failed to load SpanishResourcesPage:', err); throw err; }),
   SpanishGospel: () => import('@/pages/SpanishGospelPage.jsx').catch((err) => { console.error('Failed to load SpanishGospelPage:', err); throw err; }),
   Changelog: () => import('@/pages/ChangelogPage').catch((err) => { console.error('Failed to load ChangelogPage:', err); throw err; }),
+  AudioTools: () => import('@/pages/AudioToolsPage').catch((err) => { console.error('Failed to load AudioToolsPage:', err); throw err; }),
 
 };
 // Pads standalone (non-AppLayout) routes clear of the iOS notch / home
@@ -107,6 +108,7 @@ const CreditsPage = lazy(loaders.Credits);
 const SpanishResourcesPage = lazy(loaders.Spanish);
 const SpanishGospelPage = lazy(loaders.SpanishGospel);
 const ChangelogPage = lazy(loaders.Changelog);
+const AudioToolsPage = lazy(loaders.AudioTools);
 
 
 const getLoaderForPath = (pathname) => {
@@ -373,6 +375,7 @@ const AuthenticatedApp = () => {
               <Route path="/manifest-screenshots" element={<Suspense fallback={<RouteLoader />}><FadeIn><ManifestScreenshots /></FadeIn></Suspense>} />
               <Route path="/legacy" element={<Suspense fallback={<RouteLoader />}><FadeIn><LegacyReader /></FadeIn></Suspense>} />
               <Route path="/dev-tools" element={<Suspense fallback={<RouteLoader />}><FadeIn><DevToolsPage /></FadeIn></Suspense>} />
+              <Route path="/audio-tools" element={<Suspense fallback={<RouteLoader />}><FadeIn><AudioToolsPage /></FadeIn></Suspense>} />
               <Route path="/tts-test" element={<Suspense fallback={<RouteLoader />}><FadeIn><TtsTestPage /></FadeIn></Suspense>} />
               <Route path="/espanol" element={<Suspense fallback={<RouteLoader />}><FadeIn><SpanishResourcesPage /></FadeIn></Suspense>} />
             </Route>
