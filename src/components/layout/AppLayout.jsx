@@ -512,10 +512,7 @@ export default function AppLayout() {
                     <Link
                       key={item.path}
                       to={item.path === '/read' ? readNavTarget() : item.path}
-                      onClick={() => {
-                        setMenuOpen(false);
-                        navigate(item.path === '/read' ? readNavTarget() : item.path);
-                      }}
+                      onClick={() => setMenuOpen(false)}
                       className={`relative flex flex-1 min-w-[9.5rem] items-center gap-2.5 px-3.5 py-3 rounded-lg border font-sans text-sm font-medium leading-snug transition-all duration-200 hover:z-10 hover:shadow-md active:scale-95 ${
                         active
                           ? 'bg-gradient-to-br from-primary to-accent text-primary-foreground border-transparent shadow-md shadow-primary/20'
@@ -621,13 +618,10 @@ function DesktopFooter({ navigate, setMenuOpen, pathname }) {
               const colors = NAV_COLORS[item.path] || NAV_COLORS['/'];
               return (
                 <Link
-                  key={item.path}
-                  to={item.path === '/read' ? readNavTarget() : item.path}
-                  onClick={() => {
-                    setMenuOpen(false);
-                    navigate(item.path === '/read' ? readNavTarget() : item.path);
-                  }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-sans text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
+                key={item.path}
+                to={item.path === '/read' ? readNavTarget() : item.path}
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-sans text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
                 >
                   <Icon className={`w-3.5 h-3.5 transition-transform duration-200 ${colors.text}`} />
                   {item.label}
