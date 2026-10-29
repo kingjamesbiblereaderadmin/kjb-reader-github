@@ -11,19 +11,15 @@ import { canUseNativeBundledAssets } from '@/lib/nativeOfflineAssets';
 // Bump this version string whenever the Bible text file changes — every client
 // will then re-download and re-parse fresh. Replaces the old remote VERSION.txt
 // check (which 404'd/403'd and broke auto-updates).
-export const CACHE_VERSION = 'v20260928_bracket_merge';
+export const CACHE_VERSION = 'v20261029_bundled_pce_pronunciation_audit';
 const CACHE_KEY = 'bible_data_pce_v100_SINGLE_FILE';
 // Single clean PCE source file: book titles, CHAPTER headings, [bracketed] italics,
 // and ¶ pilcrow markers. No separate italics file needed.
-// Primary PCE Bible text source: generated from the user's authoritative
-// "KJB-PCE-RTF.rtf" (Pure Cambridge Edition Word document) — converted to the
-// plain-text format this parser expects (book titles, CHAPTER headings,
-// [bracketed] italics, ¶ pilcrow markers). Verified complete: 1,189 chapters,
-// exactly 31,102 verses, all small-caps LORD/GOD preserved. Replaces the old
-// recovered copy, which had source corruption (e.g. Genesis 1:8 missing its
-// second sentence). Bumping CACHE_VERSION forces every device to invalidate
-// stale IndexedDB/localStorage Bible data and re-fetch from this source.
-const REMOTE_PCE_TEXT_FILE_URL = 'https://base44.app/api/apps/6a8011c360ff52dad38eb2f3/files/mp/public/6a8011c360ff52dad38eb2f3/77b2417cd_pce-bible-clean.txt';
+// Authoritative clean PCE Bible text, bundled as a public static asset so the
+// website/PWA and Capacitor iOS app ship the text with the app instead of
+// requiring a first-launch download. Android uses the same file in APK assets.
+// Verified source metadata: 1,189 chapters and 31,102 verses.
+const REMOTE_PCE_TEXT_FILE_URL = '/pce-bible.txt';
 // In the native Android app, this exact same file is bundled into the APK
 // (android/app/src/main/assets/bible/pce-bible.txt) and served locally by a
 // WebViewClient.shouldInterceptRequest override in MainActivity.java for
