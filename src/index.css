@@ -953,13 +953,7 @@ html.kjb-native-ios select {
   transition: background-color 0.2s ease;
 }
 
-/* Listen player: sits clear of the phone bottom nav, and near the bottom
-   edge on wider screens where that nav is hidden. */
-.kjb-listen-player {
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem);
-}
-@media (min-width: 640px) {
-  .kjb-listen-player {
-    bottom: 1.5rem;
-  }
+/* Listen row: the audio controls under the reader toolbar. */
+.kjb-listen-row button {
+  -webkit-tap-highlight-color: transparent;
 }

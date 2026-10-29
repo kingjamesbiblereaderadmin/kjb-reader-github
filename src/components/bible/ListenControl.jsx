@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Headphones, Loader2, Pause, Play, Square, AlertCircle } from 'lucide-react';
+import { Loader2, Pause, Play, SkipBack, SkipForward, Square, AlertCircle } from 'lucide-react';
 import { buildSpeechChunks } from '@/lib/ttsChunks';
 import { setSpeakingVerses, clearSpeakingVerses } from '@/lib/speakingVerses';
 
@@ -234,58 +234,88 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     startChapter();
   };
 
+  // Skip one part back / forward; skipping past the last part rolls into the
+  // next chapter, exactly like finishing a part does.
+  const jumpTo = (target) => {
+    if (!active || busy) return;
+    if (target >= chunks.length) { advanceChapter(); return; }
+    const audio = audioRef.current;
+    if (target === index && audio) {
+      audio.currentTime = 0;
+      if (status !== 'playing') audio.play().then(() => setStatus('playing')).catch(() => {});
+      return;
+    }
+    if (audio) { audio.onended = null; audio.onerror = null; audio.pause(); }
+    playFrom(target < 0 ? 0 : target);
+  };
+
   const canListen = chunks.length > 0 && !disabled;
   const busy = status === 'loading';
+  const isActive = active && status !== 'idle';
+  const skipDisabled = !isActive || busy;
+  const btn = 'flex h-10 w-10 flex-none items-center justify-center rounded-full border border-border bg-secondary text-secondary-foreground hover:bg-accent/20 transition-colors touch-manipulation disabled:opacity-30';
+  const label = `${book?.shortName || book?.name || ''} ${pos?.chapter ?? ''}`.trim();
 
   return (
-    <>
+    <div
+      role="group"
+      aria-label="Listen to this chapter"
+      className="kjb-listen-row print:hidden flex items-center gap-2 w-full max-w-[120rem] mx-auto mt-2"
+    >
       <button
         type="button"
-        onClick={() => (active ? stop() : startChapter())}
-        disabled={!canListen}
-        title={active ? 'Stop listening' : 'Listen to this chapter'}
-        aria-label={active ? 'Stop listening' : 'Listen to this chapter'}
-        className={`kjb-fixed-btn flex-none flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-xs font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap disabled:opacity-40 ${active ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}
+        onClick={() => jumpTo(index - 1)}
+        disabled={skipDisabled}
+        title="Previous part"
+        aria-label="Previous part"
+        className={btn}
       >
-        {busy ? <Loader2 className="w-5 h-5 flex-shrink-0 animate-spin" /> : <Headphones className="w-5 h-5 flex-shrink-0" />}
-        <span className="hidden lg:inline">{active ? 'Stop' : 'Listen'}</span>
+        <SkipBack className="h-4 w-4" />
       </button>
-
-      {active && (
-        <div className="kjb-listen-player print:hidden fixed left-1/2 -translate-x-1/2 z-[150] w-[calc(100%-2rem)] max-w-md">
-          <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-3 py-2.5 shadow-xl">
-            <button
-              type="button"
-              onClick={toggle}
-              disabled={busy}
-              aria-label={status === 'playing' ? 'Pause' : 'Play'}
-              className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-60"
-            >
-              {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : status === 'playing' ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-            </button>
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-sans text-xs font-semibold text-foreground notranslate">
-                {(book?.shortName || book?.name || '')} {pos?.chapter} · Listening
-              </p>
-              <p className="truncate font-sans text-[11px] text-muted-foreground">
-                {error
-                  ? <span className="inline-flex items-center gap-1 text-destructive"><AlertCircle className="h-3 w-3" /> {error}</span>
-                  : busy
-                    ? 'Preparing audio…'
-                    : `Part ${index + 1} of ${chunks.length}${locale === FALLBACK_LANGUAGE ? ' · English (US)' : ''}`}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => stop()}
-              aria-label="Stop listening"
-              className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-border text-foreground hover:bg-secondary"
-            >
-              <Square className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      )}
-    </>
+      <button
+        type="button"
+        onClick={toggle}
+        disabled={!canListen || busy}
+        title={status === 'playing' ? 'Pause' : 'Play this chapter'}
+        aria-label={status === 'playing' ? 'Pause' : 'Play this chapter'}
+        className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-primary text-primary-foreground hover:opacity-90 transition-opacity touch-manipulation disabled:opacity-40"
+      >
+        {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : status === 'playing' ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+      </button>
+      <button
+        type="button"
+        onClick={() => jumpTo(index + 1)}
+        disabled={skipDisabled}
+        title="Next part"
+        aria-label="Next part"
+        className={btn}
+      >
+        <SkipForward className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => stop()}
+        disabled={!isActive}
+        title="Stop listening"
+        aria-label="Stop listening"
+        className={btn}
+      >
+        <Square className="h-4 w-4" />
+      </button>
+      <div className="min-w-0 flex-1" aria-live="polite">
+        <p className="truncate font-sans text-xs font-semibold text-foreground notranslate">
+          {isActive ? label : 'Listen'}
+        </p>
+        <p className="truncate font-sans text-[11px] text-muted-foreground">
+          {error
+            ? <span className="inline-flex items-center gap-1 text-destructive"><AlertCircle className="h-3 w-3" /> {error}</span>
+            : busy
+              ? 'Preparing audio…'
+              : status === 'playing' || status === 'paused'
+                ? `Part ${index + 1} of ${chunks.length}${status === 'paused' ? ' · Paused' : ''}${locale === FALLBACK_LANGUAGE ? ' · English (US)' : ''}`
+                : 'Tap play to hear this chapter'}
+        </p>
+      </div>
+    </div>
   );
 }

@@ -315,12 +315,6 @@ export default function ReaderToolbar({
           </button>
           <button onClick={toggleSelectMode} title="Select verses" className={`kjb-fixed-btn flex-none flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-xs font-medium transition-all duration-200 touch-manipulation h-10  whitespace-nowrap ${selectMode ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}><CheckSquare className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Select</span></button>
 
-          <ListenControl
-            verses={verses} book={book} pos={pos}
-            disabled={verseCount === 0} loading={loading}
-            goNext={goNext} isLastChapterLastBook={isLastChapterLastBook}
-          />
-
            <DropdownMenu onOpenChange={(open) => { if (open) closeAllMenus(); }}>
             <DropdownMenuTrigger asChild>
               <button title={shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'} className="kjb-fixed-btn flex-none flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap">
@@ -467,6 +461,12 @@ export default function ReaderToolbar({
           </>
         )}
       </div>
+
+      <ListenControl
+        verses={verses} book={book} pos={pos}
+        disabled={verseCount === 0} loading={loading}
+        goNext={goNext} isLastChapterLastBook={isLastChapterLastBook}
+      />
 
       {/* Single unified toolbar - SelectActionBar for multi-select mode, ReadingRangeBar for search/gospel/daily/navigation */}
       {selectMode && (
