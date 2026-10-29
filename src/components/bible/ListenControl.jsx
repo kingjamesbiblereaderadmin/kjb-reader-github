@@ -44,6 +44,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   });
   // Verse the reader chose to start listening from (1 = the chapter's start).
   const [startVerse, setStartVerse] = useState(1);
+  const [startVerseChosen, setStartVerseChosen] = useState(false);
   const [showVersePicker, setShowVersePicker] = useState(false);
 
   const audioRef = useRef(null);
@@ -287,6 +288,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   // A new chapter starts listening from its first verse again.
   useEffect(() => {
     setStartVerse(1);
+    setStartVerseChosen(false);
     setShowVersePicker(false);
   }, [passageKey]);
 
@@ -306,6 +308,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   const startFrom = (verse) => {
     const num = Number(verse) || 1;
     setStartVerse(num);
+    setStartVerseChosen(true);
     setShowVersePicker(false);
     if (!(active && status !== 'idle')) { keepVerseInView(num, true); return; }
     const target = chunkForVerse(num);
@@ -338,9 +341,9 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     // from where they left off).
     let from = 0;
     const resume = lastPosRef.current;
-    if (startVerse > 1) {
+    if (startVerseChosen) {
       const picked = chunkForVerse(startVerse);
-      if (picked > 0) from = picked;
+      if (picked >= 0) from = picked;
     } else if (resume && resume.key === passageKey) {
       const found = chunks.findIndex(chunk => chunk.verses.includes(resume.verse));
       if (found > 0) from = found;
