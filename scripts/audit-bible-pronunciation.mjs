@@ -11,6 +11,9 @@ const titleMap = Object.fromEntries([...titleSource.matchAll(/^\s*'([^']+)'\s*:\
 const canonicalByUpper = Object.fromEntries(Object.values(titleMap).map(x => [x.toUpperCase(), x]));
 const bookNames = new Set(Object.values(titleMap).map(x => x.toUpperCase()).concat(['GENESIS','EXODUS','LEVITICUS','NUMBERS','DEUTERONOMY','JOSHUA','JUDGES','RUTH','1 SAMUEL','2 SAMUEL','1 KINGS','2 KINGS','1 CHRONICLES','2 CHRONICLES','EZRA','NEHEMIAH','ESTHER','JOB','PSALMS','PROVERBS','ECCLESIASTES','SONG OF SOLOMON','ISAIAH','JEREMIAH','LAMENTATIONS','EZEKIEL','DANIEL','HOSEA','JOEL','AMOS','OBADIAH','JONAH','MICAH','NAHUM','HABAKKUK','ZEPHANIAH','HAGGAI','ZECHARIAH','MALACHI','MATTHEW','MARK','LUKE','JOHN','ACTS','ROMANS','1 CORINTHIANS','2 CORINTHIANS','GALATIANS','EPHESIANS','PHILIPPIANS','COLOSSIANS','1 THESSALONIANS','2 THESSALONIANS','1 TIMOTHY','2 TIMOTHY','TITUS','PHILEMON','HEBREWS','JAMES','1 PETER','2 PETER','1 JOHN','2 JOHN','3 JOHN','JUDE','REVELATION']));
 const normalizeBook = t => t.toUpperCase().replace(/[.,:;]+$/,'').replace(/\s+/g,' ').trim();
+// Canonical order corrects historical PCE title variants such as Third/Fourth Book of Kings.
+const canonicalBooks = ['Genesis','Exodus','Leviticus','Numbers','Deuteronomy','Joshua','Judges','Ruth','1 Samuel','2 Samuel','1 Kings','2 Kings','1 Chronicles','2 Chronicles','Ezra','Nehemiah','Esther','Job','Psalms','Proverbs','Ecclesiastes','Song of Solomon','Isaiah','Jeremiah','Lamentations','Ezekiel','Daniel','Hosea','Joel','Amos','Obadiah','Jonah','Micah','Nahum','Habakkuk','Zephaniah','Haggai','Zechariah','Malachi','Matthew','Mark','Luke','John','Acts','Romans','1 Corinthians','2 Corinthians','Galatians','Ephesians','Philippians','Colossians','1 Thessalonians','2 Thessalonians','1 Timothy','2 Timothy','Titus','Philemon','Hebrews','James','1 Peter','2 Peter','1 John','2 John','3 John','Jude','Revelation'];
+let canonicalBookIndex = 0;
 const tokenRe = /[A-Za-z]+(?:['’][A-Za-z]+)*(?:-[A-Za-z]+(?:['’][A-Za-z]+)*)*/g;
 const counts = new Map(), refs = new Map(), variants = new Map(), wordContext = new Map();
 let book = 'Unknown', chapter = 0, verse = 0, awaitingFirstVerse = false;
@@ -25,7 +28,12 @@ for (const rawLine of lines) {
   if (bookNames.has(normalized)) { book = canonicalByUpper[normalized] || normalized; chapter = 0; verse = 0; awaitingFirstVerse = false; titleBuffer = []; continue; }
   const cm = t.match(/^(?:CHAPTER|PSALM)\s+(\d+)$/i);
   if (cm) {
-    chapter = Number(cm[1]); verse = 0; awaitingFirstVerse = true; chapters++;
+    const incomingChapter = Number(cm[1]);
+    if (incomingChapter === 1 && chapters > 0 && canonicalBookIndex < canonicalBooks.length - 1) {
+      canonicalBookIndex++;
+      book = canonicalBooks[canonicalBookIndex];
+    }
+    chapter = incomingChapter; verse = 0; awaitingFirstVerse = true; chapters++;
     if (/^PSALM\s/i.test(t)) book = 'Psalms';
     const joinedTitle = titleBuffer.join(' ').replace(/[.,]/g, '').replace(/\s+/g, ' ').trim().toUpperCase();
     const exact = titleMap[joinedTitle];
