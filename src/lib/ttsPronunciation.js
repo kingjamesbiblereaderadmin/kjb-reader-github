@@ -724,7 +724,7 @@ function splitArchaicEnding(word) {
   const suffix = word.endsWith('eth') ? 'eth' : word.endsWith('est') ? 'est' : '';
   if (!suffix) return '';
   const stem = word.slice(0, -3);
-  if (stem.length < 3) return '';
+  if (stem.length < 2) return '';
   if (NOT_ARCHAIC.has(word)) return '';
   // Ordinals: twentieth, thirtieth … (but glorifieth, testifieth still split).
   if (word.endsWith('tieth')) return '';
