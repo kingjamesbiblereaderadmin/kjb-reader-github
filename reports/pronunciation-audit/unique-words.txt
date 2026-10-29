@@ -7902,7 +7902,6 @@ oreb
 oren
 organ
 organs
-original
 orion
 ornament
 ornaments
@@ -9294,7 +9293,6 @@ reviled
 revilers
 revilest
 revilings
-revised
 revive
 revived
 reviving
@@ -10615,7 +10613,6 @@ spy
 square
 squared
 squares
-st
 stability
 stable
 stablish
@@ -11496,7 +11493,6 @@ transgressors
 translate
 translated
 translation
-translations
 transparent
 trap
 traps

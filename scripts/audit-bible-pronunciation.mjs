@@ -33,6 +33,7 @@ for (const rawLine of lines) {
     titleBuffer = []; continue;
   }
   if (/^THE END\.?$/i.test(t)) { sourceEnd = true; continue; }
+  if (chapter && /^[A-Z0-9 ,.;:'-]+$/.test(t) && /^(THE |ST\. |OF$|CALLED$|TO THE$|TO$|OTHERWISE CALLED)/.test(t) && !/^THE END\.?$/.test(t) && !/^CHAPTER \d+$/.test(t)) { chapter = 0; titleBuffer = [t]; continue; }
   if (!chapter || sourceEnd) { if (/^[A-Z0-9 ,.;:'-]+$/.test(t) && t.length > 1 && !/^THE END\.?$/.test(t)) titleBuffer.push(t); continue; }
   let content = t;
   const vm = t.match(/^(\d+)\s+(.+)$/);
