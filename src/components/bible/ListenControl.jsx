@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Pause, Play, SkipBack, SkipForward, Square, AlertCircle, Repeat } from 'lucide-react';
+import { Pause, Play, SkipBack, SkipForward, Square, AlertCircle, Repeat, Info } from 'lucide-react';
 import { buildSpeechChunks, speechWeight } from '@/lib/ttsChunks';
 import { getCachedAudio, saveCachedAudio } from '@/lib/ttsAudioCache';
 import { setSpeakingVerses, clearSpeakingVerses } from '@/lib/speakingVerses';
@@ -40,6 +40,8 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   const [status, setStatus] = useState('idle'); // idle | loading | playing | paused
   const [index, setIndex] = useState(0);
   const [error, setError] = useState('');
+  // "About Listen" panel — the beta notice and the feedback address.
+  const [showInfo, setShowInfo] = useState(false);
   const [, setLocale] = useState(PREFERRED_LANGUAGE);
   // "Continue" = keep reading into the next chapter when this one finishes.
   const [continueReading, setContinueReading] = useState(() => {
@@ -458,15 +460,31 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
         <Repeat className="h-4 w-4 flex-none" />
         <span className="hidden xs:inline">{continueReading ? 'Continuous' : 'Single'}</span>
       </button>
+      <button
+        type="button"
+        onClick={() => setShowInfo(v => !v)}
+        aria-expanded={showInfo}
+        title="About Listen (beta)"
+        aria-label="About Listen (beta)"
+        className={`${btn} ${showInfo ? 'bg-accent/20 text-accent' : ''}`}
+      >
+        <Info className="h-4 w-4" />
+      </button>
       </div>
-      <div className="mt-1.5 flex justify-center">
-        <span
-          title="Listen is in beta — voices, pacing and pronunciation are still being refined."
-          className="flex h-5 flex-none items-center rounded-full border border-accent/40 bg-accent/10 px-2 font-sans text-[9px] font-semibold uppercase leading-none tracking-wider text-accent"
-        >
-          Beta
-        </span>
-      </div>
+      {showInfo && (
+        <div className="mt-2 flex justify-center px-2">
+          <div className="max-w-md rounded-xl border border-border bg-secondary px-3 py-2 text-center font-sans text-[11px] leading-relaxed text-foreground/85 shadow-sm">
+            <span className="mr-1 font-semibold uppercase tracking-wider text-accent">Beta</span>
+            Listen is in beta — voices, pacing and pronunciation are still being refined. Feedback welcome at{' '}
+            <a
+              href="mailto:kingjamesbiblereader@outlook.sg?subject=KJB%20Reader%20%E2%80%94%20Listen%20feedback"
+              className="break-all text-primary hover:underline"
+            >
+              kingjamesbiblereader@outlook.sg
+            </a>.
+          </div>
+        </div>
+      )}
       {error && (
         <div aria-live="polite" className="mt-2 flex justify-center">
           <span className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-secondary px-3 py-1.5 font-sans text-[11px] font-medium text-destructive shadow-sm">
