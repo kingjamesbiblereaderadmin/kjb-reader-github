@@ -349,8 +349,25 @@ export async function getBibleData() {
         return parsedData;
       }
       
-      if (cached && needsUpdate) {
-        console.log('[CACHE] Cache outdated, fetching fresh...');
+      // WEAK-INTERNET: if we already have a usable on-device copy, never make
+      // the reader wait on the network for an update/repair. Serve the cached
+      // Bible right now and refresh it in the background (it takes effect via
+      // 'kjb-cache-updated'). Only a device with NO cached copy has to wait.
+      if (cached && (needsUpdate || cachedIsStale)) {
+        parsedData = cached;
+        if (!isWeakConnection()) {
+          fetchAndParse()
+            .then(async (fresh) => {
+              await saveToCache(fresh);
+              parsedData = fresh;
+              if (typeof window !== 'undefined') window.dispatchEvent(new Event('kjb-cache-updated'));
+              console.log('[CACHE] \u2713 Background update applied');
+            })
+            .catch((e) => console.warn('[CACHE] Background update failed, keeping cached copy:', e.message));
+        } else {
+          console.log('[CACHE] Weak connection \u2014 using cached copy, update deferred');
+        }
+        return parsedData;
       }
 
       if (!cached) {
@@ -487,6 +504,8 @@ export async function refreshCacheIfDue() {
   const now = Date.now();
 
   if (now - lastRefresh < CACHE_REFRESH_INTERVAL) return false;
+  // Don't start a multi-MB refresh on a weak connection; try again next open.
+  if (isWeakConnection()) return false;
 
   console.log('[REFRESH] Cache refresh due, checking for updates...');
   const needsUpdate = await checkForUpdates();
@@ -538,6 +557,14 @@ export async function autoDownloadBibleOnFirstLoad() {
   try {
     const cached = await loadFromIndexedDB();
     const hasValidCache = cached && isValidBibleData(cached);
+
+    // Weak connection + a usable on-device copy: keep using it, retry the
+    // update on a later open instead of hanging on a crawling download.
+    if (hasValidCache && isWeakConnection()) {
+      console.log('[AUTO-DOWNLOAD] Weak connection — using cached data');
+      _autoDownloadInitialized = false;
+      return { downloaded: false, updated: false };
+    }
 
     // Only check the version when we actually have a cache (otherwise we must download)
     let needsUpdate = false;
