@@ -8,6 +8,7 @@ const lines = raw.replace(/\r\n?/g, '\n').split('\n');
 fs.mkdirSync(outDir, { recursive: true });
 const titleSource = fs.readFileSync('src/lib/bibleBookTitles.js', 'utf8');
 const titleMap = Object.fromEntries([...titleSource.matchAll(/^\s*'([^']+)'\s*:\s*'([^']+)'/gm)].map(m => [m[1].replace(/[.,]/g, '').replace(/\s+/g, ' ').trim().toUpperCase(), m[2]]));
+const canonicalByUpper = Object.fromEntries(Object.values(titleMap).map(x => [x.toUpperCase(), x]));
 const bookNames = new Set(Object.values(titleMap).map(x => x.toUpperCase()).concat(['GENESIS','EXODUS','LEVITICUS','NUMBERS','DEUTERONOMY','JOSHUA','JUDGES','RUTH','1 SAMUEL','2 SAMUEL','1 KINGS','2 KINGS','1 CHRONICLES','2 CHRONICLES','EZRA','NEHEMIAH','ESTHER','JOB','PSALMS','PROVERBS','ECCLESIASTES','SONG OF SOLOMON','ISAIAH','JEREMIAH','LAMENTATIONS','EZEKIEL','DANIEL','HOSEA','JOEL','AMOS','OBADIAH','JONAH','MICAH','NAHUM','HABAKKUK','ZEPHANIAH','HAGGAI','ZECHARIAH','MALACHI','MATTHEW','MARK','LUKE','JOHN','ACTS','ROMANS','1 CORINTHIANS','2 CORINTHIANS','GALATIANS','EPHESIANS','PHILIPPIANS','COLOSSIANS','1 THESSALONIANS','2 THESSALONIANS','1 TIMOTHY','2 TIMOTHY','TITUS','PHILEMON','HEBREWS','JAMES','1 PETER','2 PETER','1 JOHN','2 JOHN','3 JOHN','JUDE','REVELATION']));
 const normalizeBook = t => t.toUpperCase().replace(/[.,:;]+$/,'').replace(/\s+/g,' ').trim();
 const tokenRe = /[A-Za-z]+(?:['’][A-Za-z]+)*(?:-[A-Za-z]+(?:['’][A-Za-z]+)*)*/g;
@@ -21,7 +22,7 @@ for (const rawLine of lines) {
   const t = rawLine.trim();
   if (!t) continue;
   const normalized = normalizeBook(t);
-  if (bookNames.has(normalized)) { book = normalized; chapter = 0; verse = 0; awaitingFirstVerse = false; titleBuffer = []; continue; }
+  if (bookNames.has(normalized)) { book = canonicalByUpper[normalized] || normalized; chapter = 0; verse = 0; awaitingFirstVerse = false; titleBuffer = []; continue; }
   const cm = t.match(/^(?:CHAPTER|PSALM)\s+(\d+)$/i);
   if (cm) {
     chapter = Number(cm[1]); verse = 0; awaitingFirstVerse = true; chapters++;
@@ -84,7 +85,7 @@ const checks = {
  uniqueWordForms: words.length, totalWordOccurrences: rows.reduce((s,r)=>s+r.occurrences,0),
  hyphenatedWordForms: hyphenated.length, apostropheWordForms: apostropheWords.length, longWordForms: longWords.length,
  rareWordForms: rareWords.length, reviewCandidates: candidates.length,
- bookCoverage: { beginsGenesis: verseTextRecords[0]?.ref.startsWith('GENESIS 1:'), endsRevelation: verseTextRecords.at(-1)?.ref.startsWith('REVELATION 22:') },
+ bookCoverage: { beginsGenesis: verseTextRecords[0]?.ref.startsWith('Genesis 1:'), endsRevelation: verseTextRecords.at(-1)?.ref.startsWith('Revelation 22:') },
  expected, integrityPass: chapters===expected.chapters && numberedVerseLines+unnumberedFirstVerses===expected.verses,
  notes: ['Text-only heuristic audit: candidates are not confirmed pronunciation errors.', 'Audio pronunciation must be checked against generated samples.', 'Verse 1 is unnumbered in this source format and is reconstructed as chapter verse 1.']
 };

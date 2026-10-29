@@ -1,7 +1,7 @@
 {
   "sourceBytes": 4345930,
   "lines": 33863,
-  "detectedBooks": 55,
+  "detectedBooks": 54,
   "chapterHeadings": 1189,
   "numberedVerseLines": 29913,
   "unnumberedFirstVerses": 1189,
@@ -15,7 +15,7 @@
   "reviewCandidates": 8767,
   "bookCoverage": {
     "beginsGenesis": true,
-    "endsRevelation": false
+    "endsRevelation": true
   },
   "expected": {
     "chapters": 1189,
