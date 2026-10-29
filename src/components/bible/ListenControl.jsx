@@ -53,6 +53,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   const playedKeyRef = useRef('');
   const gapTimerRef = useRef(null); // pause between verses
   const lastSpokenRef = useRef(null); // verse last scrolled to
+  const resumeRef = useRef(null); // { key, verse } where playback was stopped
   const continueRef = useRef(continueReading);
 
   continueRef.current = continueReading;
@@ -80,6 +81,13 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     }
     clearTimeout(gapTimerRef.current);
     gapTimerRef.current = null;
+    // Remember where it stopped, so pressing play again carries on from the
+    // verse that was being read instead of starting the chapter over.
+    const stoppedOn = lastSpokenRef.current;
+    const at = posRef.current;
+    if (resetSession && stoppedOn && at) {
+      resumeRef.current = { key: `${at.abbr}:${at.chapter}`, verse: stoppedOn };
+    }
     lastSpokenRef.current = null;
     releaseAll();
     clearSpeakingVerses();
@@ -245,7 +253,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
 
   // Opening a chapter: announce the book the first time (and on every new
   // book), then just the chapter number while continuing the same book.
-  const startChapter = useCallback(() => {
+  const startChapter = useCallback((fromIndex = 0) => {
     const p = posRef.current;
     const bookName = book?.name || book?.shortName || '';
     introRef.current = sessionBookRef.current === p?.abbr
@@ -253,7 +261,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
       : `${bookName}, Chapter ${p?.chapter}.`;
     sessionBookRef.current = p?.abbr || null;
     playedKeyRef.current = `${p?.abbr}:${p?.chapter}`;
-    playFrom(0);
+    playFrom(fromIndex);
   }, [book?.name, book?.shortName, playFrom]);
 
   // A chapter change the reader did NOT trigger by itself ends playback.
@@ -285,9 +293,19 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
       setStatus('playing');
       prefetch(index + 1);
       prefetch(index + 2);
+      // Bring the reader back to the verse being read, wherever they scrolled.
+      const verse = lastSpokenRef.current || chunks[index]?.verses?.[0];
+      if (verse) keepVerseInView(verse, true);
       return;
     }
-    startChapter();
+    // Carry on from where this chapter stopped (same chapter only).
+    let from = 0;
+    const resume = resumeRef.current;
+    if (resume && resume.key === passageKey) {
+      const found = chunks.findIndex(chunk => chunk.verses.includes(resume.verse));
+      if (found > 0) from = found;
+    }
+    startChapter(from);
   };
 
   // Skip one part back / forward; skipping past the last part rolls into the
