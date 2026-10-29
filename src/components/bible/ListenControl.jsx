@@ -11,6 +11,11 @@ const PREFERRED_LANGUAGE = 'en-US';
 const VERSE_GAP_MS = 550;
 const PARAGRAPH_GAP_MS = 1050;
 const CONTINUE_KEY = 'kjb-listen-continue';
+// Book already announced by the player. Module-level (not a ref) so that
+// unmounting the reader toolbar mid-book does not make the player announce
+// the book name again on the next chapter — the book is named once per book,
+// and continuous playback then only says the chapter number.
+let lastAnnouncedBook = null;
 
 function errorMessage(error) {
   return error?.response?.data?.error || error?.message || 'Could not generate speech. Please try again.';
@@ -26,8 +31,8 @@ function base64ToBlobUrl(base64, contentType) {
 // Reads the current chapter aloud through the server-side NVIDIA Magpie
 // function. Chapters longer than the function's 1,800-character limit are
 // synthesized chunk by chunk and played back to back; finishing a chapter
-// continues into the next one. The book is announced on the first chapter of
-// a listening session (and on each new book), later chapters as "Chapter N".
+// continues into the next one. The book name is announced once per book; every
+// later chapter of that book is introduced with just its number.
 export default function ListenControl({ verses, book, pos, disabled, loading, goNext, isLastChapterLastBook, chapterSubscript, colophon, endMarker, titlePageText, playFromVerse }) {
   const chunks = useMemo(() => buildSpeechChunks(verses, undefined, { titlePage: titlePageText, superscription: chapterSubscript, colophon, endMarker }), [verses, titlePageText, chapterSubscript, colophon, endMarker]);
   const [active, setActive] = useState(false);
@@ -49,7 +54,6 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   const languageRef = useRef(PREFERRED_LANGUAGE);
   const runRef = useRef(0); // invalidates callbacks from a stopped run
   const introRef = useRef('');
-  const sessionBookRef = useRef(null); // book already announced this session
   const posRef = useRef(pos);
   const activeRef = useRef(false);
   const pendingAdvanceRef = useRef(false);
@@ -76,7 +80,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     prefetchRef.current.clear();
   }, []);
 
-  const stop = useCallback((resetSession = true) => {
+  const stop = useCallback(() => {
     runRef.current += 1;
     pendingAdvanceRef.current = false;
     const audio = audioRef.current;
@@ -93,7 +97,6 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     lastSpokenRef.current = null;
     releaseAll();
     clearSpeakingVerses();
-    if (resetSession) sessionBookRef.current = null;
     activeRef.current = false;
     setActive(false);
     setStatus('idle');
@@ -265,12 +268,13 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   const startChapter = useCallback((fromIndex = 0) => {
     const p = posRef.current;
     const bookName = book?.name || book?.shortName || '';
+    const abbr = p?.abbr || null;
     introRef.current = p?.chapter === 0
       ? ''
-      : sessionBookRef.current === p?.abbr
+      : lastAnnouncedBook === abbr
         ? `Chapter ${p?.chapter}.`
         : `${bookName}, Chapter ${p?.chapter}.`;
-    sessionBookRef.current = p?.abbr || null;
+    lastAnnouncedBook = abbr;
     playedKeyRef.current = `${p?.abbr}:${p?.chapter}`;
     playFrom(fromIndex);
   }, [book?.name, book?.shortName, playFrom]);
