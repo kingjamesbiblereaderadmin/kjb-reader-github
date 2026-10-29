@@ -59,6 +59,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     if (audio) {
       audio.onended = null;
       audio.onerror = null;
+      audio.ontimeupdate = null;
       audio.pause();
       audio.removeAttribute('src');
       audio.load();
@@ -134,6 +135,26 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     if (!moved) { pendingAdvanceRef.current = false; stop(); }
   }, [goNext, isLastChapterLastBook, stop]);
 
+  // The TTS service returns audio only, with no word timings, so the verse
+  // being read is estimated from how much of the chunk's speech belongs to it.
+  // Chunks stay under ~1,600 characters, which keeps that estimate tight.
+  const speakAt = useCallback((chunkIndex, elapsed, duration) => {
+    const chunk = chunks[chunkIndex];
+    if (!chunk || !isFinite(duration) || duration <= 0) return;
+    const intro = chunkIndex === 0 ? (introRef.current ? introRef.current.length + 1 : 0) : 0;
+    const spans = chunk.spans?.length ? chunk.spans : chunk.verses.map(verse => ({ verse, chars: 1 }));
+    const total = spans.reduce((sum, span) => sum + span.chars, intro);
+    const spoken = (elapsed / duration) * total;
+    let walked = 0;
+    let verse = spans[spans.length - 1].verse;
+    for (const span of spans) {
+      walked += span.chars;
+      if (spoken <= walked) { verse = span.verse; break; }
+    }
+    const p = posRef.current;
+    setSpeakingVerses(p?.abbr, p?.chapter, [verse]);
+  }, [chunks]);
+
   const playFrom = useCallback(async (chunkIndex) => {
     if (chunkIndex >= chunks.length) { advanceChapter(); return; }
 
@@ -178,15 +199,17 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
       await audio.play();
       if (run !== runRef.current) return;
       setStatus('playing');
-      const p = posRef.current;
-      setSpeakingVerses(p?.abbr, p?.chapter, chunks[chunkIndex].verses);
+      speakAt(chunkIndex, audio.currentTime, audio.duration);
+      audio.ontimeupdate = () => {
+        if (run === runRef.current) speakAt(chunkIndex, audio.currentTime, audio.duration);
+      };
       prefetch(chunkIndex + 1);
     } catch {
       if (run !== runRef.current) return;
       setError('Tap play to start listening.');
       setStatus('paused');
     }
-  }, [advanceChapter, chunks, prefetch, stop, synthesize]);
+  }, [advanceChapter, chunks, prefetch, speakAt, stop, synthesize]);
 
   // Opening a chapter: announce the book the first time (and on every new
   // book), then just the chapter number while continuing the same book.
@@ -245,7 +268,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
       if (status !== 'playing') audio.play().then(() => setStatus('playing')).catch(() => {});
       return;
     }
-    if (audio) { audio.onended = null; audio.onerror = null; audio.pause(); }
+    if (audio) { audio.onended = null; audio.onerror = null; audio.ontimeupdate = null; audio.pause(); }
     playFrom(target < 0 ? 0 : target);
   };
 
