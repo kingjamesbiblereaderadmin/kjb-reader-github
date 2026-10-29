@@ -2,7 +2,7 @@
 
 ## Scope and status
 
-Full-source text and vocabulary audit of the PCE Bible bundled in Android assets. This is not a completed human listening audit; no synthesized samples were listened to during this run. Candidate words are not confirmed errors.
+Full-source text and vocabulary audit of the PCE Bible bundled in Android assets. The NVIDIA TTS endpoint was successfully smoke-tested and a short sample using the app pronunciation hints is bundled at `public/audio/audit/pronunciation-candidates.wav`. The sample is a synthesis check, not a human listening sign-off. Candidate words are not confirmed errors.
 
 ## Integrity checks
 
@@ -56,6 +56,13 @@ Full-source text and vocabulary audit of the PCE Bible bundled in Android assets
 - hyphenated-words.json, long-words.json, rare-words.json: focused candidate sets
 - known-name-review.csv/json: priority biblical-name shortlist
 
+## Audio smoke test
+
+- TTS request succeeded for a six-second pronunciation sample using the app’s speech-only respelling rules.
+- WAV format: 22,050 Hz, mono, 16-bit PCM.
+- Sample path: `public/audio/audit/pronunciation-candidates.wav`; copied into web build, Android assets, and iOS assets by Capacitor sync.
+- Test words: Nebuchadnezzar, Mephibosheth, Chedorlaomer, Zaphnath-paaneah, and Beer-sheba.
+
 ## Remaining limitation
 
-Audio pronunciation cannot be marked verified until representative passages are synthesized through NVIDIA TTS and listened to by a reviewer. This report does not claim flagged names are mispronounced and does not include a complete Bible narration audio file.
+The sample has not been independently listened to by a human reviewer, so pronunciation is not marked verified. The complete Bible narration has not been generated. Full pre-bundling as WAV would create a multi-gigabyte app; the current reader synthesizes chunks and caches played audio locally for subsequent offline listening where device storage allows.
