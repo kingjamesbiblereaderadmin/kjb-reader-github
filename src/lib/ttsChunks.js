@@ -1,15 +1,12 @@
-// Turns a chapter's verses into speech-sized chunks for the NVIDIA Magpie TTS
-// function, which rejects anything over 1,800 characters. Text goes out exactly
-// as read — only the reader's own markup (italic brackets, pilcrows) is removed.
-// Each chunk also lists the verses it covers and roughly how much speaking time
-// each of them takes, so playback can follow along verse by verse.
-
-export const TTS_MAX_CHARS = 1600; // headroom under the backend's 1,800 limit
-
-// Punctuation is spoken as a pause, so it takes more time than a plain letter.
-// Counting it at its character length made the highlight run ahead of the voice
-// at every comma and full stop; these weights approximate the pauses.
+// Turns KJB verses and special printed sections into speech-sized NVIDIA Magpie chunks.
+export const TTS_MAX_CHARS = 1600;
 const PAUSE_WEIGHT = { ',': 3, ';': 5, ':': 4, '.': 8, '!': 8, '?': 8 };
+
+// These substitutions affect speech only; the KJB text shown, searched and copied is untouched.
+// Use conservative pronunciation respellings only for words reported to be spoken incorrectly.
+const PRONUNCIATION_RULES = [
+  [/\\bMizpeh\\b/gi, 'Miz-puh'],
+];
 
 export function speechWeight(text) {
   let weight = 0;
@@ -18,14 +15,15 @@ export function speechWeight(text) {
 }
 
 export function verseToSpeech(text) {
-  return String(text || '')
-    .replace(/[[\]]/g, '')     // italics markup
-    .replace(/¶/g, ' ')        // pilcrow paragraph marks
-    .replace(/\s+/g, ' ')
+  let spoken = String(text || '')
+    .replace(/[\\[\\]]/g, '')
+    .replace(/[¶�]/g, ' ')
+    .replace(/\\s+/g, ' ')
     .trim();
+  for (const [pattern, replacement] of PRONUNCIATION_RULES) spoken = spoken.replace(pattern, replacement);
+  return spoken;
 }
 
-// Split one long verse at sentence (then word) boundaries.
 function splitLong(text, max) {
   const parts = [];
   let rest = text;
@@ -41,20 +39,25 @@ function splitLong(text, max) {
   return parts;
 }
 
-// Returns [{ text, verses: [numbers], pilcrow, spans: [{ verse, weight }] }],
-// each chunk within `max` characters. One verse per chunk, so playback can take
-// a breath between verses (and a longer one where a ¶ paragraph starts) and the
-// read-aloud highlight is exact. `pilcrow` marks a chunk whose verse begins a
-// new paragraph. `weight` is how much of the chunk's speaking time belongs to
-// that verse (punctuation counted as its pause).
-export function buildSpeechChunks(verses, max = TTS_MAX_CHARS) {
+// Special sections are separate chunks so they are read in order without being
+// falsely highlighted as a numbered verse.
+export function buildSpeechChunks(verses, max = TTS_MAX_CHARS, sections = {}) {
   const chunks = [];
+  const addSection = (kind, value) => {
+    const text = verseToSpeech(value);
+    if (!text) return;
+    for (const piece of splitLong(text, max)) {
+      chunks.push({ text: piece, verses: [], spans: [], pilcrow: false, kind });
+    }
+  };
+
+  if (sections.superscription) addSection('superscription', sections.superscription);
 
   for (const verse of verses || []) {
     const text = verseToSpeech(verse.text);
     if (!text) continue;
     const verseNumber = parseInt(verse.verse, 10);
-    const pilcrow = /¶/.test(verse.text || '');
+    const pilcrow = /[¶�]/.test(verse.text || '');
     const pieces = text.length > max ? splitLong(text, max) : [text];
     pieces.forEach((piece, partIndex) => {
       chunks.push({
@@ -62,9 +65,12 @@ export function buildSpeechChunks(verses, max = TTS_MAX_CHARS) {
         verses: [verseNumber],
         pilcrow: partIndex === 0 && pilcrow,
         spans: [{ verse: verseNumber, weight: speechWeight(piece) }],
+        kind: 'verse',
       });
     });
   }
 
+  if (sections.colophon) addSection('colophon', sections.colophon);
+  if (sections.endMarker) addSection('end-marker', sections.endMarker);
   return chunks;
 }
