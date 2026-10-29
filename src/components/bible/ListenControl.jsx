@@ -53,7 +53,10 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   const playedKeyRef = useRef('');
   const gapTimerRef = useRef(null); // pause between verses
   const lastSpokenRef = useRef(null); // verse last scrolled to
-  const resumeRef = useRef(null); // { key, verse } where playback was stopped
+  // { key, verse } of the last verse actually read in a chapter — kept up to
+  // date as playback moves, so pressing play again (after pausing, stopping or
+  // scrolling away) carries on from that verse instead of the chapter's start.
+  const lastPosRef = useRef(null);
   const continueRef = useRef(continueReading);
 
   continueRef.current = continueReading;
@@ -81,13 +84,6 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     }
     clearTimeout(gapTimerRef.current);
     gapTimerRef.current = null;
-    // Remember where it stopped, so pressing play again carries on from the
-    // verse that was being read instead of starting the chapter over.
-    const stoppedOn = lastSpokenRef.current;
-    const at = posRef.current;
-    if (resetSession && stoppedOn && at) {
-      resumeRef.current = { key: `${at.abbr}:${at.chapter}`, verse: stoppedOn };
-    }
     lastSpokenRef.current = null;
     releaseAll();
     clearSpeakingVerses();
@@ -173,6 +169,8 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
       walked += span.weight;
       if (spoken <= walked) { verse = span.verse; break; }
     }
+    // Remember the verse being read right now (see lastPosRef above).
+    lastPosRef.current = { key: `${p?.abbr || ''}:${p?.chapter || ''}`, verse };
     // Follow along: if the spoken verse has scrolled out of sight, bring it back.
     if (verse !== lastSpokenRef.current) {
       lastSpokenRef.current = verse;
@@ -298,9 +296,10 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
       if (verse) keepVerseInView(verse, true);
       return;
     }
-    // Carry on from where this chapter stopped (same chapter only).
+    // Carry on from the verse last read in this chapter (never a later one —
+    // the reader should hear it from where they left off).
     let from = 0;
-    const resume = resumeRef.current;
+    const resume = lastPosRef.current;
     if (resume && resume.key === passageKey) {
       const found = chunks.findIndex(chunk => chunk.verses.includes(resume.verse));
       if (found > 0) from = found;
