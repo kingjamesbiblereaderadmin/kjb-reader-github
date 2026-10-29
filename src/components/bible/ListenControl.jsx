@@ -315,13 +315,19 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
         <Square className="h-4 w-4" />
       </button>
       </div>
-      <p aria-live="polite" className="mt-1 flex min-h-[1rem] items-center justify-center gap-1 text-center font-sans text-[11px]">
-        {error
-          ? <span className="inline-flex items-center gap-1 text-destructive"><AlertCircle className="h-3 w-3 flex-none" /> {error}</span>
-          : busy
-            ? <span className="inline-flex items-center gap-1.5 text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Preparing audio…</span>
-            : null}
-      </p>
+      {(error || busy) && (
+        <div aria-live="polite" className="mt-2 flex justify-center">
+          {error ? (
+            <span className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-secondary px-3 py-1.5 font-sans text-[11px] font-medium text-destructive shadow-sm">
+              <AlertCircle className="h-3.5 w-3.5 flex-none" /> {error}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-2 rounded-xl border border-border bg-secondary px-3 py-1.5 font-sans text-[11px] font-medium text-secondary-foreground shadow-sm">
+              <Loader2 className="h-3.5 w-3.5 flex-none animate-spin" /> Preparing audio…
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }
