@@ -231,6 +231,21 @@ export default function CreditsPage() {
               </p>
             ))}
           </div>
+          <div className="rounded-xl bg-secondary/60 border border-border px-4 py-3 mt-4 space-y-2">
+            <p className="font-sans text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Licensing</p>
+            <p className="font-sans text-xs text-foreground/85 leading-relaxed">
+              Narration is produced by <strong className="text-foreground">NVIDIA Magpie TTS</strong>, used only through NVIDIA&apos;s hosted inference service (NVIDIA Riva / NVIDIA NIM). That use is governed by NVIDIA&apos;s API trial terms of service and the published licence for the Magpie model.
+            </p>
+            <p className="font-sans text-xs text-foreground/85 leading-relaxed">
+              No model weights are downloaded, bundled, or redistributed with KJB Reader — the app only sends the text of the chapter being listened to and receives the audio back.
+            </p>
+            <p className="font-sans text-xs text-foreground/85 leading-relaxed">
+              The returned audio is used solely to read the KJV text aloud inside the app and is cached on your own device for offline listening. It is never sold, sublicensed, or used to train another model.
+            </p>
+            <p className="font-sans text-xs text-foreground/85 leading-relaxed">
+              Narration does not alter the text: the King James Bible stays public domain, and the speech-only pronunciation hints exist only in the audio, never in the reading text.
+            </p>
+          </div>
         </Section>
 
         {/* Built With & Thanks */}
