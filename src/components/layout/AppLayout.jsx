@@ -617,7 +617,7 @@ function DesktopFooter({ navigate, setMenuOpen, pathname }) {
           {open && (
           <>
           <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-3">
-            {NAV_ITEMS.map(item => {
+            {NAV_ITEMS.filter(item => item.path !== '/about').map(item => {
               const Icon = item.icon;
               const colors = NAV_COLORS[item.path] || NAV_COLORS['/'];
               return (
