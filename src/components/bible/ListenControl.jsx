@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Pause, Play, SkipBack, SkipForward, Square, AlertCircle, Repeat, Info } from 'lucide-react';
+import { Pause, Play, SkipBack, SkipForward, Square, AlertCircle, Repeat, Info, Download } from 'lucide-react';
 import { buildSpeechChunks, speechWeight } from '@/lib/ttsChunks';
 import { getCachedAudio, saveCachedAudio } from '@/lib/ttsAudioCache';
 import { setSpeakingVerses, clearSpeakingVerses } from '@/lib/speakingVerses';
@@ -42,6 +42,7 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
   const [error, setError] = useState('');
   // "About Listen" panel — the beta notice and the feedback address.
   const [showInfo, setShowInfo] = useState(false);
+  const [offlineSave, setOfflineSave] = useState({ busy: false, done: 0, total: 0, error: '' });
   const [, setLocale] = useState(PREFERRED_LANGUAGE);
   // "Continue" = keep reading into the next chapter when this one finishes.
   const [continueReading, setContinueReading] = useState(() => {
@@ -156,6 +157,36 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
     urlsRef.current.set(chunkIndex, url);
     return url;
   }, [chunks]);
+
+  // Pre-generate every chunk in this chapter so it can be played without a network connection.
+  // This is intentionally chapter-scoped: full-Bible pre-generation requires many thousands of
+  // paid TTS requests and multi-gigabyte audio, so it must not run invisibly in the background.
+  const saveChapterOffline = useCallback(async () => {
+    if (offlineSave.busy || !chunks.length) return;
+    setOfflineSave({ busy: true, done: 0, total: chunks.length, error: '' });
+    try {
+      for (let i = 0; i < chunks.length; i += 1) {
+        const cacheKey = `en-US:${chunks[i].text}`;
+        const cached = await getCachedAudio(cacheKey);
+        if (!cached?.audioBase64) {
+          if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+            throw new Error('Connect to the internet to save this chapter for offline listening.');
+          }
+          const response = await base44.functions.invoke('nvidiaMagpieTts', {
+            action: 'synthesize', text: chunks[i].text, language: 'en-US',
+          });
+          const data = response?.data;
+          if (!data?.success || !data?.audioBase64) throw new Error(data?.error || `Could not save audio part ${i + 1}.`);
+          const saved = await saveCachedAudio(cacheKey, data.audioBase64, data.contentType || 'audio/wav');
+          if (!saved) throw new Error('The device could not store more offline audio. Free some storage and try again.');
+        }
+        setOfflineSave({ busy: true, done: i + 1, total: chunks.length, error: '' });
+      }
+      setOfflineSave({ busy: false, done: chunks.length, total: chunks.length, error: '' });
+    } catch (err) {
+      setOfflineSave(current => ({ ...current, busy: false, error: errorMessage(err) }));
+    }
+  }, [chunks, offlineSave.busy]);
 
   const prefetch = useCallback((chunkIndex) => {
     if (chunkIndex >= chunks.length || urlsRef.current.has(chunkIndex) || prefetchRef.current.has(chunkIndex)) return;
@@ -462,7 +493,17 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
       </button>
       <button
         type="button"
-        onClick={() => setShowInfo(v => !v)}
+        onClick={saveChapterOffline}
+        disabled={!canListen || offlineSave.busy}
+        title={offlineSave.busy ? `Saving offline audio ${offlineSave.done}/${offlineSave.total}` : offlineSave.done === chunks.length && offlineSave.total > 0 ? 'Chapter saved for offline listening' : 'Save this chapter for offline listening'}
+        aria-label={offlineSave.busy ? 'Saving chapter for offline listening' : 'Save chapter for offline listening'}
+        className={`${btn} ${offlineSave.done === chunks.length && offlineSave.total > 0 && !offlineSave.error ? 'text-primary' : ''}`}
+      >
+        <Download className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => setShowInfo(v => !v)
         aria-expanded={showInfo}
         title="About Listen (beta)"
         aria-label="About Listen (beta)"
@@ -483,6 +524,13 @@ export default function ListenControl({ verses, book, pos, disabled, loading, go
               kingjamesbiblereader@outlook.sg
             </a>.
           </div>
+        </div>
+      )}
+      {(offlineSave.busy || offlineSave.error || (offlineSave.done > 0 && offlineSave.done === offlineSave.total)) && (
+        <div aria-live="polite" className="mt-2 flex justify-center">
+          <span className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-secondary px-3 py-1.5 font-sans text-[11px] font-medium text-foreground/85 shadow-sm">
+            {offlineSave.busy ? `Saving offline audio ${offlineSave.done}/${offlineSave.total}…` : offlineSave.error || `Chapter audio saved for offline listening (${offlineSave.total} parts).`}
+          </span>
         </div>
       )}
       {error && (
