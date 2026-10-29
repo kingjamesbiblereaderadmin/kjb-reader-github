@@ -11,7 +11,6 @@ import VerseText from '@/components/bible/VerseText';
 import TitlePage from '@/components/bible/TitlePage';
 import RunningHead from '@/components/bible/RunningHead';
 import MinimizedHeaderBar from '@/components/bible/MinimizedHeaderBar';
-import { SPEAKING_EVENT, isSpeakingIntro } from '@/lib/speakingVerses';
 import { useHeaderHide } from '@/lib/HeaderHideContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Accessibility } from 'lucide-react';
@@ -81,9 +80,6 @@ export default function BibleReader() {
   const [colophon, setColophon] = useState(initialSnapshot.colophon);
   const [loading, setLoading] = useState(initialSnapshot.verses.length === 0);
   const [error, setError] = useState(null);
-  // True while the Listen player is announcing "Book, Chapter N." — that part
-  // of the audio belongs to the chapter heading, not to verse 1.
-  const [speakingIntro, setSpeakingIntro] = useState(false);
   const [highlightVerse, setHighlightVerse] = useState(initialSnapshot.highlightVerse);
   const [highlightSection, setHighlightSection] = useState(null);
   const [highlightedVerses, setHighlightedVerses] = useState(initialSnapshot.selection || initialSnapshot.highlightSet || new Set());
@@ -144,13 +140,6 @@ export default function BibleReader() {
       try { localStorage.setItem('kjb-reader-font-family', 'serif'); } catch {}
     }
   }, []);
-
-  useEffect(() => {
-    const sync = () => setSpeakingIntro(isSpeakingIntro(pos.abbr, pos.chapter));
-    sync();
-    window.addEventListener(SPEAKING_EVENT, sync);
-    return () => window.removeEventListener(SPEAKING_EVENT, sync);
-  }, [pos.abbr, pos.chapter]);
 
   const [searchTerm, setSearchTerm] = useState(() => {
     // A keyword search carries ?from=search&q=… — seed the term on mount so
@@ -218,9 +207,6 @@ export default function BibleReader() {
   // builds up a multi-verse selection (tapping an already-tapped verse
   // removes just that one; other taps add more verses to the group).
   const [tappedVerses, setTappedVerses] = useState(new Set());
-  // "Play from here" request from the tap bar — the Listen player starts this
-  // chapter at the tapped verse when the nonce changes.
-  const [playFromVerse, setPlayFromVerse] = useState(null);
   const toggleTappedVerse = (vNum) => {
     const n = parseInt(vNum, 10);
     setTappedVerses(prev => {
@@ -399,13 +385,6 @@ export default function BibleReader() {
     if (tappedVerseNums.length === 0) return;
     if (!colorName) { tappedVerseNums.forEach(n => removeVerseHighlight(pos.abbr, pos.chapter, n)); return; }
     tappedVerseNums.forEach(n => setVerseHighlight(pos.abbr, pos.chapter, n, colorName));
-  };
-
-  const handlePlayFromVerse = (verseNum) => {
-    const n = parseInt(verseNum, 10);
-    if (!n) return;
-    setPlayFromVerse({ verse: n, abbr: pos.abbr, chapter: pos.chapter, nonce: Date.now() });
-    setTappedVerses(new Set());
   };
 
   const activateSelectFromVerse = (verseNum) => {
@@ -1804,7 +1783,6 @@ export default function BibleReader() {
           tappedVerseNums={tappedVerseNums} handleTapHighlightToggle={handleTapHighlightToggle}
           handleTapCopy={handleTapCopy} handleTapShare={handleTapShare} handleTapSave={handleTapSave}
           tapCopyFeedback={tapCopyFeedback} tapShareFeedback={tapShareFeedback} tapSaveFeedback={tapSaveFeedback}
-          playFromVerse={playFromVerse} onPlayFromVerse={handlePlayFromVerse}
         />
       )}
 
@@ -1821,7 +1799,7 @@ export default function BibleReader() {
       )}
 
       {!isViewingTitlePage && (!(filterMode && selectedVerses.size > 0) || chapterSubscript) && (
-        <div data-speaking-intro={speakingIntro ? 'true' : undefined} className={`text-center mb-6 pt-8 ${(!columnMode || pos.chapter === 1 || (filterMode && selectedVerses.size > 0)) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
+        <div className={`text-center mb-6 pt-8 ${(!columnMode || pos.chapter === 1 || (filterMode && selectedVerses.size > 0)) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
           {filterMode && selectedVerses.size > 0 ? null : (
             <>
               <h1 className={`notranslate kjb-book-title ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} text-3xl md:text-4xl font-bold text-foreground mb-2 leading-tight`} style={{ fontStyle: 'normal', fontWeight: '900' }}>{book.name}</h1>
@@ -1854,7 +1832,7 @@ export default function BibleReader() {
         )}
         <div className="relative">
         {!loading && !error && verses.length > 0 && columnMode && !isViewingTitlePage && pos.chapter !== 1 && (
-          <RunningHead bookName={book.name} chapter={pos.chapter} baseFontRem={zoomLevel / 100 * 0.7} isCursive={fontFamily === 'cursive'} speakingIntro={speakingIntro} />
+          <RunningHead bookName={book.name} chapter={pos.chapter} baseFontRem={zoomLevel / 100 * 0.7} isCursive={fontFamily === 'cursive'} />
         )}
         {!loading && !error && verses.length > 0 && (() => {
           // selectedVerses may contain numbers (restored from localStorage) while

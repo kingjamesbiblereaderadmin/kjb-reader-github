@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, BookOpen, Type, Wrench, Info, ArrowLeft, Scale, Mic } from 'lucide-react';
+import { Heart, BookOpen, Type, Wrench, Info, ArrowLeft, Scale } from 'lucide-react';
 import FontsSection from '@/components/credits/FontsSection';
 
 // A simple, static credits / acknowledgements page.
@@ -214,36 +214,6 @@ export default function CreditsPage() {
           <FontsSection />
         </Section>
 
-        {/* Speech / Listen */}
-        <Section edge="from-emerald-500 to-teal-400" iconBg="from-emerald-500 to-teal-500" eyebrow="Audio" icon={<Mic className="w-5 h-5" />} title="Speech &amp; Listening">
-          <div className="space-y-2.5">
-            {[
-              [<span key="n"><strong className="text-foreground">Your device&apos;s own voice</strong></span>, 'the Listen player speaks with the text-to-speech voice built into your phone, tablet or computer — the same one your system accessibility settings use.'],
-              [<span key="s"><strong className="text-foreground">Synthetic speech</strong></span>, 'the voice is computer-generated from the KJB text — no human recording is used anywhere in the app.'],
-              [<span key="p"><strong className="text-foreground">Speech pronunciation hints</strong></span>, 'names such as Nebuchadnezzar and Baal, the archaic -eth and -est verb endings, and words like shew are respelled for the voice only. The printed Bible text is never altered.'],
-              [<span key="c"><strong className="text-foreground">Free and offline</strong></span>, 'narration needs no account, no API key and no subscription, and the chapter text never leaves your device. With a voice installed in your system settings, listening works with no internet connection at all.'],
-              [<span key="b"><strong className="text-foreground">Beta</strong></span>, 'the Listen player is still being refined — voices, pacing and pronunciation may change between updates.'],
-            ].map(([name, purpose], i) => (
-              <p key={i} className="font-sans text-sm text-foreground/85 leading-relaxed flex items-start gap-2">
-                <span className="text-accent mt-1">•</span>
-                <span>{name} <span className="text-muted-foreground">— {purpose}</span></span>
-              </p>
-            ))}
-          </div>
-          <div className="rounded-xl bg-secondary/60 border border-border px-4 py-3 mt-4 space-y-2">
-            <p className="font-sans text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">On-device narration</p>
-            <p className="font-sans text-xs text-foreground/85 leading-relaxed">
-              Listen uses the speech synthesis built into your operating system — for example the speech services on Android, or the system voices on iOS, iPadOS, macOS and Windows. KJB Reader does not run its own speech model, does not send the chapter text to any speech service, and holds no speech licence to pass on.
-            </p>
-            <p className="font-sans text-xs text-foreground/85 leading-relaxed">
-              Nothing is downloaded or bundled for narration: the words are spoken by your own device, with the voice installed in your system settings. The voice therefore differs from device to device, and some systems offer additional voices (including higher-quality ones) free from their settings.
-            </p>
-            <p className="font-sans text-xs text-foreground/85 leading-relaxed">
-              Narration does not alter the text: the King James Bible stays public domain, and the speech-only pronunciation hints exist only in the spoken output, never in the reading text.
-            </p>
-          </div>
-        </Section>
-
         {/* Built With & Thanks */}
         <Section edge="from-blue-600 to-blue-500" iconBg="from-blue-600 to-indigo-500" eyebrow="How it's made" icon={<Wrench className="w-5 h-5" />} title="Built With &amp; Thanks">
           <div className="space-y-2.5">
@@ -310,10 +280,6 @@ export default function CreditsPage() {
             <p className="font-sans text-sm text-foreground/85 leading-relaxed flex items-start gap-2">
               <span className="text-accent mt-1">•</span>
               <span><strong className="text-foreground">AI Disclaimer:</strong> This app was built with the assistance of artificial intelligence (AI). AI-generated code and content may contain errors. The King James Bible text itself is not AI-generated. Please report any issues so we can correct them.</span>
-            </p>
-            <p className="font-sans text-sm text-foreground/85 leading-relaxed flex items-start gap-2">
-              <span className="text-accent mt-1">•</span>
-              <span><strong className="text-foreground">Narration Disclaimer:</strong> The Listen player uses your device&apos;s built-in text-to-speech voice, not a human reading. It reads the unaltered KJB text, though pacing, emphasis, and the pronunciation of some names may differ from a spoken reading, and the voice varies by device. Use it as an aid to reading, not as an authoritative recitation.</span>
             </p>
           </div>
           <div className="rounded-xl bg-secondary/60 border border-border px-4 py-3 mt-4">

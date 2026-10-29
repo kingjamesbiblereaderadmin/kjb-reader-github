@@ -9,7 +9,6 @@ import CurrentlyReadingIndicator from '@/components/bible/CurrentlyReadingIndica
 import SelectActionBar from '@/components/bible/SelectActionBar';
 import ReadingRangeBar from '@/components/bible/ReadingRangeBar';
 import VerseTapBar from '@/components/bible/VerseTapBar';
-import ListenControl from '@/components/bible/ListenControl';
 import { getSearchNav, getGospelNav, setSearchIndex, setGospelIndex, clearGospelNav } from '@/lib/searchNav';
 import { getOccurrenceLabel } from '@/lib/occurrenceLabel';
 import { getVerseHighlight } from '@/lib/verseHighlights';
@@ -49,7 +48,6 @@ export default function ReaderToolbar({
   handleHighlightSelected, handleReadSelected, handleShareChapter, handleSharePerVerse, handleShareLink,
   tappedVerseNums, handleTapHighlightToggle, handleTapCopy, handleTapShare, handleTapSave,
   tapCopyFeedback, tapShareFeedback, tapSaveFeedback,
-  playFromVerse, onPlayFromVerse,
 }) {
   return (
     <div ref={topRef} data-kjb-reader-toolbar-wrap className="print:hidden sticky top-0 z-[100] border-b border-border pb-4 pt-3 mb-8 relative shadow-sm -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background before:content-[''] before:absolute before:bottom-full before:left-[calc(-1*env(safe-area-inset-left,0px))] before:right-[calc(-1*env(safe-area-inset-right,0px))] before:h-12 before:bg-background">
@@ -463,16 +461,6 @@ export default function ReaderToolbar({
         )}
       </div>
 
-      <div className="mt-3 pt-3 border-t border-border">
-        <ListenControl
-          verses={verses} book={book} pos={pos}
-          chapterSubscript={chapterSubscript} colophon={colophon} endMarker={endMarker} titlePageText={titlePageText}
-          disabled={loading || (verseCount === 0 && !titlePageText)} loading={loading}
-          goNext={goNext} isLastChapterLastBook={isLastChapterLastBook}
-          playFromVerse={playFromVerse}
-        />
-      </div>
-
       {/* Single unified toolbar - SelectActionBar for multi-select mode, ReadingRangeBar for search/gospel/daily/navigation */}
       {selectMode && (
         <SelectActionBar
@@ -540,7 +528,6 @@ export default function ReaderToolbar({
           onCopy={handleTapCopy}
           onShare={handleTapShare}
           onSave={handleTapSave}
-          onPlay={() => onPlayFromVerse(tappedVerseNums[0])}
           onClose={() => setTappedVerses(new Set())}
         />
       )}

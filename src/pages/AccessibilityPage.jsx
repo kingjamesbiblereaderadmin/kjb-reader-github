@@ -139,27 +139,6 @@ export default function AccessibilityPage() {
           </p>
         </Section>
 
-        <Section title="Listen — read aloud">
-          <p>
-            Every chapter can be read aloud. In the reader, tap Play in the Listen row under the
-            toolbar and the chapter is spoken verse by verse, with the verse being read highlighted
-            and the page following along. It is useful for low vision, for readers who find long
-            passages tiring, and for listening while doing something else.
-          </p>
-          <p>
-            The voice is synthetic text-to-speech (currently marked <strong>Beta</strong>), not a
-            human recording, so pacing and the pronunciation of some names may differ from a spoken
-            reading. It reads the unaltered KJB text — the pronunciation hints used for the voice
-            never change what is printed on screen.
-          </p>
-          <p>
-            Continuous mode carries on into the next chapter; Single mode stops at the end of the
-            current one. It speaks with the voice built into your own device, so it is free, needs no
-            connection, and the chapter text never leaves your device. If no voice is installed yet,
-            add one in your system&rsquo;s text-to-speech settings.
-          </p>
-        </Section>
-
         <Section title="Works offline">
           <p>
             The entire Bible is bundled with the app, so every one of these features works without an
