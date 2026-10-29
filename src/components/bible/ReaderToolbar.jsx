@@ -49,6 +49,7 @@ export default function ReaderToolbar({
   handleHighlightSelected, handleReadSelected, handleShareChapter, handleSharePerVerse, handleShareLink,
   tappedVerseNums, handleTapHighlightToggle, handleTapCopy, handleTapShare, handleTapSave,
   tapCopyFeedback, tapShareFeedback, tapSaveFeedback,
+  playFromVerse, onPlayFromVerse,
 }) {
   return (
     <div ref={topRef} data-kjb-reader-toolbar-wrap className="print:hidden sticky top-0 z-[100] border-b border-border pb-4 pt-3 mb-8 relative shadow-sm -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background before:content-[''] before:absolute before:bottom-full before:left-[calc(-1*env(safe-area-inset-left,0px))] before:right-[calc(-1*env(safe-area-inset-right,0px))] before:h-12 before:bg-background">
@@ -468,6 +469,7 @@ export default function ReaderToolbar({
           chapterSubscript={chapterSubscript} colophon={colophon} endMarker={endMarker} titlePageText={titlePageText}
           disabled={loading || (verseCount === 0 && !titlePageText)} loading={loading}
           goNext={goNext} isLastChapterLastBook={isLastChapterLastBook}
+          playFromVerse={playFromVerse}
         />
       </div>
 
@@ -538,6 +540,7 @@ export default function ReaderToolbar({
           onCopy={handleTapCopy}
           onShare={handleTapShare}
           onSave={handleTapSave}
+          onPlay={() => onPlayFromVerse(tappedVerseNums[0])}
           onClose={() => setTappedVerses(new Set())}
         />
       )}

@@ -218,6 +218,9 @@ export default function BibleReader() {
   // builds up a multi-verse selection (tapping an already-tapped verse
   // removes just that one; other taps add more verses to the group).
   const [tappedVerses, setTappedVerses] = useState(new Set());
+  // "Play from here" request from the tap bar — the Listen player starts this
+  // chapter at the tapped verse when the nonce changes.
+  const [playFromVerse, setPlayFromVerse] = useState(null);
   const toggleTappedVerse = (vNum) => {
     const n = parseInt(vNum, 10);
     setTappedVerses(prev => {
@@ -396,6 +399,13 @@ export default function BibleReader() {
     if (tappedVerseNums.length === 0) return;
     if (!colorName) { tappedVerseNums.forEach(n => removeVerseHighlight(pos.abbr, pos.chapter, n)); return; }
     tappedVerseNums.forEach(n => setVerseHighlight(pos.abbr, pos.chapter, n, colorName));
+  };
+
+  const handlePlayFromVerse = (verseNum) => {
+    const n = parseInt(verseNum, 10);
+    if (!n) return;
+    setPlayFromVerse({ verse: n, abbr: pos.abbr, chapter: pos.chapter, nonce: Date.now() });
+    setTappedVerses(new Set());
   };
 
   const activateSelectFromVerse = (verseNum) => {
@@ -1794,6 +1804,7 @@ export default function BibleReader() {
           tappedVerseNums={tappedVerseNums} handleTapHighlightToggle={handleTapHighlightToggle}
           handleTapCopy={handleTapCopy} handleTapShare={handleTapShare} handleTapSave={handleTapSave}
           tapCopyFeedback={tapCopyFeedback} tapShareFeedback={tapShareFeedback} tapSaveFeedback={tapSaveFeedback}
+          playFromVerse={playFromVerse} onPlayFromVerse={handlePlayFromVerse}
         />
       )}
 
