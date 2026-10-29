@@ -31,7 +31,7 @@ export default function ReaderToolbar({
   showBookPicker, setShowBookPicker, showChapterPicker, setShowChapterPicker,
   showVersePicker, setShowVersePicker, showZoomPopover, setShowZoomPopover,
   showFontPopover, setShowFontPopover, pendingBook, setPendingBook,
-  navigate, handleVersePick, verseCount, chapterSubscript, colophon, endMarker, loading,
+  navigate, handleVersePick, verseCount, chapterSubscript, colophon, endMarker, titlePageText, loading,
   highlightVerse, highlightSection, selectMode, selectedVerses, filterMode,
   setSelectMode, setFilterMode, setSelectedVerses, setHighlightedVerses,
   setShowFilterOverlay, setHighlightVerse, setHighlightSection, setTappedVerses,
@@ -465,8 +465,8 @@ export default function ReaderToolbar({
       <div className="mt-3 pt-3 border-t border-border">
         <ListenControl
           verses={verses} book={book} pos={pos}
-          chapterSubscript={chapterSubscript} colophon={colophon} endMarker={endMarker}
-          disabled={verseCount === 0} loading={loading}
+          chapterSubscript={chapterSubscript} colophon={colophon} endMarker={endMarker} titlePageText={titlePageText}
+          disabled={loading || (verseCount === 0 && !titlePageText)} loading={loading}
           goNext={goNext} isLastChapterLastBook={isLastChapterLastBook}
         />
       </div>
