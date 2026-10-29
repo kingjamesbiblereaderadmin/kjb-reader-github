@@ -3,6 +3,9 @@
 
 const CACHE_NAME = 'kjb-reader-v20261030_0720';
 const LEGACY_CACHE_NAME = 'kjb-legacy-v11';
+// On a weak connection, how long to wait for the network before serving the
+// cached app shell / manifest instead (only when a cached copy exists).
+const NAV_NETWORK_TIMEOUT_MS = 4000;
 // Persistent image cache — deliberately NOT versioned. Runtime-cached images
 // (preacher photos, extension page icons, mockups) used to be stored in
 // CACHE_NAME, which is deleted on every app update — so each SW bump wiped
