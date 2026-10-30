@@ -269,17 +269,20 @@ export default function ExtensionPage() {
                     />
                     <span className="font-sans text-[11px] font-medium text-muted-foreground mt-1">Works on mobile</span>
                 </a>
-                <a
-                  href={urls.opera}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex flex-col items-center justify-center self-start gap-2 px-8 py-4 rounded-xl font-sans text-base font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg bg-green-500 hover:bg-green-600"
-                >
-                  <span className="inline-flex items-center gap-2">
-                    <Puzzle className="w-5 h-5" />
-                    Get for Opera
-                  </span>
-                </a>
+                <div className="inline-flex flex-col items-center justify-start self-start">
+                  <a
+                    href={urls.opera}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex flex-col items-center justify-center gap-2 px-8 py-4 rounded-xl font-sans text-base font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg bg-green-500 hover:bg-green-600"
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <Puzzle className="w-5 h-5" />
+                      Get for Opera
+                    </span>
+                  </a>
+                  <span className="font-sans text-[11px] font-medium text-muted-foreground mt-1">Follow instructions at bottom of page</span>
+                </div>
               </div>
             </div>
 
