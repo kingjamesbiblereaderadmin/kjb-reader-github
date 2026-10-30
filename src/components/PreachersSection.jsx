@@ -156,6 +156,14 @@ export const PREACHERS = [
       'https://www.instagram.com/evan.gelistjoshuamichael',
       'https://www.facebook.com/share/19fDBL25qe/']
   },
+  {
+    name: 'Zach Pina',
+    desc: 'Faith in the Blood, KJB preacher.',
+    links: [
+      'https://www.youtube.com/@FaithintheBlood777',
+      'https://www.instagram.com/zach.pina/',
+      'https://www.tiktok.com/@zachpina0']
+  },
 ];
 
 const initials = (name) =>
