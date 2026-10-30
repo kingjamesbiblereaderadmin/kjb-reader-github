@@ -263,7 +263,7 @@ export default function ExtensionPage() {
                   className="inline-flex flex-col items-center justify-start self-start transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <img
-                    src="https://blog.mozilla.org/addons/files/2015/11/AMO-button_1.png"
+                    src="https://blog.mozilla.org/addons/files/2020/04/get-the-addon-fx-apr-2020.svg"
                     alt="Get the Add-on for Firefox"
                     className="h-[58px] w-auto rounded-lg shadow-lg"
                     />
