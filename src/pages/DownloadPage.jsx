@@ -45,6 +45,7 @@ const EXTENSION_LINKS = [
     key: 'opera',
     label: 'Opera',
     cta: 'Download ZIP',
+    note: 'Follow instructions at bottom of page',
     Icon: OperaIcon,
     hover: 'hover:border-rose-300 hover:shadow-rose-500/20 dark:hover:border-rose-800/60',
     accent: 'from-rose-400 to-red-600',
@@ -159,7 +160,7 @@ export default function DownloadPage() {
             </div>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
-            {EXTENSION_LINKS.map(({ key, label, cta, Icon, hover, accent }) => (
+            {EXTENSION_LINKS.map(({ key, label, cta, note, Icon, hover, accent }) => (
               <a
                 key={key}
                 href={urls[key]}
@@ -173,6 +174,7 @@ export default function DownloadPage() {
                 <span className="flex flex-col min-w-0 text-left">
                   <span className="font-sans text-sm font-semibold text-foreground leading-tight">{label}</span>
                   <span className="font-sans text-xs text-muted-foreground truncate">{cta}</span>
+                  {note && <span className="font-sans text-[11px] text-muted-foreground/80 leading-tight mt-0.5">{note}</span>}
                 </span>
                 <span
                   className={`flex items-center justify-center w-7 h-7 rounded-full ml-auto shrink-0 bg-gradient-to-br ${accent} text-white shadow-sm opacity-70 group-hover:opacity-100 transition-opacity`}
