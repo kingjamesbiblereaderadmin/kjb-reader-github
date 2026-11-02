@@ -3,6 +3,12 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG_RAW = [
+  { version: 'v0.4.334', date: 'November 2, 2026', items: [
+    { tag: 'fixed', text: 'Search results are now listed in verse order, so Romans 16:1 comes before Romans 16:27 instead of after it.' },
+    { tag: 'fixed', text: 'An epistle colophon such as "Written to the Romans from Corinthus" always stays attached to its chapter\'s last verse.' },
+    { tag: 'new', text: 'Hebrew letter headings, psalm superscriptions and colophons can now be combined with verse words in one search, such as "aleph blessed" or "gimel bountifully".' },
+    { tag: 'new', text: 'When the keyword matches a Hebrew letter heading, psalm superscription or colophon, the match is now highlighted there too.' },
+  ] },
   { version: 'v0.4.333', date: 'October 30, 2026', items: [
     { tag: 'fixed', text: 'Starting a new search or typing a new keyword now leaves Results select mode: the select bar closes and the ticks clear instead of staying on the old results.' },
   ] },
@@ -487,7 +493,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.333
+            Current Version: v0.4.334
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
