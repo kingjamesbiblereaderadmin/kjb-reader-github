@@ -168,7 +168,7 @@ export const PREACHERS = [
   {
     name: 'Pastor Jim Hunsucker',
     desc: 'KJB pastor and preacher.',
-    photo: 'https://yt3.googleusercontent.com/IHODKlNDzmg8iSNEfhMDFsUSIUz5esQyXHntJJua7XxXLfvPZriGZ8uIoIpt0nzzKJaKNNYCPw=s176-c-k-c0x00ffffff-no-rj',
+    photo: 'https://media.base44.com/images/public/6a713d810d97fdb5921ed14e/9a6ca5fd0_jim-hunsucker.jpg',
     links: [
       'https://www.youtube.com/@PastorJimHunsucker',
       'https://www.tiktok.com/@jimhunsucker']
