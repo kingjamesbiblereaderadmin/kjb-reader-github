@@ -168,6 +168,7 @@ export const PREACHERS = [
   {
     name: 'Pastor Jim Hunsucker',
     desc: 'KJB pastor and preacher.',
+    photo: 'https://yt3.googleusercontent.com/IHODKlNDzmg8iSNEfhMDFsUSIUz5esQyXHntJJua7XxXLfvPZriGZ8uIoIpt0nzzKJaKNNYCPw=s176-c-k-c0x00ffffff-no-rj',
     links: [
       'https://www.youtube.com/@PastorJimHunsucker',
       'https://www.tiktok.com/@jimhunsucker']
