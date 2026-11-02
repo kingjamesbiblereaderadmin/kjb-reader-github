@@ -159,7 +159,7 @@ export const PREACHERS = [
   {
     name: 'Zach Pina',
     desc: 'Faith in the Blood, KJB preacher.',
-    photo: 'https://yt3.googleusercontent.com/0bvwUISVFzCYfVbuwkeWbZHCJWz2tAaKlR0z31lgRlhXg2JWxOmy4EmLx8PAQH-5ljwJoimstA=s176-c-k-c0x00ffffff-no-rj',
+    photo: 'https://media.base44.com/images/public/6a713d810d97fdb5921ed14e/09924d94c_zach-pina.jpg',
     links: [
       'https://www.youtube.com/@FaithintheBlood777',
       'https://www.instagram.com/zach.pina/',
