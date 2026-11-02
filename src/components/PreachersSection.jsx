@@ -165,6 +165,13 @@ export const PREACHERS = [
       'https://www.instagram.com/zach.pina/',
       'https://www.tiktok.com/@zachpina0']
   },
+  {
+    name: 'Pastor Jim Hunsucker',
+    desc: 'KJB pastor and preacher.',
+    links: [
+      'https://www.youtube.com/@PastorJimHunsucker',
+      'https://www.tiktok.com/@jimhunsucker']
+  },
 ];
 
 const initials = (name) =>
