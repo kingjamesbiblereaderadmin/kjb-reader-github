@@ -178,6 +178,9 @@ export default function SettingsPage() {
   // Layout diagnostics toggle (Advanced) -- shows the green measurement strip
   // from useColumnLeaderFlush in the reader (two-column mode). Read by the
   // reader when it mounts, so open a chapter after switching it on.
+  // Advanced diagnostics stay collapsed by default — they are developer
+  // switches, not day-to-day settings.
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [layoutDebug, setLayoutDebugState] = useState(() => {
     try { return localStorage.getItem('kjbdebug') === '1'; } catch { return false; }
   });
@@ -1000,35 +1003,35 @@ export default function SettingsPage() {
               </div>
             </div>
             <DownloadOptionsButton className="mb-4" />
-            <div className="space-y-2">
-              <div className="flex justify-between items-center font-sans text-sm gap-4">
-                <span className="text-muted-foreground shrink-0">Bible Text</span>
-                <span className="text-foreground font-medium text-right notranslate" translate="no">King James Bible (Pure Cambridge Edition)</span>
+            {/* App info — one tidy panel: same label style, hairline dividers,
+                no stray prose wedged between rows. The provenance note sits
+                below the panel as a footnote instead. */}
+            <div className="rounded-xl border border-border bg-secondary/40 divide-y divide-border/70 overflow-hidden">
+              <div className="flex items-center justify-between gap-4 px-3.5 py-2.5">
+                <span className="font-sans text-xs font-medium uppercase tracking-wide text-muted-foreground">Bible Text</span>
+                <span className="font-sans text-sm font-medium text-foreground text-right notranslate" translate="no">Pure Cambridge Edition</span>
               </div>
-              <p className="font-sans text-xs text-muted-foreground leading-relaxed">
-                Taken directly from our authoritative PCE source document and verified word-for-word — all 66 books, 1,189 chapters, and 31,102 verses, with italics and paragraph marks preserved.
-              </p>
-              <div className="flex justify-between items-center font-sans text-sm gap-4">
-                <span className="text-muted-foreground shrink-0">Last Updated</span>
-                <span className="text-foreground font-medium text-right">
+              <div className="flex items-center justify-between gap-4 px-3.5 py-2.5">
+                <span className="font-sans text-xs font-medium uppercase tracking-wide text-muted-foreground">Last Updated</span>
+                <span className="font-sans text-sm font-medium text-foreground text-right">
                   {nativeVersion
                     ? (formatVersionDate(`v${(getNativeBuildDate() || '').replace(/-/g, '')}_`) || NATIVE_LAST_UPDATED[isNativeAndroid() ? 'android' : 'ios'])
                     : (formatVersionDate(liveWorkerVersion) || LAST_REVISED)}
                 </span>
               </div>
-              <div className="flex justify-between items-center font-sans text-sm gap-4">
-                <span className="text-muted-foreground shrink-0">{getInstallSource() === 'Web Browser' ? 'Opened In' : 'Installed From'}</span>
-                <span className="text-foreground font-medium text-right">{getInstallSource()}</span>
+              <div className="flex items-center justify-between gap-4 px-3.5 py-2.5">
+                <span className="font-sans text-xs font-medium uppercase tracking-wide text-muted-foreground">{getInstallSource() === 'Web Browser' ? 'Opened In' : 'Installed From'}</span>
+                <span className="font-sans text-sm font-medium text-foreground text-right">{getInstallSource()}</span>
               </div>
               {nativeVersion && (
-                <div className="flex justify-between items-center font-sans text-sm gap-4">
-                  <span className="text-muted-foreground shrink-0">App Version</span>
-                  <span className="text-foreground font-medium text-right">{nativeVersion}</span>
+                <div className="flex items-center justify-between gap-4 px-3.5 py-2.5">
+                  <span className="font-sans text-xs font-medium uppercase tracking-wide text-muted-foreground">App Version</span>
+                  <span className="font-sans text-sm font-medium text-foreground text-right">{nativeVersion}</span>
                 </div>
               )}
-              <div className="flex justify-between items-center font-sans text-sm gap-4">
-                <span className="text-muted-foreground shrink-0">Offline Support</span>
-                <span className="text-foreground font-medium text-right flex items-center gap-1">
+              <div className="flex items-center justify-between gap-4 px-3.5 py-2.5">
+                <span className="font-sans text-xs font-medium uppercase tracking-wide text-muted-foreground">Offline Support</span>
+                <span className="font-sans text-sm font-medium text-foreground text-right flex items-center gap-1.5">
                   {inIframe() || isIncognito ? (
                     <>
                       <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
@@ -1051,22 +1054,25 @@ export default function SettingsPage() {
                   plain browser tabs, previews and guest/private windows where
                   "PWA" doesn't apply. */}
               {!isNativeAndroid() && !isNativeIos() && pwaInstalled && !inIframe() && !isIncognito && (
-                <div className="flex justify-between items-center font-sans text-sm gap-4">
-                  <span className="text-muted-foreground shrink-0">PWA Status</span>
-                  <span className="text-foreground font-medium text-right flex items-center gap-1">
+                <div className="flex items-center justify-between gap-4 px-3.5 py-2.5">
+                  <span className="font-sans text-xs font-medium uppercase tracking-wide text-muted-foreground">PWA Status</span>
+                  <span className="font-sans text-sm font-medium text-foreground text-right flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Installed
                   </span>
                 </div>
               )}
-              <div className="flex justify-between items-center font-sans text-sm gap-4">
-                <span className="text-muted-foreground shrink-0">Theme</span>
-                <span className="text-foreground font-medium text-right">
-                  {mode === 'auto' ? '🕐 Auto' :
-                   mode === 'system' ? '📱 System' :
-                   mode === 'dark' ? '🌙 Dark' : '☀️ Light'}
+              <div className="flex items-center justify-between gap-4 px-3.5 py-2.5">
+                <span className="font-sans text-xs font-medium uppercase tracking-wide text-muted-foreground">Theme</span>
+                <span className="font-sans text-sm font-medium text-foreground text-right">
+                  {mode === 'auto' ? 'Auto' :
+                   mode === 'system' ? 'System' :
+                   mode === 'dark' ? 'Dark' : 'Light'}
                 </span>
               </div>
             </div>
+            <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-2">
+              All 66 books, 1,189 chapters and 31,102 verses, taken from our authoritative PCE source and verified word-for-word, with italics and paragraph marks preserved.
+            </p>
 
             {/* Admin sign-in / Defence access — compact filter-bar style row, matching Search's filter bar */}
             <div className="flex flex-wrap items-center gap-2 pt-4 mt-2 border-t border-border">
@@ -1097,28 +1103,37 @@ export default function SettingsPage() {
               )}
             </div>
 
-            {/* Advanced */}
+            {/* Advanced — collapsed by default */}
             <div className="pt-4 mt-2 border-t border-border">
-              <div className="flex items-center justify-between gap-4">
+              <button
+                onClick={() => setAdvancedOpen((o) => !o)}
+                aria-expanded={advancedOpen}
+                className="w-full flex items-center justify-between gap-4 text-left"
+              >
                 <div className="flex items-center gap-2">
                   <Wrench className="w-4 h-4 text-muted-foreground" />
-                  <div>
-                    <p className="font-sans text-sm text-foreground font-medium">Startup Diagnostics</p>
-                    <p className="font-sans text-xs text-muted-foreground mt-0.5">Shows a small on-screen debug button at launch, for troubleshooting</p>
+                  <p className="font-sans text-sm text-foreground font-medium">Advanced Diagnostics</p>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${advancedOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {advancedOpen && (
+                <div className="mt-4 space-y-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="font-sans text-sm text-foreground font-medium">Startup Diagnostics</p>
+                      <p className="font-sans text-xs text-muted-foreground mt-0.5">Shows a small on-screen debug button at launch, for troubleshooting</p>
+                    </div>
+                    <Switch checked={debugDiagnostics} onCheckedChange={toggleDebugDiagnostics} />
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="font-sans text-sm text-foreground font-medium">Layout Diagnostics</p>
+                      <p className="font-sans text-xs text-muted-foreground mt-0.5">Shows a green measurement strip at the bottom of the reader (two-column mode). Open a chapter after turning it on.</p>
+                    </div>
+                    <Switch checked={layoutDebug} onCheckedChange={toggleLayoutDebug} />
                   </div>
                 </div>
-                <Switch checked={debugDiagnostics} onCheckedChange={toggleDebugDiagnostics} />
-              </div>
-              <div className="flex items-center justify-between gap-4 mt-4">
-                <div className="flex items-center gap-2">
-                  <Wrench className="w-4 h-4 text-muted-foreground" />
-                  <div>
-                    <p className="font-sans text-sm text-foreground font-medium">Layout Diagnostics</p>
-                    <p className="font-sans text-xs text-muted-foreground mt-0.5">Shows a green measurement strip at the bottom of the reader (two-column mode). Open a chapter after turning it on.</p>
-                  </div>
-                </div>
-                <Switch checked={layoutDebug} onCheckedChange={toggleLayoutDebug} />
-              </div>
+              )}
             </div>
 
             <div className="flex gap-3 pt-2">
