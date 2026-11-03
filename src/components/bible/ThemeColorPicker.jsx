@@ -60,7 +60,7 @@ export default function ThemeColorPicker({ compact = false }) {
             onClick={() => pickPalette(p.id)}
             title={p.name}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
-              hasChosen && colourId === p.id ? 'border-foreground' : 'border-border hover:border-accent'
+              hasChosen && colourId === p.id ? 'border-foreground' : 'border-foreground/25 hover:border-accent'
             }`}
           >
             <span className="w-5 h-5 rounded-full border border-black/10 flex-shrink-0" style={{ backgroundColor: p.swatch }} />
@@ -71,7 +71,7 @@ export default function ThemeColorPicker({ compact = false }) {
         {/* Custom colour picker */}
         <label
           className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
-            hasChosen && colourId === 'custom' ? 'border-foreground' : 'border-border hover:border-accent'
+            hasChosen && colourId === 'custom' ? 'border-foreground' : 'border-foreground/25 hover:border-accent'
           }`}
           title="Custom colour"
         >

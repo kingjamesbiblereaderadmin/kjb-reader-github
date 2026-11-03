@@ -38,7 +38,7 @@ export function LinktreeIcon({ className }) {
   );
 }
 
-const linkCardClass = "flex items-center gap-3 p-4 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group";
+const linkCardClass = "flex items-center gap-3 p-4 rounded-2xl bg-card/70 backdrop-blur-xl border border-foreground/20 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group";
 
 const LINKS = [
   {

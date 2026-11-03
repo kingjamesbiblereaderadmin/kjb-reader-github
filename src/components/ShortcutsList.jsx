@@ -5,13 +5,13 @@ import { SHORTCUTS, SEARCH_SHORTCUTS, isMac } from '@/lib/shortcuts';
 function Row({ s, mac }) {
   const keys = mac ? s.macKeys : s.keys;
   return (
-    <div className="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl bg-card border border-border shadow-sm">
+    <div className="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl bg-card border border-foreground/25 shadow-sm">
       <span className="font-sans text-sm font-medium text-foreground">{s.label}</span>
       <div className="flex items-center gap-1 shrink-0">
         {keys.map((k, j) => (
           <kbd
             key={j}
-            className="min-w-[26px] text-center px-2 py-1 rounded-md bg-secondary border border-border font-sans text-xs font-semibold text-foreground shadow-sm"
+            className="min-w-[26px] text-center px-2 py-1 rounded-md bg-secondary border border-foreground/25 font-sans text-xs font-semibold text-foreground shadow-sm"
           >
             {k}
           </kbd>

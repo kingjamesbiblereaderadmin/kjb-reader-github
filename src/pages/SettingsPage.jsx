@@ -549,7 +549,7 @@ export default function SettingsPage() {
             className={`w-full py-3 rounded-xl font-sans text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-center border ${
               (a11yFont === 'default' && readerFontFamily === font.value)
                 ? 'bg-primary text-primary-foreground border-primary'
-                : 'bg-secondary/50 backdrop-blur-sm text-foreground border-border hover:border-accent'
+                : 'bg-secondary/50 backdrop-blur-sm text-foreground border-foreground/25 hover:border-accent'
             } ${a11yFont !== 'default' ? 'opacity-40 pointer-events-none' : ''}`}
             style={{ fontFamily: font.cssFamily || font.value }}
           >
@@ -559,7 +559,7 @@ export default function SettingsPage() {
         {a11yFont === 'default' && readerFontFamily !== 'serif' && (
           <button
             onClick={() => pickReaderFont('serif')}
-            className="w-full py-3 rounded-xl font-sans text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-center bg-secondary/50 backdrop-blur-sm border border-border text-foreground hover:border-accent"
+            className="w-full py-3 rounded-xl font-sans text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-center bg-secondary/50 backdrop-blur-sm border border-foreground/25 text-foreground hover:border-accent"
           >
             Reset to Default
           </button>
@@ -611,7 +611,7 @@ export default function SettingsPage() {
                 className={`w-full py-3 px-4 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-left border ${
                   a11yFont === font.value
                     ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-secondary/50 backdrop-blur-sm text-foreground border-border hover:border-accent'
+                    : 'bg-secondary/50 backdrop-blur-sm text-foreground border-foreground/25 hover:border-accent'
                 }`}
               >
                 <div className="flex flex-col items-start justify-center gap-0.5">
@@ -1272,7 +1272,7 @@ localStorage.removeItem('kjb-daily-verse-cache-v17');
           <div className="px-5 pb-6 pt-2 space-y-2">
             <button
               onClick={() => navigate('/privacy')}
-              className="w-full flex items-center gap-3 p-4 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group text-left"
+              className="w-full flex items-center gap-3 p-4 rounded-2xl bg-card/70 backdrop-blur-xl border border-foreground/20 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group text-left"
             >
               <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-violet-500 to-purple-600">
                 <Shield className="w-5 h-5" />
@@ -1285,7 +1285,7 @@ localStorage.removeItem('kjb-daily-verse-cache-v17');
             </button>
             <button
               onClick={() => navigate('/terms')}
-              className="w-full flex items-center gap-3 p-4 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group text-left"
+              className="w-full flex items-center gap-3 p-4 rounded-2xl bg-card/70 backdrop-blur-xl border border-foreground/20 shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group text-left"
             >
               <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br from-primary to-accent">
                 <FileText className="w-5 h-5" />
