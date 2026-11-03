@@ -139,10 +139,53 @@ function fallbackPoints(w, map) {
   return pts;
 }
 
+// The Liang patterns are conservative: a long name can come back with a single
+// break point and a huge unbroken stretch (jehoshaphat -> only "Je-hoshaphat").
+// On a narrow line the word then jumps to "Je-" and strands the rest, instead
+// of filling the line as far as it can and dropping down. Any stretch longer
+// than MAX_STRETCH letters gets extra syllable-based points so the browser can
+// break at the LAST point that fits (jehoshaphat -> "Je-ho-sha-phat").
+// Words whose stretches are all short are left exactly as the dictionary has them.
+const MAX_STRETCH = 6;
+const filledCache = new Map();
+
+function fillLongStretches(w, own) {
+  const n = w.length;
+  let prevPt = 0;
+  let longest = 0;
+  for (const p of own) { longest = Math.max(longest, p - prevPt); prevPt = p; }
+  longest = Math.max(longest, n - prevPt);
+  if (longest <= MAX_STRETCH) return own;
+  const merged = own.slice();
+  for (const c of syllablePoints(w)) {
+    if (merged.includes(c)) continue;
+    let prev = 0;
+    let next = n;
+    for (const p of merged) {
+      if (p < c) prev = p;
+      else if (p > c) { next = p; break; }
+    }
+    if (next - prev > MAX_STRETCH && c - prev >= 2 && next - c >= 2) {
+      merged.push(c);
+      merged.sort((a, b) => a - b);
+    }
+  }
+  return merged;
+}
+
+function wordPoints(w, map) {
+  const own = ownPoints(map, w);
+  if (!own) return fallbackPoints(w, map);
+  if (filledCache.has(w)) return filledCache.get(w);
+  const pts = fillLongStretches(w, own);
+  filledCache.set(w, pts);
+  return pts;
+}
+
 function hyphenateText(text, map) {
   return text.replace(/[A-Za-z]{5,}/g, (word) => {
     const lw = word.toLowerCase();
-    const pts = ownPoints(map, lw) || fallbackPoints(lw, map);
+    const pts = wordPoints(lw, map);
     if (!pts) return word;
     let out = '';
     let k = 0;
