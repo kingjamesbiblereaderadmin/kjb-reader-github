@@ -143,10 +143,11 @@ function hasVowel(s) {
 function bestSplit(w) {
   const n = w.length;
   if (n < 2) return -1;
-  // Every word may split, however few letters it has: four letters or fewer
-  // may break one letter in from either edge, longer words keep two clear.
-  const minP = n <= 4 ? 1 : 2;
-  const maxP = n <= 4 ? n - 1 : n - 2;
+  // Any word of any length may split anywhere: a break may leave just one
+  // letter on either side (a clean vowel/digraph split is still preferred
+  // first), so no word is ever left unsplittable.
+  const minP = 1;
+  const maxP = n - 1;
   const target = n * 0.55;
   let best = -1;
   let bestDist = Infinity;
@@ -196,9 +197,9 @@ function fallbackPoints(w, map) {
     // Last resort: a single break point so that EVERY word can split to fill
     // the line. WebKit (iOS) never breaks a word by itself to close a gap —
     // it moves the whole word to the next line — so a word with no break
-    // point of its own is exactly what leaves a stretched empty gap. Long
-    // words keep two letters clear of each edge; words of four letters or
-    // fewer may break one letter in, so nothing is ever left unsplittable.
+    // point of its own is exactly what leaves a stretched empty gap. Any word
+    // of any length may break at any point, so nothing is ever left
+    // unsplittable (only a one-letter word has nowhere to break).
     const p = bestSplit(w);
     if (p > 0) pts = [p];
   }
@@ -233,7 +234,7 @@ function fillLongStretches(w, own) {
       if (p < c) prev = p;
       else if (p > c) { next = p; break; }
     }
-    if (next - prev > MAX_STRETCH && c - prev >= 2 && next - c >= 2) {
+    if (next - prev > MAX_STRETCH && c - prev >= 1 && next - c >= 1) {
       merged.push(c);
       merged.sort((a, b) => a - b);
     }
@@ -251,7 +252,7 @@ function wordPoints(w, map) {
 }
 
 function hyphenateText(text, map) {
-  return text.replace(/[A-Za-z]{2,}/g, (word) => {
+  return text.replace(/[A-Za-z]+/g, (word) => {
     const lw = word.toLowerCase();
     const pts = wordPoints(lw, map);
     if (!pts) return word;
