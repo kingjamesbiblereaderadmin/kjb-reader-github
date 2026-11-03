@@ -395,7 +395,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 pt-10 pb-32">
+    <div className="w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 pt-10 pb-32">
       {/* Header */}
       <PageHero
         icon={<Settings className="w-7 h-7" />}

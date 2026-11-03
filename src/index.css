@@ -33,6 +33,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Frame wrapper for every page shell (was max-w-[120rem]). Width stays in
+   pixels so root-font-size zoom does not shrink the layout with the text. */
+.kjb-frame {
+  max-width: var(--kjb-frame-max, 1920px);
+}
+
 @layer base {
   :root {
     --font-serif: 'Merriweather', 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
@@ -42,6 +48,11 @@
        set by useBrowserZoom hook. This makes all rem-based layout shrink when
        zoomed out and grow when zoomed in — "layout shrinks with text". */
     font-size: calc(100% * var(--kjb-zoom-scale, 1));
+    /* App frame width cap. 1920px is the old 120rem at 100% zoom, but
+       useBrowserZoom raises it as you zoom OUT (and lowers it as you zoom IN)
+       so a zoomed-out layout fills the window instead of shrinking into a
+       narrower column with empty margins around it. */
+    --kjb-frame-max: 1920px;
 
     /* Vibrant blue→indigo→purple theme (matches Verse of the Day style) */
     --background: 240 30% 99%;

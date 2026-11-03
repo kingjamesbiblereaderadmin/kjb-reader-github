@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Smartphone, Globe, CheckCircle2, ExternalLink, ChevronDown, Clock, Copy, Check, Share2 } from 'lucide-react';
+import { Smartphone, Globe, CheckCircle2, ExternalLink, ChevronDown, Copy, Check, Share2 } from 'lucide-react';
 import { useInstallPrompt, PLAY_STORE_URL, isNativeAndroidApp } from '@/hooks/useInstallPrompt';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { isNativeIos } from '@/lib/isNativeIos';
@@ -19,6 +19,32 @@ export const isInsideStoreApp = () => {
 // Shown to every web user (any device, browser tab OR installed PWA) so people
 // know the Play Store app exists. Only hidden inside the store apps themselves.
 export const canOfferPlayStore = () => !isInsideStoreApp();
+
+// Which platform this copy of KJB Reader is actually running on, so the install
+// cards can check-mark the one the reader already has. A Mac build reports
+// itself as the iOS shell plus a "mac-…" install source (see installSource.js).
+export const getCurrentPlatform = () => {
+  try {
+    if (isNativeIos()) {
+      const src = typeof window !== 'undefined' ? window.__KJB_INSTALL_SOURCE__ : null;
+      return typeof src === 'string' && src.startsWith('mac-') ? 'mac' : 'ios';
+    }
+    if (isNativeAndroid() || isNativeAndroidApp()) return 'android';
+    if (localStorage.getItem(TWA_FLAG_KEY) === 'true') return 'android';
+  } catch {}
+  return 'web';
+};
+
+// "You already have this one" marker used on the matching platform card.
+function InstalledHereBadge({ show, label = 'Installed on this device' }) {
+  if (!show) return null;
+  return (
+    <div className="flex items-center gap-1.5 font-sans text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+      <CheckCircle2 className="w-4 h-4" />
+      {label}
+    </div>
+  );
+}
 
 // Collapsible card. Open/closed state is remembered per card.
 function OptionCard({ id, title, icon, defaultOpen, className, children }) {
@@ -143,7 +169,12 @@ function StoreLinkRow({ href, fullLabel, shortLabel, icon, buttonClass, actionCl
 // `storeActions` (used on /download) shortens the store buttons and adds copy/share.
 export function InstallOptionCards({ onWebInstallFallback, playOnly = false, storeActions = false }) {
   const { isInstalled, promptInstall } = useInstallPrompt();
-  const showStores = canOfferPlayStore();
+  const current = getCurrentPlatform();
+  // Every platform is always listed (owner 2026-11-03). Inside the Mac, iOS or
+  // Android app this used to hide the store cards completely, so a Mac reader
+  // saw only "Web App — Installed" and no way to reach the other platforms.
+  // Now all cards show and the copy you are running carries a check mark.
+  const showStores = true;
 
   const handleWebInstall = async () => {
     try {
@@ -165,12 +196,12 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false, sto
           defaultOpen={true}
           className="border-border bg-card"
         >
-          {isInstalled ? (
+          {current === 'web' && isInstalled ? (
             <div className="flex items-center gap-1.5 font-sans text-xs font-semibold text-emerald-700 dark:text-emerald-400">
               <CheckCircle2 className="w-4 h-4" />
               Installed
             </div>
-          ) : (
+          ) : current === 'web' ? (
             <button
               onClick={handleWebInstall}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-opacity"
@@ -178,6 +209,11 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false, sto
               <Smartphone className="w-4 h-4" />
               Add to Home Screen
             </button>
+          ) : (
+            <p className="font-sans text-xs text-muted-foreground">
+              Open <strong>kingjamesbiblereader.com</strong> in Chrome, Edge or Safari on a computer to install the
+              web app as a separate desktop app.
+            </p>
           )}
         </OptionCard>
       )}
@@ -193,6 +229,7 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false, sto
             className="border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950"
           >
             <div className="font-sans text-xs text-emerald-800 dark:text-emerald-300 space-y-0.5">
+              <InstalledHereBadge show={current === 'android'} />
               <p className="font-semibold">Now available on Android</p>
               <p>The full KJB with offline reading, straight from Google Play.</p>
             </div>
@@ -237,6 +274,7 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false, sto
             className="border-sky-300 dark:border-sky-800 bg-sky-50 dark:bg-sky-950"
           >
             <div className="font-sans text-xs text-sky-800 dark:text-sky-300 space-y-0.5">
+              <InstalledHereBadge show={current === 'ios'} />
               <p className="font-semibold">Now available on iPhone &amp; iPad</p>
               <p>
                 The full KJB with offline reading, straight from the App Store.
@@ -278,18 +316,30 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false, sto
         </div>
       )}
 
-      {/* macOS — still in App Review */}
+      {/* macOS — live on the Mac App Store, same listing as iPhone/iPad */}
       {showStores && (
         <OptionCard
           id="mac"
-          title="macOS — Coming Soon"
-          icon={<Clock className="w-4 h-4 text-sky-600 dark:text-sky-400" />}
-          defaultOpen={false}
-          className="border-sky-200 dark:border-sky-900/40 bg-sky-50/70 dark:bg-sky-900/15"
+          title="Get on Mac"
+          icon={<AppleIcon className="w-4 h-4" />}
+          defaultOpen={true}
+          className="border-indigo-300 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950"
         >
-          <p className="font-sans text-xs text-sky-800 dark:text-sky-300">
-            A Mac App Store version is still in App Review. Check back in <strong>Settings → App Info / Install App</strong> when it's released.
-          </p>
+          <InstalledHereBadge show={current === 'mac'} />
+          <div className="font-sans text-xs text-indigo-800 dark:text-indigo-300 space-y-0.5">
+            <p className="font-semibold">Now available on the Mac App Store</p>
+            <p>The full KJB with offline reading, for Apple silicon Macs on macOS 12 or later.</p>
+          </div>
+          <StoreLinkRow
+            href={APP_STORE_URL}
+            fullLabel="Mac App Store"
+            shortLabel="Mac App Store"
+            icon={<ExternalLink className="w-4 h-4" />}
+            buttonClass="bg-black text-white hover:bg-neutral-800"
+            actionClass="border-indigo-300 dark:border-indigo-700 bg-white/70 dark:bg-indigo-950/40 text-indigo-800 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50"
+            shareText="KJB Reader on the Mac App Store"
+            compact={storeActions}
+          />
         </OptionCard>
       )}
     </div>

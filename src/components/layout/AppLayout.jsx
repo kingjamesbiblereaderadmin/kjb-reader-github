@@ -382,7 +382,7 @@ export default function AppLayout() {
     <AutoUpdateHandler>
     <div data-kjb-app-root className="h-[100dvh] bg-gradient-to-br from-background via-accent/5 to-background flex flex-col overflow-hidden">
       <header data-kjb-app-header className={`print:hidden border-b border-border/60 bg-card/70 backdrop-blur-xl z-50 flex-shrink-0 ${hideHeader ? 'hidden' : ''}`} style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}>
-        <div className="w-full max-w-[120rem] mx-auto px-3 xs:px-5 sm:px-8 lg:px-12 h-14 flex items-center gap-1.5 xs:gap-2 sm:gap-3">
+        <div className="w-full kjb-frame mx-auto px-3 xs:px-5 sm:px-8 lg:px-12 h-14 flex items-center gap-1.5 xs:gap-2 sm:gap-3">
           {/* Logo / Back Button */}
           {pathname === '/' ? (
             <Link
@@ -468,7 +468,7 @@ export default function AppLayout() {
               onClick={() => setMenuOpen(false)}
             />
             <div data-kjb-menu className="absolute top-full right-0 left-0 z-[61] bg-card backdrop-blur-xl border-b border-border/60 shadow-lg shadow-black/[0.05] overflow-y-auto overscroll-contain" style={{ maxHeight: 'calc(100dvh - 3.5rem - env(safe-area-inset-top) - env(safe-area-inset-bottom))', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }}>
-              <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 pt-3 pb-1 flex items-center justify-between gap-3 border-b border-border/50">
+              <div className="w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 pt-3 pb-1 flex items-center justify-between gap-3 border-b border-border/50">
                 <span className="font-sans text-xs font-medium text-muted-foreground">App Zoom: {appZoom}%</span>
                 <div className="flex items-center gap-1.5">
                   <button
@@ -496,14 +496,14 @@ export default function AppLayout() {
                   )}
                 </div>
               </div>
-              <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-2.5 flex items-center justify-between gap-3 border-b border-border/50">
+              <div className="w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 py-2.5 flex items-center justify-between gap-3 border-b border-border/50">
                 <span className="flex items-center gap-1.5 font-sans text-xs font-medium text-muted-foreground">
                   <RotateCw className="w-3.5 h-3.5" />
                   Auto Rotate
                 </span>
                 <Switch checked={autoRotate} onCheckedChange={toggleAutoRotate} />
               </div>
-              <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 pt-4 flex flex-wrap gap-2.5" style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}>
+              <div className="w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 pt-4 flex flex-wrap gap-2.5" style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}>
                 {NAV_ITEMS.map(item => {
                   const Icon = item.icon;
                   const active = item.path === '/' ? pathname === '/' : pathname === item.path;
@@ -601,7 +601,7 @@ function DesktopFooter({ navigate, setMenuOpen, pathname }) {
         className={`print:hidden hidden sm:block border-t border-border/60 bg-card/70 backdrop-blur-xl flex-shrink-0 ${open ? 'py-3' : 'py-0.5'}`}
         style={{ paddingBottom: `calc(${open ? '0.75rem' : '0.125rem'} + env(safe-area-inset-bottom))`, paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}
       >
-        <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12">
+        <div className="w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12">
           <div className={`flex justify-center ${open ? 'mb-2' : 'mb-0'}`}>
             <button
               onClick={toggle}
@@ -720,7 +720,7 @@ function BottomNav({ pathname, navigate }) {
   if (showMode === 'bar') {
     return (
       <nav data-kjb-bottom-nav className="print:hidden sm:hidden fixed left-0 right-0 bottom-0 z-50 bg-card/80 backdrop-blur-md border-t border-border/50" style={{ paddingBottom: 'min(env(safe-area-inset-bottom, 0px), 0.25rem)', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }}>
-        <div className="w-full max-w-[120rem] mx-auto px-2 sm:px-8 lg:px-12">
+        <div className="w-full kjb-frame mx-auto px-2 sm:px-8 lg:px-12">
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); cycleShowMode(); }}
@@ -736,7 +736,7 @@ function BottomNav({ pathname, navigate }) {
 
   return (
     <nav data-kjb-bottom-nav className="print:hidden sm:hidden fixed left-0 right-0 bottom-0 z-50 bg-card/70 backdrop-blur-xl border-t border-border/60 overflow-hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }}>
-      <div className="w-full max-w-[120rem] mx-auto px-2 sm:px-8 lg:px-12">
+      <div className="w-full kjb-frame mx-auto px-2 sm:px-8 lg:px-12">
         {/* Primary row: 5 nav items + chevron toggle button */}
         <div className="flex items-stretch">
           {BOTTOM_NAV_PRIMARY.map(item => {

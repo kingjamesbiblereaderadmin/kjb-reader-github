@@ -21,7 +21,7 @@ const ICONS = [
 
 export default function ManifestIcons() {
   return (
-    <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 pt-10 pb-32">
+    <div className="w-full kjb-frame mx-auto px-5 sm:px-8 pt-10 pb-32">
       <div className="text-center mb-10">
         <h1 className="font-serif text-3xl font-bold text-foreground mb-2">Manifest Icons</h1>
         <p className="font-sans text-sm text-muted-foreground">

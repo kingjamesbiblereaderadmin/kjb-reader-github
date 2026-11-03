@@ -378,7 +378,7 @@ export default function AdvancedSearchPage() {
 
   return (
     <div
-      className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 pt-8 pb-4 flex flex-col"
+      className="w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 pt-8 pb-4 flex flex-col"
       style={shellH ? { height: shellH } : undefined}
     >
       {/* Anchored band: page title → beta notice → result count + toolbar.

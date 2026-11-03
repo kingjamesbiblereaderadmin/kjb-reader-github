@@ -127,7 +127,7 @@ export default function ResourcesPage() {
   };
 
   return (
-    <div className="w-full max-w-[120rem] mx-auto px-5 sm:px-8 lg:px-12 py-10">
+    <div className="w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 py-10">
       <PageHero
         icon={<FileText className="w-7 h-7" />}
         iconGradient="from-violet-500 to-purple-600 shadow-purple-500/30"
