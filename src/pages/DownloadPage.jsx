@@ -52,7 +52,7 @@ const EXTENSION_LINKS = [
   },
   {
     key: 'mac',
-    label: 'Safari (Mac)',
+    label: 'Safari (iOS + Mac)',
     cta: 'Mac App Store',
     Icon: SafariIcon,
     hover: 'hover:border-indigo-300 hover:shadow-indigo-500/20 dark:hover:border-indigo-800/60',
