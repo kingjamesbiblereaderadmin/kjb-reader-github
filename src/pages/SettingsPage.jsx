@@ -409,7 +409,7 @@ export default function SettingsPage() {
       >
         <button
           onClick={toggleAll}
-          className="mt-4 px-4 py-2 rounded-xl bg-transparent border border-border text-foreground font-sans text-sm font-medium hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          className="mt-4 px-4 py-2 rounded-xl bg-transparent border border-foreground/30 text-foreground font-sans text-sm font-medium hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
         >
           {allExpanded ? 'Collapse All' : 'Expand All'}
         </button>
@@ -448,7 +448,7 @@ export default function SettingsPage() {
                   window.dispatchEvent(new Event('storage'));
                 }}
                 aria-label="Decrease text size"
-                className="p-2 rounded-xl bg-transparent border border-border text-foreground hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                className="p-2 rounded-xl bg-transparent border border-foreground/30 text-foreground hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <ZoomOut className="w-4 h-4" />
               </button>
@@ -460,7 +460,7 @@ export default function SettingsPage() {
                   window.dispatchEvent(new Event('storage'));
                 }}
                 aria-label="Increase text size"
-                className="p-2 rounded-xl bg-transparent border border-border text-foreground hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                className="p-2 rounded-xl bg-transparent border border-foreground/30 text-foreground hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <ZoomIn className="w-4 h-4" />
               </button>
@@ -493,14 +493,14 @@ export default function SettingsPage() {
               <button
                 onClick={() => setAppZoomPersist(appZoom - 25)}
                 aria-label="Decrease app zoom"
-                className="p-2 rounded-xl bg-transparent border border-border text-foreground hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                className="p-2 rounded-xl bg-transparent border border-foreground/30 text-foreground hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <ZoomOut className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setAppZoomPersist(appZoom + 25)}
                 aria-label="Increase app zoom"
-                className="p-2 rounded-xl bg-transparent border border-border text-foreground hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                className="p-2 rounded-xl bg-transparent border border-foreground/30 text-foreground hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <ZoomIn className="w-4 h-4" />
               </button>
@@ -659,7 +659,7 @@ export default function SettingsPage() {
             <ShortcutsList />
             <button
               onClick={() => window.dispatchEvent(new Event('kjb-open-shortcuts'))}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-transparent border border-border text-foreground font-sans text-sm font-medium hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-transparent border border-foreground/30 text-foreground font-sans text-sm font-medium hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
               <Keyboard className="w-4 h-4" />
               Open Shortcuts Overlay
@@ -700,7 +700,7 @@ export default function SettingsPage() {
                 className={`py-2 rounded-xl font-sans text-sm font-medium border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
                   mode === opt.id
                     ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-transparent text-foreground border-border hover:border-accent'
+                    : 'bg-transparent text-foreground border-foreground/30 hover:border-accent'
                 }`}
               >
                 {opt.label}
@@ -866,7 +866,7 @@ export default function SettingsPage() {
                       }
                     }}
                     disabled={downloading}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-transparent border border-border text-foreground font-sans text-sm font-medium hover:border-accent disabled:opacity-60 transition-colors"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-transparent border border-foreground/30 text-foreground font-sans text-sm font-medium hover:border-accent disabled:opacity-60 transition-colors"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     Check for Updates & Reload
@@ -961,7 +961,7 @@ export default function SettingsPage() {
 
               <Link
                 to="/legacy"
-                className="flex items-center gap-3 p-3 rounded-xl bg-transparent border border-border hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] group"
+                className="flex items-center gap-3 p-3 rounded-xl bg-transparent border border-foreground/30 hover:border-accent transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] group"
               >
                 <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-md bg-background/50 backdrop-blur-md border border-border shadow-sm">
                   <MonitorSmartphone className="w-4 h-4 text-primary" />
@@ -1177,7 +1177,7 @@ localStorage.removeItem('kjb-daily-verse-cache-v17');
               </button>
               <button
                 onClick={handleClearCache}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-transparent border border-border text-foreground font-sans text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:border-accent"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-transparent border border-foreground/30 text-foreground font-sans text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:border-accent"
               >
                 <RotateCcw className="w-4 h-4" />
                 Clear Cache & Reload

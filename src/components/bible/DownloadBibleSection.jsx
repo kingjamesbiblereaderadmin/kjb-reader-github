@@ -10,7 +10,7 @@ function Toggle({ active, onClick, icon: Icon, label }) {
     <button
       onClick={onClick}
       className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
-        active ? 'bg-primary text-primary-foreground border-primary' : 'bg-transparent text-foreground border-border hover:border-accent'
+        active ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-foreground border-foreground/30 hover:border-accent'
       }`}
     >
       <Icon className="w-3.5 h-3.5" />
