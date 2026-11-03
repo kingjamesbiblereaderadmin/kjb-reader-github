@@ -289,14 +289,14 @@
        break-word is the true last resort — hyphenation opportunities are
        always tried first, and only a word with no break point at all that is
        wider than the column falls through to it.
-       UPDATE (Oct 2026): rule is now "hyphen or move to the next line, never a
-       bare split". Single-syllable words (which, strength, brought) have no
-       valid hyphen point, and at high zoom / small phones / beside the drop
-       cap break-word split them bare ("Philistin" + "es"). `normal` makes such
-       a word wrap whole to the next line (below the drop cap if needed). The
-       only trade-off: a single unbreakable word wider than the entire column
-       overflows instead of splitting. */
-    overflow-wrap: normal;
+       Rule: always fill the column to the edge — no gaps. `break-word` lets a
+       word that doesn't fit the remaining space break to fill it (a hyphen
+       first, at any injected soft-hyphen point, which the browser always
+       prefers), and only a word with no break point at all splits bare.
+       `normal` (tried before) pushed such a word whole onto the next line,
+       which left a visibly stretched, empty gap at the end of the line
+       ("Wherefore        he"). */
+    overflow-wrap: break-word;
   }
   /* Verses are allowed to split across the column break (like a real
      printed two-column Bible) so the browser can fill each column all the
