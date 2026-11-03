@@ -13,7 +13,7 @@ import { detectIncognito } from '@/lib/incognito';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import ThemeColorPicker from '@/components/bible/ThemeColorPicker';
 import AlreadyInstalledHelp from '@/components/AlreadyInstalledHelp';
-import { InstallOptionCards, canOfferPlayStore } from '@/components/GetAppOptions';
+import { InstallOptionCards } from '@/components/GetAppOptions';
 import HighlightToSearchTip from '@/components/settings/HighlightToSearchTip';
 
 const VERSE_FONTS = [
@@ -406,8 +406,9 @@ export default function LandingSetupWizard() {
               <p className="font-sans text-xs text-muted-foreground">You can install the app later from Settings → App Info / Install App.</p>
             ) : null}
 
-            {/* Google Play option — shown on every web device (hidden inside the store apps) */}
-            {canOfferPlayStore() && (
+            {/* Other platforms — always listed, including inside the store apps, so
+                the iOS/Android/Mac apps can point people at the other platforms. */}
+            {true && (
               <div className="mt-4">
                 <p className="font-sans text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 text-center">
                   {actuallyInstalled ? 'Also available' : 'Or get the app'}
