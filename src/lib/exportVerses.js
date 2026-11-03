@@ -2,6 +2,7 @@ import { jsPDF } from 'jspdf';
 import { mergeAdjacentBrackets, hyphenTolerantPattern, WORD_CHARS } from '@/lib/bibleApi';
 import { triggerDownload } from '@/lib/nativeDownload';
 import { nativePrintHtml } from '@/lib/nativePrint';
+import { getShyMap, ensureShyMap, injectShyHtml } from '@/lib/softHyphens';
 
 // Trigger a file save for a Blob -- see nativeDownload.js for why this isn't
 // just the plain browser Blob-URL trick.
@@ -834,9 +835,13 @@ export async function exportPdf(items, query, filters, options = {}) {
 }
 
 // ── Print ──
-export function exportPrint(items, query, filters, options = {}) {
+export async function exportPrint(items, query, filters, options = {}) {
   const titlePrefix = options.titlePrefix || 'KJB Search Results';
   const isReading = titlePrefix === 'KJB Reading';
+  // The reading layout is justified, so printed lines need the same break
+  // points the reader uses on screen (soft hyphens) — otherwise a word that
+  // doesn't fit jumps whole to the next line and leaves a stretched gap.
+  const shyMap = isReading ? (getShyMap() || await ensureShyMap()) : null;
   
   let rows = '';
   if (isReading) {
@@ -883,6 +888,9 @@ export function exportPrint(items, query, filters, options = {}) {
 
       const hasPilcrow = (it.text || '').includes('¶');
       let textHtml = bracketsToItalicHtml(it.text, true);
+      // Inject before the pilcrow becomes &para; — the soft-hyphen pass would
+      // otherwise treat the letters inside that entity as a word.
+      if (shyMap) textHtml = injectShyHtml(textHtml, shyMap);
       textHtml = textHtml.replace(/¶\s*/g, `<span style="opacity:0.5;">&para;</span> `);
       
       if (options.paragraphMode) {
@@ -916,7 +924,7 @@ export function exportPrint(items, query, filters, options = {}) {
     currentParagraphs.push(`<div style="margin-top: 30pt; padding-top: 10pt; border-top: 1px solid #eee; font-size: 10pt; color: #777; text-align: center; page-break-inside: avoid; break-inside: avoid; column-span: all;">${items.length} verse${items.length !== 1 ? 's' : ''} &mdash; King James Bible<br/>Printed on ${dateStr}</div>`);
 
     const content = currentParagraphs.join('');
-    rows = `<div style="text-align:justify;margin-top:20px;${options.columnMode ? 'column-count:2;column-gap:1.5cm;column-rule:1px solid #ccc;-webkit-hyphens:auto;hyphens:auto;' : 'display:block;'}">${content}</div>`;
+    rows = `<div style="text-align:justify;margin-top:20px;${options.columnMode ? 'column-count:2;column-gap:1.5cm;column-rule:1px solid #ccc;-webkit-hyphens:auto;hyphens:auto;' : 'display:block;-webkit-hyphens:manual;hyphens:manual;overflow-wrap:break-word;'}">${content}</div>`;
   } else {
     const showOcc = !isReading && !!query;
     rows = splitBySections(items, showOcc ? { query, filters } : null).map(sec => {
