@@ -318,7 +318,7 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false, sto
         </div>
       )}
 
-      {/* macOS — live on the Mac App Store, same listing as iPhone/iPad */}
+      {/* macOS app — not on the Mac App Store yet */}
       {showStores && (
         <OptionCard
           id="mac"
@@ -329,19 +329,12 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false, sto
         >
           <InstalledHereBadge show={current === 'mac'} />
           <div className="font-sans text-xs text-indigo-800 dark:text-indigo-300 space-y-0.5">
-            <p className="font-semibold">Now available on the Mac App Store</p>
+            <p className="font-semibold">Coming soon to the Mac App Store</p>
             <p>The full KJB with offline reading, for Apple silicon Macs on macOS 12 or later.</p>
           </div>
-          <StoreLinkRow
-            href={APP_STORE_URL}
-            fullLabel="Mac App Store"
-            shortLabel="Mac App Store"
-            icon={<ExternalLink className="w-4 h-4" />}
-            buttonClass="bg-black text-white hover:bg-neutral-800"
-            actionClass="border-indigo-300 dark:border-indigo-700 bg-white/70 dark:bg-indigo-950/40 text-indigo-800 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50"
-            shareText="KJB Reader on the Mac App Store"
-            compact={storeActions}
-          />
+          <p className="font-sans text-xs text-indigo-700/80 dark:text-indigo-300/80">
+            Not on the Mac App Store yet. In the meantime, read it in the web app on your Mac.
+          </p>
         </OptionCard>
       )}
     </div>
