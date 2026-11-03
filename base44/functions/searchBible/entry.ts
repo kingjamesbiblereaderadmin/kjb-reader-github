@@ -79,7 +79,7 @@ function buildMatcher(query, { wholeWord, caseSensitive, wildcard }) {
   // exclude them. The backend verse text keeps typographic apostrophes, so
   // both forms must be excluded here.
   if (wholeWord) {
-    pattern = `(?<![A-Za-z'\\u2019])${pattern}(?![A-Za-z'\\u2019])`;
+    pattern = `(?<![A-Za-z'\\u2019-])${pattern}(?![A-Za-z'\\u2019-])`;
   }
   return new RegExp(pattern, caseSensitive ? "" : "i");
 }
