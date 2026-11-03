@@ -178,10 +178,8 @@ export function InstallAppSection({ expanded, isIncognito }) {
               </div>
             )}
 
-            {/* Always listed, on every platform: Web App, Android, iOS and Mac,
-                with the check mark on the copy this reader is already using. */}
-            <InstallOptionCards onWebInstallFallback={revealGuide} storeActions />
-
+            {/* No platform cards here: /download lists every platform, and the
+                "Download for other platforms" button above goes straight there. */}
             {currentPlatform === 'web' && (
             <button
               onClick={() => {
