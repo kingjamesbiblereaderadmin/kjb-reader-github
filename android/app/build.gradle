@@ -39,8 +39,8 @@ android {
         buildConfigField "String", "BUILD_DATE", "\"${System.getenv('KJB_BUILD_DATE') ?: ''}\""
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 89
-        versionName "1.88"
+        versionCode 90
+        versionName "1.89"
         // OTA-only numbering; Play builds keep their existing version step.
         // Stamp the literals too, because the ApexHub upload reads this file.
         if (System.getenv('APEXHUB_CHANNEL') && System.getenv('GITHUB_RUN_NUMBER')) {

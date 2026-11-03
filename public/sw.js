@@ -1,7 +1,7 @@
-// KJB Reader Service Worker v20261029_1431
+// KJB Reader Service Worker v20261103_2005
 // Cache-first loading for offline support
 
-const CACHE_NAME = 'kjb-reader-v20261103_1935';
+const CACHE_NAME = 'kjb-reader-v20261103_2005';
 const LEGACY_CACHE_NAME = 'kjb-legacy-v11';
 // On a weak connection, how long to wait for the network before serving the
 // cached app shell / manifest instead (only when a cached copy exists).
