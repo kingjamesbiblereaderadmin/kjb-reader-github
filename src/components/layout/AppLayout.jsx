@@ -438,19 +438,19 @@ export default function AppLayout() {
                 onClick={toggleFullscreen}
                 title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
                 aria-label="Toggle fullscreen"
-                className="relative w-9 h-9 shrink-0 rounded-lg border before:absolute before:-inset-1 before:content-[''] border-border bg-secondary/30 hover:bg-secondary/50 active:bg-secondary transition-all duration-200 flex items-center justify-center cursor-pointer touch-manipulation"
+                className="relative w-9 h-9 shrink-0 rounded-lg border before:absolute before:-inset-1 before:content-[''] border-foreground/30 bg-secondary/30 hover:bg-secondary/50 active:bg-secondary transition-all duration-200 flex items-center justify-center cursor-pointer touch-manipulation"
               >
                 {isFullscreen ? <Minimize2 className="w-4 h-4 pointer-events-none text-violet-500" /> : <Maximize2 className="w-4 h-4 pointer-events-none text-violet-500" />}
               </button>
             )}
-            <button className="relative w-9 h-9 shrink-0 rounded-lg border before:absolute before:-inset-1 before:content-[''] border-border bg-secondary/30 hover:bg-secondary/50 active:bg-secondary transition-all duration-200 flex items-center justify-center cursor-pointer touch-manipulation"
+            <button className="relative w-9 h-9 shrink-0 rounded-lg border before:absolute before:-inset-1 before:content-[''] border-foreground/30 bg-secondary/30 hover:bg-secondary/50 active:bg-secondary transition-all duration-200 flex items-center justify-center cursor-pointer touch-manipulation"
               onClick={(e) => { e.stopPropagation(); try { window.dispatchEvent(new Event('kjb-close-popovers')); } catch {} toggleTheme(); }}
               type="button"
               aria-label="Toggle theme"
             >
               {mode === 'auto' ? <SunMoon className="w-4 h-4 pointer-events-none transition-transform duration-200 text-amber-500" /> : isDark ? <Moon className="w-4 h-4 pointer-events-none transition-transform duration-200 text-indigo-400" /> : <Sun className="w-4 h-4 pointer-events-none transition-transform duration-200 text-amber-500" />}
             </button>
-            <button data-kjb-menu-toggle className="relative w-9 h-9 shrink-0 rounded-lg border before:absolute before:-inset-1 before:content-[''] border-border bg-secondary/30 hover:bg-secondary/50 active:bg-secondary transition-all duration-200 flex items-center justify-center cursor-pointer touch-manipulation"
+            <button data-kjb-menu-toggle className="relative w-9 h-9 shrink-0 rounded-lg border before:absolute before:-inset-1 before:content-[''] border-foreground/30 bg-secondary/30 hover:bg-secondary/50 active:bg-secondary transition-all duration-200 flex items-center justify-center cursor-pointer touch-manipulation"
               onClick={(e) => { e.stopPropagation(); setMenuOpen(o => !o); }}
               type="button"
               aria-label="Open menu"
@@ -474,14 +474,14 @@ export default function AppLayout() {
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); setAppZoomPersist(appZoom - 25); }}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-foreground hover:border-accent transition-all duration-200 active:scale-95"
+                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-foreground/30 text-foreground hover:border-accent transition-all duration-200 active:scale-95"
                   >
                     <ZoomOut className="w-3.5 h-3.5" />
                   </button>
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); setAppZoomPersist(appZoom + 25); }}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-foreground hover:border-accent transition-all duration-200 active:scale-95"
+                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-foreground/30 text-foreground hover:border-accent transition-all duration-200 active:scale-95"
                   >
                     <ZoomIn className="w-3.5 h-3.5" />
                   </button>
@@ -516,7 +516,7 @@ export default function AppLayout() {
                       className={`relative flex flex-1 min-w-[9.5rem] items-center gap-2.5 px-3.5 py-3 rounded-lg border font-sans text-sm font-medium leading-snug transition-all duration-200 hover:z-10 hover:shadow-md active:scale-95 ${
                         active
                           ? 'bg-gradient-to-br from-primary to-accent text-primary-foreground border-transparent shadow-md shadow-primary/20'
-                          : 'bg-card/60 text-foreground border-border hover:bg-secondary hover:border-accent/40'
+                          : 'bg-card/60 text-foreground border-foreground/30 hover:bg-secondary hover:border-accent/40'
                       }`}
                     >
                       <span className={`flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-white shadow-sm bg-gradient-to-br ${colors.gradient}`}>
