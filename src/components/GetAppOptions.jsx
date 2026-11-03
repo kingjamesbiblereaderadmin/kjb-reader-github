@@ -25,10 +25,12 @@ export const canOfferPlayStore = () => !isInsideStoreApp();
 // itself as the iOS shell plus a "mac-…" install source (see installSource.js).
 export const getCurrentPlatform = () => {
   try {
-    if (isNativeIos()) {
-      const src = typeof window !== 'undefined' ? window.__KJB_INSTALL_SOURCE__ : null;
-      return typeof src === 'string' && src.startsWith('mac-') ? 'mac' : 'ios';
-    }
+    const src = typeof window !== 'undefined' ? window.__KJB_INSTALL_SOURCE__ : null;
+    // The Mac build injects 'mac-appstore' / 'mac-testflight' / 'mac-development'.
+    // Checked before any Capacitor platform check: a Mac build can report itself
+    // as the iOS shell (or as plain web), and only this marker is authoritative.
+    if (typeof src === 'string' && src.startsWith('mac-')) return 'mac';
+    if (isNativeIos()) return 'ios';
     if (isNativeAndroid() || isNativeAndroidApp()) return 'android';
     if (localStorage.getItem(TWA_FLAG_KEY) === 'true') return 'android';
   } catch {}
