@@ -60,7 +60,8 @@ export function injectShyHtml(html, map) {
 // hyphen at all ("Philistin" / "es"). Two cheap fallbacks, in order:
 //   1. reuse the break points of the word's stem (philistine -> philistines)
 //   2. for long words (7+ letters), a simple vowel/consonant syllable split
-// Short words (under 7 letters) are left whole, like a printed Bible does.
+// Anything still without a point takes one break of its own, so a word of ANY
+// length — down to two letters — can split and every line fills to the edge.
 
 const ONSETS = new Set([
   'th', 'sh', 'ch', 'ph', 'wh', 'bl', 'br', 'cl', 'cr', 'dr', 'fl', 'fr',
@@ -127,11 +128,12 @@ function syllablePoints(w) {
   return keepValid(pts, n, 3);
 }
 
-// Picks ONE safe break point for a word with no dictionary points, so any
-// word of 4+ letters can split to fill a line. A split is only valid when both
-// halves keep a real vowel sound (a final silent 'e' doesn't count), it never
-// cuts inside a vowel pair (go-od) or a digraph (t-h, s-h, c-h, p-h, n-g...).
-// Words with no valid split (that, with, king, thine, were) stay whole.
+// Picks ONE safe break point for a word with no dictionary points, so a word
+// of ANY length — two letters and up — can split to fill a line. A split is
+// preferred when both halves keep a real vowel sound (a final silent 'e'
+// doesn't count) and it never cuts inside a vowel pair (go-od) or a digraph
+// (t-h, s-h, c-h, p-h, n-g...); when no such split exists (that, with, king,
+// thine, were) the most even break is still taken, so nothing is left whole.
 const VOWELS = 'aeiouy';
 const DIGRAPHS = new Set(['th', 'sh', 'ch', 'ph', 'wh', 'gh', 'ng', 'ck', 'qu']);
 function hasVowel(s) {
@@ -140,10 +142,15 @@ function hasVowel(s) {
 }
 function bestSplit(w) {
   const n = w.length;
+  if (n < 2) return -1;
+  // Every word may split, however few letters it has: four letters or fewer
+  // may break one letter in from either edge, longer words keep two clear.
+  const minP = n <= 4 ? 1 : 2;
+  const maxP = n <= 4 ? n - 1 : n - 2;
   const target = n * 0.55;
   let best = -1;
   let bestDist = Infinity;
-  for (let p = 2; p <= n - 2; p++) {
+  for (let p = minP; p <= maxP; p++) {
     const a = w[p - 1];
     const b = w[p];
     if (VOWELS.indexOf(a) !== -1 && VOWELS.indexOf(b) !== -1) continue;
@@ -153,23 +160,25 @@ function bestSplit(w) {
     const d = Math.abs(p - target);
     if (d < bestDist) { best = p; bestDist = d; }
   }
-  if (best < 0 && n >= 4) {
+  if (best < 0) {
     // No clean split exists (good, said, that, with, thine...). The rule is now
     // "any word may hyphen-split" so every line can fill to the edge: take the
     // split nearest the middle, preferring one that isn't inside a digraph or
-    // vowel pair, else any split with 2 letters kept on each side.
+    // vowel pair, else any split at all.
     let any = -1;
     let anyDist = Infinity;
     let soft = -1;
     let softDist = Infinity;
-    for (let p = 2; p <= n - 2; p++) {
+    for (let p = minP; p <= maxP; p++) {
       const d = Math.abs(p - n / 2);
-      if (d < anyDist) { any = p; anyDist = d; }
+      // On a tie keep the LATER split, so the first half keeps more letters
+      // ("and" -> "an-d", never "a-nd").
+      if (d <= anyDist) { any = p; anyDist = d; }
       const a = w[p - 1];
       const b = w[p];
       if (DIGRAPHS.has(a + b)) continue;
       if (VOWELS.indexOf(a) !== -1 && VOWELS.indexOf(b) !== -1) continue;
-      if (d < softDist) { soft = p; softDist = d; }
+      if (d <= softDist) { soft = p; softDist = d; }
     }
     best = soft > 0 ? soft : any;
   }
@@ -187,8 +196,9 @@ function fallbackPoints(w, map) {
     // Last resort: a single break point so that EVERY word can split to fill
     // the line. WebKit (iOS) never breaks a word by itself to close a gap —
     // it moves the whole word to the next line — so a word with no break
-    // point of its own is exactly what leaves a stretched empty gap. Two
-    // letters stay before the break, three after.
+    // point of its own is exactly what leaves a stretched empty gap. Long
+    // words keep two letters clear of each edge; words of four letters or
+    // fewer may break one letter in, so nothing is ever left unsplittable.
     const p = bestSplit(w);
     if (p > 0) pts = [p];
   }
@@ -241,7 +251,7 @@ function wordPoints(w, map) {
 }
 
 function hyphenateText(text, map) {
-  return text.replace(/[A-Za-z]{4,}/g, (word) => {
+  return text.replace(/[A-Za-z]{2,}/g, (word) => {
     const lw = word.toLowerCase();
     const pts = wordPoints(lw, map);
     if (!pts) return word;
