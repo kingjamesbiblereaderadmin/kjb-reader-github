@@ -171,7 +171,8 @@ export const PREACHERS = [
     photo: 'https://media.base44.com/images/public/6a713d810d97fdb5921ed14e/9a6ca5fd0_jim-hunsucker.jpg',
     links: [
       'https://www.youtube.com/@PastorJimHunsucker',
-      'https://www.tiktok.com/@jimhunsucker']
+      'https://www.tiktok.com/@jimhunsucker',
+      'https://www.facebook.com/profile.php?id=100088127371765']
   },
 ];
 
