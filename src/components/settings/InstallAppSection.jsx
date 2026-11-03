@@ -6,7 +6,7 @@ import { detectIncognito } from '@/lib/incognito';
 import HighlightToSearchTip from '@/components/settings/HighlightToSearchTip';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { isNativeIos } from '@/lib/isNativeIos';
-import { InstallOptionCards } from '@/components/GetAppOptions';
+import { InstallOptionCards, getCurrentPlatform } from '@/components/GetAppOptions';
 
 const inIframe = () => {
   try { return window.self !== window.top; } catch (e) { return true; }
@@ -31,9 +31,39 @@ const isEdgeMobile = () => {
   return /EdgA|EdgiOS/i.test(ua) || (/edg/i.test(ua) && /iphone|ipad|ipod|android/i.test(ua));
 };
 
+// Names the platform THIS copy is installed on, so the "installed" card says
+// which app it means instead of a bare "Installed as an app!" — on a Mac, a
+// Windows desktop, an iPhone and an Android phone the answer is different.
+const currentPlatformInfo = () => {
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+  const platform = getCurrentPlatform();
+  if (platform === 'android') {
+    return { name: 'Android', headline: 'Android app', where: 'App drawer or home screen' };
+  }
+  if (platform === 'ios') {
+    return { name: 'iPhone / iPad', headline: 'iPhone & iPad app', where: 'Home screen (swipe right to App Library)' };
+  }
+  if (platform === 'mac') {
+    return { name: 'macOS', headline: 'Mac app', where: 'Applications folder or Launchpad' };
+  }
+  const isMac = /macintosh|mac os x/i.test(ua);
+  const isWindows = /windows/i.test(ua);
+  const isMobile = /iphone|ipad|ipod|android/i.test(ua);
+  const name = isMobile ? 'this phone' : isMac ? 'macOS' : isWindows ? 'Windows' : 'this device';
+  const where = isMac
+    ? 'Applications folder or Dock'
+    : isWindows
+      ? 'Start menu or taskbar'
+      : isMobile
+        ? 'Home screen'
+        : 'Applications menu';
+  return { name, headline: `Web app on ${name}`, where };
+};
+
 export function InstallAppSection({ expanded, isIncognito }) {
   // (Settings imports the named export; a default export also exists below.)
   const { isInstallable, isInstalled: hookIsInstalled, isSamsung, promptInstall } = useInstallPrompt();
+  const platform = currentPlatformInfo();
   const [isInstalled, setIsInstalled] = useState(false);
   const [showInstallHint, setShowInstallHint] = useState(false);
   const [bookmarkBrowser] = useState(isBookmarkBrowser);
@@ -133,7 +163,12 @@ export function InstallAppSection({ expanded, isIncognito }) {
                     <CheckCircle2 className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-sans text-sm font-bold text-emerald-800 dark:text-emerald-300">✓ Installed as an app!</p>
+                    <p className="font-sans text-sm font-bold text-emerald-800 dark:text-emerald-300">
+                      ✓ Installed: {platform.headline}
+                    </p>
+                    <p className="font-sans text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">
+                      This copy runs on {platform.name}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -143,23 +178,11 @@ export function InstallAppSection({ expanded, isIncognito }) {
               <div className="flex items-start gap-3">
                 <MonitorSmartphone className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <h3 className="font-sans text-sm font-bold text-blue-800 dark:text-blue-300 mb-2">Where to find the app:</h3>
+                  <h3 className="font-sans text-sm font-bold text-blue-800 dark:text-blue-300 mb-2">Where to find it on {platform.name}:</h3>
                   <ul className="font-sans text-xs text-blue-700 dark:text-blue-400 space-y-1.5">
                     <li className="flex items-start gap-1.5">
                       <span className="font-bold">•</span>
-                      <span><strong>Android:</strong> App drawer or home screen</span>
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="font-bold">•</span>
-                      <span><strong>iOS:</strong> Home screen (swipe right to App Library)</span>
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="font-bold">•</span>
-                      <span><strong>Desktop:</strong> Taskbar, Start menu, or Applications folder</span>
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="font-bold">•</span>
-                      <span><strong>Samsung:</strong> Home screen or app drawer</span>
+                      <span><strong>{platform.name}:</strong> {platform.where}</span>
                     </li>
                   </ul>
                 </div>
