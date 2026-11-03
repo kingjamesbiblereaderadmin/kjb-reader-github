@@ -1,4 +1,4 @@
-import { getGospelNav } from '@/lib/searchNav';
+import { getGospelNav, getSearchNav } from '@/lib/searchNav';
 
 // Mount-time restoration of saved search/gospel sessions. Pure localStorage
 // reads + setter calls (no network), extracted from BibleReader's mount effect
@@ -46,12 +46,14 @@ export function restoreLegacySearchSession({
   hasSearchTerm, searchClearedRef, setSearchTerm, setSearchResultIndex, setSearchTotalResults,
 }) {
   try {
-    const term = localStorage.getItem('kjb-search-term');
-    const resultsRaw = localStorage.getItem('kjb-search-results');
+    const storedTerm = localStorage.getItem('kjb-search-term');
+    const nav = getSearchNav();
+    const term = storedTerm || nav.term;
+    const results = nav.results;
     const index = localStorage.getItem('kjb-search-index');
-    if (!term || !resultsRaw || hasSearchTerm) return;
-    const results = JSON.parse(resultsRaw);
-    const savedIdx = index ? parseInt(index, 10) : 0;
+    if (!term || !results.length || hasSearchTerm) return;
+    const parsedIndex = index ? parseInt(index, 10) : nav.index;
+    const savedIdx = Number.isFinite(parsedIndex) ? parsedIndex : 0;
     let curPos = null;
     try { curPos = JSON.parse(localStorage.getItem('kjb-position') || 'null'); } catch {}
     const onThisChapter = (r) => r && curPos && r.abbr === curPos.abbr
