@@ -127,6 +127,35 @@ function syllablePoints(w) {
   return keepValid(pts, n, 3);
 }
 
+// Picks ONE safe break point for a word with no dictionary points, so any
+// word of 4+ letters can split to fill a line. A split is only valid when both
+// halves keep a real vowel sound (a final silent 'e' doesn't count), it never
+// cuts inside a vowel pair (go-od) or a digraph (t-h, s-h, c-h, p-h, n-g...).
+// Words with no valid split (that, with, king, thine, were) stay whole.
+const VOWELS = 'aeiouy';
+const DIGRAPHS = new Set(['th', 'sh', 'ch', 'ph', 'wh', 'gh', 'ng', 'ck', 'qu']);
+function hasVowel(s) {
+  for (let i = 0; i < s.length; i++) if (VOWELS.indexOf(s[i]) !== -1) return true;
+  return false;
+}
+function bestSplit(w) {
+  const n = w.length;
+  const target = n * 0.55;
+  let best = -1;
+  let bestDist = Infinity;
+  for (let p = 2; p <= n - 2; p++) {
+    const a = w[p - 1];
+    const b = w[p];
+    if (VOWELS.indexOf(a) !== -1 && VOWELS.indexOf(b) !== -1) continue;
+    if (DIGRAPHS.has(a + b)) continue;
+    const right = w.endsWith('e') ? w.slice(p, n - 1) : w.slice(p);
+    if (!hasVowel(w.slice(0, p)) || !hasVowel(right)) continue;
+    const d = Math.abs(p - target);
+    if (d < bestDist) { best = p; bestDist = d; }
+  }
+  return best;
+}
+
 function fallbackPoints(w, map) {
   if (fallbackCache.has(w)) return fallbackCache.get(w);
   let pts = stemPoints(w, map);
@@ -140,8 +169,8 @@ function fallbackPoints(w, map) {
     // it moves the whole word to the next line — so a word with no break
     // point of its own is exactly what leaves a stretched empty gap. Two
     // letters stay before the break, three after.
-    const p = Math.min(Math.max(2, Math.round(w.length * 0.6)), w.length - 3);
-    if (w.length >= 5 && p >= 2) pts = [p];
+    const p = bestSplit(w);
+    if (p > 0) pts = [p];
   }
   pts = pts && pts.length ? pts : null;
   fallbackCache.set(w, pts);
@@ -155,7 +184,7 @@ function fallbackPoints(w, map) {
 // than MAX_STRETCH letters gets extra syllable-based points so the browser can
 // break at the LAST point that fits (jehoshaphat -> "Je-ho-sha-phat").
 // Words whose stretches are all short are left exactly as the dictionary has them.
-const MAX_STRETCH = 6;
+const MAX_STRETCH = 4;
 const filledCache = new Map();
 
 function fillLongStretches(w, own) {
@@ -192,7 +221,7 @@ function wordPoints(w, map) {
 }
 
 function hyphenateText(text, map) {
-  return text.replace(/[A-Za-z]{5,}/g, (word) => {
+  return text.replace(/[A-Za-z]{4,}/g, (word) => {
     const lw = word.toLowerCase();
     const pts = wordPoints(lw, map);
     if (!pts) return word;
