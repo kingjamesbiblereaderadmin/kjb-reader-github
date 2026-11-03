@@ -134,6 +134,15 @@ function fallbackPoints(w, map) {
     const sp = syllablePoints(w);
     if (sp.length) pts = sp;
   }
+  if (!pts || !pts.length) {
+    // Last resort: a single break point so that EVERY word can split to fill
+    // the line. WebKit (iOS) never breaks a word by itself to close a gap —
+    // it moves the whole word to the next line — so a word with no break
+    // point of its own is exactly what leaves a stretched empty gap. Two
+    // letters stay before the break, three after.
+    const p = Math.min(Math.max(2, Math.round(w.length * 0.6)), w.length - 3);
+    if (w.length >= 5 && p >= 2) pts = [p];
+  }
   pts = pts && pts.length ? pts : null;
   fallbackCache.set(w, pts);
   return pts;
@@ -175,7 +184,7 @@ function fillLongStretches(w, own) {
 
 function wordPoints(w, map) {
   const own = ownPoints(map, w);
-  if (!own) return fallbackPoints(w, map);
+  if (!own || !own.length) return fallbackPoints(w, map);
   if (filledCache.has(w)) return filledCache.get(w);
   const pts = fillLongStretches(w, own);
   filledCache.set(w, pts);

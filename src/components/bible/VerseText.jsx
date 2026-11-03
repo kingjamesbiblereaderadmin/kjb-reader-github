@@ -45,12 +45,12 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     setCurrentText(verse.text);
   }, [verse.text]);
 
-  // Two-column printed layout: install the clipboard sanitizer (strips soft
-  // hyphens from manually-copied selections) and load the app's own
-  // hyphenation points once, re-rendering when they arrive.
+  // Soft hyphens are used in every reading layout: install the clipboard
+  // sanitizer (strips soft hyphens from manually-copied selections) and load
+  // the app's own hyphenation points once, re-rendering when they arrive.
   useEffect(() => {
     installShyCopySanitizer();
-    if (!columnMode || getShyMap()) return;
+    if (getShyMap()) return;
     let alive = true;
     ensureShyMap().then(() => { if (alive) setShyTick(t => t + 1); });
     return () => { alive = false; };
@@ -88,11 +88,14 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   // renderVerseText handles [italics] and ¶ pilcrow styling, plus search term highlighting
   let html = renderVerseText(displayVerseText, searchTerm);
 
-  // Two-column printed layout: inject the app's own hyphenation points as
-  // soft hyphens (see softHyphens.js). Each point is invisible unless the
-  // line actually breaks there — then a visible hyphen renders, matching a
-  // printed Bible instead of a bare mid-word break.
-  if (columnMode) {
+  // Inject the app's own hyphenation points as soft hyphens (see
+  // softHyphens.js) in EVERY reading layout. Each point is invisible unless
+  // the line actually breaks there — then a visible hyphen renders, matching
+  // a printed Bible instead of a bare mid-word break. This is what lets a
+  // justified line fill to the edge in single-column too (iOS/WebKit will not
+  // split a word on its own), italics included since this works on the text
+  // inside <em> as well.
+  {
     const shy = getShyMap();
     if (shy) html = injectShyHtml(html, shy);
   }

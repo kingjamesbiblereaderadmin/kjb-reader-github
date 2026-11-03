@@ -210,8 +210,20 @@
      to avoid overflow, as already noted above. */
   .kjb-reader-content:not(.kjb-two-col) {
     text-wrap: pretty;
-    -webkit-hyphens: none;
-    hyphens: none;
+    /* Single-column justified text must also reach the right edge with no
+       gaps. iOS/WebKit will NOT split a word just because overflow-wrap says
+       so — it pushes the whole word to the next line and leaves a stretched
+       empty gap ("Wherefore        he"). The fix that works in every engine
+       is the app's own soft hyphens (hyphenation.json): with
+       `hyphens: manual` those injected break points are honoured (and only
+       those — no browser-dictionary surprises), so the line fills to the
+       edge and a word breaks with a visible hyphen, italics included.
+       `none` was blocking even the explicit soft hyphens, which is why iOS
+       still showed gaps. break-word stays as the last resort for a word with
+       no break point at all. */
+    -webkit-hyphens: manual;
+    hyphens: manual;
+    overflow-wrap: break-word;
   }
 
   button, a, nav, header {
