@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Circle, Square, Copy, Download, X, Check } from 'lucide-react';
+import { Circle, Copy, Download, X, Check } from 'lucide-react';
 import { getSearchNav, getSearchTotal } from '@/lib/searchNav';
 
 // Floating on-screen session recorder for debugging reader/navigation issues.
