@@ -1900,7 +1900,7 @@ export default function BibleReader() {
               style={{ top: !isViewingTitlePage && pos.chapter !== 1 ? '-1.5rem' : '0', backgroundColor: 'hsl(var(--border))' }}
             />
           )}
-          <div ref={useColumns ? columnsContainerRef : null} data-testid={useColumns ? 'kjb-two-col-container' : undefined} className={`${useColumns ? 'kjb-two-col text-left hyphens-auto' : 'text-left'} ${paragraphMode ? 'text-left px-2 sm:px-4' : ''}`} style={useColumns ? { fontSize: 'inherit', columnCount: 2, columnGap: fontFamily === 'cursive' ? '3.5rem' : '2.5rem', columnRule: '1px solid hsl(var(--border))' } : { fontSize: 'inherit' }}>
+          <div ref={useColumns ? columnsContainerRef : null} data-testid={useColumns ? 'kjb-two-col-container' : undefined} className={`${useColumns ? 'kjb-two-col text-justify hyphens-auto' : 'text-justify'} ${paragraphMode ? 'text-justify px-2 sm:px-4' : ''}`} style={useColumns ? { fontSize: 'inherit', columnCount: 2, columnGap: fontFamily === 'cursive' ? '3.5rem' : '2.5rem', columnRule: '1px solid hsl(var(--border))' } : { fontSize: 'inherit' }}>
             {subscriptBlock}
             {shownVerses.map((v, idx) => renderVerse(v, idx === 0))}
           </div>
