@@ -201,7 +201,16 @@ function fallbackPoints(w, map) {
     // of any length may break at any point, so nothing is ever left
     // unsplittable (only a one-letter word has nowhere to break).
     const p = bestSplit(w);
-    if (p > 0) pts = [p];
+    if (p > 0) {
+      // A browser breaks at the LAST point that fits, so one point alone can
+      // leave a gap: "Jehoshaphat" + "ma-" is a hair too wide, so all of "made"
+      // drops down and the line ends short. Also offer every shorter first half
+      // ("m-ade") for words of 4+ letters; the clean point stays the preferred
+      // one whenever it fits.
+      pts = [];
+      if (w.length >= 4) for (let q = 1; q < p; q++) pts.push(q);
+      pts.push(p);
+    }
   }
   pts = pts && pts.length ? pts : null;
   fallbackCache.set(w, pts);
