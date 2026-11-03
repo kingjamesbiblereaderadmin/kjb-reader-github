@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG_RAW = [
+  { version: 'v0.4.336', date: 'November 3, 2026', items: [
+    { tag: 'new', text: "Pastor Jim Hunsucker's Facebook page is now linked in the verified KJB preachers list." },
+  ] },
   { version: 'v0.4.335', date: 'November 2, 2026', items: [
     { tag: 'new', text: 'Zach Pina (Faith in the Blood) joined the verified KJB preachers list in the Gospel information panel.' },
     { tag: 'new', text: 'Pastor Jim Hunsucker joined the verified KJB preachers list in the Gospel information panel.' },
@@ -497,7 +500,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.335
+            Current Version: v0.4.336
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
