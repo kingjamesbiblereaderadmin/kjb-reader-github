@@ -1454,15 +1454,13 @@ export default function BibleReader() {
       try {
         if (!searchClearedRef.current) {
           const term = localStorage.getItem('kjb-search-term');
-          const resultsRaw = localStorage.getItem('kjb-search-results');
+          const { results, index: navIndex, term: navTerm } = getSearchNav();
           const index = localStorage.getItem('kjb-search-index');
-          if (term && resultsRaw) {
-            const results = JSON.parse(resultsRaw);
-            if (results.length > 0) {
-              setSearchTerm(term);
-              setSearchResultIndex(index ? parseInt(index, 10) : 0);
-              setSearchTotalResults(results.length);
-            }
+          if ((term || navTerm) && results.length > 0) {
+            const parsedIndex = index ? parseInt(index, 10) : navIndex;
+            setSearchTerm(term || navTerm);
+            setSearchResultIndex(Number.isFinite(parsedIndex) ? parsedIndex : 0);
+            setSearchTotalResults(results.length);
           }
         }
       } catch {}
