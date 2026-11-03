@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Circle, Square, Copy, Download, X, Check } from 'lucide-react';
+import { getSearchNav, getSearchTotal } from '@/lib/searchNav';
 
 // Floating on-screen session recorder for debugging reader/navigation issues.
 // Enabled from Dev Tools (admin only) via the 'kjb-debug-recorder' localStorage
@@ -36,13 +37,15 @@ function snapshotStorage() {
       snap[key] = raw.length > 400 ? raw.slice(0, 400) + '…' : raw;
     } catch { snap[key] = '(unreadable)'; }
   }
-  // The search-nav result list can be huge — keep just a summary.
+  // The persisted search-nav result list uses a compact versioned format.
+  // Read the decoded in-memory view and retain only a small diagnostic summary.
   try {
-    const results = JSON.parse(localStorage.getItem('kjb-search-results') || '[]');
-    snap['kjb-search-results'] = results.length
-      ? { length: results.length, first: results[0] }
+    const { results } = getSearchNav();
+    const total = getSearchTotal();
+    snap['kjb-search-results'] = total || results.length
+      ? { length: total || results.length, first: results[0] || null }
       : { length: 0 };
-  } catch { snap['kjb-search-results'] = '(invalid)'; }
+  } catch { snap['kjb-search-results'] = '(unreadable)'; }
   return snap;
 }
 
