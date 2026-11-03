@@ -127,8 +127,14 @@ export default async function (req) {
     }
 
     const matcher = buildMatcher(query, { wholeWord, caseSensitive, wildcard });
+    // Count every match with the exact same pattern/options used to select
+    // results. This separate global matcher leaves result filtering unchanged.
+    const occurrenceMatcher = new RegExp(matcher.source, matcher.flags + "g");
+    const countOccurrences = (text: string) =>
+      (String(text).match(occurrenceMatcher) || []).length;
 
     const results = [];
+    let occurrenceCount = 0;
     for (const bookName of booksToSearch) {
       if (!bible[bookName]) continue;
       for (const chapterNum of Object.keys(bible[bookName])) {
@@ -140,6 +146,7 @@ export default async function (req) {
         // them too. Brackets ([italics]) are kept for context, pilcrows removed.
         const pushSection = (rawText: string, verse: number, ref: string, type: string) => {
           const text = normalizePilcrows(rawText).replace(/¶\s*/g, "").trim();
+          occurrenceCount += countOccurrences(visibleText(rawText));
           results.push({ book: bookName, chapter: parseInt(chapterNum), verse, text, ref, type });
         };
 
@@ -155,6 +162,7 @@ export default async function (req) {
             pushSection(vo.heading, vo.verse, `${bookName} ${chapterNum}:${vo.verse} (${vo.heading})`, "heading");
           }
           if (!matcher.test(visibleText(vo.text))) continue;
+          occurrenceCount += countOccurrences(visibleText(vo.text));
           const processed = processVerse(vo, { book: bookName, chapter: parseInt(chapterNum) });
           results.push({
             book: bookName,
@@ -174,7 +182,17 @@ export default async function (req) {
       }
     }
 
-    return json({ query, count: results.length, results });
+    const verseCount = results.filter((result) => result.type === "verse").length;
+    return json({
+      query,
+      // count is the total matching occurrence count used by SidePanel.
+      // Keep verse and result counts separate for navigation and callers.
+      count: occurrenceCount,
+      occurrence_count: occurrenceCount,
+      verse_count: verseCount,
+      result_count: results.length,
+      results,
+    });
   } catch (error) {
     return json({ error: error.message }, 500);
   }
