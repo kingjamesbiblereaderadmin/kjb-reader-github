@@ -1108,7 +1108,7 @@ export default function SettingsPage() {
               <button
                 onClick={() => setAdvancedOpen((o) => !o)}
                 aria-expanded={advancedOpen}
-                className="w-full flex items-center justify-between gap-4 text-left"
+                className={`w-full flex items-center justify-between gap-4 text-left rounded-xl border px-3 py-2.5 transition-colors ${advancedOpen ? 'border-foreground/30 bg-secondary/50' : 'border-foreground/30 hover:border-accent'}`}
               >
                 <div className="flex items-center gap-2">
                   <Wrench className="w-4 h-4 text-muted-foreground" />
