@@ -208,7 +208,15 @@ function fallbackPoints(w, map) {
       // ("m-ade") for words of 4+ letters; the clean point stays the preferred
       // one whenever it fits.
       pts = [];
-      if (w.length >= 4) for (let q = 1; q < p; q++) pts.push(q);
+      if (w.length >= 4) {
+        for (let q = 1; q < p; q++) {
+          const a = w[q - 1];
+          const b = w[q];
+          if (DIGRAPHS.has(a + b)) continue;
+          if (VOWELS.indexOf(a) !== -1 && VOWELS.indexOf(b) !== -1) continue;
+          pts.push(q);
+        }
+      }
       pts.push(p);
     }
   }
