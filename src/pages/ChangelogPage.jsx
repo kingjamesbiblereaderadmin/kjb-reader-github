@@ -3,6 +3,16 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG_RAW = [
+  {
+    version: 'v0.4.337',
+    date: 'November 3, 2026',
+    items: [
+      { tag: 'fixed', text: 'Search results are no longer capped at 1,000: a search such as "Israel" now lists all 2,319 verses instead of stopping early.' },
+      { tag: 'fixed', text: 'The result count now reports occurrences rather than verses, matching Pure Bible Search (2,601 occurrences for "Israel").' },
+      { tag: 'new', text: 'Psalm superscriptions, Hebrew letter headings and epistle colophons are included in the result count.' },
+      { tag: 'new', text: 'Very broad searches render the first 3,000 verses and say so in the count line, so the side panel stays responsive.' },
+    ],
+  },
   { version: 'v0.4.336', date: 'November 3, 2026', items: [
     { tag: 'new', text: "Pastor Jim Hunsucker's Facebook page is now linked in the verified KJB preachers list." },
   ] },
