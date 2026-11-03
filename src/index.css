@@ -197,19 +197,17 @@
     hyphens: none;
   }
 
-  /* Reading text (verses): avoid a single short word, letter, or lone piece
-     of punctuation getting stranded alone at the start of the next line.
-     text-wrap: pretty is the purpose-built fix for this (Chromium 117+; a
-     harmless no-op on browsers that don't support it yet, so this is a pure
-     progressive enhancement). Hyphenation is also turned OFF here, like
-     the body-wide rule above -- ordinary verse prose in the single-column view has plenty of room to
-     wrap at real word boundaries, and mid-word hyphenation was itself
-     producing the "orphaned last letter" look by splitting the final word of
-     a line. The two-column printed layout (.kjb-two-col) is intentionally
-     excluded — its columns are genuinely narrow enough to need hyphens:auto
-     to avoid overflow, as already noted above. */
+  /* Reading text (verses): every justified line must reach the right edge.
+     `text-wrap: pretty` was tried here and REMOVED: Chromium (i.e. Android
+     Chrome / the Android app's WebView) implements it by nudging line breaks
+     to avoid a short last line, so it deliberately leaves earlier lines
+     short — visible as stretched, gappy justified text on Android, while
+     iOS/Safari ignores the property entirely (which is why iOS looked right
+     and Android didn't). Plain `wrap` lets the engine fill each line as far
+     as it can. The two-column printed layout (.kjb-two-col) is excluded —
+     its narrow columns get hyphens:auto, noted below. */
   .kjb-reader-content:not(.kjb-two-col) {
-    text-wrap: pretty;
+    text-wrap: wrap;
     /* Single-column justified text must also reach the right edge with no
        gaps. iOS/WebKit will NOT split a word just because overflow-wrap says
        so — it pushes the whole word to the next line and leaves a stretched
