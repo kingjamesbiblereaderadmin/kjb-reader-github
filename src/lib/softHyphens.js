@@ -153,6 +153,26 @@ function bestSplit(w) {
     const d = Math.abs(p - target);
     if (d < bestDist) { best = p; bestDist = d; }
   }
+  if (best < 0 && n >= 4) {
+    // No clean split exists (good, said, that, with, thine...). The rule is now
+    // "any word may hyphen-split" so every line can fill to the edge: take the
+    // split nearest the middle, preferring one that isn't inside a digraph or
+    // vowel pair, else any split with 2 letters kept on each side.
+    let any = -1;
+    let anyDist = Infinity;
+    let soft = -1;
+    let softDist = Infinity;
+    for (let p = 2; p <= n - 2; p++) {
+      const d = Math.abs(p - n / 2);
+      if (d < anyDist) { any = p; anyDist = d; }
+      const a = w[p - 1];
+      const b = w[p];
+      if (DIGRAPHS.has(a + b)) continue;
+      if (VOWELS.indexOf(a) !== -1 && VOWELS.indexOf(b) !== -1) continue;
+      if (d < softDist) { soft = p; softDist = d; }
+    }
+    best = soft > 0 ? soft : any;
+  }
   return best;
 }
 
