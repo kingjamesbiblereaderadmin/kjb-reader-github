@@ -55,10 +55,28 @@ def versions_for(app, platform):
     url = f"{BASE}/v1/apps/{app}/appStoreVersions"
     params = {"limit": 100}
     while True:
-        r = requests.get(url, headers={"Authorization": "Bearer " + token()},
-                         params=params, timeout=60)
-        r.raise_for_status()
-        d = r.json()
+        # Apple's API returns sporadic 5xx/429 responses (a macOS job died on a
+        # single 500 from this exact call on 2026-11-03 while iOS succeeded
+        # minutes later), so retry transient failures with backoff instead of
+        # failing the whole build.
+        d = None
+        for attempt in range(5):
+            try:
+                r = requests.get(url, headers={"Authorization": "Bearer " + token()},
+                                 params=params, timeout=60)
+                if r.status_code in (429, 500, 502, 503, 504):
+                    raise requests.HTTPError(f"transient {r.status_code}", response=r)
+                r.raise_for_status()
+                d = r.json()
+                break
+            except (requests.HTTPError, requests.ConnectionError, requests.Timeout) as e:
+                transient = isinstance(e, requests.HTTPError) and getattr(e, "response", None) is not None \
+                    and e.response.status_code in (429, 500, 502, 503, 504)
+                if attempt == 4 or not (transient or not isinstance(e, requests.HTTPError)):
+                    raise
+                wait = 3 * (attempt + 1)
+                log(f"transient error ({e}); retrying in {wait}s")
+                time.sleep(wait)
         out += [x for x in d.get("data", [])
                 if x["attributes"].get("platform") == platform]
         nxt = (d.get("links") or {}).get("next")
