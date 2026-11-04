@@ -259,7 +259,26 @@ function fillLongStretches(w, own) {
   return merged;
 }
 
-function wordPoints(w, map) {
+// Every gap between two letters is a break point, for every word of 2+ letters.
+// A browser breaks at the LAST point that fits, so each line fills as far as it
+// can before dropping down, with no gaps left by words that could only split in
+// a few places. Splits can land anywhere in a word ("m-ade", "hi-m"); the clean
+// dictionary/syllable points below are kept in case that is ever wanted again.
+const allPointsCache = new Map();
+function wordPoints(w) {
+  const n = w.length;
+  if (n < 2) return null;
+  let pts = allPointsCache.get(n);
+  if (!pts) {
+    pts = [];
+    for (let i = 1; i < n; i++) pts.push(i);
+    allPointsCache.set(n, pts);
+  }
+  return pts;
+}
+
+// eslint-disable-next-line no-unused-vars
+function cleanWordPoints(w, map) {
   const own = ownPoints(map, w);
   if (!own || !own.length) return fallbackPoints(w, map);
   if (filledCache.has(w)) return filledCache.get(w);
