@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG_RAW = [
+  { version: 'v0.4.338', date: 'November 8, 2026', items: [
+    { tag: 'fixed', text: 'Gospel page: the three numbered points now end with a colon, on the page and in the copied text.' },
+  ] },
   {
     version: 'v0.4.337',
     date: 'November 3, 2026',
@@ -510,7 +513,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.336
+            Current Version: v0.4.338
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
