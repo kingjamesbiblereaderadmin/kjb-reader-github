@@ -103,7 +103,7 @@ export default function CurrentlyReadingIndicator({
   const showNavigation = (effectiveSearchTerm || gospelMode) && totalResults > 1 && onPrevResult && onNextResult;
 
   return (
-    <div className="flex items-stretch gap-2 px-3 py-2 rounded-lg bg-accent text-accent-foreground font-sans text-xs font-medium min-w-0 flex-shrink-0">
+    <div className="flex items-stretch gap-2 px-3 py-2 rounded-lg bg-accent text-accent-foreground font-sans text-xs font-medium min-w-0 max-w-full shrink overflow-hidden">
       <div className="flex flex-col leading-snug gap-0.5 min-w-0 justify-center">
         {typeLabel ? (
           <>
