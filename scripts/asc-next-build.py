@@ -75,10 +75,16 @@ token = jwt.encode(
     KEY_P8, algorithm="ES256", headers={"kid": KEY_ID})
 H = {"Authorization": f"Bearer {token}"}
 
-# The macOS job runs this script right before the archive step, so this is the
-# one place every macOS build passes through that already holds the ASC key:
-# clear the stale-certificate quota before Xcode needs to mint a fresh cert.
-revoke_stale_mac_dev_certs()
+# Only the macOS signing job revokes. The iOS job runs this same script in
+# parallel, and an unguarded revoke there raced the macOS archive: it deleted
+# the development certificate Xcode had just minted, so the next target
+# (KJBShare.appex) minted a second one and the archive died with
+# "Embedded binary is not signed with the same certificate as the parent app"
+# (run 87, 2026-11-08).
+if "--revoke-dev-certs" in sys.argv:
+    revoke_stale_mac_dev_certs()
+else:
+    log("dev-certificate revoke skipped (not the macOS signing job)")
 
 r = requests.get(f"{BASE}/v1/apps?filter[bundleId]=com.kingjamesbiblereader.twa&limit=1", headers=H)
 r.raise_for_status()

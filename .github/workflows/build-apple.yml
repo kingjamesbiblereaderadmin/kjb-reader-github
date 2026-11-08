@@ -385,7 +385,7 @@ jobs:
           else
             python3 -m venv /tmp/ascvenv
             /tmp/ascvenv/bin/pip install pyjwt requests cryptography
-            NEXT=$(/tmp/ascvenv/bin/python scripts/asc-next-build.py)
+            NEXT=$(/tmp/ascvenv/bin/python scripts/asc-next-build.py --revoke-dev-certs)
           fi
           echo "next=$NEXT" >> "$GITHUB_OUTPUT"
           echo "macOS build number: $NEXT"
