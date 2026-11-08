@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, BookOpen, Loader2, Filter, Copy, Download, CheckSquare, Square, X, BookMarked, ChevronDown, Share2, ChevronUp, ChevronDown as ChevronDownIcon, ChevronRight, Printer, FlaskConical } from 'lucide-react';
 import { getBibleData } from '@/lib/bibleCache';
-import { normalizeApostrophes, normalizeQueryApostrophes, normalizeLigatures, hyphenTolerantPattern, WORD_CHARS } from '@/lib/bibleApi';
+import { normalizeApostrophes, normalizeQueryApostrophes, normalizeLigatures, hyphenTolerantPattern, WORD_CHARS, mergeAdjacentBrackets } from '@/lib/bibleApi';
 import { BIBLE_BOOKS, OLD_TESTAMENT, NEW_TESTAMENT, BOOK_BY_API_NAME } from '@/lib/bibleData';
 import { parseReference, resolveBook, normalizeReferenceText } from '@/lib/parseReference';
 import { expandPassage } from '@/lib/expandPassage';
@@ -1050,7 +1050,8 @@ export default function SearchPage() {
       const hasPilcrow = /^\s*¶/.test(r.text || '');
       // The pilcrow itself is KEPT in copied/shared text (it's part of the KJB's
       // paragraph marking), with the blank line above it preserved below.
-      const text = r.text.replace(/^<<[^>]*>>\s*/, '');
+      // Side-by-side italics (e.g. "[A] [Psalm]") collapse into one bracket.
+      const text = mergeAdjacentBrackets(r.text.replace(/^<<[^>]*>>\s*/, ''));
       const bookEntry = BIBLE_BOOKS.find(b => b.apiName === r.book);
       const bookName = bookEntry ? bookEntry.shortName : r.book;
       const isColophon = r.isColophon || (r.verse === 0 && !r.isSubscript && !r.isHeading);
@@ -1070,9 +1071,9 @@ export default function SearchPage() {
       // screen instead of silently dropping them. [Brackets] stay intact.
       const quoteInner = [];
       if (r.attachedHeading) quoteInner.push(r.attachedHeading.toUpperCase());
-      if (r.attachedSubscript) quoteInner.push(`¶ ${r.attachedSubscript}`);
+      if (r.attachedSubscript) quoteInner.push(`¶ ${mergeAdjacentBrackets(r.attachedSubscript)}`);
       quoteInner.push(text);
-      if (r.attachedColophon) quoteInner.push(`¶ ${r.attachedColophon}`);
+      if (r.attachedColophon) quoteInner.push(`¶ ${mergeAdjacentBrackets(r.attachedColophon)}`);
       const quoted = quoteInner.join('\n\n');
       // Wrap the link in <> so chat apps don't render a link embed/preview.
       // Copying more than one verse puts each reference at the top (no dash);

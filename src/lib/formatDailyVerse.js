@@ -2,6 +2,7 @@
 // One consistent, clean format used by the daily verse, single-verse copy/share,
 // and multi-verse selection copy/share.
 import { getPublicOrigin } from '@/lib/publicOrigin';
+import { mergeAdjacentBrackets } from '@/lib/bibleApi';
 
 // Build a shareable deep-link URL to a specific verse/chapter in the app.
 export function buildVerseUrl({ abbr, chapter, verse, verseEnd, from } = {}) {
@@ -23,7 +24,10 @@ export function buildVerseUrl({ abbr, chapter, verse, verseEnd, from } = {}) {
 // markers (<<...>>), and [italic] brackets intact (they mark supplied words);
 // only collapse whitespace so the shared text matches what's on screen.
 export function cleanVerseText(text = '') {
-  return String(text)
+  // Italic runs that sit side by side (e.g. "[A] [Psalm]" in Psalm titles)
+  // collapse into ONE bracket — "[A Psalm]" — so copied/shared text never
+  // shows two brackets touching each other.
+  return mergeAdjacentBrackets(String(text))
     // In the source text every apostrophe AND pilcrow is stored as the broken
     // replacement char (�/\uFFFD); they're told apart purely by position:
     //  • Immediately AFTER a letter → a corrupted apostrophe. This covers both

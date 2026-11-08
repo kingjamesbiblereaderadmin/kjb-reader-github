@@ -155,7 +155,7 @@ export function mergeAdjacentBrackets(text = '') {
   let prev;
   do {
     prev = out;
-    out = out.replace(/\]( +)\[/g, '$1');
+    out = out.replace(/\]([ \u00A0]+)\[/g, '$1');
   } while (out !== prev);
   return out;
 }
