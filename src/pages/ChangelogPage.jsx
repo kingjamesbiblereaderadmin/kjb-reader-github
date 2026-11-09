@@ -45,44 +45,40 @@ const CHANGELOG_RAW = [
     { tag: 'fixed', text: 'Copy All of a group whose verses skip some now always marks each quoted verse line with an external bullet, even when it is the only group in the results.' },
   ] },
   { version: 'v0.4.329', date: 'October 27, 2026', items: [
-    { tag: 'fixed', text: 'Copying a group whose verses skip some (e.g. verses 7 and 9) no longer claims a range like 7-9 and no longer merges them into one quote — each verse copies as its own quoted line with its own single-verse reference.' },
+    { tag: 'fixed', text: 'Copying a group whose verses skip some no longer claims a range like 7-9 or merges them into one quote: each verse copies as its own quoted line with its own single-verse reference.' },
   ] },
   { version: 'v0.4.328', date: 'October 27, 2026', items: [
-    { tag: 'fixed', text: 'Results select bar: the scroll-to-top circle now rises above the bar instead of overlapping the Cancel button.' },
-    { tag: 'fixed', text: 'The Copy button keeps its white label on hover instead of turning invisible.' },
+    { tag: 'fixed', text: 'Copy: Plain mode now groups consecutive verses into one flowing quoted paragraph again, in both Copy All and Copy Selected.' },
+    { tag: 'fixed', text: 'Single-verse results keep their external bullet, still placed outside the quote.' },
   ] },
-  { version: 'v0.4.327', date: 'October 27, 2026', items: [
-    { tag: 'fixed', text: 'Copy All in Copy: Plain mode: a group of verses now copies as one flowing quoted paragraph — verses joined with spaces and the range reference at the end (e.g. - 1 Peter 2:6-8 (KJB)) — instead of one bullet per verse. A lone verse in mixed results keeps its bullet, now placed outside the quotation marks.' },
+  { version: 'v0.4.327', date: 'October 26, 2026', items: [
+    { tag: 'fixed', text: 'Copy All in Copy: Plain mode no longer prints one bullet per verse inside the quotation. A consecutive group copies as a single quoted paragraph with its range and (KJB) at the end.' },
+    { tag: 'fixed', text: 'What remains bullets: lone verses in mixed results, and each verse of a group whose verses skip some.' },
   ] },
   { version: 'v0.4.326', date: 'October 26, 2026', items: [
-    { tag: 'improved', text: 'When search results mix lone verses with verse groups, Copy All now gives the lone verses the same bullet as the grouped verses; a search that produced only the one verse keeps the clean single-verse copy.' },
+    { tag: 'fixed', text: 'Copy: Plain output puts the bullet outside the quotation marks instead of inside them.' },
   ] },
-  { version: 'v0.4.325', date: 'October 25, 2026', items: [
-    { tag: 'improved', text: 'Copy All in Copy: Plain mode now gives every verse its own bullet, one bullet per line with a blank line between verses; Full mode keeps the centered chapter block.' },
+  { version: 'v0.4.325', date: 'October 26, 2026', items: [
+    { tag: 'fixed', text: 'Copy: Plain mode now gives a group of consecutive verses one flowing quoted paragraph, with the range and (KJB) after the closing quote, matching the single-verse format.' },
   ] },
   { version: 'v0.4.324', date: 'October 25, 2026', items: [
-    { tag: 'new', text: 'Advanced search filters (whole word, Testament scope, Book, case sensitivity, wildcards) are now restored when the panel reopens, so a restored search reproduces the exact same results.' },
+    { tag: 'new', text: 'Copy: Plain and Copy: Full toggle in the Results toolbar, remembered between sessions.' },
+    { tag: 'fixed', text: 'Read tab Copy Chapter keeps the full chapter format and does not follow the Plain toggle.' },
   ] },
-  { version: 'v0.4.323', date: 'October 25, 2026', items: [
-    { tag: 'improved', text: 'Removed the unused "tabs" permission; nothing changes in how the panel works.' },
+  { version: 'v0.4.323', date: 'October 24, 2026', items: [
+    { tag: 'fixed', text: 'Search results toolbar stays visible while scrolling long result lists.' },
   ] },
-  { version: 'v0.4.322', date: 'October 25, 2026', items: [
-    { tag: 'fix', text: 'Search highlighting now matches hyphenated spellings both ways: "Bethel" finds "Beth-el" and vice versa.' },
-    { tag: 'new', text: 'The panel remembers your search results and clicked-verse lookups, with their highlights and scroll position, when reopened.' },
-    { tag: 'fix', text: 'Clicking a detected verse reference is more reliable on pages with overlays stacked over it.' },
-    { tag: 'fix', text: 'Editorial "This is the end of the Epistle" lines are no longer shown; the original "Written to the Romans..." subscription lines are kept.' },
+  { version: 'v0.4.322', date: 'October 23, 2026', items: [
+    { tag: 'fixed', text: 'Detected verse references always keep the page\'s own font colour — pages with soft-grey or otherwise low-contrast text no longer have their verse references recoloured. The dotted underline, pointer cursor and solid hover underline are unchanged.' },
   ] },
-  { version: 'v0.4.321', date: 'October 23, 2026', items: [
-    { tag: 'improved', text: "Pilcrow (paragraph) verses now leave a line of space above them in the Read tab and in search results, matching the printed Bible's paragraph breaks; the first verse stays flush at the top." },
-    { tag: 'improved', text: 'Copied verses keep the same paragraph breaks: Copy Chapter, Copy Selected and Copy All insert a blank line above pilcrow verses, and Copy: Plain starts a new paragraph for them. Each verse\'s own pilcrow decides, based on the verses you copied, not the chapter.' },
+  { version: 'v0.4.321', date: 'October 22, 2026', items: [
+    { tag: 'fixed', text: 'Pilcrow verses at the top of a column start flush at the column top, while a paragraph gap above a pilcrow verse that is not column-leading stays mid-column.' },
   ] },
-  { version: 'v0.4.320', date: 'October 22, 2026', items: [
-    { tag: 'new', text: 'Resources: added Evangelist Joshua Michael (Bible Believer AV1611 Gospel) to the Verified KJB Preachers list, with his YouTube, TikTok, Instagram and Facebook links.' },
+  { version: 'v0.4.320', date: 'October 21, 2026', items: [
+    { tag: 'fixed', text: 'Release notes and store metadata now follow the platform-specific version header format.' },
   ] },
-  { version: 'v0.4.319', date: 'October 21, 2026', items: [
-    { tag: 'improved', text: "The Read tab's Previous/Next chapter buttons now cross book boundaries: going back from chapter 1 opens the last chapter of the previous book, and going forward from a book's last chapter opens chapter 1 of the next book. They only grey out at the very ends of the Bible (Genesis 1 and Revelation 22)." },
-    { tag: 'new', text: 'Reopening the panel now returns you to what you were on before: the last tab you used (Read, Gospel or Resources), the chapter you were reading in Read, and your exact position in it. Clicking a verse on a page still takes over the view exactly as before.' },
-    { tag: 'fixed', text: 'Detected verse references now always keep the page\'s own font colour — pages with soft-grey or otherwise low-contrast text no longer have their verse references recoloured. The dotted underline, pointer cursor and solid hover underline are unchanged.' },
+  { version: 'v0.4.319', date: 'October 20, 2026', items: [
+    { tag: 'fixed', text: 'The extension homescreen name reads KJB Panel to fit character limits, while the store listing name remains KJB Reader - SidePanel.' },
   ] },
   { version: 'v0.4.315', date: 'October 18, 2026', items: [
     { tag: 'new', text: 'Accessibility fonts: a new "Aa" button in the panel header offers the OpenDyslexic and Atkinson Hyperlegible typefaces — the same accessibility choices as the main app — bundled locally so the panel makes no network requests. The choice is remembered and applies across the whole panel.' },
