@@ -80,6 +80,16 @@ const CHANGELOG_RAW = [
   { version: 'v0.4.319', date: 'October 20, 2026', items: [
     { tag: 'fixed', text: 'The extension homescreen name reads KJB Panel to fit character limits, while the store listing name remains KJB Reader - SidePanel.' },
   ] },
+  { version: 'v0.4.318', date: 'October 19, 2026', items: [
+    { tag: 'fixed', text: 'Safari: clicking a verse reference on a page now always opens the in-page reader. Safari has no side-panel API, so lookups no longer try to hand off to a panel or a popup window.' },
+  ] },
+  { version: 'v0.4.317', date: 'October 19, 2026', items: [
+    { tag: 'fixed', text: 'The Resources tab now links Robert Potthoff\'s TikTok to @bigredpreacher87 again.' },
+  ] },
+  { version: 'v0.4.316', date: 'October 18, 2026', items: [
+    { tag: 'fixed', text: 'Verse clicks no longer disappear into a side panel that was closed with its toolbar button: a panel that is alive but hidden is now treated as closed, so the lookup falls back to the in-page reader instead of going nowhere.' },
+    { tag: 'new', text: 'The panel button in the header now defaults to 80% zoom on iPhone.' },
+  ] },
   { version: 'v0.4.315', date: 'October 18, 2026', items: [
     { tag: 'new', text: 'Accessibility fonts: a new "Aa" button in the panel header offers the OpenDyslexic and Atkinson Hyperlegible typefaces — the same accessibility choices as the main app — bundled locally so the panel makes no network requests. The choice is remembered and applies across the whole panel.' },
   ] },
