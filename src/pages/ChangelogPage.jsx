@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG_RAW = [
+  { version: 'v0.4.340', date: 'November 9, 2026', items: [
+    { tag: 'new', text: 'Every package now ships a persona.ini describing the panel name and its colours.' },
+  ] },
   { version: 'v0.4.339', date: 'November 9, 2026', items: [
     { tag: 'fixed', text: 'Gospel page: the \u201cOnce Saved, Always Saved\u201d and \u201cWatch the Gospel\u201d headings now end with a colon too, on the page and in the copied text.' },
   ] },
@@ -522,7 +525,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.339
+            Current Version: v0.4.340
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
