@@ -155,6 +155,8 @@ Trust Jesus died, shed his blood, buried and rose again on the third day for you
 📖 Read the full gospel:
 <${origin}/gospel>
 
+Watch the Gospel:
+
 ▶ Watch "THE GOSPEL THAT SAVES" by Robert Breaker:
 <https://www.youtube.com/watch?v=znP9Dr6tOzU>
 
@@ -437,8 +439,8 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
           collapsible={collapsible}
           icon={<AlertCircle className="w-5 h-5 text-white" />}
           iconBg="linear-gradient(to bottom right, #f43f5e, #dc2626)"
-          title="Believe you are a sinner that deserves hell"
-          copyText={`1. Believe you are a sinner that deserves hell\n\n${plain(VERSE_TEXTS['Rom3:20'])}\n\n${plain(VERSE_TEXTS['Psa9:17'])}`}
+          title="Believe you are a sinner that deserves hell:"
+          copyText={`1. Believe you are a sinner that deserves hell:\n\n${plain(VERSE_TEXTS['Rom3:20'])}\n\n${plain(VERSE_TEXTS['Psa9:17'])}`}
         >
           <blockquote className="notranslate border-l-2 border-accent pl-4 font-serif text-foreground/80 text-sm mb-3" translate="no">
             <VerseQuote text={VERSE_TEXTS['Rom3:20']} />
@@ -458,8 +460,8 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
           collapsible={collapsible}
           icon={<CheckCircle className="w-5 h-5 text-white" />}
           iconBg="linear-gradient(to bottom right, #3b82f6, #4f46e5)"
-          title="Believe that Jesus is God manifested in the flesh"
-          copyText={`2. Believe that Jesus is God manifested in the flesh\n\n${plain(VERSE_TEXTS['1Tim3:16'])}`}
+          title="Believe that Jesus is God manifested in the flesh:"
+          copyText={`2. Believe that Jesus is God manifested in the flesh:\n\n${plain(VERSE_TEXTS['1Tim3:16'])}`}
         >
           <blockquote className="notranslate border-l-2 border-accent pl-4 font-serif text-foreground/80 text-sm mb-3" translate="no">
             <VerseQuote text={VERSE_TEXTS['1Tim3:16']} />
@@ -475,8 +477,8 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
           collapsible={collapsible}
           icon={<CheckCircle className="w-5 h-5 text-white" />}
           iconBg="linear-gradient(to bottom right, #fbbf24, #eab308)"
-          title="Believe he died, shed his blood, was buried and rose again for our sins according to the scriptures"
-          copyText={`3. Believe he died, shed his blood, was buried and rose again for our sins according to the scriptures\n\n"Moreover, brethren, I declare unto you the gospel which I preached unto you... how that Christ died for our sins according to the scriptures; And that he was buried, and that he rose again the third day according to the scriptures." — 1 Corinthians 15:1–4\n\n${plain(VERSE_TEXTS['Rom3:25'])}`}
+          title="Believe he died, shed his blood, was buried and rose again for our sins according to the scriptures:"
+          copyText={`3. Believe he died, shed his blood, was buried and rose again for our sins according to the scriptures:\n\n"Moreover, brethren, I declare unto you the gospel which I preached unto you... how that Christ died for our sins according to the scriptures; And that he was buried, and that he rose again the third day according to the scriptures." — 1 Corinthians 15:1–4\n\n${plain(VERSE_TEXTS['Rom3:25'])}`}
         >
           <blockquote className="notranslate border-l-2 border-accent pl-4 font-serif text-foreground/80 text-sm mb-3" translate="no">
             "Moreover, brethren, I declare unto you the gospel which I preached unto you, which also ye have received, and wherein ye stand; By which also ye are saved, if ye keep in memory what I preached unto you, unless ye have believed in vain. For I delivered unto you first of all that which I also received, how that Christ died for our sins according to the scriptures; And that he was buried, and that he rose again the third day according to the scriptures." <span className="whitespace-nowrap">— 1 Corinthians 15:1–4</span>
@@ -530,7 +532,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
           onClick={() => setOsasOpen((o) => !o)}
           className="w-full flex items-start justify-between gap-4 p-6 text-left hover:bg-accent/5 transition-colors"
         >
-          <h3 className="font-serif text-xl font-semibold text-foreground">Once Saved, Always Saved</h3>
+          <h3 className="font-serif text-xl font-semibold text-foreground">Once Saved, Always Saved:</h3>
           <div className="flex items-center gap-2 flex-shrink-0">
             <CopyButton text={`Once Saved, Always Saved\n\nA believer who has trusted the gospel cannot lose salvation, no matter what happens in their life. God's gift of eternal life is just that — eternal.\n\n"In whom ye also trusted, after that ye heard the word of truth, the gospel of your salvation: in whom also after that ye believed, ye were sealed with that holy Spirit of promise." — Ephesians 1:13`} className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors cursor-pointer" />
             <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${osasOpen ? 'rotate-180' : ''}`} />
@@ -554,7 +556,7 @@ export default function GospelContent({ collapsible = false, showPreachers = tru
           onClick={() => setVideoOpen((o) => !o)}
           className="w-full flex items-center justify-between gap-3 p-4 text-left hover:bg-accent/5 transition-colors"
         >
-          <h2 className="font-serif text-xl font-bold text-foreground">Watch the Gospel</h2>
+          <h2 className="font-serif text-xl font-bold text-foreground">Watch the Gospel:</h2>
           <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${videoOpen ? 'rotate-180' : ''}`} />
         </button>
         {videoOpen && (
