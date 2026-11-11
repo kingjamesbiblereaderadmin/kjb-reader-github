@@ -312,7 +312,7 @@ export default function KjbDefencePage() {
           <button
             onClick={() => {
               const bullet = (i) => `• ${i.title}\n  ${i.desc}\n  ${i.url}`;
-              const text = `KJB Defence:\n\n${categories.map((cat) => `${cat.name}\n\n${cat.items.map(bullet).join('\n\n')}`).join('\n\n')}`;
+              const text = `KJB Defence:\n\n${categories.map((cat) => `${cat.name}:\n\n${cat.items.map(bullet).join('\n\n')}`).join('\n\n')}`;
               navigator.clipboard.writeText(text);
               toast.success('Copied all resources to clipboard.');
             }}
