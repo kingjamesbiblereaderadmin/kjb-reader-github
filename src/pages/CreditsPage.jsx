@@ -2,6 +2,18 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, BookOpen, Type, Wrench, Info, ArrowLeft, Scale } from 'lucide-react';
 import FontsSection from '@/components/credits/FontsSection';
+import { isAppleStoreApp } from '@/lib/isAppleStoreApp';
+
+// App Store Review (2.3.10): on Apple builds, leave out Android / Google Play
+// references (Google Play, Android Studio, Java and Gradle cards).
+function getVisibleCards() {
+  if (!isAppleStoreApp()) return TM_CARDS;
+  return TM_CARDS
+    .filter((c) => c.owner !== 'Oracle' && c.owner !== 'Gradle, Inc.')
+    .map((c) => c.owner === 'Google LLC'
+      ? { ...c, marks: 'Google, Chrome, YouTube', use: 'Google Fonts; browser-compatibility references.' }
+      : c);
+}
 
 // A simple, static credits / acknowledgements page.
 // Linked from Settings (the "About & Credits" card).
@@ -219,7 +231,7 @@ export default function CreditsPage() {
           <div className="space-y-2.5">
             {[
               [<span key="b"><strong className="text-foreground">Base44</strong></span>, 'the web app platform — hosting, backend, and optional user authentication.'],
-              [<span key="c"><strong className="text-foreground">Capacitor</strong></span>, 'open source (MIT License) — wraps the web app into the native Android and iOS apps.'],
+              [<span key="c"><strong className="text-foreground">Capacitor</strong></span>, (isAppleStoreApp() ? 'open source (MIT License) — wraps the web app into the native iOS app.' : 'open source (MIT License) — wraps the web app into the native Android and iOS apps.')],
               [<span key="g"><strong className="text-foreground">Gradle + Android SDK</strong></span>, 'compile and sign the Android app.'],
               [<span key="p"><strong className="text-foreground">Google Play Console</strong></span>, 'distributes the Android app on Google Play.'],
               [<span key="x"><strong className="text-foreground">Xcode + WebKit (WKWebView)</strong></span>, "Apple's tools — compile, sign, and render the iOS app."],
@@ -227,7 +239,7 @@ export default function CreditsPage() {
               [<span key="l"><strong className="text-foreground">Lucide</strong></span>, 'open source (ISC License) — the interface icons.'],
               [<span key="h"><strong className="text-foreground">LibreOffice hyphenation patterns</strong></span>, "open source (LGPL/MPL) — break points for long words in the two-column printed layout; they derive from Franklin Liang's algorithm created for Donald Knuth's TeX typesetting system."],
               [<span key="s"><strong className="text-foreground">Special thanks</strong></span>, 'to Elvish Ishaan for fixing bugs and issues.']
-            ].map(([name, purpose], i) => (
+            ].filter(([name]) => !(isAppleStoreApp() && (name.key === 'g' || name.key === 'p'))).map(([name, purpose], i) => (
               <p key={i} className="font-sans text-sm text-foreground/85 leading-relaxed flex items-start gap-2">
                 <span className="text-accent mt-1">•</span>
                 <span>{name} <span className="text-muted-foreground">— {purpose}</span></span>
@@ -252,7 +264,7 @@ export default function CreditsPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 items-start mb-4">
-            {TM_CARDS.map((t) => (
+            {getVisibleCards().map((t) => (
               <div key={t.owner} className={`rounded-xl bg-secondary/60 border border-border px-2.5 py-2 flex items-start gap-2${t.wide ? ' sm:col-span-2' : ''}`}>
                 <OwnerLogo card={t} />
                 <div className="min-w-0">
@@ -284,7 +296,7 @@ export default function CreditsPage() {
           </div>
           <div className="rounded-xl bg-secondary/60 border border-border px-4 py-3 mt-4">
             <p className="font-sans text-xs text-muted-foreground leading-relaxed">© 2026 <span className="notranslate" translate="no">Shawn Poh Hanlin</span>. This app is public domain and freely shareable.</p>
-            <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-1.5">The Android (Google Play) and iOS (App Store) apps use only standard, operating-system-provided HTTPS encryption for all network communication. Neither app contains proprietary encryption, proprietary algorithms, or any encryption requiring an export-compliance declaration.</p>
+            <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-1.5">{isAppleStoreApp() ? 'The iOS (App Store) app uses only standard, operating-system-provided HTTPS encryption for all network communication. The app contains no proprietary encryption, proprietary algorithms, or any encryption requiring an export-compliance declaration.' : 'The Android (Google Play) and iOS (App Store) apps use only standard, operating-system-provided HTTPS encryption for all network communication. Neither app contains proprietary encryption, proprietary algorithms, or any encryption requiring an export-compliance declaration.'}</p>
           </div>
         </Section>
       </div>
