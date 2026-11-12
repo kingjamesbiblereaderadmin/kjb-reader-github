@@ -3,6 +3,7 @@ import { Smartphone, Globe, CheckCircle2, ExternalLink, ChevronDown, Copy, Check
 import { useInstallPrompt, PLAY_STORE_URL, isNativeAndroidApp } from '@/hooks/useInstallPrompt';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { isNativeIos } from '@/lib/isNativeIos';
+import { isAppleStoreApp } from '@/lib/isAppleStoreApp';
 
 const TWA_FLAG_KEY = 'kjb-twa-app';
 
@@ -177,6 +178,8 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false, sto
   // saw only "Web App — Installed" and no way to reach the other platforms.
   // Now all cards show and the copy you are running carries a check mark.
   const showStores = true;
+  // App Store Review (2.3.10): Apple builds must not show Google Play / Android.
+  const hideAndroid = isAppleStoreApp();
 
   const handleWebInstall = async () => {
     try {
@@ -221,8 +224,9 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false, sto
       )}
 
       {showStores && (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {/* Android — Google Play */}
+        <div className={`grid gap-3 ${hideAndroid ? '' : 'sm:grid-cols-2'}`}>
+          {/* Android — Google Play (hidden inside Apple builds) */}
+          {!hideAndroid && (
           <OptionCard
             id="android"
             title="Get on Android"
@@ -266,6 +270,7 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false, sto
               compact={storeActions}
             />
           </OptionCard>
+          )}
 
           {/* iOS — App Store (now live) */}
           <OptionCard
