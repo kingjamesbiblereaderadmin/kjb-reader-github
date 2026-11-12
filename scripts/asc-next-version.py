@@ -7,7 +7,12 @@ altool rejects an upload whose CFBundleShortVersionString:
   submitted for review, approved, pending release, or released.
 
 Usage:
-  asc-next-version.py --app <asc_app_id> --platform IOS|MAC_OS [--requested X]
+  asc-next-version.py --app <asc_app_id> --platform IOS|MAC_OS|all [--requested X]
+
+--platform all resolves ONE number across every platform, so an iOS build and
+a macOS build from the same run always carry the same marketing version
+(owner rule 2026-11-12). Without it, a per-platform resolver can hand macOS a
+number far below the iOS track (run 89 produced iOS 2.115 and macOS 2.89).
 
 Resolution:
 - --requested is honored only when it names an OPEN staged version
@@ -77,8 +82,9 @@ def versions_for(app, platform):
                 wait = 3 * (attempt + 1)
                 log(f"transient error ({e}); retrying in {wait}s")
                 time.sleep(wait)
+        wanted = {"IOS", "MAC_OS"} if platform == "all" else {platform}
         out += [x for x in d.get("data", [])
-                if x["attributes"].get("platform") == platform]
+                if x["attributes"].get("platform") in wanted]
         nxt = (d.get("links") or {}).get("next")
         if not nxt:
             return out
@@ -101,7 +107,7 @@ def bump(v):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--app", required=True)
-    ap.add_argument("--platform", required=True, choices=["IOS", "MAC_OS"])
+    ap.add_argument("--platform", required=True, choices=["IOS", "MAC_OS", "all"])
     ap.add_argument("--requested", default="")
     args = ap.parse_args()
 

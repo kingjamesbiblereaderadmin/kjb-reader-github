@@ -137,7 +137,7 @@ jobs:
         run: |
           python3 -m venv /tmp/ascvenv 2>/dev/null || true
           /tmp/ascvenv/bin/pip install -q pyjwt requests cryptography
-          NEXT=$(/tmp/ascvenv/bin/python scripts/asc-next-version.py --app 6813352869 --platform IOS --requested "$REQUESTED")
+          NEXT=$(/tmp/ascvenv/bin/python scripts/asc-next-version.py --app 6813352869 --platform all --requested "$REQUESTED")
           echo "version=$NEXT" >> "$GITHUB_OUTPUT"
           echo "Next marketing version: $NEXT (requested: $REQUESTED)"
 
@@ -400,7 +400,7 @@ jobs:
         run: |
           python3 -m venv /tmp/ascvenv 2>/dev/null || true
           /tmp/ascvenv/bin/pip install -q pyjwt requests cryptography
-          NEXT=$(/tmp/ascvenv/bin/python scripts/asc-next-version.py --app 6813352869 --platform MAC_OS --requested "$REQUESTED")
+          NEXT=$(/tmp/ascvenv/bin/python scripts/asc-next-version.py --app 6813352869 --platform all --requested "$REQUESTED")
           echo "version=$NEXT" >> "$GITHUB_OUTPUT"
           echo "Next marketing version: $NEXT (requested: $REQUESTED)"
 
