@@ -167,7 +167,7 @@ export default function CreditsPage() {
           </div>
           <div className="rounded-xl border border-sky-300/60 dark:border-border bg-sky-100/50 dark:bg-card px-4 py-3">
             <p className="font-sans text-[10px] font-semibold text-sky-700 dark:text-sky-400 uppercase tracking-widest mb-1">Platforms</p>
-            <p className="font-sans text-sm font-medium text-foreground">Web · Android · iOS</p>
+            <p className="font-sans text-sm font-medium text-foreground">{isAppleStoreApp() ? 'Web · iOS' : 'Web · Android · iOS'}</p>
             <p className="font-sans text-[11px] text-muted-foreground mt-0.5">free, ad-free, no paywalls</p>
           </div>
         </div>
