@@ -137,6 +137,10 @@ export default function DownloadPage() {
           <InstallOptionCards storeActions />
         </section>
 
+        {/* Browser extension links are desktop-browser content — Apple builds
+            (App Store Review 2.3.10) show only the app options. */}
+        {!isAppleStoreApp() && (
+        <>
         {/* Divider */}
         <div className="flex items-center gap-3" aria-hidden="true">
           <span className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-border" />
@@ -201,6 +205,8 @@ export default function DownloadPage() {
             </Link>
           </div>
         </section>
+        </>
+        )}
 
         {/* Trademarks */}
         <section className="rounded-2xl border border-border bg-muted px-4 py-3.5 space-y-2">
