@@ -7,7 +7,7 @@ import HighlightToSearchTip from '@/components/settings/HighlightToSearchTip';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { isNativeIos } from '@/lib/isNativeIos';
 import { isAppleStoreApp } from '@/lib/isAppleStoreApp';
-import { InstallOptionCards, getCurrentPlatform } from '@/components/GetAppOptions';
+import { InstallOptionCards, getCurrentPlatform, AppleIcon, PlayIcon } from '@/components/GetAppOptions';
 
 const inIframe = () => {
   try { return window.self !== window.top; } catch (e) { return true; }
@@ -99,6 +99,42 @@ export function InstallAppSection({ expanded, isIncognito }) {
   const effectiveIncognito = !inNativeApp && (isIncognito || localIncognito);
 
   if (effectiveIncognito) return null;
+
+  // Inside the iOS or Android app the reader already has the app: there is no
+  // install page and no other-platform list to offer there — just the installed
+  // state with the platform's icon. (Web/PWA keeps the full download options.)
+  if (currentPlatform === 'ios' || currentPlatform === 'android') {
+    const onIos = currentPlatform === 'ios';
+    return (
+      <div className="bg-fuchsia-100/60 dark:bg-card border border-fuchsia-200 dark:border-border rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+        <div className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-secondary/50 text-left">
+          <div className="flex flex-col gap-1">
+            <h2 className="font-serif text-lg font-semibold text-foreground">Install App</h2>
+            <p className="font-sans text-xs text-muted-foreground">Offline access and faster loading</p>
+          </div>
+        </div>
+        {expanded && (
+          <div className="px-5 pb-6 pt-2">
+            <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-200 dark:border-emerald-900/40 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                  <CheckCircle2 className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1 flex items-center gap-2">
+                  {onIos
+                    ? <AppleIcon className="w-4 h-4 text-emerald-800 dark:text-emerald-300" />
+                    : <PlayIcon className="w-4 h-4" />}
+                  <p className="font-sans text-sm font-bold text-emerald-800 dark:text-emerald-300">
+                    {onIos ? 'Installed on this iPhone or iPad' : 'Installed on this Android device'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="bg-fuchsia-100/60 dark:bg-card border border-fuchsia-200 dark:border-border rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
