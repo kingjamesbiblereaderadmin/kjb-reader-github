@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, ArrowLeft } from 'lucide-react';
+import { isAppleStoreApp } from '@/lib/isAppleStoreApp';
 
 const LAST_UPDATED = 'September 18th, 2026';
 
@@ -32,6 +33,7 @@ function Section({ title, children }) {
 export default function TermsOfServicePage() {
   const navigate = useNavigate();
   const goBack = () => navigate(-1);
+  const apple = isAppleStoreApp();
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
       <div className="w-full max-w-3xl mx-auto px-5 sm:px-8 lg:px-12 py-10 pb-24">
@@ -75,14 +77,24 @@ export default function TermsOfServicePage() {
         </Section>
 
         <Section title="Native Mobile Apps">
-          <p>
-            KJB Reader is also available as native apps on the Apple App Store and Google
-            Play. The mobile apps run this same published web app inside a native wrapper
-            and provide the same reading features described above. Your use of the App Store
-            and Google Play versions is additionally governed by Apple's and Google's own
-            terms and policies. The apps are provided free of charge and contain no
-            in-app purchases.
-          </p>
+          {apple ? (
+            <p>
+              KJB Reader is also available as a native app on the Apple App Store. The app
+              runs this same published web app inside a native wrapper and provides the
+              same reading features described above. Your use of the App Store version is
+              additionally governed by Apple's own terms and policies. The app is provided
+              free of charge and contains no in-app purchases.
+            </p>
+          ) : (
+            <p>
+              KJB Reader is also available as native apps on the Apple App Store and Google
+              Play. The mobile apps run this same published web app inside a native wrapper
+              and provide the same reading features described above. Your use of the App Store
+              and Google Play versions is additionally governed by Apple's and Google's own
+              terms and policies. The apps are provided free of charge and contain no
+              in-app purchases.
+            </p>
+          )}
         </Section>
 
         <Section title="Free and Public Domain">
