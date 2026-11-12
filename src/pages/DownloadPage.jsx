@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, ArrowRight, Download, ExternalLink, Puzzle, Smartphone } from 'lucide-react';
 import { InstallOptionCards } from '@/components/GetAppOptions';
+import { isAppleStoreApp } from '@/lib/isAppleStoreApp';
 import { ChromeIcon, EdgeIcon, FirefoxIcon, OperaIcon, SafariIcon } from '@/components/BrowserIcons';
 
 // Same official listings as ExtensionPage.jsx. Firefox/Opera can be overridden
@@ -129,7 +130,7 @@ export default function DownloadPage() {
             <div>
               <h2 className="font-serif text-xl font-semibold leading-tight">Apps</h2>
               <p className="font-sans text-xs text-muted-foreground">
-                Android, iOS and the web app
+                {isAppleStoreApp() ? 'iOS and the web app' : 'Android, iOS and the web app'}
               </p>
             </div>
           </div>
@@ -207,8 +208,12 @@ export default function DownloadPage() {
             Trademarks
           </h2>
           <ul className="font-sans text-[11px] leading-relaxed text-muted-foreground divide-y divide-border/60">
-            <li className="py-1.5 first:pt-0">Google Play and the Google Play logo are trademarks of Google LLC.</li>
-            <li className="py-1.5">Android is a trademark of Google LLC.</li>
+            {!isAppleStoreApp() && (
+              <>
+                <li className="py-1.5 first:pt-0">Google Play and the Google Play logo are trademarks of Google LLC.</li>
+                <li className="py-1.5">Android is a trademark of Google LLC.</li>
+              </>
+            )}
             <li className="py-1.5">
               Apple, the Apple logo, App Store, iOS, macOS and Safari are trademarks of Apple Inc.,
               registered in the U.S. and other countries.
