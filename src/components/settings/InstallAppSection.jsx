@@ -6,6 +6,7 @@ import { detectIncognito } from '@/lib/incognito';
 import HighlightToSearchTip from '@/components/settings/HighlightToSearchTip';
 import { isNativeAndroid } from '@/lib/isNativeAndroid';
 import { isNativeIos } from '@/lib/isNativeIos';
+import { isAppleStoreApp } from '@/lib/isAppleStoreApp';
 import { InstallOptionCards, getCurrentPlatform } from '@/components/GetAppOptions';
 
 const inIframe = () => {
@@ -234,10 +235,12 @@ export function InstallAppSection({ expanded, isIncognito }) {
                 <div className="flex-1">
                   <h3 className="font-sans text-sm font-bold text-blue-800 dark:text-blue-300 mb-2">Where to find the app after installation:</h3>
                   <ul className="font-sans text-xs text-blue-700 dark:text-blue-400 space-y-1.5">
+                    {!isAppleStoreApp() && (
                     <li className="flex items-start gap-1.5">
                       <span className="font-bold">•</span>
                       <span><strong>Android:</strong> App drawer or home screen</span>
                     </li>
+                    )}
                     <li className="flex items-start gap-1.5">
                       <span className="font-bold">•</span>
                       <span><strong>iOS:</strong> Home screen (swipe right to App Library)</span>
