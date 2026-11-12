@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { isAppleStoreApp } from '@/lib/isAppleStoreApp';
 import { Info, Mail, MessageSquare, ExternalLink, BookOpen, Globe, ChevronDown, ChevronRight, Youtube, PlayCircle, Link2, FileText, ShieldAlert, Heart, Users } from 'lucide-react';
 import ContactLinks from '@/components/ContactLinks';
 import PageHero from '@/components/PageHero';
@@ -109,7 +110,7 @@ export default function AboutPage() {
           </li>
           <li className="flex items-start gap-2">
             <span className="text-accent mt-1">•</span>
-            <span>The same verified text is used everywhere — the reader, search, daily verses, exports, the browser extension, and the Android app.</span>
+            <span>The same verified text is used everywhere — the reader, search, daily verses, exports, the browser extension, and the {isAppleStoreApp() ? 'iOS' : 'Android'} app.</span>
           </li>
         </ul>
       </ColorSection>
