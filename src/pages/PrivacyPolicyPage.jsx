@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, ArrowLeft } from 'lucide-react';
+import { isAppleStoreApp } from '@/lib/isAppleStoreApp';
 
 const LAST_UPDATED = 'September 18th, 2026';
 
@@ -165,15 +166,26 @@ export default function PrivacyPolicyPage() {
         </p>
       </Section>
 
-      <Section title="Native Mobile Apps (iOS & Android)">
-        <p>
-          The KJB Reader apps available on the Apple App Store and Google Play run this
-          same published web app inside a native wrapper. The native apps do not add any
-          additional data collection — every statement in this Privacy Policy applies
-          equally to the mobile apps. Apple and Google process standard installation and
-          delivery information (such as your App Store or Play Store account details) under
-          their own privacy policies.
-        </p>
+      <Section title={isAppleStoreApp() ? 'Native Mobile App' : 'Native Mobile Apps (iOS & Android)'}>
+        {isAppleStoreApp() ? (
+          <p>
+            The KJB Reader app available on the Apple App Store runs this same published
+            web app inside a native wrapper. The native app does not add any additional
+            data collection — every statement in this Privacy Policy applies equally to
+            the mobile app. Apple processes standard installation and delivery
+            information (such as your App Store account details) under its own privacy
+            policy.
+          </p>
+        ) : (
+          <p>
+            The KJB Reader apps available on the Apple App Store and Google Play run this
+            same published web app inside a native wrapper. The native apps do not add any
+            additional data collection — every statement in this Privacy Policy applies
+            equally to the mobile apps. Apple and Google process standard installation and
+            delivery information (such as your App Store or Play Store account details) under
+            their own privacy policies.
+          </p>
+        )}
       </Section>
 
       <Section title="Device Permissions">
