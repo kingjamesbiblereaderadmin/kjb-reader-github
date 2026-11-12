@@ -1,5 +1,6 @@
 import React from 'react';
 import FontPreviewCard from './FontPreviewCard';
+import { isAppleStoreApp } from '@/lib/isAppleStoreApp';
 
 // Colourful font specimen grid — every entry keeps its pastel tint in light
 // mode; in dark mode the surfaces use the neutral card/border tokens so the
@@ -96,7 +97,9 @@ export default function FontsSection() {
       </div>
 
       <p className="font-sans text-[11px] text-muted-foreground leading-relaxed mt-4">
-        In the Android (Google Play) and iOS (App Store) apps, these fonts are bundled with the app itself so they're available offline from first launch, instead of being downloaded from Google Fonts.
+        {isAppleStoreApp()
+          ? "In the iOS (App Store) app, these fonts are bundled with the app itself so they're available offline from first launch, instead of being downloaded from Google Fonts."
+          : "In the Android (Google Play) and iOS (App Store) apps, these fonts are bundled with the app itself so they're available offline from first launch, instead of being downloaded from Google Fonts."}
       </p>
     </div>
   );
