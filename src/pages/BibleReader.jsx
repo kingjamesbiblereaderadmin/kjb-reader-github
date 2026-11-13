@@ -1929,7 +1929,7 @@ export default function BibleReader() {
           {!isFirstChapterFirstBook ? (
           <button onClick={goPrev} data-testid="prev-chapter-btn" className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-colors min-h-[48px] touch-manipulation min-w-0">
             <ChevronLeft className="w-4 h-4 flex-shrink-0" />
-            <span className="hidden sm:inline truncate">{isViewingTitlePage ? `${getPrevBook(pos.abbr)?.shortName} ${getPrevBook(pos.abbr)?.chapters}` : pos.chapter > 1 ? `Chapter ${pos.chapter - 1}` : pos.abbr === 'MAT' ? 'New Testament Title Page' : pos.abbr === 'GEN' ? 'Old Testament Title Page' : `${getPrevBook(pos.abbr)?.shortName} ${getPrevBook(pos.abbr)?.chapters}`}</span>
+            <span className="hidden sm:inline truncate">{isViewingTitlePage ? `${getPrevBook(pos.abbr)?.shortName} ${getPrevBook(pos.abbr)?.chapters}` : pos.chapter > 1 ? `Chapter ${pos.chapter - 1}` : pos.abbr === 'MAT' ? 'New Testament Title Page' : pos.abbr === 'GEN' ? 'Title Page' : `${getPrevBook(pos.abbr)?.shortName} ${getPrevBook(pos.abbr)?.chapters}`}</span>
           </button>
           ) : <div className="flex-1" />}
           {!isLastChapterLastBook ? (
