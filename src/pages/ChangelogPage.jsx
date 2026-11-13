@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, History, Sparkles } from 'lucide-react';
 
 const CHANGELOG_RAW = [
+  { version: 'v0.4.342', date: 'November 13, 2026', items: [
+    { tag: 'fixed', text: 'The Gospel panel\'s Copy, Copy All and Print no longer include the 2 Timothy 2:15 study verse. It still shows in the panel.' },
+  ] },
   { version: 'v0.4.341', date: 'November 11, 2026', items: [
     { tag: 'fixed', text: 'Copied epistle colophons now sit inside the quotation on their own line, after a blank line, instead of being run onto the end of the verse. Brackets continue to mark supplied words only.' },
     { tag: 'fixed', text: 'A blank line now separates a Psalm superscription or Hebrew section heading from the verse beneath it in copied text.' },
@@ -529,7 +532,7 @@ export default function ChangelogPage() {
             KJB Reader — Extension Changelog
           </h1>
           <p className="font-sans text-sm font-semibold text-muted-foreground mb-4">
-            Current Version: v0.4.341
+            Current Version: v0.4.342
           </p>
           <p className="font-sans text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
             A live, always-up-to-date record of every KJB Reader browser extension release. This page is linked from all store listings (Chrome, Edge, Firefox, Opera).
