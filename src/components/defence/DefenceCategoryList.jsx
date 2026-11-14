@@ -27,9 +27,16 @@ export default function DefenceCategoryList({ cat, isAdmin, adminMode, onReorder
             <h3 className="notranslate font-serif text-lg font-semibold text-foreground" translate="no">{item.title}</h3>
           </div>
           <p className="font-sans text-sm text-muted-foreground leading-relaxed">{renderProtectedText(item.desc)}</p>
-          <a href={item.url} target={item.url.startsWith('mailto') ? '_self' : '_blank'} rel="noopener noreferrer" className="inline-block mt-3 text-xs font-sans font-medium text-accent underline underline-offset-2">
-            {item.label || item.url} →
-          </a>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3">
+            <a href={item.url} target={item.url.startsWith('mailto') ? '_self' : '_blank'} rel="noopener noreferrer" className="inline-block text-xs font-sans font-medium text-accent underline underline-offset-2">
+              {item.label || item.url} →
+            </a>
+            {item.url2 && (
+              <a href={item.url2} target="_blank" rel="noopener noreferrer" className="inline-block text-xs font-sans font-medium text-accent underline underline-offset-2">
+                {item.label2 || item.url2} →
+              </a>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 mt-1">
           <CopyButton text={item.url} className="p-1.5 rounded-md hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors" />
