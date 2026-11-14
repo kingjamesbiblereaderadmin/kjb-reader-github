@@ -22,6 +22,14 @@
       "type": "string",
       "description": "Display label for the link button"
     },
+    "url2": {
+      "type": "string",
+      "description": "Optional second link URL"
+    },
+    "label2": {
+      "type": "string",
+      "description": "Display label for the optional second link button"
+    },
     "order": {
       "type": "integer",
       "default": 0,
