@@ -34,6 +34,7 @@ function toArray(x) {
 }
 
 const CATEGORY_STYLES = {
+  'Contradictions Debunked in the KJB': { color: 'text-emerald-600', bg: 'bg-emerald-100/60 dark:bg-card' },
   'KJB Defence': { color: 'text-blue-500', bg: 'bg-blue-100/60 dark:bg-card' },
   'Why Modern Versions Are Corrupt': { color: 'text-red-500', bg: 'bg-red-100/60 dark:bg-card' },
   '1 John 5:7 Defence': { color: 'text-amber-600', bg: 'bg-amber-100/60 dark:bg-card' },
@@ -47,6 +48,7 @@ const DEFAULT_STYLE = { color: 'text-violet-500', bg: 'bg-violet-100/60 dark:bg-
 // protection from browser translation — the surrounding plain English words
 // (e.g. "Why Modern Versions Are Corrupt") should stay translatable.
 const PROTECTED_TERM_BY_CATEGORY = {
+  'Contradictions Debunked in the KJB': 'KJB',
   'KJB Defence': 'KJB',
   '1 John 5:7 Defence': '1 John 5:7',
   'Westcott & Hort Heresies': 'Westcott & Hort',
@@ -68,6 +70,7 @@ function renderCategoryName(name) {
 }
 // Preserve a stable display order for known categories; unknown ones append.
 const CATEGORY_ORDER = [
+  'Contradictions Debunked in the KJB',
   'KJB Defence',
   'Why Modern Versions Are Corrupt',
   '1 John 5:7 Defence',
