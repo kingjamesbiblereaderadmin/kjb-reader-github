@@ -1,39 +1,38 @@
 {
   "name": "DefenceResource",
-  "type": "object",
   "properties": {
     "category": {
-      "type": "string",
-      "description": "Category name for grouping (e.g. 'KJB Defence', 'NKJV Exposed')"
-    },
-    "title": {
-      "type": "string",
-      "description": "Resource title"
+      "description": "Category name for grouping (e.g. 'KJB Defence', 'NKJV Exposed')",
+      "type": "string"
     },
     "desc": {
-      "type": "string",
-      "description": "Short description of the resource"
-    },
-    "url": {
-      "type": "string",
-      "description": "Link URL"
+      "description": "Short description of the resource",
+      "type": "string"
     },
     "label": {
-      "type": "string",
-      "description": "Display label for the link button"
-    },
-    "url2": {
-      "type": "string",
-      "description": "Optional second link URL"
+      "description": "Display label for the link button",
+      "type": "string"
     },
     "label2": {
-      "type": "string",
-      "description": "Display label for the optional second link button"
+      "description": "Display label for the optional second link button",
+      "type": "string"
     },
     "order": {
-      "type": "integer",
       "default": 0,
-      "description": "Sort order within the category (lower first)"
+      "description": "Sort order within the category (lower first)",
+      "type": "integer"
+    },
+    "title": {
+      "description": "Resource title",
+      "type": "string"
+    },
+    "url": {
+      "description": "Link URL",
+      "type": "string"
+    },
+    "url2": {
+      "description": "Optional second link URL",
+      "type": "string"
     }
   },
   "required": [
@@ -42,6 +41,7 @@
     "desc",
     "url"
   ],
+  "type": "object",
   "rls": {
     "read": {},
     "create": {
