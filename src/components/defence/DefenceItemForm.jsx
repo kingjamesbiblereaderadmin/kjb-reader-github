@@ -13,6 +13,8 @@ export default function DefenceItemForm({ initialItem, existingCategories, onSub
   const [desc, setDesc] = useState(initialItem?.desc || '');
   const [url, setUrl] = useState(initialItem?.url || '');
   const [label, setLabel] = useState(initialItem?.label || '');
+  const [url2, setUrl2] = useState(initialItem?.url2 || '');
+  const [label2, setLabel2] = useState(initialItem?.label2 || '');
   const [order, setOrder] = useState(String(initialItem?.order ?? 0));
   const [error, setError] = useState('');
 
@@ -23,6 +25,8 @@ export default function DefenceItemForm({ initialItem, existingCategories, onSub
       setDesc(initialItem.desc || '');
       setUrl(initialItem.url || '');
       setLabel(initialItem.label || '');
+      setUrl2(initialItem.url2 || '');
+      setLabel2(initialItem.label2 || '');
       setOrder(String(initialItem.order ?? 0));
     }
   }, [initialItem]);
@@ -40,6 +44,8 @@ export default function DefenceItemForm({ initialItem, existingCategories, onSub
       desc: desc.trim(),
       url: url.trim(),
       label: label.trim() || (() => { try { return new URL(url.trim()).hostname.replace('www.', ''); } catch { return url.trim(); } })(),
+      url2: url2.trim(),
+      label2: url2.trim() ? (label2.trim() || (() => { try { return new URL(url2.trim()).hostname.replace('www.', ''); } catch { return url2.trim(); } })()) : '',
       order: parseInt(order) || 0,
     });
   };
@@ -72,6 +78,16 @@ export default function DefenceItemForm({ initialItem, existingCategories, onSub
       <div className="space-y-1.5">
         <Label htmlFor="def-url">URL</Label>
         <Input id="def-url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." className="font-sans" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="def-url2">Second URL (optional)</Label>
+          <Input id="def-url2" value={url2} onChange={(e) => setUrl2(e.target.value)} placeholder="https://..." className="font-sans" />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="def-label2">Second Link Label</Label>
+          <Input id="def-label2" value={label2} onChange={(e) => setLabel2(e.target.value)} placeholder="domain.com" className="font-sans" />
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
