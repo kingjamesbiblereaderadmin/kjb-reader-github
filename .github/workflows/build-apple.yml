@@ -121,9 +121,18 @@ jobs:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
-          python3 -m venv /tmp/ascvenv
-          /tmp/ascvenv/bin/pip install pyjwt requests cryptography
-          NEXT=$(/tmp/ascvenv/bin/python scripts/asc-next-build.py)
+          set -euo pipefail
+          # Honor the dispatch input so an iOS run can be pinned to the same
+          # build number the macOS job uses (owner rule 2026-11-25: both
+          # platforms always ship the identical build number).
+          if [ -n "${{ inputs.build_number }}" ]; then
+            NEXT="${{ inputs.build_number }}"
+            echo "Using pinned build number from dispatch input: $NEXT"
+          else
+            python3 -m venv /tmp/ascvenv
+            /tmp/ascvenv/bin/pip install pyjwt requests cryptography
+            NEXT=$(/tmp/ascvenv/bin/python scripts/asc-next-build.py)
+          fi
           echo "next=$NEXT" >> "$GITHUB_OUTPUT"
           echo "Next build number: $NEXT"
 
@@ -312,8 +321,13 @@ jobs:
           # Keep fastlane's output and surface the reason as a run annotation +
           # job summary, so a failed upload can be diagnosed from the run page
           # (annotations are readable without opening the raw log).
+          # --skip_app_version_update: upload the binary only. ASC refuses to
+          # create a version while the platform already has one that is not
+          # live (e.g. 2.116 sitting in READY_FOR_REVIEW), which used to fail
+          # the whole upload. Version records are created separately via the
+          # API once the previous release ships.
           set +e
-          fastlane deliver --api_key_path ios/ci/asc_key_runtime.json --ipa build/ipa/App.ipa --skip_screenshots --skip_metadata --run_precheck_before_submit false 2>&1 | tee /tmp/deliver.log
+          fastlane deliver --api_key_path ios/ci/asc_key_runtime.json --ipa build/ipa/App.ipa --skip_screenshots --skip_metadata --skip_app_version_update true --run_precheck_before_submit false 2>&1 | tee /tmp/deliver.log
           rc=${PIPESTATUS[0]}
           if [ "$rc" -ne 0 ]; then
             REASON="$(tail -18 /tmp/deliver.log | sed 's/\x1b\[[0-9;]*m//g' | tr '\n' '|' | cut -c1-2000)"
