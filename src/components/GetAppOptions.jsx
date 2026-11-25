@@ -337,6 +337,16 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false, sto
             <p className="font-semibold">Now available on the Mac App Store</p>
             <p>The full KJB with offline reading, for Apple silicon Macs on macOS 12 or later.</p>
           </div>
+          <StoreLinkRow
+            href={APP_STORE_URL}
+            fullLabel="Download on the Mac App Store"
+            shortLabel="App Store"
+            icon={<AppleIcon className="w-4 h-4" />}
+            buttonClass="bg-black text-white hover:bg-neutral-800"
+            actionClass="border-indigo-300 dark:border-indigo-700 bg-white/70 dark:bg-indigo-950/40 text-indigo-800 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50"
+            shareText="KJB Reader on the Mac App Store"
+            compact={storeActions}
+          />
         </OptionCard>
       )}
     </div>
