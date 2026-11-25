@@ -272,19 +272,22 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false, sto
           </OptionCard>
           )}
 
-          {/* iOS — App Store (now live) */}
+          {/* Apple — iPhone, iPad and Mac share one App Store listing */}
           <OptionCard
-            id="ios"
-            title="Get on iOS"
+            id="apple"
+            title="Get on Apple"
             icon={<AppleIcon className="w-4 h-4" />}
             defaultOpen={true}
             className="border-sky-300 dark:border-sky-800 bg-sky-50 dark:bg-sky-950"
           >
             <div className="font-sans text-xs text-sky-800 dark:text-sky-300 space-y-0.5">
-              <InstalledHereBadge show={current === 'ios'} />
-              <p className="font-semibold">Now available on iPhone &amp; iPad</p>
+              <InstalledHereBadge show={current === 'ios' || current === 'mac'} />
+              <p className="font-semibold">Now available on iPhone, iPad &amp; Mac</p>
               <p>
                 The full KJB with offline reading, straight from the App Store.
+              </p>
+              <p className="text-sky-700/80 dark:text-sky-300/80">
+                The Mac version needs an Apple silicon Mac on macOS 12 or later.
               </p>
             </div>
             <div className="w-full flex-1 flex flex-col rounded-xl border border-sky-200 dark:border-sky-800/60 bg-white/70 dark:bg-sky-950/40 px-3 py-2.5">
@@ -321,33 +324,6 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false, sto
             />
           </OptionCard>
         </div>
-      )}
-
-      {/* macOS app — now on the Mac App Store */}
-      {showStores && (
-        <OptionCard
-          id="mac"
-          title="Get on Mac"
-          icon={<AppleIcon className="w-4 h-4" />}
-          defaultOpen={true}
-          className="border-indigo-300 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950"
-        >
-          <InstalledHereBadge show={current === 'mac'} />
-          <div className="font-sans text-xs text-indigo-800 dark:text-indigo-300 space-y-0.5">
-            <p className="font-semibold">Now available on the Mac App Store</p>
-            <p>The full KJB with offline reading, for Apple silicon Macs on macOS 12 or later.</p>
-          </div>
-          <StoreLinkRow
-            href={APP_STORE_URL}
-            fullLabel="Download on the Mac App Store"
-            shortLabel="App Store"
-            icon={<AppleIcon className="w-4 h-4" />}
-            buttonClass="bg-black text-white hover:bg-neutral-800"
-            actionClass="border-indigo-300 dark:border-indigo-700 bg-white/70 dark:bg-indigo-950/40 text-indigo-800 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50"
-            shareText="KJB Reader on the Mac App Store"
-            compact={storeActions}
-          />
-        </OptionCard>
       )}
     </div>
   );
