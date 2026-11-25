@@ -275,7 +275,7 @@ export function InstallOptionCards({ onWebInstallFallback, playOnly = false, sto
           {/* Apple — iPhone, iPad and Mac share one App Store listing */}
           <OptionCard
             id="apple"
-            title="Get on Apple"
+            title="Get on iOS or macOS"
             icon={<AppleIcon className="w-4 h-4" />}
             defaultOpen={true}
             className="border-sky-300 dark:border-sky-800 bg-sky-50 dark:bg-sky-950"
