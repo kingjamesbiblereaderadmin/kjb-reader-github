@@ -13,8 +13,11 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.63';
 // The whole King James text as measured from the reader's own source file.
 const TOTAL_VERSES = 31102;
 const TOTAL_CHARS = 4120347;
-const FREE_CHARS = 500000;     // Azure neural free tier per month
-const USD_PER_CHAR = 15 / 1e6; // Azure neural after the free tier
+// The Speech resource is a standard (S0) one, which gets no monthly free
+// characters, so every character sent is billed. The old estimate subtracted a
+// 500k free tier that this resource never had, which is why the page showed
+// roughly $48 while the Azure bill was already $81.
+const USD_PER_CHAR = 15 / 1e6; // Azure neural, S0
 
 const VERSE_REF = /^[A-Z0-9]{2,3}:\d{1,3}:\d{1,3}$/;
 const PAGE = 1000;
@@ -72,7 +75,7 @@ function pageHtml(d) {
   const nf = (n) => n.toLocaleString('en-GB');
   const versePct = d.verses / TOTAL_VERSES;
   const charPct = d.chars / TOTAL_CHARS;
-  const spent = Math.max(0, d.chars - FREE_CHARS) * USD_PER_CHAR;
+  const spent = d.chars * USD_PER_CHAR;
   const left = Math.max(0, TOTAL_CHARS - d.chars);
   // Pace over the last hour when there is one, because a ten-minute window
   // swings wildly: a burst reads as minutes-to-go and a throttled stretch reads
@@ -120,7 +123,7 @@ function pageHtml(d) {
   <dl>
     <dt>Characters recorded</dt><dd>${nf(d.chars)} / ${nf(TOTAL_CHARS)}</dd>
     <dt>Still to voice</dt><dd>${nf(left)} characters</dd>
-    <dt>Spent past the free tier</dt><dd>$${spent.toFixed(2)}</dd>
+    <dt>Recorded audio, at $15/1M</dt><dd>$${spent.toFixed(2)}</dd>
     <dt>Recent pace</dt><dd>${rate > 0 ? `${nf(Math.round(rate))} characters/min` : 'paused'}</dd>
     <dt>Measured over</dt><dd>${rate > 0 ? basis : 'nothing running'}</dd>
     <dt>Time left at this pace</dt><dd>${etaText}</dd>
