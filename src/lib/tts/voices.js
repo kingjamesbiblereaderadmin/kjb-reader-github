@@ -13,6 +13,10 @@ export const TTS_VOICES = [
   // Speech resource.
   { id: 'en-GB-RyanNeural', label: 'Microsoft · British male (Ryan)', short: 'Ryan', engine: 'azure' },
   { id: 'en-GB-ThomasNeural', label: 'Microsoft · British male (Thomas)', short: 'Thomas', engine: 'azure' },
+  { id: 'en-GB-OliverNeural', label: 'Microsoft · British male (Oliver)', short: 'Oliver', engine: 'azure' },
+  { id: 'en-GB-ElliotNeural', label: 'Microsoft · British male (Elliot)', short: 'Elliot', engine: 'azure' },
+  { id: 'en-GB-EthanNeural', label: 'Microsoft · British male (Ethan)', short: 'Ethan', engine: 'azure' },
+  { id: 'en-GB-NoahNeural', label: 'Microsoft · British male (Noah)', short: 'Noah', engine: 'azure' },
   { id: 'en-GB-SoniaNeural', label: 'Microsoft · British female (Sonia)', short: 'Sonia', engine: 'azure' },
   { id: 'en-GB-LibbyNeural', label: 'Microsoft · British female (Libby)', short: 'Libby', engine: 'azure' },
   // ElevenLabs. Best voices, by far the most expensive per character.
