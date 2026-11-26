@@ -125,12 +125,24 @@ export default async function (req) {
       rows0.push({ hash, voice, chars: Number(raw?.chars) || 0, url, ref });
     }
     if (!rows0.length) return json({ error: 'no_rows' }, 400);
+    // A row that is already there is already voiced: storing it again would
+    // double the table and the storage bill for nothing.
+    let fresh = rows0;
     try {
-      await db0.entities.TtsClip.bulkCreate(rows0);
+      const have = await db0.entities.TtsClip.filter({ hash: { $in: rows0.map((r) => r.hash) } }, 'hash', 500);
+      const seen = new Set((have || []).map((r: any) => r.hash));
+      fresh = rows0.filter((r) => !seen.has(r.hash));
+    } catch (err) {
+      // A failed lookup is not a reason to drop the rows; create may then no-op
+      // on the duplicates.
+    }
+    if (!fresh.length) return json({ stored: 0, skipped: rows0.length });
+    try {
+      await db0.entities.TtsClip.bulkCreate(fresh);
     } catch (err) {
       return json({ error: 'store_failed', detail: String((err as Error)?.message || err) }, 502);
     }
-    return json({ stored: rows0.length });
+    return json({ stored: fresh.length, skipped: rows0.length - fresh.length });
   }
 
   const items = Array.isArray(body.items) ? body.items : [];
