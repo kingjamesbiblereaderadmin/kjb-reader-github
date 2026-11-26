@@ -68,7 +68,11 @@ export default async function (req) {
     // filter() returns a page ({items}) in the options form and a plain array
     // in the positional form — accept either so a cache hit never depends on
     // which SDK shape the app is running.
-    const existing = await base44.entities.TtsClip.filter({ hash }, { limit: 1 });
+    // Service role: the clip cache is a shared, write-once lookup keyed by a
+    // content hash. Reading it through the caller's session made the cache
+    // invisible whenever the caller was not the row's owner, which turned every
+    // replay into a fresh ElevenLabs charge.
+    const existing = await base44.asServiceRole.entities.TtsClip.filter({ hash }, { limit: 1 });
     const hit = Array.isArray(existing) ? existing[0] : existing?.items?.[0] || null;
     if (hit?.url) return json({ url: hit.url, cached: true, chars: hit.chars || 0 });
   } catch (err) {
@@ -142,7 +146,7 @@ export default async function (req) {
   }
 
   try {
-    await base44.entities.TtsClip.create({ hash, voice, chars: text.length, url, ref });
+    await base44.asServiceRole.entities.TtsClip.create({ hash, voice, chars: text.length, url, ref });
   } catch (err) {
     console.error('[ttsVerse] cache write failed', err?.message);
   }
