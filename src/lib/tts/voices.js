@@ -1,3 +1,6 @@
+import { isNativeIos } from '@/lib/isNativeIos';
+import { isNativeAndroid } from '@/lib/isNativeAndroid';
+
 // Voices offered by the reader's Listen player.
 //
 // These are ElevenLabs' premade voices (verified against GET /v1/voices), all
@@ -36,6 +39,25 @@ export const TTS_STORAGE = {
 // Fired on window whenever any of the above changes, so the reader (a different
 // route) picks up a switch flipped in Settings without a reload.
 export const TTS_SETTINGS_EVENT = 'kjb-tts-settings-changed';
+
+// Whether the Listen player is allowed to exist at all on this platform.
+//
+// Audio is web-only until the feature is finished and signed off. The native
+// shells (Capacitor iOS/Android) load this same live site in remote-URL mode,
+// so any audio control left reachable there would put an unreleased feature in
+// front of App Store review — and Apple rejects apps that ship hidden or
+// unfinished functionality. Nothing is bundled differently: the gate simply
+// means no Listen button, no Settings section and no ttsVerse request in the
+// apps. Set VITE_TTS_NATIVE=true in a build when it is time to test the player
+// inside the shells.
+export function isTtsAvailable() {
+  try {
+    if (import.meta.env?.VITE_TTS_NATIVE === 'true') return true;
+  } catch {
+    /* no import.meta in a plain node context */
+  }
+  return !isNativeIos() && !isNativeAndroid();
+}
 
 export function isTtsEnabled() {
   return readStored(TTS_STORAGE.enabled, 'true') !== 'false';

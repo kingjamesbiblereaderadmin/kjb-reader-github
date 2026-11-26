@@ -7,7 +7,7 @@ import PageHero from '@/components/PageHero';
 import DownloadBibleSection from '@/components/bible/DownloadBibleSection';
 import OfflineHtmlSection from '@/components/bible/OfflineHtmlSection';
 import ThemeColorPicker from '@/components/bible/ThemeColorPicker';
-import { TTS_VOICES, TTS_RATES, TTS_STORAGE, readStored, writeStored, isTtsEnabled, setTtsEnabled, TTS_SETTINGS_EVENT } from '@/lib/tts/voices';
+import { TTS_VOICES, TTS_RATES, TTS_STORAGE, readStored, writeStored, isTtsEnabled, isTtsAvailable, setTtsEnabled, TTS_SETTINGS_EVENT } from '@/lib/tts/voices';
 import { Switch } from '@/components/ui/switch';
 import { InstallAppSection } from '@/components/settings/InstallAppSection';
 import DownloadOptionsButton from '@/components/settings/DownloadOptionsButton';
@@ -700,7 +700,10 @@ export default function SettingsPage() {
       </div>
       )}
 
-      {/* Audio: the reader's Listen player */}
+      {/* Audio: the reader's Listen player. Hidden for admins: the switch is a
+          listener preference, and admin sessions get the app's admin surfaces
+          instead. */}
+      {isTtsAvailable() && user?.role !== 'admin' && (
       <div className="bg-sky-100/60 dark:bg-card border border-sky-200 dark:border-border rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
         <button
           onClick={() => toggleSection('audio')}
@@ -789,6 +792,7 @@ export default function SettingsPage() {
         </div>
         )}
       </div>
+      )}
 
       {/* Appearance */}
       <div className="bg-violet-100/60 dark:bg-card border border-violet-200 dark:border-border rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">

@@ -42,6 +42,7 @@ import { HIGHLIGHT_COLORS } from '@/lib/highlightColors';
 import { usePinchZoom } from '@/hooks/usePinchZoom';
 import TtsPlayer from '@/components/bible/TtsPlayer';
 import useTtsEnabled from '@/hooks/useTtsEnabled';
+import { isTtsAvailable } from '@/lib/tts/voices';
 import { useReadingProgressTracker } from '@/hooks/useReadingProgressTracker';
 
 import { isMobile, STORAGE_KEY, loadPosition, savePosition, copyToClipboard } from '@/lib/readerPosition';
@@ -49,7 +50,9 @@ import { isMobile, STORAGE_KEY, loadPosition, savePosition, copyToClipboard } fr
 export default function BibleReader() {
   const { hideHeader, setHideHeader } = useHeaderHide();
   // Master switch for the Listen player (Settings -> Audio).
-  const ttsEnabled = useTtsEnabled();
+  // isTtsAvailable() keeps the whole player out of the native app shells until
+  // the feature is signed off (see src/lib/tts/voices.js).
+  const ttsEnabled = useTtsEnabled() && isTtsAvailable();
   // hideHeader is app-wide context, not scoped to this page (it's also read by
   // AppLayout's own <header>). Nothing else ever resets it, so leaving the
   // Reader with the header manually hidden previously left every other page —
