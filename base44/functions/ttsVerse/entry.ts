@@ -82,6 +82,9 @@ function normalizeSpeechText(raw: string) {
 // screen keeps its printed spelling. Hyphens mark syllable breaks, which the
 // voice follows; add a line here whenever a word comes out wrong.
 const PRONOUNCE: Record<string, string> = {
+  saith: 'seth',
+  doth: 'duth',
+  elizabeth: 'ee-liz-uh-beth',
   sojourneth: 'sodj-ern-eth',
   sojournings: 'sodj-er-nings',
   sojourning: 'sodj-er-ning',
@@ -292,9 +295,14 @@ function respell(text: string) {
   );
 }
 
-// The one entry point: clean the source markup, then respell the hard words.
+// The one entry point: clean the source markup, respell the hard words, then
+// give every "-eth" verb its own final syllable. Handed "pleaseth" a neural
+// voice can split it as "please" + "s" + "eth"; with the break written in it
+// reads the word the way the Authorised Version is read aloud: "pleas-eth".
+// Three or more letters are required before the ending so that short words
+// like "teeth" and "death" are left alone.
 function speechText(raw: string) {
-  return respell(normalizeSpeechText(raw));
+  return respell(normalizeSpeechText(raw)).replace(/\b(\w{3,})eth\b/g, '$1-eth');
 }
 
 function xmlEscape(value: string) {
