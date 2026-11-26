@@ -4,7 +4,7 @@
   display: flex; flex-direction: column; color: hsl(var(--foreground));
 }
 .dark .kjb-flipbook { --fb-paper: #1d1b17; --fb-ink: #e6dfcf; --fb-red: #d9806f; --fb-rule: #3b362d; }
-.kjb-fb-stage { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: pan-y; padding: 8px; }
+.kjb-fb-stage { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: pan-y; padding: 0; }
 .kjb-fb-measure { position: absolute; left: 0; top: 0; overflow: hidden; visibility: hidden; pointer-events: none; }
 .kjb-fb-book { position: relative; perspective: 2400px; background: var(--fb-paper); color: var(--fb-ink); border-radius: 3px; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.22)); }
 .kjb-fb-slot { position: absolute; top: 0; bottom: 0; cursor: pointer; }
@@ -107,10 +107,8 @@
 .kjb-book-player section { margin: 0; padding: 8px 12px; background: var(--fb-paper); border-color: var(--fb-rule); box-shadow: none; }
 .kjb-book-player button.bg-primary { background: var(--fb-ink); color: var(--fb-paper); }
 .kjb-book-player { max-height: 28dvh; overflow-y: auto; }
-.kjb-book-navigation { display: grid; grid-template-columns: 44px minmax(44px, 1fr) minmax(0, 3fr) minmax(44px, 1fr) 44px; align-items: center; gap: 4px; min-height: 64px; margin-inline: 12px; padding-block: 8px; border-top: 1px solid var(--fb-rule); }
+.kjb-book-navigation { display: grid; grid-template-columns: minmax(44px, 1fr) minmax(0, 3fr) minmax(44px, 1fr); align-items: center; gap: 4px; min-height: 64px; margin-inline: 12px; padding-block: 8px; border-top: 1px solid var(--fb-rule); }
 .kjb-book-page-step { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 8px; font-size: 0.8rem; }
-.kjb-book-chapter-step button { display: flex; justify-content: center; align-items: center; width: 44px; height: 44px; padding: 0; }
-.kjb-book-chapter-step button > span { display: none; }
 .kjb-book-position { text-align: center; font-family: var(--font-serif); font-size: 0.72rem; line-height: 1.5; font-variant-numeric: tabular-nums; }
 @media (max-width: 760px) {
   .kjb-book-location { left: 6px; right: 52px; gap: 0; }
@@ -119,4 +117,34 @@
   .kjb-book-view-control { right: 4px; }
   .kjb-book-view-control .kjb-book-toggle span, .kjb-book-page-step > span { display: none; }
   .kjb-book-navigation { gap: 0; margin-inline: 4px; }
+}
+
+/* ---- Book mode -----------------------------------------------------------
+   The open book is the screen: the reader drops its page padding and the paper
+   runs edge to edge, with the return-to-text control as a printed marker in the
+   upper-right corner. */
+.kjb-book-mode {
+  --fb-paper: #fffefb;
+  --fb-ink: #211c16;
+  --fb-rule: #d8cfb9;
+}
+.dark .kjb-book-mode {
+  --fb-paper: #1d1b17;
+  --fb-ink: #e6dfcf;
+  --fb-rule: #3b362d;
+}
+.kjb-book-mode .kjb-flipbook {
+  background: var(--fb-paper);
+}
+.kjb-book-mode .kjb-book-toggle {
+  color: var(--fb-ink);
+  text-decoration: none;
+  border: 1px solid var(--fb-rule);
+  background: var(--fb-paper);
+  border-radius: 9999px;
+  padding: 3px 12px;
+  opacity: 0.85;
+}
+.kjb-book-mode .kjb-book-toggle:hover {
+  opacity: 1;
 }

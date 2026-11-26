@@ -1856,7 +1856,7 @@ export default function BibleReader() {
   );
 
   return (
-    <div onClick={(e) => { if (!e.target.closest('.kjb-flipbook, .kjb-verse-container, [id^="v"], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a, [role="menu"], [role="menuitem"], [data-radix-popper-content-wrapper]')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerses(new Set()); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 pb-3 ${hideHeader && !flipbookOpen ? 'pt-16' : ''} ${flipbookOpen ? 'kjb-book-mode' : ''}`}>
+    <div onClick={(e) => { if (!e.target.closest('.kjb-flipbook, .kjb-verse-container, [id^="v"], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a, [role="menu"], [role="menuitem"], [data-radix-popper-content-wrapper]')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerses(new Set()); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 pb-3 ${hideHeader && !flipbookOpen ? 'pt-16' : ''} ${flipbookOpen ? 'kjb-book-mode !px-0 !pb-0' : ''}`}>
       {!hideHeader && !flipbookOpen && toolbarNode}
 
       {hideHeader && !flipbookOpen && <MinimizedHeaderBar setHideHeader={setHideHeader} />}

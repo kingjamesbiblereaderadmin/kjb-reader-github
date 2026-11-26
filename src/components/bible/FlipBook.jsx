@@ -159,21 +159,24 @@ export default function FlipBook({
 
   const spread = stage.w >= 760;
   const step = spread ? 2 : 1;
-  const pageW = Math.floor(Math.max(0, spread ? Math.min((stage.w - 32) / 2, 520) : Math.min(stage.w - 20, 520)));
-  const pageH = Math.floor(Math.max(0, Math.min(stage.h - 16, spread ? pageW * 1.55 : pageW * 1.9)));
-  const padLeft = pageW < 420 ? 20 : 44;
-  const padRight = 64; // the tools live in the page margin, never over scripture
+  // The open book fills the whole reading area: no desk showing around it.
+  const edge = 6;
+  const pageW = Math.floor(Math.max(0, (stage.w - edge * 2) / step));
+  const pageH = Math.floor(Math.max(0, stage.h - edge * 2));
+  const padLeft = pageW < 420 ? 18 : 32;
+  const padRight = 60; // the tools live in the page margin, never over scripture
   const textW = Math.max(120, pageW - padLeft - padRight);
-  const contentH = Math.max(120, pageH - 56 - footerHeight);
-  const textH = Math.max(80, contentH - 112); // running head, folio and margins
+  const contentH = Math.max(120, pageH - 52 - footerHeight);
+  const textH = Math.max(80, contentH - 104); // running head, folio and margins
 
-  // A page holds one or two text columns. One page is always (textW + gap) wide.
-  const perPage = twoColumns ? 2 : 1;
-  const gap = twoColumns ? 18 : 40;
+  // A page holds one or two text columns. Wide paper always gets two, so no
+  // line of scripture runs the full width of the screen.
+  const perPage = twoColumns || textW > 560 ? 2 : 1;
+  const gap = perPage === 2 ? 18 : 40;
   const colW = (textW - gap * (perPage - 1)) / perPage;
   const flowProps = {
     width: textW, height: textH, gap, columnWidth: Math.floor(colW * 100) / 100,
-    className: `${isCursive ? 'cursive-em-style' : ''} ${twoColumns ? 'kjb-fb-twocol' : ''}`,
+    className: `${isCursive ? 'cursive-em-style' : ''} ${perPage === 2 ? 'kjb-fb-twocol' : ''}`,
   };
 
   const textStyle = useMemo(() => ({
@@ -377,7 +380,7 @@ export default function FlipBook({
   const face = (index, side) => {
     const textIndex = index - front.length;
     return (
-      <div className={`kjb-fb-page kjb-fb-${side}`} style={{ padding: `56px ${padRight}px ${footerHeight}px ${padLeft}px` }}>
+      <div className={`kjb-fb-page kjb-fb-${side}`} style={{ padding: `52px ${padRight}px ${footerHeight}px ${padLeft}px` }}>
         {index >= 0 && index < pageCount && (textIndex < 0 ? (
           <FittedTitlePage type={front[index]} book={book} width={textW} height={contentH - 24} />
         ) : (

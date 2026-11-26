@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import FlipBookNavigation from '@/components/bible/FlipBookNavigation';
 
-const SLOT_NAMES = ['location', 'tools', 'previousChapter', 'nextChapter', 'context', 'player'];
+const SLOT_NAMES = ['location', 'tools', 'context', 'player'];
 
 export default function FlipBookChrome({ controls, viewControl, where, onPrevious, onNext, canPrevious, canNext, busy, onFooterHeight }) {
   const [slots, setSlots] = useState({});
@@ -25,7 +25,7 @@ export default function FlipBookChrome({ controls, viewControl, where, onPreviou
       <div ref={footerRef} className="kjb-book-bottom">
         <div ref={refs.context} className="kjb-reader-toolbar kjb-book-context" />
         <div ref={refs.player} className="kjb-book-player" />
-        <FlipBookNavigation where={where} previousRef={refs.previousChapter} nextRef={refs.nextChapter} onPrevious={onPrevious} onNext={onNext} canPrevious={canPrevious} canNext={canNext} busy={busy} />
+        <FlipBookNavigation where={where} onPrevious={onPrevious} onNext={onNext} canPrevious={canPrevious} canNext={canNext} busy={busy} />
       </div>
       {controls?.(slots)}
     </div>
