@@ -281,6 +281,16 @@
   /* Two-column reading layout (true to printed Bible) */
   .kjb-two-col {
     column-fill: balance;
+    /* Nothing stranded at the top of the second column. A verse is kept whole
+       where it fits, and where one has to break at the column rule at least
+       three lines stay on each side, so a single word (or the tail of a
+       hyphenated one) never appears alone above the rule looking like a
+       leftover from the verse before it. */
+    orphans: 3;
+    widows: 3;
+  }
+  .kjb-two-col > span {
+    break-inside: avoid-column;
   }
   /* Slightly smaller text + tighter spacing so two columns fit nicely on phones.
      word-spacing: normal fixes the large gaps that text-justify causes in CSS columns */
