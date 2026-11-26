@@ -999,6 +999,18 @@ html.kjb-native-ios select {
   background-color: transparent;
 }
 
+/* The word being spoken inside the verse that is playing. Painted with the
+   Custom Highlight API so the reader's own markup is never touched — nothing
+   wraps the text, so nothing can go stale when the page re-renders. */
+::highlight(kjb-word) {
+  background-color: hsl(var(--accent) / 0.3);
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: hsl(var(--accent) / 0.75);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
 /* An inline verse's background does not reach the float, so there the cap
    group carries the same wash itself. */
 .kjb-speaking.inline .kjb-dropcap-group {

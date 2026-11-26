@@ -1,0 +1,37 @@
+{
+  "name": "TtsStat",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "maxLength": 32,
+      "description": "Which counter this row holds — 'library' is the whole Bible voice library"
+    },
+    "verses": {
+      "type": "integer",
+      "description": "Verses with a cached clip at the last successful count"
+    },
+    "chars": {
+      "type": "integer",
+      "description": "Characters voiced at the last successful count"
+    },
+    "recentChars": {
+      "type": "integer",
+      "description": "Characters voiced in the ten minutes before that count"
+    },
+    "updated": {
+      "type": "string",
+      "maxLength": 40,
+      "description": "When the count was taken"
+    }
+  },
+  "required": [
+    "key"
+  ],
+  "rls": {
+    "read": {},
+    "create": {},
+    "update": {},
+    "delete": {}
+  }
+}

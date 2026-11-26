@@ -3,6 +3,7 @@ import { Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, RotateCc
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import useBibleTts from '@/hooks/useBibleTts';
+import { BIBLE_BOOKS } from '@/lib/bibleData';
 import { TTS_VOICES, TTS_RATES, TTS_STORAGE, readStored, writeStored, voiceLabel } from '@/lib/tts/voices';
 
 // The reader's Listen player.
@@ -48,6 +49,19 @@ function firstVisibleVerse() {
     }
   }
   return null;
+}
+
+// What the voice says when a chapter begins. Chapter 1 of a book speaks its
+// printed title page ("The First Book of Moses, called Genesis"), which is the
+// heading the reader sees above the text; later chapters only name the book.
+function bookAnnouncement(bookName, label, chapter) {
+  const key = String(bookName || label || '').toLowerCase();
+  const book = BIBLE_BOOKS.find(
+    (b) => b.name.toLowerCase() === key || b.shortName.toLowerCase() === key || b.apiName.toLowerCase() === key
+  );
+  const full = book?.name || bookName || label;
+  if (Number(chapter) === 1 && book) return full;
+  return bookName || label;
 }
 
 function scrollToVerse(verse) {
@@ -110,7 +124,8 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
     if (continueRef.current && verses.length && verses !== endedVersesRef.current) {
       continueRef.current = false;
       const bookChanged = prev.book !== fullName;
-      const introText = bookChanged ? `${fullName}, chapter ${chapter}` : `Chapter ${chapter}`;
+      const spoken = bookAnnouncement(bookName, label, chapter);
+      const introText = bookChanged ? `${spoken}, chapter ${chapter}` : `Chapter ${chapter}`;
       skipScrollRef.current = true;
       followRef.current = true;
       tts.start(1, { ref: `${chapterKey}:intro`, text: introText });
@@ -167,6 +182,43 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
       else el.classList.remove(SPEAKING_CLASS);
     });
   }, [tts.introActive]);
+
+  // Columns, font size and paragraph spacing rebuild the chapter's markup, and
+  // a rebuilt verse is a different element: the class the highlight lives on is
+  // gone while the audio plays on. Watching for new nodes puts the wash back on
+  // whatever element now carries the verse being spoken. It only adds classes
+  // and observes childList, so it can never feed itself.
+  useEffect(() => {
+    if (!tts.isActive) return undefined;
+    const reapply = () => {
+      if (tts.introActive) {
+        const heads = document.querySelectorAll(
+          '.kjb-book-title, .kjb-chapter-heading, .kjb-running-book, .kjb-running-chapter'
+        );
+        if (heads.length && !document.querySelector(`.${SPEAKING_CLASS}`)) {
+          heads.forEach((el) => el.classList.add(SPEAKING_CLASS));
+        }
+        return;
+      }
+      const v = tts.currentVerse;
+      if (v == null) return;
+      const el = document.getElementById(`v${v}`);
+      if (el && !el.classList.contains(SPEAKING_CLASS)) {
+        clearSpeaking();
+        el.classList.add(SPEAKING_CLASS);
+      }
+    };
+    let timer = 0;
+    const observer = new MutationObserver(() => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(reapply, 120);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(timer);
+    };
+  }, [tts.isActive, tts.introActive, tts.currentVerse]);
 
   // A manual scroll means "I'm reading here" — stop chasing the audio.
   useEffect(() => {
@@ -227,7 +279,7 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
     skipScrollRef.current = true;
     if (hidden) setHiddenPersisted(false);
     const intro = chapter
-      ? { ref: `${chapterKey}:intro`, text: `${bookName || label}, chapter ${chapter}` }
+      ? { ref: `${chapterKey}:intro`, text: `${bookAnnouncement(bookName, label, chapter)}, chapter ${chapter}` }
       : null;
     tts.start(verse, intro);
   };

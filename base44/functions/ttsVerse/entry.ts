@@ -100,16 +100,27 @@ async function azureSpeech(text: string, voice: string): Promise<SynthResult> {
 }
 
 async function azureViaProxy(text: string, voice: string): Promise<SynthResult> {
-  let upstream: Response;
-  try {
-    upstream = await fetch(AZURE_PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, voice }),
-    });
-  } catch (err) {
-    return { ok: false, error: 'network', detail: String(err?.message || err) };
+  let upstream: Response | null = null;
+  let network = '';
+  // The speech resource throttles a burst and answers 429; a moment later the
+  // same line goes through. Retrying here keeps the reader playing instead of
+  // handing it a 502 for a verse that is perfectly fine to voice.
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    try {
+      upstream = await fetch(AZURE_PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, voice }),
+      });
+    } catch (err) {
+      network = String(err?.message || err);
+      upstream = null;
+    }
+    const retriable = !upstream || upstream.status === 429 || upstream.status >= 500;
+    if (!retriable || attempt === 3) break;
+    await new Promise((r) => setTimeout(r, 900 * (attempt + 1)));
   }
+  if (!upstream) return { ok: false, error: 'network', detail: network };
   const data = await upstream.json().catch(() => null);
   if (!upstream.ok || !data?.url) {
     return {

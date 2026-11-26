@@ -112,19 +112,70 @@ function pageHtml(d) {
     <dt>Recent pace</dt><dd>${rate > 0 ? `${nf(Math.round(rate))} characters/min` : 'paused'}</dd>
     <dt>Time left at this pace</dt><dd>${etaText}</dd>
   </dl>
-  <p class="foot">Updated ${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Singapore' })} SGT · refreshes every 15 seconds</p>
+  <p class="foot">${d.stale ? 'Counted a moment ago while the library was busy · ' : ''}Updated ${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Singapore' })} SGT · refreshes every 15 seconds</p>
 </div></body></html>`;
+}
+
+// The last good count is kept in one row so the page has something true to show
+// while the library is being filled: counting it means reading every clip row,
+// and during a run those reads compete with the run itself for the app's
+// per-minute entity allowance.
+async function readSaved(db: any) {
+  try {
+    const page = await db.entities.TtsStat.filter({ key: 'library' }, { limit: 1 });
+    const row = (Array.isArray(page) ? page : page?.items || [])[0];
+    if (!row) return null;
+    return {
+      verses: Number(row.verses) || 0,
+      chars: Number(row.chars) || 0,
+      recentChars: Number(row.recentChars) || 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function saveTally(db: any, d: any) {
+  try {
+    const page = await db.entities.TtsStat.filter({ key: 'library' }, { limit: 1 });
+    const row = (Array.isArray(page) ? page : page?.items || [])[0];
+    const body = {
+      key: 'library',
+      verses: d.verses,
+      chars: d.chars,
+      recentChars: d.recentChars,
+      updated: new Date().toISOString(),
+    };
+    if (row?.id) await db.entities.TtsStat.update(row.id, body);
+    else await db.entities.TtsStat.create(body);
+  } catch {
+    // Losing the bookmark is not worth failing the page over.
+  }
 }
 
 Deno.serve(async (req) => {
   const url = new URL(req.url);
   const db = createClientFromRequest(req).asServiceRole;
 
+  let stale = false;
   try {
     if (!cache.data || Date.now() - cache.at > CACHE_MS) {
-      cache = { at: Date.now(), data: await tally(db) };
+      try {
+        cache = { at: Date.now(), data: await tally(db) };
+        await saveTally(db, cache.data);
+      } catch {
+        // Throttled or mid-write: fall back to the last count that was saved.
+        const saved = await readSaved(db);
+        if (saved) {
+          cache = { at: Date.now(), data: saved };
+          stale = true;
+        } else if (!cache.data) {
+          cache = { at: Date.now(), data: { verses: 0, chars: 0, recentChars: 0 } };
+          stale = true;
+        }
+      }
     }
-    const data = { totalVerses: TOTAL_VERSES, totalChars: TOTAL_CHARS, ...cache.data };
+    const data = { totalVerses: TOTAL_VERSES, totalChars: TOTAL_CHARS, stale, ...cache.data };
     if (url.searchParams.get('format') === 'json') {
       return Response.json(data, { headers: { 'Access-Control-Allow-Origin': '*' } });
     }
@@ -132,6 +183,13 @@ Deno.serve(async (req) => {
       headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
     });
   } catch (err) {
-    return Response.json({ error: String(err?.message || err) }, { status: 500 });
+    // Never a blank page: report what is known and say it is behind.
+    const data = { totalVerses: TOTAL_VERSES, totalChars: TOTAL_CHARS, stale: true, ...(cache.data || { verses: 0, chars: 0, recentChars: 0 }) };
+    if (url.searchParams.get('format') === 'json') {
+      return Response.json(data, { headers: { 'Access-Control-Allow-Origin': '*' } });
+    }
+    return new Response(pageHtml(data), {
+      headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
+    });
   }
 });

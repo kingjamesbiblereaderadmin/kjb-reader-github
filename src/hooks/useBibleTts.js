@@ -38,7 +38,51 @@ export function cleanHeadingForSpeech(raw) {
   return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
 }
 
+// Word-by-word highlighting.
+//
+// Azure returns one clip per verse and no word timings, so each word's slice of
+// the clip is apportioned by its length plus the pause its punctuation implies.
+// It is an estimate, but on a verse-length clip it tracks the voice closely
+// enough to read along with, and it costs nothing extra to generate.
+const WORD_HIGHLIGHT = 'kjb-word';
+
+function wordRangesFor(el) {
+  if (!el || typeof CSS === 'undefined' || !CSS.highlights || typeof Highlight === 'undefined') return null;
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  const words = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    const text = node.nodeValue || '';
+    const re = /\S+/g;
+    let m;
+    while ((m = re.exec(text))) {
+      const range = document.createRange();
+      range.setStart(node, m.index);
+      range.setEnd(node, m.index + m[0].length);
+      const pause = /[,;:]$/.test(m[0]) ? 3 : /[.!?]$/.test(m[0]) ? 6 : 0;
+      words.push({ range, weight: m[0].length + 1 + pause });
+    }
+  }
+  if (!words.length) return null;
+  let total = 0;
+  const ends = words.map((w) => (total += w.weight));
+  return { words, ends, total };
+}
+
+function clearWordHighlight() {
+  try {
+    if (typeof CSS !== 'undefined' && CSS.highlights) CSS.highlights.delete(WORD_HIGHLIGHT);
+  } catch { /* older browsers simply keep the verse-level wash */ }
+}
+
 const urlCache = new Map(); // `${voice}|${text}` -> mp3 url
+
+// A verse that cannot be voiced right now is usually a throttled speech
+// resource or a hiccup in the proxy, and both clear within seconds. Waiting and
+// asking again is what stops a chapter from dying on its third verse.
+const RETRY_DELAYS = [1500, 3500, 7000];
+const FINAL_CODES = new Set(['no_key', 'bad_key', 'quota', 'too_long', 'method_not_allowed']);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Clips are keyed by verse reference, not by the verse text: the text that
 // reaches this hook has been through the reader's apostrophe/override pipeline,
@@ -49,26 +93,43 @@ async function audioUrlFor(clip, voice) {
   const hit = urlCache.get(key);
   if (hit) return hit;
 
-  const res = await base44.functions.invoke('ttsVerse', {
-    text: clip.text,
-    voice,
-    ref: clip.ref,
-    engine: engineForVoice(voice),
-  });
-  const data = res?.data ?? res;
-  if (!data?.url) {
-    const code = data?.error || 'tts_failed';
-    const messages = {
-      no_key: 'This voice\'s API key is not set up for this app yet.',
-      bad_key: 'The speech API key was rejected.',
-      quota: 'This month\'s speech allowance is used up.',
-      too_long: 'That verse is too long for one clip.',
-      network: 'Could not reach the speech service.',
-    };
-    throw new Error(messages[code] || 'Audio could not be generated.');
+  const messages = {
+    no_key: 'This voice\'s API key is not set up for this app yet.',
+    bad_key: 'The speech API key was rejected.',
+    quota: 'This month\'s speech allowance is used up.',
+    too_long: 'That verse is too long for one clip.',
+    network: 'Could not reach the speech service.',
+    throttled: 'The speech service is busy. Retrying\u2026',
+  };
+
+  let last = null;
+  for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt += 1) {
+    try {
+      const res = await base44.functions.invoke('ttsVerse', {
+        text: clip.text,
+        voice,
+        ref: clip.ref,
+        engine: engineForVoice(voice),
+      });
+      const data = res?.data ?? res;
+      if (data?.url) {
+        urlCache.set(key, data.url);
+        return data.url;
+      }
+      const code = data?.error || 'tts_failed';
+      const err = new Error(messages[code] || 'Audio could not be generated.');
+      err.code = code;
+      throw err;
+    } catch (err) {
+      // base44.functions.invoke throws on a 5xx, so a throttled proxy arrives
+      // here as "Request failed with status code 502" with no code of its own.
+      const code = err?.code || (err?.response?.status >= 500 ? 'throttled' : '');
+      last = code && messages[code] ? Object.assign(new Error(messages[code]), { code }) : err;
+      if (code && FINAL_CODES.has(code)) throw last;
+      if (attempt < RETRY_DELAYS.length) await sleep(RETRY_DELAYS[attempt]);
+    }
   }
-  urlCache.set(key, data.url);
-  return data.url;
+  throw last || new Error('Audio could not be generated.');
 }
 
 export default function useBibleTts({ verses, chapterKey, subscript, colophon, onChapterEnd }) {
@@ -137,6 +198,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, o
 
   const hardStop = useCallback(() => {
     tokenRef.current += 1;
+    clearWordHighlight();
     const el = audioRef.current;
     if (el) {
       el.pause();
@@ -177,8 +239,22 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, o
       const startAt = startAtRef.current;
       startAtRef.current = 0;
       if (startAt > 0) el.currentTime = startAt;
+      const words = clip.kind === 'verse' ? wordRangesFor(document.getElementById(`v${clip.verse}`)) : null;
+      let shown = -1;
+      clearWordHighlight();
       el.ontimeupdate = () => {
-        if (token === tokenRef.current && resumePoint) resumePoint.time = el.currentTime;
+        if (token !== tokenRef.current) return;
+        if (resumePoint) resumePoint.time = el.currentTime;
+        if (!words || !Number.isFinite(el.duration) || el.duration <= 0) return;
+        const target = (el.currentTime / el.duration) * words.total;
+        let i = 0;
+        while (i < words.ends.length - 1 && words.ends[i] < target) i += 1;
+        if (i === shown) return;
+        shown = i;
+        try {
+          const hl = new Highlight(words.words[i].range);
+          CSS.highlights.set(WORD_HIGHLIGHT, hl);
+        } catch { /* leave the verse-level wash in place */ }
       };
     }
     el.playbackRate = rateRef.current;
