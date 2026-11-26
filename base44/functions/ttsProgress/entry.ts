@@ -128,8 +128,37 @@ function pageHtml(d) {
     <dt>Measured over</dt><dd>${rate > 0 ? basis : 'nothing running'}</dd>
     <dt>Time left at this pace</dt><dd>${etaText}</dd>
   </dl>
+  <section id="kjb-bundle" hidden>
+    <h1>Native audio bundle</h1>
+    <p class="sub" id="kjb-bundle-phase"></p>
+    <p class="big" id="kjb-bundle-count">0<span> of 31,102 clips</span></p>
+    <div class="bar"><div class="fill" id="kjb-bundle-fill" style="width:0%"></div></div>
+    <p class="sub" id="kjb-bundle-meta"></p>
+  </section>
   <p class="foot">${d.stale ? 'Counted a moment ago while the library was busy · ' : ''}Updated ${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Singapore' })} SGT · refreshes every 15 seconds</p>
-</div></body></html>`;
+</div>
+<script>
+(function () {
+  var url = 'https://kjb-clips.discloud.dev/bundle?t=' + Date.now();
+  fetch(url, { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (!d || !d.phase || d.phase === 'not_started' || !d.total) return;
+      var box = document.getElementById('kjb-bundle');
+      var pct = Math.max(0, Math.min(100, (d.done / d.total) * 100));
+      document.getElementById('kjb-bundle-phase').textContent = d.phase;
+      document.getElementById('kjb-bundle-count').innerHTML =
+        d.done.toLocaleString() + '<span> of ' + d.total.toLocaleString() + ' clips</span>';
+      document.getElementById('kjb-bundle-fill').style.width = pct.toFixed(1) + '%';
+      var gb = (d.bytes || 0) / 1e9;
+      document.getElementById('kjb-bundle-meta').textContent =
+        gb.toFixed(2) + ' GB pulled for the app bundle' + (d.updated ? ' · updated ' + d.updated.replace('T', ' ').replace(/\\+00:00$|Z$/, ' UTC') : '');
+      box.hidden = false;
+    })
+    .catch(function () {});
+})();
+</script>
+</body></html>`;
 }
 
 // The last good count is kept in one row so the page has something true to show
