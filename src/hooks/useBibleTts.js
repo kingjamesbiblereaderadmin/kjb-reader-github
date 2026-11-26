@@ -26,12 +26,16 @@ export function cleanVerseForSpeech(raw) {
 
 const urlCache = new Map(); // `${voice}|${text}` -> mp3 url
 
-async function audioUrlFor(text, voice) {
-  const key = `${voice}|${text}`;
+// Clips are keyed by verse reference, not by the verse text: the text that
+// reaches this hook has been through the reader's apostrophe/override pipeline,
+// so hashing it would miss clips generated from the same verse anywhere else
+// (a bulk run, another device, a corrected verse). The reference is stable.
+async function audioUrlFor(clip, voice) {
+  const key = `${voice}|${clip.ref || clip.text}`;
   const hit = urlCache.get(key);
   if (hit) return hit;
 
-  const res = await base44.functions.invoke('ttsVerse', { text, voice });
+  const res = await base44.functions.invoke('ttsVerse', { text: clip.text, voice, ref: clip.ref });
   const data = res?.data ?? res;
   if (!data?.url) {
     const code = data?.error || 'tts_failed';
@@ -48,7 +52,7 @@ async function audioUrlFor(text, voice) {
   return data.url;
 }
 
-export default function useBibleTts({ verses, chapterKey }) {
+export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
   const [voice, setVoiceState] = useState(() => readStored(TTS_STORAGE.voice, DEFAULT_TTS_VOICE));
   const [rate, setRateState] = useState(() => Number(readStored(TTS_STORAGE.rate, 1)) || 1);
   const [status, setStatus] = useState('idle'); // idle | loading | playing | paused | error
@@ -62,12 +66,24 @@ export default function useBibleTts({ verses, chapterKey }) {
   const rateRef = useRef(rate);
   voiceRef.current = voice;
   rateRef.current = rate;
+  // A spoken label ("Chapter 2") queued to play before the next verse — used
+  // when playback rolls into a new chapter so the listener is told where they
+  // are without the reader having to say the book name again.
+  const introRef = useRef(null);
+  // Called when the last verse finishes, so the player can roll on to the next
+  // chapter. Held in a ref so a new handler never restarts playback.
+  const onEndRef = useRef(onChapterEnd);
+  onEndRef.current = onChapterEnd;
 
   const clips = useMemo(
     () => (verses || [])
-      .map((v) => ({ verse: Number(v.verse), text: cleanVerseForSpeech(v.text) }))
+      .map((v) => ({
+        verse: Number(v.verse),
+        text: cleanVerseForSpeech(v.text),
+        ref: chapterKey ? `${chapterKey}:${Number(v.verse)}` : '',
+      }))
       .filter((v) => v.text),
-    [verses],
+    [verses, chapterKey],
   );
   const clipsRef = useRef(clips);
   clipsRef.current = clips;
@@ -93,23 +109,13 @@ export default function useBibleTts({ verses, chapterKey }) {
     setStatus('idle');
   }, []);
 
-  const playAt = useCallback(async (i, token) => {
-    const list = clipsRef.current;
-    if (!list.length) return;
-    if (i < 0 || i >= list.length) {
-      // End of chapter — stop cleanly on the last verse rather than rolling on.
-      setStatus('idle');
-      setIndex(-1);
-      return;
-    }
-
-    setIndex(i);
+  const playClip = useCallback(async (clip, token, onDone) => {
     setStatus('loading');
     setError('');
 
     let url;
     try {
-      url = await audioUrlFor(list[i].text, voiceRef.current);
+      url = await audioUrlFor(clip, voiceRef.current);
     } catch (err) {
       if (token === tokenRef.current) {
         setError(err?.message || 'Audio could not be generated.');
@@ -119,15 +125,11 @@ export default function useBibleTts({ verses, chapterKey }) {
     }
     if (token !== tokenRef.current) return;
 
-    // Warm the next verse while this one plays — the gap between clips is what
-    // makes a per-verse player feel stuttery otherwise.
-    if (list[i + 1]) audioUrlFor(list[i + 1].text, voiceRef.current).catch(() => {});
-
     const el = getAudio();
     el.src = url;
     el.playbackRate = rateRef.current;
     el.onended = () => {
-      if (token === tokenRef.current) playAtRef.current?.(i + 1, token);
+      if (token === tokenRef.current) onDone();
     };
 
     try {
@@ -140,9 +142,39 @@ export default function useBibleTts({ verses, chapterKey }) {
     if (token === tokenRef.current) setStatus('playing');
   }, [getAudio]);
 
+  const playAt = useCallback(async (i, token) => {
+    const list = clipsRef.current;
+    if (!list.length) return;
+    if (i < 0 || i >= list.length) {
+      // End of the chapter. The player decides whether that means "stop" or
+      // "carry on into the next chapter" — this hook does not navigate.
+      setStatus('idle');
+      setIndex(-1);
+      onEndRef.current?.();
+      return;
+    }
+
+    const intro = introRef.current;
+    if (intro) {
+      introRef.current = null;
+      // Warm the verse while the label speaks, and do not move the highlight
+      // until the verse itself starts.
+      audioUrlFor(list[i], voiceRef.current).catch(() => {});
+      await playClip(intro, token, () => playAtRef.current?.(i, token));
+      return;
+    }
+
+    setIndex(i);
+    // Warm the next verse while this one plays — the gap between clips is what
+    // makes a per-verse player feel stuttery otherwise.
+    if (list[i + 1]) audioUrlFor(list[i + 1], voiceRef.current).catch(() => {});
+
+    await playClip(list[i], token, () => playAtRef.current?.(i + 1, token));
+  }, [playClip]);
+
   playAtRef.current = playAt;
 
-  const start = useCallback((fromVerse) => {
+  const start = useCallback((fromVerse, intro = null) => {
     const list = clipsRef.current;
     if (!list.length) return;
     let i = 0;
@@ -150,6 +182,7 @@ export default function useBibleTts({ verses, chapterKey }) {
       const found = list.findIndex((c) => c.verse === Number(fromVerse));
       if (found >= 0) i = found;
     }
+    introRef.current = intro;
     tokenRef.current += 1;
     playAt(i, tokenRef.current);
   }, [playAt]);

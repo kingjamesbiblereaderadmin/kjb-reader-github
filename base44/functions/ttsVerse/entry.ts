@@ -56,7 +56,12 @@ export default async function (req) {
   if (text.length > MAX_CHARS) return json({ error: 'too_long', max: MAX_CHARS }, 400);
 
   const base44 = createClientFromRequest(req);
-  const hash = await sha256Hex(`${voice}|${text}`);
+  // Key by reference when we have one. Verse text is normalised differently by
+  // each caller (the reader rewrites apostrophes and applies text overrides), so
+  // hashing the text makes a clip generated anywhere else unusable here. The
+  // reference — "GEN:1:1" — is the same everywhere. Text hashing stays as the
+  // fallback for callers that pass no ref.
+  const hash = await sha256Hex(ref ? `${voice}|ref:${ref}` : `${voice}|text:${text}`);
 
   // 1. Cache hit — no credits, no ElevenLabs call.
   try {

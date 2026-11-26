@@ -41,12 +41,15 @@ import { setVerseHighlight, getVerseHighlight, removeVerseHighlight } from '@/li
 import { HIGHLIGHT_COLORS } from '@/lib/highlightColors';
 import { usePinchZoom } from '@/hooks/usePinchZoom';
 import TtsPlayer from '@/components/bible/TtsPlayer';
+import useTtsEnabled from '@/hooks/useTtsEnabled';
 import { useReadingProgressTracker } from '@/hooks/useReadingProgressTracker';
 
 import { isMobile, STORAGE_KEY, loadPosition, savePosition, copyToClipboard } from '@/lib/readerPosition';
 
 export default function BibleReader() {
   const { hideHeader, setHideHeader } = useHeaderHide();
+  // Master switch for the Listen player (Settings -> Audio).
+  const ttsEnabled = useTtsEnabled();
   // hideHeader is app-wide context, not scoped to this page (it's also read by
   // AppLayout's own <header>). Nothing else ever resets it, so leaving the
   // Reader with the header manually hidden previously left every other page —
@@ -1944,13 +1947,16 @@ export default function BibleReader() {
 
       {/* Listen: reads the chapter verse by verse and highlights each verse as
           it is spoken. Audio is generated per verse and cached, so a verse is
-          only ever billed once — see base44/functions/ttsVerse. */}
-      {!loading && !error && !isViewingTitlePage && verses.length > 0 && (
+          only ever billed once — see base44/functions/ttsVerse. Settings has a
+          master switch that removes the whole player from the reader. */}
+      {ttsEnabled && !loading && !error && !isViewingTitlePage && verses.length > 0 && (
         <TtsPlayer
           verses={verses}
           chapterKey={`${pos.abbr}:${pos.chapter}`}
+          chapter={pos.chapter}
           startVerse={highlightVerse}
           label={book.shortName}
+          onNextChapter={() => goNext(true)}
         />
       )}
 

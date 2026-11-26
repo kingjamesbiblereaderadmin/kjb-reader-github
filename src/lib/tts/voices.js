@@ -26,7 +26,29 @@ export const TTS_STORAGE = {
   voice: 'kjb-tts-voice',
   rate: 'kjb-tts-rate',
   hidden: 'kjb-tts-ui-hidden',
+  // Master switch. Off means the reader shows no Listen button at all: the
+  // reader never mounts the player, so nothing is fetched and nothing plays.
+  enabled: 'kjb-tts-enabled',
+  // Roll straight into the next chapter when a chapter finishes.
+  autoContinue: 'kjb-tts-auto-continue',
 };
+
+// Fired on window whenever any of the above changes, so the reader (a different
+// route) picks up a switch flipped in Settings without a reload.
+export const TTS_SETTINGS_EVENT = 'kjb-tts-settings-changed';
+
+export function isTtsEnabled() {
+  return readStored(TTS_STORAGE.enabled, 'true') !== 'false';
+}
+
+export function setTtsEnabled(enabled) {
+  writeStored(TTS_STORAGE.enabled, enabled ? 'true' : 'false');
+  try {
+    window.dispatchEvent(new Event(TTS_SETTINGS_EVENT));
+  } catch {
+    /* non-browser context */
+  }
+}
 
 export function readStored(key, fallback) {
   try {

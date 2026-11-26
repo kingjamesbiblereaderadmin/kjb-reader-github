@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-import { Settings, Download, CheckCircle2, AlertCircle, Loader2, Trash2, MonitorSmartphone, Eye, EyeOff, ZoomIn, ZoomOut, Palette, Upload, Crop, Type, ChevronDown, CheckCircle, ExternalLink, Shield, MessageCircle, Youtube, RotateCcw, Accessibility, Keyboard, Star, Server, Globe, Mail, PlayCircle, Link2, FileText, Lock, Wrench } from 'lucide-react';
+import { Settings, Download, CheckCircle2, AlertCircle, Loader2, Trash2, MonitorSmartphone, Eye, EyeOff, ZoomIn, ZoomOut, Palette, Upload, Crop, Type, ChevronDown, CheckCircle, ExternalLink, Shield, MessageCircle, Youtube, RotateCcw, Accessibility, Keyboard, Star, Server, Globe, Mail, PlayCircle, Link2, FileText, Lock, Wrench, Headphones } from 'lucide-react';
 import ShortcutsList from '@/components/ShortcutsList';
 import PageHero from '@/components/PageHero';
 
 import DownloadBibleSection from '@/components/bible/DownloadBibleSection';
 import OfflineHtmlSection from '@/components/bible/OfflineHtmlSection';
 import ThemeColorPicker from '@/components/bible/ThemeColorPicker';
+import { TTS_VOICES, TTS_RATES, TTS_STORAGE, readStored, writeStored, isTtsEnabled, setTtsEnabled, TTS_SETTINGS_EVENT } from '@/lib/tts/voices';
 import { Switch } from '@/components/ui/switch';
 import { InstallAppSection } from '@/components/settings/InstallAppSection';
 import DownloadOptionsButton from '@/components/settings/DownloadOptionsButton';
@@ -129,6 +130,7 @@ export default function SettingsPage() {
     text: true,
     accessibility: true,
     shortcuts: true,
+    audio: false,
     appearance: true,
     install: true,
     offline: true,
@@ -140,6 +142,35 @@ export default function SettingsPage() {
     developer: false,
     danger: false,
   });
+
+  // Listen player (Settings -> Audio). The switch is the reader's master gate:
+  // off means no Listen button and no audio is ever requested.
+  const [ttsOn, setTtsOn] = useState(isTtsEnabled);
+  const [ttsVoice, setTtsVoice] = useState(() => readStored(TTS_STORAGE.voice, TTS_VOICES[0].id));
+  const [ttsRate, setTtsRate] = useState(() => Number(readStored(TTS_STORAGE.rate, 1)) || 1);
+  const [ttsContinue, setTtsContinue] = useState(() => readStored(TTS_STORAGE.autoContinue, 'true') !== 'false');
+
+  const toggleTtsContinue = (checked) => {
+    setTtsContinue(checked);
+    writeStored(TTS_STORAGE.autoContinue, checked ? 'true' : 'false');
+    try { window.dispatchEvent(new Event(TTS_SETTINGS_EVENT)); } catch {}
+  };
+
+  const toggleTts = (checked) => {
+    setTtsOn(checked);
+    setTtsEnabled(checked);
+    toast.success(checked ? 'Listen player shown in the reader' : 'Listen player hidden');
+  };
+  const pickTtsVoice = (id) => {
+    setTtsVoice(id);
+    writeStored(TTS_STORAGE.voice, id);
+    try { window.dispatchEvent(new Event(TTS_SETTINGS_EVENT)); } catch {}
+  };
+  const pickTtsRate = (value) => {
+    setTtsRate(value);
+    writeStored(TTS_STORAGE.rate, value);
+    try { window.dispatchEvent(new Event(TTS_SETTINGS_EVENT)); } catch {}
+  };
   const { isDark, mode, setMode, colourId, setColourId } = useTheme();
   const [readerFontFamily, setReaderFontFamily] = useState(() => {
     try { return localStorage.getItem('kjb-reader-font-family') || 'serif'; } catch { return 'serif'; }
@@ -668,6 +699,96 @@ export default function SettingsPage() {
         )}
       </div>
       )}
+
+      {/* Audio: the reader's Listen player */}
+      <div className="bg-sky-100/60 dark:bg-card border border-sky-200 dark:border-border rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
+        <button
+          onClick={() => toggleSection('audio')}
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-white/70 dark:bg-secondary/50 hover:bg-white/80 dark:hover:bg-secondary/80 transition-colors text-left"
+        >
+          <div className="flex flex-col gap-1">
+            <h2 className="font-serif text-lg font-semibold text-foreground flex items-center gap-2">
+              <Headphones className="w-4 h-4 text-violet-500" />
+              Audio
+            </h2>
+            <p className="font-sans text-xs text-muted-foreground">
+              {ttsOn ? 'Listen player shown in the reader' : 'Listen player hidden'}
+            </p>
+          </div>
+          <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${expandedSections.audio ? 'rotate-180' : ''}`} />
+        </button>
+        {expandedSections.audio && (
+        <div className="px-5 pb-6 pt-2 space-y-4">
+
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <h3 className="font-serif text-base font-semibold text-foreground">Show Listen player</h3>
+            <p className="font-sans text-xs text-muted-foreground">
+              Adds a Listen button to the reader. It reads the chapter verse by verse and highlights each verse as it is spoken. Turn this off and the reader has no audio controls at all.
+            </p>
+          </div>
+          <Switch checked={ttsOn} onCheckedChange={toggleTts} />
+        </div>
+
+        {ttsOn && (
+        <>
+        <div className="flex items-start justify-between gap-4 pt-4 border-t border-border">
+          <div className="flex flex-col gap-1">
+            <h3 className="font-serif text-base font-semibold text-foreground">Continue to the next chapter</h3>
+            <p className="font-sans text-xs text-muted-foreground">
+              When a chapter finishes, keep reading into the next one. It announces just "Chapter 3" and only says the book name again when the book changes.
+            </p>
+          </div>
+          <Switch checked={ttsContinue} onCheckedChange={toggleTtsContinue} />
+        </div>
+
+        <div className="pt-4 border-t border-border space-y-2">
+          <h3 className="font-serif text-base font-semibold text-foreground">Voice</h3>
+          <div className="flex flex-wrap gap-1.5">
+            {TTS_VOICES.map((v) => (
+              <button
+                key={v.id}
+                onClick={() => pickTtsVoice(v.id)}
+                className={`px-2.5 py-1.5 rounded-lg font-sans text-xs border transition-all duration-200 ${
+                  ttsVoice === v.id
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-transparent text-foreground border-foreground/30 hover:border-accent'
+                }`}
+              >
+                {v.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-border space-y-2">
+          <h3 className="font-serif text-base font-semibold text-foreground">Speed</h3>
+          <div className="flex gap-1.5">
+            {TTS_RATES.map((r) => (
+              <button
+                key={r}
+                onClick={() => pickTtsRate(r)}
+                className={`px-3 py-1.5 rounded-lg font-sans text-xs border transition-all duration-200 ${
+                  ttsRate === r
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-transparent text-foreground border-foreground/30 hover:border-accent'
+                }`}
+              >
+                {r}x
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <p className="font-sans text-[11px] text-muted-foreground pt-3 border-t border-border">
+          Each verse is generated once and cached, so replaying a chapter costs nothing. While the player is open, the down-chevron collapses it to a small play/pause pill and playback carries on.
+        </p>
+        </>
+        )}
+
+        </div>
+        )}
+      </div>
 
       {/* Appearance */}
       <div className="bg-violet-100/60 dark:bg-card border border-violet-200 dark:border-border rounded-2xl mb-5 overflow-hidden shadow-lg shadow-black/[0.03]">
