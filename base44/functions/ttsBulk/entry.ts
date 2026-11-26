@@ -20,7 +20,7 @@ const ENGINE = 'azure';
 const AZURE_PROXY_URL = 'https://solene-921ed14e.base44.app/functions/ttsAzure';
 const MAX_ITEMS = 40;
 const MAX_CHARS = 900;
-const CONCURRENCY = 4;
+const CONCURRENCY = 1;
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
