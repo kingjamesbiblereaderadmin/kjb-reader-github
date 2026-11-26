@@ -60,8 +60,11 @@ export default async function (req) {
 
   // 1. Cache hit — no credits, no ElevenLabs call.
   try {
-    const existing = await base44.entities.TtsClip.filter({ hash });
-    const hit = Array.isArray(existing) ? existing[0] : null;
+    // filter() returns a page ({items}) in the options form and a plain array
+    // in the positional form — accept either so a cache hit never depends on
+    // which SDK shape the app is running.
+    const existing = await base44.entities.TtsClip.filter({ hash }, { limit: 1 });
+    const hit = Array.isArray(existing) ? existing[0] : existing?.items?.[0] || null;
     if (hit?.url) return json({ url: hit.url, cached: true, chars: hit.chars || 0 });
   } catch (err) {
     console.error('[ttsVerse] cache lookup failed', err?.message);
