@@ -21,7 +21,11 @@ const SPEAKING_CLASS = 'kjb-speaking';
 // bottom border and shadow the toolbar hands over while it is attached. Same
 // negative margins as the toolbar's own wrapper (-mx-5 / sm:-mx-8 / lg:-mx-12)
 // so the two read as one block.
-const SHELL = 'print:hidden w-full -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background border-b border-border shadow-sm pb-2.5 mb-8';
+const SHELL = 'print:hidden w-full bg-background pb-2';
+
+// Standalone (no toolbar above it, e.g. with the header hidden): the section has
+// to break out to the page edges and draw its own bottom rule and shadow.
+const SHELL_STANDALONE = 'print:hidden w-full -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background border-b border-border shadow-sm pb-2.5 mb-8';
 
 function clearSpeaking() {
   document.querySelectorAll(`.${SPEAKING_CLASS}`).forEach((el) => el.classList.remove(SPEAKING_CLASS));
@@ -48,7 +52,7 @@ function scrollToVerse(verse) {
   if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }
 
-export default function TtsPlayer({ verses, chapterKey, chapter = null, startVerse = null, label = '', bookName = '', onNextChapter = null }) {
+export default function TtsPlayer({ embedded = false, verses, chapterKey, chapter = null, startVerse = null, label = '', bookName = '', onNextChapter = null }) {
   const [autoContinue] = useState(() => readStored(TTS_STORAGE.autoContinue, 'true') !== 'false');
   // Hidden = controls collapse to a single pill; audio keeps playing. Remembered
   // per device so a reader who listens while reading never sees the bar again.
@@ -207,7 +211,7 @@ export default function TtsPlayer({ verses, chapterKey, chapter = null, startVer
   // ---- idle: a centred Listen row ------------------------------------------
   if (!tts.isActive) {
     return (
-      <section className={SHELL}>
+      <section className={embedded ? SHELL : SHELL_STANDALONE}>
         <div className="flex flex-wrap items-center justify-center gap-2">
           <button
             onClick={startFromView}
@@ -238,7 +242,7 @@ export default function TtsPlayer({ verses, chapterKey, chapter = null, startVer
   // ---- hidden: a centred play/pause pill -----------------------------------
   if (hidden) {
     return (
-      <section className={SHELL}>
+      <section className={embedded ? SHELL : SHELL_STANDALONE}>
         <div className="flex items-center justify-center gap-1">
           <button onClick={onPlayPause} aria-label={tts.status === 'playing' ? 'Pause' : 'Play'} className="p-2 rounded-full hover:bg-accent/20 transition-colors">
             {tts.status === 'playing' || tts.status === 'loading' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -254,7 +258,7 @@ export default function TtsPlayer({ verses, chapterKey, chapter = null, startVer
 
   // ---- expanded: the full bar, centred ------------------------------------
   return (
-    <section className={SHELL}>
+    <section className={embedded ? SHELL : SHELL_STANDALONE}>
         <div className="flex flex-wrap items-center justify-center gap-0.5">
           <button onClick={withFollow(tts.prev)} aria-label="Previous verse" className="p-2 rounded-full hover:bg-accent/20 transition-colors">
             <SkipBack className="w-4 h-4" />

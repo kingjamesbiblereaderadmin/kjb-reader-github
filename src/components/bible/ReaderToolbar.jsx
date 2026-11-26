@@ -25,7 +25,7 @@ import { isMobile } from '@/lib/readerPosition';
 // indicator and the select/range/tap action bars. Extracted from
 // BibleReader — every value it reads arrives as a prop.
 export default function ReaderToolbar({
-  topRef, hideHeader, setHideHeader, anyMenuOpen, closeAllMenus, ttsAttached = false,
+  topRef, hideHeader, setHideHeader, anyMenuOpen, closeAllMenus, ttsAttached = false, playerSlot = null,
   pos, book, isViewingTitlePage,
   showBookPicker, setShowBookPicker, showChapterPicker, setShowChapterPicker,
   showVersePicker, setShowVersePicker, showZoomPopover, setShowZoomPopover,
@@ -50,7 +50,7 @@ export default function ReaderToolbar({
   tapCopyFeedback, tapShareFeedback, tapSaveFeedback,
 }) {
   return (
-    <div ref={topRef} data-kjb-reader-toolbar-wrap className={`print:hidden sticky top-0 z-[100] border-b pt-3 relative -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background ${ttsAttached ? 'border-transparent pb-0 mb-0 shadow-none' : 'border-border pb-4 mb-8 shadow-sm'}  before:content-[''] before:absolute before:bottom-full before:left-[calc(-1*env(safe-area-inset-left,0px))] before:right-[calc(-1*env(safe-area-inset-right,0px))] before:h-12 before:bg-background`}>
+    <div ref={topRef} data-kjb-reader-toolbar-wrap className={`print:hidden sticky top-0 z-[100] border-b pt-3 relative -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background ${ttsAttached ? 'border-border pb-0 mb-8 shadow-sm' : 'border-border pb-4 mb-8 shadow-sm'}  before:content-[''] before:absolute before:bottom-full before:left-[calc(-1*env(safe-area-inset-left,0px))] before:right-[calc(-1*env(safe-area-inset-right,0px))] before:h-12 before:bg-background`}>
       <div
         onClickCapture={(e) => {
           // Tapping empty space inside the toolbar (the gaps/padding between
@@ -531,6 +531,11 @@ export default function ReaderToolbar({
           onClose={() => setTappedVerses(new Set())}
         />
       )}
+
+      {/* The Listen player rides inside the toolbar block, so the two share one
+          white surface and the toolbar's own bottom border closes the whole
+          thing while it stays stuck to the top of the page. */}
+      {playerSlot}
 
     </div>
   );

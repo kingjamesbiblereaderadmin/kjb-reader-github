@@ -1739,7 +1739,20 @@ export default function BibleReader() {
   // True when the Listen player renders directly under the toolbar: the toolbar
   // then hands its bottom border and shadow to the player so the two are one
   // continuous white block instead of a bar with a card floating under it.
-  const ttsAttached = !hideHeader && ttsEnabled && !loading && !error && !isViewingTitlePage && verses.length > 0;
+  const ttsPlayerVisible = ttsEnabled && !loading && !error && !isViewingTitlePage && verses.length > 0;
+  const ttsAttached = !hideHeader && ttsPlayerVisible;
+  const ttsPlayerNode = ttsPlayerVisible ? (
+    <TtsPlayer
+      embedded={!hideHeader}
+      verses={verses}
+      chapterKey={`${pos.abbr}:${pos.chapter}`}
+      chapter={pos.chapter}
+      startVerse={highlightVerse}
+      label={book.shortName}
+      bookName={book.name}
+      onNextChapter={() => goNext(true)}
+    />
+  ) : null;
 
   return (
     <div onClick={(e) => { if (!e.target.closest('.kjb-verse-container, [id^="v"], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a, [role="menu"], [role="menuitem"], [data-radix-popper-content-wrapper]')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerses(new Set()); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 py-3 ${hideHeader ? 'pt-16' : ''}`}>
@@ -1747,6 +1760,7 @@ export default function BibleReader() {
         <ReaderToolbar
           topRef={topRef} hideHeader={hideHeader} setHideHeader={setHideHeader}
           anyMenuOpen={anyMenuOpen} closeAllMenus={closeAllMenus} ttsAttached={ttsAttached}
+          playerSlot={ttsAttached ? ttsPlayerNode : null}
           pos={pos} book={book} isViewingTitlePage={isViewingTitlePage}
           showBookPicker={showBookPicker} setShowBookPicker={setShowBookPicker}
           showChapterPicker={showChapterPicker} setShowChapterPicker={setShowChapterPicker}
@@ -1801,17 +1815,7 @@ export default function BibleReader() {
           it is spoken. Audio is generated per verse and cached, so a verse is
           only ever billed once — see base44/functions/ttsVerse. Settings has a
           master switch that removes the whole player from the reader. */}
-      {ttsEnabled && !loading && !error && !isViewingTitlePage && verses.length > 0 && (
-        <TtsPlayer
-          verses={verses}
-          chapterKey={`${pos.abbr}:${pos.chapter}`}
-          chapter={pos.chapter}
-          startVerse={highlightVerse}
-          label={book.shortName}
-          bookName={book.name}
-          onNextChapter={() => goNext(true)}
-        />
-      )}
+      {!ttsAttached && ttsPlayerNode}
 
 
       {/* Desktop-only backdrop for the inline popovers. On mobile the selectors
