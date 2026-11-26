@@ -1,0 +1,50 @@
+/* Flipbook view: ink on paper. No gradients on controls, no tinted pills. */
+.kjb-flipbook {
+  --fb-desk: #3b342c; --fb-paper: #f6f0e1; --fb-ink: #211c16; --fb-red: #8c2f23; --fb-rule: #cfc3a8; --fb-chrome: #eee6d6;
+  position: fixed; inset: 0; z-index: 180; display: flex; flex-direction: column;
+  background: var(--fb-desk); color: var(--fb-chrome); overscroll-behavior: contain;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+.dark .kjb-flipbook { --fb-desk: #0e0d0b; --fb-paper: #1d1b17; --fb-ink: #e6dfcf; --fb-red: #d9806f; --fb-rule: #3b362d; }
+.kjb-fb-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; font-size: 0.85rem; }
+.kjb-fb-bar button { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 0 14px; border: 1px solid rgba(238, 230, 214, 0.35); border-radius: 4px; color: inherit; }
+.kjb-fb-bar button:hover { background: rgba(238, 230, 214, 0.1); }
+
+.kjb-fb-stage { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: pan-y; }
+.kjb-fb-measure { position: absolute; left: 0; top: 0; overflow: hidden; visibility: hidden; pointer-events: none; }
+.kjb-fb-book { position: relative; perspective: 2400px; filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.4)); }
+.kjb-fb-slot { position: absolute; top: 0; bottom: 0; cursor: pointer; }
+
+.kjb-fb-page { position: relative; height: 100%; width: 100%; box-sizing: border-box; background: var(--fb-paper); color: var(--fb-ink); display: flex; flex-direction: column; overflow: hidden; }
+/* the shading where the pages curve into the binding */
+.kjb-fb-left { box-shadow: inset -28px 0 28px -22px rgba(0, 0, 0, 0.28); border-radius: 3px 0 0 3px; }
+.kjb-fb-right { box-shadow: inset 28px 0 28px -22px rgba(0, 0, 0, 0.28); border-radius: 0 3px 3px 0; }
+.kjb-fb-single { box-shadow: inset 18px 0 20px -18px rgba(0, 0, 0, 0.28); border-radius: 2px; }
+
+.kjb-fb-head { height: 36px; margin: 8px 0 12px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; border-bottom: 1px solid var(--fb-rule); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
+.kjb-fb-folio { height: 48px; display: flex; align-items: center; justify-content: center; font-family: Georgia, serif; font-size: 0.8rem; opacity: 0.7; }
+.kjb-fb-window { overflow: hidden; }
+.kjb-fb-flow { position: relative; column-fill: auto; line-height: 1.5; text-align: justify; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; font-family: Merriweather, Georgia, serif; }
+
+.kjb-fb-flow .kjb-fb-title { margin: 0 0 0.5em; text-align: center; font-size: 1.35em; font-weight: 700; line-height: 1.25; hyphens: manual; -webkit-hyphens: manual; color: inherit; break-inside: avoid; break-after: avoid; }
+.kjb-fb-flow .kjb-fb-title-only { margin-top: 35%; font-size: 1.7em; }
+.kjb-fb-chapter { margin: 0 0 1em; text-align: center; font-size: 0.78em; letter-spacing: 0.2em; text-transform: uppercase; break-after: avoid; }
+.kjb-fb-note { margin: 0.6em 0 1em; text-align: center; font-size: 0.88em; }
+.kjb-fb-verse { margin: 0; orphans: 2; widows: 2; }
+.kjb-fb-verse sup { position: static; margin-right: 0.3em; font-size: 0.65em; font-weight: 700; line-height: 0; vertical-align: super; color: var(--fb-red); }
+.kjb-fb-first > span::first-letter { float: left; margin: 0.04em 0.1em 0 0; font-size: 3.1em; line-height: 0.9; font-weight: 700; }
+.kjb-fb-flow .pilcrow { color: var(--fb-red); }
+.kjb-fb-flow em { font-style: italic; opacity: 0.82; }
+.kjb-fb-loading { font-size: 0.9rem; }
+
+/* The turning sheet, hinged on the spine. */
+.kjb-fb-leaf { position: absolute; top: 0; bottom: 0; z-index: 3; transform-style: preserve-3d; -webkit-transform-style: preserve-3d; pointer-events: none; }
+.kjb-fb-side { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.kjb-fb-side-back { transform: rotateY(180deg); }
+.kjb-fb-leaf-fwd { transform-origin: left center; animation: kjb-fb-fwd 650ms cubic-bezier(0.45, 0.05, 0.25, 1) forwards; }
+.kjb-fb-leaf-back { transform-origin: right center; animation: kjb-fb-back 650ms cubic-bezier(0.45, 0.05, 0.25, 1) forwards; }
+.kjb-fb-leaf-single-fwd { transform-origin: left center; animation: kjb-fb-fwd 550ms ease-in forwards; }
+.kjb-fb-leaf-single-back { transform-origin: left center; animation: kjb-fb-unfold 550ms ease-out forwards; }
+@keyframes kjb-fb-fwd { from { transform: rotateY(0deg); } to { transform: rotateY(-180deg); } }
+@keyframes kjb-fb-back { from { transform: rotateY(0deg); } to { transform: rotateY(180deg); } }
+@keyframes kjb-fb-unfold { from { transform: rotateY(-180deg); } to { transform: rotateY(0deg); } }
