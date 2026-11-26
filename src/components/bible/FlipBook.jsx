@@ -385,7 +385,10 @@ export default function FlipBook({
           <FittedTitlePage type={front[index]} book={book} width={textW} height={contentH - 24} />
         ) : (
           <>
-            <div className="kjb-fb-head">{book.shortName} {chapter}</div>
+            {/* The chapter's opening page already carries its own title, so the
+                running head only appears from the second page on — and never
+                beside a title page. */}
+            {textIndex > 0 && <div className="kjb-fb-head">{book.shortName} {chapter}</div>}
             <div className="kjb-fb-window" style={{ width: textW, height: textH }}>
               <ChapterFlow blocks={blocks} {...flowProps} page={textIndex} textStyle={textStyle} />
             </div>
