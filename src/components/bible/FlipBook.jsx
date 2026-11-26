@@ -23,22 +23,24 @@ const ChapterFlow = React.forwardRef(function ChapterFlow({ blocks, width, heigh
   );
 });
 
-// The app's own title pages, scaled down to fit inside one book page.
+// The app's own title pages, laid out at the page's own width. Their display
+// type is sized in container units (see flipbook.css), so a narrow page shrinks
+// the words instead of clipping them at the edges; only height ever needs
+// scaling.
 function FittedTitlePage({ type, book, width, height }) {
   const ref = useRef(null);
-  const [scale, setScale] = useState(0);
-  const base = Math.max(width, 440);
+  const [scale, setScale] = useState(1);
   useLayoutEffect(() => {
     const el = ref.current;
-    const fit = () => setScale(Math.min(1, width / Math.max(base, el.scrollWidth), height / el.offsetHeight));
+    const fit = () => setScale(Math.min(1, width / Math.max(width, el.scrollWidth), height / Math.max(1, el.offsetHeight)));
     fit();
     const ro = new ResizeObserver(fit);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [width, height, base, type, book]);
+  }, [width, height, type, book]);
   return (
     <div className="kjb-fb-titlewrap" style={{ width, height }}>
-      <div ref={ref} className="kjb-fb-titlepage" style={{ width: base, transform: `translate(-50%, -50%) scale(${scale})` }}>
+      <div ref={ref} className="kjb-fb-titlepage" style={{ width, transform: `translate(-50%, -50%) scale(${scale})` }}>
         <TitlePage type={type} book={book} />
       </div>
     </div>
@@ -385,10 +387,16 @@ export default function FlipBook({
           <FittedTitlePage type={front[index]} book={book} width={textW} height={contentH - 24} />
         ) : (
           <>
-            {/* The chapter's opening page already carries its own title, so the
-                running head only appears from the second page on — and never
-                beside a title page. */}
-            {textIndex > 0 && <div className="kjb-fb-head">{book.shortName} {chapter}</div>}
+            {/* The chapter's opening page carries its own title, so the running
+                head is left blank there — but it keeps its height and its rule,
+                so the page's top rule and foot rule line up with the facing
+                page, and the title is separated from the controls above. */}
+            <div
+              className={`kjb-fb-head${textIndex === 0 ? ' kjb-fb-head-blank' : ''}`}
+              aria-hidden={textIndex === 0 ? 'true' : undefined}
+            >
+              {textIndex === 0 ? '\u00A0' : `${book.shortName} ${chapter}`}
+            </div>
             <div className="kjb-fb-window" style={{ width: textW, height: textH }}>
               <ChapterFlow blocks={blocks} {...flowProps} page={textIndex} textStyle={textStyle} />
             </div>

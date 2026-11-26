@@ -16,6 +16,9 @@
 .kjb-fb-single { box-shadow: inset 18px 0 20px -18px rgba(0, 0, 0, 0.28); border-radius: 2px; }
 
 .kjb-fb-head { flex: none; margin: 14px 0 14px; padding-bottom: 7px; text-align: center; border-bottom: 1px solid var(--fb-rule); font-family: Merriweather, Georgia, serif; font-size: 0.72rem; line-height: 1.6; letter-spacing: 0.12em; text-transform: uppercase; }
+/* An opening page has no running head, but the ruled line still separates the
+   controls from the title and keeps the foot rules of both pages level. */
+.kjb-fb-head-blank { letter-spacing: 0; }
 /* page number at the foot, centred beneath a hairline rule, as in a printed Bible */
 .kjb-fb-folio { flex: 1; display: flex; align-items: flex-start; justify-content: center; margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--fb-rule); font-family: Merriweather, Georgia, serif; font-size: 0.8rem; font-variant-numeric: oldstyle-nums; }
 
@@ -45,8 +48,12 @@
 @keyframes kjb-fb-back { from { transform: rotateY(0deg); } to { transform: rotateY(180deg); } }
 @keyframes kjb-fb-unfold { from { transform: rotateY(-180deg); } to { transform: rotateY(0deg); } }
 
-.kjb-fb-titlewrap { position: relative; margin: 12px 0; overflow: hidden; }
+.kjb-fb-titlewrap { position: relative; margin: 12px 0; overflow: hidden; container-type: inline-size; }
 .kjb-fb-titlepage { position: absolute; left: 50%; top: 50%; transform-origin: center; }
+/* Title-page type follows the page, not the window: a narrow page sets smaller
+   words rather than letting "TESTAMENT" run past the paper edges. */
+.kjb-fb-titlepage h1 { font-size: clamp(1.5rem, 12.5cqw, 6rem); line-height: 1.1; }
+.kjb-fb-titlepage p { font-size: clamp(0.6rem, 2.4cqw, 1rem); }
 .kjb-fb-titlepage * { color: var(--fb-ink) !important; }
 .kjb-fb-titlepage .bg-accent { background: var(--fb-red) !important; }
 
