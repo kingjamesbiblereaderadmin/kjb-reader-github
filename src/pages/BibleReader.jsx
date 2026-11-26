@@ -1785,7 +1785,7 @@ export default function BibleReader() {
   ) : null;
 
   return (
-    <div onClick={(e) => { if (!e.target.closest('.kjb-flipbook, .kjb-verse-container, [id^="v"], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a, [role="menu"], [role="menuitem"], [data-radix-popper-content-wrapper]')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerses(new Set()); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 pb-3 ${hideHeader ? 'pt-16' : ''}`}>
+    <div onClick={(e) => { if (!e.target.closest('.kjb-flipbook, .kjb-verse-container, [id^="v"], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a, [role="menu"], [role="menuitem"], [data-radix-popper-content-wrapper]')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerses(new Set()); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 pb-3 ${hideHeader ? 'pt-16' : ''} ${flipbookOpen ? 'kjb-book-mode' : ''}`}>
       {!hideHeader && (
         <ReaderToolbar
           topRef={topRef} hideHeader={hideHeader} setHideHeader={setHideHeader}
@@ -1856,12 +1856,12 @@ export default function BibleReader() {
         />
       )}
 
-      <div className={`print:hidden relative z-[1] flex justify-end ${flipbookOpen ? '-mt-6' : '-mt-4'}`}>
+      <div className={`kjb-book-toggle-row print:hidden relative z-[1] flex justify-end ${flipbookOpen ? '-mt-6' : '-mt-4'}`}>
         <button
           onClick={() => { closeAllMenus(); setBookView(!flipbookOpen); }}
           data-testid="flipbook-open-btn"
           aria-pressed={flipbookOpen}
-          className="flex items-center gap-1.5 py-1 font-serif text-sm text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground"
+          className="kjb-book-toggle flex items-center gap-1.5 py-1 font-serif text-sm text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground"
         >
           <BookOpen className="w-4 h-4" />
           {flipbookOpen ? 'Normal view' : 'Read as book'}

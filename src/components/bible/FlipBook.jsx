@@ -45,6 +45,44 @@ function FittedTitlePage({ type, book, width, height }) {
   );
 }
 
+// How much of a verse the open pages show, as a share of its characters, ending
+// exactly on the last visible word. The voice spends its time on characters, so
+// this lands on that word's end far more closely than the verse's pixel width —
+// which is what made the turn happen before the word was finished.
+function visibleShare(el, flowLeft, colPeriod, boundaryCol) {
+  const nodes = [];
+  let total = 0;
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    const len = n.nodeValue.length;
+    if (!len) continue;
+    nodes.push({ node: n, start: total, len });
+    total += len;
+  }
+  if (!total) return 0;
+  const range = document.createRange();
+  const onOpenPages = (i) => {
+    const hit = nodes.find((e) => i >= e.start && i < e.start + e.len);
+    if (!hit) return false;
+    range.setStart(hit.node, i - hit.start);
+    range.setEnd(hit.node, i - hit.start + 1);
+    const r = range.getBoundingClientRect();
+    // A collapsed space at the end of a line has no box of its own.
+    if (!r.width && !r.height) return true;
+    // The column a character ends in. Characters are laid out in reading
+    // order, so this is true up to the last visible one and false after it.
+    return Math.floor(((r.width ? r.right : r.left) - flowLeft - 1) / colPeriod) < boundaryCol;
+  };
+  let lo = 0;
+  let hi = total - 1;
+  let last = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (onOpenPages(mid)) { last = mid; lo = mid + 1; } else hi = mid - 1;
+  }
+  return last < 0 ? 0 : (last + 1) / total;
+}
+
 /** Optional printed-book view of the reader, shown under the toolbar and player. */
 export default function FlipBook({
   book, abbr, chapter, verses, subscript, colophon, endMarker, loading, error,
@@ -241,37 +279,38 @@ export default function FlipBook({
 
   // A verse can run past the foot of the page it starts on, and the voice reads
   // on regardless — so the book used to sit on the page holding only the first
-  // part of that verse. Turn the page as soon as the reading passes the last
-  // line the open pages show, measured from the clip's own progress.
+  // part of that verse. Turn the page when the reading finishes the last word
+  // the open pages show: the share below is the end of that word, measured in
+  // characters, which is what the voice spends its time on.
   useEffect(() => {
     if (!spokenAt || spokenAt === 'intro' || spokenAt === 'end' || loading) return undefined;
     const flow = measureRef.current;
     if (!flow) return undefined;
     const flowLeft = flow.getBoundingClientRect().left;
+    let need = 0;
     const read = () => {
       if (turn) return true;
-      const el = flow.querySelector(spokenAt);
-      const rects = el ? el.getClientRects() : null;
-      if (!rects || !rects.length) return false;
-      let x0 = Infinity;
-      let x1 = -Infinity;
-      for (const r of rects) {
-        x0 = Math.min(x0, r.left - flowLeft);
-        x1 = Math.max(x1, r.right - flowLeft);
+      if (!need) {
+        const el = flow.querySelector(spokenAt);
+        const rects = el ? el.getClientRects() : null;
+        if (!rects || !rects.length) return false;
+        let x1 = -Infinity;
+        for (const r of rects) x1 = Math.max(x1, r.right - flowLeft);
+        // Where the open pages stop in the chapter's flow.
+        const visibleEnd = (page + step) * (textW + gap);
+        if (x1 <= visibleEnd + 1) return false;
+        need = visibleShare(el, flowLeft, colW + gap, (page + step) * perPage);
+        if (!need || need >= 1) return false;
       }
-      // Where the open pages stop in the chapter's flow.
-      const visibleEnd = (page + step) * (textW + gap);
-      if (x1 <= visibleEnd + 1) return false;
-      const need = Math.max(0, Math.min(1, (visibleEnd - x0) / Math.max(1, x1 - x0)));
       if (getProgress() < need) return true;
       turnTo(page + step);
       return false;
     };
     if (!read()) return undefined;
-    const timer = window.setInterval(read, 200);
+    const timer = window.setInterval(read, 120);
     return () => window.clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spokenAt, page, step, pageCount, turn, loading, textW, gap]);
+  }, [spokenAt, page, step, pageCount, turn, loading, textW, gap, colW, perPage]);
 
   // A verse or section picked in the toolbar, or a search result, opens its page.
   useEffect(() => {

@@ -90,3 +90,92 @@
 .kjb-flipbook mark { background: rgba(250, 204, 21, 0.55); color: inherit; border-radius: 2px; }
 .kjb-flipbook .kjb-fb-jumped { background: rgba(140, 47, 35, 0.12); }
 .kjb-flipbook .kjb-fb-selected { background: rgba(37, 99, 235, 0.18); box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.45); }
+
+/* ---- Book mode -----------------------------------------------------------
+   With the book open the reader stops looking like an app screen. The sticky
+   toolbar becomes the book's head band — the same paper, the same hairline
+   rule and ink controls instead of app-coloured buttons — so the chrome and
+   the pages read as one object from the top of the screen to the page numbers. */
+.kjb-book-mode {
+  --fb-paper: #fffefb;
+  --fb-ink: #211c16;
+  --fb-rule: #d8cfb9;
+}
+.dark .kjb-book-mode {
+  --fb-paper: #1d1b17;
+  --fb-ink: #e6dfcf;
+  --fb-rule: #3b362d;
+}
+
+.kjb-book-mode [data-kjb-reader-toolbar-wrap] {
+  background: var(--fb-paper);
+  border-bottom-color: var(--fb-rule);
+  color: var(--fb-ink);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+  border-radius: 10px 10px 0 0;
+  margin-bottom: 0;
+}
+.kjb-book-mode [data-kjb-reader-toolbar-wrap]::before,
+.kjb-book-mode [data-kjb-reader-toolbar-wrap]::after {
+  background: var(--fb-paper);
+  border-bottom-color: var(--fb-rule);
+}
+
+/* Controls read as printed tabs on the band, not as app buttons. */
+.kjb-book-mode [data-kjb-reader-toolbar-wrap] button {
+  background: transparent;
+  border-color: var(--fb-rule);
+  color: var(--fb-ink);
+  box-shadow: none;
+}
+.kjb-book-mode [data-kjb-reader-toolbar-wrap] button:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+.dark .kjb-book-mode [data-kjb-reader-toolbar-wrap] button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+/* The book/chapter tabs and the play control stay filled, in ink. */
+.kjb-book-mode [data-kjb-reader-toolbar-wrap] button.bg-primary {
+  background: var(--fb-ink);
+  color: var(--fb-paper);
+  border-color: var(--fb-ink);
+}
+/* An active toggle keeps its mark, in ink rather than the app accent. */
+.kjb-book-mode [data-kjb-reader-toolbar-wrap] button.bg-primary\/10,
+.kjb-book-mode [data-kjb-reader-toolbar-wrap] button.bg-primary\/20 {
+  background: rgba(33, 28, 22, 0.1);
+}
+.dark .kjb-book-mode [data-kjb-reader-toolbar-wrap] button.bg-primary\/10,
+.dark .kjb-book-mode [data-kjb-reader-toolbar-wrap] button.bg-primary\/20 {
+  background: rgba(230, 223, 207, 0.16);
+}
+/* The Listen player rides inside the band: no app panel of its own. */
+.kjb-book-mode [data-kjb-reader-toolbar-wrap] section,
+.kjb-book-mode [data-kjb-reader-toolbar-wrap] .bg-background,
+.kjb-book-mode [data-kjb-reader-toolbar-wrap] .bg-card {
+  background: transparent;
+  border-color: var(--fb-rule);
+}
+
+/* The view switch is a printed marker on the desk, not a stray link. */
+.kjb-book-mode .kjb-book-toggle-row {
+  margin-top: 8px;
+}
+.kjb-book-mode .kjb-book-toggle {
+  color: var(--fb-ink);
+  text-decoration: none;
+  border: 1px solid var(--fb-rule);
+  background: var(--fb-paper);
+  border-radius: 9999px;
+  padding: 3px 12px;
+  opacity: 0.85;
+}
+.kjb-book-mode .kjb-book-toggle:hover {
+  opacity: 1;
+}
+/* The page read-out under the book belongs to the same paper. */
+.kjb-book-mode .kjb-fb-bar {
+  border-top-color: var(--fb-rule);
+  color: var(--fb-ink);
+  opacity: 0.8;
+}
