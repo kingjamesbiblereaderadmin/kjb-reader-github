@@ -57,10 +57,13 @@ async function azureSpeech(text: string, voice: string): Promise<SynthResult> {
   // platform's secret detector gave the Azure Speech key when it was pasted in
   // chat; the key itself is an Azure Speech key (verified against the
   // voices/list endpoint). Southeast Asia is the default region.
+  // The Azure Speech key was first pasted into this app under the name
+  // GOOGLE_API_KEY (the secret detector's guess), so both names are read: a key
+  // set either way works, and renaming it later cannot silence the player.
   const key = Deno.env.get('AZURE_SPEECH_KEY') || Deno.env.get('GOOGLE_API_KEY');
   const region = Deno.env.get('AZURE_SPEECH_REGION') || 'southeastasia';
   if (!key) {
-    return { ok: false, error: 'no_key', status: 501, detail: 'Add AZURE_SPEECH_KEY to this app\'s environment variables.' };
+    return { ok: false, error: 'no_key', status: 501, detail: 'Add AZURE_SPEECH_KEY (or GOOGLE_API_KEY) to this app\'s environment variables.' };
   }
   const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-GB'><voice name='${xmlEscape(voice)}'>${xmlEscape(text)}</voice></speak>`;
   let upstream: Response;
