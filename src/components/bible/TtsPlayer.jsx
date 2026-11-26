@@ -120,6 +120,19 @@ export default function TtsPlayer({ verses, chapterKey, chapter = null, startVer
     if (offscreen) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, [tts.currentVerse]);
 
+  // While the chapter announcement plays, the heading is what is being spoken,
+  // so the book name and chapter line carry the highlight (both the large
+  // chapter heading and the two-column running head).
+  useEffect(() => {
+    const heads = document.querySelectorAll(
+      '.kjb-book-title, .kjb-chapter-heading, .kjb-running-book, .kjb-running-chapter'
+    );
+    heads.forEach((el) => {
+      if (tts.introActive) el.classList.add(SPEAKING_CLASS);
+      else el.classList.remove(SPEAKING_CLASS);
+    });
+  }, [tts.introActive]);
+
   // A manual scroll means "I'm reading here" — stop chasing the audio.
   useEffect(() => {
     const stopFollowing = () => { followRef.current = false; };

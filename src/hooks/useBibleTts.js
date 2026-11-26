@@ -61,6 +61,9 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
   const [voice, setVoiceState] = useState(() => readStored(TTS_STORAGE.voice, DEFAULT_TTS_VOICE));
   const [rate, setRateState] = useState(() => Number(readStored(TTS_STORAGE.rate, 1)) || 1);
   const [status, setStatus] = useState('idle'); // idle | loading | playing | paused | error
+  // True while the "Genesis, chapter 3" announcement plays before verse 1, so
+  // the reader can highlight the book name and chapter line instead of a verse.
+  const [introActive, setIntroActive] = useState(false);
   const [index, setIndex] = useState(-1);
   const [error, setError] = useState('');
 
@@ -111,6 +114,7 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
       el.removeAttribute('src');
     }
     setIndex(-1);
+    setIntroActive(false);
     setStatus('idle');
   }, []);
 
@@ -123,6 +127,7 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
       url = await audioUrlFor(clip, voiceRef.current);
     } catch (err) {
       if (token === tokenRef.current) {
+        setIntroActive(false);
         setError(err?.message || 'Audio could not be generated.');
         setStatus('error');
       }
@@ -163,12 +168,18 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
     if (intro) {
       introRef.current = null;
       // Warm the verse while the label speaks, and do not move the highlight
-      // until the verse itself starts.
+      // until the verse itself starts: the book name and chapter line carry the
+      // highlight for as long as the announcement lasts.
       audioUrlFor(list[i], voiceRef.current).catch(() => {});
-      await playClip(intro, token, () => playAtRef.current?.(i, token));
+      setIntroActive(true);
+      await playClip(intro, token, () => {
+        setIntroActive(false);
+        playAtRef.current?.(i, token);
+      });
       return;
     }
 
+    setIntroActive(false);
     setIndex(i);
     // Warm the next verse while this one plays — the gap between clips is what
     // makes a per-verse player feel stuttery otherwise.
@@ -260,7 +271,7 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
   const currentVerse = index >= 0 ? clipsRef.current[index]?.verse ?? null : null;
 
   return {
-    status, error, index, currentVerse, voice, rate,
+    status, error, index, currentVerse, voice, rate, introActive,
     total: clips.length,
     start, pause, resume, toggle, next, prev, stop: hardStop,
     setVoice, setRate,

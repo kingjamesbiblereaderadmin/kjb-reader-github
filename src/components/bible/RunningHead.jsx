@@ -144,7 +144,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
           <span
             ref={leftRef}
             data-testid="kjb-running-head-book"
-            className={`notranslate inline-block max-w-full font-semibold tracking-wide text-foreground ${
+            className={`notranslate kjb-running-book inline-block max-w-full font-semibold tracking-wide text-foreground ${
               stacked ? 'whitespace-normal break-words' : 'whitespace-nowrap'
             }`}
             style={{ fontSize, fontStyle: 'normal' }}
