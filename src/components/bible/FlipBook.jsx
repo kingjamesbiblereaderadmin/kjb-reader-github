@@ -88,7 +88,7 @@ export default function FlipBook({
   book, abbr, chapter, verses, subscript, colophon, endMarker, loading, error,
   fontFamilyValue, isCursive, zoomLevel, jumpVerse, jumpSection, tappedVerses, onVerseTap,
   twoColumns, paragraphs, searchTerm, selectMode, selectedVerses, filterMode,
-  onNextChapter, onPrevChapter, canPrev, canNext,
+  onNextChapter, onPrevChapter, canPrev, canNext, controls,
 }) {
   const bookName = book.name;
   const rootRef = useRef(null);
@@ -435,7 +435,7 @@ export default function FlipBook({
       role="region"
       aria-label="Book view"
       data-testid="kjb-flipbook"
-      onTouchStart={(e) => { stop(e); touchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }}
+      onTouchStart={(e) => { if (e.target.closest?.('.kjb-fb-tools')) return; stop(e); touchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }}
       onTouchMove={stop}
       onTouchEnd={(e) => {
         stop(e);
@@ -447,6 +447,10 @@ export default function FlipBook({
         if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.4) go(dx < 0 ? 1 : -1);
       }}
     >
+      {/* The reader's own controls, drawn on the book's paper above the open
+          pages so the book carries its controls instead of a bar above it. */}
+      {controls && <div className="kjb-fb-tools">{controls}</div>}
+
       <div ref={setStageEl} className="kjb-fb-stage">
         {/* Invisible copy used only to count pages. */}
         <div className="kjb-fb-measure" aria-hidden="true" style={{ width: textW, height: textH }}>

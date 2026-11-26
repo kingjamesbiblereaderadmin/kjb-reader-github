@@ -1784,58 +1784,79 @@ export default function BibleReader() {
     />
   ) : null;
 
+  // The reader's controls, built once. In book view they are handed to the book
+  // and drawn inside it, on the same paper as the pages, so the book carries its
+  // own controls instead of sitting beneath a bar of app buttons.
+  const toolbarNode = !hideHeader ? (
+    <ReaderToolbar
+      topRef={topRef} hideHeader={hideHeader} setHideHeader={setHideHeader}
+      anyMenuOpen={anyMenuOpen} closeAllMenus={closeAllMenus} ttsAttached={ttsAttached && ttsSectionShown}
+      listenAvailable={ttsAttached} listenOpen={listenOpen} listenActive={ttsActive}
+      onToggleListen={() => { closeAllMenus(); setListenOpen(v => !v); }}
+      playerSlot={ttsAttached ? ttsPlayerNode : null}
+      pos={pos} book={book} isViewingTitlePage={isViewingTitlePage}
+      showBookPicker={showBookPicker} setShowBookPicker={setShowBookPicker}
+      showChapterPicker={showChapterPicker} setShowChapterPicker={setShowChapterPicker}
+      showVersePicker={showVersePicker} setShowVersePicker={setShowVersePicker}
+      showZoomPopover={showZoomPopover} setShowZoomPopover={setShowZoomPopover}
+      showFontPopover={showFontPopover} setShowFontPopover={setShowFontPopover}
+      pendingBook={pendingBook} setPendingBook={setPendingBook}
+      navigate={navigate} handleVersePick={handleVersePick}
+      verseCount={verseCount} chapterSubscript={chapterSubscript} colophon={colophon}
+      endMarker={resolveEndMarker(book?.apiName, pos.chapter)}
+      titlePageText={titlePageSpoken}
+      loading={loading}
+      highlightVerse={highlightVerse} highlightSection={highlightSection}
+      selectMode={selectMode} selectedVerses={selectedVerses} filterMode={filterMode}
+      setSelectMode={setSelectMode} setFilterMode={setFilterMode} setSelectedVerses={setSelectedVerses}
+      setHighlightedVerses={setHighlightedVerses} setShowFilterOverlay={setShowFilterOverlay}
+      setHighlightVerse={setHighlightVerse} setHighlightSection={setHighlightSection} setTappedVerses={setTappedVerses}
+      zoomLevel={zoomLevel} adjustZoom={adjustZoom} handleZoomChange={handleZoomChange} resetZoom={resetZoom}
+      fontFamily={fontFamily} a11yActive={a11yActive} a11yFont={a11yFont} handleFontChange={handleFontChange}
+      flowMode={flowMode} toggleFlow={toggleFlow} columnOn={columnOn} toggleColumn={toggleColumn}
+      toggleSelectMode={toggleSelectMode} paragraphMode={paragraphMode} columnMode={columnMode}
+      verses={verses} searchTerm={searchTerm} gospelMode={gospelMode}
+      lastReadingActive={lastReadingActive} lastReadingPos={lastReadingPos}
+      gospelResultIndex={gospelResultIndex} gospelTotalResults={gospelTotalResults}
+      searchResultIndex={searchResultIndex} searchTotalResults={searchTotalResults}
+      setGospelResultIndex={setGospelResultIndex} setSearchResultIndex={setSearchResultIndex}
+      stepToResult={stepToResult} clearSearchContext={clearSearchContext}
+      setGospelMode={setGospelMode} setLastReadingPos={setLastReadingPos}
+      returnToChapter={returnToChapter} scrollToVerseEl={scrollToVerseEl}
+      rangeHighlightRef={rangeHighlightRef} resultViewRef={resultViewRef}
+      goPrev={goPrev} goNext={goNext}
+      isFirstChapterFirstBook={isFirstChapterFirstBook} isLastChapterLastBook={isLastChapterLastBook}
+      copyFeedback={copyFeedback} saveFeedback={saveFeedback}
+      shareFeedback={shareFeedback} shareLinkFeedback={shareLinkFeedback}
+      selectAllVerses={selectAllVerses} handleCopySelected={handleCopySelected}
+      handleCopyPerVerse={handleCopyPerVerse} handleSaveSelected={handleSaveSelected}
+      handleHighlightSelected={handleHighlightSelected} handleReadSelected={handleReadSelected}
+      handleShareChapter={handleShareChapter} handleSharePerVerse={handleSharePerVerse} handleShareLink={handleShareLink}
+      tappedVerseNums={tappedVerseNums} handleTapHighlightToggle={handleTapHighlightToggle}
+      handleTapCopy={handleTapCopy} handleTapShare={handleTapShare} handleTapSave={handleTapSave}
+      tapCopyFeedback={tapCopyFeedback} tapShareFeedback={tapShareFeedback} tapSaveFeedback={tapSaveFeedback}
+    />
+  ) : null;
+
+  // The view switch travels with the controls: above the text in normal view,
+  // and inside the book's own head band while the book is open.
+  const bookToggleNode = (
+    <div className={`kjb-book-toggle-row print:hidden relative z-[1] flex justify-end ${flipbookOpen ? '-mt-6' : '-mt-4'}`}>
+      <button
+        onClick={() => { closeAllMenus(); setBookView(!flipbookOpen); }}
+        data-testid="flipbook-open-btn"
+        aria-pressed={flipbookOpen}
+        className="kjb-book-toggle flex items-center gap-1.5 py-1 font-serif text-sm text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground"
+      >
+        <BookOpen className="w-4 h-4" />
+        {flipbookOpen ? 'Normal view' : 'Read as book'}
+      </button>
+    </div>
+  );
+
   return (
     <div onClick={(e) => { if (!e.target.closest('.kjb-flipbook, .kjb-verse-container, [id^="v"], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a, [role="menu"], [role="menuitem"], [data-radix-popper-content-wrapper]')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerses(new Set()); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 pb-3 ${hideHeader ? 'pt-16' : ''} ${flipbookOpen ? 'kjb-book-mode' : ''}`}>
-      {!hideHeader && (
-        <ReaderToolbar
-          topRef={topRef} hideHeader={hideHeader} setHideHeader={setHideHeader}
-          anyMenuOpen={anyMenuOpen} closeAllMenus={closeAllMenus} ttsAttached={ttsAttached && ttsSectionShown}
-          listenAvailable={ttsAttached} listenOpen={listenOpen} listenActive={ttsActive}
-          onToggleListen={() => { closeAllMenus(); setListenOpen(v => !v); }}
-          playerSlot={ttsAttached ? ttsPlayerNode : null}
-          pos={pos} book={book} isViewingTitlePage={isViewingTitlePage}
-          showBookPicker={showBookPicker} setShowBookPicker={setShowBookPicker}
-          showChapterPicker={showChapterPicker} setShowChapterPicker={setShowChapterPicker}
-          showVersePicker={showVersePicker} setShowVersePicker={setShowVersePicker}
-          showZoomPopover={showZoomPopover} setShowZoomPopover={setShowZoomPopover}
-          showFontPopover={showFontPopover} setShowFontPopover={setShowFontPopover}
-          pendingBook={pendingBook} setPendingBook={setPendingBook}
-          navigate={navigate} handleVersePick={handleVersePick}
-          verseCount={verseCount} chapterSubscript={chapterSubscript} colophon={colophon}
-          endMarker={resolveEndMarker(book?.apiName, pos.chapter)}
-          titlePageText={titlePageSpoken}
-          loading={loading}
-          highlightVerse={highlightVerse} highlightSection={highlightSection}
-          selectMode={selectMode} selectedVerses={selectedVerses} filterMode={filterMode}
-          setSelectMode={setSelectMode} setFilterMode={setFilterMode} setSelectedVerses={setSelectedVerses}
-          setHighlightedVerses={setHighlightedVerses} setShowFilterOverlay={setShowFilterOverlay}
-          setHighlightVerse={setHighlightVerse} setHighlightSection={setHighlightSection} setTappedVerses={setTappedVerses}
-          zoomLevel={zoomLevel} adjustZoom={adjustZoom} handleZoomChange={handleZoomChange} resetZoom={resetZoom}
-          fontFamily={fontFamily} a11yActive={a11yActive} a11yFont={a11yFont} handleFontChange={handleFontChange}
-          flowMode={flowMode} toggleFlow={toggleFlow} columnOn={columnOn} toggleColumn={toggleColumn}
-          toggleSelectMode={toggleSelectMode} paragraphMode={paragraphMode} columnMode={columnMode}
-          verses={verses} searchTerm={searchTerm} gospelMode={gospelMode}
-          lastReadingActive={lastReadingActive} lastReadingPos={lastReadingPos}
-          gospelResultIndex={gospelResultIndex} gospelTotalResults={gospelTotalResults}
-          searchResultIndex={searchResultIndex} searchTotalResults={searchTotalResults}
-          setGospelResultIndex={setGospelResultIndex} setSearchResultIndex={setSearchResultIndex}
-          stepToResult={stepToResult} clearSearchContext={clearSearchContext}
-          setGospelMode={setGospelMode} setLastReadingPos={setLastReadingPos}
-          returnToChapter={returnToChapter} scrollToVerseEl={scrollToVerseEl}
-          rangeHighlightRef={rangeHighlightRef} resultViewRef={resultViewRef}
-          goPrev={goPrev} goNext={goNext}
-          isFirstChapterFirstBook={isFirstChapterFirstBook} isLastChapterLastBook={isLastChapterLastBook}
-          copyFeedback={copyFeedback} saveFeedback={saveFeedback}
-          shareFeedback={shareFeedback} shareLinkFeedback={shareLinkFeedback}
-          selectAllVerses={selectAllVerses} handleCopySelected={handleCopySelected}
-          handleCopyPerVerse={handleCopyPerVerse} handleSaveSelected={handleSaveSelected}
-          handleHighlightSelected={handleHighlightSelected} handleReadSelected={handleReadSelected}
-          handleShareChapter={handleShareChapter} handleSharePerVerse={handleSharePerVerse} handleShareLink={handleShareLink}
-          tappedVerseNums={tappedVerseNums} handleTapHighlightToggle={handleTapHighlightToggle}
-          handleTapCopy={handleTapCopy} handleTapShare={handleTapShare} handleTapSave={handleTapSave}
-          tapCopyFeedback={tapCopyFeedback} tapShareFeedback={tapShareFeedback} tapSaveFeedback={tapSaveFeedback}
-        />
-      )}
+      {!hideHeader && !flipbookOpen && toolbarNode}
 
       {hideHeader && <MinimizedHeaderBar setHideHeader={setHideHeader} />}
 
@@ -1856,19 +1877,10 @@ export default function BibleReader() {
         />
       )}
 
-      <div className={`kjb-book-toggle-row print:hidden relative z-[1] flex justify-end ${flipbookOpen ? '-mt-6' : '-mt-4'}`}>
-        <button
-          onClick={() => { closeAllMenus(); setBookView(!flipbookOpen); }}
-          data-testid="flipbook-open-btn"
-          aria-pressed={flipbookOpen}
-          className="kjb-book-toggle flex items-center gap-1.5 py-1 font-serif text-sm text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground"
-        >
-          <BookOpen className="w-4 h-4" />
-          {flipbookOpen ? 'Normal view' : 'Read as book'}
-        </button>
-      </div>
+      {!flipbookOpen && bookToggleNode}
       {flipbookOpen && (
         <FlipBook
+          controls={<>{toolbarNode}{bookToggleNode}</>}
           book={book} abbr={pos.abbr} chapter={pos.chapter} verses={isViewingTitlePage ? [] : verses}
           subscript={isViewingTitlePage ? null : chapterSubscript} colophon={isViewingTitlePage ? null : colophon}
           endMarker={(pos.abbr === 'MAL' && pos.chapter === 4) || (pos.abbr === 'REV' && pos.chapter === 22) ? resolveEndMarker(book.apiName, pos.chapter) : null}

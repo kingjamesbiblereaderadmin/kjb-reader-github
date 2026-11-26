@@ -179,3 +179,46 @@
   color: var(--fb-ink);
   opacity: 0.8;
 }
+
+/* The controls are drawn inside the book: one paper card carrying its own head
+   band, the open pages, and the page read-out beneath them. */
+.kjb-fb-tools {
+  flex: none;
+  position: relative;
+  z-index: 20;
+  padding: 8px 12px 4px;
+  border-bottom: 1px solid var(--fb-rule);
+}
+/* The toolbar is a sticky, bleeding app band everywhere else; inside the book it
+   is simply the book's head band. */
+.kjb-fb-tools [data-kjb-reader-toolbar-wrap] {
+  position: static !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.kjb-fb-tools [data-kjb-reader-toolbar-wrap]::before,
+.kjb-fb-tools [data-kjb-reader-toolbar-wrap]::after {
+  display: none !important;
+}
+.kjb-fb-tools .kjb-book-toggle-row {
+  margin: 6px 0 0 !important;
+}
+
+.kjb-book-mode .kjb-flipbook {
+  background: var(--fb-paper);
+  border: 1px solid var(--fb-rule);
+  border-radius: 12px;
+  box-shadow: 0 16px 34px -24px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+.kjb-book-mode .kjb-fb-stage {
+  background: transparent;
+  border-radius: 0;
+}
+.kjb-book-mode .kjb-fb-bar {
+  padding-bottom: 8px;
+}
