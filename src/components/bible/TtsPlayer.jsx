@@ -134,15 +134,6 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
 
   const tts = useBibleTts({ verses, chapterKey, subscript, colophon, titleText, endMarker, onChapterEnd: handleChapterEnd });
 
-  // Stopping (or reaching the end) closes the listening session: the next start
-  // is a fresh one and names its book again, even in the same chapter. This has
-  // to sit BELOW the useBibleTts call: the dependency array is read during
-  // render, so naming `tts` above it would hit the temporal dead zone and take
-  // the whole reader down with "Cannot access 'tts' before initialization".
-  useEffect(() => {
-    if (!tts.isActive) announcedRef.current = false;
-  }, [tts.isActive]);
-
   // Roll into the new chapter once its verses land. Gating on the verses array
   // actually changing (not just on chapterKey) is what stops playback starting
   // against the previous chapter's text while the new one is still loading.
@@ -318,6 +309,11 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
     const intro = chapter >= 1
       ? { ref: `${chapterKey}:intro`, text: `${bookName || label}, chapter ${chapter}` }
       : null;
+    // This press has just named the book, so the chapters that roll on from it
+    // only need "Chapter 4". Marking it here is what keeps continuous playback
+    // from naming the book again at a chapter boundary, which used to happen
+    // whenever the player briefly went idle between chapters.
+    announcedRef.current = true;
     tts.start(verse, intro);
   };
 
