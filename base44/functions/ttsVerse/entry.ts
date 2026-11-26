@@ -9,7 +9,7 @@
 // place credits are spent. Replays, revisits and other readers of the same verse
 // all hit the cache and cost nothing.
 
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.63';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -72,7 +72,10 @@ export default async function (req) {
     // content hash. Reading it through the caller's session made the cache
     // invisible whenever the caller was not the row's owner, which turned every
     // replay into a fresh ElevenLabs charge.
-    const existing = await base44.asServiceRole.entities.TtsClip.filter({ hash }, { limit: 1 });
+    // asServiceRole exists from 0.8.63 on; fall back to the caller's client so
+    // an older SDK can never turn a cache hit into a paid generation.
+    const db = base44.asServiceRole || base44;
+    const existing = await db.entities.TtsClip.filter({ hash }, { limit: 1 });
     const hit = Array.isArray(existing) ? existing[0] : existing?.items?.[0] || null;
     if (hit?.url) return json({ url: hit.url, cached: true, chars: hit.chars || 0 });
   } catch (err) {
@@ -146,7 +149,8 @@ export default async function (req) {
   }
 
   try {
-    await base44.asServiceRole.entities.TtsClip.create({ hash, voice, chars: text.length, url, ref });
+    const db = base44.asServiceRole || base44;
+    await db.entities.TtsClip.create({ hash, voice, chars: text.length, url, ref });
   } catch (err) {
     console.error('[ttsVerse] cache write failed', err?.message);
   }
