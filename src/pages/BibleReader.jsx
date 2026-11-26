@@ -1873,9 +1873,11 @@ export default function BibleReader() {
           subscript={isViewingTitlePage ? null : chapterSubscript} colophon={isViewingTitlePage ? null : colophon}
           endMarker={(pos.abbr === 'MAL' && pos.chapter === 4) || (pos.abbr === 'REV' && pos.chapter === 22) ? resolveEndMarker(book.apiName, pos.chapter) : null}
           loading={loading} error={error}
-          fontFamilyValue={fontFamily === 'cursive' ? null : getFontFamilyValue(fontFamily)}
-          zoomLevel={zoomLevel} jumpVerse={highlightVerse} tappedVerses={tappedVerses}
-          onVerseTap={toggleTappedVerse}
+          fontFamilyValue={fontFamily === 'cursive' ? null : getFontFamilyValue(fontFamily)} isCursive={fontFamily === 'cursive'}
+          zoomLevel={zoomLevel} jumpVerse={highlightVerse} jumpSection={highlightSection} tappedVerses={tappedVerses}
+          twoColumns={columnOn} paragraphs={paragraphMode} searchTerm={searchTerm}
+          selectMode={selectMode} selectedVerses={selectedVerses} filterMode={filterMode}
+          onVerseTap={selectMode ? toggleVerseSelect : toggleTappedVerse}
           onNextChapter={() => goNext()} onPrevChapter={goPrev}
           canPrev={!isFirstChapterFirstBook} canNext={!isLastChapterLastBook}
         />

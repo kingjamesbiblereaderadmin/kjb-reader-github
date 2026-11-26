@@ -65,3 +65,11 @@
 .kjb-flipbook [data-fb-colour='purple'] { background: rgba(192, 132, 252, 0.3); }
 .kjb-flipbook .kjb-fb-tapped { text-decoration: underline dotted var(--fb-red); text-underline-offset: 3px; }
 .kjb-flipbook .kjb-fb-speaking { background: rgba(176, 132, 40, 0.26); }
+
+.kjb-fb-twocol { column-rule: 1px solid var(--fb-rule); font-size: 0.92em; }
+.kjb-fb-twocol .kjb-fb-title { font-size: 1.12em; }
+.kjb-fb-para { text-indent: 1.1em; }
+.kjb-fb-para.kjb-fb-first { text-indent: 0; }
+.kjb-flipbook mark { background: rgba(250, 204, 21, 0.55); color: inherit; border-radius: 2px; }
+.kjb-flipbook .kjb-fb-jumped { background: rgba(140, 47, 35, 0.12); }
+.kjb-flipbook .kjb-fb-selected { background: rgba(37, 99, 235, 0.18); box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.45); }

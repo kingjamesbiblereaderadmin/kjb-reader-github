@@ -6,17 +6,16 @@ import { useSpeaking } from '@/lib/tts/speaking';
 import { getVerseHighlight } from '@/lib/verseHighlights';
 import './flipbook.css';
 
-const GAP = 40; // column gap between pages inside the hidden flow
 
 // The whole chapter laid out as CSS columns, one column per page. Each page is a
 // window onto that same flow, shifted to its own column.
-const ChapterFlow = React.forwardRef(function ChapterFlow({ blocks, width, height, page, textStyle }, ref) {
+const ChapterFlow = React.forwardRef(function ChapterFlow({ blocks, width, height, page, gap, textStyle, columnWidth, className }, ref) {
   return (
     <div
       ref={ref}
-      className="kjb-fb-flow notranslate"
+      className={`kjb-fb-flow notranslate ${className}`}
       lang="en"
-      style={{ ...textStyle, width, height, columnWidth: width, columnGap: GAP, transform: `translateX(${-page * (width + GAP)}px)` }}
+      style={{ ...textStyle, width, height, columnWidth, columnGap: gap, transform: `translateX(${-page * (width + gap)}px)` }}
     >
       {blocks}
       <span data-fb-end="" />
@@ -49,7 +48,8 @@ function FittedTitlePage({ type, book, width, height }) {
 /** Optional printed-book view of the reader, shown under the toolbar and player. */
 export default function FlipBook({
   book, abbr, chapter, verses, subscript, colophon, endMarker, loading, error,
-  fontFamilyValue, zoomLevel, jumpVerse, tappedVerses, onVerseTap,
+  fontFamilyValue, isCursive, zoomLevel, jumpVerse, jumpSection, tappedVerses, onVerseTap,
+  twoColumns, paragraphs, searchTerm, selectMode, selectedVerses, filterMode,
   onNextChapter, onPrevChapter, canPrev, canNext,
 }) {
   const bookName = book.name;
@@ -127,41 +127,69 @@ export default function FlipBook({
   const textW = Math.max(120, pageW - padX * 2);
   const textH = Math.max(120, pageH - 112); // running head, folio and margins
 
+  // A page holds one or two text columns. One page is always (textW + gap) wide.
+  const perPage = twoColumns ? 2 : 1;
+  const gap = twoColumns ? 18 : 40;
+  const colW = (textW - gap * (perPage - 1)) / perPage;
+  const flowProps = {
+    width: textW, height: textH, gap, columnWidth: Math.floor(colW * 100) / 100,
+    className: `${isCursive ? 'cursive-em-style' : ''} ${twoColumns ? 'kjb-fb-twocol' : ''}`,
+  };
+
   const textStyle = useMemo(() => ({
     fontSize: `${(zoomLevel / 100) * 1.05}rem`,
     ...(fontFamilyValue ? { fontFamily: fontFamilyValue } : {}),
   }), [zoomLevel, fontFamilyValue]);
 
   const blocks = useMemo(() => {
-    const html = (t) => ({ __html: renderVerseText(String(t).replace(/^<<[^>]*>>\s*/, '')) });
+    const markup = (t, term = null) => ({ __html: renderVerseText(String(t).replace(/^<<[^>]*>>\s*/, ''), term) });
     if (chapter === 0) return null;
+
+    // "Reading verses 3-5" shows only those, as the normal reader does.
+    const picked = (v) => selectedVerses?.has(Number(v.verse)) || selectedVerses?.has(String(v.verse));
+    const filtered = !!(filterMode && !selectMode && selectedVerses?.size);
+    const shown = filtered ? verses.filter(picked) : verses;
+    const jumped = parseInt(jumpVerse, 10);
+
+    const verseNode = (v) => (
+      <span data-fbv={v.verse}>
+        {Number(v.verse) !== 1 && <sup>{v.verse}</sup>}
+        <span dangerouslySetInnerHTML={markup(v.text, Number(v.verse) === jumped ? searchTerm : null)} />
+      </span>
+    );
+
+    // Paragraph layout runs verses together, breaking at each pilcrow.
+    const groups = [];
+    shown.forEach((v) => {
+      const breaks = /(^|[\s.,;:!?'")\]])[\u00B6\uFFFD\u000F]/.test(v.text);
+      if (!paragraphs || breaks || !groups.length) groups.push([v]);
+      else groups[groups.length - 1].push(v);
+    });
+
     return (
       <>
-        <div data-fb-sec="head">
+        <div className="kjb-fb-opening" data-fb-sec="head">
           <h2 className="kjb-fb-title">{bookName}</h2>
           <p className="kjb-fb-chapter">Chapter {chapter}</p>
         </div>
-        {subscript && <p className="kjb-fb-note" data-fb-sec="sub" dangerouslySetInnerHTML={html(subscript)} />}
-        {verses.map((v, i) => (
-          <p key={v.verse} className={i === 0 ? 'kjb-fb-verse kjb-fb-first' : 'kjb-fb-verse'}>
-            <span data-fbv={v.verse}>
-              {i > 0 && <sup>{v.verse}</sup>}
-              <span dangerouslySetInnerHTML={html(v.text)} />
-            </span>
+        {subscript && <p className="kjb-fb-note" data-fb-sec="sub" dangerouslySetInnerHTML={markup(subscript, jumpSection === 'subscript' ? searchTerm : null)} />}
+        {groups.map((group, i) => (
+          <p key={group[0].verse} className={`kjb-fb-verse ${i === 0 && Number(group[0].verse) === 1 ? 'kjb-fb-first' : ''} ${paragraphs ? 'kjb-fb-para' : ''}`}>
+            {group.map((v) => <React.Fragment key={v.verse}>{verseNode(v)}{' '}</React.Fragment>)}
           </p>
         ))}
-        {colophon && <p className="kjb-fb-note" data-fb-sec="col" dangerouslySetInnerHTML={html(colophon)} />}
-        {endMarker && <p className="kjb-fb-chapter">{endMarker}</p>}
+        {colophon && (!filtered || picked(verses[verses.length - 1] || {})) && <p className="kjb-fb-note" data-fb-sec="col" dangerouslySetInnerHTML={markup(colophon, jumpSection === 'colophon' ? searchTerm : null)} />}
+        {endMarker && !filtered && <p className="kjb-fb-chapter">{endMarker}</p>}
       </>
     );
-  }, [bookName, chapter, verses, subscript, colophon, endMarker]);
+  }, [bookName, chapter, verses, subscript, colophon, endMarker, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses]);
 
   // A new chapter opens at its first page, or its last when turning backwards.
   const shownKeyRef = useRef(null);
   useLayoutEffect(() => {
     if (loading || !measureRef.current || !pageW) return;
     const end = measureRef.current.querySelector('[data-fb-end]');
-    const textPages = chapter === 0 ? 0 : Math.max(1, Math.floor((end.offsetLeft + 1) / (textW + GAP)) + 1);
+    const textPages = chapter === 0 ? 0 : Math.max(1, Math.floor((end.offsetLeft + 1) / (textW + gap)) + 1);
     const count = front.length + textPages;
     setPageCount(count);
     const isNew = shownKeyRef.current !== chapterKey;
@@ -174,7 +202,7 @@ export default function FlipBook({
     });
     if (isNew) landOnEndRef.current = false;
     setTurn(null);
-  }, [blocks, front, textW, textH, textStyle, step, pageW, loading, chapterKey, fontTick]);
+  }, [blocks, front, textW, textH, gap, textStyle, step, pageW, loading, chapterKey, fontTick]);
 
   const go = useCallback((dir) => {
     if (loading || turn) return;
@@ -188,8 +216,8 @@ export default function FlipBook({
   // The page on which a verse or section begins.
   const pageOf = useCallback((selector) => {
     const el = measureRef.current?.querySelector(selector);
-    return el ? front.length + Math.floor((el.offsetLeft + 1) / (textW + GAP)) : null;
-  }, [front, textW]);
+    return el ? front.length + Math.floor((el.offsetLeft + 1) / (textW + gap)) : null;
+  }, [front, textW, gap]);
 
   const turnTo = (target) => {
     if (target == null) return;
@@ -211,11 +239,14 @@ export default function FlipBook({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spokenAt, pageCount, step, loading, chapterKey]);
 
-  // A verse picked in the toolbar opens its page.
+  // A verse or section picked in the toolbar, or a search result, opens its page.
   useEffect(() => {
-    if (jumpVerse && !loading) turnTo(pageOf(`[data-fbv="${parseInt(jumpVerse, 10)}"]`));
+    if (loading) return;
+    if (jumpSection === 'subscript') turnTo(pageOf('[data-fb-sec="sub"]'));
+    else if (jumpSection === 'colophon') turnTo(pageOf('[data-fb-sec="col"]'));
+    else if (jumpVerse) turnTo(pageOf(`[data-fbv="${parseInt(jumpVerse, 10)}"]`));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jumpVerse, pageCount, loading]);
+  }, [jumpVerse, jumpSection, searchTerm, pageCount, loading]);
 
   // Marks are put on after each render, because every page is its own copy.
   useLayoutEffect(() => {
@@ -225,6 +256,8 @@ export default function FlipBook({
       const n = Number(el.dataset.fbv);
       el.classList.toggle('kjb-fb-speaking', spokenAt === `[data-fbv="${el.dataset.fbv}"]`);
       el.classList.toggle('kjb-fb-tapped', !!tappedVerses?.has(n));
+      el.classList.toggle('kjb-fb-selected', !!(selectMode && (selectedVerses?.has(n) || selectedVerses?.has(String(n)))));
+      el.classList.toggle('kjb-fb-jumped', !selectMode && !searchTerm && n === parseInt(jumpVerse, 10));
       const colour = getVerseHighlight(abbr, chapter, n);
       if (colour) el.dataset.fbColour = colour; else delete el.dataset.fbColour;
     });
@@ -271,7 +304,7 @@ export default function FlipBook({
           <>
             <div className="kjb-fb-head">{book.shortName} {chapter}</div>
             <div className="kjb-fb-window" style={{ width: textW, height: textH }}>
-              <ChapterFlow blocks={blocks} width={textW} height={textH} page={textIndex} textStyle={textStyle} />
+              <ChapterFlow blocks={blocks} {...flowProps} page={textIndex} textStyle={textStyle} />
             </div>
             <div className="kjb-fb-folio">{textIndex + 1}</div>
           </>
@@ -339,7 +372,7 @@ export default function FlipBook({
       <div ref={setStageEl} className="kjb-fb-stage">
         {/* Invisible copy used only to count pages. */}
         <div className="kjb-fb-measure" aria-hidden="true" style={{ width: textW, height: textH }}>
-          <ChapterFlow ref={measureRef} blocks={blocks} width={textW} height={textH} page={0} textStyle={textStyle} />
+          <ChapterFlow ref={measureRef} blocks={blocks} {...flowProps} page={0} textStyle={textStyle} />
         </div>
         {error ? (
           <p className="kjb-fb-loading">{error}</p>
