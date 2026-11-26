@@ -35,25 +35,60 @@ function clearSpeaking() {
   document.querySelectorAll(`.${SPEAKING_CLASS}`).forEach((el) => el.classList.remove(SPEAKING_CLASS));
 }
 
+// Where the reader can actually see. The page scrolls inside #kjb-scroll, which
+// is shorter than the window (the header sits above it, the nav bar and footer
+// below), so measuring against window.innerHeight called a verse "on screen"
+// while the bottom of the scroller was still cutting it off - the last verses of
+// a chapter were never brought into view. Everything below measures the scroller.
+const PAD_TOP = 96;    // clear the sticky header
+const PAD_BOTTOM = 32; // clear the nav bar / footer
+
+function scrollBox() {
+  const scroller = document.getElementById('kjb-scroll');
+  if (scroller && scroller.scrollHeight > scroller.clientHeight + 1) {
+    const r = scroller.getBoundingClientRect();
+    return { top: r.top, bottom: r.bottom, scroller };
+  }
+  return { top: 0, bottom: window.innerHeight, scroller: null };
+}
+
 // The first verse the reader can actually see. Starting from here is what stops
 // "Listen" from yanking the page back to verse 1 when the reader has scrolled
 // halfway down a chapter.
 function firstVisibleVerse() {
+  const box = scrollBox();
   const nodes = document.querySelectorAll('[id^="v"]');
   for (const el of nodes) {
     if (!/^v\d+$/.test(el.id)) continue;
     const r = el.getBoundingClientRect();
-    if (r.height > 0 && r.bottom > 80 && r.top < window.innerHeight - 40) {
+    if (r.height > 0 && r.bottom > box.top + 24 && r.top < box.bottom - 40) {
       return Number(el.id.slice(1));
     }
   }
   return null;
 }
 
+// Bring an element fully inside the visible part of the scroller, moving the
+// least amount that does it. "centre" is used when the listener asked to go
+// somewhere (a play press, a verse pick) rather than for the verse that just
+// started speaking, which only moves the page when it would otherwise be cut off.
+function revealElement(el, { center = false } = {}) {
+  if (!el) return;
+  const box = scrollBox();
+  const r = el.getBoundingClientRect();
+  const above = r.top < box.top + PAD_TOP;
+  const below = r.bottom > box.bottom - PAD_BOTTOM;
+  if (!above && !below) return;
+  const delta = center
+    ? r.top + r.height / 2 - (box.top + box.bottom) / 2
+    : above ? r.top - (box.top + PAD_TOP) : r.bottom - (box.bottom - PAD_BOTTOM);
+  if (!delta) return;
+  (box.scroller || window).scrollBy({ top: delta, behavior: 'smooth' });
+}
+
 function scrollToVerse(verse) {
   if (verse == null) return;
-  const el = document.getElementById(`v${verse}`);
-  if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  revealElement(document.getElementById(`v${verse}`), { center: true });
 }
 
 export default function TtsPlayer({ embedded = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, chapter = null, startVerse = null, label = '', bookName = '', subscript = '', colophon = '', titleText = '', endMarker = '', onNextChapter = null, onRestart }) {
@@ -149,12 +184,7 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
       const section = document.getElementById(sectionId);
       if (section) {
         section.classList.add(SPEAKING_CLASS);
-        if (followRef.current && !skipScrollRef.current) {
-          const r = section.getBoundingClientRect();
-          if (r.top < 120 || r.bottom > window.innerHeight - 40) {
-            section.scrollIntoView({ block: 'center', behavior: 'smooth' });
-          }
-        }
+        if (followRef.current && !skipScrollRef.current) revealElement(section);
       }
       skipScrollRef.current = false;
       return;
@@ -165,9 +195,7 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
     el.classList.add(SPEAKING_CLASS);
     if (skipScrollRef.current) { skipScrollRef.current = false; return; }
     if (!followRef.current) return;
-    const rect = el.getBoundingClientRect();
-    const offscreen = rect.top < 120 || rect.bottom > window.innerHeight - 40;
-    if (offscreen) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    revealElement(el);
   }, [tts.currentVerse, tts.currentKind]);
 
   // While the chapter announcement plays, the heading is what is being spoken,

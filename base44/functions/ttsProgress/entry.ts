@@ -27,6 +27,7 @@ async function tally(db) {
   let chars = 0;
   const now = Date.now();
   let recentChars = 0;
+  let hourChars = 0;
   let skip = 0;
   for (;;) {
     let rows = null;
@@ -53,12 +54,13 @@ async function tally(db) {
       chars += c;
       const created = Date.parse(row.created_date || '');
       if (Number.isFinite(created) && now - created < 10 * 60000) recentChars += c;
+      if (Number.isFinite(created) && now - created < 60 * 60000) hourChars += c;
     }
     if (rows.length < PAGE) break;
     skip += PAGE;
     if (skip > 60000) break;
   }
-  return { verses: refs.size, chars, recentChars };
+  return { verses: refs.size, chars, recentChars, hourChars };
 }
 
 function pageHtml(d) {
@@ -68,7 +70,13 @@ function pageHtml(d) {
   const charPct = d.chars / TOTAL_CHARS;
   const spent = Math.max(0, d.chars - FREE_CHARS) * USD_PER_CHAR;
   const left = Math.max(0, TOTAL_CHARS - d.chars);
-  const rate = d.recentChars / 10; // characters per minute over the last ten minutes
+  // Pace over the last hour when there is one, because a ten-minute window
+  // swings wildly: a burst reads as minutes-to-go and a throttled stretch reads
+  // as hundreds of hours. The longer window is the honest average of both.
+  const hourRate = (d.hourChars || 0) / 60;
+  const shortRate = d.recentChars / 10;
+  const rate = hourRate > 0 ? hourRate : shortRate;
+  const basis = hourRate > 0 ? 'the last hour' : 'the last ten minutes';
   const eta = rate > 0 ? Math.round(left / rate) : null;
   const etaText = eta == null ? 'paused right now'
     : eta < 60 ? `about ${eta} minutes` : `about ${(eta / 60).toFixed(1)} hours`;
@@ -110,6 +118,7 @@ function pageHtml(d) {
     <dt>Still to voice</dt><dd>${nf(left)} characters</dd>
     <dt>Spent past the free tier</dt><dd>$${spent.toFixed(2)}</dd>
     <dt>Recent pace</dt><dd>${rate > 0 ? `${nf(Math.round(rate))} characters/min` : 'paused'}</dd>
+    <dt>Measured over</dt><dd>${rate > 0 ? basis : 'nothing running'}</dd>
     <dt>Time left at this pace</dt><dd>${etaText}</dd>
   </dl>
   <p class="foot">${d.stale ? 'Counted a moment ago while the library was busy · ' : ''}Updated ${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Singapore' })} SGT · refreshes every 15 seconds</p>
@@ -129,6 +138,7 @@ async function readSaved(db: any) {
       verses: Number(row.verses) || 0,
       chars: Number(row.chars) || 0,
       recentChars: Number(row.recentChars) || 0,
+      hourChars: Number(row.hourChars) || 0,
     };
   } catch {
     return null;
@@ -144,6 +154,7 @@ async function saveTally(db: any, d: any) {
       verses: d.verses,
       chars: d.chars,
       recentChars: d.recentChars,
+      hourChars: d.hourChars,
       updated: new Date().toISOString(),
     };
     if (row?.id) await db.entities.TtsStat.update(row.id, body);
@@ -170,7 +181,7 @@ Deno.serve(async (req) => {
           cache = { at: Date.now(), data: saved };
           stale = true;
         } else if (!cache.data) {
-          cache = { at: Date.now(), data: { verses: 0, chars: 0, recentChars: 0 } };
+          cache = { at: Date.now(), data: { verses: 0, chars: 0, recentChars: 0, hourChars: 0 } };
           stale = true;
         }
       }

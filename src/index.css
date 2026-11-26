@@ -979,7 +979,23 @@ html.kjb-native-ios select {
   background-color: hsl(var(--accent) / 0.14);
   box-shadow: inset 3px 0 0 hsl(var(--accent));
   border-radius: 0.2rem;
+  /* The verse number is a <sup> with line-height 0, so its glyph hangs above the
+     row's own box: the wash used to stop halfway up the digits and the verse
+     read as a thin band beside them. Padding lifts the wash to cover the whole
+     number, and the matching negative margin keeps every line of text exactly
+     where it was, so nothing reflows while the chapter is being spoken. */
+  padding-top: 0.55em;
+  margin-top: -0.55em;
   transition: background-color 220ms ease, box-shadow 220ms ease;
+}
+
+/* A drop-cap verse floats its big letter past the verse-number column, so the
+   3px inset rule would sit in the gutter beside nothing at all. There the wash
+   on its own marks the verse. (:has() keeps this tied to the markup rather than
+   to a class the player would have to know about; without :has() support the
+   rule simply stays, exactly as before.) */
+.kjb-speaking:has(.kjb-dropcap-group) {
+  box-shadow: none;
 }
 
 /* The rest of an all-caps opening word ("IN the beginning", "AND it came to
@@ -1026,6 +1042,11 @@ html.kjb-native-ios select {
   background-origin: content-box;
   background-clip: content-box;
   box-shadow: none;
+  /* The paragraph gap above a pilcrow verse is its own padding-top, and the
+     content-box clip is what keeps the wash out of that gap. So the cover-the-
+     verse-number lift above must not apply here. */
+  padding-top: 0;
+  margin-top: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

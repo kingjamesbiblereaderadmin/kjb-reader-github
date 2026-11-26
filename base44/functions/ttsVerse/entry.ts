@@ -47,6 +47,221 @@ type SynthResult =
   | { ok: true; url: string }
   | { ok: false; error: string; status?: number; detail?: string };
 
+// ---- What the engine hears ------------------------------------------------
+//
+// The King James source stores every apostrophe as a placeholder byte (U+FFFD,
+// and sometimes U+00B6 or U+000F) directly after a letter - "his wife\uFFFDs
+// name" - and uses the same byte for a real paragraph pilcrow. Rendering
+// converts them; speech used to be handed them raw, so the voice said "wife"
+// and then the letter "s" as two separate words. Everything sent to the engine
+// goes through here, so the reader, the bulk run and any other caller sound the
+// same and no word ever arrives broken at its apostrophe.
+function normalizeSpeechText(raw: string) {
+  let s = String(raw || '');
+  s = s.replace(/<<[^>]*>>/g, ' ');
+  s = s.replace(/([A-Za-z\]])[\u00B6\uFFFD\u000F\u2019](?=[A-Za-z\[])/g, "$1'");
+  s = s.replace(/([A-Za-z\]])[\u00B6\uFFFD\u000F\u2019](?=[^A-Za-z\[]|$)/g, "$1'");
+  s = s.replace(/[\u00B6\uFFFD\u000F]/g, ' ');
+  s = s.replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"');
+  s = s.replace(/[\u00C6]/g, 'Ae').replace(/[\u00E6]/g, 'ae');
+  s = s.replace(/\[([^\]]*)\]/g, '$1');
+  s = s.replace(/\s+([,.;:!?])/g, '$1');
+  return s.replace(/\s+/g, ' ').trim();
+}
+
+// A neural voice reads what is spelled. King James spellings it has never met
+// come out wrong - "asswaged" as ass-waged, "Hezekiah" with a flat first
+// syllable - so these words are respelled for the engine only. The verse on
+// screen keeps its printed spelling. Hyphens mark syllable breaks, which the
+// voice follows; add a line here whenever a word comes out wrong.
+const PRONOUNCE: Record<string, string> = {
+  shewbread: 'showbread',
+  sheweth: 'showeth',
+  shewing: 'showing',
+  shewed: 'showed',
+  shewn: 'shown',
+  shew: 'show',
+  asswaged: 'assuaged',
+  sware: 'swore',
+  baken: 'baked',
+  jehovah: 'je-HO-vuh',
+  nebuchadnezzar: 'neb-yuh-kud-NEZ-er',
+  zaphnathpaaneah: 'zaf-nath-puh-NAY-uh',
+  mahershalalhashbaz: 'muh-HER-shuh-lal-hash-BAZ',
+  kirjathjearim: 'KIR-jath-JAY-uh-rim',
+  ramothgilead: 'RAY-moth-GIL-ee-ad',
+  habakkuk: 'huh-BAK-uhk',
+  melchizedek: 'mel-KIZ-uh-dek',
+  methuselah: 'muh-THOO-zuh-luh',
+  jehoshaphat: 'juh-HOSH-uh-fat',
+  belshazzar: 'bel-SHAZ-er',
+  zerubbabel: 'zuh-RUB-uh-bel',
+  jehoiakim: 'juh-HOY-uh-kim',
+  jehoiachin: 'juh-HOY-uh-kin',
+  jehoiada: 'juh-HOY-uh-duh',
+  abimelech: 'uh-BIM-uh-lek',
+  ahimelech: 'uh-HIM-uh-lek',
+  jephunneh: 'juh-FUN-uh',
+  hezekiah: 'hez-uh-KY-uh',
+  zedekiah: 'zed-uh-KY-uh',
+  zechariah: 'zek-uh-RY-uh',
+  zephaniah: 'zef-uh-NY-uh',
+  nehemiah: 'nee-huh-MY-uh',
+  jeremiah: 'jer-uh-MY-uh',
+  isaiah: 'eye-ZAY-uh',
+  obadiah: 'oh-buh-DY-uh',
+  rehoboam: 'ree-huh-BOH-um',
+  jeroboam: 'jer-uh-BOH-um',
+  athaliah: 'ath-uh-LY-uh',
+  ahaziah: 'ay-huh-ZY-uh',
+  amaziah: 'am-uh-ZY-uh',
+  azariah: 'az-uh-RY-uh',
+  josiah: 'joh-SY-uh',
+  uzziah: 'uh-ZY-uh',
+  abijah: 'uh-BY-juh',
+  manasseh: 'muh-NAS-uh',
+  ephraim: 'EE-fray-im',
+  naaman: 'NAY-uh-mun',
+  hazael: 'HAZ-ay-el',
+  jotham: 'JOH-thum',
+  elisha: 'ee-LY-shuh',
+  elijah: 'ee-LY-juh',
+  ezekiel: 'ee-ZEE-kee-ul',
+  malachi: 'MAL-uh-ky',
+  haggai: 'HAG-eye',
+  ahaz: 'AY-haz',
+  gethsemane: 'geth-SEM-uh-nee',
+  golgotha: 'GOL-guh-thuh',
+  capernaum: 'kuh-PER-nay-um',
+  bethsaida: 'beth-SAY-uh-duh',
+  arimathea: 'air-uh-muh-THEE-uh',
+  thessalonica: 'thess-uh-luh-NY-kuh',
+  laodicea: 'lay-OD-uh-SEE-uh',
+  colossae: 'kuh-LOSS-ee',
+  galatia: 'guh-LAY-shuh',
+  pisidia: 'pih-SID-ee-uh',
+  pamphylia: 'pam-FIL-ee-uh',
+  attalia: 'at-tuh-LY-uh',
+  salamis: 'SAL-uh-miss',
+  paphos: 'PAY-foss',
+  cnidus: 'NY-dus',
+  syracuse: 'SEER-uh-kyooz',
+  rhegium: 'REE-jee-um',
+  puteoli: 'pyoo-TEE-oh-ly',
+  caesarea: 'sess-uh-REE-uh',
+  philippi: 'fih-LIP-eye',
+  ephesus: 'EF-uh-sus',
+  antioch: 'AN-tee-ok',
+  iconium: 'eye-KOH-nee-um',
+  cyrene: 'sy-REE-nee',
+  perga: 'PER-guh',
+  pharaoh: 'FAIR-oh',
+  pharisees: 'FAIR-uh-seez',
+  sadducees: 'SAD-yoo-seez',
+  pilate: 'PY-lut',
+  barabbas: 'buh-RAB-us',
+  nicodemus: 'nik-uh-DEE-mus',
+  zacchaeus: 'zuh-KEE-us',
+  bartholomew: 'bar-THOL-uh-myoo',
+  thaddaeus: 'thuh-DEE-us',
+  alphaeus: 'al-FEE-us',
+  matthias: 'muh-THY-us',
+  cornelius: 'kor-NEE-lee-us',
+  theophilus: 'thee-OFF-uh-lus',
+  gamaliel: 'guh-MAY-lee-ul',
+  ananias: 'an-uh-NY-us',
+  sapphira: 'suh-FY-ruh',
+  elymas: 'EL-ih-mass',
+  agabus: 'AG-uh-bus',
+  timotheus: 'tih-MOH-thee-us',
+  epaphroditus: 'ep-uh-froh-DY-tus',
+  epaphras: 'EP-uh-frass',
+  onesimus: 'oh-NESS-ih-mus',
+  philemon: 'fih-LEE-mon',
+  tychicus: 'TIK-ih-kus',
+  diotrephes: 'dy-OT-ruh-feez',
+  apollos: 'uh-POL-us',
+  aquila: 'AK-wih-luh',
+  sosthenes: 'SOS-thuh-neez',
+  erastus: 'ee-RASS-tus',
+  phoebe: 'FEE-bee',
+  andronicus: 'an-DRON-ih-kus',
+  aristobulus: 'uh-ris-tuh-BYOO-lus',
+  narcissus: 'nar-SISS-us',
+  asyncritus: 'uh-SIN-krih-tus',
+  phlegon: 'FLEG-on',
+  patrobas: 'PAT-roh-bus',
+  philologus: 'fih-LOL-uh-gus',
+  olympas: 'oh-LIM-pus',
+  tryphena: 'TRY-fee-nuh',
+  tryphosa: 'try-FOH-suh',
+  epenetus: 'ep-uh-NEE-tus',
+  stachys: 'STAY-kiss',
+  eubulus: 'yoo-BYOO-lus',
+  pudens: 'PYOO-denz',
+  syntyche: 'SIN-tih-kee',
+  euodias: 'yoo-OH-dee-us',
+  beersheba: 'beer-SHEE-buh',
+  mahanaim: 'may-huh-NAY-im',
+  shechem: 'SHEK-em',
+  gerizim: 'GEH-rih-zeem',
+  gibeah: 'GIB-ee-uh',
+  gibeon: 'GIB-ee-un',
+  michmash: 'MIK-mash',
+  eshcol: 'ESH-kol',
+  jabbok: 'JAB-ok',
+  peniel: 'puh-NY-el',
+  succoth: 'SOOK-oth',
+  dothan: 'DOH-thun',
+  shiloh: 'SHY-loh',
+  hormah: 'HOR-muh',
+  ashdod: 'ASH-dod',
+  ekron: 'EK-ron',
+  gilgal: 'GIL-gal',
+  ebal: 'EE-bal',
+  aenon: 'EE-non',
+  philistines: 'fih-LISS-teenz',
+  amalekites: 'uh-MAL-uh-kyts',
+  ishmaelites: 'ISH-may-uh-lyts',
+  midianites: 'MID-ee-uh-nyts',
+  jebusites: 'JEB-yoo-syts',
+  perizzites: 'PER-ih-zyts',
+  girgashites: 'GIR-guh-shyts',
+  kenizzites: 'KEN-ih-zyts',
+  kadmonites: 'KAD-muh-nyts',
+  caphtorim: 'kaf-TOR-im',
+  amorites: 'AM-uh-ryts',
+  hittites: 'HIT-tyts',
+  hivites: 'HY-vyts',
+  moabites: 'MOH-uh-byts',
+  edomites: 'EE-duh-myts',
+  kenites: 'KEE-nyts',
+  horites: 'HOR-yts',
+  avites: 'AY-vyts',
+  rephaim: 'REF-ay-im',
+  anakim: 'AN-uh-kim',
+  zuzim: 'ZOO-zim',
+  chemosh: 'KEE-mosh',
+  ashtaroth: 'ASH-tuh-roth',
+  molech: 'MOH-lek',
+  dagon: 'DAY-gon',
+  baalim: 'BAY-uh-lim',
+  baal: 'BAY-ul',
+};
+const PRONOUNCE_RE = new RegExp(
+  `\\b(${Object.keys(PRONOUNCE).sort((a, b) => b.length - a.length).join('|')})\\b`,
+  'gi',
+);
+
+function respell(text: string) {
+  return text.replace(PRONOUNCE_RE, (word) => PRONOUNCE[word.toLowerCase()] || word);
+}
+
+// The one entry point: clean the source markup, then respell the hard words.
+function speechText(raw: string) {
+  return respell(normalizeSpeechText(raw));
+}
+
 function xmlEscape(value: string) {
   return value
     .replace(/&/g, '&amp;')
@@ -150,7 +365,10 @@ export default async function (req) {
     return json({ error: 'bad_json' }, 400);
   }
 
-  const text = String(body.text || '').replace(/\s+/g, ' ').trim();
+  // Cleaned and respelled here, not in the caller: the cache key is the verse
+  // reference, so a clip made by the bulk run and one made by the player have to
+  // be built from exactly the same words.
+  const text = speechText(body.text);
   const voice = String(body.voice || '').trim();
   const ref = String(body.ref || '').trim();
   // Older clients still post an engine; Azure is the only one that exists now.

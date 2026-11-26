@@ -15,13 +15,26 @@ import { DEFAULT_TTS_VOICE, engineForVoice, normalizeVoice, readStored, writeSto
 
 // Verse text arrives with the reader's markup: [italics] brackets, ¶ pilcrows
 // and <<heading>> markers. None of them should be spoken.
+//
+// The apostrophes are the part that used to break: the King James source stores
+// every one of them as a placeholder byte (U+FFFD, sometimes U+00B6 or U+000F)
+// right after a letter - "his wife\uFFFDs name" - and uses the same byte for a
+// real paragraph pilcrow. The renderer converts them; speech did not, so the
+// engine was handed "wife\uFFFDs" and said "wife" and then the letter "s" as
+// two words. Every word with an apostrophe now reaches the engine whole. The
+// server cleans the text again before synthesising, so a clip sounds the same
+// whether it was made here or by the bulk run.
 export function cleanVerseForSpeech(raw) {
-  return String(raw || '')
-    .replace(/\[([^\]]+)\]/g, '$1')
-    .replace(/¶\s*/g, '')
-    .replace(/^<<[^>]*>>\s*/, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  let s = String(raw || '');
+  s = s.replace(/<<[^>]*>>/g, ' ');
+  s = s.replace(/([A-Za-z\]])[\u00B6\uFFFD\u000F\u2019](?=[A-Za-z\[])/g, "$1'");
+  s = s.replace(/([A-Za-z\]])[\u00B6\uFFFD\u000F\u2019](?=[^A-Za-z\[]|$)/g, "$1'");
+  s = s.replace(/[\u00B6\uFFFD\u000F]/g, ' ');
+  s = s.replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"');
+  s = s.replace(/[\u00C6]/g, 'Ae').replace(/[\u00E6]/g, 'ae');
+  s = s.replace(/\[([^\]]*)\]/g, '$1');
+  s = s.replace(/\s+([,.;:!?])/g, '$1');
+  return s.replace(/\s+/g, ' ').trim();
 }
 
 // Where listening got to. Kept outside React so the place survives the player
@@ -38,7 +51,43 @@ export function cleanHeadingForSpeech(raw) {
   return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
 }
 
-const urlCache = new Map(); // `${voice}|${text}` -> mp3 url
+// Clips live in Base44 storage, so the URL never expires. Remembering the ones
+// this device has already played means a chapter replayed tomorrow is served
+// from the device itself - no function call, no cache lookup, nothing to wait
+// for. Trimmed to the most recent few thousand so it can never grow unbounded.
+const URL_CACHE_KEY = 'kjb-tts-urls-v1';
+const URL_CACHE_MAX = 4000;
+const urlCache = new Map(); // `${voice}|${ref}` -> mp3 url
+let urlSaveTimer = null;
+
+function hydrateUrlCache() {
+  try {
+    const raw = localStorage.getItem(URL_CACHE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (!saved || typeof saved !== 'object') return;
+    for (const [key, url] of Object.entries(saved)) {
+      if (typeof url === 'string' && url.startsWith('http')) urlCache.set(key, url);
+    }
+  } catch {
+    // A corrupt or unavailable store only costs a re-fetch.
+  }
+}
+
+function persistUrlCache() {
+  if (urlSaveTimer) return;
+  urlSaveTimer = setTimeout(() => {
+    urlSaveTimer = null;
+    try {
+      const recent = [...urlCache.entries()].slice(-URL_CACHE_MAX);
+      localStorage.setItem(URL_CACHE_KEY, JSON.stringify(Object.fromEntries(recent)));
+    } catch {
+      // Private mode / quota: playback still works, it just is not remembered.
+    }
+  }, 400);
+}
+
+hydrateUrlCache();
 
 // A verse that cannot be voiced right now is usually a throttled speech
 // resource or a hiccup in the proxy, and both clear within seconds. Waiting and
@@ -77,6 +126,7 @@ async function audioUrlFor(clip, voice) {
       const data = res?.data ?? res;
       if (data?.url) {
         urlCache.set(key, data.url);
+        persistUrlCache();
         return data.url;
       }
       const code = data?.error || 'tts_failed';
