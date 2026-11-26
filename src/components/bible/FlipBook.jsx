@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useSta
 import FlipBookChrome from '@/components/bible/FlipBookChrome';
 import { renderVerseText } from '@/lib/bibleApi';
 import TitlePage from '@/components/bible/TitlePage';
-import ContentsPage, { CONTENTS_BOOKS } from '@/components/bible/ContentsPage';
+import ContentsFlow from '@/components/bible/ContentsFlow';
 import { useSpeaking, getProgress } from '@/lib/tts/speaking';
 import { getVerseHighlight } from '@/lib/verseHighlights';
 import './flipbook.css';
@@ -109,6 +109,7 @@ export default function FlipBook({
   const landOnEndRef = useRef(false);
   const [stage, setStage] = useState({ w: 0, h: 0 });
   const [pageCount, setPageCount] = useState(1);
+  const [contentsPageCount, setContentsPageCount] = useState(1);
   const [page, setPage] = useState(0);
   const [turn, setTurn] = useState(null); // { dir: 1 | -1, to }
   const [fontTick, setFontTick] = useState(0);
@@ -168,33 +169,14 @@ export default function FlipBook({
   const contentH = Math.max(120, pageH - 52 - footerHeight);
   const textH = Math.max(80, contentH - 104); // running head, folio and margins
 
-  // Pages that come before this chapter's text. Chapter 0 is a title page of its
-  // own — the whole Bible's, followed by the old table of books — and chapter 1
-  // opens with the book's own title page. The table is one book to a line, so it
-  // takes as many pages as its single column needs.
+  // Contents flow through real page-sized columns, without a testament break.
+  const contentsH = Math.max(80, contentH - 24);
+  const hasContents = chapter === 0 && abbr === 'GEN';
   const front = useMemo(() => {
     if (chapter !== 0) return chapter === 1 ? ['book'] : [];
     if (abbr !== 'GEN') return [abbr === 'MAT' ? 'testament-new' : 'book'];
-
-    const avail = Math.max(240, contentH - 24);
-    const ROW = 21; // one book line
-    const TITLE_H = 86; // the table's own heading
-    const HEAD_H = 30; // "The Books of the Old Testament."
-    const pages = [];
-    const pack = (books, heading) => {
-      let rest = books;
-      while (rest.length) {
-        const first = pages.length === 0;
-        const used = (first ? TITLE_H : 0) + HEAD_H;
-        const fits = Math.max(1, Math.floor((avail - used) / ROW));
-        pages.push({ items: rest.slice(0, fits), heading, title: first, dropCap: first });
-        rest = rest.slice(fits);
-      }
-    };
-    pack(CONTENTS_BOOKS.filter((b) => b.testament === 'old'), 'The Books of the Old Testament.');
-    pack(CONTENTS_BOOKS.filter((b) => b.testament === 'new'), 'The Books of the New Testament.');
-    return ['testament-old', ...pages];
-  }, [abbr, chapter, contentH]);
+    return ['testament-old', ...Array.from({ length: contentsPageCount }, (_, contentsPage) => ({ contentsPage }))];
+  }, [abbr, chapter, contentsPageCount]);
 
   // A page holds one or two text columns. Wide paper always gets two, so no
   // line of scripture runs the full width of the screen.
@@ -413,11 +395,15 @@ export default function FlipBook({
     return (
       <div className={`kjb-fb-page kjb-fb-${side}`} style={{ padding: `52px ${padRight}px ${footerHeight}px ${padLeft}px` }}>
         {index >= 0 && index < pageCount && (textIndex < 0 ? (
-          <FittedPage width={textW} height={contentH - 24}>
-            {typeof front[index] === 'string'
-              ? <TitlePage type={front[index]} book={book} />
-              : <ContentsPage {...front[index]} onSelectBook={onSelectBook} />}
-          </FittedPage>
+          typeof front[index] === 'string' ? (
+            <FittedPage width={textW} height={contentsH}>
+              <TitlePage type={front[index]} book={book} />
+            </FittedPage>
+          ) : (
+            <div className="kjb-fb-contents-window" style={{ width: textW, height: contentsH }}>
+              <ContentsFlow width={textW} height={contentsH} page={front[index].contentsPage} onSelectBook={onSelectBook} />
+            </div>
+          )
         ) : (
           <>
             {/* The chapter's opening page carries its own title, so the running
@@ -443,7 +429,10 @@ export default function FlipBook({
 
   // "Genesis 2 · pages 1–2 of 4", counting text pages only.
   const shown = Array.from({ length: step }, (_, i) => page + i - front.length + 1).filter((n) => n >= 1 && n <= textTotal);
-  const where = !shown.length ? 'Title page'
+  const shownContents = front.slice(page, page + step).filter((entry) => typeof entry !== 'string').map((entry) => entry.contentsPage + 1);
+  const where = !shown.length ? (shownContents.length
+    ? `Contents · ${shownContents.length > 1 ? `pages ${shownContents[0]}–${shownContents[1]}` : `page ${shownContents[0]}`} of ${contentsPageCount}`
+    : 'Title page')
     : `${book.shortName} ${chapter} · ${shown.length > 1 ? `pages ${shown[0]}–${shown[1]}` : `page ${shown[0]}`} of ${textTotal}`;
 
   // What lies flat underneath, and the sheet that is turning over it.
@@ -497,6 +486,12 @@ export default function FlipBook({
       }}
     >
       <div ref={setStageEl} className="kjb-fb-stage">
+        {/* A continuous contents flow is measured independently of scripture. */}
+        {hasContents && (
+          <div className="kjb-fb-measure" aria-hidden="true" style={{ width: textW, height: contentsH }}>
+            <ContentsFlow width={textW} height={contentsH} onPageCount={setContentsPageCount} />
+          </div>
+        )}
         {/* Invisible copy used only to count pages. */}
         <div className="kjb-fb-measure" aria-hidden="true" style={{ width: textW, height: textH }}>
           <ChapterFlow ref={measureRef} blocks={blocks} {...flowProps} page={0} textStyle={textStyle} />

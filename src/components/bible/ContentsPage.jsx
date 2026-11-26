@@ -23,35 +23,36 @@ export const CONTENTS_BOOKS = BIBLE_BOOKS.map((b) => ({
   table: TABLE_NAMES[b.abbr] || b.shortName,
 }));
 
-/**
- * One page of the KJB's front-matter table — "The Names and Order of all the
- * Books of the Old and New Testament, with the Number of their Chapters" — one
- * book to a line, each a link into its first chapter.
- */
-export default function ContentsPage({ items, heading, title, dropCap, onSelectBook }) {
+/** One continuous table. The book view supplies the natural page boundaries. */
+export default function ContentsPage({ onSelectBook }) {
   return (
-    <div className="notranslate kjb-contents">
-      {title && (
-        <h2 className="kjb-contents-title">
-          The Names and Order of all the Books<br />
-          of the Old and New Testament,<br />
-          with the Number of their Chapters.
-        </h2>
-      )}
-      {heading && <h3 className="kjb-contents-sub">{heading}</h3>}
-      <ul className="kjb-contents-list">
-        {items.map((b, i) => (
-          <li key={b.abbr}>
-            <button
-              type="button"
-              className={`kjb-contents-entry${dropCap && i === 0 ? ' kjb-contents-first' : ''}`}
-              onClick={(e) => { e.stopPropagation(); onSelectBook?.(b.abbr); }}
-            >
-              {b.table} hath Chapters {b.chapters}
-            </button>
-          </li>
-        ))}
-      </ul>
+    <div className="notranslate kjb-contents" translate="no" lang="en">
+      <h2 className="kjb-contents-title" data-contents-row="">
+        <span className="kjb-contents-eyebrow">The Names and Order</span>
+        <span className="kjb-contents-heading">of all the Books of the<br />Old and New Testament,</span>
+        <span className="kjb-contents-caption">with the Number of their Chapters.</span>
+      </h2>
+      {['old', 'new'].map((testament) => (
+        <section key={testament} className="kjb-contents-testament">
+          <h3 className="kjb-contents-sub" data-contents-row="">
+            <span>{testament === 'old' ? 'Old Testament' : 'New Testament'}</span>
+            <span className="kjb-contents-label">Chapters</span>
+          </h3>
+          <ul className="kjb-contents-list">
+            {CONTENTS_BOOKS.filter((b) => b.testament === testament).map((b) => (
+              <li key={b.abbr} data-contents-row="">
+                <button type="button" className="kjb-contents-entry"
+                  aria-label={`${b.table}, ${b.chapters} ${b.chapters === 1 ? 'chapter' : 'chapters'}`}
+                  onClick={(e) => { e.stopPropagation(); onSelectBook?.(b.abbr); }}>
+                  <span className="kjb-contents-name">{b.table}</span>
+                  <span className="kjb-contents-leader" aria-hidden="true" />
+                  <span className="kjb-contents-number">{b.chapters}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
     </div>
   );
 }
