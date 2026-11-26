@@ -70,7 +70,48 @@ async function tally(db) {
   return { verses: refs.size, chars, recentChars, hourChars };
 }
 
-function pageHtml(d) {
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// "27 Nov 2026, 07:56 UTC" from the endpoint's ISO stamp; '' when it is missing.
+function utcLabel(iso) {
+  const t = Date.parse(String(iso || ''));
+  if (!Number.isFinite(t)) return '';
+  const d = new Date(t);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}, ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`;
+}
+
+// The native-app bundle phase, rendered on the server: the page is served with
+// script-src 'none', so an inline script would never run. Nothing is emitted at
+// all when the endpoint is unreachable or has not started, so the page is
+// otherwise exactly what it was.
+function bundleSection(bundle) {
+  if (!bundle || !bundle.total || !bundle.phase || bundle.phase === 'not_started') return '';
+  const nf = (n) => n.toLocaleString('en-GB');
+  const done = Number(bundle.done) || 0;
+  const total = Number(bundle.total) || 0;
+  const pct = Math.max(0, Math.min(100, (done / total) * 100)).toFixed(1);
+  const gb = ((Number(bundle.bytes) || 0) / 1e9).toFixed(2);
+  const updatedUtc = utcLabel(bundle.updated);
+  return `
+  <section>
+    <h1>Native audio bundle</h1>
+    <p class="sub">${escapeHtml(bundle.phase)}</p>
+    <p class="big">${nf(done)}<span> of ${nf(total)} clips</span></p>
+    <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
+    <p class="sub">${gb} GB pulled for the app bundle${updatedUtc ? ` · updated ${updatedUtc}` : ''}</p>
+  </section>`;
+}
+
+function pageHtml(d, bundle) {
   const pct = (n) => (n * 100).toFixed(1);
   const nf = (n) => n.toLocaleString('en-GB');
   const versePct = d.verses / TOTAL_VERSES;
@@ -128,36 +169,9 @@ function pageHtml(d) {
     <dt>Measured over</dt><dd>${rate > 0 ? basis : 'nothing running'}</dd>
     <dt>Time left at this pace</dt><dd>${etaText}</dd>
   </dl>
-  <section id="kjb-bundle" hidden>
-    <h1>Native audio bundle</h1>
-    <p class="sub" id="kjb-bundle-phase"></p>
-    <p class="big" id="kjb-bundle-count">0<span> of 31,102 clips</span></p>
-    <div class="bar"><div class="fill" id="kjb-bundle-fill" style="width:0%"></div></div>
-    <p class="sub" id="kjb-bundle-meta"></p>
-  </section>
+${bundleSection(bundle)}
   <p class="foot">${d.stale ? 'Counted a moment ago while the library was busy · ' : ''}Updated ${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Singapore' })} SGT · refreshes every 15 seconds</p>
 </div>
-<script>
-(function () {
-  var url = 'https://kjb-clips.discloud.dev/bundle?t=' + Date.now();
-  fetch(url, { cache: 'no-store' })
-    .then(function (r) { return r.json(); })
-    .then(function (d) {
-      if (!d || !d.phase || d.phase === 'not_started' || !d.total) return;
-      var box = document.getElementById('kjb-bundle');
-      var pct = Math.max(0, Math.min(100, (d.done / d.total) * 100));
-      document.getElementById('kjb-bundle-phase').textContent = d.phase;
-      document.getElementById('kjb-bundle-count').innerHTML =
-        d.done.toLocaleString() + '<span> of ' + d.total.toLocaleString() + ' clips</span>';
-      document.getElementById('kjb-bundle-fill').style.width = pct.toFixed(1) + '%';
-      var gb = (d.bytes || 0) / 1e9;
-      document.getElementById('kjb-bundle-meta').textContent =
-        gb.toFixed(2) + ' GB pulled for the app bundle' + (d.updated ? ' · updated ' + d.updated.replace('T', ' ').replace(/\\+00:00$|Z$/, ' UTC') : '');
-      box.hidden = false;
-    })
-    .catch(function () {});
-})();
-</script>
 </body></html>`;
 }
 
@@ -204,6 +218,19 @@ Deno.serve(async (req) => {
   const url = new URL(req.url);
   const db = createClientFromRequest(req).asServiceRole;
 
+  // Native-app bundle progress, read here instead of in the browser. The host's
+  // firewall answers 403 to anything that does not look like a browser, so the
+  // User-Agent stays.
+  let bundle = null;
+  try {
+    const r = await fetch('https://kjb-clips.discloud.dev/bundle?t=' + Date.now(), {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; kjb-progress/1.0)' },
+    });
+    if (r.ok) bundle = await r.json();
+  } catch (_) {
+    bundle = null;
+  }
+
   let stale = false;
   try {
     if (!cache.data || Date.now() - cache.at > CACHE_MS) {
@@ -226,7 +253,7 @@ Deno.serve(async (req) => {
     if (url.searchParams.get('format') === 'json') {
       return Response.json(data, { headers: { 'Access-Control-Allow-Origin': '*' } });
     }
-    return new Response(pageHtml(data), {
+    return new Response(pageHtml(data, bundle), {
       headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
     });
   } catch (err) {
@@ -235,7 +262,7 @@ Deno.serve(async (req) => {
     if (url.searchParams.get('format') === 'json') {
       return Response.json(data, { headers: { 'Access-Control-Allow-Origin': '*' } });
     }
-    return new Response(pageHtml(data), {
+    return new Response(pageHtml(data, bundle), {
       headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
     });
   }
