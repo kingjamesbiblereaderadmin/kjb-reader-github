@@ -78,7 +78,7 @@ export default function ReaderToolbar({
           </button>
           </PopoverAnchor>
           {showBookPicker && !isMobile() && (
-            <ToolbarPopover align="start" onClose={() => setShowBookPicker(false)}>
+            <ToolbarPopover align="start" className={bookMode ? 'kjb-book-popover' : undefined} onClose={() => setShowBookPicker(false)}>
               <BookSelector
                 currentAbbr={pos.abbr}
                 onSelect={(b, isTitlePage, showChapter) => {
@@ -136,7 +136,7 @@ export default function ReaderToolbar({
             </button>
             </PopoverAnchor>
             {showChapterPicker && !isMobile() && (
-              <ToolbarPopover align="start" onClose={() => { setPendingBook(null); setShowChapterPicker(false); }}>
+              <ToolbarPopover align="start" className={bookMode ? 'kjb-book-popover' : undefined} onClose={() => { setPendingBook(null); setShowChapterPicker(false); }}>
                 <ChapterSelector
                   totalChapters={pendingBook ? pendingBook.chapters : book.chapters}
                   currentChapter={pendingBook ? null : pos.chapter}
@@ -178,7 +178,7 @@ export default function ReaderToolbar({
             </button>
             </PopoverAnchor>
             {showVersePicker && verseCount > 0 && !isMobile() && (
-              <ToolbarPopover align="start" onClose={() => setShowVersePicker(false)}>
+              <ToolbarPopover align="start" className={bookMode ? 'kjb-book-popover' : undefined} onClose={() => setShowVersePicker(false)}>
                 <VerseGrid
                   verseCount={verseCount}
                   currentVerse={highlightVerse}
@@ -218,7 +218,7 @@ export default function ReaderToolbar({
           </button>
           </PopoverAnchor>
           {showZoomPopover && !isMobile() && (
-            <ToolbarPopover align="center" className="[&>*]:!overflow-y-auto" onClose={() => setShowZoomPopover(false)}>
+            <ToolbarPopover align={bookMode ? 'end' : 'center'} className={`[&>*]:!overflow-y-auto ${bookMode ? 'kjb-book-popover' : ''}`} onClose={() => setShowZoomPopover(false)}>
               <div className="bg-card border border-border rounded-xl shadow-xl p-4 w-64 relative overflow-hidden">
                 <div className="flex items-center justify-between mb-3 pr-6">
                   <span className="font-sans text-xs font-medium text-foreground">Text Size</span>
@@ -268,7 +268,7 @@ export default function ReaderToolbar({
           </button>
           </PopoverAnchor>
           {showFontPopover && !isMobile() && (
-            <ToolbarPopover align="center" className="[&>*]:!overflow-y-auto" onClose={() => setShowFontPopover(false)}>
+            <ToolbarPopover align={bookMode ? 'end' : 'center'} className={`[&>*]:!overflow-y-auto ${bookMode ? 'kjb-book-popover' : ''}`} onClose={() => setShowFontPopover(false)}>
               <div className="bg-card border border-border rounded-xl shadow-xl p-4 w-64 relative overflow-hidden">
                 <div className="flex items-center justify-between mb-3 pr-6"><span className="font-sans text-xs font-medium text-foreground">Font Family</span></div>
                 <button onClick={() => setShowFontPopover(false)} className="absolute top-3 right-3 p-1 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"><X className="w-4 h-4" /></button>
@@ -353,7 +353,7 @@ export default function ReaderToolbar({
                 <span className="hidden lg:inline">{shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'}</span>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="w-52" onCloseAutoFocus={(e) => e.preventDefault()}>
+            <DropdownMenuContent align="center" className={`w-52 ${bookMode ? 'kjb-book-sheet' : ''}`} onCloseAutoFocus={(e) => e.preventDefault()}>
               <DropdownMenuItem onClick={handleShareChapter} className="cursor-pointer">
                 <AlignLeft className="w-4 h-4 mr-2" />
                 Share Text (Passage)
