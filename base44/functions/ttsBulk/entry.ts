@@ -20,7 +20,7 @@ const ENGINE = 'azure';
 const AZURE_PROXY_URL = 'https://solene-921ed14e.base44.app/functions/ttsAzure';
 const MAX_ITEMS = 40;
 const MAX_CHARS = 900;
-const CONCURRENCY = 6;
+const CONCURRENCY = 4;
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -158,7 +158,14 @@ export default async function (req) {
       const i = cursor++;
       if (i >= todo.length) return;
       const item = todo[i];
-      const made = await azureSpeech(item.text, voice);
+      // The speech proxy answers "Rate limit exceeded" when a burst is too
+      // wide: wait and try that line again rather than losing it, because a lost
+      // line is a verse that has to be paid for a second time.
+      let made = await azureSpeech(item.text, voice);
+      for (let attempt = 0; attempt < 4 && !made.ok && /rate limit/i.test(String((made as any).detail || (made as any).error || '')); attempt++) {
+        await new Promise((r) => setTimeout(r, 1200 * (attempt + 1)));
+        made = await azureSpeech(item.text, voice);
+      }
       if (!made.ok) {
         failures.push({ ref: item.ref, error: made.error, detail: (made as any).detail || '' });
         continue;
