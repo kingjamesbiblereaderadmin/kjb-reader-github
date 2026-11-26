@@ -71,6 +71,7 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
   const continueRef = useRef(false);
   const endedVersesRef = useRef(null);
   const prevPosRef = useRef({ book: bookName || label, chapter });
+  const announcedRef = useRef(false);
   // Follow the spoken verse with the page, until the reader scrolls by hand.
   const followRef = useRef(true);
   // Suppress one scroll: the clip that starts playback must never move the page.
@@ -109,8 +110,13 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
     const fullName = bookName || label;
     if (continueRef.current && verses.length && verses !== endedVersesRef.current) {
       continueRef.current = false;
-      const bookChanged = prev.book !== fullName;
+      // Name the book the first time anything is announced in a session, and
+      // whenever the book changes after that. A refresh, or starting on chapter
+      // 2 rather than chapter 1, is a fresh start: "Genesis, chapter 2", not a
+      // bare "Chapter 2" with no word of where you are.
+      const bookChanged = prev.book !== fullName || !announcedRef.current;
       const introText = bookChanged ? `${fullName}, chapter ${chapter}` : `Chapter ${chapter}`;
+      announcedRef.current = true;
       skipScrollRef.current = true;
       followRef.current = true;
       tts.start(1, { ref: `${chapterKey}:intro`, text: introText });

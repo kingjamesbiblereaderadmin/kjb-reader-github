@@ -107,6 +107,32 @@ export default async function (req) {
   }
 
   const voice = String(body.voice || '').trim();
+
+  // Store-only mode: the caller has already voiced the lines and published the
+  // mp3s, and is handing over the rows. The bulk run talks to the speech proxy
+  // from one place and stores here, so neither app's per-caller limits get in
+  // the way of the other.
+  if (Array.isArray(body.store)) {
+    const client0 = createClientFromRequest(req);
+    const db0 = client0.asServiceRole || client0;
+    const rows0 = [];
+    for (const raw of body.store) {
+      const ref = String(raw?.ref || '').trim();
+      const url = String(raw?.url || '').trim();
+      if (!ref || !url) continue;
+      if (!/^https?:\/\//.test(url)) return json({ error: 'bad_url', ref }, 400);
+      const hash = await sha256Hex(`${ENGINE}|${voice}|ref:${ref}`);
+      rows0.push({ hash, voice, chars: Number(raw?.chars) || 0, url, ref });
+    }
+    if (!rows0.length) return json({ error: 'no_rows' }, 400);
+    try {
+      await db0.entities.TtsClip.bulkCreate(rows0);
+    } catch (err) {
+      return json({ error: 'store_failed', detail: String((err as Error)?.message || err) }, 502);
+    }
+    return json({ stored: rows0.length });
+  }
+
   const items = Array.isArray(body.items) ? body.items : [];
   if (!voice) return json({ error: 'no_voice' }, 400);
   if (!items.length) return json({ error: 'no_items' }, 400);
