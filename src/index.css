@@ -982,10 +982,23 @@ html.kjb-native-ios select {
   transition: background-color 220ms ease, box-shadow 220ms ease;
 }
 
+/* The floated drop-cap letter sits outside the verse's inline background box, so
+   the wash above never reached it: verse 1 played with a big unwased letter
+   beside washed text. Give the cap its own copy of the same wash. The verse
+   number stays clear (kjb-dropcap-num is transparent), and in two-column and
+   paragraph modes the letter is the only part that needs it. */
+.kjb-speaking .kjb-dropcap-letter {
+  background-color: hsl(var(--accent) / 0.14);
+  border-radius: 0.2rem;
+  transition: background-color 220ms ease;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .kjb-speaking { transition: none; }
+  .kjb-speaking .kjb-dropcap-letter { transition: none; }
 }
 
 @media print {
   .kjb-speaking { background-color: transparent; box-shadow: none; }
+  .kjb-speaking .kjb-dropcap-letter { background-color: transparent; }
 }

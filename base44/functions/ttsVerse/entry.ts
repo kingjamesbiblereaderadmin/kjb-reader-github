@@ -35,6 +35,13 @@ async function sha256Hex(text) {
 }
 
 
+// This app holds no Azure key of its own: the Speech key lives in the agent app,
+// which exposes a tiny synthesis endpoint. So when no key is set here the clip is
+// voiced there and only its public URL comes back — still Azure, still cached
+// here, just one hop further. Setting AZURE_SPEECH_KEY in this app's own
+// environment variables skips the hop.
+const AZURE_PROXY_URL = 'https://solene-921ed14e.base44.app/functions/ttsAzure';
+
 type SynthResult =
   | { ok: true; audio: ArrayBuffer }
   | { ok: true; url: string }
@@ -62,9 +69,7 @@ async function azureSpeech(text: string, voice: string): Promise<SynthResult> {
   // set either way works, and renaming it later cannot silence the player.
   const key = Deno.env.get('AZURE_SPEECH_KEY') || Deno.env.get('GOOGLE_API_KEY');
   const region = Deno.env.get('AZURE_SPEECH_REGION') || 'southeastasia';
-  if (!key) {
-    return { ok: false, error: 'no_key', status: 501, detail: 'Add AZURE_SPEECH_KEY (or GOOGLE_API_KEY) to this app\'s environment variables.' };
-  }
+  if (!key) return azureViaProxy(text, voice);
   const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-GB'><voice name='${xmlEscape(voice)}'>${xmlEscape(text)}</voice></speak>`;
   let upstream: Response;
   try {
@@ -92,6 +97,29 @@ async function azureSpeech(text: string, voice: string): Promise<SynthResult> {
   const audio = await upstream.arrayBuffer();
   if (!audio.byteLength) return { ok: false, error: 'empty_audio', detail: 'Azure returned no audio.' };
   return { ok: true, audio };
+}
+
+async function azureViaProxy(text: string, voice: string): Promise<SynthResult> {
+  let upstream: Response;
+  try {
+    upstream = await fetch(AZURE_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voice }),
+    });
+  } catch (err) {
+    return { ok: false, error: 'network', detail: String(err?.message || err) };
+  }
+  const data = await upstream.json().catch(() => null);
+  if (!upstream.ok || !data?.url) {
+    return {
+      ok: false,
+      error: data?.error || 'azure',
+      status: upstream.status,
+      detail: data?.detail || 'The speech proxy did not return audio.',
+    };
+  }
+  return { ok: true, url: data.url };
 }
 
 async function synthesize(text: string, voice: string): Promise<SynthResult> {
