@@ -186,12 +186,21 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     // (aligned with verses 2+), so the floated group holds ONLY the big letter —
     // its left edge then lands flush with the next verse's first word. Paragraph
     // mode has no gutter, so the number stays inside the floated group there.
-    const groupInner = paragraphMode
-      ? `<span class="kjb-dropcap-num">${verse.verse}</span><span class="kjb-dropcap-letter"${letterStyle}>$2</span>`
-      : `<span class="kjb-dropcap-letter"${letterStyle}>$2</span>`;
     html = html.replace(
-      /^((?:<[^>]+>|\s)*)([A-Za-z])/,
-      `$1<span class="kjb-dropcap-group${paragraphMode ? ' kjb-dropcap-group-para' : ''}"${groupAttr}>${groupInner}</span>`
+      /^((?:<[^>]+>|\s)*)([A-Za-z])([A-Za-z]*)/,
+      (match, lead, first, rest) => {
+        const groupInner = paragraphMode
+          ? `<span class="kjb-dropcap-num">${verse.verse}</span><span class="kjb-dropcap-letter"${letterStyle}>${first}</span>`
+          : `<span class="kjb-dropcap-letter"${letterStyle}>${first}</span>`;
+        const group = `<span class="kjb-dropcap-group${paragraphMode ? ' kjb-dropcap-group-para' : ''}"${groupAttr}>${groupInner}</span>`;
+        // The KJB prints the opening word in capitals ("IN the beginning",
+        // "AND it came to pass"), so the enlarged first letter left its
+        // remaining capitals sitting at body size beside it and the verse read
+        // as "I N the beginning". Small caps on the remainder keep the printed
+        // capitals while the word still reads as a word.
+        const allCaps = first === first.toUpperCase() && rest.length > 0 && rest === rest.toUpperCase();
+        return `${lead}${group}${allCaps ? `<span class="kjb-dropcap-smallcaps">${rest}</span>` : rest}`;
+      }
     );
   }
 

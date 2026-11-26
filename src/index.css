@@ -982,6 +982,16 @@ html.kjb-native-ios select {
   transition: background-color 220ms ease, box-shadow 220ms ease;
 }
 
+/* The rest of an all-caps opening word ("IN the beginning", "AND it came to
+   pass"): set smaller than body text so it reads as part of the big letter's
+   word instead of a stray capital beside it. font-variant: small-caps is not
+   used because browsers leave already-uppercase letters at full cap height, so
+   the size is set explicitly and works the same everywhere. */
+.kjb-dropcap-smallcaps {
+  font-size: 0.86em;
+  letter-spacing: 0.01em;
+}
+
 /* The floated drop-cap letter sits outside the verse's inline background box, so
    the wash above never reached it: verse 1 played with a big unwased letter
    beside washed text. Give the cap its own copy of the same wash. The verse
