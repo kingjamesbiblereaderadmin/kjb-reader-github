@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Switch } from '@/components/ui/switch';
 import useBibleTts from '@/hooks/useBibleTts';
 import { TTS_VOICES, TTS_RATES, TTS_STORAGE, readStored, writeStored, voiceLabel } from '@/lib/tts/voices';
 
@@ -56,7 +57,7 @@ function scrollToVerse(verse) {
 }
 
 export default function TtsPlayer({ embedded = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, chapter = null, startVerse = null, label = '', bookName = '', onNextChapter = null, onRestart }) {
-  const [autoContinue] = useState(() => readStored(TTS_STORAGE.autoContinue, 'true') !== 'false');
+  const [autoContinue, setAutoContinue] = useState(() => readStored(TTS_STORAGE.autoContinue, 'true') !== 'false');
   // Hidden = controls collapse to a single pill; audio keeps playing. Remembered
   // per device so a reader who listens while reading never sees the bar again.
   const [hidden, setHidden] = useState(() => readStored(TTS_STORAGE.hidden, 'false') === 'true');
@@ -313,8 +314,8 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
               or hides behind the toolbar. */}
           <Popover open={showVoices} onOpenChange={setShowVoices}>
             <PopoverTrigger asChild>
-              <button className={`${CONTROL} gap-1 px-3 font-sans text-sm font-medium whitespace-nowrap`} aria-label="Voice and speed">
-                Voice
+              <button className={`${CONTROL} gap-1 px-3 font-sans text-sm font-medium whitespace-nowrap`} aria-label="Voice, speed and playback options">
+                Options
                 <ChevronDown className={`w-3.5 h-3.5 opacity-70 transition-transform ${showVoices ? 'rotate-180' : ''}`} />
               </button>
             </PopoverTrigger>
@@ -352,6 +353,14 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
                   </button>
                 ))}
               </div>
+              <label className="flex items-center justify-between gap-3 border-t border-border pt-3 cursor-pointer">
+                <span className="font-sans text-xs font-medium">Continue to next chapter</span>
+                <Switch
+                  checked={autoContinue}
+                  onCheckedChange={(on) => { setAutoContinue(on); writeStored(TTS_STORAGE.autoContinue, on); }}
+                  data-testid="tts-continue-switch"
+                />
+              </label>
             </PopoverContent>
           </Popover>
           {!idle && (
