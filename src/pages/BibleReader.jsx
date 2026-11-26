@@ -1956,6 +1956,7 @@ export default function BibleReader() {
           chapter={pos.chapter}
           startVerse={highlightVerse}
           label={book.shortName}
+          bookName={book.name}
           onNextChapter={() => goNext(true)}
         />
       )}

@@ -32,7 +32,7 @@ function firstVisibleVerse() {
   return null;
 }
 
-export default function TtsPlayer({ verses, chapterKey, chapter = null, startVerse = null, label = '', onNextChapter = null }) {
+export default function TtsPlayer({ verses, chapterKey, chapter = null, startVerse = null, label = '', bookName = '', onNextChapter = null }) {
   const [autoContinue] = useState(() => readStored(TTS_STORAGE.autoContinue, 'true') !== 'false');
   // Hidden = controls collapse to a pill; audio keeps playing. Remembered per
   // device so a reader who listens while reading never sees the bar again.
@@ -47,7 +47,7 @@ export default function TtsPlayer({ verses, chapterKey, chapter = null, startVer
   // once that chapter's verses actually arrive.
   const continueRef = useRef(false);
   const endedVersesRef = useRef(null);
-  const prevPosRef = useRef({ label, chapter });
+  const prevPosRef = useRef({ book: bookName || label, chapter });
   // Follow the spoken verse with the page, until the reader scrolls by hand.
   const followRef = useRef(true);
   // Suppress one scroll: the clip that starts playback must never move the page.
@@ -75,19 +75,21 @@ export default function TtsPlayer({ verses, chapterKey, chapter = null, startVer
     const prev = prevPosRef.current;
     if (continueRef.current && verses.length && verses !== endedVersesRef.current) {
       continueRef.current = false;
-      // Say where we are, but only say the book name when the book changes: in
-      // continuous listening it is just "Chapter 3".
-      const bookChanged = prev.label !== label;
-      const introText = bookChanged ? `${label}, chapter ${chapter}` : `Chapter ${chapter}`;
+      // Say where we are, but only name the book when the book changes: in
+      // continuous listening it is just "Chapter 3". When it does name the book
+      // it uses the full canonical title, not the short one shown on screen.
+      const fullName = bookName || label;
+      const bookChanged = prev.book !== fullName;
+      const introText = bookChanged ? `${fullName}, chapter ${chapter}` : `Chapter ${chapter}`;
       skipScrollRef.current = true;
       followRef.current = true;
       tts.start(1, { ref: `${chapterKey}:intro`, text: introText });
     }
-    prevPosRef.current = { label, chapter };
+    prevPosRef.current = { book: fullName, chapter };
     // tts.start is stable; depending on the whole hook object would re-run on
     // every status change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [verses, chapterKey, label, chapter]);
+  }, [verses, chapterKey, label, bookName, chapter]);
 
   // Keep the spoken verse highlighted, and bring it into view only when it has
   // scrolled off AND the reader has not taken over scrolling themselves.
@@ -127,12 +129,17 @@ export default function TtsPlayer({ verses, chapterKey, chapter = null, startVer
     ? `${label ? `${label} ` : ''}${chapter}:${tts.currentVerse}`
     : '';
 
-  // Every explicit press re-takes control of scrolling.
+  // Every explicit press re-takes control of scrolling. Starting fresh also
+  // says where we are — full book name then chapter — which is what makes the
+  // bare "Chapter 3" on later chapters sound right.
   const playFrom = (verse) => {
     followRef.current = true;
     skipScrollRef.current = true;
     if (hidden) setHiddenPersisted(false);
-    tts.start(verse);
+    const intro = chapter
+      ? { ref: `${chapterKey}:intro`, text: `${bookName || label}, chapter ${chapter}` }
+      : null;
+    tts.start(verse, intro);
   };
 
   const startFromView = () => playFrom(firstVisibleVerse() ?? startVerse);
