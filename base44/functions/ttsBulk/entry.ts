@@ -14,6 +14,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.63';
 
 const ENGINE = 'azure';
+// The app holds no Azure key of its own: the Speech key lives in the agent app,
+// which voices a line and hands back the published mp3. Setting
+// AZURE_SPEECH_KEY here skips the hop.
+const AZURE_PROXY_URL = 'https://solene-921ed14e.base44.app/functions/ttsAzure';
 const MAX_ITEMS = 40;
 const MAX_CHARS = 900;
 const CONCURRENCY = 6;
@@ -45,10 +49,27 @@ function xmlEscape(value: string) {
     .replace(/'/g, '&apos;');
 }
 
+async function azureViaProxy(text: string, voice: string) {
+  try {
+    const upstream = await fetch(AZURE_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voice }),
+    });
+    const data = await upstream.json().catch(() => null);
+    if (!upstream.ok || !data?.url) {
+      return { ok: false as const, error: data?.error || 'azure', status: upstream.status, detail: data?.detail || '' };
+    }
+    return { ok: true as const, url: String(data.url) };
+  } catch (err) {
+    return { ok: false as const, error: 'network', detail: String((err as Error)?.message || err) };
+  }
+}
+
 async function azureSpeech(text: string, voice: string) {
   const key = Deno.env.get('AZURE_SPEECH_KEY') || Deno.env.get('GOOGLE_API_KEY');
   const region = Deno.env.get('AZURE_SPEECH_REGION') || 'southeastasia';
-  if (!key) return { ok: false as const, error: 'no_key' };
+  if (!key) return azureViaProxy(text, voice);
   const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-GB'><voice name='${xmlEscape(voice)}'>${xmlEscape(text)}</voice></speak>`;
   let upstream: Response;
   try {
@@ -144,12 +165,17 @@ export default async function (req) {
       }
       const hash = await sha256Hex(`${ENGINE}|${voice}|ref:${item.ref}`);
       let url = '';
-      try {
-        const file = new File([made.audio], `kjb-${hash.slice(0, 16)}.mp3`, { type: 'audio/mpeg' });
-        const uploaded = await client.integrations.Core.UploadFile({ file });
-        url = uploaded?.file_url || '';
-      } catch (err) {
-        console.error('[ttsBulk] upload failed', item.ref, (err as Error)?.message);
+      if ('url' in made && made.url) {
+        // Voiced by the proxy, which already published the mp3.
+        url = made.url;
+      } else {
+        try {
+          const file = new File([(made as any).audio], `kjb-${hash.slice(0, 16)}.mp3`, { type: 'audio/mpeg' });
+          const uploaded = await client.integrations.Core.UploadFile({ file });
+          url = uploaded?.file_url || '';
+        } catch (err) {
+          console.error('[ttsBulk] upload failed', item.ref, (err as Error)?.message);
+        }
       }
       if (!url) {
         // No upload means no cache row: report it so the caller retries rather
