@@ -82,6 +82,7 @@ function normalizeSpeechText(raw: string) {
 // screen keeps its printed spelling. Hyphens mark syllable breaks, which the
 // voice follows; add a line here whenever a word comes out wrong.
 const PRONOUNCE: Record<string, string> = {
+  gomorrah: 'gu-mor-uh',
   saith: 'seth',
   doth: 'duth',
   elizabeth: 'ee-liz-uh-beth',

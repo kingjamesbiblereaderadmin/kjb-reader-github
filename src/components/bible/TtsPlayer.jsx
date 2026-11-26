@@ -72,16 +72,31 @@ function firstVisibleVerse() {
 // least amount that does it. "centre" is used when the listener asked to go
 // somewhere (a play press, a verse pick) rather than for the verse that just
 // started speaking, which only moves the page when it would otherwise be cut off.
+// How much of the top of the scroller is covered by the sticky reader toolbar.
+// Measured rather than guessed: the toolbar grows and shrinks (it holds the
+// Listen player, and it is shorter when the header is hidden), and a fixed
+// number either left a gap above the verse or tucked its first line under the
+// bar. Whatever its height today, the verse lands flush beneath it.
+function topInset(box) {
+  const bar = document.querySelector('[data-kjb-reader-toolbar-wrap]');
+  if (bar) {
+    const b = bar.getBoundingClientRect();
+    if (b.height > 0) return Math.max(0, Math.round(b.bottom - box.top));
+  }
+  return PAD_TOP;
+}
+
 function revealElement(el, { center = false } = {}) {
   if (!el) return;
   const box = scrollBox();
   const r = el.getBoundingClientRect();
-  const above = r.top < box.top + PAD_TOP;
+  const inset = topInset(box);
+  const above = r.top < box.top + inset;
   const below = r.bottom > box.bottom - PAD_BOTTOM;
   if (!above && !below) return;
   const delta = center
     ? r.top + r.height / 2 - (box.top + box.bottom) / 2
-    : above ? r.top - (box.top + PAD_TOP) : r.bottom - (box.bottom - PAD_BOTTOM);
+    : above ? r.top - (box.top + inset) : r.bottom - (box.bottom - PAD_BOTTOM);
   if (!delta) return;
   (box.scroller || window).scrollBy({ top: delta, behavior: 'smooth' });
 }
