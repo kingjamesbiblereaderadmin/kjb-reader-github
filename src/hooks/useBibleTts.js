@@ -24,6 +24,11 @@ export function cleanVerseForSpeech(raw) {
     .trim();
 }
 
+// Where listening got to. Kept outside React so the place survives the player
+// being rebuilt (e.g. the header being hidden or shown). Cleared by Stop and by
+// reaching the end of a chapter.
+let resumePoint = null; // { chapterKey, verse, time }
+
 const urlCache = new Map(); // `${voice}|${text}` -> mp3 url
 
 // Clips are keyed by verse reference, not by the verse text: the text that
@@ -78,6 +83,10 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
   // when playback rolls into a new chapter so the listener is told where they
   // are without the reader having to say the book name again.
   const introRef = useRef(null);
+  // Pause pressed while a clip is still being fetched must hold once it lands.
+  const holdRef = useRef(false);
+  const fetchingRef = useRef(false);
+  const startAtRef = useRef(0);
   // Called when the last verse finishes, so the player can roll on to the next
   // chapter. Held in a ref so a new handler never restarts playback.
   const onEndRef = useRef(onChapterEnd);
@@ -111,6 +120,7 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
     if (el) {
       el.pause();
       el.onended = null;
+      el.ontimeupdate = null;
       el.removeAttribute('src');
     }
     setIndex(-1);
@@ -121,12 +131,14 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
   const playClip = useCallback(async (clip, token, onDone) => {
     setStatus('loading');
     setError('');
+    fetchingRef.current = true;
 
     let url;
     try {
       url = await audioUrlFor(clip, voiceRef.current);
     } catch (err) {
       if (token === tokenRef.current) {
+        fetchingRef.current = false;
         setIntroActive(false);
         setError(err?.message || 'Audio could not be generated.');
         setStatus('error');
@@ -135,12 +147,28 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
     }
     if (token !== tokenRef.current) return false;
 
+    fetchingRef.current = false;
+
     const el = getAudio();
+    el.ontimeupdate = null;
     el.src = url;
+    if (clip.verse != null) {
+      const startAt = startAtRef.current;
+      startAtRef.current = 0;
+      if (startAt > 0) el.currentTime = startAt;
+      el.ontimeupdate = () => {
+        if (token === tokenRef.current && resumePoint) resumePoint.time = el.currentTime;
+      };
+    }
     el.playbackRate = rateRef.current;
     el.onended = () => {
       if (token === tokenRef.current) onDone();
     };
+
+    if (holdRef.current) {
+      setStatus('paused');
+      return true;
+    }
 
     try {
       await el.play();
@@ -156,9 +184,11 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
   const playAt = useCallback(async (i, token) => {
     const list = clipsRef.current;
     if (!list.length) return;
+    holdRef.current = false;
     if (i < 0 || i >= list.length) {
       // End of the chapter. The player decides whether that means "stop" or
       // "carry on into the next chapter" — this hook does not navigate.
+      resumePoint = null;
       setStatus('idle');
       setIndex(-1);
       onEndRef.current?.();
@@ -188,12 +218,13 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
 
     setIntroActive(false);
     setIndex(i);
+    resumePoint = { chapterKey, verse: list[i].verse, time: startAtRef.current };
     // Warm the next verse while this one plays — the gap between clips is what
     // makes a per-verse player feel stuttery otherwise.
     if (list[i + 1]) audioUrlFor(list[i + 1], voiceRef.current).catch(() => {});
 
     await playClip(list[i], token, () => playAtRef.current?.(i + 1, token));
-  }, [playClip]);
+  }, [playClip, chapterKey]);
 
   playAtRef.current = playAt;
 
@@ -205,6 +236,7 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
       const found = list.findIndex((c) => c.verse === Number(fromVerse));
       if (found >= 0) i = found;
     }
+    startAtRef.current = 0;
     introRef.current = intro;
     // Don't keep showing the old verse while the chapter announcement plays.
     if (intro) setIndex(-1);
@@ -212,19 +244,44 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
     playAt(i, tokenRef.current);
   }, [playAt]);
 
+  // Continue from the saved place in this chapter. False if there isn't one.
+  const resumeSaved = useCallback(() => {
+    if (!resumePoint || resumePoint.chapterKey !== chapterKey) return false;
+    const i = clipsRef.current.findIndex((c) => c.verse === resumePoint.verse);
+    if (i < 0) return false;
+    startAtRef.current = resumePoint.time || 0;
+    introRef.current = null;
+    tokenRef.current += 1;
+    playAt(i, tokenRef.current);
+    return true;
+  }, [chapterKey, playAt]);
+
+  const stop = useCallback(() => {
+    resumePoint = null;
+    hardStop();
+  }, [hardStop]);
+
   const pause = useCallback(() => {
+    holdRef.current = true;
     audioRef.current?.pause();
     setStatus((s) => (s === 'playing' || s === 'loading' ? 'paused' : s));
   }, []);
 
   const resume = useCallback(() => {
-    const el = audioRef.current;
-    if (el?.src) {
-      el.play().then(() => setStatus('playing')).catch(() => {});
+    holdRef.current = false;
+    // Still fetching: the element holds the previous clip, so don't replay it.
+    if (fetchingRef.current) {
+      setStatus('loading');
       return;
     }
+    const el = audioRef.current;
+    if (el?.src && !el.error) {
+      el.play().then(() => setStatus('playing')).catch(() => { resumeSaved(); });
+      return;
+    }
+    if (resumeSaved()) return;
     start(index >= 0 ? clipsRef.current[index]?.verse : null);
-  }, [index, start]);
+  }, [index, start, resumeSaved]);
 
   const toggle = useCallback(() => {
     if (status === 'playing' || status === 'loading') pause();
@@ -282,7 +339,7 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
   return {
     status, error, index, currentVerse, voice, rate, introActive,
     total: clips.length,
-    start, pause, resume, toggle, next, prev, stop: hardStop,
+    start, pause, resume, resumeSaved, toggle, next, prev, stop,
     setVoice, setRate,
     isActive: status !== 'idle' || index >= 0,
   };

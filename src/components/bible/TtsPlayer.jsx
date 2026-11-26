@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, RotateCcw, Check } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import useBibleTts from '@/hooks/useBibleTts';
@@ -209,7 +209,13 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
     tts.start(verse, intro);
   };
 
-  const startFromView = () => playFrom(firstVisibleVerse() ?? startVerse);
+  // Play carries on from where listening got to; only a fresh chapter (or one
+  // that was stopped) starts from what is on screen.
+  const startFromView = () => {
+    followRef.current = true;
+    if (tts.resumeSaved()) return;
+    playFrom(firstVisibleVerse() ?? startVerse);
+  };
 
   // Pressing play always shows the verse that is speaking: pausing mid-verse
   // does not change the current verse, so the highlight effect never re-runs and
@@ -320,41 +326,48 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
               </button>
             </PopoverTrigger>
             <PopoverContent
-              align="center"
+              align="end"
               sideOffset={8}
               collisionPadding={12}
               onCloseAutoFocus={(e) => e.preventDefault()}
               style={{ maxHeight: 'var(--radix-popover-content-available-height)' }}
-              className="print:hidden z-[110] w-64 overflow-y-auto border-border bg-popover p-3 space-y-3"
+              className="print:hidden z-[110] w-72 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-xl border-border bg-popover p-0 shadow-xl"
             >
-              <p className="font-sans text-xs font-semibold text-muted-foreground">Voice</p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="p-1.5" role="radiogroup" aria-label="Voice">
+                <p className="px-2.5 py-1.5 font-sans text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Voice</p>
                 {TTS_VOICES.map((v) => (
                   <button
                     key={v.id}
+                    role="radio"
+                    aria-checked={tts.voice === v.id}
                     onClick={() => tts.setVoice(v.id)}
-                    aria-pressed={tts.voice === v.id}
-                    className={`min-h-9 px-2 py-1.5 rounded-lg font-sans text-xs font-medium border transition-colors ${tts.voice === v.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary text-secondary-foreground border-border hover:bg-accent/20'}`}
+                    className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left font-sans transition-colors ${tts.voice === v.id ? 'bg-primary/10' : 'hover:bg-secondary'}`}
                   >
-                    {v.label}
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-sm font-medium text-foreground">{v.short}</span>
+                      <span className="block text-xs text-muted-foreground">British {v.label.toLowerCase()}</span>
+                    </span>
+                    {tts.voice === v.id && <Check className="w-4 h-4 flex-shrink-0 text-primary" />}
                   </button>
                 ))}
               </div>
-              <p className="border-t border-border pt-3 font-sans text-xs font-semibold text-muted-foreground">Speed</p>
-              <div className="grid grid-flow-col auto-cols-fr gap-1.5">
-                {TTS_RATES.map((r) => (
-                  <button
-                    key={r}
-                    onClick={() => tts.setRate(r)}
-                    aria-pressed={tts.rate === r}
-                    className={`h-9 rounded-lg font-sans text-xs font-medium border transition-colors ${tts.rate === r ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary text-secondary-foreground border-border hover:bg-accent/20'}`}
-                  >
-                    {r}x
-                  </button>
-                ))}
+              <div className="border-t border-border px-4 py-3">
+                <p className="mb-2 font-sans text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Speed</p>
+                <div className="grid grid-flow-col auto-cols-fr gap-1 rounded-lg bg-secondary p-1">
+                  {TTS_RATES.map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => tts.setRate(r)}
+                      aria-pressed={tts.rate === r}
+                      className={`h-8 rounded-md font-sans text-xs font-medium tabular-nums transition-colors ${tts.rate === r ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      {r}x
+                    </button>
+                  ))}
+                </div>
               </div>
-              <label className="flex items-center justify-between gap-3 border-t border-border pt-3 cursor-pointer">
-                <span className="font-sans text-xs font-medium">Continue to next chapter</span>
+              <label className="flex items-center justify-between gap-3 border-t border-border px-4 py-3 cursor-pointer">
+                <span className="font-sans text-sm font-medium text-foreground">Continue to next chapter</span>
                 <Switch
                   checked={autoContinue}
                   onCheckedChange={(on) => { setAutoContinue(on); writeStored(TTS_STORAGE.autoContinue, on); }}
