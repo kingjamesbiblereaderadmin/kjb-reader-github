@@ -1736,13 +1736,17 @@ export default function BibleReader() {
   const isLastChapterLastBook = pos.abbr === 'REV' && pos.chapter === 22;
   const isFirstChapterFirstBook = pos.abbr === 'GEN' && pos.chapter === 0;
   const isGenesisChapterOne = pos.abbr === 'GEN' && pos.chapter === 1;
+  // True when the Listen player renders directly under the toolbar: the toolbar
+  // then hands its bottom border and shadow to the player so the two are one
+  // continuous white block instead of a bar with a card floating under it.
+  const ttsAttached = !hideHeader && ttsEnabled && !loading && !error && !isViewingTitlePage && verses.length > 0;
 
   return (
     <div onClick={(e) => { if (!e.target.closest('.kjb-verse-container, [id^="v"], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a, [role="menu"], [role="menuitem"], [data-radix-popper-content-wrapper]')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerses(new Set()); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 py-3 ${hideHeader ? 'pt-16' : ''}`}>
       {!hideHeader && (
         <ReaderToolbar
           topRef={topRef} hideHeader={hideHeader} setHideHeader={setHideHeader}
-          anyMenuOpen={anyMenuOpen} closeAllMenus={closeAllMenus}
+          anyMenuOpen={anyMenuOpen} closeAllMenus={closeAllMenus} ttsAttached={ttsAttached}
           pos={pos} book={book} isViewingTitlePage={isViewingTitlePage}
           showBookPicker={showBookPicker} setShowBookPicker={setShowBookPicker}
           showChapterPicker={showChapterPicker} setShowChapterPicker={setShowChapterPicker}

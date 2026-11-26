@@ -25,7 +25,7 @@ import { isMobile } from '@/lib/readerPosition';
 // indicator and the select/range/tap action bars. Extracted from
 // BibleReader — every value it reads arrives as a prop.
 export default function ReaderToolbar({
-  topRef, hideHeader, setHideHeader, anyMenuOpen, closeAllMenus,
+  topRef, hideHeader, setHideHeader, anyMenuOpen, closeAllMenus, ttsAttached = false,
   pos, book, isViewingTitlePage,
   showBookPicker, setShowBookPicker, showChapterPicker, setShowChapterPicker,
   showVersePicker, setShowVersePicker, showZoomPopover, setShowZoomPopover,
@@ -50,7 +50,7 @@ export default function ReaderToolbar({
   tapCopyFeedback, tapShareFeedback, tapSaveFeedback,
 }) {
   return (
-    <div ref={topRef} data-kjb-reader-toolbar-wrap className="print:hidden sticky top-0 z-[100] border-b border-border pb-4 pt-3 mb-8 relative shadow-sm -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background before:content-[''] before:absolute before:bottom-full before:left-[calc(-1*env(safe-area-inset-left,0px))] before:right-[calc(-1*env(safe-area-inset-right,0px))] before:h-12 before:bg-background">
+    <div ref={topRef} data-kjb-reader-toolbar-wrap className={`print:hidden sticky top-0 z-[100] border-b pt-3 relative -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background ${ttsAttached ? 'border-transparent pb-0 mb-0 shadow-none' : 'border-border pb-4 mb-8 shadow-sm'}  before:content-[''] before:absolute before:bottom-full before:left-[calc(-1*env(safe-area-inset-left,0px))] before:right-[calc(-1*env(safe-area-inset-right,0px))] before:h-12 before:bg-background`}>
       <div
         onClickCapture={(e) => {
           // Tapping empty space inside the toolbar (the gaps/padding between
