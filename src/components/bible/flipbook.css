@@ -22,7 +22,20 @@
 /* page number at the foot, centred beneath a hairline rule, as in a printed Bible */
 .kjb-fb-folio { flex: 1; display: flex; align-items: flex-start; justify-content: center; margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--fb-rule); font-family: Merriweather, Georgia, serif; font-size: 0.8rem; font-variant-numeric: oldstyle-nums; }
 
-.kjb-fb-window { overflow: hidden; }
+.kjb-fb-window { position: relative; overflow: hidden; }
+
+/* The closing marker of a testament ("The End of the Prophets", "The End") is
+   printed at the foot of the final page, centred, as in the printed Bible —
+   not run on directly after the last verse. */
+.kjb-fb-endmark { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; padding: 14px 0 2px; text-align: center; font-family: Merriweather, Georgia, serif; font-size: 0.76em; letter-spacing: 0.16em; text-transform: uppercase; }
+
+/* ---- Contents page (front matter) ----------------------------------------
+   The old table of books, set in two columns in small type. */
+.kjb-contents-title { margin: 0 0 1.6em; text-align: center; font-family: Merriweather, Georgia, serif; font-size: 0.84rem; font-weight: 700; line-height: 1.7; letter-spacing: 0.1em; text-transform: uppercase; }
+.kjb-contents-list { margin: 0; padding: 0; list-style: none; columns: 2; column-gap: 26px; }
+.kjb-contents-list li { break-inside: avoid; margin: 0 0 0.12em; }
+.kjb-contents-entry { display: block; width: 100%; padding: 2px 0; text-align: left; font-family: Merriweather, Georgia, serif; font-size: 0.8rem; line-height: 1.5; color: inherit; background: none; border: 0; box-shadow: none; cursor: pointer; }
+.kjb-contents-entry:hover, .kjb-contents-entry:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
 .kjb-fb-flow { position: relative; column-fill: auto; line-height: 1.5; text-align: justify; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; font-family: Merriweather, Georgia, serif; }
 
 .kjb-fb-flow .kjb-fb-title { margin: 0 0 0.5em; text-align: center; font-size: 1.35em; font-weight: 700; line-height: 1.25; hyphens: manual; -webkit-hyphens: manual; color: inherit; break-inside: avoid; break-after: avoid; }

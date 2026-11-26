@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useSta
 import FlipBookChrome from '@/components/bible/FlipBookChrome';
 import { renderVerseText } from '@/lib/bibleApi';
 import TitlePage from '@/components/bible/TitlePage';
+import ContentsPage from '@/components/bible/ContentsPage';
 import { useSpeaking, getProgress } from '@/lib/tts/speaking';
 import { getVerseHighlight } from '@/lib/verseHighlights';
 import './flipbook.css';
@@ -23,11 +24,11 @@ const ChapterFlow = React.forwardRef(function ChapterFlow({ blocks, width, heigh
   );
 });
 
-// The app's own title pages, laid out at the page's own width. Their display
-// type is sized in container units (see flipbook.css), so a narrow page shrinks
-// the words instead of clipping them at the edges; only height ever needs
-// scaling.
-function FittedTitlePage({ type, book, width, height }) {
+// The app's own title pages and front matter, laid out at the page's own width.
+// Their display type is sized in container units (see flipbook.css), so a narrow
+// page shrinks the words instead of clipping them at the edges; only height ever
+// needs scaling.
+function FittedPage({ width, height, children }) {
   const ref = useRef(null);
   const [scale, setScale] = useState(1);
   useLayoutEffect(() => {
@@ -37,11 +38,11 @@ function FittedTitlePage({ type, book, width, height }) {
     const ro = new ResizeObserver(fit);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [width, height, type, book]);
+  }, [width, height]);
   return (
     <div className="kjb-fb-titlewrap" style={{ width, height }}>
       <div ref={ref} className="kjb-fb-titlepage" style={{ width, transform: `translate(-50%, -50%) scale(${scale})` }}>
-        <TitlePage type={type} book={book} />
+        {children}
       </div>
     </div>
   );
@@ -90,7 +91,7 @@ export default function FlipBook({
   book, abbr, chapter, verses, subscript, colophon, endMarker, loading, error,
   fontFamilyValue, isCursive, zoomLevel, jumpVerse, jumpSection, tappedVerses, onVerseTap,
   twoColumns, paragraphs, searchTerm, selectMode, selectedVerses, filterMode,
-  onNextChapter, onPrevChapter, canPrev, canNext, controls, viewControl,
+  onNextChapter, onPrevChapter, canPrev, canNext, controls, viewControl, onSelectBook,
 }) {
   const bookName = book.name;
   const rootRef = useRef(null);
@@ -99,10 +100,14 @@ export default function FlipBook({
   const speaking = useSpeaking();
   const [, setHighlightTick] = useState(0);
 
-  // Title pages that come before this chapter's text. Chapter 0 is a title page
-  // of its own; chapter 1 opens with the book's title page.
+  // Pages that come before this chapter's text. Chapter 0 is a title page of its
+  // own — the whole Bible's, followed by the old table of books — and chapter 1
+  // opens with the book's own title page.
   const front = useMemo(() => {
-    if (chapter === 0) return [abbr === 'GEN' ? 'testament-old' : abbr === 'MAT' ? 'testament-new' : 'book'];
+    if (chapter === 0) {
+      if (abbr === 'GEN') return ['testament-old', 'contents'];
+      return [abbr === 'MAT' ? 'testament-new' : 'book'];
+    }
     return chapter === 1 ? ['book'] : [];
   }, [abbr, chapter]);
 
@@ -224,10 +229,9 @@ export default function FlipBook({
           </p>
         ))}
         {colophon && (!filtered || picked(verses[verses.length - 1] || {})) && <p className="kjb-fb-note" data-fb-sec="col" dangerouslySetInnerHTML={markup(colophon, jumpSection === 'colophon' ? searchTerm : null)} />}
-        {endMarker && !filtered && <p className="kjb-fb-chapter">{endMarker}</p>}
       </>
     );
-  }, [bookName, chapter, verses, subscript, colophon, endMarker, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses]);
+  }, [bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses]);
 
   // A new chapter opens at its first page, or its last when turning backwards.
   const shownKeyRef = useRef(null);
@@ -378,13 +382,22 @@ export default function FlipBook({
     setTurn(null);
   };
 
-  // One printed page: a title page, or running head, text and page number.
+  // Text pages only (the title page and the table of books come before them).
+  const textTotal = Math.max(0, pageCount - front.length);
+  // The closing marker of a testament is printed at the foot of the last page.
+  const showEnd = !!endMarker && !(filterMode && !selectMode && selectedVerses?.size);
+
+  // One printed page: a title page, the contents, or running head, text and page number.
   const face = (index, side) => {
     const textIndex = index - front.length;
     return (
       <div className={`kjb-fb-page kjb-fb-${side}`} style={{ padding: `52px ${padRight}px ${footerHeight}px ${padLeft}px` }}>
         {index >= 0 && index < pageCount && (textIndex < 0 ? (
-          <FittedTitlePage type={front[index]} book={book} width={textW} height={contentH - 24} />
+          <FittedPage width={textW} height={contentH - 24}>
+            {front[index] === 'contents'
+              ? <ContentsPage onSelectBook={onSelectBook} />
+              : <TitlePage type={front[index]} book={book} />}
+          </FittedPage>
         ) : (
           <>
             {/* The chapter's opening page carries its own title, so the running
@@ -399,6 +412,7 @@ export default function FlipBook({
             </div>
             <div className="kjb-fb-window" style={{ width: textW, height: textH }}>
               <ChapterFlow blocks={blocks} {...flowProps} page={textIndex} textStyle={textStyle} />
+              {showEnd && textIndex === textTotal - 1 && <p className="kjb-fb-endmark">{endMarker}</p>}
             </div>
             <div className="kjb-fb-folio">{textIndex + 1}</div>
           </>
@@ -408,7 +422,6 @@ export default function FlipBook({
   };
 
   // "Genesis 2 · pages 1–2 of 4", counting text pages only.
-  const textTotal = Math.max(0, pageCount - front.length);
   const shown = Array.from({ length: step }, (_, i) => page + i - front.length + 1).filter((n) => n >= 1 && n <= textTotal);
   const where = !shown.length ? 'Title page'
     : `${book.shortName} ${chapter} · ${shown.length > 1 ? `pages ${shown[0]}–${shown[1]}` : `page ${shown[0]}`} of ${textTotal}`;

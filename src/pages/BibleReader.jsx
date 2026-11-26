@@ -1893,6 +1893,7 @@ export default function BibleReader() {
           selectMode={selectMode} selectedVerses={selectedVerses} filterMode={filterMode}
           onVerseTap={selectMode ? toggleVerseSelect : toggleTappedVerse}
           onNextChapter={() => goNext()} onPrevChapter={goPrev}
+          onSelectBook={(abbr) => navigate(abbr, 1)}
           canPrev={!isFirstChapterFirstBook} canNext={!isLastChapterLastBook}
         />
       )}
