@@ -29,10 +29,13 @@ async function tally(db) {
   let recentChars = 0;
   let skip = 0;
   for (;;) {
-    let page = null;
-    for (let attempt = 0; attempt < 4 && page == null; attempt++) {
+    let rows = null;
+    for (let attempt = 0; attempt < 4 && rows == null; attempt++) {
       try {
-        page = await db.entities.TtsClip.filter({}, { limit: PAGE, skip });
+        // filter() answers with a page ({items}) in the options form and a plain
+        // array in the positional form — accept either.
+        const page = await db.entities.TtsClip.filter({}, { limit: PAGE, skip });
+        rows = Array.isArray(page) ? page : page?.items || [];
       } catch (err) {
         // The library is being filled while this runs, so a page can land on the
         // app's per-minute entity limit: wait it out rather than report a
@@ -41,8 +44,8 @@ async function tally(db) {
         await new Promise((r) => setTimeout(r, 1200 * (attempt + 1)));
       }
     }
-    if (!page || page.length === 0) break;
-    for (const row of page) {
+    if (!rows || rows.length === 0) break;
+    for (const row of rows) {
       if (!row?.ref || !VERSE_REF.test(row.ref)) continue;
       if (refs.has(row.ref)) continue;
       refs.add(row.ref);
@@ -51,7 +54,7 @@ async function tally(db) {
       const created = Date.parse(row.created_date || '');
       if (Number.isFinite(created) && now - created < 10 * 60000) recentChars += c;
     }
-    if (page.length < PAGE) break;
+    if (rows.length < PAGE) break;
     skip += PAGE;
     if (skip > 60000) break;
   }
