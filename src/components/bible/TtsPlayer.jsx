@@ -72,11 +72,6 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
   const endedVersesRef = useRef(null);
   const prevPosRef = useRef({ book: bookName || label, chapter });
   const announcedRef = useRef(false);
-  // Stopping (or reaching the end) closes the listening session: the next start
-  // is a fresh one and names its book again, even in the same chapter.
-  useEffect(() => {
-    if (!tts.isActive) announcedRef.current = false;
-  }, [tts.isActive]);
   // Follow the spoken verse with the page, until the reader scrolls by hand.
   const followRef = useRef(true);
   // Suppress one scroll: the clip that starts playback must never move the page.
@@ -103,6 +98,15 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
   }, [autoContinue, onNextChapter, verses]);
 
   const tts = useBibleTts({ verses, chapterKey, subscript, colophon, titleText, endMarker, onChapterEnd: handleChapterEnd });
+
+  // Stopping (or reaching the end) closes the listening session: the next start
+  // is a fresh one and names its book again, even in the same chapter. This has
+  // to sit BELOW the useBibleTts call: the dependency array is read during
+  // render, so naming `tts` above it would hit the temporal dead zone and take
+  // the whole reader down with "Cannot access 'tts' before initialization".
+  useEffect(() => {
+    if (!tts.isActive) announcedRef.current = false;
+  }, [tts.isActive]);
 
   // Roll into the new chapter once its verses land. Gating on the verses array
   // actually changing (not just on chapterKey) is what stops playback starting
