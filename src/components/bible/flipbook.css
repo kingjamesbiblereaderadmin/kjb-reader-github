@@ -65,6 +65,15 @@
 .kjb-flipbook [data-fb-colour='purple'] { background: rgba(192, 132, 252, 0.3); }
 .kjb-flipbook .kjb-fb-tapped { text-decoration: underline dotted var(--fb-red); text-underline-offset: 3px; }
 .kjb-flipbook .kjb-fb-speaking { background: rgba(176, 132, 40, 0.26); }
+/* The opening drop cap is the paragraph's ::first-letter, so the verse span's
+   wash never reached it: the big letter sat outside the highlight while the
+   rest of verse 1 was marked. FlipBook marks the verse-1 paragraph itself
+   (kjb-fb-first-speaking) whenever its verse is the one being read, and the
+   cap carries the same wash. */
+.kjb-flipbook .kjb-fb-first.kjb-fb-first-speaking::first-letter {
+  background: rgba(176, 132, 40, 0.26);
+  border-radius: 2px;
+}
 
 .kjb-fb-twocol { column-rule: 1px solid var(--fb-rule); font-size: 0.92em; }
 .kjb-fb-twocol .kjb-fb-title { font-size: 1.12em; }

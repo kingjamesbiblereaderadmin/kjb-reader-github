@@ -261,6 +261,11 @@ export default function FlipBook({
       const colour = getVerseHighlight(abbr, chapter, n);
       if (colour) el.dataset.fbColour = colour; else delete el.dataset.fbColour;
     });
+    // The drop cap is the paragraph's ::first-letter, outside the verse span's
+    // own background, so the paragraph is marked too while its verse is spoken.
+    root.querySelectorAll('.kjb-fb-first').forEach((el) => {
+      el.classList.toggle('kjb-fb-first-speaking', !!el.querySelector('.kjb-fb-speaking'));
+    });
     root.querySelectorAll('[data-fb-sec]').forEach((el) => {
       const kind = el.dataset.fbSec;
       el.classList.toggle('kjb-fb-speaking', kind === 'head' ? spokenAt === 'intro' : spokenAt === `[data-fb-sec="${kind}"]`);
