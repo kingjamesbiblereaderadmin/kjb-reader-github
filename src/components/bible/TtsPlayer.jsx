@@ -72,6 +72,11 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
   const endedVersesRef = useRef(null);
   const prevPosRef = useRef({ book: bookName || label, chapter });
   const announcedRef = useRef(false);
+  // Stopping (or reaching the end) closes the listening session: the next start
+  // is a fresh one and names its book again, even in the same chapter.
+  useEffect(() => {
+    if (!tts.isActive) announcedRef.current = false;
+  }, [tts.isActive]);
   // Follow the spoken verse with the page, until the reader scrolls by hand.
   const followRef = useRef(true);
   // Suppress one scroll: the clip that starts playback must never move the page.
