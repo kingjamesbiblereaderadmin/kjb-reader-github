@@ -160,10 +160,15 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
       // bare "Chapter 2" with no word of where you are.
       const bookChanged = prev.book !== fullName || !announcedRef.current;
       const introText = bookChanged ? `${fullName}, chapter ${chapter}` : `Chapter ${chapter}`;
+      // A clip is cached by its reference, not by its words, so the bare
+      // "Chapter 3" must not share ":intro" with the book-named line: whichever
+      // of the two was voiced first played for both, and after a refresh the
+      // player asked for "Genesis, chapter 1" and got a cached "Chapter 1".
+      const introKey = bookChanged ? `${chapterKey}:intro` : `${chapterKey}:chapter`;
       announcedRef.current = true;
       skipScrollRef.current = true;
       followRef.current = true;
-      tts.start(1, { ref: `${chapterKey}:intro`, text: introText });
+      tts.start(1, { ref: introKey, text: introText });
     }
     prevPosRef.current = { book: fullName, chapter };
     // tts.start is stable; depending on the whole hook object would re-run on

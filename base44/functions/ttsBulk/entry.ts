@@ -273,8 +273,16 @@ const PRONOUNCE_RE = new RegExp(
   'gi',
 );
 
+// The respellings are written with capitals on the stressed syllable because
+// that is how they are easiest to read and edit, but capitals are never sent to
+// the engine: an all-caps token makes a neural voice spell it out letter by
+// letter, which is what turned "Eshcol" into "E-S-H". Lower-cased here, once,
+// so the table stays readable and the voice hears only ordinary words.
 function respell(text: string) {
-  return text.replace(PRONOUNCE_RE, (word) => PRONOUNCE[word.toLowerCase()] || word);
+  return text.replace(
+    PRONOUNCE_RE,
+    (word) => (PRONOUNCE[word.toLowerCase()] || word).toLowerCase(),
+  );
 }
 
 // The one entry point: clean the source markup, then respell the hard words.
