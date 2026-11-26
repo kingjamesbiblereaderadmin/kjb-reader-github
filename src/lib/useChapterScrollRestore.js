@@ -63,6 +63,15 @@ export function useChapterScrollRestore({
         }
       } catch {}
     }
+    // A real page refresh (F5, pull-to-refresh, reopening the tab) used to
+    // restore whatever offset was last saved, so the page came back somewhere
+    // in the middle of the chapter with nothing playing and no obvious reason
+    // for the position. Treat a reload as a fresh navigation and open at the
+    // top of the chapter instead.
+    try {
+      const nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+      if (nav && nav.type === 'reload') freshNavRef.current = true;
+    } catch {}
     if (freshNavRef.current) {
       freshNavRef.current = false;
       const scroller = document.getElementById('kjb-scroll') || window;
