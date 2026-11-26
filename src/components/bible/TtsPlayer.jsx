@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Headphones, Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import useBibleTts from '@/hooks/useBibleTts';
 import { TTS_VOICES, TTS_RATES, TTS_STORAGE, readStored, writeStored, voiceLabel } from '@/lib/tts/voices';
@@ -231,40 +231,12 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
 
   const withFollow = (fn) => () => { followRef.current = true; fn(); };
 
-  // ---- idle: a centred Listen row ------------------------------------------
-  if (!tts.isActive) {
-    if (!open && !tts.error) return null;
-    return (
-      <section className={embedded ? SHELL : SHELL_STANDALONE}>
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <button
-            onClick={startFromView}
-            data-testid="tts-listen-btn"
-            className="h-10 flex items-center justify-center gap-2 px-6 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-95 active:scale-[0.98] transition-all"
-          >
-            <Headphones className="w-4 h-4" />
-            Listen
-          </button>
-          {selectedVerse != null && (
-            <button
-              onClick={startFromHere}
-              data-testid="tts-start-here-btn"
-              className={`${CONTROL} gap-1.5 px-3 font-sans text-xs font-medium`}
-            >
-              <Play className="w-3.5 h-3.5" />
-              Start from verse {selectedVerse}
-            </button>
-          )}
-        </div>
-        {tts.error && (
-          <p className="mt-2 mx-auto font-sans text-[11px] text-destructive text-center max-w-[22rem]">{tts.error}</p>
-        )}
-      </section>
-    );
-  }
+  // Idle and not opened from the toolbar: nothing to show.
+  const idle = !tts.isActive;
+  if (idle && !open && !tts.error) return null;
 
   // ---- hidden: a centred play/pause pill -----------------------------------
-  if (hidden) {
+  if (hidden && !idle) {
     return (
       <section className={embedded ? SHELL : SHELL_STANDALONE}>
         <div className="flex items-center justify-center gap-3">
@@ -284,17 +256,18 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
   return (
     <section className={embedded ? SHELL : SHELL_STANDALONE}>
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-          <button onClick={withFollow(tts.prev)} aria-label="Previous verse" className={CONTROL}>
+          <button onClick={withFollow(tts.prev)} disabled={idle} aria-label="Previous verse" className={`${CONTROL} disabled:opacity-40 disabled:pointer-events-none`}>
             <SkipBack className="w-4 h-4" />
           </button>
           <button
-            onClick={onPlayPause}
+            onClick={idle ? startFromView : onPlayPause}
+            data-testid={idle ? 'tts-listen-btn' : undefined}
             aria-label={tts.status === 'playing' || tts.status === 'loading' ? 'Pause' : 'Play'}
             className="h-10 w-14 flex items-center justify-center rounded-lg bg-primary text-primary-foreground hover:opacity-95 transition-opacity touch-manipulation"
           >
             {tts.status === 'playing' || tts.status === 'loading' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
           </button>
-          <button onClick={withFollow(tts.next)} aria-label="Next verse" className={CONTROL}>
+          <button onClick={withFollow(tts.next)} disabled={idle} aria-label="Next verse" className={`${CONTROL} disabled:opacity-40 disabled:pointer-events-none`}>
             <SkipForward className="w-4 h-4" />
           </button>
           <button
@@ -309,7 +282,7 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
 
           <div className="px-2 text-center min-w-0 max-w-[10rem] sm:max-w-none">
             <p className="font-sans text-xs font-medium truncate">
-              {tts.status === 'loading' ? 'Preparing…' : verseRef || 'Listening'}
+              {tts.status === 'loading' ? 'Preparing…' : verseRef || (idle ? 'Ready to play' : 'Listening')}
             </p>
             <p className="font-sans text-[10px] text-muted-foreground truncate">
               {voiceLabel(tts.voice)} · {tts.rate}x
@@ -322,6 +295,7 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
             <button
               onClick={startFromHere}
               data-testid="tts-start-here-btn"
+              title={`Start from verse ${selectedVerse}`}
               className={`${CONTROL} gap-1 px-3 font-sans text-xs font-medium whitespace-nowrap`}
             >
               <Play className="w-3 h-3" />
@@ -374,12 +348,16 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
               </div>
             </PopoverContent>
           </Popover>
-          <button onClick={() => { setHiddenPersisted(true); onOpenChange?.(false); }} aria-label="Hide player" className={CONTROL}>
-            <ChevronDown className="w-4 h-4" />
-          </button>
-          <button onClick={() => { tts.stop(); onOpenChange?.(false); }} aria-label="Stop listening" className={CONTROL}>
-            <X className="w-4 h-4" />
-          </button>
+          {!idle && (
+            <button onClick={() => { setHiddenPersisted(true); onOpenChange?.(false); }} aria-label="Hide player" className={CONTROL}>
+              <ChevronDown className="w-4 h-4" />
+            </button>
+          )}
+          {(!idle || embedded) && (
+            <button onClick={() => { tts.stop(); onOpenChange?.(false); }} aria-label={idle ? 'Close player' : 'Stop listening'} className={CONTROL}>
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {tts.error && (
