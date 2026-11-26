@@ -46,21 +46,47 @@ export function cleanHeadingForSpeech(raw) {
 // enough to read along with, and it costs nothing extra to generate.
 const WORD_HIGHLIGHT = 'kjb-word';
 
+// Roughly how many syllables a word will be spoken in. Speech takes time per
+// syllable, not per letter — "righteousness" and "strengthened" are long words
+// that read quickly, while "unto" and "thee" are short and slow — so syllables
+// are what the timing is built on.
+function syllableCount(word) {
+  const s = String(word).toLowerCase().replace(/[^a-z]/g, '');
+  if (!s) return 1;
+  const groups = s.match(/[aeiouy]+/g);
+  let n = groups ? groups.length : 1;
+  if (s.length > 2 && s.endsWith('e') && !/[aeiouy]e$/.test(s)) n -= 1;
+  return Math.max(1, n);
+}
+
+// A clip is not speech from its first sample to its last: there is a breath of
+// silence at each end. Trimming a slice off both ends is what keeps the first
+// word from being already half-spoken when the highlight arrives.
+const LEAD_SILENCE = 0.07;
+const TRAIL_SILENCE = 0.1;
+
 function wordRangesFor(el) {
   if (!el || typeof CSS === 'undefined' || !CSS.highlights || typeof Highlight === 'undefined') return null;
   const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
   const words = [];
   let node;
+  let first = true;
   while ((node = walker.nextNode())) {
     const text = node.nodeValue || '';
     const re = /\S+/g;
     let m;
     while ((m = re.exec(text))) {
+      const token = m[0];
+      // The verse number is printed but never spoken.
+      if (first && /^\d+$/.test(token)) { first = false; continue; }
+      first = false;
       const range = document.createRange();
       range.setStart(node, m.index);
-      range.setEnd(node, m.index + m[0].length);
-      const pause = /[,;:]$/.test(m[0]) ? 3 : /[.!?]$/.test(m[0]) ? 6 : 0;
-      words.push({ range, weight: m[0].length + 1 + pause });
+      range.setEnd(node, m.index + token.length);
+      // Punctuation is a held breath, measured in syllables so it lands on the
+      // same scale as the words around it.
+      const pause = /[,;:]$/.test(token) ? 0.8 : /[.!?]$/.test(token) ? 1.9 : /[\u2014-]$/.test(token) ? 0.5 : 0;
+      words.push({ range, weight: syllableCount(token) + pause });
     }
   }
   if (!words.length) return null;
@@ -258,7 +284,9 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
         if (token !== tokenRef.current) return;
         if (resumePoint) resumePoint.time = el.currentTime;
         if (!words || !Number.isFinite(el.duration) || el.duration <= 0) return;
-        const target = (el.currentTime / el.duration) * words.total;
+        const span = Math.max(0.1, 1 - LEAD_SILENCE - TRAIL_SILENCE);
+        const progress = (el.currentTime / el.duration - LEAD_SILENCE) / span;
+        const target = Math.min(1, Math.max(0, progress)) * words.total;
         let i = 0;
         while (i < words.ends.length - 1 && words.ends[i] < target) i += 1;
         if (i === shown) return;
