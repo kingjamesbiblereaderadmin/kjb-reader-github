@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Headphones, Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import useBibleTts from '@/hooks/useBibleTts';
 import { TTS_VOICES, TTS_RATES, TTS_STORAGE, readStored, writeStored, voiceLabel } from '@/lib/tts/voices';
 
@@ -60,22 +61,7 @@ export default function TtsPlayer({ embedded = false, verses, chapterKey, chapte
   // per device so a reader who listens while reading never sees the bar again.
   const [hidden, setHidden] = useState(() => readStored(TTS_STORAGE.hidden, 'false') === 'true');
   const [showVoices, setShowVoices] = useState(false);
-  const voicePanelRef = useRef(null);
 
-  // The voice panel is a dropdown on the Voice button; a tap anywhere else
-  // closes it, the same way the toolbar's own menus behave.
-  useEffect(() => {
-    if (!showVoices) return undefined;
-    const onDown = (e) => {
-      if (voicePanelRef.current && !voicePanelRef.current.contains(e.target)) setShowVoices(false);
-    };
-    document.addEventListener('mousedown', onDown);
-    document.addEventListener('touchstart', onDown);
-    return () => {
-      document.removeEventListener('mousedown', onDown);
-      document.removeEventListener('touchstart', onDown);
-    };
-  }, [showVoices]);
   // The verse the reader last tapped: "start from here" plays from it.
   const [selectedVerse, setSelectedVerse] = useState(null);
 
@@ -323,46 +309,51 @@ export default function TtsPlayer({ embedded = false, verses, chapterKey, chapte
             </button>
           )}
 
-          {/* The panel hangs off the Voice button itself, absolutely positioned,
-              so it stays anchored to the control as the page scrolls instead of
-              riding the document. */}
-          <div className="relative" ref={voicePanelRef}>
-            <button
-              onClick={() => setShowVoices((v) => !v)}
-              className={`${CONTROL} px-3 font-sans text-xs font-medium whitespace-nowrap`}
-              aria-label="Voice and speed"
-              aria-expanded={showVoices}
+          {/* Portaled and collision-aware, so the menu never runs off screen
+              or hides behind the toolbar. */}
+          <Popover open={showVoices} onOpenChange={setShowVoices}>
+            <PopoverTrigger asChild>
+              <button className={`${CONTROL} gap-1 px-3 font-sans text-sm font-medium whitespace-nowrap`} aria-label="Voice and speed">
+                Voice
+                <ChevronDown className={`w-3.5 h-3.5 opacity-70 transition-transform ${showVoices ? 'rotate-180' : ''}`} />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="center"
+              sideOffset={8}
+              collisionPadding={12}
+              onCloseAutoFocus={(e) => e.preventDefault()}
+              style={{ maxHeight: 'var(--radix-popover-content-available-height)' }}
+              className="print:hidden z-[110] w-64 overflow-y-auto border-border bg-popover p-3 space-y-3"
             >
-              Voice
-            </button>
-            {showVoices && (
-              <div className="absolute right-0 top-full z-[120] mt-1 w-56 rounded-lg border border-border bg-popover text-popover-foreground shadow-lg p-2 space-y-2">
-                <div className="grid grid-cols-2 gap-1.5">
-                  {TTS_VOICES.map((v) => (
-                    <button
-                      key={v.id}
-                      onClick={() => tts.setVoice(v.id)}
-                      className={`px-2 py-1.5 rounded-md font-sans text-[11px] border transition-colors ${tts.voice === v.id ? 'bg-accent text-accent-foreground border-accent font-semibold' : 'bg-secondary text-foreground border-border hover:bg-accent/20'}`}
-                    >
-                      {v.label}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex items-center justify-center gap-1.5 border-t border-border pt-2">
-                  <span className="font-sans text-[11px] text-muted-foreground">Speed</span>
-                  {TTS_RATES.map((r) => (
-                    <button
-                      key={r}
-                      onClick={() => tts.setRate(r)}
-                      className={`px-2 py-0.5 rounded font-sans text-[11px] border transition-colors ${tts.rate === r ? 'bg-accent text-accent-foreground border-accent font-semibold' : 'bg-secondary text-foreground border-border hover:bg-accent/20'}`}
-                    >
-                      {r}x
-                    </button>
-                  ))}
-                </div>
+              <p className="font-sans text-xs font-semibold text-muted-foreground">Voice</p>
+              <div className="grid grid-cols-2 gap-2">
+                {TTS_VOICES.map((v) => (
+                  <button
+                    key={v.id}
+                    onClick={() => tts.setVoice(v.id)}
+                    aria-pressed={tts.voice === v.id}
+                    className={`min-h-9 px-2 py-1.5 rounded-lg font-sans text-xs font-medium border transition-colors ${tts.voice === v.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary text-secondary-foreground border-border hover:bg-accent/20'}`}
+                  >
+                    {v.label}
+                  </button>
+                ))}
               </div>
-            )}
-          </div>
+              <p className="border-t border-border pt-3 font-sans text-xs font-semibold text-muted-foreground">Speed</p>
+              <div className="grid grid-flow-col auto-cols-fr gap-1.5">
+                {TTS_RATES.map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => tts.setRate(r)}
+                    aria-pressed={tts.rate === r}
+                    className={`h-9 rounded-lg font-sans text-xs font-medium border transition-colors ${tts.rate === r ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary text-secondary-foreground border-border hover:bg-accent/20'}`}
+                  >
+                    {r}x
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
           <button onClick={() => setHiddenPersisted(true)} aria-label="Hide player" className={CONTROL}>
             <ChevronDown className="w-4 h-4" />
           </button>

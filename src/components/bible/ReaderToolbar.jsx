@@ -4,6 +4,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import BookSelector from '@/components/bible/BookSelector';
 import ChapterSelector from '@/components/bible/ChapterSelector';
 import VerseGrid from '@/components/bible/VerseGrid';
+import { Popover, PopoverAnchor } from '@/components/ui/popover';
+import ToolbarPopover from '@/components/bible/ToolbarPopover';
 import SelectorSheet from '@/components/bible/SelectorSheet';
 import CurrentlyReadingIndicator from '@/components/bible/CurrentlyReadingIndicator';
 import SelectActionBar from '@/components/bible/SelectActionBar';
@@ -61,6 +63,8 @@ export default function ReaderToolbar({
         }}
         className="kjb-reader-toolbar flex flex-wrap items-stretch justify-stretch gap-3 w-full kjb-frame mx-auto [&>button:not(.kjb-fixed-btn)]:flex-grow [&>button:not(.kjb-fixed-btn)]:basis-auto [&>div.relative]:flex-grow [&>div.relative>button]:w-full">
         <div className="relative flex">
+          <Popover open={!!(showBookPicker && !isMobile())}>
+          <PopoverAnchor asChild>
           <button
             onClick={() => { setShowBookPicker(p => !p); setShowChapterPicker(false); setShowVersePicker(false); setShowZoomPopover(false); setShowFontPopover(false); }}
             className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-90 transition-all duration-200 touch-manipulation h-10 w-full"
@@ -68,8 +72,9 @@ export default function ReaderToolbar({
             <span className="notranslate truncate text-center">{isViewingTitlePage ? 'Title Page' : book.shortName}</span>
             <ChevronRight className={`w-3 h-3 opacity-70 transition-transform duration-200 flex-shrink-0 ${showBookPicker ? 'rotate-90' : ''}`} />
           </button>
+          </PopoverAnchor>
           {showBookPicker && !isMobile() && (
-            <div className="kjb-popover-panel absolute top-full left-0 mt-1 z-[100]">
+            <ToolbarPopover align="start" onClose={() => setShowBookPicker(false)}>
               <BookSelector
                 currentAbbr={pos.abbr}
                 onSelect={(b, isTitlePage, showChapter) => {
@@ -84,8 +89,9 @@ export default function ReaderToolbar({
                 }}
                 onClose={() => setShowBookPicker(false)}
               />
-            </div>
+            </ToolbarPopover>
           )}
+          </Popover>
           <SelectorSheet tall open={showBookPicker && isMobile()} onClose={() => setShowBookPicker(false)} title="Select Book">
             <BookSelector
               bare
@@ -107,6 +113,8 @@ export default function ReaderToolbar({
         {!isViewingTitlePage && (
           <>
           <div className="relative flex">
+            <Popover open={!!(showChapterPicker && !isMobile())}>
+            <PopoverAnchor asChild>
             <button
               onClick={() => {
                 setShowBookPicker(false); setShowZoomPopover(false); setShowFontPopover(false);
@@ -120,8 +128,9 @@ export default function ReaderToolbar({
               <span className="notranslate">Ch.{pos.chapter}</span>
               <ChevronRight className={`w-3 h-3 opacity-70 transition-transform duration-200 flex-shrink-0 ${showChapterPicker ? 'rotate-90' : ''}`} />
             </button>
+            </PopoverAnchor>
             {showChapterPicker && !isMobile() && (
-              <div className="kjb-popover-panel absolute top-full left-0 mt-1 z-[100]">
+              <ToolbarPopover align="start" onClose={() => { setPendingBook(null); setShowChapterPicker(false); }}>
                 <ChapterSelector
                   totalChapters={pendingBook ? pendingBook.chapters : book.chapters}
                   currentChapter={pendingBook ? null : pos.chapter}
@@ -130,8 +139,9 @@ export default function ReaderToolbar({
                   onWholeBook={() => { if (pendingBook) { navigate(pendingBook.abbr, 1); } setPendingBook(null); setShowChapterPicker(false); }}
                   bookName={pendingBook ? pendingBook.name : book.name}
                 />
-              </div>
+              </ToolbarPopover>
             )}
+            </Popover>
             <SelectorSheet open={showChapterPicker && isMobile()} onClose={() => setShowChapterPicker(false)} title="Select Chapter">
               <ChapterSelector
                 totalChapters={pendingBook ? pendingBook.chapters : book.chapters}
@@ -146,6 +156,8 @@ export default function ReaderToolbar({
           </div>
 
           <div className="relative flex">
+            <Popover open={!!(showVersePicker && verseCount > 0 && !isMobile())}>
+            <PopoverAnchor asChild>
             <button
               onClick={() => { setShowVersePicker(p => !p); setShowBookPicker(false); setShowChapterPicker(false); setShowZoomPopover(false); setShowFontPopover(false); }}
               className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 w-full ${
@@ -158,8 +170,9 @@ export default function ReaderToolbar({
               </span>
               {selectMode ? <CheckSquare className="w-3.5 h-3.5 opacity-70 flex-shrink-0 transition-transform duration-200" /> : <ChevronRight className={`w-3 h-3 opacity-70 transition-transform duration-200 flex-shrink-0 ${showVersePicker ? 'rotate-90' : ''}`} />}
             </button>
+            </PopoverAnchor>
             {showVersePicker && verseCount > 0 && !isMobile() && (
-              <div className="kjb-popover-panel absolute top-full left-0 mt-1 z-[100]">
+              <ToolbarPopover align="start" onClose={() => setShowVersePicker(false)}>
                 <VerseGrid
                   verseCount={verseCount}
                   currentVerse={highlightVerse}
@@ -168,8 +181,9 @@ export default function ReaderToolbar({
                   hasColophon={!!colophon}
                   onSelect={handleVersePick}
                 />
-              </div>
+              </ToolbarPopover>
             )}
+            </Popover>
             <SelectorSheet open={showVersePicker && verseCount > 0 && isMobile()} onClose={() => setShowVersePicker(false)} title="Select Verse">
               <VerseGrid
                 verseCount={verseCount}
@@ -184,16 +198,19 @@ export default function ReaderToolbar({
           </div>
 
           <div className="relative flex">
+          <Popover open={!!(showZoomPopover && !isMobile())}>
+          <PopoverAnchor asChild>
           <button
             onClick={() => { setShowZoomPopover(p => !p); setShowBookPicker(false); setShowChapterPicker(false); setShowVersePicker(false); setShowFontPopover(false); }}
             title={`Zoom: ${zoomLevel}%`}
-            className="flex items-center justify-center gap-1 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"
+            className="flex items-center justify-center gap-1 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"
           >
-            <ZoomIn className="w-3.5 h-3.5 transition-transform duration-200 flex-shrink-0" />
+            <ZoomIn className="w-4 h-4 transition-transform duration-200 flex-shrink-0" />
             <span className="truncate">{zoomLevel}%</span>
           </button>
+          </PopoverAnchor>
           {showZoomPopover && !isMobile() && (
-            <div className="kjb-popover-panel absolute top-full right-0 mt-1 z-[100]" onClick={(e) => e.stopPropagation()}>
+            <ToolbarPopover align="center" className="[&>*]:!overflow-y-auto" onClose={() => setShowZoomPopover(false)}>
               <div className="bg-card border border-border rounded-xl shadow-xl p-4 w-64 relative overflow-hidden">
                 <div className="flex items-center justify-between mb-3 pr-6">
                   <span className="font-sans text-xs font-medium text-foreground">Text Size</span>
@@ -209,8 +226,9 @@ export default function ReaderToolbar({
                   <button onClick={resetZoom} className="w-full mt-2 px-2 py-1.5 rounded-lg bg-primary/10 text-primary font-sans text-xs font-medium hover:bg-primary/20 transition-colors">Reset to 100%</button>
                 )}
               </div>
-            </div>
+            </ToolbarPopover>
           )}
+          </Popover>
           <SelectorSheet open={showZoomPopover && isMobile()} onClose={() => setShowZoomPopover(false)} title="Text Size">
             <div className="space-y-4 p-2">
               <div className="flex items-center justify-between">
@@ -230,16 +248,19 @@ export default function ReaderToolbar({
           </div>
 
           <div className="relative flex">
+          <Popover open={!!(showFontPopover && !isMobile())}>
+          <PopoverAnchor asChild>
           <button
             onClick={() => { setShowFontPopover(p => !p); setShowBookPicker(false); setShowChapterPicker(false); setShowVersePicker(false); setShowZoomPopover(false); }}
             title="Font family"
-            className="flex items-center justify-center gap-1 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"
+            className="flex items-center justify-center gap-1 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"
           >
-            <Type className="w-3.5 h-3.5 transition-transform duration-200 flex-shrink-0" />
+            <Type className="w-4 h-4 transition-transform duration-200 flex-shrink-0" />
             <span className="hidden sm:inline">{(() => { const active = a11yActive ? a11yFont : fontFamily; return active === 'serif' ? 'Serif' : active === 'sans-serif' ? 'Sans' : active === 'monospace' ? 'Mono' : active === 'comic-sans' ? 'Comic' : active === 'times' ? 'Times' : active === 'dyslexic' ? 'Dyslexic' : active === 'hyperlegible' ? 'Legible' : 'Cursive'; })()}</span>
           </button>
+          </PopoverAnchor>
           {showFontPopover && !isMobile() && (
-            <div className="kjb-popover-panel absolute top-full left-0 mt-1 z-[100]" onClick={(e) => e.stopPropagation()}>
+            <ToolbarPopover align="center" className="[&>*]:!overflow-y-auto" onClose={() => setShowFontPopover(false)}>
               <div className="bg-card border border-border rounded-xl shadow-xl p-4 w-64 relative overflow-hidden">
                 <div className="flex items-center justify-between mb-3 pr-6"><span className="font-sans text-xs font-medium text-foreground">Font Family</span></div>
                 <button onClick={() => setShowFontPopover(false)} className="absolute top-3 right-3 p-1 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"><X className="w-4 h-4" /></button>
@@ -264,8 +285,9 @@ export default function ReaderToolbar({
                   })}
                 </div>
               </div>
-            </div>
+            </ToolbarPopover>
           )}
+          </Popover>
           <SelectorSheet open={showFontPopover && isMobile()} onClose={() => setShowFontPopover(false)} title="Font Family">
             <div className="space-y-2 p-2">
               {a11yActive && <p className="font-sans text-xs text-muted-foreground leading-snug mb-1">An accessibility font is active app-wide and overrides reading fonts.</p>}
@@ -295,29 +317,29 @@ export default function ReaderToolbar({
           <button
             onClick={toggleFlow}
             title={flowMode === 'line' ? 'Switch to paragraph' : 'Switch to line-by-line'}
-            className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-xs font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap ${
+            className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap ${
               paragraphMode ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'
             }`}
           >
-            {flowMode === 'line' ? <List className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /> : <AlignJustify className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />}
+            {flowMode === 'line' ? <List className="w-4 h-4 transition-transform duration-200 flex-shrink-0" /> : <AlignJustify className="w-4 h-4 transition-transform duration-200 flex-shrink-0" />}
             <span className="hidden lg:inline">{flowMode === 'line' ? 'Lines' : 'Para'}</span>
           </button>
           <button
             onClick={toggleColumn}
             title={columnOn ? 'Switch to single column' : 'Switch to two-column'}
-            className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-xs font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap ${
+            className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap ${
               columnOn ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'
             }`}
           >
-            {columnOn ? <Columns2 className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /> : <AlignLeft className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />}
+            {columnOn ? <Columns2 className="w-4 h-4 transition-transform duration-200 flex-shrink-0" /> : <AlignLeft className="w-4 h-4 transition-transform duration-200 flex-shrink-0" />}
             <span className="hidden lg:inline">{columnOn ? '2-Col' : '1-Col'}</span>
           </button>
-          <button onClick={toggleSelectMode} title="Select verses" className={`kjb-fixed-btn flex-none flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-xs font-medium transition-all duration-200 touch-manipulation h-10  whitespace-nowrap ${selectMode ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}><CheckSquare className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Select</span></button>
+          <button onClick={toggleSelectMode} title="Select verses" className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10  whitespace-nowrap ${selectMode ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}><CheckSquare className="w-4 h-4 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Select</span></button>
 
            <DropdownMenu onOpenChange={(open) => { if (open) closeAllMenus(); }}>
             <DropdownMenuTrigger asChild>
-              <button title={shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'} className="kjb-fixed-btn flex-none flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap">
-                <Share2 className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />
+              <button title={shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'} className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground hover:bg-accent/20 font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap">
+                <Share2 className="w-4 h-4 transition-transform duration-200 flex-shrink-0" />
                 <span className="hidden lg:inline">{shareFeedback || shareLinkFeedback ? 'Copied!' : 'Share'}</span>
               </button>
             </DropdownMenuTrigger>
@@ -340,14 +362,14 @@ export default function ReaderToolbar({
           <button
             onClick={() => printChapter(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode)}
             title="Print"
-            className="kjb-fixed-btn flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"
+            className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-secondary-foreground font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"
           >
-            <Printer className="w-5 h-5 transition-transform duration-200 flex-shrink-0" />
+            <Printer className="w-4 h-4 transition-transform duration-200 flex-shrink-0" />
             <span className="hidden lg:inline">Print</span>
           </button>
 
-          <button onClick={goPrev} disabled={isFirstChapterFirstBook} data-testid="prev-chapter-btn" className="kjb-fixed-btn flex-shrink-0 flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"><ChevronLeft className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Prev</span></button>
-          <button onClick={() => goNext()} disabled={isLastChapterLastBook} data-testid="next-chapter-btn" className="kjb-fixed-btn flex-shrink-0 flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"><span className="hidden lg:inline">Next</span><ChevronRight className="w-5 h-5 transition-transform duration-200 flex-shrink-0" /></button>
+          <button onClick={goPrev} disabled={isFirstChapterFirstBook} data-testid="prev-chapter-btn" className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-secondary-foreground font-sans text-sm font-medium disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"><ChevronLeft className="w-4 h-4 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Prev</span></button>
+          <button onClick={() => goNext()} disabled={isLastChapterLastBook} data-testid="next-chapter-btn" className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-secondary-foreground font-sans text-sm font-medium disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"><span className="hidden lg:inline">Next</span><ChevronRight className="w-4 h-4 transition-transform duration-200 flex-shrink-0" /></button>
           <button onClick={(e) => { e.stopPropagation(); setHideHeader(!hideHeader); }} title={hideHeader ? "Show header" : "Hide header"} className="kjb-fixed-btn flex-shrink-0 flex items-center justify-center px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10  whitespace-nowrap"><ChevronDown className={`w-5 h-5 transition-transform duration-200 flex-shrink-0 ${hideHeader ? '' : 'rotate-180'}`} /></button>
 
           {((filterMode && selectedVerses.size > 0) || lastReadingActive || searchTerm || gospelMode || highlightVerse) && (
@@ -454,9 +476,9 @@ export default function ReaderToolbar({
 
         {isViewingTitlePage && (
           <>
-            <button onClick={goPrev} disabled={isFirstChapterFirstBook} title="Previous" data-testid="prev-chapter-btn" className="flex flex-1 items-center justify-center gap-1.5 px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 "><ChevronLeft className="w-5 h-5 flex-shrink-0" /><span className="hidden lg:inline">Prev</span></button>
-            <button onClick={() => goNext()} title="Next" data-testid="next-chapter-btn" className="flex flex-1 items-center justify-center gap-1.5 px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10 "><span className="hidden lg:inline">Next</span><ChevronRight className="w-5 h-5 flex-shrink-0" /></button>
-            <button onClick={(e) => { e.stopPropagation(); setHideHeader(!hideHeader); }} title={hideHeader ? "Show header" : "Hide header"} className="flex items-center justify-center px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10  flex-shrink-0"><ChevronDown className={`w-5 h-5 flex-shrink-0 ${hideHeader ? '' : 'rotate-180'}`} /></button>
+            <button onClick={goPrev} disabled={isFirstChapterFirstBook} title="Previous" data-testid="prev-chapter-btn" className="flex flex-1 items-center justify-center gap-1.5 px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-secondary-foreground font-sans text-sm font-medium disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 "><ChevronLeft className="w-5 h-5 flex-shrink-0" /><span className="hidden lg:inline">Prev</span></button>
+            <button onClick={() => goNext()} title="Next" data-testid="next-chapter-btn" className="flex flex-1 items-center justify-center gap-1.5 px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-secondary-foreground font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 "><span className="hidden lg:inline">Next</span><ChevronRight className="w-5 h-5 flex-shrink-0" /></button>
+            <button onClick={(e) => { e.stopPropagation(); setHideHeader(!hideHeader); }} title={hideHeader ? "Show header" : "Hide header"} className="flex items-center justify-center px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-secondary-foreground font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10  flex-shrink-0"><ChevronDown className={`w-5 h-5 flex-shrink-0 ${hideHeader ? '' : 'rotate-180'}`} /></button>
           </>
         )}
       </div>
