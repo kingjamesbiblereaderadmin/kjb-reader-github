@@ -100,10 +100,14 @@ async function googleSpeech(text: string, voice: string): Promise<SynthResult> {
 // month. Commercial use of prebuilt neural voice output is allowed on a paid
 // Speech resource.
 async function azureSpeech(text: string, voice: string): Promise<SynthResult> {
-  const key = Deno.env.get('AZURE_SPEECH_KEY');
-  const region = Deno.env.get('AZURE_SPEECH_REGION');
-  if (!key || !region) {
-    return { ok: false, error: 'no_key', status: 501, detail: 'Add AZURE_SPEECH_KEY and AZURE_SPEECH_REGION to this app\'s environment variables to enable the Microsoft voices.' };
+  // GOOGLE_API_KEY is accepted as a fallback because that is the name the
+  // platform's secret detector gave the Azure Speech key when it was pasted in
+  // chat; the key itself is an Azure Speech key (verified against the
+  // voices/list endpoint). Southeast Asia is the default region.
+  const key = Deno.env.get('AZURE_SPEECH_KEY') || Deno.env.get('GOOGLE_API_KEY');
+  const region = Deno.env.get('AZURE_SPEECH_REGION') || 'southeastasia';
+  if (!key) {
+    return { ok: false, error: 'no_key', status: 501, detail: 'Add AZURE_SPEECH_KEY (and optionally AZURE_SPEECH_REGION) to this app\'s environment variables to enable the Microsoft voices.' };
   }
   const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-GB'><voice name='${xmlEscape(voice)}'>${xmlEscape(text)}</voice></speak>`;
   let upstream: Response;
