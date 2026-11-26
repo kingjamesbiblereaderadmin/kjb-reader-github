@@ -12,6 +12,7 @@
 // a verse voiced here is a cache hit for the reader, and vice versa.
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.63';
+import { applyHeteronyms } from '../../shared/heteronyms.ts';
 
 const ENGINE = 'azure';
 // The app holds no Azure key of its own: the Speech key lives in the agent app,
@@ -338,7 +339,11 @@ function respell(text: string) {
 // Three or more letters are required before the ending so that short words
 // like "teeth" and "death" are left alone.
 function speechText(raw: string) {
-  return respell(normalizeSpeechText(raw)).replace(/\b(\w{3,})eth\b/g, '$1-eth');
+  const fixed = applyHeteronyms(normalizeSpeechText(raw));
+  return {
+    text: respell(fixed.text).replace(/\b(\w{3,})eth\b/g, '$1-eth'),
+    changed: fixed.changed,
+  };
 }
 
 function xmlEscape(value: string) {
@@ -478,10 +483,13 @@ export default async function (req) {
   const clean = [];
   for (const raw of items) {
     const ref = String(raw?.ref || '').trim();
-    const text = speechText(raw?.text);
+    const spoken = speechText(raw?.text);
+    const text = spoken.text;
     if (!ref || !text) return json({ error: 'bad_item', ref }, 400);
     if (text.length > MAX_CHARS) return json({ error: 'too_long', ref, max: MAX_CHARS }, 400);
-    clean.push({ ref, text });
+    // A verse with a settled pronunciation gets its own cache key so it is
+    // voiced once more; the caller still hears back the reference it sent.
+    clean.push({ ref, key: spoken.changed ? `${ref}:h2` : ref, text });
   }
 
   const client = createClientFromRequest(req);
@@ -494,7 +502,7 @@ export default async function (req) {
   if (!body.fresh) {
     try {
       const rows = await db.entities.TtsClip.filter(
-        { ref: { $in: clean.map((i) => i.ref) } },
+        { ref: { $in: clean.map((i) => i.key) } },
         { limit: MAX_ITEMS },
       );
       const list = Array.isArray(rows) ? rows : rows?.items || [];
@@ -507,7 +515,7 @@ export default async function (req) {
   const results = [];
   const todo = [];
   for (const item of clean) {
-    const hit = hits.get(item.ref);
+    const hit = hits.get(item.key);
     if (hit) results.push({ ref: item.ref, url: hit, cached: true, chars: item.text.length });
     else todo.push(item);
   }
@@ -533,7 +541,7 @@ export default async function (req) {
         failures.push({ ref: item.ref, error: made.error, detail: (made as any).detail || '' });
         continue;
       }
-      const hash = await sha256Hex(`${ENGINE}|${voice}|ref:${item.ref}`);
+      const hash = await sha256Hex(`${ENGINE}|${voice}|ref:${item.key}`);
       let url = '';
       const returnedUrl = 'url' in made ? String((made as any).url || '') : '';
       // A published url can be stored as-is. An inline data: URI cannot - it is
@@ -569,7 +577,7 @@ export default async function (req) {
         failures.push({ ref: item.ref, error: 'upload_failed' });
         continue;
       }
-      rows.push({ hash, voice, chars: item.text.length, url, ref: item.ref });
+      rows.push({ hash, voice, chars: item.text.length, url, ref: item.key });
       results.push({ ref: item.ref, url, cached: false, chars: item.text.length });
     }
   }

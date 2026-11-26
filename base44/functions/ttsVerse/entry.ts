@@ -10,6 +10,7 @@
 // nothing, so audio is fetched from Azure exactly once per voice per verse.
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.63';
+import { applyHeteronyms } from '../../shared/heteronyms.ts';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -342,7 +343,13 @@ function respell(text: string) {
 // Three or more letters are required before the ending so that short words
 // like "teeth" and "death" are left alone.
 function speechText(raw: string) {
-  return respell(normalizeSpeechText(raw)).replace(/\b(\w{3,})eth\b/g, '$1-eth');
+  // The words whose sense the verse settles (lead, bow, sow, blessed ...) are
+  // respelled first, so the engine is never left guessing which one it means.
+  const fixed = applyHeteronyms(normalizeSpeechText(raw));
+  return {
+    text: respell(fixed.text).replace(/\b(\w{3,})eth\b/g, '$1-eth'),
+    changed: fixed.changed,
+  };
 }
 
 function xmlEscape(value: string) {
@@ -451,7 +458,8 @@ export default async function (req) {
   // Cleaned and respelled here, not in the caller: the cache key is the verse
   // reference, so a clip made by the bulk run and one made by the player have to
   // be built from exactly the same words.
-  const text = speechText(body.text);
+  const spoken = speechText(body.text);
+  const text = spoken.text;
   const voice = String(body.voice || '').trim();
   const ref = String(body.ref || '').trim();
   // Older clients still post an engine; Azure is the only one that exists now.
@@ -468,7 +476,11 @@ export default async function (req) {
   // fallback for callers that pass no ref.
   // Namespaced by engine and voice, so each voice keeps its own clip and the
   // rows written before this function was Azure-only stay valid cache hits.
-  const seed = ref ? `${voice}|ref:${ref}` : `${voice}|text:${text}`;
+  // Only a verse that holds one of those words gets a new key, so it is voiced
+  // once more with the right pronunciation; every other verse keeps the clip it
+  // already has and is never billed again.
+  const clipRef = spoken.changed ? `${ref}:h2` : ref;
+  const seed = clipRef ? `${voice}|ref:${clipRef}` : `${voice}|text:${text}`;
   const hash = await sha256Hex(`${engine}|${seed}`);
 
   // 1. Cache hit — no Azure call, no characters billed.
@@ -496,19 +508,37 @@ export default async function (req) {
     return json({ error: generated.error, status: generated.status, detail: generated.detail }, generated.status === 501 ? 501 : 502);
   }
   if (!generated.audio) {
+    // The speech proxy can hand the audio back inline as a data: URI. That is
+    // far longer than the url column allows, so such a row is rejected and the
+    // verse is billed again on every play. Publish it first, then remember the
+    // short url, exactly as the bulk run does.
+    let clipUrl = String(generated.url || '');
+    if (clipUrl.startsWith('data:')) {
+      try {
+        const b64 = clipUrl.slice(clipUrl.indexOf(',') + 1);
+        const bin = atob(b64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i += 1) bytes[i] = bin.charCodeAt(i);
+        const file = new File([bytes], `kjb-${hash.slice(0, 16)}.mp3`, { type: 'audio/mpeg' });
+        const uploaded = await base44.integrations.Core.UploadFile({ file });
+        clipUrl = uploaded?.file_url || clipUrl;
+      } catch (err) {
+        console.error('[ttsVerse] inline upload failed', (err as Error)?.message);
+      }
+    }
     try {
       const db = base44.asServiceRole || base44;
       // A rejected row means this verse is billed again next time: say so in the
       // logs instead of losing it quietly.
       try {
-        await db.entities.TtsClip.create({ hash, voice, chars: text.length, url: generated.url, ref });
+        await db.entities.TtsClip.create({ hash, voice, chars: text.length, url: clipUrl, ref: clipRef });
       } catch (err) {
         console.error('[ttsVerse] cache row rejected', ref, (err as Error)?.message);
       }
     } catch (err) {
       console.error('[ttsVerse] cache write failed', err?.message);
     }
-    return json({ url: generated.url, cached: false, chars: text.length });
+    return json({ url: clipUrl, cached: false, chars: text.length });
   }
   const audio = generated.audio;
 
@@ -543,7 +573,7 @@ export default async function (req) {
   try {
     const db = base44.asServiceRole || base44;
     try {
-      await db.entities.TtsClip.create({ hash, voice, chars: text.length, url, ref });
+      await db.entities.TtsClip.create({ hash, voice, chars: text.length, url, ref: clipRef });
     } catch (err) {
       console.error('[ttsVerse] cache row rejected', ref, (err as Error)?.message);
     }

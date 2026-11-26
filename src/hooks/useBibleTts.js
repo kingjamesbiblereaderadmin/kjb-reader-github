@@ -63,7 +63,10 @@ export function cleanHeadingForSpeech(raw) {
 // this device has already played means a chapter replayed tomorrow is served
 // from the device itself - no function call, no cache lookup, nothing to wait
 // for. Trimmed to the most recent few thousand so it can never grow unbounded.
-const URL_CACHE_KEY = 'kjb-tts-urls-v1';
+// v2: the verses holding a word whose sense is now settled are voiced again
+// (lead, bow, sow, blessed ...), so every device must ask the server for the
+// fresh clip instead of playing the one it remembered.
+const URL_CACHE_KEY = 'kjb-tts-urls-v2';
 const URL_CACHE_MAX = 4000;
 const urlCache = new Map(); // `${voice}|${ref}` -> mp3 url
 let urlSaveTimer = null;
