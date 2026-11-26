@@ -1743,7 +1743,14 @@ export default function BibleReader() {
   // True when the Listen player renders directly under the toolbar: the toolbar
   // then hands its bottom border and shadow to the player so the two are one
   // continuous white block instead of a bar with a card floating under it.
-  const ttsPlayerVisible = ttsEnabled && !loading && !error && !isViewingTitlePage && verses.length > 0;
+  // A title page has its own Listen button: the page is read, then playback
+  // rolls on into chapter 1, so the player has to exist there too.
+  const ttsPlayerVisible = ttsEnabled && !loading && !error && (isViewingTitlePage || verses.length > 0);
+  const titlePageSpoken = isViewingTitlePage ? (pos.abbr === 'GEN'
+    ? "The Holy Bible. Containing the Old and New Testaments. Translated out of the original tongues, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches. Authorised King James Bible."
+    : pos.abbr === 'MAT'
+      ? "The New Testament of our Lord and Saviour Jesus Christ. Translated out of the original Greek, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches."
+      : `${book?.testament === 'new' ? 'New Testament' : 'Old Testament'}. ${book?.name || ''}. ${book?.chapters || 0} ${book?.chapters === 1 ? 'chapter' : 'chapters'}.`) : '';
   const ttsAttached = !hideHeader && ttsPlayerVisible;
   // With the header hidden there is no headphones button, so the section stays.
   const ttsSectionShown = listenOpen || ttsActive;
@@ -1754,7 +1761,7 @@ export default function BibleReader() {
       onOpenChange={setListenOpen}
       onActiveChange={setTtsActive}
       onRestart={() => { setHighlightVerse(null); setHighlightSection(null); }}
-      verses={verses}
+      verses={isViewingTitlePage ? [] : verses}
       chapterKey={`${pos.abbr}:${pos.chapter}`}
       chapter={pos.chapter}
       startVerse={highlightVerse}
@@ -1762,6 +1769,8 @@ export default function BibleReader() {
       bookName={book.name}
       subscript={chapterSubscript}
       colophon={colophon}
+      titleText={titlePageSpoken}
+      endMarker={resolveEndMarker(book?.apiName, pos.chapter) || ''}
       onNextChapter={() => goNext(true)}
     />
   ) : null;
@@ -1785,11 +1794,7 @@ export default function BibleReader() {
           navigate={navigate} handleVersePick={handleVersePick}
           verseCount={verseCount} chapterSubscript={chapterSubscript} colophon={colophon}
           endMarker={resolveEndMarker(book?.apiName, pos.chapter)}
-          titlePageText={isViewingTitlePage ? (pos.abbr === 'GEN'
-            ? "The Holy Bible. Containing the Old and New Testaments. Translated out of the original tongues, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches. Authorised King James Bible."
-            : pos.abbr === 'MAT'
-              ? "The New Testament of our Lord and Saviour Jesus Christ. Translated out of the original Greek, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches."
-              : `${book?.testament === 'new' ? 'New Testament' : 'Old Testament'}. ${book?.name || ''}. ${book?.chapters || 0} ${book?.chapters === 1 ? 'chapter' : 'chapters'}.`) : null}
+          titlePageText={titlePageSpoken}
           loading={loading}
           highlightVerse={highlightVerse} highlightSection={highlightSection}
           selectMode={selectMode} selectedVerses={selectedVerses} filterMode={filterMode}

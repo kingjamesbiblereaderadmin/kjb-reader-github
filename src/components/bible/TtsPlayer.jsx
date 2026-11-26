@@ -3,7 +3,6 @@ import { Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, RotateCc
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import useBibleTts from '@/hooks/useBibleTts';
-import { BIBLE_BOOKS } from '@/lib/bibleData';
 import { TTS_VOICES, TTS_RATES, TTS_STORAGE, readStored, writeStored, voiceLabel } from '@/lib/tts/voices';
 
 // The reader's Listen player.
@@ -51,26 +50,13 @@ function firstVisibleVerse() {
   return null;
 }
 
-// What the voice says when a chapter begins. Chapter 1 of a book speaks its
-// printed title page ("The First Book of Moses, called Genesis"), which is the
-// heading the reader sees above the text; later chapters only name the book.
-function bookAnnouncement(bookName, label, chapter) {
-  const key = String(bookName || label || '').toLowerCase();
-  const book = BIBLE_BOOKS.find(
-    (b) => b.name.toLowerCase() === key || b.shortName.toLowerCase() === key || b.apiName.toLowerCase() === key
-  );
-  const full = book?.name || bookName || label;
-  if (Number(chapter) === 1 && book) return full;
-  return bookName || label;
-}
-
 function scrollToVerse(verse) {
   if (verse == null) return;
   const el = document.getElementById(`v${verse}`);
   if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }
 
-export default function TtsPlayer({ embedded = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, chapter = null, startVerse = null, label = '', bookName = '', subscript = '', colophon = '', onNextChapter = null, onRestart }) {
+export default function TtsPlayer({ embedded = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, chapter = null, startVerse = null, label = '', bookName = '', subscript = '', colophon = '', titleText = '', endMarker = '', onNextChapter = null, onRestart }) {
   const [autoContinue, setAutoContinue] = useState(() => readStored(TTS_STORAGE.autoContinue, 'true') !== 'false');
   // Hidden = controls collapse to a single pill; audio keeps playing. Remembered
   // per device so a reader who listens while reading never sees the bar again.
@@ -110,7 +96,7 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
     if (onNextChapter()) continueRef.current = true;
   }, [autoContinue, onNextChapter, verses]);
 
-  const tts = useBibleTts({ verses, chapterKey, subscript, colophon, onChapterEnd: handleChapterEnd });
+  const tts = useBibleTts({ verses, chapterKey, subscript, colophon, titleText, endMarker, onChapterEnd: handleChapterEnd });
 
   // Roll into the new chapter once its verses land. Gating on the verses array
   // actually changing (not just on chapterKey) is what stops playback starting
@@ -124,8 +110,7 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
     if (continueRef.current && verses.length && verses !== endedVersesRef.current) {
       continueRef.current = false;
       const bookChanged = prev.book !== fullName;
-      const spoken = bookAnnouncement(bookName, label, chapter);
-      const introText = bookChanged ? `${spoken}, chapter ${chapter}` : `Chapter ${chapter}`;
+      const introText = bookChanged ? `${fullName}, chapter ${chapter}` : `Chapter ${chapter}`;
       skipScrollRef.current = true;
       followRef.current = true;
       tts.start(1, { ref: `${chapterKey}:intro`, text: introText });
@@ -260,10 +245,14 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
 
   // While the book and chapter are being announced there is no verse yet, so
   // name what is being read.
-  const introLabel = `${label ? `${label} · ` : ''}Chapter ${chapter}`;
+  const introLabel = chapter >= 1 ? `${label ? `${label} · ` : ''}Chapter ${chapter}` : 'Title Page';
   const verseRef = tts.introActive
     ? introLabel
-    : tts.currentKind === 'sub'
+    : tts.currentKind === 'title'
+      ? 'Title Page'
+      : tts.currentKind === 'end'
+        ? 'The End'
+        : tts.currentKind === 'sub'
       ? `${label ? `${label} ` : ''}${chapter} · title`
       : tts.currentKind === 'col'
         ? `${label ? `${label} ` : ''}${chapter} · subscription`
@@ -278,8 +267,8 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
     followRef.current = true;
     skipScrollRef.current = true;
     if (hidden) setHiddenPersisted(false);
-    const intro = chapter
-      ? { ref: `${chapterKey}:intro`, text: `${bookAnnouncement(bookName, label, chapter)}, chapter ${chapter}` }
+    const intro = chapter >= 1
+      ? { ref: `${chapterKey}:intro`, text: `${bookName || label}, chapter ${chapter}` }
       : null;
     tts.start(verse, intro);
   };

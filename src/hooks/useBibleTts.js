@@ -132,7 +132,7 @@ async function audioUrlFor(clip, voice) {
   throw last || new Error('Audio could not be generated.');
 }
 
-export default function useBibleTts({ verses, chapterKey, subscript, colophon, onChapterEnd }) {
+export default function useBibleTts({ verses, chapterKey, subscript, colophon, titleText = '', endMarker = '', onChapterEnd }) {
   const [voice, setVoiceState] = useState(() => normalizeVoice(readStored(TTS_STORAGE.voice, DEFAULT_TTS_VOICE)));
   const [rate, setRateState] = useState(() => Number(readStored(TTS_STORAGE.rate, 1)) || 1);
   const [status, setStatus] = useState('idle'); // idle | loading | playing | paused | error
@@ -171,6 +171,14 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, o
   const clips = useMemo(() => {
     const list = [];
     const key = chapterKey || '';
+    // A title page ("The Holy Bible…", "The New Testament…", a book's own title
+    // page) is spoken as one piece before its chapter 1: it is the page the
+    // reader is looking at, so listening starts there and rolls on into the text.
+    const title = cleanVerseForSpeech(titleText);
+    if (title) {
+      list.push({ verse: 0, kind: 'title', text: title, ref: `${key}:title` });
+      return list;
+    }
     const sub = cleanVerseForSpeech(subscript);
     if (sub) list.push({ verse: 0, kind: 'sub', text: sub, ref: `${key}:sub` });
     (verses || []).forEach((v) => {
@@ -182,8 +190,12 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, o
     });
     const col = cleanVerseForSpeech(colophon);
     if (col) list.push({ verse: 0, kind: 'col', text: col, ref: `${key}:col` });
+    // "The End of the Prophets" after Malachi 4, "The End" after Revelation 22:
+    // the closing line the reader sees, read after the last verse.
+    const end = cleanVerseForSpeech(endMarker);
+    if (end) list.push({ verse: 0, kind: 'end', text: end, ref: `${key}:end` });
     return list;
-  }, [verses, chapterKey, subscript, colophon]);
+  }, [verses, chapterKey, subscript, colophon, titleText, endMarker]);
   const clipsRef = useRef(clips);
   clipsRef.current = clips;
 
