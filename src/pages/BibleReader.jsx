@@ -1760,6 +1760,8 @@ export default function BibleReader() {
       startVerse={highlightVerse}
       label={book.shortName}
       bookName={book.name}
+      subscript={chapterSubscript}
+      colophon={colophon}
       onNextChapter={() => goNext(true)}
     />
   ) : null;

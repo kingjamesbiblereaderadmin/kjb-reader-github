@@ -56,7 +56,7 @@ function scrollToVerse(verse) {
   if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }
 
-export default function TtsPlayer({ embedded = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, chapter = null, startVerse = null, label = '', bookName = '', onNextChapter = null, onRestart }) {
+export default function TtsPlayer({ embedded = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, chapter = null, startVerse = null, label = '', bookName = '', subscript = '', colophon = '', onNextChapter = null, onRestart }) {
   const [autoContinue, setAutoContinue] = useState(() => readStored(TTS_STORAGE.autoContinue, 'true') !== 'false');
   // Hidden = controls collapse to a single pill; audio keeps playing. Remembered
   // per device so a reader who listens while reading never sees the bar again.
@@ -96,7 +96,7 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
     if (onNextChapter()) continueRef.current = true;
   }, [autoContinue, onNextChapter, verses]);
 
-  const tts = useBibleTts({ verses, chapterKey, onChapterEnd: handleChapterEnd });
+  const tts = useBibleTts({ verses, chapterKey, subscript, colophon, onChapterEnd: handleChapterEnd });
 
   // Roll into the new chapter once its verses land. Gating on the verses array
   // actually changing (not just on chapterKey) is what stops playback starting
@@ -125,6 +125,25 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
   // scrolled off AND the reader has not taken over scrolling themselves.
   useEffect(() => {
     clearSpeaking();
+    // The superscription above verse 1 and the subscription after the last verse
+    // are spoken too, so they carry the highlight while they are read.
+    const sectionId = tts.currentKind === 'sub' ? 'kjb-subscript-anchor'
+      : tts.currentKind === 'col' ? 'kjb-colophon-anchor'
+        : null;
+    if (sectionId) {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.classList.add(SPEAKING_CLASS);
+        if (followRef.current && !skipScrollRef.current) {
+          const r = section.getBoundingClientRect();
+          if (r.top < 120 || r.bottom > window.innerHeight - 40) {
+            section.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          }
+        }
+      }
+      skipScrollRef.current = false;
+      return;
+    }
     if (tts.currentVerse == null) return;
     const el = document.getElementById(`v${tts.currentVerse}`);
     if (!el) return;
@@ -134,7 +153,7 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
     const rect = el.getBoundingClientRect();
     const offscreen = rect.top < 120 || rect.bottom > window.innerHeight - 40;
     if (offscreen) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-  }, [tts.currentVerse]);
+  }, [tts.currentVerse, tts.currentKind]);
 
   // While the chapter announcement plays, the heading is what is being spoken,
   // so the book name and chapter line carry the highlight (both the large
@@ -192,9 +211,13 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
   const introLabel = `${label ? `${label} · ` : ''}Chapter ${chapter}`;
   const verseRef = tts.introActive
     ? introLabel
-    : tts.currentVerse != null
-      ? `${label ? `${label} ` : ''}${chapter}:${tts.currentVerse}`
-      : '';
+    : tts.currentKind === 'sub'
+      ? `${label ? `${label} ` : ''}${chapter} · title`
+      : tts.currentKind === 'col'
+        ? `${label ? `${label} ` : ''}${chapter} · subscription`
+        : tts.currentVerse != null
+          ? `${label ? `${label} ` : ''}${chapter}:${tts.currentVerse}`
+          : '';
 
   // Every explicit press re-takes control of scrolling. Starting fresh also
   // says where we are — full book name then chapter — which is what makes the

@@ -29,6 +29,15 @@ export function cleanVerseForSpeech(raw) {
 // reaching the end of a chapter.
 let resumePoint = null; // { chapterKey, verse, time }
 
+// Psalm 119's stanza headings are printed as capitals ("ALEPH", "BETH"). A
+// speech engine given a bare capitalised word can spell it out, so they are
+// spoken as a normal word: "Aleph", "Beth".
+export function cleanHeadingForSpeech(raw) {
+  const word = String(raw || '').replace(/[.\u00b6]/g, '').trim();
+  if (!word) return '';
+  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+}
+
 const urlCache = new Map(); // `${voice}|${text}` -> mp3 url
 
 // Clips are keyed by verse reference, not by the verse text: the text that
@@ -62,7 +71,7 @@ async function audioUrlFor(clip, voice) {
   return data.url;
 }
 
-export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
+export default function useBibleTts({ verses, chapterKey, subscript, colophon, onChapterEnd }) {
   const [voice, setVoiceState] = useState(() => normalizeVoice(readStored(TTS_STORAGE.voice, DEFAULT_TTS_VOICE)));
   const [rate, setRateState] = useState(() => Number(readStored(TTS_STORAGE.rate, 1)) || 1);
   const [status, setStatus] = useState('idle'); // idle | loading | playing | paused | error
@@ -92,16 +101,28 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
   const onEndRef = useRef(onChapterEnd);
   onEndRef.current = onChapterEnd;
 
-  const clips = useMemo(
-    () => (verses || [])
-      .map((v) => ({
-        verse: Number(v.verse),
-        text: cleanVerseForSpeech(v.text),
-        ref: chapterKey ? `${chapterKey}:${Number(v.verse)}` : '',
-      }))
-      .filter((v) => v.text),
-    [verses, chapterKey],
-  );
+  // The chapter's printed furniture is spoken too, in the order it is read: the
+  // Psalm superscription before verse 1, a Hebrew stanza letter before its
+  // stanza, and the epistle subscription after the last verse. Each gets its own
+  // reference ("PSA:3:sub", "PSA:119:h1", "ROM:16:col") so it is cached and
+  // billed once, exactly like a verse, and so adding it never invalidates a
+  // verse clip that is already voiced.
+  const clips = useMemo(() => {
+    const list = [];
+    const key = chapterKey || '';
+    const sub = cleanVerseForSpeech(subscript);
+    if (sub) list.push({ verse: 0, kind: 'sub', text: sub, ref: `${key}:sub` });
+    (verses || []).forEach((v) => {
+      const n = Number(v.verse);
+      const head = cleanHeadingForSpeech(v.heading);
+      if (head) list.push({ verse: n, kind: 'heading', text: head, ref: `${key}:h${n}` });
+      const text = cleanVerseForSpeech(v.text);
+      if (text) list.push({ verse: n, kind: 'verse', text, ref: `${key}:${n}` });
+    });
+    const col = cleanVerseForSpeech(colophon);
+    if (col) list.push({ verse: 0, kind: 'col', text: col, ref: `${key}:col` });
+    return list;
+  }, [verses, chapterKey, subscript, colophon]);
   const clipsRef = useRef(clips);
   clipsRef.current = clips;
 
@@ -233,8 +254,9 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
     if (!list.length) return;
     let i = 0;
     if (fromVerse != null) {
-      const found = list.findIndex((c) => c.verse === Number(fromVerse));
-      if (found >= 0) i = found;
+      const n = Number(fromVerse);
+      const found = list.findIndex((c) => c.verse === n && c.kind === 'verse');
+      i = found >= 0 ? found : Math.max(0, list.findIndex((c) => c.verse === n));
     }
     startAtRef.current = 0;
     introRef.current = intro;
@@ -247,7 +269,7 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
   // Continue from the saved place in this chapter. False if there isn't one.
   const resumeSaved = useCallback(() => {
     if (!resumePoint || resumePoint.chapterKey !== chapterKey) return false;
-    const i = clipsRef.current.findIndex((c) => c.verse === resumePoint.verse);
+    const i = clipsRef.current.findIndex((c) => c.verse === resumePoint.verse && c.kind !== 'sub' && c.kind !== 'col');
     if (i < 0) return false;
     startAtRef.current = resumePoint.time || 0;
     introRef.current = null;
@@ -340,10 +362,14 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
     audioRef.current?.pause();
   }, []);
 
-  const currentVerse = index >= 0 ? clipsRef.current[index]?.verse ?? null : null;
+  const current = index >= 0 ? clipsRef.current[index] : null;
+  // A verse number drives the reader's highlight; the superscription and the
+  // subscription have no verse, so their kind tells the player what to wash.
+  const currentVerse = current && (current.kind === 'verse' || current.kind === 'heading') ? current.verse : null;
+  const currentKind = current?.kind || null;
 
   return {
-    status, error, index, currentVerse, voice, rate, introActive,
+    status, error, index, currentVerse, currentKind, voice, rate, introActive,
     total: clips.length,
     start, pause, resume, resumeSaved, toggle, next, prev, stop,
     setVoice, setRate,
