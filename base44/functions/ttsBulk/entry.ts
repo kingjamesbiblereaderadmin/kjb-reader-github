@@ -535,12 +535,28 @@ export default async function (req) {
       }
       const hash = await sha256Hex(`${ENGINE}|${voice}|ref:${item.ref}`);
       let url = '';
-      if ('url' in made && made.url) {
-        // Voiced by the proxy, which already published the mp3.
-        url = made.url;
-      } else {
+      const returnedUrl = 'url' in made ? String((made as any).url || '') : '';
+      // A published url can be stored as-is. An inline data: URI cannot - it is
+      // far longer than the url column allows - so it is decoded and uploaded
+      // like any other audio.
+      let audioBytes: Uint8Array | null = null;
+      if (returnedUrl && !returnedUrl.startsWith('data:')) {
+        url = returnedUrl;
+      } else if (returnedUrl.startsWith('data:')) {
         try {
-          const file = new File([(made as any).audio], `kjb-${hash.slice(0, 16)}.mp3`, { type: 'audio/mpeg' });
+          const b64 = returnedUrl.slice(returnedUrl.indexOf(',') + 1);
+          const bin = atob(b64);
+          audioBytes = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i += 1) audioBytes[i] = bin.charCodeAt(i);
+        } catch (err) {
+          console.error('[ttsBulk] inline decode failed', item.ref, (err as Error)?.message);
+        }
+      } else if ('audio' in made && (made as any).audio) {
+        audioBytes = new Uint8Array((made as any).audio as ArrayBuffer);
+      }
+      if (!url && audioBytes) {
+        try {
+          const file = new File([audioBytes], `kjb-${hash.slice(0, 16)}.mp3`, { type: 'audio/mpeg' });
           const uploaded = await client.integrations.Core.UploadFile({ file });
           url = uploaded?.file_url || '';
         } catch (err) {

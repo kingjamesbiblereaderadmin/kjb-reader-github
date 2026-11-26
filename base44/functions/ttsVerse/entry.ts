@@ -526,6 +526,17 @@ export default async function (req) {
 
   if (!url) {
     const b64 = btoa(String.fromCharCode(...new Uint8Array(audio)));
+    // Never hand the caller an inline data: URI for storage - it does not fit
+    // the url column. Publish it and return the short url instead.
+    try {
+      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      const file = new File([bytes], `kjb-${Date.now().toString(36)}.mp3`, { type: 'audio/mpeg' });
+      const uploaded = await base44.integrations.Core.UploadFile({ file });
+      const fileUrl = uploaded?.file_url || '';
+      if (fileUrl) return json({ url: fileUrl, cached: false, chars: text.length });
+    } catch (err) {
+      console.error('[ttsVerse] inline upload failed', (err as Error)?.message);
+    }
     return json({ url: `data:audio/mpeg;base64,${b64}`, cached: false, chars: text.length });
   }
 
