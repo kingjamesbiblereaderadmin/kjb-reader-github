@@ -992,23 +992,24 @@ html.kjb-native-ios select {
   letter-spacing: 0.01em;
 }
 
-/* The floated drop-cap letter sits outside the verse's inline background box, so
-   the wash above never reached it: verse 1 played with a big unwased letter
-   beside washed text. Give the cap its own copy of the same wash. The verse
-   number stays clear (kjb-dropcap-num is transparent), and in two-column and
-   paragraph modes the letter is the only part that needs it. */
-.kjb-speaking .kjb-dropcap-letter {
+/* The wash must be painted exactly once. A block verse's background already
+   covers its floated drop cap, so the cap stays clear (it otherwise inherits
+   the colour and stacks a second, darker box on top). */
+.kjb-speaking .kjb-dropcap-group {
+  background-color: transparent;
+}
+
+/* An inline verse's background does not reach the float, so there the cap
+   group carries the same wash itself. */
+.kjb-speaking.inline .kjb-dropcap-group {
   background-color: hsl(var(--accent) / 0.14);
-  border-radius: 0.2rem;
-  transition: background-color 220ms ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .kjb-speaking { transition: none; }
-  .kjb-speaking .kjb-dropcap-letter { transition: none; }
 }
 
 @media print {
   .kjb-speaking { background-color: transparent; box-shadow: none; }
-  .kjb-speaking .kjb-dropcap-letter { background-color: transparent; }
+  .kjb-speaking .kjb-dropcap-group { background-color: transparent; }
 }
