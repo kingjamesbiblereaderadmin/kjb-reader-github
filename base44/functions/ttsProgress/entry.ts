@@ -35,7 +35,11 @@ async function tally(db) {
       try {
         // filter() answers with a page ({items}) in the options form and a plain
         // array in the positional form — accept either.
-        const page = await db.entities.TtsClip.filter({}, { limit: PAGE, skip });
+        // list(orderBy, limit, skip) is the form that actually honours skip.
+        // The filter({}, { limit, skip }) form ignored skip and handed back the
+        // same first page every time, so the page reported exactly PAGE verses
+        // no matter how full the library was.
+        const page = await db.entities.TtsClip.list('created_date', PAGE, skip);
         rows = Array.isArray(page) ? page : page?.items || [];
       } catch (err) {
         // The library is being filled while this runs, so a page can land on the
