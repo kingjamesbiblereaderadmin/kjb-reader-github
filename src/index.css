@@ -1015,11 +1015,12 @@ html.kjb-native-ios select {
   letter-spacing: 0.01em;
 }
 
-/* The wash must be painted exactly once. A block verse's background already
-   covers its floated drop cap, so the cap stays clear (it otherwise inherits
-   the colour and stacks a second, darker box on top). */
+/* A floated drop cap hangs out of the verse's background box, so the wash
+   stopped short of the big letter and the opening word was only half marked.
+   The cap carries the same wash itself now, which is what makes the whole
+   verse read as one highlight. */
 .kjb-speaking .kjb-dropcap-group {
-  background-color: transparent;
+  background-color: hsl(var(--accent) / 0.14);
 }
 
 /* The word being spoken inside the verse that is playing. Painted with the
