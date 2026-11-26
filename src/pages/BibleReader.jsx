@@ -49,6 +49,10 @@ import { isMobile, STORAGE_KEY, loadPosition, savePosition, copyToClipboard } fr
 
 export default function BibleReader() {
   const { hideHeader, setHideHeader } = useHeaderHide();
+  // Whether the toolbar's headphones button has the player section open, and
+  // whether audio is currently playing or paused.
+  const [listenOpen, setListenOpen] = useState(false);
+  const [ttsActive, setTtsActive] = useState(false);
   // Master switch for the Listen player (Settings -> Audio).
   // isTtsAvailable() keeps the whole player out of the native app shells until
   // the feature is signed off (see src/lib/tts/voices.js).
@@ -1741,9 +1745,14 @@ export default function BibleReader() {
   // continuous white block instead of a bar with a card floating under it.
   const ttsPlayerVisible = ttsEnabled && !loading && !error && !isViewingTitlePage && verses.length > 0;
   const ttsAttached = !hideHeader && ttsPlayerVisible;
+  // With the header hidden there is no headphones button, so the section stays.
+  const ttsSectionShown = listenOpen || ttsActive;
   const ttsPlayerNode = ttsPlayerVisible ? (
     <TtsPlayer
       embedded={!hideHeader}
+      open={hideHeader || listenOpen}
+      onOpenChange={setListenOpen}
+      onActiveChange={setTtsActive}
       verses={verses}
       chapterKey={`${pos.abbr}:${pos.chapter}`}
       chapter={pos.chapter}
@@ -1759,7 +1768,9 @@ export default function BibleReader() {
       {!hideHeader && (
         <ReaderToolbar
           topRef={topRef} hideHeader={hideHeader} setHideHeader={setHideHeader}
-          anyMenuOpen={anyMenuOpen} closeAllMenus={closeAllMenus} ttsAttached={ttsAttached}
+          anyMenuOpen={anyMenuOpen} closeAllMenus={closeAllMenus} ttsAttached={ttsAttached && ttsSectionShown}
+          listenAvailable={ttsAttached} listenOpen={listenOpen} listenActive={ttsActive}
+          onToggleListen={() => { closeAllMenus(); setListenOpen(v => !v); }}
           playerSlot={ttsAttached ? ttsPlayerNode : null}
           pos={pos} book={book} isViewingTitlePage={isViewingTitlePage}
           showBookPicker={showBookPicker} setShowBookPicker={setShowBookPicker}

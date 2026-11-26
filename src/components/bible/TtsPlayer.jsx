@@ -55,7 +55,7 @@ function scrollToVerse(verse) {
   if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }
 
-export default function TtsPlayer({ embedded = false, verses, chapterKey, chapter = null, startVerse = null, label = '', bookName = '', onNextChapter = null }) {
+export default function TtsPlayer({ embedded = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, chapter = null, startVerse = null, label = '', bookName = '', onNextChapter = null }) {
   const [autoContinue] = useState(() => readStored(TTS_STORAGE.autoContinue, 'true') !== 'false');
   // Hidden = controls collapse to a single pill; audio keeps playing. Remembered
   // per device so a reader who listens while reading never sees the bar again.
@@ -167,6 +167,25 @@ export default function TtsPlayer({ embedded = false, verses, chapterKey, chapte
     if (value) setShowVoices(false);
   }, []);
 
+  // Idle, the section only exists while the toolbar's headphones button has it
+  // open. During playback it always shows, and that same button switches
+  // between the full controls and the compact pill.
+  useEffect(() => {
+    onActiveChange?.(tts.isActive);
+    if (tts.isActive) onOpenChange?.(!hidden);
+    // Only react to playback starting or stopping.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tts.isActive]);
+  useEffect(() => () => onActiveChange?.(false), []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const wasOpenRef = useRef(open);
+  useEffect(() => {
+    if (wasOpenRef.current === open) return;
+    wasOpenRef.current = open;
+    if (tts.isActive && open === hidden) setHiddenPersisted(!open);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   const verseRef = tts.currentVerse != null
     ? `${label ? `${label} ` : ''}${chapter}:${tts.currentVerse}`
     : '';
@@ -214,6 +233,7 @@ export default function TtsPlayer({ embedded = false, verses, chapterKey, chapte
 
   // ---- idle: a centred Listen row ------------------------------------------
   if (!tts.isActive) {
+    if (!open && !tts.error) return null;
     return (
       <section className={embedded ? SHELL : SHELL_STANDALONE}>
         <div className="flex flex-wrap items-center justify-center gap-3">
@@ -252,7 +272,7 @@ export default function TtsPlayer({ embedded = false, verses, chapterKey, chapte
             {tts.status === 'playing' || tts.status === 'loading' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
           </button>
           <span className="font-sans text-xs text-muted-foreground tabular-nums px-1 whitespace-nowrap">{verseRef || 'Paused'}</span>
-          <button onClick={() => setHiddenPersisted(false)} aria-label="Show player" className={CONTROL}>
+          <button onClick={() => { setHiddenPersisted(false); onOpenChange?.(true); }} aria-label="Show player" className={CONTROL}>
             <ChevronUp className="w-4 h-4" />
           </button>
         </div>
@@ -354,10 +374,10 @@ export default function TtsPlayer({ embedded = false, verses, chapterKey, chapte
               </div>
             </PopoverContent>
           </Popover>
-          <button onClick={() => setHiddenPersisted(true)} aria-label="Hide player" className={CONTROL}>
+          <button onClick={() => { setHiddenPersisted(true); onOpenChange?.(false); }} aria-label="Hide player" className={CONTROL}>
             <ChevronDown className="w-4 h-4" />
           </button>
-          <button onClick={tts.stop} aria-label="Stop listening" className={CONTROL}>
+          <button onClick={() => { tts.stop(); onOpenChange?.(false); }} aria-label="Stop listening" className={CONTROL}>
             <X className="w-4 h-4" />
           </button>
         </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight, ChevronDown, CheckSquare, X, ZoomIn, Minus, Plus, Type, Share2, Printer, AlignJustify, AlignLeft, List, Columns2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, CheckSquare, X, ZoomIn, Minus, Plus, Type, Share2, Printer, AlignJustify, AlignLeft, List, Columns2, Headphones } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import BookSelector from '@/components/bible/BookSelector';
 import ChapterSelector from '@/components/bible/ChapterSelector';
@@ -28,6 +28,7 @@ import { isMobile } from '@/lib/readerPosition';
 // BibleReader — every value it reads arrives as a prop.
 export default function ReaderToolbar({
   topRef, hideHeader, setHideHeader, anyMenuOpen, closeAllMenus, ttsAttached = false, playerSlot = null,
+  listenAvailable = false, listenOpen = false, listenActive = false, onToggleListen,
   pos, book, isViewingTitlePage,
   showBookPicker, setShowBookPicker, showChapterPicker, setShowChapterPicker,
   showVersePicker, setShowVersePicker, showZoomPopover, setShowZoomPopover,
@@ -370,6 +371,19 @@ export default function ReaderToolbar({
 
           <button onClick={goPrev} disabled={isFirstChapterFirstBook} data-testid="prev-chapter-btn" className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-secondary-foreground font-sans text-sm font-medium disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"><ChevronLeft className="w-4 h-4 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Prev</span></button>
           <button onClick={() => goNext()} disabled={isLastChapterLastBook} data-testid="next-chapter-btn" className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-secondary-foreground font-sans text-sm font-medium disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"><span className="hidden lg:inline">Next</span><ChevronRight className="w-4 h-4 transition-transform duration-200 flex-shrink-0" /></button>
+          {listenAvailable && (
+            <button
+              onClick={onToggleListen}
+              title="Listen"
+              aria-label="Listen"
+              aria-expanded={listenOpen}
+              data-testid="tts-toolbar-btn"
+              className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap ${listenOpen || listenActive ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}
+            >
+              <Headphones className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden lg:inline">Listen</span>
+            </button>
+          )}
           <button onClick={(e) => { e.stopPropagation(); setHideHeader(!hideHeader); }} title={hideHeader ? "Show header" : "Hide header"} className="kjb-fixed-btn flex-shrink-0 flex items-center justify-center px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10  whitespace-nowrap"><ChevronDown className={`w-5 h-5 transition-transform duration-200 flex-shrink-0 ${hideHeader ? '' : 'rotate-180'}`} /></button>
 
           {((filterMode && selectedVerses.size > 0) || lastReadingActive || searchTerm || gospelMode || highlightVerse) && (
