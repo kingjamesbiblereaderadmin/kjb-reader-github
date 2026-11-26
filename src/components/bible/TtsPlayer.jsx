@@ -1,10 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, RotateCcw, Check } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Switch } from '@/components/ui/switch';
+import { Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, RotateCcw, Repeat } from 'lucide-react';
 import { publishSpeaking } from '@/lib/tts/speaking';
 import useBibleTts from '@/hooks/useBibleTts';
-import { TTS_VOICES, TTS_RATES, TTS_STORAGE, readStored, writeStored, voiceLabel } from '@/lib/tts/voices';
+import { TTS_RATES, TTS_STORAGE, readStored, writeStored } from '@/lib/tts/voices';
 
 // The reader's Listen player.
 //
@@ -118,7 +116,6 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
   // Hidden = controls collapse to a single pill; audio keeps playing. Remembered
   // per device so a reader who listens while reading never sees the bar again.
   const [hidden, setHidden] = useState(() => readStored(TTS_STORAGE.hidden, 'false') === 'true');
-  const [showVoices, setShowVoices] = useState(false);
 
   // The verse the reader last tapped: "start from here" plays from it.
   const [selectedVerse, setSelectedVerse] = useState(null);
@@ -310,7 +307,6 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
   const setHiddenPersisted = useCallback((value) => {
     setHidden(value);
     writeStored(TTS_STORAGE.hidden, value);
-    if (value) setShowVoices(false);
   }, []);
 
   // Idle, the section only exists while the toolbar's headphones button has it
@@ -400,6 +396,21 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
     scrollToVerse(1);
   };
 
+  // One tap moves to the next speed and wraps round, so the bar keeps a single
+  // compact control instead of a menu.
+  const cycleRate = () => {
+    const i = TTS_RATES.indexOf(tts.rate);
+    tts.setRate(TTS_RATES[(i + 1) % TTS_RATES.length]);
+  };
+
+  // Carrying on into the next chapter is a switch in the bar itself, so it can
+  // be changed while listening rather than from a menu.
+  const toggleAutoContinue = () => {
+    const on = !autoContinue;
+    setAutoContinue(on);
+    writeStored(TTS_STORAGE.autoContinue, on);
+  };
+
   const withFollow = (fn) => () => { followRef.current = true; fn(); };
 
   // Idle and not opened from the toolbar: nothing to show.
@@ -456,9 +467,7 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
               {tts.status === 'loading' && !tts.introActive ? 'Preparing…' : verseRef || (idle ? 'Ready to play' : 'Listening')}
             </p>
             <p className="font-sans text-[10px] text-muted-foreground truncate">
-              {voiceLabel(tts.voice)} · {tts.rate}x
-              {tts.index >= 0 && tts.total ? ` · ${tts.index + 1}/${tts.total}` : ''}
-              {autoContinue ? ' · continues' : ''}
+              {tts.index >= 0 && tts.total ? `${tts.index + 1} of ${tts.total}` : '\u00A0'}
             </p>
           </div>
 
@@ -474,66 +483,28 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
             </button>
           )}
 
-          {/* Portaled and collision-aware, so the menu never runs off screen
-              or hides behind the toolbar. */}
-          <Popover open={showVoices} onOpenChange={setShowVoices}>
-            <PopoverTrigger asChild>
-              <button className={`${CONTROL} gap-1 px-3 font-sans text-sm font-medium whitespace-nowrap`} aria-label="Voice, speed and playback options">
-                Options
-                <ChevronDown className={`w-3.5 h-3.5 opacity-70 transition-transform ${showVoices ? 'rotate-180' : ''}`} />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent
-              align="end"
-              sideOffset={8}
-              collisionPadding={12}
-              onCloseAutoFocus={(e) => e.preventDefault()}
-              style={{ maxHeight: 'var(--radix-popover-content-available-height)' }}
-              className="print:hidden z-[110] w-72 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-xl border-border bg-popover p-0 shadow-xl"
-            >
-              <div className="p-1.5" role="radiogroup" aria-label="Voice">
-                <p className="px-2.5 py-1.5 font-sans text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Voice</p>
-                {TTS_VOICES.map((v) => (
-                  <button
-                    key={v.id}
-                    role="radio"
-                    aria-checked={tts.voice === v.id}
-                    onClick={() => tts.setVoice(v.id)}
-                    className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left font-sans transition-colors ${tts.voice === v.id ? 'bg-primary/10' : 'hover:bg-secondary'}`}
-                  >
-                    <span className="flex-1 min-w-0">
-                      <span className="block text-sm font-medium text-foreground">{v.short}</span>
-                      <span className="block text-xs text-muted-foreground">British {v.label.toLowerCase()}</span>
-                    </span>
-                    {tts.voice === v.id && <Check className="w-4 h-4 flex-shrink-0 text-primary" />}
-                  </button>
-                ))}
-              </div>
-              <div className="border-t border-border px-4 py-3">
-                <p className="mb-2 font-sans text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Speed</p>
-                <div className="grid grid-flow-col auto-cols-fr gap-1 rounded-lg bg-secondary p-1">
-                  {TTS_RATES.map((r) => (
-                    <button
-                      key={r}
-                      onClick={() => tts.setRate(r)}
-                      aria-pressed={tts.rate === r}
-                      className={`h-8 rounded-md font-sans text-xs font-medium tabular-nums transition-colors ${tts.rate === r ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                    >
-                      {r}x
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <label className="flex items-center justify-between gap-3 border-t border-border px-4 py-3 cursor-pointer">
-                <span className="font-sans text-sm font-medium text-foreground">Continue to next chapter</span>
-                <Switch
-                  checked={autoContinue}
-                  onCheckedChange={(on) => { setAutoContinue(on); writeStored(TTS_STORAGE.autoContinue, on); }}
-                  data-testid="tts-continue-switch"
-                />
-              </label>
-            </PopoverContent>
-          </Popover>
+          {/* Speed and "continue into the next chapter" live in the bar itself:
+              there is only one voice, so there is nothing left for a menu. */}
+          <button
+            onClick={cycleRate}
+            aria-label={`Playback speed ${tts.rate}x, tap to change`}
+            title="Playback speed"
+            data-testid="tts-speed-btn"
+            className={`${CONTROL} px-2.5 font-sans text-xs font-medium tabular-nums whitespace-nowrap`}
+          >
+            {tts.rate}x
+          </button>
+          <button
+            onClick={toggleAutoContinue}
+            aria-pressed={autoContinue}
+            aria-label="Continue to the next chapter"
+            title={autoContinue ? 'Carries on into the next chapter' : 'Stops at the end of this chapter'}
+            data-testid="tts-continue-btn"
+            className={`${CONTROL} gap-1.5 px-2.5 font-sans text-xs font-medium whitespace-nowrap ${autoContinue ? 'bg-accent/20 border-accent/40' : ''}`}
+          >
+            <Repeat className="w-3.5 h-3.5" />
+            {autoContinue ? 'Continues' : 'One chapter'}
+          </button>
           {!idle && (
             <button onClick={() => { setHiddenPersisted(true); onOpenChange?.(false); }} aria-label="Hide player" className={CONTROL}>
               <ChevronDown className="w-4 h-4" />

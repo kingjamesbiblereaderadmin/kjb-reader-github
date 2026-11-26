@@ -3,13 +3,13 @@ import { isNativeAndroid } from '@/lib/isNativeAndroid';
 
 // Voices offered by the reader's Listen player.
 //
-// One British male and one British female, both Microsoft Azure AI Speech, and
-// nothing else: ElevenLabs and Google were dropped from the picker because the
-// bulk library is voiced on Azure, so a listener switching voice stays inside
-// the engine that already has the audio cached server side.
+// One British male, Microsoft Azure AI Speech, and nothing else: the whole
+// library is voiced with him, so he is the only voice a listener can pick and
+// the picker stays hidden while this list holds a single entry. A stored id that
+// is no longer here (the female voice, or an ElevenLabs leftover) falls back to
+// him through normalizeVoice below.
 export const TTS_VOICES = [
   { id: 'en-GB-RyanNeural', label: 'Male', short: 'Ryan', engine: 'azure' },
-  { id: 'en-GB-SoniaNeural', label: 'Female', short: 'Sonia', engine: 'azure' },
 ];
 
 // Ryan leads: it is the voice the whole-Bible batch runs on, so a fresh device

@@ -745,24 +745,27 @@ export default function SettingsPage() {
           <Switch checked={ttsContinue} onCheckedChange={toggleTtsContinue} />
         </div>
 
-        <div className="pt-4 border-t border-border space-y-2">
-          <h3 className="font-serif text-base font-semibold text-foreground">Voice</h3>
-          <div className="flex flex-wrap gap-1.5">
-            {TTS_VOICES.map((v) => (
-              <button
-                key={v.id}
-                onClick={() => pickTtsVoice(v.id)}
-                className={`px-2.5 py-1.5 rounded-lg font-sans text-xs border transition-all duration-200 ${
-                  ttsVoice === v.id
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-transparent text-foreground border-foreground/30 hover:border-accent'
-                }`}
-              >
-                {v.label}
-              </button>
-            ))}
+        {/* One voice only: nothing to choose between. */}
+        {TTS_VOICES.length > 1 && (
+          <div className="pt-4 border-t border-border space-y-2">
+            <h3 className="font-serif text-base font-semibold text-foreground">Voice</h3>
+            <div className="flex flex-wrap gap-1.5">
+              {TTS_VOICES.map((v) => (
+                <button
+                  key={v.id}
+                  onClick={() => pickTtsVoice(v.id)}
+                  className={`px-2.5 py-1.5 rounded-lg font-sans text-xs border transition-all duration-200 ${
+                    ttsVoice === v.id
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-transparent text-foreground border-foreground/30 hover:border-accent'
+                  }`}
+                >
+                  {v.label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="pt-4 border-t border-border space-y-2">
           <h3 className="font-serif text-base font-semibold text-foreground">Speed</h3>
