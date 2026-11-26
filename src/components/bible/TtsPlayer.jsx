@@ -41,7 +41,10 @@ function clearSpeaking() {
 // while the bottom of the scroller was still cutting it off - the last verses of
 // a chapter were never brought into view. Everything below measures the scroller.
 const PAD_TOP = 96;    // clear the sticky header
-const PAD_BOTTOM = 32; // clear the nav bar / footer
+const PAD_BOTTOM = 56; // clear the nav bar / footer, with room to breathe
+// Space kept between the sticky toolbar and a verse at the top of the page, so
+// a verse being brought into view never sits jammed under the bar.
+const GAP_TOP = 14;
 
 function scrollBox() {
   const scroller = document.getElementById('kjb-scroll');
@@ -91,12 +94,12 @@ function revealElement(el, { center = false } = {}) {
   const box = scrollBox();
   const r = el.getBoundingClientRect();
   const inset = topInset(box);
-  const above = r.top < box.top + inset;
+  const above = r.top < box.top + inset + GAP_TOP;
   const below = r.bottom > box.bottom - PAD_BOTTOM;
   if (!above && !below) return;
   const delta = center
     ? r.top + r.height / 2 - (box.top + box.bottom) / 2
-    : above ? r.top - (box.top + inset) : r.bottom - (box.bottom - PAD_BOTTOM);
+    : above ? r.top - (box.top + inset + GAP_TOP) : r.bottom - (box.bottom - PAD_BOTTOM);
   if (!delta) return;
   (box.scroller || window).scrollBy({ top: delta, behavior: 'smooth' });
 }
@@ -181,6 +184,21 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
     // every status change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [verses, chapterKey, label, bookName, chapter]);
+
+  // A refresh restores the browser's old scroll offset, so the page came back
+  // somewhere other than the verse the session was up to. Once this chapter's
+  // verses exist, land on the saved listening verse. Runs once per mount: after
+  // that the follow effect owns scrolling.
+  const landedRef = useRef(false);
+  useEffect(() => {
+    if (landedRef.current || !verses || !verses.length) return undefined;
+    const point = tts.savedPoint ? tts.savedPoint() : null;
+    if (!point) return undefined;
+    landedRef.current = true;
+    const id = window.setTimeout(() => scrollToVerse(point.verse), 450);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [verses]);
 
   // Keep the spoken verse highlighted, and bring it into view only when it has
   // scrolled off AND the reader has not taken over scrolling themselves.

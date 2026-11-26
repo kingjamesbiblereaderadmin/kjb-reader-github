@@ -373,6 +373,16 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     return true;
   }, [chapterKey, playAt]);
 
+  // Where this chapter's listening had got to, if anywhere. A refresh reloads
+  // the page with the audio stopped, and the reader is left looking at whatever
+  // offset the browser restored rather than the verse they were hearing; this
+  // is what lets the player put them back on it.
+  const savedPoint = useCallback(() => (
+    resumePoint && resumePoint.chapterKey === chapterKey && resumePoint.verse != null
+      ? { verse: resumePoint.verse, time: resumePoint.time || 0 }
+      : null
+  ), [chapterKey]);
+
   const stop = useCallback(() => {
     resumePoint = null;
     hardStop();
@@ -466,7 +476,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   return {
     status, error, index, currentVerse, currentKind, voice, rate, introActive,
     total: clips.length,
-    start, pause, resume, resumeSaved, toggle, next, prev, stop,
+    start, pause, resume, resumeSaved, savedPoint, toggle, next, prev, stop,
     setVoice, setRate,
     isActive: status !== 'idle' || index >= 0,
   };

@@ -989,6 +989,18 @@ html.kjb-native-ios select {
   transition: background-color 220ms ease, box-shadow 220ms ease;
 }
 
+/* The book name and the chapter line are short, tight runs of type, and the
+   wash sat straight on the glyphs like a highlighter pressed too hard. A halo
+   in the same wash gives the highlight room around the words without adding
+   padding, so the heading never shifts while the announcement is playing. */
+.kjb-book-title.kjb-speaking,
+.kjb-chapter-heading.kjb-speaking,
+.kjb-running-book.kjb-speaking,
+.kjb-running-chapter.kjb-speaking {
+  box-shadow: 0 0 0 7px hsl(var(--accent) / 0.14);
+  border-radius: 0.4rem;
+}
+
 /* A drop-cap verse floats its big letter past the verse-number column, so the
    3px inset rule would sit in the gutter beside nothing at all. There the wash
    on its own marks the verse. (:has() keeps this tied to the markup rather than
