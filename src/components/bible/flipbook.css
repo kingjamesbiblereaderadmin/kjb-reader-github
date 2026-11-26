@@ -30,13 +30,13 @@
 .kjb-fb-endmark { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; padding: 14px 0 2px; text-align: center; font-family: Merriweather, Georgia, serif; font-size: 0.76em; letter-spacing: 0.16em; text-transform: uppercase; }
 
 /* ---- Contents page (front matter) ----------------------------------------
-   The old table of books: each testament set in three columns of small type,
-   its first book opening on a drop cap, as the printed page has it. */
-.kjb-contents-title { margin: 0 0 1.1em; text-align: center; font-family: Merriweather, Georgia, serif; font-size: 0.8rem; font-weight: 700; line-height: 1.6; letter-spacing: 0.05em; }
-.kjb-contents-sub { margin: 1em 0 0.45em; text-align: center; font-family: Merriweather, Georgia, serif; font-size: 0.74rem; font-style: italic; font-weight: 400; letter-spacing: 0.03em; }
-.kjb-contents-list { margin: 0; padding: 0; list-style: none; columns: 3; column-gap: 16px; }
+   The old table of books: each testament set in two columns of small type, one
+   book to a line, its first book opening on a drop cap, as the printed page has it. */
+.kjb-contents-title { margin: 0 0 0.9em; text-align: center; font-family: Merriweather, Georgia, serif; font-size: 0.8rem; font-weight: 700; line-height: 1.6; letter-spacing: 0.05em; }
+.kjb-contents-sub { margin: 0.7em 0 0.35em; text-align: center; font-family: Merriweather, Georgia, serif; font-size: 0.74rem; font-style: italic; font-weight: 400; letter-spacing: 0.03em; }
+.kjb-contents-list { margin: 0; padding: 0; list-style: none; columns: 2; column-gap: 20px; }
 .kjb-contents-list li { break-inside: avoid; margin: 0 0 0.08em; }
-.kjb-contents-entry { display: block; width: 100%; padding: 1px 0; text-align: left; font-family: Merriweather, Georgia, serif; font-size: 0.66rem; line-height: 1.5; color: inherit; background: none; border: 0; box-shadow: none; cursor: pointer; }
+.kjb-contents-entry { display: block; width: 100%; padding: 1px 0; text-align: left; white-space: nowrap; font-family: Merriweather, Georgia, serif; font-size: 0.68rem; line-height: 1.5; color: inherit; background: none; border: 0; box-shadow: none; cursor: pointer; }
 .kjb-contents-entry:hover, .kjb-contents-entry:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
 .kjb-contents-first::first-letter { float: left; margin: 0.02em 0.05em 0 0; font-size: 2.6em; line-height: 0.8; font-weight: 700; }
 .kjb-fb-flow { position: relative; column-fill: auto; line-height: 1.5; text-align: justify; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; font-family: Merriweather, Georgia, serif; }
