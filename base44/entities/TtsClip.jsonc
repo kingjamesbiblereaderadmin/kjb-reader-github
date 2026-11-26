@@ -4,11 +4,13 @@
   "properties": {
     "hash": {
       "type": "string",
+      "maxLength": 64,
       "description": "sha256 of voice + spoken text — the cache key"
     },
     "voice": {
       "type": "string",
-      "description": "ElevenLabs voice id the clip was generated with"
+      "maxLength": 80,
+      "description": "Voice id the clip was generated with"
     },
     "chars": {
       "type": "integer",
@@ -16,10 +18,12 @@
     },
     "url": {
       "type": "string",
-      "description": "Public URL of the generated mp3"
+      "maxLength": 1024,
+      "description": "Public URL of the generated mp3 (a storage URL runs past 150 characters, so it needs the longer limit)"
     },
     "ref": {
       "type": "string",
+      "maxLength": 32,
       "description": "Verse reference this clip was first generated for (e.g. 'John 3:16')"
     }
   },

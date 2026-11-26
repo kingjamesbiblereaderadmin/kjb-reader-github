@@ -186,7 +186,13 @@ export default async function (req) {
   if (!generated.audio) {
     try {
       const db = base44.asServiceRole || base44;
-      await db.entities.TtsClip.create({ hash, voice, chars: text.length, url: generated.url, ref });
+      // A rejected row means this verse is billed again next time: say so in the
+      // logs instead of losing it quietly.
+      try {
+        await db.entities.TtsClip.create({ hash, voice, chars: text.length, url: generated.url, ref });
+      } catch (err) {
+        console.error('[ttsVerse] cache row rejected', ref, (err as Error)?.message);
+      }
     } catch (err) {
       console.error('[ttsVerse] cache write failed', err?.message);
     }
@@ -213,7 +219,11 @@ export default async function (req) {
 
   try {
     const db = base44.asServiceRole || base44;
-    await db.entities.TtsClip.create({ hash, voice, chars: text.length, url, ref });
+    try {
+      await db.entities.TtsClip.create({ hash, voice, chars: text.length, url, ref });
+    } catch (err) {
+      console.error('[ttsVerse] cache row rejected', ref, (err as Error)?.message);
+    }
   } catch (err) {
     console.error('[ttsVerse] cache write failed', err?.message);
   }
