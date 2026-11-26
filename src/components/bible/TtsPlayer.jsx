@@ -55,7 +55,7 @@ function scrollToVerse(verse) {
   if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }
 
-export default function TtsPlayer({ embedded = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, chapter = null, startVerse = null, label = '', bookName = '', onNextChapter = null }) {
+export default function TtsPlayer({ embedded = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, chapter = null, startVerse = null, label = '', bookName = '', onNextChapter = null, onRestart }) {
   const [autoContinue] = useState(() => readStored(TTS_STORAGE.autoContinue, 'true') !== 'false');
   // Hidden = controls collapse to a single pill; audio keeps playing. Remembered
   // per device so a reader who listens while reading never sees the bar again.
@@ -186,9 +186,14 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const verseRef = tts.currentVerse != null
-    ? `${label ? `${label} ` : ''}${chapter}:${tts.currentVerse}`
-    : '';
+  // While the book and chapter are being announced there is no verse yet, so
+  // name what is being read.
+  const introLabel = `${label ? `${label} · ` : ''}Chapter ${chapter}`;
+  const verseRef = tts.introActive
+    ? introLabel
+    : tts.currentVerse != null
+      ? `${label ? `${label} ` : ''}${chapter}:${tts.currentVerse}`
+      : '';
 
   // Every explicit press re-takes control of scrolling. Starting fresh also
   // says where we are — full book name then chapter — which is what makes the
@@ -225,6 +230,7 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
   // cannot express.
   const restartChapter = () => {
     setSelectedVerse(null);
+    onRestart?.();
     playFrom(1);
     scrollToVerse(1);
   };
@@ -282,7 +288,7 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
 
           <div className="px-2 text-center min-w-0 max-w-[10rem] sm:max-w-none">
             <p className="font-sans text-xs font-medium truncate">
-              {tts.status === 'loading' ? 'Preparing…' : verseRef || (idle ? 'Ready to play' : 'Listening')}
+              {tts.status === 'loading' && !tts.introActive ? 'Preparing…' : verseRef || (idle ? 'Ready to play' : 'Listening')}
             </p>
             <p className="font-sans text-[10px] text-muted-foreground truncate">
               {voiceLabel(tts.voice)} · {tts.rate}x

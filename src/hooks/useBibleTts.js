@@ -206,6 +206,8 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
       if (found >= 0) i = found;
     }
     introRef.current = intro;
+    // Don't keep showing the old verse while the chapter announcement plays.
+    if (intro) setIndex(-1);
     tokenRef.current += 1;
     playAt(i, tokenRef.current);
   }, [playAt]);
@@ -245,7 +247,7 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
       return;
     }
     tokenRef.current += 1;
-    playAt(index - 1, tokenRef.current);
+    playAt(Math.max(index - 1, 0), tokenRef.current);
   }, [index, playAt]);
 
   const setVoice = useCallback((id) => {

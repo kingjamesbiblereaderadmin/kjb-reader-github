@@ -1753,6 +1753,7 @@ export default function BibleReader() {
       open={hideHeader || listenOpen}
       onOpenChange={setListenOpen}
       onActiveChange={setTtsActive}
+      onRestart={() => { setHighlightVerse(null); setHighlightSection(null); }}
       verses={verses}
       chapterKey={`${pos.abbr}:${pos.chapter}`}
       chapter={pos.chapter}
