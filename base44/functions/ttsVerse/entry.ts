@@ -99,7 +99,7 @@ const PRONOUNCE: Record<string, string> = {
   bekah: 'BAY-kah',
   ephod: 'EE-fod',
   teraphim: 'TER-uh-fim',
-  nazarite: 'NAZ-uh-ryt',
+  nazarite: 'NAZ-uh-rite',
   nazarene: 'naz-uh-REEN',
   judaea: 'joo-DEE-uh',
   ashtoreth: 'ASH-tuh-reth',
