@@ -1,5 +1,6 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight, ChevronDown, CheckSquare, X, ZoomIn, Minus, Plus, Type, Share2, Printer, AlignJustify, AlignLeft, List, Columns2, Headphones } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ChevronDown, CheckSquare, X, ZoomIn, Minus, Plus, Type, Share2, Printer, AlignJustify, AlignLeft, List, Columns2, Headphones } from 'lucide-react';
+import ReaderControlSlot from '@/components/bible/ReaderControlSlot';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import BookSelector from '@/components/bible/BookSelector';
 import ChapterSelector from '@/components/bible/ChapterSelector';
@@ -28,6 +29,7 @@ import { isMobile } from '@/lib/readerPosition';
 // BibleReader — every value it reads arrives as a prop.
 export default function ReaderToolbar({
   topRef, hideHeader, setHideHeader, anyMenuOpen, closeAllMenus, ttsAttached = false, playerSlot = null,
+  bookMode = false, bookSlots = {},
   listenAvailable = false, listenOpen = false, listenActive = false, onToggleListen,
   pos, book, isViewingTitlePage,
   showBookPicker, setShowBookPicker, showChapterPicker, setShowChapterPicker,
@@ -53,7 +55,7 @@ export default function ReaderToolbar({
   tapCopyFeedback, tapShareFeedback, tapSaveFeedback,
 }) {
   return (
-    <div ref={topRef} data-kjb-reader-toolbar-wrap className={`print:hidden sticky top-0 z-[100] border-b pt-3 relative -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background border-border mb-8 shadow-sm ${ttsAttached ? 'pb-0' : 'pb-3'}  before:content-[''] before:absolute before:bottom-full before:left-[calc(-1*env(safe-area-inset-left,0px))] before:right-[calc(-1*env(safe-area-inset-right,0px))] before:h-12 before:bg-background`}>
+    <div ref={bookMode ? null : topRef} data-kjb-reader-toolbar-wrap={bookMode ? undefined : true} className={bookMode ? 'contents print:hidden' : `print:hidden sticky top-0 z-[100] border-b pt-3 relative -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background border-border mb-8 shadow-sm ${ttsAttached ? 'pb-0' : 'pb-3'}  before:content-[''] before:absolute before:bottom-full before:left-[calc(-1*env(safe-area-inset-left,0px))] before:right-[calc(-1*env(safe-area-inset-right,0px))] before:h-12 before:bg-background`}>
       <div
         onClickCapture={(e) => {
           // Tapping empty space inside the toolbar (the gaps/padding between
@@ -62,7 +64,8 @@ export default function ReaderToolbar({
             closeAllMenus();
           }
         }}
-        className="kjb-reader-toolbar flex flex-wrap items-stretch justify-stretch gap-3 w-full kjb-frame mx-auto [&>button:not(.kjb-fixed-btn)]:flex-grow [&>button:not(.kjb-fixed-btn)]:basis-auto [&>div.relative]:flex-grow [&>div.relative>button]:w-full">
+        className={bookMode ? 'contents' : 'kjb-reader-toolbar flex flex-wrap items-stretch justify-stretch gap-3 w-full kjb-frame mx-auto [&>button:not(.kjb-fixed-btn)]:flex-grow [&>button:not(.kjb-fixed-btn)]:basis-auto [&>div.relative]:flex-grow [&>div.relative>button]:w-full'}>
+        <ReaderControlSlot enabled={bookMode} target={bookSlots.location}>
         <div className="relative flex">
           <Popover open={!!(showBookPicker && !isMobile())}>
           <PopoverAnchor asChild>
@@ -110,9 +113,11 @@ export default function ReaderToolbar({
             />
           </SelectorSheet>
         </div>
+        </ReaderControlSlot>
 
         {!isViewingTitlePage && (
           <>
+          <ReaderControlSlot enabled={bookMode} target={bookSlots.location}>
           <div className="relative flex">
             <Popover open={!!(showChapterPicker && !isMobile())}>
             <PopoverAnchor asChild>
@@ -197,7 +202,9 @@ export default function ReaderToolbar({
               />
             </SelectorSheet>
           </div>
+          </ReaderControlSlot>
 
+          <ReaderControlSlot enabled={bookMode} target={bookSlots.tools}>
           <div className="relative flex">
           <Popover open={!!(showZoomPopover && !isMobile())}>
           <PopoverAnchor asChild>
@@ -317,6 +324,7 @@ export default function ReaderToolbar({
 
           <button
             onClick={toggleFlow}
+            aria-pressed={paragraphMode}
             title={flowMode === 'line' ? 'Switch to paragraph' : 'Switch to line-by-line'}
             className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap ${
               paragraphMode ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'
@@ -327,6 +335,7 @@ export default function ReaderToolbar({
           </button>
           <button
             onClick={toggleColumn}
+            aria-pressed={columnOn}
             title={columnOn ? 'Switch to single column' : 'Switch to two-column'}
             className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap ${
               columnOn ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'
@@ -335,7 +344,7 @@ export default function ReaderToolbar({
             {columnOn ? <Columns2 className="w-4 h-4 transition-transform duration-200 flex-shrink-0" /> : <AlignLeft className="w-4 h-4 transition-transform duration-200 flex-shrink-0" />}
             <span className="hidden lg:inline">{columnOn ? '2-Col' : '1-Col'}</span>
           </button>
-          <button onClick={toggleSelectMode} title="Select verses" className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10  whitespace-nowrap ${selectMode ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}><CheckSquare className="w-4 h-4 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Select</span></button>
+          <button onClick={toggleSelectMode} aria-pressed={selectMode} title="Select verses" className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10  whitespace-nowrap ${selectMode ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}><CheckSquare className="w-4 h-4 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Select</span></button>
 
            <DropdownMenu onOpenChange={(open) => { if (open) closeAllMenus(); }}>
             <DropdownMenuTrigger asChild>
@@ -369,8 +378,14 @@ export default function ReaderToolbar({
             <span className="hidden lg:inline">Print</span>
           </button>
 
-          <button onClick={goPrev} disabled={isFirstChapterFirstBook} data-testid="prev-chapter-btn" className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-secondary-foreground font-sans text-sm font-medium disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"><ChevronLeft className="w-4 h-4 transition-transform duration-200 flex-shrink-0" /><span className="hidden lg:inline">Prev</span></button>
-          <button onClick={() => goNext()} disabled={isLastChapterLastBook} data-testid="next-chapter-btn" className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-secondary-foreground font-sans text-sm font-medium disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"><span className="hidden lg:inline">Next</span><ChevronRight className="w-4 h-4 transition-transform duration-200 flex-shrink-0" /></button>
+          </ReaderControlSlot>
+          <ReaderControlSlot enabled={bookMode} target={bookSlots.previousChapter}>
+          <button onClick={goPrev} disabled={isFirstChapterFirstBook} aria-label="Previous chapter" title="Previous chapter" data-testid="prev-chapter-btn" className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-secondary-foreground font-sans text-sm font-medium disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap">{bookMode ? <ChevronsLeft className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4 transition-transform duration-200 flex-shrink-0" />}<span className="hidden lg:inline">Prev</span></button>
+          </ReaderControlSlot>
+          <ReaderControlSlot enabled={bookMode} target={bookSlots.nextChapter}>
+          <button onClick={() => goNext()} disabled={isLastChapterLastBook} aria-label="Next chapter" title="Next chapter" data-testid="next-chapter-btn" className="flex items-center justify-center gap-1.5 px-3 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-secondary-foreground font-sans text-sm font-medium disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"><span className="hidden lg:inline">Next</span>{bookMode ? <ChevronsRight className="w-4 h-4" /> : <ChevronRight className="w-4 h-4 transition-transform duration-200 flex-shrink-0" />}</button>
+          </ReaderControlSlot>
+          <ReaderControlSlot enabled={bookMode} target={bookSlots.tools}>
           {listenAvailable && (
             <button
               onClick={onToggleListen}
@@ -386,6 +401,8 @@ export default function ReaderToolbar({
           )}
           <button onClick={(e) => { e.stopPropagation(); setHideHeader(!hideHeader); }} title={hideHeader ? "Show header" : "Hide header"} className="kjb-fixed-btn flex-shrink-0 flex items-center justify-center px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10  whitespace-nowrap"><ChevronDown className={`w-5 h-5 transition-transform duration-200 flex-shrink-0 ${hideHeader ? '' : 'rotate-180'}`} /></button>
 
+          </ReaderControlSlot>
+          <ReaderControlSlot enabled={bookMode} target={bookSlots.context}>
           {((filterMode && selectedVerses.size > 0) || lastReadingActive || searchTerm || gospelMode || highlightVerse) && (
             <CurrentlyReadingIndicator
               highlightVerse={highlightVerse}
@@ -485,32 +502,34 @@ export default function ReaderToolbar({
               }}
             />
           )}
+          </ReaderControlSlot>
         </>
         )}
 
         {isViewingTitlePage && (
           <>
-            {listenAvailable && (
-              <button
-                onClick={onToggleListen}
-                title="Listen"
-                aria-label="Listen"
-                aria-expanded={listenOpen}
-                data-testid="tts-toolbar-btn"
-                className={`flex flex-1 items-center justify-center gap-1.5 px-2.5 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap ${listenOpen || listenActive ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}
-              >
-                <Headphones className="w-5 h-5 flex-shrink-0" />
-                <span className="hidden lg:inline">Listen</span>
-              </button>
-            )}
-            <button onClick={goPrev} disabled={isFirstChapterFirstBook} title="Previous" data-testid="prev-chapter-btn" className="flex flex-1 items-center justify-center gap-1.5 px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-secondary-foreground font-sans text-sm font-medium disabled:opacity-30 transition-all duration-200 touch-manipulation h-10 "><ChevronLeft className="w-5 h-5 flex-shrink-0" /><span className="hidden lg:inline">Prev</span></button>
-            <button onClick={() => goNext()} title="Next" data-testid="next-chapter-btn" className="flex flex-1 items-center justify-center gap-1.5 px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-secondary-foreground font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 "><span className="hidden lg:inline">Next</span><ChevronRight className="w-5 h-5 flex-shrink-0" /></button>
-            <button onClick={(e) => { e.stopPropagation(); setHideHeader(!hideHeader); }} title={hideHeader ? "Show header" : "Hide header"} className="flex items-center justify-center px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-secondary-foreground font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10  flex-shrink-0"><ChevronDown className={`w-5 h-5 flex-shrink-0 ${hideHeader ? '' : 'rotate-180'}`} /></button>
+            <ReaderControlSlot enabled={bookMode} target={bookSlots.tools}>
+              {listenAvailable && (
+                <button onClick={onToggleListen} title="Listen" aria-label="Listen" aria-expanded={listenOpen} data-testid="tts-toolbar-btn" className={`flex flex-1 items-center justify-center gap-1.5 px-2.5 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap ${listenOpen || listenActive ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}>
+                  <Headphones className="w-5 h-5 flex-shrink-0" /><span className="hidden lg:inline">Listen</span>
+                </button>
+              )}
+            </ReaderControlSlot>
+            <ReaderControlSlot enabled={bookMode} target={bookSlots.previousChapter}>
+              <button onClick={goPrev} disabled={isFirstChapterFirstBook} title="Previous chapter" aria-label="Previous chapter" data-testid="prev-chapter-btn" className="flex flex-1 items-center justify-center gap-1.5 px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-secondary-foreground font-sans text-sm font-medium disabled:opacity-30 transition-all duration-200 touch-manipulation h-10">{bookMode ? <ChevronsLeft className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5 flex-shrink-0" />}<span className="hidden lg:inline">Prev</span></button>
+            </ReaderControlSlot>
+            <ReaderControlSlot enabled={bookMode} target={bookSlots.nextChapter}>
+              <button onClick={() => goNext()} title="Next chapter" aria-label="Next chapter" data-testid="next-chapter-btn" className="flex flex-1 items-center justify-center gap-1.5 px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-secondary-foreground font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10"><span className="hidden lg:inline">Next</span>{bookMode ? <ChevronsRight className="w-5 h-5" /> : <ChevronRight className="w-5 h-5 flex-shrink-0" />}</button>
+            </ReaderControlSlot>
+            <ReaderControlSlot enabled={bookMode} target={bookSlots.tools}>
+              <button onClick={(e) => { e.stopPropagation(); setHideHeader(!hideHeader); }} title={hideHeader ? 'Show header' : 'Hide header'} aria-label={hideHeader ? 'Show header' : 'Hide header'} className="flex items-center justify-center px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-secondary-foreground font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 flex-shrink-0"><ChevronDown className={`w-5 h-5 flex-shrink-0 ${hideHeader ? '' : 'rotate-180'}`} /></button>
+            </ReaderControlSlot>
           </>
         )}
       </div>
 
-      {/* Single unified toolbar - SelectActionBar for multi-select mode, ReadingRangeBar for search/gospel/daily/navigation */}
+      {/* Context actions stay intact, but sit at the foot of the open book. */}
+      <ReaderControlSlot enabled={bookMode} target={bookSlots.context}>
       {selectMode && (
         <SelectActionBar
           selectedCount={selectedVerses.size} totalVerses={verses.length} copyFeedback={copyFeedback} shareFeedback={shareFeedback} shareLinkFeedback={shareLinkFeedback} saveFeedback={saveFeedback}
@@ -581,10 +600,10 @@ export default function ReaderToolbar({
         />
       )}
 
-      {/* The Listen player rides inside the toolbar block, so the two share one
-          white surface and the toolbar's own bottom border closes the whole
-          thing while it stays stuck to the top of the page. */}
-      {playerSlot}
+      </ReaderControlSlot>
+      <ReaderControlSlot enabled={bookMode} target={bookSlots.player}>
+        {playerSlot}
+      </ReaderControlSlot>
 
     </div>
   );

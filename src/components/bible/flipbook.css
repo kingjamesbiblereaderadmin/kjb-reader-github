@@ -4,13 +4,9 @@
   display: flex; flex-direction: column; color: hsl(var(--foreground));
 }
 .dark .kjb-flipbook { --fb-paper: #1d1b17; --fb-ink: #e6dfcf; --fb-red: #d9806f; --fb-rule: #3b362d; }
-/* The page read-out sits on its own hairline under the book, the way a reading
-   app carries its position — the turning controls live on the pages themselves. */
-.kjb-fb-bar { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 12px; padding-top: 8px; border-top: 1px solid hsl(var(--border)); font-family: Merriweather, Georgia, serif; font-size: 0.78rem; letter-spacing: 0.03em; color: hsl(var(--muted-foreground)); }
-
-.kjb-fb-stage { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: pan-y; border-radius: 10px; background: radial-gradient(100% 80% at 50% 0%, hsl(var(--secondary) / 0.6), hsl(var(--background)) 72%); }
+.kjb-fb-stage { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: pan-y; padding: 8px; }
 .kjb-fb-measure { position: absolute; left: 0; top: 0; overflow: hidden; visibility: hidden; pointer-events: none; }
-.kjb-fb-book { position: relative; perspective: 2400px; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.22)); }
+.kjb-fb-book { position: relative; perspective: 2400px; background: var(--fb-paper); color: var(--fb-ink); border-radius: 3px; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.22)); }
 .kjb-fb-slot { position: absolute; top: 0; bottom: 0; cursor: pointer; }
 
 .kjb-fb-page { position: relative; height: 100%; width: 100%; box-sizing: border-box; background: var(--fb-paper); color: var(--fb-ink); display: flex; flex-direction: column; overflow: hidden; }
@@ -23,16 +19,6 @@
 /* page number at the foot, centred beneath a hairline rule, as in a printed Bible */
 .kjb-fb-folio { flex: 1; display: flex; align-items: flex-start; justify-content: center; margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--fb-rule); font-family: Merriweather, Georgia, serif; font-size: 0.8rem; font-variant-numeric: oldstyle-nums; }
 
-/* Page-turn arrows, resting in the outer margins of the open pages the way a
-   reading app's page controls do, instead of buttons in a bar under the book. */
-.kjb-fb-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 5; width: 34px; height: 64px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 8px; background: transparent; color: var(--fb-ink); opacity: 0.3; transition: opacity 160ms ease, background-color 160ms ease; -webkit-tap-highlight-color: transparent; }
-.kjb-fb-arrow:hover, .kjb-fb-arrow:focus-visible { opacity: 0.85; background: rgba(0, 0, 0, 0.05); }
-.dark .kjb-fb-arrow:hover, .dark .kjb-fb-arrow:focus-visible { background: rgba(255, 255, 255, 0.08); }
-.kjb-fb-arrow-prev { left: 2px; }
-.kjb-fb-arrow-next { right: 2px; }
-@media (max-width: 640px) {
-  .kjb-fb-arrow { width: 28px; opacity: 0.45; }
-}
 .kjb-fb-window { overflow: hidden; }
 .kjb-fb-flow { position: relative; column-fill: auto; line-height: 1.5; text-align: justify; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; font-family: Merriweather, Georgia, serif; }
 
@@ -45,7 +31,7 @@
 .kjb-fb-first::first-letter { float: left; margin: 0.04em 0.1em 0 0; font-size: 3.1em; line-height: 0.9; font-weight: 700; }
 .kjb-fb-flow .pilcrow { color: var(--fb-red); }
 .kjb-fb-flow em { font-style: italic; opacity: 0.82; }
-.kjb-fb-loading { font-size: 0.9rem; }
+.kjb-fb-loading { position: absolute; inset: 56px 64px var(--fb-footer-height) 20px; display: grid; place-items: center; font-size: 0.9rem; }
 
 /* The turning sheet, hinged on the spine. */
 .kjb-fb-leaf { position: absolute; top: 0; bottom: 0; z-index: 3; transform-style: preserve-3d; -webkit-transform-style: preserve-3d; pointer-events: none; }
@@ -91,134 +77,46 @@
 .kjb-flipbook .kjb-fb-jumped { background: rgba(140, 47, 35, 0.12); }
 .kjb-flipbook .kjb-fb-selected { background: rgba(37, 99, 235, 0.18); box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.45); }
 
-/* ---- Book mode -----------------------------------------------------------
-   With the book open the reader stops looking like an app screen. The sticky
-   toolbar becomes the book's head band — the same paper, the same hairline
-   rule and ink controls instead of app-coloured buttons — so the chrome and
-   the pages read as one object from the top of the screen to the page numbers. */
-.kjb-book-mode {
-  --fb-paper: #fffefb;
-  --fb-ink: #211c16;
-  --fb-rule: #d8cfb9;
-}
-.dark .kjb-book-mode {
-  --fb-paper: #1d1b17;
-  --fb-ink: #e6dfcf;
-  --fb-rule: #3b362d;
-}
-
-.kjb-book-mode [data-kjb-reader-toolbar-wrap] {
-  background: var(--fb-paper);
-  border-bottom-color: var(--fb-rule);
-  color: var(--fb-ink);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
-  border-radius: 10px 10px 0 0;
-  margin-bottom: 0;
-}
-.kjb-book-mode [data-kjb-reader-toolbar-wrap]::before,
-.kjb-book-mode [data-kjb-reader-toolbar-wrap]::after {
-  background: var(--fb-paper);
-  border-bottom-color: var(--fb-rule);
-}
-
-/* Controls read as printed tabs on the band, not as app buttons. */
-.kjb-book-mode [data-kjb-reader-toolbar-wrap] button {
-  background: transparent;
-  border-color: var(--fb-rule);
-  color: var(--fb-ink);
-  box-shadow: none;
-}
-.kjb-book-mode [data-kjb-reader-toolbar-wrap] button:hover {
-  background: rgba(0, 0, 0, 0.05);
-}
-.dark .kjb-book-mode [data-kjb-reader-toolbar-wrap] button:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-/* The book/chapter tabs and the play control stay filled, in ink. */
-.kjb-book-mode [data-kjb-reader-toolbar-wrap] button.bg-primary {
-  background: var(--fb-ink);
-  color: var(--fb-paper);
-  border-color: var(--fb-ink);
-}
-/* An active toggle keeps its mark, in ink rather than the app accent. */
-.kjb-book-mode [data-kjb-reader-toolbar-wrap] button.bg-primary\/10,
-.kjb-book-mode [data-kjb-reader-toolbar-wrap] button.bg-primary\/20 {
-  background: rgba(33, 28, 22, 0.1);
-}
-.dark .kjb-book-mode [data-kjb-reader-toolbar-wrap] button.bg-primary\/10,
-.dark .kjb-book-mode [data-kjb-reader-toolbar-wrap] button.bg-primary\/20 {
-  background: rgba(230, 223, 207, 0.16);
-}
-/* The Listen player rides inside the band: no app panel of its own. */
-.kjb-book-mode [data-kjb-reader-toolbar-wrap] section,
-.kjb-book-mode [data-kjb-reader-toolbar-wrap] .bg-background,
-.kjb-book-mode [data-kjb-reader-toolbar-wrap] .bg-card {
-  background: transparent;
-  border-color: var(--fb-rule);
-}
-
-/* The view switch is a printed marker on the desk, not a stray link. */
-.kjb-book-mode .kjb-book-toggle-row {
-  margin-top: 8px;
-}
-.kjb-book-mode .kjb-book-toggle {
-  color: var(--fb-ink);
-  text-decoration: none;
-  border: 1px solid var(--fb-rule);
-  background: var(--fb-paper);
-  border-radius: 9999px;
-  padding: 3px 12px;
-  opacity: 0.85;
-}
-.kjb-book-mode .kjb-book-toggle:hover {
-  opacity: 1;
-}
-/* The page read-out under the book belongs to the same paper. */
-.kjb-book-mode .kjb-fb-bar {
-  border-top-color: var(--fb-rule);
-  color: var(--fb-ink);
-  opacity: 0.8;
-}
-
-/* The controls are drawn inside the book: one paper card carrying its own head
-   band, the open pages, and the page read-out beneath them. */
-.kjb-fb-tools {
-  flex: none;
-  position: relative;
-  z-index: 20;
-  padding: 8px 12px 4px;
-  border-bottom: 1px solid var(--fb-rule);
-}
-/* The toolbar is a sticky, bleeding app band everywhere else; inside the book it
-   is simply the book's head band. */
-.kjb-fb-tools [data-kjb-reader-toolbar-wrap] {
-  position: static !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-.kjb-fb-tools [data-kjb-reader-toolbar-wrap]::before,
-.kjb-fb-tools [data-kjb-reader-toolbar-wrap]::after {
-  display: none !important;
-}
-.kjb-fb-tools .kjb-book-toggle-row {
-  margin: 6px 0 0 !important;
-}
-
-.kjb-book-mode .kjb-flipbook {
-  background: var(--fb-paper);
-  border: 1px solid var(--fb-rule);
-  border-radius: 12px;
-  box-shadow: 0 16px 34px -24px rgba(0, 0, 0, 0.45);
-  overflow: hidden;
-}
-.kjb-book-mode .kjb-fb-stage {
-  background: transparent;
-  border-radius: 0;
-}
-.kjb-book-mode .kjb-fb-bar {
-  padding-bottom: 8px;
+/* The controls are anchored to the actual paper, not to a surrounding card.
+   Passage tabs occupy the top-left corner, tools the outer right margin,
+   and navigation the foot. The text reserves all three areas. */
+.kjb-fb-chrome { position: absolute; inset: 0; z-index: 20; pointer-events: none; font-family: var(--font-sans); }
+.kjb-book-location, .kjb-book-view-control, .kjb-book-toolrail, .kjb-book-bottom { pointer-events: auto; }
+.kjb-fb-chrome button { cursor: pointer; min-height: 44px; color: var(--fb-ink); background: transparent; border: 0; box-shadow: none; transition: background-color 160ms ease; }
+.kjb-fb-chrome button:hover:not(:disabled) { background: hsl(var(--foreground) / 0.08); }
+.kjb-fb-chrome button:focus-visible { outline: 2px solid var(--fb-ink); outline-offset: -2px; }
+.kjb-fb-chrome button:disabled { cursor: default; opacity: 0.3; }
+.kjb-book-location { position: absolute; top: 6px; left: 12px; right: 150px; display: flex; align-items: center; gap: 2px; }
+.kjb-book-location > div { min-width: 0; }
+.kjb-book-location > div:first-child { max-width: 12rem; }
+.kjb-book-location button { height: 44px; padding-inline: 10px; }
+.kjb-book-location button span { min-width: 0; }
+.kjb-book-location > div + div { border-left: 1px solid var(--fb-rule); }
+.kjb-book-view-control { position: absolute; top: 6px; right: 12px; }
+.kjb-book-view-control .kjb-book-toggle-row { margin: 0; }
+.kjb-book-view-control .kjb-book-toggle { min-width: 44px; padding: 0 8px; text-decoration: none; font-family: var(--font-sans); font-size: 0.75rem; }
+.kjb-book-toolrail { position: absolute; top: 64px; right: 8px; bottom: calc(var(--fb-footer-height) + 8px); display: flex; flex-direction: column; align-items: center; gap: 4px; width: 44px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; border-left: 1px solid var(--fb-rule); }
+.kjb-book-toolrail > div { flex: none; }
+.kjb-book-toolrail button { flex: none; width: 44px; height: 44px; padding: 0; }
+.kjb-book-toolrail button > span { display: none; }
+.kjb-book-toolrail button[aria-pressed='true'], .kjb-book-toolrail button[aria-expanded='true'] { background: hsl(var(--accent) / 0.14); box-shadow: inset 2px 0 0 var(--fb-ink); }
+.kjb-book-bottom { position: absolute; inset-inline: 0; bottom: 0; background: var(--fb-paper); border-radius: 0 0 3px 3px; }
+.kjb-book-context:empty, .kjb-book-player:empty { display: none; }
+.kjb-book-context { max-height: 28dvh; overflow-y: auto; padding-inline: 12px; border-top: 1px solid var(--fb-rule); }
+.kjb-book-context > div { margin-top: 0; padding-block: 8px; }
+.kjb-book-player section { margin: 0; padding: 8px 12px; background: var(--fb-paper); border-color: var(--fb-rule); box-shadow: none; }
+.kjb-book-player button.bg-primary { background: var(--fb-ink); color: var(--fb-paper); }
+.kjb-book-player { max-height: 28dvh; overflow-y: auto; }
+.kjb-book-navigation { display: grid; grid-template-columns: 44px minmax(44px, 1fr) minmax(0, 3fr) minmax(44px, 1fr) 44px; align-items: center; gap: 4px; min-height: 64px; margin-inline: 12px; padding-block: 8px; border-top: 1px solid var(--fb-rule); }
+.kjb-book-page-step { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 8px; font-size: 0.8rem; }
+.kjb-book-chapter-step button { display: flex; justify-content: center; align-items: center; width: 44px; height: 44px; padding: 0; }
+.kjb-book-chapter-step button > span { display: none; }
+.kjb-book-position { text-align: center; font-family: var(--font-serif); font-size: 0.72rem; line-height: 1.5; font-variant-numeric: tabular-nums; }
+@media (max-width: 760px) {
+  .kjb-book-location { left: 6px; right: 52px; gap: 0; }
+  .kjb-book-location > div:first-child { max-width: 6rem; }
+  .kjb-book-location button { padding-inline: 6px; gap: 3px; font-size: 0.7rem; }
+  .kjb-book-view-control { right: 4px; }
+  .kjb-book-view-control .kjb-book-toggle span, .kjb-book-page-step > span { display: none; }
+  .kjb-book-navigation { gap: 0; margin-inline: 4px; }
 }

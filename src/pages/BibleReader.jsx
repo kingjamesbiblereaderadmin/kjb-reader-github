@@ -1760,13 +1760,13 @@ export default function BibleReader() {
     : pos.abbr === 'MAT'
       ? "The New Testament of our Lord and Saviour Jesus Christ. Translated out of the original Greek, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches."
       : `${book?.testament === 'new' ? 'New Testament' : 'Old Testament'}. ${book?.name || ''}. ${book?.chapters || 0} ${book?.chapters === 1 ? 'chapter' : 'chapters'}.`) : '';
-  const ttsAttached = !hideHeader && ttsPlayerVisible;
+  const ttsAttached = (!hideHeader || flipbookOpen) && ttsPlayerVisible;
   // With the header hidden there is no headphones button, so the section stays.
   const ttsSectionShown = listenOpen || ttsActive;
   const ttsPlayerNode = ttsPlayerVisible ? (
     <TtsPlayer
-      embedded={!hideHeader}
-      open={hideHeader || listenOpen}
+      embedded={!hideHeader || flipbookOpen}
+      open={(hideHeader && !flipbookOpen) || listenOpen}
       onOpenChange={setListenOpen}
       onActiveChange={setTtsActive}
       onRestart={() => { setHighlightVerse(null); setHighlightSection(null); }}
@@ -1784,11 +1784,11 @@ export default function BibleReader() {
     />
   ) : null;
 
-  // The reader's controls, built once. In book view they are handed to the book
-  // and drawn inside it, on the same paper as the pages, so the book carries its
-  // own controls instead of sitting beneath a bar of app buttons.
-  const toolbarNode = !hideHeader ? (
+  // Keep the same working controls, assigning them to page corners and margins
+  // in book view rather than rendering a toolbar across the top.
+  const toolbarNode = !hideHeader || flipbookOpen ? (
     <ReaderToolbar
+      bookMode={flipbookOpen}
       topRef={topRef} hideHeader={hideHeader} setHideHeader={setHideHeader}
       anyMenuOpen={anyMenuOpen} closeAllMenus={closeAllMenus} ttsAttached={ttsAttached && ttsSectionShown}
       listenAvailable={ttsAttached} listenOpen={listenOpen} listenActive={ttsActive}
@@ -1838,27 +1838,28 @@ export default function BibleReader() {
     />
   ) : null;
 
-  // The view switch travels with the controls: above the text in normal view,
-  // and inside the book's own head band while the book is open.
+  // The book's upper-right corner holds the return-to-normal-view control.
   const bookToggleNode = (
     <div className={`kjb-book-toggle-row print:hidden relative z-[1] flex justify-end ${flipbookOpen ? '-mt-6' : '-mt-4'}`}>
       <button
         onClick={() => { closeAllMenus(); setBookView(!flipbookOpen); }}
         data-testid="flipbook-open-btn"
         aria-pressed={flipbookOpen}
+        aria-label={flipbookOpen ? 'Normal view' : 'Read as book'}
+        title={flipbookOpen ? 'Normal view' : 'Read as book'}
         className="kjb-book-toggle flex items-center gap-1.5 py-1 font-serif text-sm text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground"
       >
         <BookOpen className="w-4 h-4" />
-        {flipbookOpen ? 'Normal view' : 'Read as book'}
+        <span>{flipbookOpen ? 'Normal view' : 'Read as book'}</span>
       </button>
     </div>
   );
 
   return (
-    <div onClick={(e) => { if (!e.target.closest('.kjb-flipbook, .kjb-verse-container, [id^="v"], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a, [role="menu"], [role="menuitem"], [data-radix-popper-content-wrapper]')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerses(new Set()); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 pb-3 ${hideHeader ? 'pt-16' : ''} ${flipbookOpen ? 'kjb-book-mode' : ''}`}>
+    <div onClick={(e) => { if (!e.target.closest('.kjb-flipbook, .kjb-verse-container, [id^="v"], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a, [role="menu"], [role="menuitem"], [data-radix-popper-content-wrapper]')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerses(new Set()); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 pb-3 ${hideHeader && !flipbookOpen ? 'pt-16' : ''} ${flipbookOpen ? 'kjb-book-mode' : ''}`}>
       {!hideHeader && !flipbookOpen && toolbarNode}
 
-      {hideHeader && <MinimizedHeaderBar setHideHeader={setHideHeader} />}
+      {hideHeader && !flipbookOpen && <MinimizedHeaderBar setHideHeader={setHideHeader} />}
 
       {/* Listen: reads the chapter verse by verse and highlights each verse as
           it is spoken. Audio is generated per verse and cached, so a verse is
@@ -1870,7 +1871,7 @@ export default function BibleReader() {
       {/* Desktop-only backdrop for the inline popovers. On mobile the selectors
           use the bottom sheet (SelectorSheet), which has its own overlay — rendering
           this backdrop there would intercept the first tap and close the sheet. */}
-      {!isMobile() && (showBookPicker || showChapterPicker || showVersePicker || showZoomPopover || showFontPopover) && (
+      {!flipbookOpen && !isMobile() && (showBookPicker || showChapterPicker || showVersePicker || showZoomPopover || showFontPopover) && (
         <div
           className="fixed inset-0 z-[99]"
           onClick={() => { setShowBookPicker(false); setShowChapterPicker(false); setShowVersePicker(false); setShowZoomPopover(false); setShowFontPopover(false); }}
@@ -1880,7 +1881,8 @@ export default function BibleReader() {
       {!flipbookOpen && bookToggleNode}
       {flipbookOpen && (
         <FlipBook
-          controls={<>{toolbarNode}{bookToggleNode}</>}
+          controls={(bookSlots) => React.cloneElement(toolbarNode, { bookSlots })}
+          viewControl={bookToggleNode}
           book={book} abbr={pos.abbr} chapter={pos.chapter} verses={isViewingTitlePage ? [] : verses}
           subscript={isViewingTitlePage ? null : chapterSubscript} colophon={isViewingTitlePage ? null : colophon}
           endMarker={(pos.abbr === 'MAL' && pos.chapter === 4) || (pos.abbr === 'REV' && pos.chapter === 22) ? resolveEndMarker(book.apiName, pos.chapter) : null}

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import FlipBookChrome from '@/components/bible/FlipBookChrome';
 import { renderVerseText } from '@/lib/bibleApi';
 import TitlePage from '@/components/bible/TitlePage';
 import { useSpeaking, getProgress } from '@/lib/tts/speaking';
@@ -83,16 +83,17 @@ function visibleShare(el, flowLeft, colPeriod, boundaryCol) {
   return last < 0 ? 0 : (last + 1) / total;
 }
 
-/** Optional printed-book view of the reader, shown under the toolbar and player. */
+/** Printed-book view with controls anchored to the actual open pages. */
 export default function FlipBook({
   book, abbr, chapter, verses, subscript, colophon, endMarker, loading, error,
   fontFamilyValue, isCursive, zoomLevel, jumpVerse, jumpSection, tappedVerses, onVerseTap,
   twoColumns, paragraphs, searchTerm, selectMode, selectedVerses, filterMode,
-  onNextChapter, onPrevChapter, canPrev, canNext, controls,
+  onNextChapter, onPrevChapter, canPrev, canNext, controls, viewControl,
 }) {
   const bookName = book.name;
   const rootRef = useRef(null);
   const [height, setHeight] = useState(520);
+  const [footerHeight, setFooterHeight] = useState(64);
   const speaking = useSpeaking();
   const [, setHighlightTick] = useState(0);
 
@@ -115,16 +116,15 @@ export default function FlipBook({
 
   const chapterKey = `${abbr}-${chapter}`;
 
-  // Fill exactly the space between the sticky toolbar/player and the footer.
+  // Fit the open book, including its own controls, inside the reading area.
   useLayoutEffect(() => {
     const scroller = document.getElementById('kjb-scroll');
     (scroller || window).scrollTo({ top: 0 });
     const read = () => {
       const el = rootRef.current;
       if (!el) return;
-      const scrolls = scroller && scroller.scrollHeight > scroller.clientHeight + 1;
-      const bottom = scrolls ? scroller.getBoundingClientRect().bottom : window.innerHeight;
-      const top = el.getBoundingClientRect().top + (scrolls ? scroller.scrollTop : window.scrollY);
+      const bottom = scroller ? scroller.getBoundingClientRect().bottom - parseFloat(getComputedStyle(scroller).paddingBottom || '0') : window.innerHeight;
+      const top = el.getBoundingClientRect().top + (scroller ? scroller.scrollTop : window.scrollY);
       setHeight(Math.max(420, Math.floor(bottom - top - 12)));
     };
     read();
@@ -161,9 +161,11 @@ export default function FlipBook({
   const step = spread ? 2 : 1;
   const pageW = Math.floor(Math.max(0, spread ? Math.min((stage.w - 32) / 2, 520) : Math.min(stage.w - 20, 520)));
   const pageH = Math.floor(Math.max(0, Math.min(stage.h - 16, spread ? pageW * 1.55 : pageW * 1.9)));
-  const padX = pageW < 420 ? 22 : 40;
-  const textW = Math.max(120, pageW - padX * 2);
-  const textH = Math.max(120, pageH - 112); // running head, folio and margins
+  const padLeft = pageW < 420 ? 20 : 44;
+  const padRight = 64; // the tools live in the page margin, never over scripture
+  const textW = Math.max(120, pageW - padLeft - padRight);
+  const contentH = Math.max(120, pageH - 56 - footerHeight);
+  const textH = Math.max(80, contentH - 112); // running head, folio and margins
 
   // A page holds one or two text columns. One page is always (textW + gap) wide.
   const perPage = twoColumns ? 2 : 1;
@@ -375,9 +377,9 @@ export default function FlipBook({
   const face = (index, side) => {
     const textIndex = index - front.length;
     return (
-      <div className={`kjb-fb-page kjb-fb-${side}`} style={{ padding: `0 ${padX}px` }}>
+      <div className={`kjb-fb-page kjb-fb-${side}`} style={{ padding: `56px ${padRight}px ${footerHeight}px ${padLeft}px` }}>
         {index >= 0 && index < pageCount && (textIndex < 0 ? (
-          <FittedTitlePage type={front[index]} book={book} width={textW} height={pageH - 24} />
+          <FittedTitlePage type={front[index]} book={book} width={textW} height={contentH - 24} />
         ) : (
           <>
             <div className="kjb-fb-head">{book.shortName} {chapter}</div>
@@ -435,7 +437,7 @@ export default function FlipBook({
       role="region"
       aria-label="Book view"
       data-testid="kjb-flipbook"
-      onTouchStart={(e) => { if (e.target.closest?.('.kjb-fb-tools')) return; stop(e); touchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }}
+      onTouchStart={(e) => { if (e.target.closest?.('[data-kjb-book-controls]')) { touchRef.current = null; return; } stop(e); touchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }}
       onTouchMove={stop}
       onTouchEnd={(e) => {
         stop(e);
@@ -447,21 +449,24 @@ export default function FlipBook({
         if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.4) go(dx < 0 ? 1 : -1);
       }}
     >
-      {/* The reader's own controls, drawn on the book's paper above the open
-          pages so the book carries its controls instead of a bar above it. */}
-      {controls && <div className="kjb-fb-tools">{controls}</div>}
-
       <div ref={setStageEl} className="kjb-fb-stage">
         {/* Invisible copy used only to count pages. */}
         <div className="kjb-fb-measure" aria-hidden="true" style={{ width: textW, height: textH }}>
           <ChapterFlow ref={measureRef} blocks={blocks} {...flowProps} page={0} textStyle={textStyle} />
         </div>
-        {error ? (
-          <p className="kjb-fb-loading">{error}</p>
-        ) : loading || !pageW ? (
-          <p className="kjb-fb-loading">Loading…</p>
-        ) : (
-          <div className="kjb-fb-book" style={{ width: pageW * step, height: pageH }}>
+        <div className="kjb-fb-book" style={{ width: pageW ? pageW * step : '100%', height: pageH || '100%', '--fb-footer-height': `${footerHeight}px` }}>
+          <FlipBookChrome
+            controls={controls} viewControl={viewControl} where={where}
+            onPrevious={() => go(-1)} onNext={() => go(1)}
+            canPrevious={page > 0 || canPrev} canNext={page + step < pageCount || canNext}
+            busy={loading || !!turn} onFooterHeight={setFooterHeight}
+          />
+          {error ? (
+            <p className="kjb-fb-loading" role="alert">{error}</p>
+          ) : loading || !pageW ? (
+            <p className="kjb-fb-loading" role="status">Loading…</p>
+          ) : (
+            <>
             <div className="kjb-fb-slot" style={{ left: 0, width: pageW }} onClick={onPageTap(spread ? -1 : 1)}>
               {face(left, spread ? 'left' : 'single')}
             </div>
@@ -481,22 +486,9 @@ export default function FlipBook({
                 <div className="kjb-fb-side kjb-fb-side-back">{leaf.back}</div>
               </div>
             )}
-            {(page > 0 || canPrev) && (
-              <button className="kjb-fb-arrow kjb-fb-arrow-prev" onClick={(e) => { e.stopPropagation(); go(-1); }} aria-label="Previous page">
-                <ChevronLeft size={22} />
-              </button>
-            )}
-            {(page + step < pageCount || canNext) && (
-              <button className="kjb-fb-arrow kjb-fb-arrow-next" onClick={(e) => { e.stopPropagation(); go(1); }} aria-label="Next page">
-                <ChevronRight size={22} />
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      <div className="kjb-fb-bar kjb-fb-nav">
-        <span data-testid="kjb-fb-count">{where}</span>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
