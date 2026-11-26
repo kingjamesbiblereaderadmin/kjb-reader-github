@@ -11,7 +11,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { DEFAULT_TTS_VOICE, readStored, writeStored, TTS_STORAGE } from '@/lib/tts/voices';
+import { DEFAULT_TTS_VOICE, engineForVoice, readStored, writeStored, TTS_STORAGE } from '@/lib/tts/voices';
 
 // Verse text arrives with the reader's markup: [italics] brackets, ¶ pilcrows
 // and <<heading>> markers. None of them should be spoken.
@@ -35,16 +35,21 @@ async function audioUrlFor(clip, voice) {
   const hit = urlCache.get(key);
   if (hit) return hit;
 
-  const res = await base44.functions.invoke('ttsVerse', { text: clip.text, voice, ref: clip.ref });
+  const res = await base44.functions.invoke('ttsVerse', {
+    text: clip.text,
+    voice,
+    ref: clip.ref,
+    engine: engineForVoice(voice),
+  });
   const data = res?.data ?? res;
   if (!data?.url) {
     const code = data?.error || 'tts_failed';
     const messages = {
-      no_key: 'ElevenLabs key is not set up for this app yet.',
-      bad_key: 'The ElevenLabs key was rejected.',
-      quota: 'ElevenLabs credits are used up for this month.',
+      no_key: 'This voice\'s API key is not set up for this app yet.',
+      bad_key: 'The speech API key was rejected.',
+      quota: 'This month\'s speech allowance is used up.',
       too_long: 'That verse is too long for one clip.',
-      network: 'Could not reach ElevenLabs.',
+      network: 'Could not reach the speech service.',
     };
     throw new Error(messages[code] || 'Audio could not be generated.');
   }

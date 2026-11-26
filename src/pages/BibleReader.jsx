@@ -1793,6 +1793,23 @@ export default function BibleReader() {
 
       {hideHeader && <MinimizedHeaderBar setHideHeader={setHideHeader} />}
 
+      {/* Listen: reads the chapter verse by verse and highlights each verse as
+          it is spoken. Audio is generated per verse and cached, so a verse is
+          only ever billed once — see base44/functions/ttsVerse. Settings has a
+          master switch that removes the whole player from the reader. */}
+      {ttsEnabled && !loading && !error && !isViewingTitlePage && verses.length > 0 && (
+        <TtsPlayer
+          verses={verses}
+          chapterKey={`${pos.abbr}:${pos.chapter}`}
+          chapter={pos.chapter}
+          startVerse={highlightVerse}
+          label={book.shortName}
+          bookName={book.name}
+          onNextChapter={() => goNext(true)}
+        />
+      )}
+
+
       {/* Desktop-only backdrop for the inline popovers. On mobile the selectors
           use the bottom sheet (SelectorSheet), which has its own overlay — rendering
           this backdrop there would intercept the first tap and close the sheet. */}
@@ -1946,22 +1963,6 @@ export default function BibleReader() {
           </button>
           ) : <div className="flex-1" />}
         </div>
-      )}
-
-      {/* Listen: reads the chapter verse by verse and highlights each verse as
-          it is spoken. Audio is generated per verse and cached, so a verse is
-          only ever billed once — see base44/functions/ttsVerse. Settings has a
-          master switch that removes the whole player from the reader. */}
-      {ttsEnabled && !loading && !error && !isViewingTitlePage && verses.length > 0 && (
-        <TtsPlayer
-          verses={verses}
-          chapterKey={`${pos.abbr}:${pos.chapter}`}
-          chapter={pos.chapter}
-          startVerse={highlightVerse}
-          label={book.shortName}
-          bookName={book.name}
-          onNextChapter={() => goNext(true)}
-        />
       )}
 
     </div>

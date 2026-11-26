@@ -5,6 +5,10 @@ import { TTS_VOICES, TTS_RATES, TTS_STORAGE, readStored, writeStored, voiceLabel
 
 // The reader's Listen player.
 //
+// It is its own section in the page, rendered directly under the reader
+// toolbar: it takes up real space and pushes the chapter down instead of
+// floating over the text, so nothing ever covers the verses.
+//
 // Verse highlighting is done by toggling a class on the verse element the reader
 // already renders (id="v{verse}") instead of lifting "speaking verse" into React
 // state: a chapter can be 176 verses, and re-rendering all of them on every clip
@@ -39,16 +43,12 @@ function scrollToVerse(verse) {
 
 export default function TtsPlayer({ verses, chapterKey, chapter = null, startVerse = null, label = '', bookName = '', onNextChapter = null }) {
   const [autoContinue] = useState(() => readStored(TTS_STORAGE.autoContinue, 'true') !== 'false');
-  // Hidden = controls collapse to a pill; audio keeps playing. Remembered per
-  // device so a reader who listens while reading never sees the bar again.
+  // Hidden = controls collapse to a single pill; audio keeps playing. Remembered
+  // per device so a reader who listens while reading never sees the bar again.
   const [hidden, setHidden] = useState(() => readStored(TTS_STORAGE.hidden, 'false') === 'true');
   const [showVoices, setShowVoices] = useState(false);
   // The verse the reader last tapped: "start from here" plays from it.
   const [selectedVerse, setSelectedVerse] = useState(null);
-  // The player is its own anchored area directly under the reader toolbar, so
-  // it needs the toolbar's live bottom edge rather than a guessed height (the
-  // toolbar wraps to two rows on narrow screens and disappears with the header).
-  const [topOffset, setTopOffset] = useState(0);
 
   // Waiting to roll into the next chapter: set when a chapter ends and cleared
   // once that chapter's verses actually arrive.
@@ -59,29 +59,6 @@ export default function TtsPlayer({ verses, chapterKey, chapter = null, startVer
   const followRef = useRef(true);
   // Suppress one scroll: the clip that starts playback must never move the page.
   const skipScrollRef = useRef(false);
-
-  useEffect(() => {
-    const measure = () => {
-      const anchor = document.querySelector('[data-kjb-reader-toolbar-wrap]')
-        || document.querySelector('[data-kjb-app-header]');
-      const bottom = anchor ? anchor.getBoundingClientRect().bottom : 0;
-      const next = Math.max(0, Math.round(bottom));
-      setTopOffset((prev) => (prev === next ? prev : next));
-    };
-    measure();
-    // The toolbar mounts with the reader and changes height when it wraps.
-    const raf = requestAnimationFrame(measure);
-    window.addEventListener('resize', measure);
-    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
-    const anchor = document.querySelector('[data-kjb-reader-toolbar-wrap]')
-      || document.querySelector('[data-kjb-app-header]');
-    if (observer && anchor) observer.observe(anchor);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('resize', measure);
-      if (observer) observer.disconnect();
-    };
-  }, []);
 
   // Tapping a verse in the reader arms "start from here" for that verse. This
   // listens on the document instead of threading a callback through the reader
@@ -197,7 +174,7 @@ export default function TtsPlayer({ verses, chapterKey, chapter = null, startVer
     scrollToVerse(verse);
   };
 
-  // Restart = this chapter again from verse 1, which is the one thing prev/next
+  // Reset = this chapter again from verse 1, which is the one thing prev/next
   // cannot express.
   const restartChapter = () => {
     setSelectedVerse(null);
@@ -207,17 +184,15 @@ export default function TtsPlayer({ verses, chapterKey, chapter = null, startVer
 
   const withFollow = (fn) => () => { followRef.current = true; fn(); };
 
-  const anchorStyle = { top: `${topOffset + 8}px` };
-
-  // ---- idle: one slim anchored row ----------------------------------------
+  // ---- idle: a centred Listen row ------------------------------------------
   if (!tts.isActive) {
     return (
-      <div className="print:hidden fixed left-0 right-0 z-[95] px-3 pointer-events-none" style={anchorStyle}>
-        <div className="mx-auto max-w-2xl flex flex-wrap items-center gap-2 bg-card/95 backdrop-blur border border-border rounded-xl shadow-sm px-2 py-1.5">
+      <section className="print:hidden w-full mb-6 flex flex-col items-center gap-2">
+        <div className="inline-flex flex-wrap items-center justify-center gap-2 bg-card border border-border rounded-xl shadow-sm px-2 py-1.5">
           <button
             onClick={startFromView}
             data-testid="tts-listen-btn"
-            className="pointer-events-auto flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-95 active:scale-[0.98] transition-all"
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-95 active:scale-[0.98] transition-all"
           >
             <Headphones className="w-4 h-4" />
             Listen
@@ -226,25 +201,25 @@ export default function TtsPlayer({ verses, chapterKey, chapter = null, startVer
             <button
               onClick={startFromHere}
               data-testid="tts-start-here-btn"
-              className="pointer-events-auto flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border bg-secondary text-secondary-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border bg-secondary text-secondary-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-colors"
             >
               <Play className="w-3.5 h-3.5" />
               Start from verse {selectedVerse}
             </button>
           )}
-          {tts.error && (
-            <p className="pointer-events-auto w-full text-[11px] font-sans text-destructive px-1 pb-0.5">{tts.error}</p>
-          )}
         </div>
-      </div>
+        {tts.error && (
+          <p className="font-sans text-[11px] text-destructive text-center max-w-[22rem]">{tts.error}</p>
+        )}
+      </section>
     );
   }
 
-  // ---- hidden: play/pause + restore ---------------------------------------
+  // ---- hidden: a centred play/pause pill -----------------------------------
   if (hidden) {
     return (
-      <div className="print:hidden fixed left-0 right-0 z-[95] px-3" style={anchorStyle}>
-        <div className="mx-auto max-w-2xl flex items-center gap-1 bg-card/95 backdrop-blur border border-border rounded-xl shadow-sm pl-1 pr-1.5 py-1 w-fit">
+      <section className="print:hidden w-full mb-5 flex justify-center">
+        <div className="inline-flex items-center gap-1 bg-card border border-border rounded-full shadow-sm pl-1 pr-1.5 py-1">
           <button onClick={onPlayPause} aria-label={tts.status === 'playing' ? 'Pause' : 'Play'} className="p-2 rounded-full hover:bg-accent/20 transition-colors">
             {tts.status === 'playing' || tts.status === 'loading' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
           </button>
@@ -253,15 +228,15 @@ export default function TtsPlayer({ verses, chapterKey, chapter = null, startVer
             <ChevronUp className="w-4 h-4" />
           </button>
         </div>
-      </div>
+      </section>
     );
   }
 
-  // ---- expanded: the full bar ---------------------------------------------
+  // ---- expanded: the full bar, centred ------------------------------------
   return (
-    <div className="print:hidden fixed left-0 right-0 z-[95] px-3" style={anchorStyle}>
-      <div className="mx-auto max-w-2xl bg-card/95 backdrop-blur border border-border rounded-xl shadow-sm overflow-hidden">
-        <div className="flex items-center gap-0.5 px-2 py-1.5">
+    <section className="print:hidden w-full mb-6">
+      <div className="mx-auto max-w-2xl bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+        <div className="flex flex-wrap items-center justify-center gap-0.5 px-2 py-1.5">
           <button onClick={withFollow(tts.prev)} aria-label="Previous verse" className="p-2 rounded-full hover:bg-accent/20 transition-colors">
             <SkipBack className="w-4 h-4" />
           </button>
@@ -275,11 +250,17 @@ export default function TtsPlayer({ verses, chapterKey, chapter = null, startVer
           <button onClick={withFollow(tts.next)} aria-label="Next verse" className="p-2 rounded-full hover:bg-accent/20 transition-colors">
             <SkipForward className="w-4 h-4" />
           </button>
-          <button onClick={restartChapter} aria-label="Restart chapter from verse 1" title="Restart chapter" data-testid="tts-restart-btn" className="p-2 rounded-full hover:bg-accent/20 transition-colors">
+          <button
+            onClick={restartChapter}
+            aria-label="Reset playback and start this chapter again from verse 1"
+            title="Reset to verse 1"
+            data-testid="tts-restart-btn"
+            className="p-2 rounded-full hover:bg-accent/20 transition-colors"
+          >
             <RotateCcw className="w-4 h-4" />
           </button>
 
-          <div className="min-w-0 flex-1 px-1">
+          <div className="px-2 text-center min-w-0 max-w-[10rem] sm:max-w-none">
             <p className="font-sans text-xs font-medium truncate">
               {tts.status === 'loading' ? 'Preparing…' : verseRef || 'Listening'}
             </p>
@@ -318,7 +299,7 @@ export default function TtsPlayer({ verses, chapterKey, chapter = null, startVer
 
         {showVoices && (
           <div className="border-t border-border px-3 py-2 space-y-2">
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap justify-center gap-1.5">
               {TTS_VOICES.map((v) => (
                 <button
                   key={v.id}
@@ -329,7 +310,7 @@ export default function TtsPlayer({ verses, chapterKey, chapter = null, startVer
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center justify-center gap-1.5">
               <span className="font-sans text-[11px] text-muted-foreground">Speed</span>
               {TTS_RATES.map((r) => (
                 <button
@@ -345,9 +326,9 @@ export default function TtsPlayer({ verses, chapterKey, chapter = null, startVer
         )}
 
         {tts.error && (
-          <p className="border-t border-border px-3 py-1.5 font-sans text-[11px] text-destructive">{tts.error}</p>
+          <p className="border-t border-border px-3 py-1.5 font-sans text-[11px] text-destructive text-center">{tts.error}</p>
         )}
       </div>
-    </div>
+    </section>
   );
 }

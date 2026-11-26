@@ -8,15 +8,40 @@ import { isNativeAndroid } from '@/lib/isNativeAndroid';
 // app is en-GB. Ids are the stable ElevenLabs voice ids, not names — renaming a
 // voice upstream doesn't break playback.
 export const TTS_VOICES = [
-  { id: 'JBFqnCBsd6RMkjVDRZzb', label: 'George · British male', short: 'George' },
-  { id: 'onwK4e9ZLuTAKqWW03F9', label: 'Daniel · British male', short: 'Daniel' },
-  { id: 'Xb7hH8MSUJpSbSDYk0k2', label: 'Alice · British female', short: 'Alice' },
-  { id: 'pFZP5JQG7iQjIQuC4Bku', label: 'Lily · British female', short: 'Lily' },
-  { id: 'nPczCjzI2devNBz1zQrb', label: 'Brian · American male', short: 'Brian' },
-  { id: 'EXAVITQu4vr4xnSDxMaL', label: 'Sarah · American female', short: 'Sarah' },
+  // Google Cloud (Neural2 / WaveNet). Cheapest of the three: Neural2 includes
+  // 1M characters free each month then $16/1M, WaveNet includes 4M free then
+  // $4/1M. Commercial use of the audio is allowed under Google Cloud's terms.
+  { id: 'en-GB-Neural2-B', label: 'Google · British male (Neural2 B)', short: 'Neural2 B', engine: 'google' },
+  { id: 'en-GB-Neural2-D', label: 'Google · British male (Neural2 D)', short: 'Neural2 D', engine: 'google' },
+  { id: 'en-GB-Neural2-A', label: 'Google · British female (Neural2 A)', short: 'Neural2 A', engine: 'google' },
+  { id: 'en-GB-Neural2-C', label: 'Google · British female (Neural2 C)', short: 'Neural2 C', engine: 'google' },
+  { id: 'en-GB-Wavenet-B', label: 'Google · British male (WaveNet B, cheapest)', short: 'WaveNet B', engine: 'google' },
+  { id: 'en-GB-Wavenet-A', label: 'Google · British female (WaveNet A, cheapest)', short: 'WaveNet A', engine: 'google' },
+  // Microsoft Azure AI Speech. $15/1M characters after 0.5M free each month;
+  // commercial use of prebuilt neural voice output is allowed on a paid
+  // Speech resource.
+  { id: 'en-GB-RyanNeural', label: 'Microsoft · British male (Ryan)', short: 'Ryan', engine: 'azure' },
+  { id: 'en-GB-ThomasNeural', label: 'Microsoft · British male (Thomas)', short: 'Thomas', engine: 'azure' },
+  { id: 'en-GB-SoniaNeural', label: 'Microsoft · British female (Sonia)', short: 'Sonia', engine: 'azure' },
+  { id: 'en-GB-LibbyNeural', label: 'Microsoft · British female (Libby)', short: 'Libby', engine: 'azure' },
+  // ElevenLabs. Best voices, by far the most expensive per character.
+  { id: 'JBFqnCBsd6RMkjVDRZzb', label: 'ElevenLabs · George (British male)', short: 'George', engine: 'elevenlabs' },
+  { id: 'onwK4e9ZLuTAKqWW03F9', label: 'ElevenLabs · Daniel (British male)', short: 'Daniel', engine: 'elevenlabs' },
+  { id: 'Xb7hH8MSUJpSbSDYk0k2', label: 'ElevenLabs · Alice (British female)', short: 'Alice', engine: 'elevenlabs' },
+  { id: 'pFZP5JQG7iQjIQuB4Bku', label: 'ElevenLabs · Lily (British female)', short: 'Lily', engine: 'elevenlabs' },
+  { id: 'nPczCjzI2devNBz1zQrb', label: 'ElevenLabs · Brian (American male)', short: 'Brian', engine: 'elevenlabs' },
+  { id: 'EXAVITQu4vr4xnSDxMaL', label: 'ElevenLabs · Sarah (American female)', short: 'Sarah', engine: 'elevenlabs' },
 ];
 
-export const DEFAULT_TTS_VOICE = TTS_VOICES[0].id;
+// Google Neural2 B leads: it is the voice the whole-Bible batch runs on, so a
+// fresh device hears the same voice the library was built with.
+export const DEFAULT_TTS_VOICE = 'en-GB-Neural2-B';
+
+// Which engine a voice id belongs to. The server routes on this, so an old
+// stored voice id from any engine keeps working.
+export function engineForVoice(id) {
+  return TTS_VOICES.find((v) => v.id === id)?.engine || 'elevenlabs';
+}
 
 export const TTS_RATES = [0.9, 1, 1.15, 1.3];
 
