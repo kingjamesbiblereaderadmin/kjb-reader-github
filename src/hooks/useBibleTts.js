@@ -169,6 +169,12 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   const audioRef = useRef(null);
   const tokenRef = useRef(0);
   const playAtRef = useRef(null);
+  const playClipRef = useRef(null);
+  // Clips that failed to load once and are being asked for again. A verse that
+  // fails twice is stepped over, never allowed to end the chapter.
+  const retriedRef = useRef(new Set());
+  // Timer that catches a clip whose request hangs: no audio, no error event.
+  const stallRef = useRef(0);
   const voiceRef = useRef(voice);
   const rateRef = useRef(rate);
   voiceRef.current = voice;
@@ -232,12 +238,21 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     return audioRef.current;
   }, []);
 
+  const clearStall = () => {
+    if (stallRef.current) {
+      clearTimeout(stallRef.current);
+      stallRef.current = 0;
+    }
+  };
+
   const hardStop = useCallback(() => {
     tokenRef.current += 1;
+    clearStall();
     const el = audioRef.current;
     if (el) {
       el.pause();
       el.onended = null;
+      el.onerror = null;
       el.ontimeupdate = null;
       el.removeAttribute('src');
     }
@@ -247,7 +262,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     setStatus('idle');
   }, []);
 
-  const playClip = useCallback(async (clip, token, onDone) => {
+  const playClip = useCallback(async (clip, token, onDone, onFail) => {
     setStatus('loading');
     setError('');
     fetchingRef.current = true;
@@ -269,9 +284,40 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     fetchingRef.current = false;
 
     const el = getAudio();
+    clearStall();
     el.ontimeupdate = null;
+    el.onerror = null;
     el.src = url;
     publishProgress(0);
+
+    // A clip that will not load must never leave the chapter silent. Its
+    // remembered URL is dropped, the clip is asked for once more, and if the
+    // verse still refuses to sound the player steps over it and carries on.
+    const clipKey = `${voiceRef.current}|${clip.ref || clip.text}`;
+    let failed = false;
+    const recover = () => {
+      if (failed || token !== tokenRef.current) return;
+      failed = true;
+      clearStall();
+      el.onerror = null;
+      urlCache.delete(clipKey);
+      persistUrlCache();
+      if (!retriedRef.current.has(clipKey)) {
+        retriedRef.current.add(clipKey);
+        playClipRef.current?.(clip, token, onDone, onFail);
+        return;
+      }
+      retriedRef.current.delete(clipKey);
+      (onFail || onDone)?.();
+    };
+    el.onerror = recover;
+    // A request that simply hangs sends no error event and no audio, so it is
+    // caught by time instead: nothing has played 20 seconds after the clip was
+    // handed to the element, and it is treated as a failed clip.
+    stallRef.current = setTimeout(() => {
+      stallRef.current = 0;
+      if (!el.paused && el.currentTime === 0) recover();
+    }, 20000);
     const verseClip = clip.verse != null;
     if (verseClip) {
       const startAt = startAtRef.current;
@@ -283,6 +329,10 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     // passes the foot of the page a long verse starts on.
     el.ontimeupdate = () => {
       if (token !== tokenRef.current) return;
+      // The clip is playing: it is not stalled, and it no longer counts as a
+      // verse that failed earlier.
+      clearStall();
+      retriedRef.current.delete(clipKey);
       publishProgress(el.duration ? el.currentTime / el.duration : 0);
       if (verseClip && resumePoint) resumePoint.time = el.currentTime;
     };
@@ -298,14 +348,23 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
 
     try {
       await el.play();
-    } catch {
-      // Autoplay blocked (iOS needs the first tap to come from a real gesture).
-      if (token === tokenRef.current) setStatus('paused');
+    } catch (err) {
+      if (token !== tokenRef.current) return true;
+      // Autoplay blocked (iOS needs the first tap to come from a real gesture):
+      // that is a pause the listener resumes, not a broken clip.
+      if (err?.name === 'NotAllowedError') {
+        setStatus('paused');
+        return true;
+      }
+      // The clip itself would not start: retry it, then step over it.
+      recover();
       return true;
     }
     if (token === tokenRef.current) setStatus('playing');
     return true;
   }, [getAudio]);
+
+  playClipRef.current = playClip;
 
   const playAt = useCallback(async (i, token) => {
     const list = clipsRef.current;
@@ -329,10 +388,11 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       // highlight for as long as the announcement lasts.
       audioUrlFor(list[i], voiceRef.current).catch(() => {});
       setIntroActive(true);
-      const announced = await playClip(intro, token, () => {
+      const fallThrough = () => {
         setIntroActive(false);
         playAtRef.current?.(i, token);
-      });
+      };
+      const announced = await playClip(intro, token, fallThrough, fallThrough);
       // A chapter announcement that cannot be fetched must never strand
       // playback on a silent "Listening": fall through to the verse itself.
       if (!announced && token === tokenRef.current) {
@@ -349,7 +409,9 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     // makes a per-verse player feel stuttery otherwise.
     if (list[i + 1]) audioUrlFor(list[i + 1], voiceRef.current).catch(() => {});
 
-    await playClip(list[i], token, () => playAtRef.current?.(i + 1, token));
+    // A verse that cannot be voiced is stepped over, so listening carries on.
+    const advance = () => playAtRef.current?.(i + 1, token);
+    await playClip(list[i], token, advance, advance);
   }, [playClip, chapterKey]);
 
   playAtRef.current = playAt;
@@ -365,6 +427,8 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     }
     startAtRef.current = 0;
     introRef.current = intro;
+    // A fresh press deserves a fresh chance for any verse skipped earlier.
+    retriedRef.current.clear();
     // Don't keep showing the old verse while the chapter announcement plays.
     if (intro) setIndex(-1);
     tokenRef.current += 1;
