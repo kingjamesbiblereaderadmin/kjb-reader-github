@@ -38,69 +38,6 @@ export function cleanHeadingForSpeech(raw) {
   return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
 }
 
-// Word-by-word highlighting.
-//
-// Azure returns one clip per verse and no word timings, so each word's slice of
-// the clip is apportioned by its length plus the pause its punctuation implies.
-// It is an estimate, but on a verse-length clip it tracks the voice closely
-// enough to read along with, and it costs nothing extra to generate.
-const WORD_HIGHLIGHT = 'kjb-word';
-
-// Roughly how many syllables a word will be spoken in. Speech takes time per
-// syllable, not per letter — "righteousness" and "strengthened" are long words
-// that read quickly, while "unto" and "thee" are short and slow — so syllables
-// are what the timing is built on.
-function syllableCount(word) {
-  const s = String(word).toLowerCase().replace(/[^a-z]/g, '');
-  if (!s) return 1;
-  const groups = s.match(/[aeiouy]+/g);
-  let n = groups ? groups.length : 1;
-  if (s.length > 2 && s.endsWith('e') && !/[aeiouy]e$/.test(s)) n -= 1;
-  return Math.max(1, n);
-}
-
-// A clip is not speech from its first sample to its last: there is a breath of
-// silence at each end. Trimming a slice off both ends is what keeps the first
-// word from being already half-spoken when the highlight arrives.
-const LEAD_SILENCE = 0.07;
-const TRAIL_SILENCE = 0.1;
-
-function wordRangesFor(el) {
-  if (!el || typeof CSS === 'undefined' || !CSS.highlights || typeof Highlight === 'undefined') return null;
-  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-  const words = [];
-  let node;
-  let first = true;
-  while ((node = walker.nextNode())) {
-    const text = node.nodeValue || '';
-    const re = /\S+/g;
-    let m;
-    while ((m = re.exec(text))) {
-      const token = m[0];
-      // The verse number is printed but never spoken.
-      if (first && /^\d+$/.test(token)) { first = false; continue; }
-      first = false;
-      const range = document.createRange();
-      range.setStart(node, m.index);
-      range.setEnd(node, m.index + token.length);
-      // Punctuation is a held breath, measured in syllables so it lands on the
-      // same scale as the words around it.
-      const pause = /[,;:]$/.test(token) ? 0.8 : /[.!?]$/.test(token) ? 1.9 : /[\u2014-]$/.test(token) ? 0.5 : 0;
-      words.push({ range, weight: syllableCount(token) + pause });
-    }
-  }
-  if (!words.length) return null;
-  let total = 0;
-  const ends = words.map((w) => (total += w.weight));
-  return { words, ends, total };
-}
-
-function clearWordHighlight() {
-  try {
-    if (typeof CSS !== 'undefined' && CSS.highlights) CSS.highlights.delete(WORD_HIGHLIGHT);
-  } catch { /* older browsers simply keep the verse-level wash */ }
-}
-
 const urlCache = new Map(); // `${voice}|${text}` -> mp3 url
 
 // A verse that cannot be voiced right now is usually a throttled speech
@@ -236,7 +173,6 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
 
   const hardStop = useCallback(() => {
     tokenRef.current += 1;
-    clearWordHighlight();
     const el = audioRef.current;
     if (el) {
       el.pause();
@@ -277,24 +213,10 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       const startAt = startAtRef.current;
       startAtRef.current = 0;
       if (startAt > 0) el.currentTime = startAt;
-      const words = clip.kind === 'verse' ? wordRangesFor(document.getElementById(`v${clip.verse}`)) : null;
-      let shown = -1;
-      clearWordHighlight();
+      // The verse being read is washed whole, not word by word.
       el.ontimeupdate = () => {
         if (token !== tokenRef.current) return;
         if (resumePoint) resumePoint.time = el.currentTime;
-        if (!words || !Number.isFinite(el.duration) || el.duration <= 0) return;
-        const span = Math.max(0.1, 1 - LEAD_SILENCE - TRAIL_SILENCE);
-        const progress = (el.currentTime / el.duration - LEAD_SILENCE) / span;
-        const target = Math.min(1, Math.max(0, progress)) * words.total;
-        let i = 0;
-        while (i < words.ends.length - 1 && words.ends[i] < target) i += 1;
-        if (i === shown) return;
-        shown = i;
-        try {
-          const hl = new Highlight(words.words[i].range);
-          CSS.highlights.set(WORD_HIGHLIGHT, hl);
-        } catch { /* leave the verse-level wash in place */ }
       };
     }
     el.playbackRate = rateRef.current;
