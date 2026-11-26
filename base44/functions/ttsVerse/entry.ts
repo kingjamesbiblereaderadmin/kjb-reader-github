@@ -41,8 +41,13 @@ async function sha256Hex(text) {
 }
 
 
+// The agent app holds the Azure Speech key, so when this app has no key of its
+// own the clip is synthesised there and only its public URL comes back.
+const AZURE_PROXY_URL = 'https://solene-921ed14e.base44.app/functions/ttsAzure';
+
 type SynthResult =
   | { ok: true; audio: ArrayBuffer }
+  | { ok: true; url: string }
   | { ok: false; error: string; status?: number; detail?: string };
 
 function xmlEscape(value: string) {
@@ -106,9 +111,8 @@ async function azureSpeech(text: string, voice: string): Promise<SynthResult> {
   // voices/list endpoint). Southeast Asia is the default region.
   const key = Deno.env.get('AZURE_SPEECH_KEY') || Deno.env.get('GOOGLE_API_KEY');
   const region = Deno.env.get('AZURE_SPEECH_REGION') || 'southeastasia';
-  if (!key) {
-    return { ok: false, error: 'no_key', status: 501, detail: 'Add AZURE_SPEECH_KEY (and optionally AZURE_SPEECH_REGION) to this app\'s environment variables to enable the Microsoft voices.' };
-  }
+  // No key here: let the agent app synthesise it and hand back a public URL.
+  if (!key) return azureViaProxy(text, voice);
   const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-GB'><voice name='${xmlEscape(voice)}'>${xmlEscape(text)}</voice></speak>`;
   let upstream: Response;
   try {
@@ -181,6 +185,29 @@ async function elevenSpeech(text: string, voice: string): Promise<SynthResult> {
   return { ok: true, audio: await upstream.arrayBuffer() };
 }
 
+async function azureViaProxy(text: string, voice: string): Promise<SynthResult> {
+  let upstream: Response;
+  try {
+    upstream = await fetch(AZURE_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voice }),
+    });
+  } catch (err) {
+    return { ok: false, error: 'network', detail: String(err?.message || err) };
+  }
+  const data = await upstream.json().catch(() => null);
+  if (!upstream.ok || !data?.url) {
+    return {
+      ok: false,
+      error: data?.error || 'azure',
+      status: upstream.status,
+      detail: data?.detail || 'The speech proxy did not return audio.',
+    };
+  }
+  return { ok: true, url: data.url };
+}
+
 async function synthesize(engine: string, text: string, voice: string): Promise<SynthResult> {
   if (engine === 'google') return googleSpeech(text, voice);
   if (engine === 'azure') return azureSpeech(text, voice);
@@ -243,6 +270,16 @@ export default async function (req) {
   const generated = await synthesize(engine, text, voice);
   if (!generated.ok) {
     return json({ error: generated.error, status: generated.status, detail: generated.detail }, generated.status === 501 ? 501 : 502);
+  }
+  // A proxied clip is already published: cache the URL it came back with.
+  if (!generated.audio) {
+    try {
+      const db = base44.asServiceRole || base44;
+      await db.entities.TtsClip.create({ hash, voice, chars: text.length, url: generated.url, ref });
+    } catch (err) {
+      console.error('[ttsVerse] cache write failed', err?.message);
+    }
+    return json({ url: generated.url, cached: false, chars: text.length });
   }
   const audio = generated.audio;
 
