@@ -73,12 +73,12 @@ export default function TtsPlayer({ verses, chapterKey, chapter = null, startVer
   // against the previous chapter's text while the new one is still loading.
   useEffect(() => {
     const prev = prevPosRef.current;
+    // Say where we are, but only name the book when the book changes: in
+    // continuous listening it is just "Chapter 3". When it does name the book it
+    // uses the full canonical title, not the short one shown on screen.
+    const fullName = bookName || label;
     if (continueRef.current && verses.length && verses !== endedVersesRef.current) {
       continueRef.current = false;
-      // Say where we are, but only name the book when the book changes: in
-      // continuous listening it is just "Chapter 3". When it does name the book
-      // it uses the full canonical title, not the short one shown on screen.
-      const fullName = bookName || label;
       const bookChanged = prev.book !== fullName;
       const introText = bookChanged ? `${fullName}, chapter ${chapter}` : `Chapter ${chapter}`;
       skipScrollRef.current = true;
