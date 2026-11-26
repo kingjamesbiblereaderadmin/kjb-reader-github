@@ -3,41 +3,27 @@ import { isNativeAndroid } from '@/lib/isNativeAndroid';
 
 // Voices offered by the reader's Listen player.
 //
-// These are ElevenLabs' premade voices (verified against GET /v1/voices), all
-// English. British voices lead because the KJB reads naturally in them and the
-// app is en-GB. Ids are the stable ElevenLabs voice ids, not names — renaming a
-// voice upstream doesn't break playback.
+// One British male and one British female, both Microsoft Azure AI Speech, and
+// nothing else: ElevenLabs and Google were dropped from the picker because the
+// bulk library is voiced on Azure, so a listener switching voice stays inside
+// the engine that already has the audio cached server side.
 export const TTS_VOICES = [
-  // Microsoft Azure AI Speech. $15/1M characters after 0.5M free each month;
-  // commercial use of prebuilt neural voice output is allowed on a paid
-  // Speech resource.
-  { id: 'en-GB-RyanNeural', label: 'Microsoft · British male (Ryan)', short: 'Ryan', engine: 'azure' },
-  { id: 'en-GB-ThomasNeural', label: 'Microsoft · British male (Thomas)', short: 'Thomas', engine: 'azure' },
-  { id: 'en-GB-OliverNeural', label: 'Microsoft · British male (Oliver)', short: 'Oliver', engine: 'azure' },
-  { id: 'en-GB-ElliotNeural', label: 'Microsoft · British male (Elliot)', short: 'Elliot', engine: 'azure' },
-  { id: 'en-GB-EthanNeural', label: 'Microsoft · British male (Ethan)', short: 'Ethan', engine: 'azure' },
-  { id: 'en-GB-NoahNeural', label: 'Microsoft · British male (Noah)', short: 'Noah', engine: 'azure' },
-  { id: 'en-GB-SoniaNeural', label: 'Microsoft · British female (Sonia)', short: 'Sonia', engine: 'azure' },
-  { id: 'en-GB-LibbyNeural', label: 'Microsoft · British female (Libby)', short: 'Libby', engine: 'azure' },
-  // ElevenLabs. Best voices, by far the most expensive per character.
-  { id: 'JBFqnCBsd6RMkjVDRZzb', label: 'ElevenLabs · George (British male)', short: 'George', engine: 'elevenlabs' },
-  { id: 'onwK4e9ZLuTAKqWW03F9', label: 'ElevenLabs · Daniel (British male)', short: 'Daniel', engine: 'elevenlabs' },
-  { id: 'Xb7hH8MSUJpSbSDYk0k2', label: 'ElevenLabs · Alice (British female)', short: 'Alice', engine: 'elevenlabs' },
-  { id: 'pFZP5JQG7iQjIQuB4Bku', label: 'ElevenLabs · Lily (British female)', short: 'Lily', engine: 'elevenlabs' },
-  { id: 'nPczCjzI2devNBz1zQrb', label: 'ElevenLabs · Brian (American male)', short: 'Brian', engine: 'elevenlabs' },
-  { id: 'EXAVITQu4vr4xnSDxMaL', label: 'ElevenLabs · Sarah (American female)', short: 'Sarah', engine: 'elevenlabs' },
+  { id: 'en-GB-RyanNeural', label: 'Male', short: 'Ryan', engine: 'azure' },
+  { id: 'en-GB-SoniaNeural', label: 'Female', short: 'Sonia', engine: 'azure' },
 ];
 
-// Azure Ryan leads: it is the voice the whole-Bible batch runs on, so a fresh
-// device hears the same voice the library was built with. (Google voices were
-// removed from the picker — that account cannot hold a Cloud project, so the
-// server-side Google branch stays but nothing selects it.)
+// Ryan leads: it is the voice the whole-Bible batch runs on, so a fresh device
+// hears the same voice the library was built with.
 export const DEFAULT_TTS_VOICE = 'en-GB-RyanNeural';
 
-// Which engine a voice id belongs to. The server routes on this, so an old
-// stored voice id from any engine keeps working.
-export function engineForVoice(id) {
-  return TTS_VOICES.find((v) => v.id === id)?.engine || 'elevenlabs';
+// Which engine a voice id belongs to. Everything the picker offers is Azure, and
+// an id left over from the ElevenLabs days is mapped back to the default voice.
+export function engineForVoice() {
+  return 'azure';
+}
+
+export function normalizeVoice(id) {
+  return TTS_VOICES.some((v) => v.id === id) ? id : DEFAULT_TTS_VOICE;
 }
 
 export const TTS_RATES = [0.9, 1, 1.15, 1.3];

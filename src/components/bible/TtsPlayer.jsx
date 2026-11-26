@@ -58,6 +58,22 @@ export default function TtsPlayer({ embedded = false, verses, chapterKey, chapte
   // per device so a reader who listens while reading never sees the bar again.
   const [hidden, setHidden] = useState(() => readStored(TTS_STORAGE.hidden, 'false') === 'true');
   const [showVoices, setShowVoices] = useState(false);
+  const voicePanelRef = useRef(null);
+
+  // The voice panel is a dropdown on the Voice button; a tap anywhere else
+  // closes it, the same way the toolbar's own menus behave.
+  useEffect(() => {
+    if (!showVoices) return undefined;
+    const onDown = (e) => {
+      if (voicePanelRef.current && !voicePanelRef.current.contains(e.target)) setShowVoices(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('touchstart', onDown);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('touchstart', onDown);
+    };
+  }, [showVoices]);
   // The verse the reader last tapped: "start from here" plays from it.
   const [selectedVerse, setSelectedVerse] = useState(null);
 
@@ -305,13 +321,46 @@ export default function TtsPlayer({ embedded = false, verses, chapterKey, chapte
             </button>
           )}
 
-          <button
-            onClick={() => setShowVoices((v) => !v)}
-            className="px-2 py-1 rounded-lg font-sans text-xs text-muted-foreground hover:bg-accent/20 transition-colors whitespace-nowrap"
-            aria-label="Voice and speed"
-          >
-            Voice
-          </button>
+          {/* The panel hangs off the Voice button itself, absolutely positioned,
+              so it stays anchored to the control as the page scrolls instead of
+              riding the document. */}
+          <div className="relative" ref={voicePanelRef}>
+            <button
+              onClick={() => setShowVoices((v) => !v)}
+              className="px-2 py-1 rounded-lg font-sans text-xs text-muted-foreground hover:bg-accent/20 transition-colors whitespace-nowrap"
+              aria-label="Voice and speed"
+              aria-expanded={showVoices}
+            >
+              Voice
+            </button>
+            {showVoices && (
+              <div className="absolute right-0 top-full z-[120] mt-1 w-56 rounded-lg border border-border bg-popover text-popover-foreground shadow-lg p-2 space-y-2">
+                <div className="grid grid-cols-2 gap-1.5">
+                  {TTS_VOICES.map((v) => (
+                    <button
+                      key={v.id}
+                      onClick={() => tts.setVoice(v.id)}
+                      className={`px-2 py-1.5 rounded-md font-sans text-[11px] border transition-colors ${tts.voice === v.id ? 'bg-accent text-accent-foreground border-accent font-semibold' : 'bg-secondary text-foreground border-border hover:bg-accent/20'}`}
+                    >
+                      {v.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center justify-center gap-1.5 border-t border-border pt-2">
+                  <span className="font-sans text-[11px] text-muted-foreground">Speed</span>
+                  {TTS_RATES.map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => tts.setRate(r)}
+                      className={`px-2 py-0.5 rounded font-sans text-[11px] border transition-colors ${tts.rate === r ? 'bg-accent text-accent-foreground border-accent font-semibold' : 'bg-secondary text-foreground border-border hover:bg-accent/20'}`}
+                    >
+                      {r}x
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
           <button onClick={() => setHiddenPersisted(true)} aria-label="Hide player" className="p-2 rounded-full hover:bg-accent/20 transition-colors">
             <ChevronDown className="w-4 h-4" />
           </button>
@@ -319,34 +368,6 @@ export default function TtsPlayer({ embedded = false, verses, chapterKey, chapte
             <X className="w-4 h-4" />
           </button>
         </div>
-
-        {showVoices && (
-          <div className="border-t border-border pt-2 mt-1.5 space-y-2">
-            <div className="flex flex-wrap justify-center gap-1.5">
-              {TTS_VOICES.map((v) => (
-                <button
-                  key={v.id}
-                  onClick={() => tts.setVoice(v.id)}
-                  className={`px-2.5 py-1 rounded-lg font-sans text-[11px] border transition-colors ${tts.voice === v.id ? 'bg-accent text-accent-foreground border-accent font-semibold' : 'bg-secondary text-foreground border-border hover:bg-accent/20'}`}
-                >
-                  {v.label}
-                </button>
-              ))}
-            </div>
-            <div className="flex items-center justify-center gap-1.5">
-              <span className="font-sans text-[11px] text-muted-foreground">Speed</span>
-              {TTS_RATES.map((r) => (
-                <button
-                  key={r}
-                  onClick={() => tts.setRate(r)}
-                  className={`px-2 py-0.5 rounded font-sans text-[11px] border transition-colors ${tts.rate === r ? 'bg-accent text-accent-foreground border-accent font-semibold' : 'bg-secondary text-foreground border-border hover:bg-accent/20'}`}
-                >
-                  {r}x
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         {tts.error && (
           <p className="border-t border-border pt-1.5 mt-1.5 font-sans text-[11px] text-destructive text-center">{tts.error}</p>

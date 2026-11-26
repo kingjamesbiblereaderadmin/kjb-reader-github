@@ -11,7 +11,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { DEFAULT_TTS_VOICE, engineForVoice, readStored, writeStored, TTS_STORAGE } from '@/lib/tts/voices';
+import { DEFAULT_TTS_VOICE, engineForVoice, normalizeVoice, readStored, writeStored, TTS_STORAGE } from '@/lib/tts/voices';
 
 // Verse text arrives with the reader's markup: [italics] brackets, ¶ pilcrows
 // and <<heading>> markers. None of them should be spoken.
@@ -58,7 +58,7 @@ async function audioUrlFor(clip, voice) {
 }
 
 export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
-  const [voice, setVoiceState] = useState(() => readStored(TTS_STORAGE.voice, DEFAULT_TTS_VOICE));
+  const [voice, setVoiceState] = useState(() => normalizeVoice(readStored(TTS_STORAGE.voice, DEFAULT_TTS_VOICE)));
   const [rate, setRateState] = useState(() => Number(readStored(TTS_STORAGE.rate, 1)) || 1);
   const [status, setStatus] = useState('idle'); // idle | loading | playing | paused | error
   // True while the "Genesis, chapter 3" announcement plays before verse 1, so

@@ -7,7 +7,7 @@ import PageHero from '@/components/PageHero';
 import DownloadBibleSection from '@/components/bible/DownloadBibleSection';
 import OfflineHtmlSection from '@/components/bible/OfflineHtmlSection';
 import ThemeColorPicker from '@/components/bible/ThemeColorPicker';
-import { TTS_VOICES, TTS_RATES, TTS_STORAGE, readStored, writeStored, isTtsEnabled, isTtsAvailable, setTtsEnabled, TTS_SETTINGS_EVENT } from '@/lib/tts/voices';
+import { TTS_VOICES, TTS_RATES, TTS_STORAGE, readStored, writeStored, isTtsEnabled, isTtsAvailable, setTtsEnabled, normalizeVoice, TTS_SETTINGS_EVENT } from '@/lib/tts/voices';
 import { Switch } from '@/components/ui/switch';
 import { InstallAppSection } from '@/components/settings/InstallAppSection';
 import DownloadOptionsButton from '@/components/settings/DownloadOptionsButton';
@@ -146,7 +146,7 @@ export default function SettingsPage() {
   // Listen player (Settings -> Audio). The switch is the reader's master gate:
   // off means no Listen button and no audio is ever requested.
   const [ttsOn, setTtsOn] = useState(isTtsEnabled);
-  const [ttsVoice, setTtsVoice] = useState(() => readStored(TTS_STORAGE.voice, TTS_VOICES[0].id));
+  const [ttsVoice, setTtsVoice] = useState(() => normalizeVoice(readStored(TTS_STORAGE.voice, TTS_VOICES[0].id)));
   const [ttsRate, setTtsRate] = useState(() => Number(readStored(TTS_STORAGE.rate, 1)) || 1);
   const [ttsContinue, setTtsContinue] = useState(() => readStored(TTS_STORAGE.autoContinue, 'true') !== 'false');
 

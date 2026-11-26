@@ -5,9 +5,9 @@
 // keyed by sha256(voice + text) so a verse is only ever billed once, and the
 // uploaded file itself, which the client plays straight from the CDN.
 //
-// Free-tier note: ElevenLabs bills per character, so this endpoint is the only
-// place credits are spent. Replays, revisits and other readers of the same verse
-// all hit the cache and cost nothing.
+// Azure is the only engine: one key, one bill, one cached library. Replays,
+// revisits and every other reader of the same verse hit the TtsClip row and cost
+// nothing, so audio is fetched from Azure exactly once per voice per verse.
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.63';
 
@@ -20,13 +20,7 @@ const CORS_HEADERS = {
 // Verse-length guard: a very long verse (Esther 8:9 runs ~530 chars) still fits,
 // while anything bigger is a caller bug, not a verse.
 const MAX_CHARS = 900;
-const MODEL = 'eleven_turbo_v2_5';
-// Engine per voice id: Google Cloud (Neural2/WaveNet) and Azure Speech are far
-// cheaper per character than ElevenLabs, so they are first-class here rather
-// than a separate function. The voice id alone tells us the engine
-// ("en-GB-Neural2-B" is Google, a 20-char id is ElevenLabs).
-const ENGINES = new Set(['elevenlabs', 'google', 'azure']);
-const OUTPUT_FORMAT = 'mp3_44100_64';
+const ENGINE = 'azure';
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -40,10 +34,6 @@ async function sha256Hex(text) {
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-
-// The agent app holds the Azure Speech key, so when this app has no key of its
-// own the clip is synthesised there and only its public URL comes back.
-const AZURE_PROXY_URL = 'https://solene-921ed14e.base44.app/functions/ttsAzure';
 
 type SynthResult =
   | { ok: true; audio: ArrayBuffer }
@@ -59,48 +49,6 @@ function xmlEscape(value: string) {
     .replace(/'/g, '&apos;');
 }
 
-// Google Cloud Text-to-Speech. Neural2 voices include 1M characters free each
-// month, then $16/1M; WaveNet/Standard include 4M free, then $4/1M. Commercial
-// use of the generated audio is permitted under Google Cloud's terms.
-async function googleSpeech(text: string, voice: string): Promise<SynthResult> {
-  const key = Deno.env.get('GOOGLE_TTS_API_KEY');
-  if (!key) {
-    return { ok: false, error: 'no_key', status: 501, detail: 'Add GOOGLE_TTS_API_KEY to this app\'s environment variables to enable the Google voices.' };
-  }
-  const languageCode = voice.split('-').slice(0, 2).join('-') || 'en-GB';
-  let upstream: Response;
-  try {
-    upstream = await fetch(
-      `https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(key)}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          input: { text },
-          voice: { languageCode, name: voice },
-          audioConfig: { audioEncoding: 'MP3' },
-        }),
-      },
-    );
-  } catch (err) {
-    return { ok: false, error: 'network', detail: String(err?.message || err) };
-  }
-  if (!upstream.ok) {
-    const detail = (await upstream.text().catch(() => '')).slice(0, 400);
-    // 403 is the usual "API not enabled" or "key restricted to other APIs".
-    const error = upstream.status === 429 ? 'quota'
-      : upstream.status === 400 ? 'invalid_request'
-      : 'bad_key';
-    console.error('[ttsVerse] google', upstream.status, detail);
-    return { ok: false, error, status: upstream.status, detail };
-  }
-  const data = await upstream.json().catch(() => null);
-  const b64 = data?.audioContent;
-  if (!b64) return { ok: false, error: 'empty_audio', detail: 'Google returned no audioContent.' };
-  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-  return { ok: true, audio: bytes.buffer };
-}
-
 // Azure AI Speech. Neural voices are $15/1M characters after 0.5M free each
 // month. Commercial use of prebuilt neural voice output is allowed on a paid
 // Speech resource.
@@ -111,8 +59,9 @@ async function azureSpeech(text: string, voice: string): Promise<SynthResult> {
   // voices/list endpoint). Southeast Asia is the default region.
   const key = Deno.env.get('AZURE_SPEECH_KEY') || Deno.env.get('GOOGLE_API_KEY');
   const region = Deno.env.get('AZURE_SPEECH_REGION') || 'southeastasia';
-  // No key here: let the agent app synthesise it and hand back a public URL.
-  if (!key) return azureViaProxy(text, voice);
+  if (!key) {
+    return { ok: false, error: 'no_key', status: 501, detail: 'Add AZURE_SPEECH_KEY to this app\'s environment variables.' };
+  }
   const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-GB'><voice name='${xmlEscape(voice)}'>${xmlEscape(text)}</voice></speak>`;
   let upstream: Response;
   try {
@@ -142,76 +91,8 @@ async function azureSpeech(text: string, voice: string): Promise<SynthResult> {
   return { ok: true, audio };
 }
 
-async function elevenSpeech(text: string, voice: string): Promise<SynthResult> {
-  const apiKey = Deno.env.get('ELEVENLABS_API_KEY');
-  if (!apiKey) {
-    return { ok: false, error: 'no_key', status: 501, detail: 'Add ELEVENLABS_API_KEY to this app\'s environment variables to enable the ElevenLabs voices.' };
-  }
-  let upstream: Response;
-  try {
-    upstream = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voice)}?output_format=${OUTPUT_FORMAT}`,
-      {
-        method: 'POST',
-        headers: {
-          'xi-api-key': apiKey,
-          'Content-Type': 'application/json',
-          Accept: 'audio/mpeg',
-        },
-        body: JSON.stringify({
-          text,
-          model_id: MODEL,
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75,
-            style: 0.0,
-            use_speaker_boost: true,
-          },
-        }),
-      },
-    );
-  } catch (err) {
-    return { ok: false, error: 'network', detail: String(err?.message || err) };
-  }
-  if (!upstream.ok) {
-    const detail = (await upstream.text().catch(() => '')).slice(0, 400);
-    const error = upstream.status === 401 ? 'bad_key'
-      : upstream.status === 429 ? 'quota'
-      : upstream.status === 422 ? 'invalid_request'
-      : 'elevenlabs';
-    console.error('[ttsVerse] elevenlabs', upstream.status, detail);
-    return { ok: false, error, status: upstream.status, detail };
-  }
-  return { ok: true, audio: await upstream.arrayBuffer() };
-}
-
-async function azureViaProxy(text: string, voice: string): Promise<SynthResult> {
-  let upstream: Response;
-  try {
-    upstream = await fetch(AZURE_PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, voice }),
-    });
-  } catch (err) {
-    return { ok: false, error: 'network', detail: String(err?.message || err) };
-  }
-  const data = await upstream.json().catch(() => null);
-  if (!upstream.ok || !data?.url) {
-    return {
-      ok: false,
-      error: data?.error || 'azure',
-      status: upstream.status,
-      detail: data?.detail || 'The speech proxy did not return audio.',
-    };
-  }
-  return { ok: true, url: data.url };
-}
-
-async function synthesize(engine: string, text: string, voice: string): Promise<SynthResult> {
-  if (engine === 'google') return googleSpeech(text, voice);
-  if (engine === 'azure') return azureSpeech(text, voice);
-  return elevenSpeech(text, voice);
+async function synthesize(text: string, voice: string): Promise<SynthResult> {
+  return azureSpeech(text, voice);
 }
 
 export default async function (req) {
@@ -230,7 +111,8 @@ export default async function (req) {
   const text = String(body.text || '').replace(/\s+/g, ' ').trim();
   const voice = String(body.voice || '').trim();
   const ref = String(body.ref || '').trim();
-  const engine = ENGINES.has(String(body.engine || '')) ? String(body.engine) : 'elevenlabs';
+  // Older clients still post an engine; Azure is the only one that exists now.
+  const engine = ENGINE;
   if (!text) return json({ error: 'no_text' }, 400);
   if (!voice) return json({ error: 'no_voice' }, 400);
   if (text.length > MAX_CHARS) return json({ error: 'too_long', max: MAX_CHARS }, 400);
@@ -241,13 +123,12 @@ export default async function (req) {
   // hashing the text makes a clip generated anywhere else unusable here. The
   // reference — "GEN:1:1" — is the same everywhere. Text hashing stays as the
   // fallback for callers that pass no ref.
-  // ElevenLabs keeps its original hash shape so the clips already paid for
-  // (Genesis 1:1-5 in George's voice) stay cache hits. Every other engine is
-  // namespaced, so the same verse can hold one clip per engine.
+  // Namespaced by engine and voice, so each voice keeps its own clip and the
+  // rows written before this function was Azure-only stay valid cache hits.
   const seed = ref ? `${voice}|ref:${ref}` : `${voice}|text:${text}`;
-  const hash = await sha256Hex(engine === 'elevenlabs' ? seed : `${engine}|${seed}`);
+  const hash = await sha256Hex(`${engine}|${seed}`);
 
-  // 1. Cache hit — no credits, no ElevenLabs call.
+  // 1. Cache hit — no Azure call, no characters billed.
   try {
     // filter() returns a page ({items}) in the options form and a plain array
     // in the positional form — accept either so a cache hit never depends on
@@ -267,11 +148,10 @@ export default async function (req) {
   }
 
   // 2. Generate.
-  const generated = await synthesize(engine, text, voice);
+  const generated = await synthesize(text, voice);
   if (!generated.ok) {
     return json({ error: generated.error, status: generated.status, detail: generated.detail }, generated.status === 501 ? 501 : 502);
   }
-  // A proxied clip is already published: cache the URL it came back with.
   if (!generated.audio) {
     try {
       const db = base44.asServiceRole || base44;
