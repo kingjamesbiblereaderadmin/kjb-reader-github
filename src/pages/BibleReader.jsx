@@ -55,7 +55,13 @@ export default function BibleReader() {
   const [listenOpen, setListenOpen] = useState(false);
   const [ttsActive, setTtsActive] = useState(false);
   // Optional full-screen printed-book view of the chapter.
-  const [flipbookOpen, setFlipbookOpen] = useState(false);
+  const [flipbookOpen, setFlipbookOpen] = useState(() => {
+    try { return localStorage.getItem('kjb-book-view') === 'true'; } catch { return false; }
+  });
+  const setBookView = (on) => {
+    setFlipbookOpen(on);
+    try { localStorage.setItem('kjb-book-view', String(on)); } catch {}
+  };
   // Master switch for the Listen player (Settings -> Audio).
   // isTtsAvailable() keeps the whole player out of the native app shells until
   // the feature is signed off (see src/lib/tts/voices.js).
@@ -1779,7 +1785,7 @@ export default function BibleReader() {
   ) : null;
 
   return (
-    <div onClick={(e) => { if (!e.target.closest('.kjb-verse-container, [id^="v"], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a, [role="menu"], [role="menuitem"], [data-radix-popper-content-wrapper]')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerses(new Set()); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 pb-3 ${hideHeader ? 'pt-16' : ''}`}>
+    <div onClick={(e) => { if (!e.target.closest('.kjb-flipbook, .kjb-verse-container, [id^="v"], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a, [role="menu"], [role="menuitem"], [data-radix-popper-content-wrapper]')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerses(new Set()); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 pb-3 ${hideHeader ? 'pt-16' : ''}`}>
       {!hideHeader && (
         <ReaderToolbar
           topRef={topRef} hideHeader={hideHeader} setHideHeader={setHideHeader}
@@ -1833,31 +1839,6 @@ export default function BibleReader() {
 
       {hideHeader && <MinimizedHeaderBar setHideHeader={setHideHeader} />}
 
-      {!loading && !error && !isViewingTitlePage && verses.length > 0 && (
-        <div className="print:hidden flex justify-end">
-          <button
-            onClick={() => { closeAllMenus(); setFlipbookOpen(true); }}
-            data-testid="flipbook-open-btn"
-            className="flex items-center gap-1.5 py-1 font-serif text-sm text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground"
-          >
-            <BookOpen className="w-4 h-4" />
-            Read as book
-          </button>
-        </div>
-      )}
-      {flipbookOpen && (
-        <FlipBook
-          bookName={book.name} chapter={pos.chapter} verses={verses}
-          subscript={chapterSubscript} colophon={colophon}
-          endMarker={(pos.abbr === 'MAL' && pos.chapter === 4) || (pos.abbr === 'REV' && pos.chapter === 22) ? resolveEndMarker(book.apiName, pos.chapter) : null}
-          loading={loading} isTitlePage={isViewingTitlePage}
-          fontFamilyValue={fontFamily === 'cursive' ? null : getFontFamilyValue(fontFamily)}
-          zoomLevel={zoomLevel}
-          onNextChapter={() => goNext()} onPrevChapter={goPrev}
-          onClose={() => setFlipbookOpen(false)}
-        />
-      )}
-
       {/* Listen: reads the chapter verse by verse and highlights each verse as
           it is spoken. Audio is generated per verse and cached, so a verse is
           only ever billed once — see base44/functions/ttsVerse. Settings has a
@@ -1875,6 +1856,33 @@ export default function BibleReader() {
         />
       )}
 
+      <div className={`print:hidden relative z-[1] flex justify-end ${flipbookOpen ? '-mt-6' : '-mt-4'}`}>
+        <button
+          onClick={() => { closeAllMenus(); setBookView(!flipbookOpen); }}
+          data-testid="flipbook-open-btn"
+          aria-pressed={flipbookOpen}
+          className="flex items-center gap-1.5 py-1 font-serif text-sm text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground"
+        >
+          <BookOpen className="w-4 h-4" />
+          {flipbookOpen ? 'Normal view' : 'Read as book'}
+        </button>
+      </div>
+      {flipbookOpen && (
+        <FlipBook
+          book={book} abbr={pos.abbr} chapter={pos.chapter} verses={isViewingTitlePage ? [] : verses}
+          subscript={isViewingTitlePage ? null : chapterSubscript} colophon={isViewingTitlePage ? null : colophon}
+          endMarker={(pos.abbr === 'MAL' && pos.chapter === 4) || (pos.abbr === 'REV' && pos.chapter === 22) ? resolveEndMarker(book.apiName, pos.chapter) : null}
+          loading={loading} error={error}
+          fontFamilyValue={fontFamily === 'cursive' ? null : getFontFamilyValue(fontFamily)}
+          zoomLevel={zoomLevel} jumpVerse={highlightVerse} tappedVerses={tappedVerses}
+          onVerseTap={toggleTappedVerse}
+          onNextChapter={() => goNext()} onPrevChapter={goPrev}
+          canPrev={!isFirstChapterFirstBook} canNext={!isLastChapterLastBook}
+        />
+      )}
+
+      {/* The scrolling page stays mounted (and prints) while the book is open. */}
+      <div className={flipbookOpen ? 'hidden print:block' : 'contents'}>
       {!isViewingTitlePage && (!(filterMode && selectedVerses.size > 0) || chapterSubscript) && (
         <div className={`text-center mb-6 pt-8 ${(!columnMode || pos.chapter === 1 || (filterMode && selectedVerses.size > 0)) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
           {filterMode && selectedVerses.size > 0 ? null : (
@@ -2020,6 +2028,7 @@ export default function BibleReader() {
         </div>
       )}
 
+      </div>
     </div>
   );
 }

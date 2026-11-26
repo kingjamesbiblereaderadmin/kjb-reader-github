@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { renderVerseText } from '@/lib/bibleApi';
+import TitlePage from '@/components/bible/TitlePage';
+import { useSpeaking } from '@/lib/tts/speaking';
+import { getVerseHighlight } from '@/lib/verseHighlights';
 import './flipbook.css';
 
 const GAP = 40; // column gap between pages inside the hidden flow
@@ -22,11 +24,47 @@ const ChapterFlow = React.forwardRef(function ChapterFlow({ blocks, width, heigh
   );
 });
 
-/** Optional full-screen "printed book" view of the current chapter. */
+// The app's own title pages, scaled down to fit inside one book page.
+function FittedTitlePage({ type, book, width, height }) {
+  const ref = useRef(null);
+  const [scale, setScale] = useState(0);
+  const base = Math.max(width, 440);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    const fit = () => setScale(Math.min(1, width / Math.max(base, el.scrollWidth), height / el.offsetHeight));
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [width, height, base, type, book]);
+  return (
+    <div className="kjb-fb-titlewrap" style={{ width, height }}>
+      <div ref={ref} className="kjb-fb-titlepage" style={{ width: base, transform: `translate(-50%, -50%) scale(${scale})` }}>
+        <TitlePage type={type} book={book} />
+      </div>
+    </div>
+  );
+}
+
+/** Optional printed-book view of the reader, shown under the toolbar and player. */
 export default function FlipBook({
-  bookName, chapter, verses, subscript, colophon, endMarker, loading, isTitlePage,
-  fontFamilyValue, zoomLevel, onNextChapter, onPrevChapter, onClose,
+  book, abbr, chapter, verses, subscript, colophon, endMarker, loading, error,
+  fontFamilyValue, zoomLevel, jumpVerse, tappedVerses, onVerseTap,
+  onNextChapter, onPrevChapter, canPrev, canNext,
 }) {
+  const bookName = book.name;
+  const rootRef = useRef(null);
+  const [height, setHeight] = useState(520);
+  const speaking = useSpeaking();
+  const [, setHighlightTick] = useState(0);
+
+  // Title pages that come before this chapter's text. Chapter 0 is a title page
+  // of its own; chapter 1 opens with the book's title page.
+  const front = useMemo(() => {
+    if (chapter === 0) return [abbr === 'GEN' ? 'testament-old' : abbr === 'MAT' ? 'testament-new' : 'book'];
+    return chapter === 1 ? ['book'] : [];
+  }, [abbr, chapter]);
+
   const [stageEl, setStageEl] = useState(null);
   const measureRef = useRef(null);
   const touchRef = useRef(null);
@@ -37,7 +75,34 @@ export default function FlipBook({
   const [turn, setTurn] = useState(null); // { dir: 1 | -1, to }
   const [fontTick, setFontTick] = useState(0);
 
-  const chapterKey = `${bookName}-${chapter}`;
+  const chapterKey = `${abbr}-${chapter}`;
+
+  // Fill exactly the space between the sticky toolbar/player and the footer.
+  useLayoutEffect(() => {
+    const scroller = document.getElementById('kjb-scroll');
+    (scroller || window).scrollTo({ top: 0 });
+    const read = () => {
+      const el = rootRef.current;
+      if (!el) return;
+      const scrolls = scroller && scroller.scrollHeight > scroller.clientHeight + 1;
+      const bottom = scrolls ? scroller.getBoundingClientRect().bottom : window.innerHeight;
+      const top = el.getBoundingClientRect().top + (scrolls ? scroller.scrollTop : window.scrollY);
+      setHeight(Math.max(420, Math.floor(bottom - top - 12)));
+    };
+    read();
+    const bar = document.querySelector('[data-kjb-reader-toolbar-wrap]');
+    const ro = new ResizeObserver(read);
+    if (bar) ro.observe(bar);
+    if (scroller) ro.observe(scroller);
+    window.addEventListener('resize', read);
+    return () => { ro.disconnect(); window.removeEventListener('resize', read); };
+  }, []);
+
+  useEffect(() => {
+    const redraw = () => setHighlightTick((t) => t + 1);
+    window.addEventListener('kjb-highlights-changed', redraw);
+    return () => window.removeEventListener('kjb-highlights-changed', redraw);
+  }, []);
 
   useLayoutEffect(() => {
     if (!stageEl) return undefined;
@@ -51,9 +116,7 @@ export default function FlipBook({
   useEffect(() => {
     let alive = true;
     document.fonts?.ready.then(() => alive && setFontTick((t) => t + 1));
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { alive = false; document.body.style.overflow = previous; };
+    return () => { alive = false; };
   }, []);
 
   const spread = stage.w >= 760;
@@ -62,7 +125,7 @@ export default function FlipBook({
   const pageH = Math.floor(Math.max(0, Math.min(stage.h - 16, spread ? pageW * 1.55 : pageW * 1.9)));
   const padX = pageW < 420 ? 22 : 40;
   const textW = Math.max(120, pageW - padX * 2);
-  const textH = Math.max(120, pageH - 104); // running head, folio and margins
+  const textH = Math.max(120, pageH - 112); // running head, folio and margins
 
   const textStyle = useMemo(() => ({
     fontSize: `${(zoomLevel / 100) * 1.05}rem`,
@@ -71,30 +134,35 @@ export default function FlipBook({
 
   const blocks = useMemo(() => {
     const html = (t) => ({ __html: renderVerseText(String(t).replace(/^<<[^>]*>>\s*/, '')) });
-    if (isTitlePage) return <h2 className="kjb-fb-title kjb-fb-title-only">{bookName}</h2>;
+    if (chapter === 0) return null;
     return (
       <>
-        <h2 className="kjb-fb-title">{bookName}</h2>
-        <p className="kjb-fb-chapter">Chapter {chapter}</p>
-        {subscript && <p className="kjb-fb-note" dangerouslySetInnerHTML={html(subscript)} />}
+        <div data-fb-sec="head">
+          <h2 className="kjb-fb-title">{bookName}</h2>
+          <p className="kjb-fb-chapter">Chapter {chapter}</p>
+        </div>
+        {subscript && <p className="kjb-fb-note" data-fb-sec="sub" dangerouslySetInnerHTML={html(subscript)} />}
         {verses.map((v, i) => (
           <p key={v.verse} className={i === 0 ? 'kjb-fb-verse kjb-fb-first' : 'kjb-fb-verse'}>
-            {i > 0 && <sup>{v.verse}</sup>}
-            <span dangerouslySetInnerHTML={html(v.text)} />
+            <span data-fbv={v.verse}>
+              {i > 0 && <sup>{v.verse}</sup>}
+              <span dangerouslySetInnerHTML={html(v.text)} />
+            </span>
           </p>
         ))}
-        {colophon && <p className="kjb-fb-note" dangerouslySetInnerHTML={html(colophon)} />}
+        {colophon && <p className="kjb-fb-note" data-fb-sec="col" dangerouslySetInnerHTML={html(colophon)} />}
         {endMarker && <p className="kjb-fb-chapter">{endMarker}</p>}
       </>
     );
-  }, [bookName, chapter, verses, subscript, colophon, endMarker, isTitlePage]);
+  }, [bookName, chapter, verses, subscript, colophon, endMarker]);
 
   // A new chapter opens at its first page, or its last when turning backwards.
   const shownKeyRef = useRef(null);
   useLayoutEffect(() => {
     if (loading || !measureRef.current || !pageW) return;
     const end = measureRef.current.querySelector('[data-fb-end]');
-    const count = Math.max(1, Math.floor((end.offsetLeft + 1) / (textW + GAP)) + 1);
+    const textPages = chapter === 0 ? 0 : Math.max(1, Math.floor((end.offsetLeft + 1) / (textW + GAP)) + 1);
+    const count = front.length + textPages;
     setPageCount(count);
     const isNew = shownKeyRef.current !== chapterKey;
     shownKeyRef.current = chapterKey;
@@ -106,28 +174,85 @@ export default function FlipBook({
     });
     if (isNew) landOnEndRef.current = false;
     setTurn(null);
-  }, [blocks, textW, textH, textStyle, step, pageW, loading, chapterKey, fontTick]);
+  }, [blocks, front, textW, textH, textStyle, step, pageW, loading, chapterKey, fontTick]);
 
   const go = useCallback((dir) => {
     if (loading || turn) return;
     const to = page + dir * step;
-    if (to < 0) { landOnEndRef.current = true; onPrevChapter(); return; }
-    if (to >= pageCount) { landOnEndRef.current = false; onNextChapter(); return; }
+    if (to < 0) { if (canPrev) { landOnEndRef.current = true; onPrevChapter(); } return; }
+    if (to >= pageCount) { if (canNext) { landOnEndRef.current = false; onNextChapter(); } return; }
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setPage(to); return; }
     setTurn({ dir, to });
-  }, [loading, turn, page, step, pageCount, onNextChapter, onPrevChapter]);
+  }, [loading, turn, page, step, pageCount, onNextChapter, onPrevChapter, canPrev, canNext]);
+
+  // The page on which a verse or section begins.
+  const pageOf = useCallback((selector) => {
+    const el = measureRef.current?.querySelector(selector);
+    return el ? front.length + Math.floor((el.offsetLeft + 1) / (textW + GAP)) : null;
+  }, [front, textW]);
+
+  const turnTo = (target) => {
+    if (target == null) return;
+    const to = Math.floor(Math.min(target, pageCount - 1) / step) * step;
+    if (to === page) return;
+    const near = Math.abs(to - page) === step;
+    if (near && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) setTurn({ dir: to > page ? 1 : -1, to });
+    else { setTurn(null); setPage(to); }
+  };
+
+  // The book turns itself to wherever the voice is.
+  const spokenAt = !speaking ? '' : speaking.intro || speaking.kind === 'title' ? 'intro'
+    : speaking.kind === 'sub' ? '[data-fb-sec="sub"]' : speaking.kind === 'col' ? '[data-fb-sec="col"]'
+      : speaking.kind === 'end' ? 'end' : speaking.verse != null ? `[data-fbv="${speaking.verse}"]` : '';
+  useEffect(() => {
+    if (!spokenAt || loading) return;
+    turnTo(spokenAt === 'intro' ? 0 : spokenAt === 'end' ? pageCount - 1 : pageOf(spokenAt));
+    // Only when the voice moves or the pages are re-laid: turning by hand stays.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spokenAt, pageCount, step, loading, chapterKey]);
+
+  // A verse picked in the toolbar opens its page.
+  useEffect(() => {
+    if (jumpVerse && !loading) turnTo(pageOf(`[data-fbv="${parseInt(jumpVerse, 10)}"]`));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jumpVerse, pageCount, loading]);
+
+  // Marks are put on after each render, because every page is its own copy.
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    root.querySelectorAll('[data-fbv]').forEach((el) => {
+      const n = Number(el.dataset.fbv);
+      el.classList.toggle('kjb-fb-speaking', spokenAt === `[data-fbv="${el.dataset.fbv}"]`);
+      el.classList.toggle('kjb-fb-tapped', !!tappedVerses?.has(n));
+      const colour = getVerseHighlight(abbr, chapter, n);
+      if (colour) el.dataset.fbColour = colour; else delete el.dataset.fbColour;
+    });
+    root.querySelectorAll('[data-fb-sec]').forEach((el) => {
+      const kind = el.dataset.fbSec;
+      el.classList.toggle('kjb-fb-speaking', kind === 'head' ? spokenAt === 'intro' : spokenAt === `[data-fb-sec="${kind}"]`);
+    });
+    root.querySelectorAll('.kjb-fb-titlewrap').forEach((el) => el.classList.toggle('kjb-fb-speaking', spokenAt === 'intro'));
+    let first = '';
+    for (const v of verses) {
+      const at = pageOf(`[data-fbv="${v.verse}"]`);
+      if (at != null && at >= page && at < page + step) { first = String(v.verse); break; }
+    }
+    root.dataset.firstVerse = first;
+  });
+
 
   useEffect(() => {
     const onKey = (e) => {
       const dir = e.key === 'ArrowRight' || e.key === 'PageDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'PageUp' ? -1 : 0;
-      if (!dir && e.key !== 'Escape') return;
+      if (!dir || e.target.closest?.('input, textarea, select, [role="menu"]') || document.querySelector('[data-radix-popper-content-wrapper], .kjb-selector-sheet')) return;
       e.preventDefault();
       e.stopPropagation();
-      if (dir) go(dir); else onClose();
+      go(dir);
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [go, onClose]);
+  }, [go]);
 
   const finishTurn = (e) => {
     if (e.target !== e.currentTarget || !turn) return;
@@ -135,20 +260,31 @@ export default function FlipBook({
     setTurn(null);
   };
 
-  // One printed page: running head, the text window, and the page number.
-  const face = (index, side) => (
-    <div className={`kjb-fb-page kjb-fb-${side}`} style={{ padding: `0 ${padX}px` }}>
-      {index >= 0 && index < pageCount && (
-        <>
-          <div className="kjb-fb-head">{isTitlePage ? '' : `${bookName} ${chapter}`}</div>
-          <div className="kjb-fb-window" style={{ width: textW, height: textH }}>
-            <ChapterFlow blocks={blocks} width={textW} height={textH} page={index} textStyle={textStyle} />
-          </div>
-          <div className="kjb-fb-folio">{index + 1}</div>
-        </>
-      )}
-    </div>
-  );
+  // One printed page: a title page, or running head, text and page number.
+  const face = (index, side) => {
+    const textIndex = index - front.length;
+    return (
+      <div className={`kjb-fb-page kjb-fb-${side}`} style={{ padding: `0 ${padX}px` }}>
+        {index >= 0 && index < pageCount && (textIndex < 0 ? (
+          <FittedTitlePage type={front[index]} book={book} width={textW} height={pageH - 24} />
+        ) : (
+          <>
+            <div className="kjb-fb-head">{book.shortName} {chapter}</div>
+            <div className="kjb-fb-window" style={{ width: textW, height: textH }}>
+              <ChapterFlow blocks={blocks} width={textW} height={textH} page={textIndex} textStyle={textStyle} />
+            </div>
+            <div className="kjb-fb-folio">{textIndex + 1}</div>
+          </>
+        ))}
+      </div>
+    );
+  };
+
+  // "Genesis 2 · pages 1–2 of 4", counting text pages only.
+  const textTotal = Math.max(0, pageCount - front.length);
+  const shown = Array.from({ length: step }, (_, i) => page + i - front.length + 1).filter((n) => n >= 1 && n <= textTotal);
+  const where = !shown.length ? 'Title page'
+    : `${book.shortName} ${chapter} · ${shown.length > 1 ? `pages ${shown[0]}–${shown[1]}` : `page ${shown[0]}`} of ${textTotal}`;
 
   // What lies flat underneath, and the sheet that is turning over it.
   let left = page;
@@ -173,14 +309,21 @@ export default function FlipBook({
 
   const stop = (e) => e.stopPropagation();
 
-  return createPortal(
+  // A tap on a verse selects it, as in the normal reader; a tap elsewhere turns.
+  const onPageTap = (dir) => (e) => {
+    const verse = e.target.closest('[data-fbv]');
+    if (verse) { onVerseTap?.(Number(verse.dataset.fbv)); return; }
+    go(dir);
+  };
+
+  return (
     <div
+      ref={rootRef}
       className="kjb-flipbook print:hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Flipbook view"
+      style={{ height }}
+      role="region"
+      aria-label="Book view"
       data-testid="kjb-flipbook"
-      onClick={stop}
       onTouchStart={(e) => { stop(e); touchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }}
       onTouchMove={stop}
       onTouchEnd={(e) => {
@@ -193,25 +336,22 @@ export default function FlipBook({
         if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.4) go(dx < 0 ? 1 : -1);
       }}
     >
-      <div className="kjb-fb-bar">
-        <span>{bookName}{isTitlePage ? '' : ` ${chapter}`}</span>
-        <button onClick={onClose} aria-label="Close flipbook"><X size={18} /> Close</button>
-      </div>
-
       <div ref={setStageEl} className="kjb-fb-stage">
         {/* Invisible copy used only to count pages. */}
         <div className="kjb-fb-measure" aria-hidden="true" style={{ width: textW, height: textH }}>
           <ChapterFlow ref={measureRef} blocks={blocks} width={textW} height={textH} page={0} textStyle={textStyle} />
         </div>
-        {loading || !pageW ? (
+        {error ? (
+          <p className="kjb-fb-loading">{error}</p>
+        ) : loading || !pageW ? (
           <p className="kjb-fb-loading">Loading…</p>
         ) : (
           <div className="kjb-fb-book" style={{ width: pageW * step, height: pageH }}>
-            <div className="kjb-fb-slot" style={{ left: 0, width: pageW }} onClick={() => go(spread ? -1 : 1)}>
+            <div className="kjb-fb-slot" style={{ left: 0, width: pageW }} onClick={onPageTap(spread ? -1 : 1)}>
               {face(left, spread ? 'left' : 'single')}
             </div>
             {spread && (
-              <div className="kjb-fb-slot" style={{ left: pageW, width: pageW }} onClick={() => go(1)}>
+              <div className="kjb-fb-slot" style={{ left: pageW, width: pageW }} onClick={onPageTap(1)}>
                 {face(right, 'right')}
               </div>
             )}
@@ -232,12 +372,9 @@ export default function FlipBook({
 
       <div className="kjb-fb-bar kjb-fb-nav">
         <button onClick={() => go(-1)} aria-label="Previous page"><ChevronLeft size={18} /> Back</button>
-        <span data-testid="kjb-fb-count">
-          {spread && page + 2 <= pageCount ? `Pages ${page + 1}–${page + 2}` : `Page ${page + 1}`} of {pageCount}
-        </span>
+        <span data-testid="kjb-fb-count">{where}</span>
         <button onClick={() => go(1)} aria-label="Next page">Next <ChevronRight size={18} /></button>
       </div>
-    </div>,
-    document.body
+    </div>
   );
 }

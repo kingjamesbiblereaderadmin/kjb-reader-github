@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, RotateCcw, Check } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
+import { publishSpeaking } from '@/lib/tts/speaking';
 import useBibleTts from '@/hooks/useBibleTts';
 import { TTS_VOICES, TTS_RATES, TTS_STORAGE, readStored, writeStored, voiceLabel } from '@/lib/tts/voices';
 
@@ -59,6 +60,9 @@ function scrollBox() {
 // "Listen" from yanking the page back to verse 1 when the reader has scrolled
 // halfway down a chapter.
 function firstVisibleVerse() {
+  // Book view: start from the first verse that begins on the open pages.
+  const book = document.querySelector('[data-testid=kjb-flipbook]');
+  if (book) return book.dataset.firstVerse ? Number(book.dataset.firstVerse) : null;
   const box = scrollBox();
   const nodes = document.querySelectorAll('[id^="v"]');
   for (const el of nodes) {
@@ -135,9 +139,10 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
   // so the player stays a single self-contained component.
   useEffect(() => {
     const onDocumentClick = (event) => {
-      const target = event.target instanceof Element ? event.target.closest('[id^="v"]') : null;
-      if (!target || !/^v\d+$/.test(target.id)) return;
-      setSelectedVerse(Number(target.id.slice(1)));
+      const target = event.target instanceof Element ? event.target.closest('[id^="v"], [data-fbv]') : null;
+      if (!target) return;
+      if (target.dataset.fbv) setSelectedVerse(Number(target.dataset.fbv));
+      else if (/^v\d+$/.test(target.id)) setSelectedVerse(Number(target.id.slice(1)));
     };
     document.addEventListener('click', onDocumentClick);
     return () => document.removeEventListener('click', onDocumentClick);
@@ -283,6 +288,11 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
   // from the one being spoken.
 
   useEffect(() => () => clearSpeaking(), []);
+
+  useEffect(() => {
+    publishSpeaking(tts.isActive ? { verse: tts.currentVerse, kind: tts.currentKind, intro: tts.introActive } : null);
+  }, [tts.isActive, tts.currentVerse, tts.currentKind, tts.introActive]);
+  useEffect(() => () => publishSpeaking(null), []);
 
   const setHiddenPersisted = useCallback((value) => {
     setHidden(value);
