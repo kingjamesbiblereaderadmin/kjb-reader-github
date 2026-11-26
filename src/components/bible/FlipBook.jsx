@@ -3,6 +3,7 @@ import FlipBookChrome from '@/components/bible/FlipBookChrome';
 import { renderVerseText } from '@/lib/bibleApi';
 import TitlePage from '@/components/bible/TitlePage';
 import ContentsFlow from '@/components/bible/ContentsFlow';
+import FittedPage from '@/components/bible/FittedPage';
 import { useSpeaking, getProgress } from '@/lib/tts/speaking';
 import { getVerseHighlight } from '@/lib/verseHighlights';
 import './flipbook.css';
@@ -23,30 +24,6 @@ const ChapterFlow = React.forwardRef(function ChapterFlow({ blocks, width, heigh
     </div>
   );
 });
-
-// The app's own title pages and front matter, laid out at the page's own width.
-// Their display type is sized in container units (see flipbook.css), so a narrow
-// page shrinks the words instead of clipping them at the edges; only height ever
-// needs scaling.
-function FittedPage({ width, height, children }) {
-  const ref = useRef(null);
-  const [scale, setScale] = useState(1);
-  useLayoutEffect(() => {
-    const el = ref.current;
-    const fit = () => setScale(Math.min(1, width / Math.max(width, el.scrollWidth), height / Math.max(1, el.offsetHeight)));
-    fit();
-    const ro = new ResizeObserver(fit);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [width, height]);
-  return (
-    <div className="kjb-fb-titlewrap" style={{ width, height }}>
-      <div ref={ref} className="kjb-fb-titlepage" style={{ width, transform: `translate(-50%, -50%) scale(${scale})` }}>
-        {children}
-      </div>
-    </div>
-  );
-}
 
 // How much of a verse the open pages show, as a share of its characters, ending
 // exactly on the last visible word. The voice spends its time on characters, so
@@ -369,7 +346,7 @@ export default function FlipBook({
   useEffect(() => {
     const onKey = (e) => {
       const dir = e.key === 'ArrowRight' || e.key === 'PageDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'PageUp' ? -1 : 0;
-      if (!dir || e.target.closest?.('input, textarea, select, [role="menu"]') || document.querySelector('[data-radix-popper-content-wrapper], .kjb-selector-sheet')) return;
+      if (!dir || e.target.closest?.('input, textarea, select, [role="menu"], [data-kjb-book-controls]') || document.querySelector('[data-radix-popper-content-wrapper], .kjb-selector-sheet')) return;
       e.preventDefault();
       e.stopPropagation();
       go(dir);
@@ -396,12 +373,12 @@ export default function FlipBook({
       <div className={`kjb-fb-page kjb-fb-${side}`} style={{ padding: `52px ${padRight}px ${footerHeight}px ${padLeft}px` }}>
         {index >= 0 && index < pageCount && (textIndex < 0 ? (
           typeof front[index] === 'string' ? (
-            <FittedPage width={textW} height={contentsH}>
+            <FittedPage width={textW} height={contentsH} zoom={zoomLevel / 100} fontFamilyValue={fontFamilyValue} isCursive={isCursive}>
               <TitlePage type={front[index]} book={book} />
             </FittedPage>
           ) : (
             <div className="kjb-fb-contents-window" style={{ width: textW, height: contentsH }}>
-              <ContentsFlow width={textW} height={contentsH} page={front[index].contentsPage} onSelectBook={onSelectBook} />
+              <ContentsFlow width={textW} height={contentsH} page={front[index].contentsPage} onSelectBook={onSelectBook} textStyle={textStyle} isCursive={isCursive} />
             </div>
           )
         ) : (
@@ -489,7 +466,7 @@ export default function FlipBook({
         {/* A continuous contents flow is measured independently of scripture. */}
         {hasContents && (
           <div className="kjb-fb-measure" aria-hidden="true" style={{ width: textW, height: contentsH }}>
-            <ContentsFlow width={textW} height={contentsH} onPageCount={setContentsPageCount} />
+            <ContentsFlow width={textW} height={contentsH} onPageCount={setContentsPageCount} textStyle={textStyle} isCursive={isCursive} />
           </div>
         )}
         {/* Invisible copy used only to count pages. */}

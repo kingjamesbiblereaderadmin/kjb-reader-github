@@ -10,6 +10,7 @@ import { SUBSCRIPTS, COLOPHONS } from '@/lib/bibleSubscripts';
 import ReaderToolbar from '@/components/bible/ReaderToolbar';
 import VerseText from '@/components/bible/VerseText';
 import TitlePage from '@/components/bible/TitlePage';
+import BibleContents from '@/components/bible/ContentsPage';
 import RunningHead from '@/components/bible/RunningHead';
 import MinimizedHeaderBar from '@/components/bible/MinimizedHeaderBar';
 import { useHeaderHide } from '@/lib/HeaderHideContext';
@@ -1930,7 +1931,14 @@ export default function BibleReader() {
         {loading && <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>}
         {error && <div className="text-center py-16 text-destructive font-sans">{error}</div>}
         {!loading && !error && isViewingTitlePage && (
-          <div style={{ fontFamily: "'Merriweather', 'Cormorant Garamond', Georgia, serif" }} className="kjb-titlepage [&_*]:!font-serif"><TitlePage type={pos.abbr === 'GEN' ? 'testament-old' : pos.abbr === 'MAT' ? 'testament-new' : 'book'} book={book} /></div>
+          <div className="kjb-frontmatter" style={{ '--kjb-frontmatter-zoom': zoomLevel / 100 }}>
+            <TitlePage type={pos.abbr === 'GEN' ? 'testament-old' : pos.abbr === 'MAT' ? 'testament-new' : 'book'} book={book} />
+            {pos.abbr === 'GEN' && (
+              <div className="kjb-frontmatter-contents">
+                <BibleContents onSelectBook={(abbr) => navigate(abbr, 1)} />
+              </div>
+            )}
+          </div>
         )}
         <div className="relative">
         {!loading && !error && verses.length > 0 && columnMode && !isViewingTitlePage && pos.chapter !== 1 && (

@@ -203,7 +203,7 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
     const id = window.setTimeout(() => scrollToVerse(point.verse), 450);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [verses]);
+  }, [verses, tts.introActive, tts.currentKind]);
 
   // Keep the spoken verse highlighted, and bring it into view only when it has
   // scrolled off AND the reader has not taken over scrolling themselves.
@@ -244,6 +244,19 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
       else el.classList.remove(SPEAKING_CLASS);
     });
   }, [tts.introActive]);
+
+  // Announcements belong at the chapter opening, not at a saved scroll offset.
+  useEffect(() => {
+    if ((!tts.introActive && tts.currentKind !== 'title') || tts.status !== 'playing') return;
+    followRef.current = true;
+    skipScrollRef.current = false;
+    const bookView = document.querySelector('[data-testid="kjb-flipbook"]');
+    if (bookView) {
+      bookView.querySelectorAll('.kjb-fb-titlewrap').forEach((page) => page.scrollTo({ top: 0, left: 0 }));
+      return; // The book's playback follower turns to its opening page.
+    }
+    (document.getElementById('kjb-scroll') || window).scrollTo({ top: 0, behavior: 'instant' });
+  }, [tts.introActive, tts.currentKind, tts.status]);
 
   // Columns, font size and paragraph spacing rebuild the chapter's markup, and
   // a rebuilt verse is a different element: the class the highlight lives on is

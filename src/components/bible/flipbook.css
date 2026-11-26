@@ -32,19 +32,19 @@
 /* ---- Contents: one continuous, typeset book list ----------------------- */
 .kjb-fb-contents-window { flex: none; margin: 12px 0; overflow: hidden; }
 .kjb-contents-flow { position: relative; column-fill: auto; font-family: var(--font-serif); color: var(--fb-ink); }
-.kjb-contents { width: 100%; max-width: 30rem; margin: 0 auto; }
-.kjb-contents-title { margin: 0 0 1.6rem; padding: 0.35rem 0 1.3rem; border-bottom: 3px double var(--fb-rule); text-align: center; font-weight: 400; break-inside: avoid; break-after: avoid-column; }
+.kjb-contents { width: 100%; max-width: 30rem; margin: 0 auto; font-family: inherit; }
+.kjb-contents-title { margin: 0 0 1.6em; padding: 0.35em 0 1.3em; border-bottom: 3px double var(--fb-rule); text-align: center; font-weight: 400; break-inside: avoid; break-after: avoid-column; }
 .kjb-contents-title > span { display: block; }
-.kjb-contents-eyebrow { margin-bottom: 0.65rem; font-size: 0.66rem; line-height: 1.6; letter-spacing: 0.16em; text-transform: uppercase; }
-.kjb-contents-heading { font-size: 1.15rem; font-weight: 700; line-height: 1.55; }
-.kjb-contents-caption { margin-top: 0.7rem; font-size: 0.7rem; font-style: italic; line-height: 1.7; }
+.kjb-contents-eyebrow { margin-bottom: 0.65em; font-size: 0.66em; line-height: 1.6; letter-spacing: 0.16em; text-transform: uppercase; }
+.kjb-contents-heading { font-size: 1.15em; font-weight: 700; line-height: 1.55; }
+.kjb-contents-caption { margin-top: 0.7em; font-size: 0.7em; font-style: italic; line-height: 1.7; }
 .kjb-contents-testament { break-inside: auto; }
-.kjb-contents-sub { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin: 0 0 0.45rem; padding: 0.55rem 0 0.6rem; border-bottom: 1px solid var(--fb-rule); font-size: 0.73rem; line-height: 1.6; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; break-inside: avoid; break-after: avoid-column; }
-.kjb-contents-testament + .kjb-contents-testament .kjb-contents-sub { margin-top: 1.4rem; }
-.kjb-contents-label { flex: none; font-size: 0.62rem; font-weight: 400; letter-spacing: 0.04em; text-transform: none; }
+.kjb-contents-sub { display: flex; align-items: baseline; justify-content: space-between; gap: 1em; margin: 0 0 0.45em; padding: 0.55em 0 0.6em; border-bottom: 1px solid var(--fb-rule); font-size: 0.73em; line-height: 1.6; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; break-inside: avoid; break-after: avoid-column; }
+.kjb-contents-testament + .kjb-contents-testament .kjb-contents-sub { margin-top: 1.4em; }
+.kjb-contents-label { flex: none; font-size: 0.85em; font-weight: 400; letter-spacing: 0.04em; text-transform: none; }
 .kjb-contents-list { margin: 0; padding: 0; list-style: none; }
 .kjb-contents-list li { margin: 0; padding: 0; break-inside: avoid-column; }
-.kjb-contents-entry { display: flex; align-items: baseline; gap: 0.65em; width: 100%; min-height: 2rem; margin: 0; padding: 0.3rem 0.15rem; font-family: inherit; font-size: 0.86rem; font-weight: 400; line-height: 1.6; text-align: left; color: inherit; background: transparent; border: 0; box-shadow: none; cursor: pointer; break-inside: avoid; }
+.kjb-contents-entry { display: flex; align-items: baseline; gap: 0.65em; width: 100%; min-height: 2em; margin: 0; padding: 0.3em 0.15em; font-family: inherit; font-size: 0.86em; font-weight: 400; line-height: 1.6; text-align: left; color: inherit; background: transparent; border: 0; box-shadow: none; cursor: pointer; break-inside: avoid; }
 .kjb-contents-name { min-width: 0; overflow-wrap: break-word; }
 .kjb-contents-leader { flex: 1; min-width: 0.75em; border-bottom: 1px dotted var(--fb-rule); transform: translateY(-0.2em); }
 .kjb-contents-number { flex: none; min-width: 3ch; text-align: right; font-variant-numeric: lining-nums tabular-nums; }
@@ -79,8 +79,9 @@
 @keyframes kjb-fb-back { from { transform: rotateY(0deg); } to { transform: rotateY(180deg); } }
 @keyframes kjb-fb-unfold { from { transform: rotateY(-180deg); } to { transform: rotateY(0deg); } }
 
-.kjb-fb-titlewrap { position: relative; margin: 12px 0; overflow: hidden; container-type: inline-size; }
-.kjb-fb-titlepage { position: absolute; left: 50%; top: 50%; transform-origin: center; }
+.kjb-fb-titlewrap { position: relative; flex: none; margin: 12px 0; overflow: auto; overscroll-behavior: contain; touch-action: pan-x pan-y; container-type: inline-size; }
+.kjb-fb-titlecanvas { position: relative; }
+.kjb-fb-titlepage { position: absolute; left: 50%; top: 0; transform-origin: top center; }
 /* Title-page type follows the page, not the window: a narrow page sets smaller
    words rather than letting "TESTAMENT" run past the paper edges. */
 .kjb-fb-titlepage h1 { font-size: clamp(1.5rem, 12.5cqw, 6rem); line-height: 1.1; }

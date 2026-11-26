@@ -1025,12 +1025,10 @@ html.kjb-native-ios select {
   letter-spacing: 0.01em;
 }
 
-/* A floated drop cap hangs out of the verse's background box, so the wash
-   stopped short of the big letter and the opening word was only half marked.
-   The cap carries the same wash itself now, which is what makes the whole
-   verse read as one highlight. */
+/* Normal reading uses the verse's wash alone. A second fill behind the
+   floated cap darkened that letter; book mode has its own first-letter rule. */
 .kjb-speaking .kjb-dropcap-group {
-  background-color: hsl(var(--accent) / 0.14);
+  background-color: transparent;
 }
 
 /* The word being spoken inside the verse that is playing. Painted with the
@@ -1043,12 +1041,6 @@ html.kjb-native-ios select {
   text-decoration-color: hsl(var(--accent) / 0.75);
   text-decoration-thickness: 0.08em;
   text-underline-offset: 0.18em;
-}
-
-/* An inline verse's background does not reach the float, so there the cap
-   group carries the same wash itself. */
-.kjb-speaking.inline .kjb-dropcap-group {
-  background-color: hsl(var(--accent) / 0.14);
 }
 
 /* In two columns the space between verses is each verse's own padding (below,

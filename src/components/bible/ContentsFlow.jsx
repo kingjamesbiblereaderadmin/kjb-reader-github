@@ -4,7 +4,7 @@ import ContentsPage from '@/components/bible/ContentsPage';
 const GAP = 40;
 
 /** A window onto a single, naturally paginated contents table. */
-export default function ContentsFlow({ width, height, page = 0, onPageCount, onSelectBook }) {
+export default function ContentsFlow({ width, height, page = 0, onPageCount, onSelectBook, textStyle, isCursive }) {
   const ref = useRef(null);
   useLayoutEffect(() => {
     const flow = ref.current;
@@ -31,10 +31,10 @@ export default function ContentsFlow({ width, height, page = 0, onPageCount, onS
       observer.disconnect();
       document.fonts?.removeEventListener('loadingdone', measure);
     };
-  }, [width, height, page, onPageCount]);
+  }, [width, height, page, onPageCount, textStyle, isCursive]);
   return (
-    <div ref={ref} className="kjb-contents-flow notranslate" translate="no"
-      style={{ width, height, columnWidth: width, columnGap: GAP, transform: `translateX(${-page * (width + GAP)}px)` }}>
+    <div ref={ref} className={`kjb-contents-flow notranslate${isCursive ? ' cursive-em-style' : ''}`} translate="no"
+      style={{ ...textStyle, width, height, columnWidth: width, columnGap: GAP, transform: `translateX(${-page * (width + GAP)}px)` }}>
       <ContentsPage onSelectBook={onSelectBook} />
       <span className="kjb-contents-end" aria-hidden="true" />
     </div>

@@ -1,0 +1,12 @@
+/* Reading preferences also apply to the Bible's front matter. */
+.kjb-frontmatter {
+  --fb-ink: hsl(var(--foreground));
+  --fb-rule: hsl(var(--border));
+  font-size: calc(1rem * var(--kjb-frontmatter-zoom, 1));
+  font-family: inherit;
+}
+.kjb-titlepage { container-type: inline-size; width: 100%; font-family: inherit; }
+.kjb-titlepage h1 { max-width: 100%; font-size: clamp(2.25em, 12.5cqw, 6em); overflow-wrap: anywhere; }
+.kjb-titlepage[data-title-kind='book'] h1 { font-size: 2.5em; }
+.kjb-titlepage p { font-size: 1em; }
+.kjb-frontmatter-contents { margin-top: 2em; padding: 2em 1em; border-top: 1px solid var(--fb-rule); }

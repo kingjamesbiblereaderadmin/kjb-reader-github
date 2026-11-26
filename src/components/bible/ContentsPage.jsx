@@ -36,7 +36,7 @@ export default function ContentsPage({ onSelectBook }) {
         <section key={testament} className="kjb-contents-testament">
           <h3 className="kjb-contents-sub" data-contents-row="">
             <span>{testament === 'old' ? 'Old Testament' : 'New Testament'}</span>
-            <span className="kjb-contents-label">Chapters</span>
+            <span className="kjb-contents-label"><em>hath</em> Chapters</span>
           </h3>
           <ul className="kjb-contents-list">
             {CONTENTS_BOOKS.filter((b) => b.testament === testament).map((b) => (

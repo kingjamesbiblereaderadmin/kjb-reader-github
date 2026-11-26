@@ -203,6 +203,8 @@ export default function ReaderToolbar({
             </SelectorSheet>
           </div>
           </ReaderControlSlot>
+          </>
+        )}
 
           <ReaderControlSlot enabled={bookMode} target={bookSlots.tools}>
           <div className="relative flex">
@@ -211,6 +213,8 @@ export default function ReaderToolbar({
           <button
             onClick={() => { setShowZoomPopover(p => !p); setShowBookPicker(false); setShowChapterPicker(false); setShowVersePicker(false); setShowFontPopover(false); }}
             title={`Zoom: ${zoomLevel}%`}
+            aria-label={`Text size: ${zoomLevel}%`}
+            aria-expanded={showZoomPopover}
             className="flex items-center justify-center gap-1 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"
           >
             <ZoomIn className="w-4 h-4 transition-transform duration-200 flex-shrink-0" />
@@ -260,7 +264,9 @@ export default function ReaderToolbar({
           <PopoverAnchor asChild>
           <button
             onClick={() => { setShowFontPopover(p => !p); setShowBookPicker(false); setShowChapterPicker(false); setShowVersePicker(false); setShowZoomPopover(false); }}
-            title="Font family"
+            title="Font and accessibility options"
+            aria-label="Font and accessibility options"
+            aria-expanded={showFontPopover}
             className="flex items-center justify-center gap-1 px-3 rounded-lg bg-secondary border border-border text-secondary-foreground font-sans text-sm font-medium hover:bg-accent/20 transition-all duration-200 touch-manipulation h-10 whitespace-nowrap"
           >
             <Type className="w-4 h-4 transition-transform duration-200 flex-shrink-0" />
@@ -321,7 +327,11 @@ export default function ReaderToolbar({
             </div>
           </SelectorSheet>
           </div>
+          </ReaderControlSlot>
 
+        {!isViewingTitlePage && (
+          <>
+          <ReaderControlSlot enabled={bookMode} target={bookSlots.tools}>
           <button
             onClick={toggleFlow}
             aria-pressed={paragraphMode}
