@@ -284,6 +284,48 @@ const PRONOUNCE_RE = new RegExp(
   'gi',
 );
 
+// "-eth" verbs whose stem ends in a silent e. The generic split below cuts the
+// word at the stem ("tak-eth"), and a hyphen closes that syllable, so the engine
+// says "tack-eth" instead of "tayk-eth". These keep the e: "take-eth".
+const ETH_SILENT_E: Record<string, string> = {
+  'abideth': 'abide-eth', 'accuseth': 'accuse-eth', 'acknowledgeth': 'acknowledge-eth', 'advantageth': 'advantage-eth',
+  'agreeth': 'agree-eth', 'appeaseth': 'appease-eth', 'approveth': 'approve-eth', 'ariseth': 'arise-eth',
+  'avengeth': 'avenge-eth', 'awaketh': 'awake-eth', 'backbiteth': 'backbite-eth', 'baptizeth': 'baptize-eth',
+  'becometh': 'become-eth', 'behaveth': 'behave-eth', 'believeth': 'believe-eth', 'bereaveth': 'bereave-eth',
+  'biteth': 'bite-eth', 'blasphemeth': 'blaspheme-eth', 'breatheth': 'breathe-eth', 'calveth': 'calve-eth',
+  'careth': 'care-eth', 'carrieth': 'carry-eth', 'causeth': 'cause-eth', 'ceaseth': 'cease-eth',
+  'challengeth': 'challenge-eth', 'chanceth': 'chance-eth', 'changeth': 'change-eth', 'chaseth': 'chase-eth',
+  'chastiseth': 'chastise-eth', 'chooseth': 'choose-eth', 'cleanseth': 'cleanse-eth', 'cleaveth': 'cleave-eth',
+  'cometh': 'come-eth', 'consumeth': 'consume-eth', 'continueth': 'continue-eth', 'convinceth': 'convince-eth',
+  'createth': 'create-eth', 'curseth': 'curse-eth', 'deceiveth': 'deceive-eth', 'declineth': 'decline-eth',
+  'defileth': 'defile-eth', 'describeth': 'describe-eth', 'deserveth': 'deserve-eth', 'desireth': 'desire-eth',
+  'despiseth': 'despise-eth', 'deviseth': 'devise-eth', 'disguiseth': 'disguise-eth', 'dissembleth': 'dissemble-eth',
+  'distributeth': 'distribute-eth', 'divideth': 'divide-eth', 'divineth': 'divine-eth', 'driveth': 'drive-eth',
+  'dureth': 'dure-eth', 'endureth': 'endure-eth', 'enlargeth': 'enlarge-eth', 'enticeth': 'entice-eth',
+  'escapeth': 'escape-eth', 'executeth': 'execute-eth', 'exerciseth': 'exercise-eth', 'fadeth': 'fade-eth',
+  'foreseeth': 'foresee-eth', 'forgiveth': 'forgive-eth', 'forsaketh': 'forsake-eth', 'frameth': 'frame-eth',
+  'frustrateth': 'frustrate-eth', 'graveth': 'grave-eth', 'grieveth': 'grieve-eth', 'gropeth': 'grope-eth',
+  'hasteth': 'haste-eth', 'hateth': 'hate-eth', 'hideth': 'hide-eth', 'hopeth': 'hope-eth',
+  'humbleth': 'humble-eth', 'imagineth': 'imagine-eth', 'imputeth': 'impute-eth', 'inclineth': 'incline-eth',
+  'increaseth': 'increase-eth', 'judgeth': 'judge-eth', 'ladeth': 'lade-eth', 'leaveth': 'leave-eth',
+  'liveth': 'live-eth', 'lodgeth': 'lodge-eth', 'loatheth': 'loathe-eth', 'looseth': 'loose-eth',
+  'nameth': 'name-eth', 'observeth': 'observe-eth', 'opposeth': 'oppose-eth', 'overcometh': 'overcome-eth',
+  'overtaketh': 'overtake-eth', 'perceiveth': 'perceive-eth', 'persuadeth': 'persuade-eth', 'pierceth': 'pierce-eth',
+  'pineth': 'pine-eth', 'praiseth': 'praise-eth', 'prepareth': 'prepare-eth', 'preserveth': 'preserve-eth',
+  'procureth': 'procure-eth', 'profaneth': 'profane-eth', 'proveth': 'prove-eth', 'provideth': 'provide-eth',
+  'provoketh': 'provoke-eth', 'purgeth': 'purge-eth', 'purposeth': 'purpose-eth', 'pursueth': 'pursue-eth',
+  'rageth': 'rage-eth', 'raiseth': 'raise-eth', 'rebuketh': 'rebuke-eth', 'receiveth': 'receive-eth',
+  'refuseth': 'refuse-eth', 'rejoiceth': 'rejoice-eth', 'relieveth': 'relieve-eth', 'removeth': 'remove-eth',
+  'reproveth': 'reprove-eth', 'requireth': 'require-eth', 'rescueth': 'rescue-eth', 'reserveth': 'reserve-eth',
+  'restoreth': 'restore-eth', 'revengeth': 'revenge-eth', 'rideth': 'ride-eth', 'sacrificeth': 'sacrifice-eth',
+  'saluteth': 'salute-eth', 'saveth': 'save-eth', 'scaleth': 'scale-eth', 'scourgeth': 'scourge-eth',
+  'seduceth': 'seduce-eth', 'separateth': 'separate-eth', 'serveth': 'serve-eth', 'shaketh': 'shake-eth',
+  'shameth': 'shame-eth', 'shineth': 'shine-eth', 'signifieth': 'signify-eth', 'slideth': 'slide-eth',
+  'smiteth': 'smite-eth', 'spareth': 'spare-eth', 'striketh': 'strike-eth', 'striveth': 'strive-eth',
+  'subdueth': 'subdue-eth', 'sufficeth': 'suffice-eth', 'taketh': 'take-eth', 'tarrieth': 'tarry-eth', 'tasteth': 'taste-eth',
+  'troubleth': 'trouble-eth', 'wasteth': 'waste-eth', 'writeth': 'write-eth',
+};
+
 // Standard British (RP) pronunciations, written in IPA because that is the
 // international standard the voice understands directly. A word listed here is
 // never respelled: it keeps its printed spelling and travels as a phoneme tag,
@@ -332,6 +374,14 @@ function respell(text: string) {
   );
 }
 
+// Split "-eth" verbs into their own final syllable. The stem keeps its silent e
+// where the table above lists it, so the syllable stays open.
+function splitEth(text: string) {
+  return text.replace(/\b(\w{3,})eth\b/g, (word, stem) =>
+    ETH_SILENT_E[word.toLowerCase()] || `${stem}-eth`,
+  );
+}
+
 // The one entry point: clean the source markup, respell the hard words, then
 // give every "-eth" verb its own final syllable. Handed "pleaseth" a neural
 // voice can split it as "please" + "s" + "eth"; with the break written in it
@@ -341,7 +391,7 @@ function respell(text: string) {
 function speechText(raw: string) {
   const fixed = applyHeteronyms(normalizeSpeechText(raw));
   return {
-    text: respell(fixed.text).replace(/\b(\w{3,})eth\b/g, '$1-eth'),
+    text: splitEth(respell(fixed.text)),
     changed: fixed.changed,
   };
 }
