@@ -15,47 +15,43 @@ const TABLE_NAMES = {
   '3JN': 'III. John',
 };
 
-const booksOf = (testament) => BIBLE_BOOKS
-  .filter((b) => b.testament === testament)
-  .map((b) => ({ ...b, table: TABLE_NAMES[b.abbr] || b.shortName }));
-
-function BookList({ books, onSelectBook, dropCap }) {
-  return (
-    <ul className="kjb-contents-list">
-      {books.map((b, i) => (
-        <li key={b.abbr}>
-          <button
-            type="button"
-            className={`kjb-contents-entry${dropCap && i === 0 ? ' kjb-contents-first' : ''}`}
-            onClick={(e) => { e.stopPropagation(); onSelectBook?.(b.abbr); }}
-          >
-            {b.table} hath Chapters {b.chapters}
-          </button>
-        </li>
-      ))}
-    </ul>
-  );
-}
+/** Every book of this edition, in the old table's order and naming. */
+export const CONTENTS_BOOKS = BIBLE_BOOKS.map((b) => ({
+  abbr: b.abbr,
+  testament: b.testament,
+  chapters: b.chapters,
+  table: TABLE_NAMES[b.abbr] || b.shortName,
+}));
 
 /**
- * The KJB's front-matter table — "The Names and Order of all the Books of the
- * Old and New Testament, with the Number of their Chapters" — as it is printed
- * before Genesis. Every book of this edition is a link into its first chapter.
+ * One page of the KJB's front-matter table — "The Names and Order of all the
+ * Books of the Old and New Testament, with the Number of their Chapters" — one
+ * book to a line, each a link into its first chapter.
  */
-export default function ContentsPage({ onSelectBook }) {
+export default function ContentsPage({ items, heading, title, dropCap, onSelectBook }) {
   return (
     <div className="notranslate kjb-contents">
-      <h2 className="kjb-contents-title">
-        The Names and Order of all the Books<br />
-        of the Old and New Testament,<br />
-        with the Number of their Chapters.
-      </h2>
-
-      <h3 className="kjb-contents-sub">The Books of the Old Testament.</h3>
-      <BookList books={booksOf('old')} onSelectBook={onSelectBook} dropCap />
-
-      <h3 className="kjb-contents-sub">The Books of the New Testament.</h3>
-      <BookList books={booksOf('new')} onSelectBook={onSelectBook} dropCap />
+      {title && (
+        <h2 className="kjb-contents-title">
+          The Names and Order of all the Books<br />
+          of the Old and New Testament,<br />
+          with the Number of their Chapters.
+        </h2>
+      )}
+      {heading && <h3 className="kjb-contents-sub">{heading}</h3>}
+      <ul className="kjb-contents-list">
+        {items.map((b, i) => (
+          <li key={b.abbr}>
+            <button
+              type="button"
+              className={`kjb-contents-entry${dropCap && i === 0 ? ' kjb-contents-first' : ''}`}
+              onClick={(e) => { e.stopPropagation(); onSelectBook?.(b.abbr); }}
+            >
+              {b.table} hath Chapters {b.chapters}
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
