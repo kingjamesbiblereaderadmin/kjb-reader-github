@@ -131,9 +131,9 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
         setError(err?.message || 'Audio could not be generated.');
         setStatus('error');
       }
-      return;
+      return false;
     }
-    if (token !== tokenRef.current) return;
+    if (token !== tokenRef.current) return false;
 
     const el = getAudio();
     el.src = url;
@@ -147,9 +147,10 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
     } catch {
       // Autoplay blocked (iOS needs the first tap to come from a real gesture).
       if (token === tokenRef.current) setStatus('paused');
-      return;
+      return true;
     }
     if (token === tokenRef.current) setStatus('playing');
+    return true;
   }, [getAudio]);
 
   const playAt = useCallback(async (i, token) => {
@@ -172,10 +173,16 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
       // highlight for as long as the announcement lasts.
       audioUrlFor(list[i], voiceRef.current).catch(() => {});
       setIntroActive(true);
-      await playClip(intro, token, () => {
+      const announced = await playClip(intro, token, () => {
         setIntroActive(false);
         playAtRef.current?.(i, token);
       });
+      // A chapter announcement that cannot be fetched must never strand
+      // playback on a silent "Listening": fall through to the verse itself.
+      if (!announced && token === tokenRef.current) {
+        setIntroActive(false);
+        playAtRef.current?.(i, token);
+      }
       return;
     }
 
