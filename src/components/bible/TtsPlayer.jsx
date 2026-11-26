@@ -259,16 +259,10 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
     };
   }, [tts.isActive, tts.introActive, tts.currentVerse]);
 
-  // A manual scroll means "I'm reading here" — stop chasing the audio.
-  useEffect(() => {
-    const stopFollowing = () => { followRef.current = false; };
-    window.addEventListener('wheel', stopFollowing, { passive: true });
-    window.addEventListener('touchmove', stopFollowing, { passive: true });
-    return () => {
-      window.removeEventListener('wheel', stopFollowing);
-      window.removeEventListener('touchmove', stopFollowing);
-    };
-  }, []);
+  // Listening owns the scroll. Tapping elsewhere or scrolling by hand no longer
+  // detaches the page from the voice: when the next verse would be out of view
+  // it is brought back, so the reader is never left reading a different place
+  // from the one being spoken.
 
   useEffect(() => () => clearSpeaking(), []);
 
