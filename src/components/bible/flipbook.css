@@ -1,15 +1,14 @@
 /* Flipbook view: ink on paper. No gradients on controls, no tinted pills. */
 .kjb-flipbook {
-  --fb-paper: #f7f2e4; --fb-ink: #211c16; --fb-red: #8c2f23; --fb-rule: #cfc3a8;
+  --fb-paper: #fffefb; --fb-ink: #211c16; --fb-red: #8c2f23; --fb-rule: #d8cfb9;
   display: flex; flex-direction: column; color: hsl(var(--foreground));
 }
 .dark .kjb-flipbook { --fb-paper: #1d1b17; --fb-ink: #e6dfcf; --fb-red: #d9806f; --fb-rule: #3b362d; }
-.kjb-fb-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 0; font-family: Merriweather, Georgia, serif; font-size: 0.8rem; }
-.kjb-fb-bar span { text-align: center; }
-.kjb-fb-bar button { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 0 14px; border: 1px solid hsl(var(--border)); border-radius: 4px; color: inherit; }
-.kjb-fb-bar button:hover { background: hsl(var(--secondary)); }
+/* The page read-out sits on its own hairline under the book, the way a reading
+   app carries its position — the turning controls live on the pages themselves. */
+.kjb-fb-bar { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 12px; padding-top: 8px; border-top: 1px solid hsl(var(--border)); font-family: Merriweather, Georgia, serif; font-size: 0.78rem; letter-spacing: 0.03em; color: hsl(var(--muted-foreground)); }
 
-.kjb-fb-stage { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: pan-y; }
+.kjb-fb-stage { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: pan-y; border-radius: 10px; background: radial-gradient(100% 80% at 50% 0%, hsl(var(--secondary) / 0.6), hsl(var(--background)) 72%); }
 .kjb-fb-measure { position: absolute; left: 0; top: 0; overflow: hidden; visibility: hidden; pointer-events: none; }
 .kjb-fb-book { position: relative; perspective: 2400px; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.22)); }
 .kjb-fb-slot { position: absolute; top: 0; bottom: 0; cursor: pointer; }
@@ -21,10 +20,19 @@
 .kjb-fb-single { box-shadow: inset 18px 0 20px -18px rgba(0, 0, 0, 0.28); border-radius: 2px; }
 
 .kjb-fb-head { flex: none; margin: 14px 0 14px; padding-bottom: 7px; text-align: center; border-bottom: 1px solid var(--fb-rule); font-family: Merriweather, Georgia, serif; font-size: 0.72rem; line-height: 1.6; letter-spacing: 0.12em; text-transform: uppercase; }
-/* page number at the outer foot, as in a printed book */
-.kjb-fb-folio { flex: 1; display: flex; align-items: center; justify-content: center; font-family: Merriweather, Georgia, serif; font-size: 0.8rem; font-variant-numeric: oldstyle-nums; }
-.kjb-fb-left .kjb-fb-folio { justify-content: flex-start; }
-.kjb-fb-right .kjb-fb-folio { justify-content: flex-end; }
+/* page number at the foot, centred beneath a hairline rule, as in a printed Bible */
+.kjb-fb-folio { flex: 1; display: flex; align-items: flex-start; justify-content: center; margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--fb-rule); font-family: Merriweather, Georgia, serif; font-size: 0.8rem; font-variant-numeric: oldstyle-nums; }
+
+/* Page-turn arrows, resting in the outer margins of the open pages the way a
+   reading app's page controls do, instead of buttons in a bar under the book. */
+.kjb-fb-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 5; width: 34px; height: 64px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 8px; background: transparent; color: var(--fb-ink); opacity: 0.3; transition: opacity 160ms ease, background-color 160ms ease; -webkit-tap-highlight-color: transparent; }
+.kjb-fb-arrow:hover, .kjb-fb-arrow:focus-visible { opacity: 0.85; background: rgba(0, 0, 0, 0.05); }
+.dark .kjb-fb-arrow:hover, .dark .kjb-fb-arrow:focus-visible { background: rgba(255, 255, 255, 0.08); }
+.kjb-fb-arrow-prev { left: 2px; }
+.kjb-fb-arrow-next { right: 2px; }
+@media (max-width: 640px) {
+  .kjb-fb-arrow { width: 28px; opacity: 0.45; }
+}
 .kjb-fb-window { overflow: hidden; }
 .kjb-fb-flow { position: relative; column-fill: auto; line-height: 1.5; text-align: justify; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; font-family: Merriweather, Georgia, serif; }
 

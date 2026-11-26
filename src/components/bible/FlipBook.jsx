@@ -438,14 +438,22 @@ export default function FlipBook({
                 <div className="kjb-fb-side kjb-fb-side-back">{leaf.back}</div>
               </div>
             )}
+            {(page > 0 || canPrev) && (
+              <button className="kjb-fb-arrow kjb-fb-arrow-prev" onClick={(e) => { e.stopPropagation(); go(-1); }} aria-label="Previous page">
+                <ChevronLeft size={22} />
+              </button>
+            )}
+            {(page + step < pageCount || canNext) && (
+              <button className="kjb-fb-arrow kjb-fb-arrow-next" onClick={(e) => { e.stopPropagation(); go(1); }} aria-label="Next page">
+                <ChevronRight size={22} />
+              </button>
+            )}
           </div>
         )}
       </div>
 
       <div className="kjb-fb-bar kjb-fb-nav">
-        <button onClick={() => go(-1)} aria-label="Previous page"><ChevronLeft size={18} /> Back</button>
         <span data-testid="kjb-fb-count">{where}</span>
-        <button onClick={() => go(1)} aria-label="Next page">Next <ChevronRight size={18} /></button>
       </div>
     </div>
   );
