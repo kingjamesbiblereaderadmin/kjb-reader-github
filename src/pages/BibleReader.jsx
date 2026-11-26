@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Loader2, AlignJustify, AlignLeft, List, Columns2, ChevronDown, CheckSquare, Square, Copy, X, BookMarked, ZoomIn, Minus, Plus, Type, Share2, Printer, Highlighter, Bookmark } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, AlignJustify, AlignLeft, List, Columns2, ChevronDown, CheckSquare, Square, Copy, X, BookMarked, ZoomIn, Minus, Plus, Type, Share2, Printer, Highlighter, Bookmark, BookOpen } from 'lucide-react';
+import FlipBook from '@/components/bible/FlipBook';
 import { buildVerseUrl, formatVerseShare, cleanVerseText, centerLine } from '@/lib/formatDailyVerse';
 import { BIBLE_BOOKS, getNextBook, getPrevBook } from '@/lib/bibleData';
 import { fetchChapter, fetchChapterSync, fetchVerseCount, renderVerseText, renderColophonText, renderSubscriptText, resolveSubscript, resolveEndMarker } from '@/lib/bibleApi';
@@ -53,6 +54,8 @@ export default function BibleReader() {
   // whether audio is currently playing or paused.
   const [listenOpen, setListenOpen] = useState(false);
   const [ttsActive, setTtsActive] = useState(false);
+  // Optional full-screen printed-book view of the chapter.
+  const [flipbookOpen, setFlipbookOpen] = useState(false);
   // Master switch for the Listen player (Settings -> Audio).
   // isTtsAvailable() keeps the whole player out of the native app shells until
   // the feature is signed off (see src/lib/tts/voices.js).
@@ -1829,6 +1832,31 @@ export default function BibleReader() {
       )}
 
       {hideHeader && <MinimizedHeaderBar setHideHeader={setHideHeader} />}
+
+      {!loading && !error && !isViewingTitlePage && verses.length > 0 && (
+        <div className="print:hidden flex justify-end">
+          <button
+            onClick={() => { closeAllMenus(); setFlipbookOpen(true); }}
+            data-testid="flipbook-open-btn"
+            className="flex items-center gap-1.5 py-1 font-serif text-sm text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground"
+          >
+            <BookOpen className="w-4 h-4" />
+            Read as book
+          </button>
+        </div>
+      )}
+      {flipbookOpen && (
+        <FlipBook
+          bookName={book.name} chapter={pos.chapter} verses={verses}
+          subscript={chapterSubscript} colophon={colophon}
+          endMarker={(pos.abbr === 'MAL' && pos.chapter === 4) || (pos.abbr === 'REV' && pos.chapter === 22) ? resolveEndMarker(book.apiName, pos.chapter) : null}
+          loading={loading} isTitlePage={isViewingTitlePage}
+          fontFamilyValue={fontFamily === 'cursive' ? null : getFontFamilyValue(fontFamily)}
+          zoomLevel={zoomLevel}
+          onNextChapter={() => goNext()} onPrevChapter={goPrev}
+          onClose={() => setFlipbookOpen(false)}
+        />
+      )}
 
       {/* Listen: reads the chapter verse by verse and highlights each verse as
           it is spoken. Audio is generated per verse and cached, so a verse is
