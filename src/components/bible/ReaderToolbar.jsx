@@ -50,7 +50,7 @@ export default function ReaderToolbar({
   tapCopyFeedback, tapShareFeedback, tapSaveFeedback,
 }) {
   return (
-    <div ref={topRef} data-kjb-reader-toolbar-wrap className={`print:hidden sticky top-0 z-[100] border-b pt-3 relative -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background ${ttsAttached ? 'border-border pb-0 mb-8 shadow-sm' : 'border-border pb-4 mb-8 shadow-sm'}  before:content-[''] before:absolute before:bottom-full before:left-[calc(-1*env(safe-area-inset-left,0px))] before:right-[calc(-1*env(safe-area-inset-right,0px))] before:h-12 before:bg-background`}>
+    <div ref={topRef} data-kjb-reader-toolbar-wrap className={`print:hidden sticky top-0 z-[100] border-b pt-3 relative -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background border-border mb-8 shadow-sm ${ttsAttached ? 'pb-0' : 'pb-3'}  before:content-[''] before:absolute before:bottom-full before:left-[calc(-1*env(safe-area-inset-left,0px))] before:right-[calc(-1*env(safe-area-inset-right,0px))] before:h-12 before:bg-background`}>
       <div
         onClickCapture={(e) => {
           // Tapping empty space inside the toolbar (the gaps/padding between

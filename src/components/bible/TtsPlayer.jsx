@@ -16,16 +16,18 @@ import { TTS_VOICES, TTS_RATES, TTS_STORAGE, readStored, writeStored, voiceLabel
 // class is also what makes the highlight survive the reader's own re-renders.
 const SPEAKING_CLASS = 'kjb-speaking';
 
-// The player is not a card floating over the page: it breaks out to the same
-// full width as the reader toolbar, shares its white background, and draws the
-// bottom border and shadow the toolbar hands over while it is attached. Same
-// negative margins as the toolbar's own wrapper (-mx-5 / sm:-mx-8 / lg:-mx-12)
-// so the two read as one block.
-const SHELL = 'print:hidden w-full bg-background pb-2';
+// The player is a second row of the reader toolbar: a full-width divider on
+// top, then the same 12px (3) spacing the toolbar uses above its buttons and
+// between its rows. No w-full here: it would stop the negative margins from
+// widening the section, leaving the divider short on one side.
+const SHELL = 'print:hidden -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 mt-3 py-3 border-t border-border bg-background';
 
-// Standalone (no toolbar above it, e.g. with the header hidden): the section has
-// to break out to the page edges and draw its own bottom rule and shadow.
-const SHELL_STANDALONE = 'print:hidden w-full -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background border-b border-border shadow-sm pb-2.5 mb-8';
+// Standalone (no toolbar above it, e.g. with the header hidden): same layout,
+// plus its own bottom rule and shadow.
+const SHELL_STANDALONE = `${SHELL} border-b shadow-sm mb-8`;
+
+// Controls share the toolbar buttons' height, shape and colours.
+const CONTROL = 'h-10 min-w-[2.5rem] flex items-center justify-center rounded-lg bg-secondary border border-border text-secondary-foreground hover:bg-accent/20 transition-colors touch-manipulation';
 
 function clearSpeaking() {
   document.querySelectorAll(`.${SPEAKING_CLASS}`).forEach((el) => el.classList.remove(SPEAKING_CLASS));
@@ -228,11 +230,11 @@ export default function TtsPlayer({ embedded = false, verses, chapterKey, chapte
   if (!tts.isActive) {
     return (
       <section className={embedded ? SHELL : SHELL_STANDALONE}>
-        <div className="flex flex-wrap items-center justify-center gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-3">
           <button
             onClick={startFromView}
             data-testid="tts-listen-btn"
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-95 active:scale-[0.98] transition-all"
+            className="h-10 flex items-center justify-center gap-2 px-6 rounded-lg bg-primary text-primary-foreground font-sans text-sm font-medium hover:opacity-95 active:scale-[0.98] transition-all"
           >
             <Headphones className="w-4 h-4" />
             Listen
@@ -241,7 +243,7 @@ export default function TtsPlayer({ embedded = false, verses, chapterKey, chapte
             <button
               onClick={startFromHere}
               data-testid="tts-start-here-btn"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border bg-secondary text-secondary-foreground font-sans text-xs font-medium hover:bg-accent/20 transition-colors"
+              className={`${CONTROL} gap-1.5 px-3 font-sans text-xs font-medium`}
             >
               <Play className="w-3.5 h-3.5" />
               Start from verse {selectedVerse}
@@ -249,7 +251,7 @@ export default function TtsPlayer({ embedded = false, verses, chapterKey, chapte
           )}
         </div>
         {tts.error && (
-          <p className="font-sans text-[11px] text-destructive text-center max-w-[22rem]">{tts.error}</p>
+          <p className="mt-2 mx-auto font-sans text-[11px] text-destructive text-center max-w-[22rem]">{tts.error}</p>
         )}
       </section>
     );
@@ -259,12 +261,12 @@ export default function TtsPlayer({ embedded = false, verses, chapterKey, chapte
   if (hidden) {
     return (
       <section className={embedded ? SHELL : SHELL_STANDALONE}>
-        <div className="flex items-center justify-center gap-1">
-          <button onClick={onPlayPause} aria-label={tts.status === 'playing' ? 'Pause' : 'Play'} className="p-2 rounded-full hover:bg-accent/20 transition-colors">
+        <div className="flex items-center justify-center gap-3">
+          <button onClick={onPlayPause} aria-label={tts.status === 'playing' ? 'Pause' : 'Play'} className={CONTROL}>
             {tts.status === 'playing' || tts.status === 'loading' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
           </button>
           <span className="font-sans text-xs text-muted-foreground tabular-nums px-1 whitespace-nowrap">{verseRef || 'Paused'}</span>
-          <button onClick={() => setHiddenPersisted(false)} aria-label="Show player" className="p-2 rounded-full hover:bg-accent/20 transition-colors">
+          <button onClick={() => setHiddenPersisted(false)} aria-label="Show player" className={CONTROL}>
             <ChevronUp className="w-4 h-4" />
           </button>
         </div>
@@ -275,18 +277,18 @@ export default function TtsPlayer({ embedded = false, verses, chapterKey, chapte
   // ---- expanded: the full bar, centred ------------------------------------
   return (
     <section className={embedded ? SHELL : SHELL_STANDALONE}>
-        <div className="flex flex-wrap items-center justify-center gap-0.5">
-          <button onClick={withFollow(tts.prev)} aria-label="Previous verse" className="p-2 rounded-full hover:bg-accent/20 transition-colors">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+          <button onClick={withFollow(tts.prev)} aria-label="Previous verse" className={CONTROL}>
             <SkipBack className="w-4 h-4" />
           </button>
           <button
             onClick={onPlayPause}
             aria-label={tts.status === 'playing' || tts.status === 'loading' ? 'Pause' : 'Play'}
-            className="p-2.5 rounded-full bg-primary text-primary-foreground hover:opacity-95 transition-opacity"
+            className="h-10 w-14 flex items-center justify-center rounded-lg bg-primary text-primary-foreground hover:opacity-95 transition-opacity touch-manipulation"
           >
             {tts.status === 'playing' || tts.status === 'loading' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
           </button>
-          <button onClick={withFollow(tts.next)} aria-label="Next verse" className="p-2 rounded-full hover:bg-accent/20 transition-colors">
+          <button onClick={withFollow(tts.next)} aria-label="Next verse" className={CONTROL}>
             <SkipForward className="w-4 h-4" />
           </button>
           <button
@@ -294,7 +296,7 @@ export default function TtsPlayer({ embedded = false, verses, chapterKey, chapte
             aria-label="Reset playback and start this chapter again from verse 1"
             title="Reset to verse 1"
             data-testid="tts-restart-btn"
-            className="p-2 rounded-full hover:bg-accent/20 transition-colors"
+            className={CONTROL}
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -314,7 +316,7 @@ export default function TtsPlayer({ embedded = false, verses, chapterKey, chapte
             <button
               onClick={startFromHere}
               data-testid="tts-start-here-btn"
-              className="flex items-center gap-1 px-2 py-1 rounded-lg border border-border bg-secondary text-secondary-foreground font-sans text-[11px] font-medium hover:bg-accent/20 transition-colors whitespace-nowrap"
+              className={`${CONTROL} gap-1 px-3 font-sans text-xs font-medium whitespace-nowrap`}
             >
               <Play className="w-3 h-3" />
               v{selectedVerse}
@@ -327,7 +329,7 @@ export default function TtsPlayer({ embedded = false, verses, chapterKey, chapte
           <div className="relative" ref={voicePanelRef}>
             <button
               onClick={() => setShowVoices((v) => !v)}
-              className="px-2 py-1 rounded-lg font-sans text-xs text-muted-foreground hover:bg-accent/20 transition-colors whitespace-nowrap"
+              className={`${CONTROL} px-3 font-sans text-xs font-medium whitespace-nowrap`}
               aria-label="Voice and speed"
               aria-expanded={showVoices}
             >
@@ -361,10 +363,10 @@ export default function TtsPlayer({ embedded = false, verses, chapterKey, chapte
               </div>
             )}
           </div>
-          <button onClick={() => setHiddenPersisted(true)} aria-label="Hide player" className="p-2 rounded-full hover:bg-accent/20 transition-colors">
+          <button onClick={() => setHiddenPersisted(true)} aria-label="Hide player" className={CONTROL}>
             <ChevronDown className="w-4 h-4" />
           </button>
-          <button onClick={tts.stop} aria-label="Stop listening" className="p-2 rounded-full hover:bg-accent/20 transition-colors">
+          <button onClick={tts.stop} aria-label="Stop listening" className={CONTROL}>
             <X className="w-4 h-4" />
           </button>
         </div>
