@@ -15,3 +15,16 @@ const subscribe = (fn) => { listeners.add(fn); return () => listeners.delete(fn)
 export function useSpeaking() {
   return useSyncExternalStore(subscribe, () => current, () => null);
 }
+
+// How far the clip that is playing has got, 0..1. Deliberately NOT in the
+// reactive store above: it changes several times a second, and the book view
+// polls it rather than re-rendering the reader on every tick.
+let progress = 0;
+
+export function publishProgress(fraction) {
+  progress = Number.isFinite(fraction) ? Math.min(1, Math.max(0, fraction)) : 0;
+}
+
+export function getProgress() {
+  return progress;
+}

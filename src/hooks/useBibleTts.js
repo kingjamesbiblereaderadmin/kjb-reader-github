@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { DEFAULT_TTS_VOICE, engineForVoice, normalizeVoice, readStored, writeStored, TTS_STORAGE } from '@/lib/tts/voices';
+import { publishProgress } from '@/lib/tts/speaking';
 
 // Verse text arrives with the reader's markup: [italics] brackets, ¶ pilcrows
 // and <<heading>> markers. None of them should be spoken.
@@ -237,6 +238,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       el.ontimeupdate = null;
       el.removeAttribute('src');
     }
+    publishProgress(0);
     setIndex(-1);
     setIntroActive(false);
     setStatus('idle');
@@ -266,16 +268,21 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     const el = getAudio();
     el.ontimeupdate = null;
     el.src = url;
-    if (clip.verse != null) {
+    publishProgress(0);
+    const verseClip = clip.verse != null;
+    if (verseClip) {
       const startAt = startAtRef.current;
       startAtRef.current = 0;
       if (startAt > 0) el.currentTime = startAt;
-      // The verse being read is washed whole, not word by word.
-      el.ontimeupdate = () => {
-        if (token !== tokenRef.current) return;
-        if (resumePoint) resumePoint.time = el.currentTime;
-      };
     }
+    // The verse being read is washed whole, not word by word. How far the clip
+    // has got is reported too, so the book view can turn the page when the voice
+    // passes the foot of the page a long verse starts on.
+    el.ontimeupdate = () => {
+      if (token !== tokenRef.current) return;
+      publishProgress(el.duration ? el.currentTime / el.duration : 0);
+      if (verseClip && resumePoint) resumePoint.time = el.currentTime;
+    };
     el.playbackRate = rateRef.current;
     el.onended = () => {
       if (token === tokenRef.current) onDone();

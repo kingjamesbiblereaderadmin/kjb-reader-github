@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useSta
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { renderVerseText } from '@/lib/bibleApi';
 import TitlePage from '@/components/bible/TitlePage';
-import { useSpeaking } from '@/lib/tts/speaking';
+import { useSpeaking, getProgress } from '@/lib/tts/speaking';
 import { getVerseHighlight } from '@/lib/verseHighlights';
 import './flipbook.css';
 
@@ -238,6 +238,40 @@ export default function FlipBook({
     // Only when the voice moves or the pages are re-laid: turning by hand stays.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spokenAt, pageCount, step, loading, chapterKey]);
+
+  // A verse can run past the foot of the page it starts on, and the voice reads
+  // on regardless — so the book used to sit on the page holding only the first
+  // part of that verse. Turn the page as soon as the reading passes the last
+  // line the open pages show, measured from the clip's own progress.
+  useEffect(() => {
+    if (!spokenAt || spokenAt === 'intro' || spokenAt === 'end' || loading) return undefined;
+    const flow = measureRef.current;
+    if (!flow) return undefined;
+    const flowLeft = flow.getBoundingClientRect().left;
+    const read = () => {
+      if (turn) return true;
+      const el = flow.querySelector(spokenAt);
+      const rects = el ? el.getClientRects() : null;
+      if (!rects || !rects.length) return false;
+      let x0 = Infinity;
+      let x1 = -Infinity;
+      for (const r of rects) {
+        x0 = Math.min(x0, r.left - flowLeft);
+        x1 = Math.max(x1, r.right - flowLeft);
+      }
+      // Where the open pages stop in the chapter's flow.
+      const visibleEnd = (page + step) * (textW + gap);
+      if (x1 <= visibleEnd + 1) return false;
+      const need = Math.max(0, Math.min(1, (visibleEnd - x0) / Math.max(1, x1 - x0)));
+      if (getProgress() < need) return true;
+      turnTo(page + step);
+      return false;
+    };
+    if (!read()) return undefined;
+    const timer = window.setInterval(read, 200);
+    return () => window.clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spokenAt, page, step, pageCount, turn, loading, textW, gap]);
 
   // A verse or section picked in the toolbar, or a search result, opens its page.
   useEffect(() => {
