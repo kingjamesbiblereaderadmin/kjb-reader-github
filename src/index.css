@@ -375,7 +375,7 @@
      in-column rhythm is unchanged (row pb 0.15em + 0.75rem + 0.15em). */
   .kjb-two-col > span {
     margin-top: 0 !important;
-    padding-bottom: calc(0.75rem + 0.15em);
+    padding-bottom: calc(0.9rem + 0.15em);
   }
   /* The verse row's top padding is folded into the bottom padding above, so
      every element that leads a column starts at the exact same y and the two
@@ -979,13 +979,8 @@ html.kjb-native-ios select {
   background-color: hsl(var(--accent) / 0.14);
   box-shadow: inset 3px 0 0 hsl(var(--accent));
   border-radius: 0.2rem;
-  /* The verse number is a <sup> with line-height 0, so its glyph hangs above the
-     row's own box: the wash used to stop halfway up the digits and the verse
-     read as a thin band beside them. Padding lifts the wash to cover the whole
-     number, and the matching negative margin keeps every line of text exactly
-     where it was, so nothing reflows while the chapter is being spoken. */
-  padding-top: 0.55em;
-  margin-top: -0.55em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
   transition: background-color 220ms ease, box-shadow 220ms ease;
 }
 
@@ -1045,20 +1040,35 @@ html.kjb-native-ios select {
   background-color: hsl(var(--accent) / 0.14);
 }
 
-/* In two columns a pilcrow verse's paragraph gap is its own padding-top, so
-   keep the wash AND the left rule to the content box: the gap stays clear.
-   (box-shadow can't be clipped that way, hence the rule is a gradient.) */
-.kjb-two-col > span[data-pilcrow='true'].kjb-speaking {
+/* In two columns the space between verses is each verse's own padding (below,
+   plus above for pilcrow verses). Keep the wash and left rule to the text, so
+   the gaps stay clear. A box-shadow can't be clipped, hence the gradient. */
+.kjb-two-col > span.kjb-speaking {
   background-color: transparent;
   background-image: linear-gradient(to right, hsl(var(--accent)) 3px, hsl(var(--accent) / 0.14) 3px);
   background-origin: content-box;
   background-clip: content-box;
   box-shadow: none;
-  /* The paragraph gap above a pilcrow verse is its own padding-top, and the
-     content-box clip is what keeps the wash out of that gap. So the cover-the-
-     verse-number lift above must not apply here. */
-  padding-top: 0;
+}
+.kjb-two-col > span.kjb-speaking:has(.kjb-dropcap-group) {
+  background-image: linear-gradient(hsl(var(--accent) / 0.14), hsl(var(--accent) / 0.14));
+}
+
+/* ---- Verse rows: numbers and breathing room ----------------------------
+   Preflight raises <sup> (top: -0.5em, line-height: 0), which left each verse
+   number poking out above its row and its highlight. In block verses, sit the
+   number inside the row, level with the first line of text. 2.7083em is the
+   row's 1.625 line height expressed at the number's 0.6em size. */
+span[id^='v'].scroll-mt-24 > span.flex > sup {
+  top: 0;
+  line-height: 2.7083em;
   margin-top: 0;
+}
+/* One-column line-by-line: even space inside every row, playing or not, so the
+   highlight has room around the text and nothing shifts when it moves. */
+:not(.kjb-two-col) > span[id^='v'].scroll-mt-24 > span.flex {
+  padding-top: 0.35em;
+  padding-bottom: 0.35em;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1066,7 +1076,7 @@ html.kjb-native-ios select {
 }
 
 @media print {
-  .kjb-two-col > span[data-pilcrow='true'].kjb-speaking { background-image: none; }
+  .kjb-two-col > span.kjb-speaking { background-image: none !important; }
   .kjb-speaking { background-color: transparent; box-shadow: none; }
   .kjb-speaking .kjb-dropcap-group { background-color: transparent; }
 }

@@ -62,7 +62,7 @@ export default function ReaderToolbar({
             closeAllMenus();
           }
         }}
-        className="kjb-reader-toolbar flex flex-wrap items-stretch justify-stretch gap-3 w-full kjb-frame mx-auto [&>button:not(.kjb-fixed-btn)]:flex-grow [&>button:not(.kjb-fixed-btn)]:basis-auto [&>div.relative]:flex-grow [&>div.relative>button]:w-full">
+        className="kjb-reader-toolbar flex flex-wrap items-stretch justify-center gap-2 w-full kjb-frame mx-auto">
         <div className="relative flex">
           <Popover open={!!(showBookPicker && !isMobile())}>
           <PopoverAnchor asChild>
