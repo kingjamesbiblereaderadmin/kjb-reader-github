@@ -40,6 +40,7 @@ import { saveVerse, isVerseSaved, removeSavedVerse } from '@/lib/savedVerses';
 import { setVerseHighlight, getVerseHighlight, removeVerseHighlight } from '@/lib/verseHighlights';
 import { HIGHLIGHT_COLORS } from '@/lib/highlightColors';
 import { usePinchZoom } from '@/hooks/usePinchZoom';
+import TtsPlayer from '@/components/bible/TtsPlayer';
 import { useReadingProgressTracker } from '@/hooks/useReadingProgressTracker';
 
 import { isMobile, STORAGE_KEY, loadPosition, savePosition, copyToClipboard } from '@/lib/readerPosition';
@@ -1939,6 +1940,18 @@ export default function BibleReader() {
           </button>
           ) : <div className="flex-1" />}
         </div>
+      )}
+
+      {/* Listen: reads the chapter verse by verse and highlights each verse as
+          it is spoken. Audio is generated per verse and cached, so a verse is
+          only ever billed once — see base44/functions/ttsVerse. */}
+      {!loading && !error && !isViewingTitlePage && verses.length > 0 && (
+        <TtsPlayer
+          verses={verses}
+          chapterKey={`${pos.abbr}:${pos.chapter}`}
+          startVerse={highlightVerse}
+          label={book.shortName}
+        />
       )}
 
     </div>

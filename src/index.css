@@ -969,3 +969,23 @@ html.kjb-native-ios select {
 .dark .border-t.border-border {
   border-top-width: 1.5px;
 }
+
+/* ---- Listen player: the verse currently being spoken ---------------------
+   Toggled on the verse element itself (id="v{verse}") by TtsPlayer, not through
+   React state — see the comment in TtsPlayer.jsx. Kept deliberately quiet: a
+   left rule plus a wash of the accent colour, so it reads as "this is playing"
+   without competing with the user's own highlighter colours. */
+.kjb-speaking {
+  background-color: hsl(var(--accent) / 0.14);
+  box-shadow: inset 3px 0 0 hsl(var(--accent));
+  border-radius: 0.2rem;
+  transition: background-color 220ms ease, box-shadow 220ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kjb-speaking { transition: none; }
+}
+
+@media print {
+  .kjb-speaking { background-color: transparent; box-shadow: none; }
+}
