@@ -17,8 +17,8 @@ const FREE_CHARS = 500000;     // Azure neural free tier per month
 const USD_PER_CHAR = 15 / 1e6; // Azure neural after the free tier
 
 const VERSE_REF = /^[A-Z0-9]{2,3}:\d{1,3}:\d{1,3}$/;
-const PAGE = 500;
-const CACHE_MS = 60000;
+const PAGE = 1000;
+const CACHE_MS = 120000;
 
 let cache = { at: 0, data: null };
 
@@ -29,7 +29,18 @@ async function tally(db) {
   let recentChars = 0;
   let skip = 0;
   for (;;) {
-    const page = await db.entities.TtsClip.filter({}, { limit: PAGE, skip });
+    let page = null;
+    for (let attempt = 0; attempt < 4 && page == null; attempt++) {
+      try {
+        page = await db.entities.TtsClip.filter({}, { limit: PAGE, skip });
+      } catch (err) {
+        // The library is being filled while this runs, so a page can land on the
+        // app's per-minute entity limit: wait it out rather than report a
+        // half-counted library.
+        if (attempt === 3) throw err;
+        await new Promise((r) => setTimeout(r, 1200 * (attempt + 1)));
+      }
+    }
     if (!page || page.length === 0) break;
     for (const row of page) {
       if (!row?.ref || !VERSE_REF.test(row.ref)) continue;
