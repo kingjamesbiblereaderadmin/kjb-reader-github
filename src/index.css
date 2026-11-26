@@ -1005,11 +1005,23 @@ html.kjb-native-ios select {
   background-color: hsl(var(--accent) / 0.14);
 }
 
+/* In two columns a pilcrow verse's paragraph gap is its own padding-top, so
+   keep the wash AND the left rule to the content box: the gap stays clear.
+   (box-shadow can't be clipped that way, hence the rule is a gradient.) */
+.kjb-two-col > span[data-pilcrow='true'].kjb-speaking {
+  background-color: transparent;
+  background-image: linear-gradient(to right, hsl(var(--accent)) 3px, hsl(var(--accent) / 0.14) 3px);
+  background-origin: content-box;
+  background-clip: content-box;
+  box-shadow: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .kjb-speaking { transition: none; }
 }
 
 @media print {
+  .kjb-two-col > span[data-pilcrow='true'].kjb-speaking { background-image: none; }
   .kjb-speaking { background-color: transparent; box-shadow: none; }
   .kjb-speaking .kjb-dropcap-group { background-color: transparent; }
 }
