@@ -283,6 +283,42 @@ const PRONOUNCE_RE = new RegExp(
   'gi',
 );
 
+// Standard British (RP) pronunciations, written in IPA because that is the
+// international standard the voice understands directly. A word listed here is
+// never respelled: it keeps its printed spelling and travels as a phoneme tag,
+// so the engine says the dictionary form instead of guessing at the letters.
+const IPA_NAMES: Record<string, string> = {
+  pharaoh: 'ˈfeərəʊ', jehovah: 'dʒɪˈhəʊvə', jerusalem: 'dʒəˈruːsələm',
+  israel: 'ˈɪzreɪl', isaiah: 'aɪˈzaɪə', hezekiah: 'ˌhezɪˈkaɪə',
+  nebuchadnezzar: 'ˌnebjʊkədˈnezə', melchizedek: 'melˈkɪzɪdek',
+  methuselah: 'məˈθjuːzələ', habakkuk: 'ˈhæbəkʊk', zechariah: 'ˌzekəˈraɪə',
+  zephaniah: 'ˌzefəˈnaɪə', nehemiah: 'ˌniːɪˈmaɪə', jeremiah: 'ˌdʒerɪˈmaɪə',
+  obadiah: 'ˌəʊbəˈdaɪə', rehoboam: 'ˌriːəˈbəʊəm', josiah: 'dʒəʊˈsaɪə',
+  uzziah: 'ʌˈzaɪə', manasseh: 'məˈnæsə', ephraim: 'ˈiːfreɪɪm',
+  capernaum: 'kəˈpɜːneɪəm', gethsemane: 'ɡeθˈseməni', golgotha: 'ˈɡɒlɡəθə',
+  thessalonica: 'ˌθesələˈnaɪkə', laodicea: 'ˌleɪədɪˈsiːə', colossae: 'kəˈlɒsi',
+  galatia: 'ɡəˈleɪʃə', philippi: 'fɪˈlɪpaɪ', ephesus: 'ˈefəsəs',
+  antioch: 'ˈæntiɒk', iconium: 'aɪˈkəʊniəm', cyrene: 'saɪˈriːni',
+  pharisees: 'ˈfærɪsiːz', sadducees: 'ˈsædjʊsiːz', pilate: 'ˈpaɪlət',
+  barabbas: 'bəˈræbəs', nicodemus: 'ˌnɪkəˈdiːməs', zacchaeus: 'zæˈkiːəs',
+  bartholomew: 'bɑːˈθɒləmjuː', cornelius: 'kɔːˈniːliəs', theophilus: 'θiˈɒfɪləs',
+  gamaliel: 'ɡəˈmeɪliəl', ananias: 'ˌænəˈnaɪəs', sapphira: 'səˈfaɪrə',
+  epaphroditus: 'ɪˌpæfrəˈdaɪtəs', philemon: 'fɪˈliːmən', apollos: 'əˈpɒləs',
+  aquila: 'ˈækwɪlə', phoebe: 'ˈfiːbi', amorites: 'ˈæməraɪts',
+  hittites: 'ˈhɪtaɪts', hivites: 'ˈhaɪvaɪts', jebusites: 'ˈdʒebjʊsaɪts',
+  perizzites: 'ˈperɪzaɪts', girgashites: 'ˈɡɜːɡəʃaɪts',
+  amalekites: 'əˈmæləkaɪts', ishmaelites: 'ˈɪʃmeɪlaɪts',
+  midianites: 'ˈmɪdiənaɪts', moabites: 'ˈməʊəbaɪts', edomites: 'ˈiːdəmaɪts',
+  kenites: 'ˈkiːnaɪts', philistines: 'fɪˈlɪstaɪnz', canaanites: 'ˈkeɪnənaɪts',
+};
+const IPA_RE = new RegExp(`\\b(${Object.keys(IPA_NAMES).join('|')})\\b`, 'gi');
+const hasIpa = (word: string) => Object.prototype.hasOwnProperty.call(IPA_NAMES, word.toLowerCase());
+
+// Escaped text in, phoneme tags out. Only the listed names are wrapped.
+function phonemeMarkup(escaped: string) {
+  return escaped.replace(IPA_RE, (w) => `<phoneme alphabet="ipa" ph="${IPA_NAMES[w.toLowerCase()]}">${w}</phoneme>`);
+}
+
 // The respellings are written with capitals on the stressed syllable because
 // that is how they are easiest to read and edit, but capitals are never sent to
 // the engine: an all-caps token makes a neural voice spell it out letter by
@@ -291,7 +327,7 @@ const PRONOUNCE_RE = new RegExp(
 function respell(text: string) {
   return text.replace(
     PRONOUNCE_RE,
-    (word) => (PRONOUNCE[word.toLowerCase()] || word).toLowerCase(),
+    (word) => (hasIpa(word) ? word : (PRONOUNCE[word.toLowerCase()] || word).toLowerCase()),
   );
 }
 
@@ -319,7 +355,7 @@ async function azureViaProxy(text: string, voice: string) {
     const upstream = await fetch(AZURE_PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, voice }),
+      body: JSON.stringify({ text, voice, ipa: IPA_NAMES }),
     });
     const data = await upstream.json().catch(() => null);
     if (!upstream.ok || !data?.url) {
@@ -335,7 +371,7 @@ async function azureSpeech(text: string, voice: string) {
   const key = Deno.env.get('AZURE_SPEECH_KEY') || Deno.env.get('GOOGLE_API_KEY');
   const region = Deno.env.get('AZURE_SPEECH_REGION') || 'southeastasia';
   if (!key) return azureViaProxy(text, voice);
-  const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-GB'><voice name='${xmlEscape(voice)}'>${xmlEscape(text)}</voice></speak>`;
+  const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-GB'><voice name='${xmlEscape(voice)}'>${phonemeMarkup(xmlEscape(text))}</voice></speak>`;
   let upstream: Response;
   try {
     upstream = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
