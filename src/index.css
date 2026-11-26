@@ -1059,7 +1059,8 @@ html.kjb-native-ios select {
    number poking out above its row and its highlight. In block verses, sit the
    number inside the row, level with the first line of text. 2.7083em is the
    row's 1.625 line height expressed at the number's 0.6em size. */
-span[id^='v'].scroll-mt-24 > span.flex > sup {
+.kjb-two-col > span[style*='flow-root'] > span.flex > sup { top: 0; }
+:not(.kjb-two-col) > span[id^='v'].scroll-mt-24 > span.flex > sup {
   top: 0;
   line-height: 2.7083em;
   margin-top: 0;
