@@ -270,6 +270,12 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
   const resume = useCallback(() => {
     holdRef.current = false;
     // Still fetching: the element holds the previous clip, so don't replay it.
+    // A failed fetch also leaves the previous clip loaded: retry this verse.
+    if (status === 'error' && index >= 0) {
+      tokenRef.current += 1;
+      playAt(index, tokenRef.current);
+      return;
+    }
     if (fetchingRef.current) {
       setStatus('loading');
       return;
@@ -281,7 +287,7 @@ export default function useBibleTts({ verses, chapterKey, onChapterEnd }) {
     }
     if (resumeSaved()) return;
     start(index >= 0 ? clipsRef.current[index]?.verse : null);
-  }, [index, start, resumeSaved]);
+  }, [index, status, start, playAt, resumeSaved]);
 
   const toggle = useCallback(() => {
     if (status === 'playing' || status === 'loading') pause();
