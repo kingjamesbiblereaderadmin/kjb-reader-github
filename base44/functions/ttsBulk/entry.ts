@@ -20,7 +20,11 @@ const ENGINE = 'azure';
 const AZURE_PROXY_URL = 'https://solene-921ed14e.base44.app/functions/ttsAzure';
 const MAX_ITEMS = 40;
 const MAX_CHARS = 900;
-const CONCURRENCY = 1;
+// Lines inside one batch are voiced in parallel: Azure is billed per character
+// either way, so this only changes how long the library takes to fill, not what
+// it costs. It stays well under the speech resource's burst limit, and the row
+// write is still one per batch, so nothing extra hits the entity allowance.
+const CONCURRENCY = 4;
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
