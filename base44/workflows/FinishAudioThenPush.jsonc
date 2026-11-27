@@ -1,0 +1,45 @@
+{
+  "name": "Finish Audio Then Push Builds",
+  "description": "Watches the last of the word-timing and pronunciation work, then starts the Android and Apple app builds on GitHub once nothing is left. Pushes once; after that it only reports that the builds were started.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "*/10 * * * *",
+      "one_time_date": null,
+      "timezone": "Asia/Singapore",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "after_count",
+      "ends_on_date": null,
+      "ends_after_count": 288
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "finish_audio_then_push_builds",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "check_and_push": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "finishAndPush",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Check the audio work, then push the builds",
+            "description": "Builds start once nothing is pending"
+          }
+        }
+      }
+    ]
+  }
+}
