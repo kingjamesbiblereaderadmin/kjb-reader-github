@@ -75,7 +75,10 @@ export function cleanHeadingForSpeech(raw) {
 // v4: the same happened to the LAST verse of an epistle, voiced together with
 // its subscription ("Written to the Romans from Corinthus…"). Those clips are
 // gone too, so every device asks again.
-const URL_CACHE_KEY = 'kjb-tts-urls-v4';
+// v5: every clip now lives in Base44 storage. Links remembered from the retired
+// external clip host no longer play, and a device that kept one skipped that
+// verse, so the remembered list is dropped and filled again from the server.
+const URL_CACHE_KEY = 'kjb-tts-urls-v5';
 const URL_CACHE_MAX = 4000;
 const urlCache = new Map(); // `${voice}|${ref}` -> mp3 url
 let urlSaveTimer = null;

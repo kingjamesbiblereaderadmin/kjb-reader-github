@@ -92,6 +92,15 @@ async function takeGlobalBudget(db): Promise<boolean> {
   }
 }
 
+// A cached clip is only worth serving if its mp3 can actually be fetched. Some
+// rows still point at the retired external clip host, which no longer answers:
+// the player loaded nothing, stepped over the verse, and that verse was silently
+// skipped for listening. Such a row is treated as a miss and replaced with a
+// fresh upload the next time the verse is asked for.
+function clipUrlUsable(url: string): boolean {
+  return /^https:\/\/([a-z0-9-]+\.)*(base44\.app|base44\.com|wixstatic\.com)\//i.test(String(url || ''));
+}
+
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -600,6 +609,9 @@ export default async function (req) {
   const hash = await sha256Hex(`${engine}|${seed}`);
 
   // 1. Cache hit — no Azure call, no characters billed.
+  // A row whose url can no longer be fetched is remembered here and refreshed
+  // once the clip has been voiced again, instead of being served again.
+  let staleClip: { id: string } | null = null;
   try {
     // filter() returns a page ({items}) in the options form and a plain array
     // in the positional form — accept either so a cache hit never depends on
@@ -613,7 +625,11 @@ export default async function (req) {
     const db = base44.asServiceRole || base44;
     const existing = await db.entities.TtsClip.filter({ hash }, { limit: 1 });
     const hit = Array.isArray(existing) ? existing[0] : existing?.items?.[0] || null;
-    if (hit?.url) return json({ url: hit.url, cached: true, chars: hit.chars || 0 });
+    if (hit?.url && clipUrlUsable(hit.url)) return json({ url: hit.url, cached: true, chars: hit.chars || 0 });
+    if (hit?.url) {
+      console.warn('[ttsVerse] unreachable cached clip, voicing again', clipRef, String(hit.url).slice(0, 60));
+      staleClip = hit;
+    }
   } catch (err) {
     console.error('[ttsVerse] cache lookup failed', err?.message);
   }
@@ -655,7 +671,8 @@ export default async function (req) {
       // A rejected row means this verse is billed again next time: say so in the
       // logs instead of losing it quietly.
       try {
-        await db.entities.TtsClip.create({ hash, voice, chars: text.length, url: clipUrl, ref: clipRef });
+        if (staleClip) await db.entities.TtsClip.update(staleClip.id, { url: clipUrl, chars: text.length });
+        else await db.entities.TtsClip.create({ hash, voice, chars: text.length, url: clipUrl, ref: clipRef });
       } catch (err) {
         console.error('[ttsVerse] cache row rejected', ref, (err as Error)?.message);
       }
@@ -697,7 +714,8 @@ export default async function (req) {
   try {
     const db = base44.asServiceRole || base44;
     try {
-      await db.entities.TtsClip.create({ hash, voice, chars: text.length, url, ref: clipRef });
+      if (staleClip) await db.entities.TtsClip.update(staleClip.id, { url, chars: text.length });
+      else await db.entities.TtsClip.create({ hash, voice, chars: text.length, url, ref: clipRef });
     } catch (err) {
       console.error('[ttsVerse] cache row rejected', ref, (err as Error)?.message);
     }
