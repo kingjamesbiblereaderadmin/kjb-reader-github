@@ -285,14 +285,21 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       const text = cleanVerseForSpeech(v.text);
       if (text) list.push({ verse: n, kind: 'verse', text, ref: `${key}:${n}` });
     });
+    // The chapter's furniture is spoken once. A colophon that repeats the last
+    // verse, or a closing line that repeats the colophon, was heard twice in a
+    // row; the listener should hear each of these lines once, as printed.
+    const sameWords = (a, b) => String(a || '').replace(/\s+/g, ' ').trim().toLowerCase()
+      === String(b || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    const lastText = () => list.length ? list[list.length - 1].text : '';
     const col = cleanVerseForSpeech(colophon);
-    if (col) list.push({ verse: 0, kind: 'col', text: col, ref: `${key}:col` });
+    if (col && !sameWords(col, lastText())) list.push({ verse: 0, kind: 'col', text: col, ref: `${key}:col` });
     // "The End of the Prophets" after Malachi 4, "The End" after Revelation 22:
     // the closing line the reader sees, read after the last verse.
     const end = cleanVerseForSpeech(endMarker);
-    if (end) list.push({ verse: 0, kind: 'end', text: end, ref: `${key}:end` });
+    if (end && !sameWords(end, lastText())) list.push({ verse: 0, kind: 'end', text: end, ref: `${key}:end` });
     return list;
   }, [verses, chapterKey, subscript, colophon, titleText, endMarker]);
+  const lastClipRef = useRef(null);
   const clipsRef = useRef(clips);
   clipsRef.current = clips;
 
@@ -612,6 +619,18 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     if (token !== tokenRef.current) return;
     const list = clipsRef.current;
     if (!list.length) return;
+    // Furniture (a colophon, a subscription, a closing line, a stanza name) is
+    // never read twice back to back: if the clip about to play repeats the
+    // words just spoken in this chapter, step over it. This is the belt to the
+    // clip list's braces, so no path can make the listener hear it twice.
+    const FURNITURE = ['col', 'end', 'sub', 'heading', 'title'];
+    const just = lastClipRef.current;
+    const words = (c) => String(c?.text || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    if (just && just.chapterKey === chapterKey && FURNITURE.includes(list[i].kind)
+        && words(list[i]) === just.words) {
+      return playAtRef.current?.(i + 1, token);
+    }
+    lastClipRef.current = { chapterKey, kind: list[i].kind, words: words(list[i]) };
     holdRef.current = false;
     if (i < 0 || i >= list.length) {
       // End of the chapter. The player decides whether that means "stop" or

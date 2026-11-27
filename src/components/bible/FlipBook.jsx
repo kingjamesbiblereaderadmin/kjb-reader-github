@@ -621,13 +621,36 @@ export default React.forwardRef(function FlipBook({
   // page — so the foot never says less than the pages show.
   const nextOnPages = !!following && (shown.length > 0 && ((fillLastPage && shown.includes(textTotal))
     || (spread && page + 1 === pageCount && page < pageCount)));
+  // Which chapter the voice is reading, when it is reading something on these
+  // pages. A continued page carries the end of this chapter and the start of
+  // the next, so the foot naming both at once was telling the listener two
+  // places at once; while the reading is here it names only the chapter it is
+  // actually in.
+  const spokenKey = publishedSpeaking?.reading ? String(publishedSpeaking.chapterKey || '') : '';
+  const spokenParts = spokenKey.split(/[:\-]/);
+  const spokenAbbr = spokenParts[0] || '';
+  const spokenChapter = Number(spokenParts[1]) || 0;
+  const spokenHere = !shown.length ? null
+    : spokenAbbr === abbr && spokenChapter === chapter ? { name: book.shortName, chapter, page: shown[0] }
+      : nextOnPages && following && spokenAbbr === following.book.abbr && spokenChapter === following.chapter
+        ? { name: following.book.shortName, chapter: following.chapter, page: shown[shown.length > 1 ? 1 : 0] }
+        : null;
+  // The foot: each chapter gets its own page number beside its own name. Two
+  // chapters on the open pages are separated, so "Genesis 2 · 3" is never
+  // mistaken for the page of the chapter named after it.
   const whereLabel = !nextOnPages ? `${book.shortName} ${chapter}`
     : following.book.abbr === abbr ? `${book.shortName} ${chapter}–${following.chapter}`
-      : `${book.shortName} ${chapter} · ${following.book.shortName} ${following.chapter}`;
+      : shown.length > 1
+        ? `${book.shortName} ${chapter} · ${shown[0]} | ${following.book.shortName} ${following.chapter} · ${shown[1]}`
+        : `${book.shortName} ${chapter} · ${shown[0]} | ${following.book.shortName} ${following.chapter}`;
   const where = !shown.length ? (shownContents.length
     ? `Contents · ${shownContents.length > 1 ? `pages ${shownContents[0]}–${shownContents[1]}` : `page ${shownContents[0]}`} of ${contentsPageCount}`
     : 'Title page')
-    : `${whereLabel} · ${shown.length > 1 ? `pages ${shown[0]}–${shown[1]}` : `page ${shown[0]}`} of ${textTotal}`;
+    : spokenHere
+      ? `${spokenHere.name} ${spokenHere.chapter} · page ${spokenHere.page}`
+      : nextOnPages && shown.length > 1 && following.book.abbr !== abbr
+        ? `${whereLabel} of ${textTotal}`
+        : `${whereLabel} · ${shown.length > 1 ? `pages ${shown[0]}–${shown[1]}` : `page ${shown[0]}`} of ${textTotal}`;
 
   // What lies flat underneath, and the sheet that is turning over it.
   let left = page;
