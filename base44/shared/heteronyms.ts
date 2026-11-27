@@ -92,6 +92,13 @@ export const CORRECTED_IPA: Record<string, string> = {
   // Sosthenes (Acts 18:17, 1 Corinthians 1:1) came out as letters spelled one
   // by one. Pinned in IPA so the engine says the name: SOS-thuh-neez.
   sosthenes: 'ˈsɒsθəniːz',
+  // Baptize keeps the Greek -IZE ending (bap-TIZE), not the "bap-tees" the
+  // engine guesses at from the printed letters. Every printed form is pinned.
+  baptize: 'bæpˈtaɪz',
+  baptized: 'bæpˈtaɪzd',
+  baptizest: 'bæpˈtaɪzɪst',
+  baptizeth: 'bæpˈtaɪzɪθ',
+  baptizing: 'bæpˈtaɪzɪŋ',
   goeth: 'ˈɡəʊɪθ', doeth: 'ˈduːɪθ', seeth: 'ˈsiːɪθ',
   lieth: 'ˈlaɪɪθ', dieth: 'ˈdaɪɪθ', useth: 'ˈjuːzɪθ', oweth: 'ˈəʊɪθ',
   loveth: 'ˈlʌvɪθ', moveth: 'ˈmuːvɪθ', giveth: 'ˈɡɪvɪθ',
@@ -187,6 +194,9 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   // file name a clip is uploaded under is derived from its key — so the verse
   // needs a key of its own rather than the plain reference it already used.
   const sosthenesUpdated = /\bsosthenes\b/i.test(text);
+  // "Baptize" and its forms were voiced as "bap-tees" before they were pinned
+  // in IPA, so every verse that prints one needs a recording of its own.
+  const baptizeUpdated = /\bbaptiz(?:e|ed|est|eth|ing)\b/i.test(text);
   const newlyUpdated = /\b(?:maketh|imputeth)\b/i.test(text);
   const updated = /\bmarketh\b|\btheir\s+desert\b|\bbow\s+down\b/i.test(text);
   const source = String(text || '').replace(/\b(their\s+)desert\b/gi, '$1dih-zurt');
@@ -210,5 +220,5 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   const cursedUpdated = /\bcurs-ed\b/i.test(out);
   const adarUpdated = /\badar\b/i.test(text);
   const satUpdated = /\bsatest\b/i.test(text);
-  return { text: out, changed, revision: sosthenesUpdated ? 'h17' : cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
+  return { text: out, changed, revision: baptizeUpdated ? 'h18' : sosthenesUpdated ? 'h17' : cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
 }
