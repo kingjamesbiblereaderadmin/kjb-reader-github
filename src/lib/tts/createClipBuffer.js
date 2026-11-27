@@ -6,6 +6,8 @@ import { wordTimingFor } from '@/lib/tts/timingCache';
 // while the previous verse plays, and keep its prepared element by clip identity.
 export default function createClipBuffer(resolveUrl) {
   const entries = new Map();
+  // Clips the player is waiting on. Eviction must never touch one of these.
+  const pinned = new Set();
   const keyFor = (clip, voice) => `${voice}|${clip.ref || clip.text}`;
   const prepare = (clip, voice) => {
     const key = keyFor(clip, voice);
@@ -70,8 +72,11 @@ export default function createClipBuffer(resolveUrl) {
       throw error;
     });
     entries.set(key, entry);
+    // A later prefetch used to be able to release the clip being handed over,
+    // which left the player waiting on a clip that no longer existed.
     while (entries.size > 4) {
-      const oldest = entries.keys().next().value;
+      const oldest = [...entries.keys()].find((k) => !pinned.has(k));
+      if (oldest == null) break;
       entries.get(oldest).release();
       entries.delete(oldest);
     }
@@ -81,12 +86,18 @@ export default function createClipBuffer(resolveUrl) {
     prepare,
     async take(clip, voice) {
       const key = keyFor(clip, voice);
-      const promise = prepare(clip, voice);
-      const prepared = await promise;
-      if (entries.get(key)?.promise === promise) entries.delete(key);
-      return prepared;
+      pinned.add(key);
+      try {
+        const promise = prepare(clip, voice);
+        const prepared = await promise;
+        if (entries.get(key)?.promise === promise) entries.delete(key);
+        return prepared;
+      } finally {
+        pinned.delete(key);
+      }
     },
     clear() {
+      pinned.clear();
       entries.forEach((entry) => entry.release());
       entries.clear();
     },

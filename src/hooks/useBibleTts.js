@@ -121,6 +121,10 @@ hydrateUrlCache();
 // resource or a hiccup in the proxy, and both clear within seconds. Waiting and
 // asking again is what stops a chapter from dying on its third verse.
 const RETRY_DELAYS = [1500, 3500, 7000];
+// How long a clip may sit with a frozen media clock before it is treated as
+// stalled. Long enough to ride out a phone buffering a streamed verse, short
+// enough that the reading never appears to have died.
+const STALL_GRACE_MS = 12000;
 const FINAL_CODES = new Set(['no_key', 'bad_key', 'quota', 'too_long', 'method_not_allowed']);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -232,6 +236,8 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   const [sinkId, setSinkIdState] = useState(() => readStored(TTS_STORAGE.sink, '') || '');
   const sinkRef = useRef(sinkId);
   sinkRef.current = sinkId;
+  const statusRef = useRef(status);
+  statusRef.current = status;
 
   // Only Chromium exposes setSinkId, so this is a no-op on Safari and iOS.
   const applySink = useCallback((el) => {
@@ -308,6 +314,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   const clearStall = () => {
     if (stallRef.current) {
       clearTimeout(stallRef.current);
+      clearInterval(stallRef.current);
       stallRef.current = 0;
     }
   };
@@ -360,8 +367,20 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       }
       return false;
     }
-    if (token !== tokenRef.current || !prepared) {
+    if (token !== tokenRef.current) {
       prepared?.release();
+      return false;
+    }
+    if (!prepared) {
+      // The buffered copy was dropped before it reached the player. Asking for
+      // it once more keeps the reading going instead of leaving it silent.
+      const droppedKey = `${audioCacheKey(clip, voiceRef.current)}:dropped`;
+      if (!retriedRef.current.has(droppedKey)) {
+        retriedRef.current.add(droppedKey);
+        return playClipRef.current?.(clip, token, onDone, onFail, onStarted) ?? false;
+      }
+      retriedRef.current.delete(droppedKey);
+      (onFail || onDone)?.();
       return false;
     }
 
@@ -435,13 +454,40 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       (onFail || onDone)?.();
     };
     el.onerror = recover;
-    // A request that simply hangs sends no error event and no audio, so it is
-    // caught by time instead: nothing has played 20 seconds after the clip was
-    // handed to the element, and it is treated as a failed clip.
-    stallRef.current = setTimeout(() => {
-      stallRef.current = 0;
-      if (!el.paused && el.currentTime === 0) recover();
-    }, 20000);
+    // A clip can fall silent without any event saying so: a request that hangs
+    // before the first sound, a stream that stalls part-way through a verse, or
+    // an element the phone quietly suspended. This heartbeat watches the media
+    // clock for as long as the clip is meant to be playing: it nudges a frozen
+    // element back to life, and only gives up on the clip after two nudges, so
+    // the reading can never just stop.
+    let lastClock = -1;
+    let quietSince = Date.now();
+    let nudges = 0;
+    stallRef.current = setInterval(() => {
+      if (finished || failed || token !== tokenRef.current || audioRef.current !== el) return;
+      // Nothing is wrong while the app is in the background: the phone suspends
+      // media on purpose, and the wake handler resumes it on return.
+      if (document.hidden || holdRef.current || el.paused) {
+        lastClock = el.currentTime;
+        quietSince = Date.now();
+        return;
+      }
+      if (el.error) { recover(); return; }
+      if (el.currentTime !== lastClock) {
+        lastClock = el.currentTime;
+        quietSince = Date.now();
+        nudges = 0;
+        return;
+      }
+      if (Date.now() - quietSince < STALL_GRACE_MS) return;
+      quietSince = Date.now();
+      if (nudges < 2) {
+        nudges += 1;
+        el.play().catch(() => {});
+        return;
+      }
+      recover();
+    }, 2000);
     const verseClip = clip.verse != null;
     let startAt = 0;
     if (verseClip) {
@@ -459,9 +505,8 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     // passes the foot of the page a long verse starts on.
     el.ontimeupdate = () => {
       if (finished || token !== tokenRef.current || audioRef.current !== el) return;
-      // The clip is playing: it is not stalled, and it no longer counts as a
-      // verse that failed earlier.
-      clearStall();
+      // The clip is playing, so it no longer counts as a verse that failed
+      // earlier. (The stall heartbeat keeps running while it plays.)
       retriedRef.current.delete(clipKey);
       // Only the clip's closing silence is left: move to the next verse now
       // instead of waiting the pause out. The played-time guard keeps a very
@@ -504,9 +549,20 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
         setStatus('paused');
         return true;
       }
-      // The clip itself would not start: retry it, then step over it.
-      recover();
-      return true;
+      // A play() interrupted by a pause, a seek or a source change is not a
+      // broken clip: ask it to start again rather than throwing the verse away.
+      if (err?.name === 'AbortError') {
+        try {
+          await el.play();
+        } catch {
+          recover();
+          return true;
+        }
+      } else {
+        // The clip itself would not start: retry it, then step over it.
+        recover();
+        return true;
+      }
     }
     if (!finished && token === tokenRef.current && audioRef.current === el && !holdRef.current) setStatus('playing');
     return true;
@@ -722,6 +778,29 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     setRateState(value);
     writeStored(TTS_STORAGE.rate, value);
     if (audioRef.current) audioRef.current.playbackRate = value;
+  }, []);
+
+  // A phone suspends the media element while the app is in the background, on a
+  // call, or when the screen locks, and it does not always start again by
+  // itself. Coming back to the app puts the reading back on the verse it was on.
+  useEffect(() => {
+    const wake = () => {
+      const el = audioRef.current;
+      if (!el || holdRef.current || statusRef.current !== 'playing') return;
+      if (!el.paused) return;
+      el.play().catch(() => {});
+    };
+    const onVisible = () => { if (!document.hidden) wake(); };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', wake);
+    window.addEventListener('pageshow', wake);
+    window.addEventListener('online', wake);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', wake);
+      window.removeEventListener('pageshow', wake);
+      window.removeEventListener('online', wake);
+    };
   }, []);
 
   // Leaving the chapter (or the reader) stops the audio — a clip from Genesis 2
