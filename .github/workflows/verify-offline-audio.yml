@@ -33,11 +33,24 @@ jobs:
         run: npm run build && npx cap sync android
 
       - name: Put the Genesis archive into the APK assets
+        # The audio-v1 release is still a draft, and /releases/tags/<tag> does
+        # not return drafts, so the archive is looked up in the release list
+        # with the release token that created it.
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AUDIO_RELEASE_TOKEN: ${{ secrets.AUDIO_RELEASE_TOKEN }}
         run: |
+          set -euo pipefail
           mkdir -p android/app/src/main/assets/audio
-          ID=$(curl -s -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/audio-v1" | jq -r '.assets[] | select(.name=="GEN.zip") | .id') && echo "GEN asset id: $ID" && curl -sL -H "Authorization: token $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/assets/$ID" -o /tmp/GEN.zip && python3 -m zipfile -e /tmp/GEN.zip android/app/src/main/assets/audio/GEN && echo "GEN clips: $(find android/app/src/main/assets/audio/GEN -name '*.mp3' | wc -l)"
+          TOKEN="$AUDIO_RELEASE_TOKEN"
+          ID=$(curl -s -H "Authorization: token $TOKEN" \
+                 "https://api.github.com/repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+               | jq -r '.[] | select(.tag_name=="audio-v1") | .assets[] | select(.name=="GEN.zip") | .id' | head -1)
+          if [ -z "$ID" ] || [ "$ID" = "null" ]; then echo "GEN.zip not found on release audio-v1"; exit 1; fi
+          echo "GEN asset id: $ID"
+          curl -sL -H "Authorization: token $TOKEN" -H "Accept: application/octet-stream" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/assets/$ID" -o /tmp/GEN.zip
+          python3 -m zipfile -e /tmp/GEN.zip android/app/src/main/assets/audio/GEN
+          echo "GEN clips: $(find android/app/src/main/assets/audio/GEN -name '*.mp3' | wc -l)"
 
       - uses: actions/setup-java@v5
         with:
