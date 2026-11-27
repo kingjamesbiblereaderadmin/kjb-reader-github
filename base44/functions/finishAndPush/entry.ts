@@ -20,8 +20,11 @@ export default async function (req) {
 
     const base = { voice: VOICE, url: { $regex: '^https?://' }, ref: { $regex: '^[1-3A-Z]{3}:\\d+:\\d+(:h\\d+)?$' } };
     const [untimed, repairClips, markerPage] = await Promise.all([
-      db.entities.TtsClip.count({ ...base, timing_version: { $exists: false } }),
-      db.entities.TtsClip.count({ ...base, ref: { $regex: ':(h5|h6|h7|h8|h9|h10|h11|h12|h13)$' } }),
+      // A newer recording stores timing_version explicitly as null rather than
+      // omitting it. Counting only $exists:false read those as finished and
+      // would have started the builds while thousands were still unaligned.
+      db.entities.TtsClip.count({ ...base, $or: [{ timing_version: { $exists: false } }, { timing_version: null }] }),
+      db.entities.TtsClip.count({ ...base, ref: { $regex: ':(h5|h6|h7|h8|h9|h10|h11|h12|h13|h14)$' } }),
       db.entities.TtsStat.filter({ key: 'push' }, { limit: 1 }),
     ]);
     const repairsLeft = Math.max(0, REPAIR_TARGETS - repairClips);

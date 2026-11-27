@@ -81,8 +81,8 @@ async function workProgress(db) {
   const verse = { voice: VOICE, ref: { $regex: '^[1-3A-Z]{3}:\\d+:\\d+(:h\\d+)?$' } };
   const [recordings, pending, repaired] = await Promise.all([
     db.entities.TtsClip.count(verse),
-    db.entities.TtsClip.count({ ...verse, timing_version: { $exists: false } }),
-    db.entities.TtsClip.count({ voice: VOICE, ref: { $regex: ':(h5|h6|h7|h8|h9|h10|h11|h12|h13)$' } }),
+    db.entities.TtsClip.count({ ...verse, $or: [{ timing_version: { $exists: false } }, { timing_version: null }] }),
+    db.entities.TtsClip.count({ voice: VOICE, ref: { $regex: ':(h5|h6|h7|h8|h9|h10|h11|h12|h13|h14)$' } }),
   ]);
   return {
     recordings,
