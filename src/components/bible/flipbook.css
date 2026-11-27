@@ -145,6 +145,19 @@
 .kjb-book-context > div { margin-top: 0; padding-block: 8px; }
 .kjb-book-player section { margin: 0; padding: 8px 12px; background: var(--fb-paper); border-color: var(--fb-rule); box-shadow: none; }
 .kjb-book-player button.bg-primary { background: var(--fb-ink); color: var(--fb-paper); }
+/* The chrome paints every button transparent, which left the player's controls
+   as bare, faint icons on the paper — on a phone they read as greyed out, worst
+   in dark mode where a pale icon sits on dark paper with no shape around it.
+   They keep a printed-looking surface and edge instead. */
+.kjb-book-player button.bg-secondary {
+  background: rgba(33, 28, 22, 0.07);
+  border: 1px solid var(--fb-rule);
+  color: var(--fb-ink);
+}
+.dark .kjb-book-player button.bg-secondary { background: rgba(230, 223, 207, 0.14); }
+/* A tap leaves :hover stuck on touch screens; the wash must never dim the one
+   filled control in the row. */
+.kjb-book-player button.bg-primary:hover:not(:disabled) { background: var(--fb-ink); }
 .kjb-book-player { max-height: 28dvh; overflow-y: auto; }
 .kjb-book-navigation { display: grid; grid-template-columns: minmax(44px, 1fr) minmax(0, 3fr) minmax(44px, 1fr); align-items: center; gap: 4px; min-height: 64px; margin-inline: 12px; padding-block: 8px; border-top: 1px solid var(--fb-rule); }
 .kjb-book-page-step { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 8px; font-size: 0.8rem; }
