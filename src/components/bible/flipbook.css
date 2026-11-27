@@ -143,6 +143,10 @@
 
 .kjb-fb-twocol { column-rule: 1px solid var(--fb-rule); font-size: 0.92em; }
 .kjb-fb-twocol .kjb-fb-title { font-size: 1.12em; }
+/* The opening verse wraps around the big letter, leaving very short lines in a
+   narrow column. Justifying them tore wide holes between the words ("ND      I,"),
+   so that verse alone is set ragged right. */
+.kjb-fb-twocol .kjb-fb-first { text-align: left; }
 .kjb-fb-para { text-indent: 1.1em; }
 .kjb-fb-para.kjb-fb-first { text-indent: 0; }
 /* A pilcrow verse that opens a paragraph part-way down the page gets the same
