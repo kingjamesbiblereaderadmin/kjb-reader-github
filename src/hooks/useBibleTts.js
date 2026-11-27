@@ -495,6 +495,10 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       const n = Number(fromVerse);
       const found = list.findIndex((c) => c.verse === n && c.kind === 'verse');
       i = found >= 0 ? found : Math.max(0, list.findIndex((c) => c.verse === n));
+      // A Psalm's superscription is read before verse 1, so starting at verse 1
+      // starts with it. Without this the clip sat at the head of the chapter and
+      // was stepped over by every press of Listen.
+      if (n === 1 && list[0]?.kind === 'sub') i = 0;
     }
     startAtRef.current = 0;
     introRef.current = intro;
