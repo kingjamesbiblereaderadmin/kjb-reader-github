@@ -171,6 +171,15 @@ jobs:
       # known DerivedData path, then assemble the .xcarchive by hand. The export
       # step below re-signs it with an Apple Distribution certificate + App
       # Store profile created via the ASC API key (-allowProvisioningUpdates).
+      - name: Fetch Listen audio into the app bundle
+        # 66 per-book archives (~1.5 GB) unpack into ios/App/App/public/audio,
+        # which the Xcode project ships as a folder reference. Runs after the
+        # staged project and simulator artifacts are captured, so those stay
+        # small; only the signed archive carries the audio.
+        env:
+          AUDIO_RELEASE_TOKEN: ${{ secrets.AUDIO_RELEASE_TOKEN }}
+        run: node scripts/fetch-audio-bundle.js ios
+
       - name: Build (unsigned) and assemble xcarchive
         run: |
           set -euxo pipefail
@@ -220,6 +229,17 @@ jobs:
           </plist>
           EOF
           find build/App.xcarchive -maxdepth 3
+      - name: Verify the archive carries the Listen audio
+        # A short bundle would show up as silent verses in the app, so fail the
+        # build rather than ship one.
+        run: |
+          ARC=build/App.xcarchive/Products/Applications/App.app
+          N=$(find "$ARC/public/audio" -name '*.mp3' | wc -l | tr -d ' ')
+          B=$(find "$ARC/public/audio" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
+          echo "audio in .app: $B books, $N clips"
+          test "$B" -eq 66
+          test "$N" -eq 31102
+
       - name: Generate export options (with team ID)
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -491,6 +511,15 @@ jobs:
           if found == 0:
               print("none found")
           PYPROFILES
+
+      - name: Fetch Listen audio into the app bundle
+        # 66 per-book archives (~1.5 GB) unpack into ios/App/App/public/audio,
+        # which the Xcode project ships as a folder reference. Runs after the
+        # staged project and simulator artifacts are captured, so those stay
+        # small; only the signed archive carries the audio.
+        env:
+          AUDIO_RELEASE_TOKEN: ${{ secrets.AUDIO_RELEASE_TOKEN }}
+        run: node scripts/fetch-audio-bundle.js ios
 
       - name: Build signed macOS archive
         env:

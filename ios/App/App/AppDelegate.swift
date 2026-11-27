@@ -21,12 +21,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             // interrupted first run — e.g. iOS suspended the app mid-index —
             // resumes here without needing a full app relaunch.
             SpotlightIndexer.indexIfNeeded()
+            Self.registerLocalAudioPlugin(attempt: 0)
         }
         // Make every book searchable from iOS Search (Spotlight). Runs in
         // the background and only when the index is missing or stale (see
         // SpotlightIndexer.swift). Per-verse rows are deliberately not
         // indexed: they flooded book-name searches.
         SpotlightIndexer.indexIfNeeded()
+        // Hand the bundled Listen audio to the bridge (loopback server, see
+        // LocalAudioPlugin.swift). The bridge is built a moment after launch,
+        // so keep trying until it exists — the reader retries its own first
+        // call for the same reason.
+        Self.registerLocalAudioPlugin(attempt: 0)
         return true
     }
 
@@ -99,6 +105,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     /// Scene-lifecycle replacement for the old `self.window?.rootViewController`
     /// lookup: find the key window across connected window scenes.
+    /// Registers the loopback audio server plugin once the Capacitor bridge
+    /// exists. Local (in-app) plugins are not in the generated
+    /// packageClassList, so they have to be installed by hand.
+    private static var localAudioRegistered = false
+    static func registerLocalAudioPlugin(attempt: Int) {
+        guard !localAudioRegistered else { return }
+        if let bridge = activeBridgeViewController()?.bridge {
+            bridge.registerPluginInstance(LocalAudioPlugin())
+            localAudioRegistered = true
+            return
+        }
+        guard attempt < 25 else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            registerLocalAudioPlugin(attempt: attempt + 1)
+        }
+    }
+
     static func activeBridgeViewController() -> CAPBridgeViewController? {
         for scene in UIApplication.shared.connectedScenes {
             guard let windowScene = scene as? UIWindowScene else { continue }

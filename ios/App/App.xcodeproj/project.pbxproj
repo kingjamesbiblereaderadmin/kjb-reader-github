@@ -20,6 +20,8 @@
 		A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */; };
 		5A1000000000000000000B01 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1000000000000000000A01 /* ShareViewController.swift */; };
 		5A1000000000000000000B03 /* KJBShare.appex in Embed Foundation */ = {isa = PBXBuildFile; fileRef = 5A1000000000000000000A03 /* KJBShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		CA0FF1B20000000000A5C0DE /* LocalAudioServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0FF1B10000000000A5C0DE /* LocalAudioServer.swift */; };
+		CA0FF1B40000000000A5C0DE /* LocalAudioPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0FF1B30000000000A5C0DE /* LocalAudioPlugin.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +43,8 @@
 		5A1000000000000000000A01 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		5A1000000000000000000A02 /* Share/Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5A1000000000000000000A03 /* KJBShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KJBShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA0FF1B10000000000A5C0DE /* LocalAudioServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAudioServer.swift; sourceTree = "<group>"; };
+		CA0FF1B30000000000A5C0DE /* LocalAudioPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAudioPlugin.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -104,6 +108,8 @@
 				504EC30A1FED79650016851F /* SceneDelegate.swift */,
 				CA0FF1A10000000000A5C0DE /* OfflineFallback.swift */,
 				CA0FF1A30000000000A5C0DE /* SpotlightIndexer.swift */,
+				CA0FF1B30000000000A5C0DE /* LocalAudioPlugin.swift */,
+				CA0FF1B10000000000A5C0DE /* LocalAudioServer.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
 				504EC30E1FED79650016851F /* Assets.xcassets */,
 				504EC3101FED79650016851F /* LaunchScreen.storyboard */,
@@ -300,6 +306,8 @@
 				504EC3091FED79650016851F /* SceneDelegate.swift in Sources */,
 				CA0FF1A20000000000A5C0DE /* OfflineFallback.swift in Sources */,
 				CA0FF1A40000000000A5C0DE /* SpotlightIndexer.swift in Sources */,
+				CA0FF1B40000000000A5C0DE /* LocalAudioPlugin.swift in Sources */,
+				CA0FF1B20000000000A5C0DE /* LocalAudioServer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { DEFAULT_TTS_VOICE, engineForVoice, normalizeVoice, readStored, writeStored, TTS_STORAGE } from '@/lib/tts/voices';
 import { publishProgress } from '@/lib/tts/speaking';
+import { localAudioUrlFor } from '@/lib/tts/localAudio';
 
 // Verse text arrives with the reader's markup: [italics] brackets, ¶ pilcrows
 // and <<heading>> markers. None of them should be spoken.
@@ -112,6 +113,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // so hashing it would miss clips generated from the same verse anywhere else
 // (a bulk run, another device, a corrected verse). The reference is stable.
 async function audioUrlFor(clip, voice) {
+  // Bundled audio first: the native apps ship every verse, so a clip already on
+  // the device plays with no request at all. Deliberately not cached in
+  // urlCache -- a loopback port changes between launches.
+  const local = await localAudioUrlFor(clip.ref);
+  if (local) return local;
+
   const key = `${voice}|${clip.ref || clip.text}`;
   const hit = urlCache.get(key);
   if (hit) return hit;
