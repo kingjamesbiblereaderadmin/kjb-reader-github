@@ -23,9 +23,9 @@ const VERSE_REF = /^[A-Z0-9]{2,3}:\d{1,3}:\d{1,3}$/;
 const PAGE = 1000;
 const CACHE_MS = 120000;
 // The library voice, and the verses the pronunciation audit found needing a
-// fresh recording (its h5, h6 and h7 revisions).
+// fresh recording (its h5, h6, h7 and h8 revisions).
 const VOICE = 'en-GB-RyanNeural';
-const REPAIR_TARGETS = 782;
+const REPAIR_TARGETS = 1063;
 
 let cache = { at: 0, data: null };
 
@@ -82,7 +82,7 @@ async function workProgress(db) {
   const [recordings, pending, repaired] = await Promise.all([
     db.entities.TtsClip.count(verse),
     db.entities.TtsClip.count({ ...verse, timing_version: { $exists: false } }),
-    db.entities.TtsClip.count({ voice: VOICE, ref: { $regex: ':(h5|h6|h7)$' } }),
+    db.entities.TtsClip.count({ voice: VOICE, ref: { $regex: ':(h5|h6|h7|h8)$' } }),
   ]);
   return {
     recordings,

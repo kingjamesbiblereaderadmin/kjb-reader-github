@@ -47,6 +47,10 @@ export const CORRECTED_IPA: Record<string, string> = {
   evildoer: 'ˈiːvəlˌduːə',
   evildoers: 'ˈiːvəlˌduːəz',
   teers: 'tɪəz',
+  // The Authorised Version gives "blessed" its own syllable (BLESS-id). The
+  // hyphen respelling on its own was flattened back to "blest" by the engine,
+  // so the word is pinned in IPA the same way "teers" is.
+  'bless-ed': 'ˈblesɪd',
   goeth: 'ˈɡəʊɪθ', doeth: 'ˈduːɪθ', seeth: 'ˈsiːɪθ',
   lieth: 'ˈlaɪɪθ', dieth: 'ˈdaɪɪθ', useth: 'ˈjuːzɪθ', oweth: 'ˈəʊɪθ',
   loveth: 'ˈlʌvɪθ', moveth: 'ˈmuːvɪθ', giveth: 'ˈɡɪvɪθ',
@@ -131,6 +135,7 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   // Only these corrections get a new recording key. Existing h2 recordings for
   // other settled pronunciations are retained and are not generated again.
   const auditUpdated = /\b(?:goeth|doeth|seeth|lieth|dieth|useth|oweth|loveth|moveth|giveth|crieth|flieth|trieth|drieth|aijeleth|alameth|alemeth|azmaveth|chinnereth|dabbasheth|elisabeth|gennesareth|hammoleketh|hareth|harosheth|haraseth|hareseth|hazarmaveth|japheth|jerubbesheth|jetheth|mephibosheth|meshullemeth|mispereth|nazareth|peleth|beseth|pochereth|remeth|shallecheth|shibboleth|sibboleth|sophereth|tanhumeth|tebeth|topheth|zereth|zoheleth|zoheth|bosheth|ishbosheth|twentieth|thirtieth|fortieth|fiftieth|sixtieth|seventieth|eightieth|ninetieth)\b/i.test(text);
+  const blessedUpdated = /\bblessed\b/i.test(text);
   const tearsUpdated = /\btears\b/i.test(text);
   const evilUpdated = /\bevildoers?\b/i.test(text);
   const newlyUpdated = /\b(?:maketh|imputeth)\b/i.test(text);
@@ -151,5 +156,5 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
     changed = true;
     return /^[A-Z]/.test(word) ? replacement.charAt(0).toUpperCase() + replacement.slice(1) : replacement;
   });
-  return { text: out, changed, revision: auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
+  return { text: out, changed, revision: blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
 }
