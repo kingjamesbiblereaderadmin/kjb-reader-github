@@ -1,4 +1,12 @@
 include ':app'
+
+// Listen audio packs. Included only when KJB_AUDIO_PACKS=1 (set by the Play
+// release build), so OTA APK builds, emulator tests and local builds stay
+// exactly as fast as they were and carry no unused 1.5 GB.
+if (System.getenv('KJB_AUDIO_PACKS') == '1') {
+    include ':audio-pack-1'
+    include ':audio-pack-2'
+}
 include ':capacitor-cordova-android-plugins'
 project(':capacitor-cordova-android-plugins').projectDir = new File('./capacitor-cordova-android-plugins/')
 

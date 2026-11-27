@@ -85,8 +85,19 @@ jobs:
           # rejected. Add it via: base64 -w0 release.keystore, saved as the
           # ANDROID_KEYSTORE_BASE64 secret.
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$ANDROID_KEYSTORE_PATH"
+      - name: Fetch Listen audio into the Play asset packs
+        # 66 per-book archives (~1.5 GB) unpack into android/audio-pack-{1,2},
+        # which only exist for this build (KJB_AUDIO_PACKS=1 below). Play
+        # delivers them as fast-follow packs, so the clips land on the device
+        # without the user waiting through a 1.5 GB install.
+        env:
+          AUDIO_RELEASE_TOKEN: ${{ secrets.AUDIO_RELEASE_TOKEN }}
+        run: node scripts/fetch-audio-bundle.js android
+
       - name: Build signed release (APK + AAB)
         working-directory: android
+        env:
+          KJB_AUDIO_PACKS: '1'
         run: |
           # The "Failed to create Jar file .../jars-9/.../bcprov-*.jar"
           # ("Unsupported class file major version 65") seen here previously
@@ -107,6 +118,16 @@ jobs:
             echo "Build failed after 3 attempts"
             exit 1
           fi
+      - name: Verify the AAB carries the Listen audio
+        # A missing or short pack would ship silent verses, so fail instead.
+        working-directory: android
+        run: |
+          AAB=$(ls app/build/outputs/bundle/release/*.aab | head -1)
+          N=$(unzip -l "$AAB" | grep -c 'assets/audio/.*\.mp3$' || true)
+          P=$(unzip -l "$AAB" | grep -c 'assets.pb$' || true)
+          echo "audio clips in $AAB: $N (pack descriptors: $P)"
+          test "$N" -eq 31102
+
       - name: Rename outputs to kjbreader
         working-directory: android
         run: |

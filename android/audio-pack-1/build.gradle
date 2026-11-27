@@ -1,0 +1,19 @@
+// Listen audio, pack 1 of 2 (fast-follow).
+//
+// The reader's audio is ~1.5 GB of mp3, far past Play's 500 MB base-module
+// limit, so it ships as Play asset packs. Fast-follow means Play downloads the
+// packs automatically right after install without the app being open: the
+// clips are on the device by the time a listener presses play, and nothing is
+// blocked while they arrive (a verse asked for too early falls back to the
+// network, exactly as before this bundle existed).
+//
+// Two packs rather than one because a single asset pack may not exceed 1.5 GB
+// and the library sits just under that line.
+apply plugin: 'com.android.asset-pack'
+
+assetPack {
+    packName = "audio_1"
+    dynamicDelivery {
+        deliveryType = "fast-follow"
+    }
+}

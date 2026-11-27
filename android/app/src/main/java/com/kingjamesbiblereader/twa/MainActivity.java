@@ -1002,6 +1002,32 @@ public class MainActivity extends BridgeActivity {
             // matches none of the app's routes and shows its own "Page Not
             // Found" (PageNotFound.jsx renders the raw pathname as the
             // missing page's name).
+            // Listen audio that ships in the Play asset packs (audio_1 /
+            // audio_2, fast-follow). Served on the live-site host like the
+            // other bundled assets, but ALWAYS rather than only when offline:
+            // the clips are already on the device, so a listener hears a verse
+            // with no network request and no TTS call. AssetManager.open()
+            // reads straight out of the installed pack; while a pack is still
+            // downloading it throws, and the request falls through to the
+            // network -- the exact behaviour before the bundle existed.
+            if (REMOTE_HOST.equals(url.getHost()) && url.getPath() != null
+                && url.getPath().startsWith("/audio/")) {
+                String audioPath = url.getPath().substring(1);
+                try {
+                    InputStream audioStream = view.getContext().getAssets().open(audioPath);
+                    WebResourceResponse audioResponse =
+                        new WebResourceResponse("audio/mpeg", null, audioStream);
+                    Map<String, String> audioHeaders = new HashMap<>();
+                    audioHeaders.put("Cache-Control", "public, max-age=31536000, immutable");
+                    audioHeaders.put("Accept-Ranges", "bytes");
+                    audioResponse.setResponseHeaders(audioHeaders);
+                    return audioResponse;
+                } catch (IOException e) {
+                    // Pack not downloaded yet (or this build carries none):
+                    // fall through to the normal network path below.
+                }
+            }
+
             if (REMOTE_HOST.equals(url.getHost())
                 && (activity.usingOfflineFallback || !activity.isNetworkAvailable())) {
                 String path = url.getPath(); // already starts with "/"

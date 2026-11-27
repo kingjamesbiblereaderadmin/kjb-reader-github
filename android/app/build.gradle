@@ -15,7 +15,13 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
+// Play asset packs carrying the Listen audio (see android/audio-pack-*/). Empty
+// unless KJB_AUDIO_PACKS=1, because an APK cannot carry them and every other
+// build should not pay for them.
+def kjbAudioPacks = System.getenv('KJB_AUDIO_PACKS') == '1' ? [':audio-pack-1', ':audio-pack-2'] : []
+
 android {
+    assetPacks = kjbAudioPacks
     namespace "com.kingjamesbiblereader.twa"
     compileSdk rootProject.ext.compileSdkVersion
     buildFeatures {
