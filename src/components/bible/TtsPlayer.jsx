@@ -184,9 +184,13 @@ function followTallVerse(el) {
   if (visible <= 0) return;
   const overflow = r.height - visible;
   if (overflow <= 0) return;
-  // 0 at the start of the clip (verse top just under the bar) to 1 at its end
-  // (verse foot just above the bottom bar).
-  const delta = r.top - top + overflow * getProgress();
+  // The page holds still until the voice reaches the reading line, two thirds
+  // down the visible area, then walks the verse up beneath it so the words being
+  // read are never left under the bottom bar. The verse's own audio clock drives
+  // it (nudged every quarter second), so the page moves smoothly with the voice
+  // rather than jumping when a line ends.
+  const target = Math.min(overflow, Math.max(0, r.height * getProgress() - visible * 0.66));
+  const delta = (r.top - top) + target;
   if (Math.abs(delta) < 6) return;
   (box.scroller || window).scrollBy({ top: delta });
 }
@@ -636,7 +640,12 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
         <div className={vertical
           ? 'flex flex-col items-stretch gap-1 [&>*]:w-full'
           : inline
-            ? 'flex flex-nowrap items-center justify-end gap-1.5 [&>*]:flex-none overflow-x-auto'
+            // Inline (the minimized reader's slim bar): packed tight and laid
+            // out from the left. justify-end pushed the leading controls off
+            // the left edge where they could not even be scrolled back into
+            // view, which is what made the row look like it was spanning past
+            // the bar.
+            ? 'flex flex-nowrap items-center justify-start gap-1 [&>*]:flex-none overflow-x-auto'
             : 'flex flex-wrap items-center justify-center gap-2 sm:gap-3'}>
           <button onClick={withFollow(tts.prev)} disabled={idle} aria-label="Previous verse" className={`${CONTROL} disabled:opacity-40 disabled:pointer-events-none`}>
             <SkipBack className="w-4 h-4" />
@@ -710,7 +719,9 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
             className={`${CONTROL} gap-1.5 px-2.5 font-sans text-xs font-medium whitespace-nowrap ${autoContinue ? 'bg-accent/20 border-accent/40' : ''}`}
           >
             <Repeat className="w-3.5 h-3.5" />
-            {!vertical && (autoContinue ? 'Continues' : 'One chapter')}
+            {/* The slim bar is short of room, so the switch is its icon alone
+                there; the full row spells it out. */}
+            {!vertical && !inline && (autoContinue ? 'Continues' : 'One chapter')}
           </button>
           <OutputDeviceMenu value={tts.sinkId} onChange={tts.setSink} buttonClass={CONTROL} />
           <OfflineBookControl offline={offlineBook} online={netOnline} compact={inline || vertical} />
