@@ -1977,7 +1977,7 @@ export default function BibleReader() {
               className={`notranslate kjb-subscript text-sm text-foreground mt-2 mb-4 max-w-lg mx-auto leading-relaxed text-center transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`}
               style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem` }}
             >
-              <SubscriptContent text={chapterSubscript} searchTerm={sectionActive('subscript') ? searchTerm : null} />
+              <SubscriptContent text={chapterSubscript} kind="sub" searchTerm={sectionActive('subscript') ? searchTerm : null} />
             </p>
           )}
         </div>
@@ -2044,7 +2044,7 @@ export default function BibleReader() {
               className={`notranslate kjb-subscript text-center text-foreground mb-4 leading-relaxed transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`}
               style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}
             >
-              <SubscriptContent text={chapterSubscript} searchTerm={sectionActive('subscript') ? searchTerm : null} />
+              <SubscriptContent text={chapterSubscript} kind="sub" searchTerm={sectionActive('subscript') ? searchTerm : null} />
             </p>
           ) : null;
 
@@ -2082,7 +2082,7 @@ export default function BibleReader() {
         </div>
         {!loading && !error && colophon && (!(filterMode && selectedVerses.size > 0) || (verses.length > 0 && selectedVerses.has(parseInt(verses[verses.length - 1].verse, 10)))) && (
           <div onClick={() => handleSectionClick('colophon')} id="kjb-colophon-anchor" className={`${columnMode ? 'mt-6 mb-4' : 'mt-12 mb-4 border-t border-border pt-6'} text-center transition-colors duration-500 rounded-lg cursor-pointer ${sectionActive('colophon') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`}>
-            <p className={`notranslate kjb-colophon text-sm text-foreground leading-relaxed ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}><SubscriptContent text={colophon} searchTerm={sectionActive('colophon') ? searchTerm : null} /></p>
+            <p className={`notranslate kjb-colophon text-sm text-foreground leading-relaxed ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}><SubscriptContent text={colophon} kind="col" searchTerm={sectionActive('colophon') ? searchTerm : null} /></p>
           </div>
         )}
       </div>

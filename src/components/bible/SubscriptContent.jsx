@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSpeaking } from '@/lib/tts/speaking';
 
 // Normalizes unicode in subscript/colophon text (smart quotes → straight,
 // replacement-char/pilcrow apostrophes → real apostrophes, merges adjacent
@@ -43,10 +44,17 @@ function HighlightedText({ text, searchTerm }) {
 // dangerouslySetInnerHTML. [bracketed] words become <em>, search terms become
 // <mark>, with a pilcrow prefix. All text is React-escaped by default, so
 // even if the source data were compromised it cannot inject HTML.
-export default function SubscriptContent({ text, searchTerm }) {
+export default function SubscriptContent({ text, searchTerm, kind = null }) {
+  // While the Listen player is reading this note, the words carry the accent
+  // wash themselves. It comes from the speaking store rather than the reader's
+  // own state, so only this small component re-renders on each clip change and
+  // never the whole chapter. `kind` is the player's name for the segment:
+  // 'sub' for a superscription/subscription, 'col' for a closing note.
+  const speaking = useSpeaking();
+  const active = !!kind && speaking?.kind === kind;
   const normalized = normalizeMetaText(text);
   const parts = normalized.split(/\[([^\]]+)\]/g);
-  return (
+  const content = (
     <>
       <span className="pilcrow">¶</span>{' '}
       {parts.map((part, i) =>
@@ -56,4 +64,5 @@ export default function SubscriptContent({ text, searchTerm }) {
       )}
     </>
   );
+  return active ? <span className="kjb-speaking-note">{content}</span> : content;
 }

@@ -994,6 +994,19 @@ html.kjb-native-ios select {
   transition: background-color 220ms ease, box-shadow 220ms ease;
 }
 
+/* The superscription, the subscription and the closing note are one small
+   centred line, so the verse wash above (a faint tint with its rule at the far
+   left of the block, nowhere near the words) was too easy to miss while they
+   were being read. The words themselves are washed here, each line separately,
+   so it is unmistakable that the note is what the voice is reading. */
+.kjb-speaking-note {
+  background-color: hsl(var(--accent) / 0.22);
+  border-radius: 0.25rem;
+  padding: 0.08em 0.14em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
 /* The book name and the chapter line are short, tight runs of type, and the
    wash sat straight on the glyphs like a highlighter pressed too hard. A halo
    in the same wash gives the highlight room around the words without adding
