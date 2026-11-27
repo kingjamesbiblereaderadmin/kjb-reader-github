@@ -1,6 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.63';
-import { loadPceBible, BOOK_ORDER, processVerse } from '../../shared/biblePceData.ts';
-import { applyHeteronyms } from '../../shared/heteronyms.ts';
+import { PRONUNCIATION_REVISIONS, pendingPronunciationTargets } from '../../shared/pronunciationTargets.ts';
 
 // Only the specific repairs found by the whole-Bible text audit are regenerated.
 export default async function(req) {
@@ -10,31 +9,10 @@ export default async function(req) {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     if (user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
     const body = await req.json().catch(() => ({}));
-    const revisions = ['h5','h6','h7','h8','h9','h10','h11','h12','h13','h14','h15'];
-    if (body.revision && !revisions.includes(body.revision)) return Response.json({ error: 'Invalid pronunciation revision' }, { status: 400 });
+    if (body.revision && !PRONUNCIATION_REVISIONS.includes(body.revision)) return Response.json({ error: 'Invalid pronunciation revision' }, { status: 400 });
     const deadline = Date.now() + 190000;
-    const books = ['GEN','EXO','LEV','NUM','DEU','JOS','JDG','RUT','1SA','2SA','1KI','2KI','1CH','2CH','EZR','NEH','EST','JOB','PSA','PRO','ECC','SNG','ISA','JER','LAM','EZK','DAN','HOS','JOL','AMO','OBA','JON','MIC','NAM','HAB','ZEP','HAG','ZEC','MAL','MAT','MRK','LUK','JHN','ACT','ROM','1CO','2CO','GAL','EPH','PHP','COL','1TH','2TH','1TI','2TI','TIT','PHM','HEB','JAS','1PE','2PE','1JN','2JN','3JN','JUD','REV'];
-    const bible = await loadPceBible();
-    const candidates = [];
-    BOOK_ORDER.forEach((book, index) => {
-      Object.entries(bible[book] || {}).forEach(([chapter, verses]) => {
-        if (!Array.isArray(verses)) return;
-        verses.forEach((verse) => {
-          const text = processVerse(verse, { book, chapter: Number(chapter) }).text;
-          const revision = applyHeteronyms(text).revision;
-          if (!revisions.includes(revision) || (body.revision && revision !== body.revision)) return;
-          const ref = `${books[index]}:${chapter}:${verse.verse}`;
-          candidates.push({ ref, text, expected: `${ref}:${revision}` });
-        });
-      });
-    });
-    const seen = new Set();
-    for (let at = 0; at < candidates.length; at += 500) {
-      const page = await base44.asServiceRole.entities.TtsClip.filter({ voice: 'en-GB-RyanNeural', ref: { $in: candidates.slice(at, at + 500).map((r) => r.expected) } }, { limit: 500 });
-      (page.items || page).forEach((r) => seen.add(r.ref));
-    }
-    const pending = candidates.filter((r) => !seen.has(r.expected));
-    const status = { repaired: 0, remaining: pending.length, reviewedVerses: 31102, targetedVerses: candidates.length };
+    const { candidates, pending, latestByBook } = await pendingPronunciationTargets(base44.asServiceRole, body.revision || '');
+    const status = { repaired: 0, remaining: pending.length, reviewedVerses: 31102, targetedVerses: candidates.length, latestByBook };
     if (body.statusOnly === true || !pending.length) return Response.json(status);
     // Small persisted batches survive interruption. Subsequent runs discover
     // only missing revision keys, rather than charging for completed work again.

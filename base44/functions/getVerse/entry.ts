@@ -3,6 +3,7 @@ import {
   loadPceBible,
   processVerse,
 } from "../../shared/biblePceData.ts";
+import { resolveBibleBook } from '../../shared/bibleBookCodes.ts';
 
 // Public, no-auth verse/chapter/range lookup endpoint for the KJB Reader
 // browser extension. Loads the KJB (Pure Cambridge Edition) via the shared
@@ -33,18 +34,22 @@ export default async function (req) {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
-    const body = await req.json();
+    if (req.method !== 'POST') return json({ error: 'Use POST with a JSON verse reference' }, 405);
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return json({ error: 'A JSON request object is required' }, 400);
     const rawBook = String(body.book || "").trim();
     const chapter = Number(body.chapter);
     const verse = body.verse != null ? Number(body.verse) : null;
     const endVerse = body.endVerse != null ? Number(body.endVerse) : null;
 
-    if (!rawBook || !Number.isFinite(chapter)) {
-      return json({ error: "book and chapter required" }, 400);
+    if (!rawBook || !Number.isInteger(chapter) || chapter < 1) {
+      return json({ error: 'A book and positive whole chapter number are required' }, 400);
     }
-
-    // Accept either a full name ("John") or an abbreviation ("Joh").
-    const bookName = ABBR_TO_NAME[rawBook] || rawBook;
+    if ((verse != null && (!Number.isInteger(verse) || verse < 1)) || (endVerse != null && (!Number.isInteger(endVerse) || endVerse < 1 || verse == null || endVerse < verse))) {
+      return json({ error: 'A valid positive verse number or ascending verse range is required' }, 400);
+    }
+    const bookName = resolveBibleBook(rawBook);
+    if (!bookName) return json({ error: `Unknown book: ${rawBook}` }, 400);
 
     const bible = await loadPceBible();
     const rawVerses = bible[bookName]?.[String(chapter)];

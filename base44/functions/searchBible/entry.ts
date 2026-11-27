@@ -6,6 +6,7 @@ import {
   normalizePilcrows,
   PSALM_SUPERSCRIPTIONS,
 } from "../../shared/bibleData.ts";
+import { resolveBibleBook } from '../../shared/bibleBookCodes.ts';
 
 // Public, no-auth Bible search endpoint for the KJB Reader browser extension.
 // Searches the "visible" text (brackets/pilcrows/superscriptions stripped) so
@@ -90,7 +91,9 @@ export default async function (req) {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
-    const body = await req.json();
+    if (req.method !== 'POST') return json({ error: 'Use POST with a JSON search query' }, 405);
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return json({ error: 'A JSON request object is required' }, 400);
     // Normalize a curly apostrophe (mobile "smart punctuation") to a plain
     // one, so the query matches verse text regardless of which apostrophe
     // form the caller's keyboard produced.
@@ -115,8 +118,8 @@ export default async function (req) {
     let booksToSearch;
     if (bookFilter) {
       // Accept either a full name ("John") or an abbreviation ("Joh").
-      const fullName = ABBR_TO_NAME[bookFilter] || bookFilter;
-      if (!bible[fullName]) return json({ error: `Unknown book: ${bookFilter}` }, 400);
+      const fullName = resolveBibleBook(bookFilter);
+      if (!fullName || !bible[fullName]) return json({ error: `Unknown book: ${bookFilter}` }, 400);
       booksToSearch = [fullName];
     } else if (testament === "old") {
       booksToSearch = BOOK_ORDER.filter((b) => OLD_TESTAMENT.has(b));

@@ -9,6 +9,8 @@
 // Open /functions/ttsProgress for the page, or ?format=json for the numbers.
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.63';
+import { recordingTimingQuery } from '../../shared/timingScope.ts';
+import { pendingPronunciationTargets } from '../../shared/pronunciationTargets.ts';
 
 // The whole King James text as measured from the reader's own source file.
 const TOTAL_VERSES = 31102;
@@ -79,17 +81,15 @@ async function tally(db) {
 // the audited pronunciation re-recordings. Counts only — no rows are read, so
 // this adds nothing to the page's own entity allowance.
 async function workProgress(db) {
-  const verse = { voice: VOICE, ref: { $regex: '^[1-3A-Z]{3}:\\d+:\\d+(:h\\d+)?$' } };
-  const [recordings, pending, repaired] = await Promise.all([
-    db.entities.TtsClip.count(verse),
-    db.entities.TtsClip.count({ ...verse, $or: [{ timing_version: { $exists: false } }, { timing_version: null }] }),
-    db.entities.TtsClip.count({ voice: VOICE, ref: { $regex: ':(h5|h6|h7|h8|h9|h10|h11|h12|h13|h14)$' } }),
+  const scope = recordingTimingQuery();
+  const [recordings, pending, repairs] = await Promise.all([
+    db.entities.TtsClip.count(scope),
+    db.entities.TtsClip.count({ ...scope, $or: [{ timing_version: { $exists: false } }, { timing_version: null }, { timing_version: -1 }] }),
+    pendingPronunciationTargets(db),
   ]);
   return {
-    recordings,
-    timed: Math.max(0, recordings - pending),
-    repairs: Math.min(repaired, REPAIR_TARGETS),
-    repairTargets: REPAIR_TARGETS,
+    recordings, timed: Math.max(0, recordings - pending),
+    repairs: repairs.candidates.length - repairs.pending.length, repairTargets: repairs.candidates.length,
   };
 }
 
@@ -128,7 +128,7 @@ function bundleSection(bundle) {
   <section>
     <h1>Native audio bundle</h1>
     <p class="sub">${escapeHtml(bundle.phase)}</p>
-    <p class="big">${nf(done)}<span> of ${nf(total)} clips</span></p>
+    <p class="big">${nf(done)}<span> of ${nf(total)} ${escapeHtml(bundle.unit || 'clips')}</span></p>
     <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
     <p class="sub">${gb} GB pulled for the app bundle${updatedUtc ? ` · updated ${updatedUtc}` : ''}</p>
   </section>`;
@@ -143,7 +143,7 @@ function workSection(work) {
   return `
   <section style="margin-top:26px;padding-top:20px;border-top:1px solid #ece8e0">
     <h1>Word timing</h1>
-    <p class="sub">Matching each recorded verse to the words it speaks</p>
+    <p class="sub">Matching verses, titles, announcements and notes to their recorded words</p>
     <p class="big">${nf(work.timed)}<span> of ${nf(work.recordings)} recordings</span></p>
     <div class="bar"><div class="fill" style="width:${share(work.timed, work.recordings)}%"></div></div>
     <div class="row"><span>${nf(Math.max(0, work.recordings - work.timed))} left</span><span>${share(work.timed, work.recordings)}%</span></div>
@@ -210,7 +210,7 @@ function pageHtml(d, bundle, work) {
   <dl>
     <dt>Characters recorded</dt><dd>${nf(d.chars)} / ${nf(TOTAL_CHARS)}</dd>
     <dt>Outside the current cache</dt><dd>${nf(left)} characters</dd>
-    <dt>Recorded audio, at $15/1M</dt><dd>$${spent.toFixed(2)}</dd>
+    <dt>Cached audio estimate, at $15/1M</dt><dd>$${spent.toFixed(2)}</dd>
     <dt>Recent pace</dt><dd>${rate > 0 ? `${nf(Math.round(rate))} characters/min` : 'paused'}</dd>
     <dt>Measured over</dt><dd>${rate > 0 ? basis : 'nothing running'}</dd>
     <dt>Recording status</dt><dd>See timing and repair progress below</dd>
@@ -274,6 +274,12 @@ Deno.serve(async (req) => {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; kjb-progress/1.0)' },
     });
     if (r.ok) bundle = await r.json();
+    const progressPage = await db.entities.TtsStat.filter({ key: 'bundle_refresh' }, { limit: 1 });
+    const progress = (progressPage.items || progressPage)[0];
+    if (progress?.recentChars > 0) bundle = {
+      phase: progress.verses >= progress.recentChars ? 'Latest pronunciation corrections bundled. All original verses retained.' : 'Refreshing offline archives with corrected recordings. Original verses are retained.',
+      done: progress.verses || 0, total: progress.recentChars, unit: 'books', updated: progress.updated,
+    };
   } catch (_) {
     bundle = null;
   }

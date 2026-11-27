@@ -5,11 +5,11 @@
     "key": {
       "type": "string",
       "maxLength": 32,
-      "description": "Which counter this row holds \u2014 'library' is the whole Bible voice library"
+      "description": "Which counter this row holds: library, spend, push, or bundle_refresh"
     },
     "verses": {
       "type": "integer",
-      "description": "Verses with a cached clip at the last successful count"
+      "description": "Verses with a cached clip, or completed units for the named counter"
     },
     "chars": {
       "type": "integer",
@@ -17,7 +17,11 @@
     },
     "recentChars": {
       "type": "integer",
-      "description": "Characters voiced in the ten minutes before that count"
+      "description": "Characters voiced in the ten minutes before that count, or total units for bundle_refresh"
+    },
+    "hourChars": {
+      "type": "integer",
+      "description": "Characters voiced in the hour before the last successful library count"
     },
     "updated": {
       "type": "string",

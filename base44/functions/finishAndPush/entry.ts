@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.63';
 import { recordingTimingQuery } from '../../shared/timingScope.ts';
+import { loadAudioRelease } from '../../shared/audioArchive.ts';
 
 // The last step of the audio work: once every recording carries word timing and
 // every pronunciation repair has been re-recorded, the native app builds are
@@ -33,7 +34,7 @@ export default async function (req) {
     const ready = untimed === 0 && repairsLeft === 0;
     const marker = (markerPage.items || markerPage)[0] || null;
 
-    if (body.statusOnly === true || !ready) return Response.json({ ready, untimed, repairsLeft, pushed: marker?.updated || null });
+    if (!ready) return Response.json({ ready: false, untimed, repairsLeft, pushed: marker?.updated || null });
     if (marker && body.force !== true) return Response.json({ ready: true, alreadyPushed: marker.updated, builds: [] });
 
     const { accessToken } = await db.connectors.getConnection('github');
@@ -44,11 +45,28 @@ export default async function (req) {
       'Content-Type': 'application/json',
       'User-Agent': 'kjb-reader',
     };
+    // Never start native builds from stale reader code or old audio archives.
+    const root = `https://api.github.com/repos/${REPO}`;
+    const files = ['src/lib/tts/pronunciationRevision.js', 'src/lib/tts/rangeHighlightOverlay.js', 'src/components/bible/BookFlowPrefix.jsx'];
+    const responses = await Promise.all([...files.map((file) => fetch(`${root}/contents/${file}?ref=${REF}`, { headers: { ...headers, Accept: 'application/vnd.github.raw+json' }, signal: AbortSignal.timeout(12000) })), loadAudioRelease(headers)]);
+    const code = await Promise.all(responses.slice(0, 3).map((response) => response.ok ? response.text() : Promise.resolve('')));
+    const sourceReady = code[0].includes("return 'h15'") && code[1].includes('paintRangeHighlight') && code[2].includes('BookFlowPrefix');
+    const release = responses[3];
+    const assets = new Map((release?.assets || []).map((asset) => [asset.name, asset.updated_at]));
+    const latestByBook = (repairResponse.data || repairResponse).latestByBook || {};
+    const staleBooks = Object.entries(latestByBook).filter(([book, date]) => {
+      const updated = assets.get(`${book === 'JUD' ? 'JDE' : book}.zip`);
+      return !updated || Date.parse(updated) < Date.parse(String(date));
+    }).map(([book]) => book);
+    const bundleReady = (release?.assets || []).filter((asset) => asset.name.endsWith('.zip')).length === 66 && staleBooks.length === 0;
+    const state = { ready: sourceReady && bundleReady, untimed, repairsLeft, sourceReady, bundleReady, staleBooks, pushed: marker?.updated || null };
+    if (body.statusOnly === true || !state.ready) return Response.json(state);
     const dispatch = async (file, inputs) => {
       const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${file}/dispatches`, {
         method: 'POST',
         headers,
         body: JSON.stringify(inputs ? { ref: REF, inputs } : { ref: REF }),
+        signal: AbortSignal.timeout(12000),
       });
       return { file, ok: r.ok, status: r.status, detail: r.ok ? '' : (await r.text()).slice(0, 200) };
     };

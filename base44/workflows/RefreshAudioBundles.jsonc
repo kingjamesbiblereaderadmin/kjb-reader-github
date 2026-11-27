@@ -1,0 +1,47 @@
+{
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "refresh_corrected_audio_bundles",
+      "version": "1.0.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "refresh_books": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "refreshAudioBundles",
+            "args": {
+              "maxBooks": 3
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Refresh corrected offline audio",
+            "description": "Preserve every verse and skip completed books"
+          }
+        }
+      }
+    ]
+  },
+  "description": "Refreshes existing offline book archives with the latest approved pronunciation recordings, only after their word timings are saved. Keeps every original verse, uploads each replacement before replacing the old archive, and skips books already refreshed.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "*/5 * * * *",
+      "one_time_date": null,
+      "timezone": "Asia/Singapore",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "name": "Refresh Corrected Audio Bundles"
+}
