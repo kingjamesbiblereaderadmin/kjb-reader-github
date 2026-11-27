@@ -133,9 +133,6 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   const [autoContinue, setAutoContinue] = useState(() => readStored(TTS_STORAGE.autoContinue, 'true') !== 'false');
   const autoContinueRef = useRef(autoContinue);
   autoContinueRef.current = autoContinue;
-  // Hidden = controls collapse to a single pill; audio keeps playing. Remembered
-  // per device so a reader who listens while reading never sees the bar again.
-  const [hidden, setHidden] = useState(() => readStored(TTS_STORAGE.hidden, 'false') === 'true');
 
   // The verse the reader last tapped: "start from here" plays from it.
   const [selectedVerse, setSelectedVerse] = useState(null);
@@ -407,14 +404,8 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   }, [tts.isActive, bookName, label, chapter, tts.currentVerse, tts.currentKind, tts.introActive]);
   useEffect(() => () => clearMediaMetadata(), []);
 
-  const setHiddenPersisted = useCallback((value) => {
-    setHidden(value);
-    writeStored(TTS_STORAGE.hidden, value);
-  }, []);
-
-  // Idle, the section only exists while the toolbar's headphones button has it
-  // open. During playback it always shows, and that same button switches
-  // between the full controls and the compact pill.
+  // Idle or playing, the section only shows while it is open. Hiding it leaves
+  // the reading going; the headphones button carries the live mark meanwhile.
   // The reader opens the player, not the audio. Carrying on into the next
   // chapter stops playback for a moment and starts it again, so opening the
   // panel on every start put the popup back over the book at each chapter
@@ -427,19 +418,11 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     autoOpenedRef.current = true;
     // In book view the panel is opened and closed by the headphones button, so
     // starting the reading leaves it as it is rather than closing it.
-    onOpenChange?.(vertical ? true : !hidden);
+    onOpenChange?.(true);
     // Only react to playback starting or stopping.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tts.isActive]);
   useEffect(() => () => onActiveChange?.(false), []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const wasOpenRef = useRef(open);
-  useEffect(() => {
-    if (wasOpenRef.current === open) return;
-    wasOpenRef.current = open;
-    if (tts.isActive && !vertical && open === hidden) setHiddenPersisted(!open);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
 
   // While the book and chapter are being announced there is no verse yet, so
   // name what is being read.
@@ -464,7 +447,6 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   const playFrom = (verse) => {
     followRef.current = true;
     skipScrollRef.current = true;
-    if (hidden) setHiddenPersisted(false);
     const intro = chapter >= 1
       ? { ref: `${chapterKey}:intro`, text: `${bookName || label}, chapter ${chapter}` }
       : null;
@@ -533,46 +515,14 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
 
   const withFollow = (fn) => () => { followRef.current = true; fn(); };
 
-  // Idle and not opened from the toolbar: nothing to show. In book view the
-  // panel hangs off the headphones button, so that button alone decides whether
-  // it is on screen — including while the reading plays on.
+  // Closed: nothing to show. The component stays mounted, so audio carries on.
   const idle = !tts.isActive;
-  if ((vertical ? !open : idle && !open) && !tts.error) return null;
+  if (!open && !tts.error) return null;
 
   // Where the player sits: its own row under the toolbar, a standalone section
   // with the header hidden, inline in the minimized header bar, or a column of
   // controls in the book's right margin (the panel draws the card itself).
   const shell = vertical ? 'print:hidden' : inline ? SHELL_INLINE : embedded ? SHELL : SHELL_STANDALONE;
-
-  // ---- hidden: a compact bar that still drives playback --------------------
-  // Minimising the player folds away the extra controls, never the playback
-  // itself: prev, play/pause and next stay, so listening can be driven without
-  // reopening the full row. The book's column is already the compact form.
-  if (hidden && !idle && !vertical) {
-    return (
-      <section className={shell}>
-        <div className="flex items-center justify-center gap-2">
-          <button onClick={withFollow(tts.prev)} aria-label="Previous verse" className={CONTROL}>
-            <SkipBack className="w-4 h-4" />
-          </button>
-          <button
-            onClick={onPlayPause}
-            aria-label={tts.status === 'playing' || tts.status === 'loading' ? 'Pause' : 'Play'}
-            className={`${CONTROL} w-14 bg-primary text-primary-foreground dark:text-white`}
-          >
-            {tts.status === 'playing' || tts.status === 'loading' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-          </button>
-          <button onClick={withFollow(tts.next)} aria-label="Next verse" className={CONTROL}>
-            <SkipForward className="w-4 h-4" />
-          </button>
-          <span className="font-sans text-xs text-muted-foreground tabular-nums px-1 whitespace-nowrap">{verseRef || 'Paused'}</span>
-          <button onClick={() => { setHiddenPersisted(false); onOpenChange?.(true); }} aria-label="Show player" className={CONTROL}>
-            <ChevronUp className="w-4 h-4" />
-          </button>
-        </div>
-      </section>
-    );
-  }
 
   // ---- expanded: the full bar, centred ------------------------------------
   return (
@@ -669,18 +619,16 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
             {/* The slim bar is short of room, so the switch is its icon alone
                 there; the full row spells it out. */}
             {vertical ? <span className="text-[10px] font-semibold">{autoContinue ? 'On' : 'Off'}</span>
-              : !inline && (autoContinue ? 'Continues' : 'One chapter')}
+              : !inline && (autoContinue ? 'Continueth' : 'One chapter')}
           </button>
           <OutputDeviceMenu value={tts.sinkId} onChange={tts.setSink} buttonClass={CONTROL} />
           {!previewMode && <OfflineBookControl offline={offlineBook} online={netOnline} compact={inline || vertical} />}
-          {/* Only book view needs a minimise control of its own: its panel has no
-              toolbar above it to fold it away. Under the toolbar the headphones
-              button already opens and closes the player, so a second minimise
-              here was a duplicate (and the control that got stranded on a line
-              of its own). */}
-          {!idle && !inline && vertical && (
-            <button onClick={() => onOpenChange?.(false)} aria-label="Hide player" className={CONTROL}>
-              <ChevronRight className="w-4 h-4" />
+          {/* Hides the player while the reading carries on. Sideways in the slim
+              bar and book view, so it is not mistaken for the show-header
+              chevron. */}
+          {!idle && (
+            <button onClick={() => onOpenChange?.(false)} aria-label="Hide player" title="Hide player, keep playing" data-testid="tts-hide-btn" className={CONTROL}>
+              {vertical || inline ? <ChevronRight className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
             </button>
           )}
           {(!idle || embedded || inline) && (

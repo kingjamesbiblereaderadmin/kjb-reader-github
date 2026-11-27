@@ -1802,14 +1802,13 @@ export default function BibleReader() {
   // The player is rendered in both header states (the toolbar becomes the slim
   // bar when the header is hidden), so hiding the header no longer unmounts it.
   const ttsAttached = ttsPlayerVisible;
-  // With the header hidden there is no headphones button, so the section stays.
-  const ttsSectionShown = listenOpen || ttsActive;
+  const ttsSectionShown = listenOpen;
   const ttsPlayerNode = ttsPlayerVisible ? (
     <TtsPlayer
       embedded={!hideHeader || flipbookOpen}
       inline={hideHeader && !flipbookOpen}
       vertical={flipbookOpen}
-      open={(hideHeader && !flipbookOpen) || listenOpen}
+      open={listenOpen}
       onOpenChange={setListenOpen}
       onActiveChange={setTtsActive}
       onRestart={() => { setHighlightVerse(null); setHighlightSection(null); }}

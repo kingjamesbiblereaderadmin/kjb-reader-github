@@ -642,22 +642,24 @@ export default function ReaderToolbar({
       </>
       )}
       <ReaderControlSlot enabled={bookMode} target={bookSlots.player}>
-        {/* In the slim bar the player takes the row while something is playing
-            (or it has been opened); idle, the bar offers the headphones button
-            that opens it, exactly as it did before. */}
-        {slim && !(listenOpen || listenActive) ? (
+        {/* In the slim bar the player takes the row while it is open; closed,
+            the bar offers the headphones button that opens it. */}
+        {slim && !listenOpen && (
           <div className="flex-1 min-w-0 flex items-center justify-end">
             <button
               onClick={onToggleListen}
               title="Listen"
               aria-label="Listen"
               data-testid="tts-bar-btn"
-              className="p-2 rounded-lg bg-secondary hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation flex items-center justify-center cursor-pointer"
+              className="relative p-2 rounded-lg bg-secondary hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation flex items-center justify-center cursor-pointer"
             >
               <Headphones className="w-4 h-4 pointer-events-none" />
+              {listenActive && <span className="kjb-listen-live" style={{ top: 3, right: 3 }} aria-hidden="true" />}
             </button>
           </div>
-        ) : playerSlot}
+        )}
+        {/* Always mounted, so hiding the player never cuts the audio. */}
+        {playerSlot}
       </ReaderControlSlot>
 
     </div>
