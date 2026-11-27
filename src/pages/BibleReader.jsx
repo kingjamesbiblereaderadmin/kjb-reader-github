@@ -1833,7 +1833,7 @@ export default function BibleReader() {
 
   // Keep the same working controls, assigning them to page corners and margins
   // in book view rather than rendering a toolbar across the top.
-  const toolbarNode = !hideHeader || flipbookOpen ? (
+  const toolbarNode = (
     <ReaderToolbar
       bookMode={flipbookOpen}
       topRef={topRef} hideHeader={hideHeader} setHideHeader={setHideHeader}
@@ -1883,7 +1883,7 @@ export default function BibleReader() {
       handleTapCopy={handleTapCopy} handleTapShare={handleTapShare} handleTapSave={handleTapSave}
       tapCopyFeedback={tapCopyFeedback} tapShareFeedback={tapShareFeedback} tapSaveFeedback={tapSaveFeedback}
     />
-  ) : null;
+  );
 
   // The book's upper-right corner holds the return-to-normal-view control.
   const bookToggleNode = (
@@ -1904,7 +1904,7 @@ export default function BibleReader() {
 
   return (
     <div onClick={(e) => { if (!e.target.closest('.kjb-flipbook, .kjb-verse-container, [id^="v"], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a, [role="menu"], [role="menuitem"], [data-radix-popper-content-wrapper]')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerses(new Set()); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 pb-3 ${flipbookOpen ? 'kjb-book-mode !px-0 !pb-0' : ''}`}
-      style={hideHeader && !flipbookOpen ? { paddingTop: `${Math.max(56, stickyTop + 6)}px` } : undefined}>
+    >
       {/* Listen: reads the chapter verse by verse and highlights each verse as
           it is spoken. Audio is generated per verse and cached, so a verse is
           only ever billed once — see base44/functions/ttsVerse. Settings has a
