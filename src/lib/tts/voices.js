@@ -39,6 +39,8 @@ export const TTS_STORAGE = {
   enabled: 'kjb-tts-enabled',
   // Roll straight into the next chapter when a chapter finishes.
   autoContinue: 'kjb-tts-auto-continue',
+  // Which speaker the reading comes out of ('' = the system default).
+  sink: 'kjb-tts-sink',
 };
 
 // Fired on window whenever any of the above changes, so the reader (a different

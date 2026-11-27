@@ -199,6 +199,17 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   const rateRef = useRef(rate);
   voiceRef.current = voice;
   rateRef.current = rate;
+  // Which speaker the reading comes out of ('' = the system default). Remembered
+  // per device, like the voice and the speed.
+  const [sinkId, setSinkIdState] = useState(() => readStored(TTS_STORAGE.sink, '') || '');
+  const sinkRef = useRef(sinkId);
+  sinkRef.current = sinkId;
+
+  // Only Chromium exposes setSinkId, so this is a no-op on Safari and iOS.
+  const applySink = useCallback((el) => {
+    if (!el || typeof el.setSinkId !== 'function') return;
+    el.setSinkId(sinkRef.current || '').catch(() => {});
+  }, []);
   // A spoken label ("Chapter 2") queued to play before the next verse — used
   // when playback rolls into a new chapter so the listener is told where they
   // are without the reader having to say the book name again.
@@ -255,10 +266,11 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     if (!audioRef.current) {
       const el = new Audio();
       el.preload = 'auto';
+      applySink(el);
       audioRef.current = el;
     }
     return audioRef.current;
-  }, []);
+  }, [applySink]);
 
   // Hand playback to the element that has already been buffering this clip.
   // Re-pointing one element at a new src tears its pipeline down and waits for
@@ -276,9 +288,10 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       current.ontimeupdate = null;
       current.removeAttribute('src');
     }
+    applySink(ready);
     audioRef.current = ready;
     return ready;
-  }, [getAudio]);
+  }, [applySink, getAudio]);
 
   const clearStall = () => {
     if (stallRef.current) {
@@ -424,6 +437,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
         if (!url || prefetchedRef.current.has(url)) return;
         const el = new Audio();
         el.preload = 'auto';
+        applySink(el);
         el.src = url;
         prefetchedRef.current.set(url, el);
         // Two ahead is all that is needed; drop the oldest so this can't grow.
@@ -433,7 +447,18 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
         }
       })
       .catch(() => {});
-  }, []);
+  }, [applySink]);
+
+  // Move the reading to another speaker, now and for every clip after it: the
+  // element playing, plus the ones already buffering the next verses.
+  const setSink = useCallback((id) => {
+    const next = id || '';
+    setSinkIdState(next);
+    sinkRef.current = next;
+    writeStored(TTS_STORAGE.sink, next);
+    applySink(audioRef.current);
+    prefetchedRef.current.forEach((el) => applySink(el));
+  }, [applySink]);
 
   const playAt = useCallback(async (i, token) => {
     const list = clipsRef.current;
@@ -629,10 +654,10 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   const currentKind = current?.kind || null;
 
   return {
-    status, error, index, currentVerse, currentKind, voice, rate, introActive,
+    status, error, index, currentVerse, currentKind, voice, rate, introActive, sinkId,
     total: clips.length,
     start, pause, resume, resumeSaved, savedPoint, toggle, next, prev, stop,
-    setVoice, setRate,
+    setVoice, setRate, setSink,
     isActive: status !== 'idle' || index >= 0,
   };
 }

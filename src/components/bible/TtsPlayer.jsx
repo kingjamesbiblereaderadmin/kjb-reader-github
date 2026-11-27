@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, RotateCcw, Repeat, CloudDownload } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, ChevronRight, RotateCcw, Repeat, CloudDownload } from 'lucide-react';
+import OutputDeviceMenu from '@/components/bible/OutputDeviceMenu';
 import { publishSpeaking } from '@/lib/tts/speaking';
 import { publishMediaMetadata, clearMediaMetadata } from '@/lib/tts/mediaSession';
 import useBibleTts from '@/hooks/useBibleTts';
@@ -193,7 +194,7 @@ function scrollToTop() {
   (document.getElementById('kjb-scroll') || window).scrollTo({ top: 0, behavior: 'instant' });
 }
 
-export default function TtsPlayer({ embedded = false, inline = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, bookKey = '', chapter = null, startVerse = null, label = '', bookName = '', subscript = '', colophon = '', titleText = '', endMarker = '', onNextChapter = null, onRestart }) {
+export default function TtsPlayer({ embedded = false, inline = false, vertical = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, bookKey = '', chapter = null, startVerse = null, label = '', bookName = '', subscript = '', colophon = '', titleText = '', endMarker = '', onNextChapter = null, onRestart }) {
   const [autoContinue, setAutoContinue] = useState(() => readStored(TTS_STORAGE.autoContinue, 'true') !== 'false');
   // Hidden = controls collapse to a single pill; audio keeps playing. Remembered
   // per device so a reader who listens while reading never sees the bar again.
@@ -427,7 +428,9 @@ export default function TtsPlayer({ embedded = false, inline = false, open = tru
   // between the full controls and the compact pill.
   useEffect(() => {
     onActiveChange?.(tts.isActive);
-    if (tts.isActive) onOpenChange?.(!hidden);
+    // In book view the panel is opened and closed by the headphones button, so
+    // starting the reading leaves it as it is rather than closing it.
+    if (tts.isActive) onOpenChange?.(vertical ? true : !hidden);
     // Only react to playback starting or stopping.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tts.isActive]);
@@ -437,7 +440,7 @@ export default function TtsPlayer({ embedded = false, inline = false, open = tru
   useEffect(() => {
     if (wasOpenRef.current === open) return;
     wasOpenRef.current = open;
-    if (tts.isActive && open === hidden) setHiddenPersisted(!open);
+    if (tts.isActive && !vertical && open === hidden) setHiddenPersisted(!open);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -532,19 +535,22 @@ export default function TtsPlayer({ embedded = false, inline = false, open = tru
 
   const withFollow = (fn) => () => { followRef.current = true; fn(); };
 
-  // Idle and not opened from the toolbar: nothing to show.
+  // Idle and not opened from the toolbar: nothing to show. In book view the
+  // panel hangs off the headphones button, so that button alone decides whether
+  // it is on screen — including while the reading plays on.
   const idle = !tts.isActive;
-  if (idle && !open && !tts.error) return null;
+  if ((vertical ? !open : idle && !open) && !tts.error) return null;
 
   // Where the player sits: its own row under the toolbar, a standalone section
-  // with the header hidden, or inline in the minimized header bar.
-  const shell = inline ? SHELL_INLINE : embedded ? SHELL : SHELL_STANDALONE;
+  // with the header hidden, inline in the minimized header bar, or a column of
+  // controls in the book's right margin (the panel draws the card itself).
+  const shell = vertical ? 'print:hidden' : inline ? SHELL_INLINE : embedded ? SHELL : SHELL_STANDALONE;
 
   // ---- hidden: a compact bar that still drives playback --------------------
   // Minimising the player folds away the extra controls, never the playback
   // itself: prev, play/pause and next stay, so listening can be driven without
-  // reopening the full row.
-  if (hidden && !idle) {
+  // reopening the full row. The book's column is already the compact form.
+  if (hidden && !idle && !vertical) {
     return (
       <section className={shell}>
         <div className="flex items-center justify-center gap-2">
@@ -576,9 +582,11 @@ export default function TtsPlayer({ embedded = false, inline = false, open = tru
         {/* In the minimized bar every control stays on one line at its own size
             (no wrapping, no stretching): the row scrolls sideways on a phone
             instead of stacking onto a second line. */}
-        <div className={inline
-          ? 'flex flex-nowrap items-center justify-end gap-1.5 [&>*]:flex-none overflow-x-auto'
-          : 'flex flex-wrap items-center justify-center gap-2 sm:gap-3'}>
+        <div className={vertical
+          ? 'flex flex-col items-stretch gap-1 [&>*]:w-full'
+          : inline
+            ? 'flex flex-nowrap items-center justify-end gap-1.5 [&>*]:flex-none overflow-x-auto'
+            : 'flex flex-wrap items-center justify-center gap-2 sm:gap-3'}>
           <button onClick={withFollow(tts.prev)} disabled={idle} aria-label="Previous verse" className={`${CONTROL} disabled:opacity-40 disabled:pointer-events-none`}>
             <SkipBack className="w-4 h-4" />
           </button>
@@ -594,7 +602,7 @@ export default function TtsPlayer({ embedded = false, inline = false, open = tru
               className="h-10 px-3 flex items-center justify-center gap-1.5 rounded-lg bg-secondary border border-border text-muted-foreground font-sans text-xs font-medium whitespace-nowrap opacity-70 touch-manipulation"
             >
               <CloudDownload className="w-4 h-4 flex-shrink-0" />
-              Download this book to listen offline
+              {!vertical && 'Download this book to listen offline'}
             </button>
           ) : (
             <button
@@ -626,7 +634,7 @@ export default function TtsPlayer({ embedded = false, inline = false, open = tru
               title={`Start from verse ${selectedVerse}`}
               className={`${CONTROL} gap-1 px-3 font-sans text-xs font-medium whitespace-nowrap`}
             >
-              <Play className="w-3 h-3" />
+              {!vertical && <Play className="w-3 h-3" />}
               v{selectedVerse}
             </button>
           )}
@@ -651,12 +659,13 @@ export default function TtsPlayer({ embedded = false, inline = false, open = tru
             className={`${CONTROL} gap-1.5 px-2.5 font-sans text-xs font-medium whitespace-nowrap ${autoContinue ? 'bg-accent/20 border-accent/40' : ''}`}
           >
             <Repeat className="w-3.5 h-3.5" />
-            {autoContinue ? 'Continues' : 'One chapter'}
+            {!vertical && (autoContinue ? 'Continues' : 'One chapter')}
           </button>
-          <OfflineBookControl offline={offlineBook} online={netOnline} compact={inline} />
+          <OutputDeviceMenu value={tts.sinkId} onChange={tts.setSink} buttonClass={CONTROL} />
+          <OfflineBookControl offline={offlineBook} online={netOnline} compact={inline || vertical} />
           {!idle && (
-            <button onClick={() => { setHiddenPersisted(true); onOpenChange?.(false); }} aria-label="Hide player" className={CONTROL}>
-              <ChevronDown className="w-4 h-4" />
+            <button onClick={() => { if (vertical) { onOpenChange?.(false); } else { setHiddenPersisted(true); onOpenChange?.(false); } }} aria-label={vertical ? 'Hide player' : 'Minimise player'} className={CONTROL}>
+              {vertical ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
           )}
           {(!idle || embedded || inline) && (
