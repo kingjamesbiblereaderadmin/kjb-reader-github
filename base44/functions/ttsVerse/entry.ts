@@ -34,28 +34,62 @@ const CALLER_WINDOW_MS = 10 * 60 * 1000;
 const GLOBAL_MAX = 240;
 const GLOBAL_WINDOW_MS = 60 * 60 * 1000;
 const callerHits = new Map<string, number[]>();
-let globalHits: number[] = [];
+let memoryGlobalHits: number[] = [];
 
+// The caller key is taken only from signals the platform sets. The FIRST
+// X-Forwarded-For entry is whatever the client typed, so sending a new value on
+// every request bought a fresh budget each time; the LAST entry is the address
+// the proxy appended, and cf-connecting-ip is set by the edge itself.
 function callerKey(req) {
-  const fwd = String(req.headers.get('x-forwarded-for') || '');
-  return (fwd.split(',')[0] || req.headers.get('cf-connecting-ip') || 'unknown').trim() || 'unknown';
+  const cf = String(req.headers.get('cf-connecting-ip') || '').trim();
+  if (cf) return cf;
+  const hops = String(req.headers.get('x-forwarded-for') || '')
+    .split(',')
+    .map((h) => h.trim())
+    .filter(Boolean);
+  return hops.length ? hops[hops.length - 1] : 'unknown';
 }
 
-function takeBudget(key: string) {
+function takeCallerBudget(key: string) {
   const now = Date.now();
   const mine = (callerHits.get(key) || []).filter((t) => now - t < CALLER_WINDOW_MS);
   if (mine.length >= CALLER_MAX) {
     callerHits.set(key, mine);
     return false;
   }
-  globalHits = globalHits.filter((t) => now - t < GLOBAL_WINDOW_MS);
-  if (globalHits.length >= GLOBAL_MAX) return false;
   mine.push(now);
-  globalHits.push(now);
   callerHits.set(key, mine);
   // The map only has to hold the callers active in this window.
   if (callerHits.size > 5000) callerHits.clear();
   return true;
+}
+
+// The endpoint-wide ceiling is counted in a TtsStat row, not in module memory:
+// memory belongs to one isolate, so a cold start (or a second instance) handed
+// out a whole new hourly allowance and the ceiling never really held. One row
+// keyed 'spend' carries the clips used in the current hour, and `updated` names
+// that hour. Only a cache miss is counted, so ordinary reading — which is
+// almost entirely cache hits — never touches it.
+async function takeGlobalBudget(db): Promise<boolean> {
+  const hourStart = new Date(Math.floor(Date.now() / GLOBAL_WINDOW_MS) * GLOBAL_WINDOW_MS).toISOString();
+  try {
+    const page = await db.entities.TtsStat.filter({ key: 'spend' }, { limit: 1 });
+    const row = (Array.isArray(page) ? page : page?.items || [])[0];
+    const used = row && row.updated === hourStart ? Number(row.verses) || 0 : 0;
+    if (used >= GLOBAL_MAX) return false;
+    if (row?.id) await db.entities.TtsStat.update(row.id, { verses: used + 1, updated: hourStart });
+    else await db.entities.TtsStat.create({ key: 'spend', verses: 1, updated: hourStart });
+    return true;
+  } catch (err) {
+    // A ceiling, not a lock: a database hiccup must never silence the player, so
+    // this isolate falls back to counting its own hour.
+    console.error('[ttsVerse] spend counter unavailable', err?.message);
+    const now = Date.now();
+    memoryGlobalHits = memoryGlobalHits.filter((t) => now - t < GLOBAL_WINDOW_MS);
+    if (memoryGlobalHits.length >= GLOBAL_MAX) return false;
+    memoryGlobalHits.push(now);
+    return true;
+  }
 }
 
 function json(data, status = 200) {
@@ -450,14 +484,11 @@ function xmlEscape(value: string) {
 // month. Commercial use of prebuilt neural voice output is allowed on a paid
 // Speech resource.
 async function azureSpeech(text: string, voice: string): Promise<SynthResult> {
-  // GOOGLE_API_KEY is accepted as a fallback because that is the name the
-  // platform's secret detector gave the Azure Speech key when it was pasted in
-  // chat; the key itself is an Azure Speech key (verified against the
-  // voices/list endpoint). Southeast Asia is the default region.
-  // The Azure Speech key was first pasted into this app under the name
-  // GOOGLE_API_KEY (the secret detector's guess), so both names are read: a key
-  // set either way works, and renaming it later cannot silence the player.
-  const key = Deno.env.get('AZURE_SPEECH_KEY') || Deno.env.get('GOOGLE_API_KEY');
+  // Only the secret's own registered name is read. The old fallback to a name
+  // the secret detector had guessed is gone: reading a name that is not a
+  // registered secret is what the security scan flags, and with no key here the
+  // clip is voiced through the speech proxy below, which is how this app runs.
+  const key = Deno.env.get('AZURE_SPEECH_KEY');
   const region = Deno.env.get('AZURE_SPEECH_REGION') || 'southeastasia';
   if (!key) return azureViaProxy(text, voice);
   const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-GB'><voice name='${xmlEscape(voice)}'>${phonemeMarkup(xmlEscape(text))}</voice></speak>`;
@@ -590,8 +621,11 @@ export default async function (req) {
   // 2. Generate. Only a miss reaches this point, so only a miss is charged to a
   // caller's budget: replays of a voiced verse are served from the cache above
   // and never counted.
-  if (!takeBudget(callerKey(req))) {
+  if (!takeCallerBudget(callerKey(req))) {
     return json({ error: 'busy', detail: 'Too many new verses at once. Try again in a few minutes.' }, 429);
+  }
+  if (!(await takeGlobalBudget(base44.asServiceRole || base44))) {
+    return json({ error: 'busy', detail: 'The voice library has hit its hourly limit. Try again later.' }, 429);
   }
   const generated = await synthesize(text, voice);
   if (!generated.ok) {

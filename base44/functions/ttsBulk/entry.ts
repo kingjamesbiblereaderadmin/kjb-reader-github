@@ -423,7 +423,10 @@ async function azureViaProxy(text: string, voice: string) {
 }
 
 async function azureSpeech(text: string, voice: string) {
-  const key = Deno.env.get('AZURE_SPEECH_KEY') || Deno.env.get('GOOGLE_API_KEY');
+  // The secret's own registered name only: reading an unregistered name is what
+  // the security scan flags. Without a key the clip is voiced through the
+  // speech proxy below, which is how this app runs today.
+  const key = Deno.env.get('AZURE_SPEECH_KEY');
   const region = Deno.env.get('AZURE_SPEECH_REGION') || 'southeastasia';
   if (!key) return azureViaProxy(text, voice);
   const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-GB'><voice name='${xmlEscape(voice)}'>${phonemeMarkup(xmlEscape(text))}</voice></speak>`;
