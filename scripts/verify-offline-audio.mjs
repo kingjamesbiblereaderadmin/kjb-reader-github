@@ -212,6 +212,35 @@ const ui = await cdp.eval(`(async () => {
     window.__kjbHook = true;
   }
 
+  // The player fetches each clip and then hands the element a blob: URL, so the
+  // element's own src never mentions /audio/. Track where the bytes came from:
+  // every /audio/ response the page asks for, and which blob was minted next.
+  window.__kjbAudioFetches = [];
+  window.__kjbBlobs = {};
+  if (!window.__kjbFetchHook) {
+    const origFetch = window.fetch;
+    window.fetch = function (input, init) {
+      const url = typeof input === 'string' ? input : (input && input.url) || '';
+      const p = origFetch.apply(this, arguments);
+      if (url.indexOf('/audio/') !== -1) {
+        p.then((res) => {
+          window.__kjbAudioFetches.push({ url, status: res.status, type: res.headers.get('content-type') });
+        }).catch((e) => {
+          window.__kjbAudioFetches.push({ url, error: String(e).slice(0, 80) });
+        });
+      }
+      return p;
+    };
+    const origCreate = URL.createObjectURL;
+    URL.createObjectURL = function (blob) {
+      const u = origCreate.call(URL, blob);
+      const lastFetch = window.__kjbAudioFetches[window.__kjbAudioFetches.length - 1];
+      window.__kjbBlobs[u] = lastFetch && lastFetch.url ? lastFetch.url : '';
+      return u;
+    };
+    window.__kjbFetchHook = true;
+  }
+
   if (!location.pathname.startsWith('/read')) {
     history.pushState({}, '', '/read');
     window.dispatchEvent(new PopStateEvent('popstate'));
@@ -253,15 +282,26 @@ const ui = await cdp.eval(`(async () => {
   const deadline = Date.now() + 60000;
   let last = null;
   while (Date.now() < deadline) {
-    const els = (window.__kjbPlayed || []).filter((e) => e && e.src && e.src.indexOf('/audio/') !== -1);
+    // A bundled clip either plays straight from /audio/ or from a blob the
+    // player minted out of an /audio/ response. Both count; nothing else does.
+    const els = (window.__kjbPlayed || []).filter((e) => {
+      if (!e || !e.src) return false;
+      if (e.src.indexOf('/audio/') !== -1) return true;
+      return e.src.indexOf('blob:') === 0 && !!window.__kjbBlobs[e.src];
+    });
     if (els.length) {
       const e = els[els.length - 1];
-      last = { src: e.src, t: +e.currentTime.toFixed(2), paused: e.paused, dur: Number.isFinite(e.duration) ? +e.duration.toFixed(2) : null };
-      if (e.currentTime > 0.5) return { ok: true, stage: 'playing', path: location.pathname, log, last };
+      const from = e.src.indexOf('blob:') === 0 ? window.__kjbBlobs[e.src] : e.src;
+      last = { from, src: e.src.slice(0, 100), t: +e.currentTime.toFixed(2), paused: e.paused, dur: Number.isFinite(e.duration) ? +e.duration.toFixed(2) : null };
+      if (e.currentTime > 0.5) {
+        return { ok: true, stage: 'playing', path: location.pathname, log, last,
+                 audioFetches: (window.__kjbAudioFetches || []).slice(-6), played: (window.__kjbPlayed || []).length };
+      }
     }
     await new Promise((s) => setTimeout(s, 500));
   }
-  return { ok: false, stage: 'no-playback', path: location.pathname, log, last, played: (window.__kjbPlayed || []).length };
+  return { ok: false, stage: 'no-playback', path: location.pathname, log, last,
+           audioFetches: (window.__kjbAudioFetches || []).slice(-6), played: (window.__kjbPlayed || []).length };
 })()`);
 console.log('ui', JSON.stringify(ui, null, 1));
 
