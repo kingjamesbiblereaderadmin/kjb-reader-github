@@ -108,6 +108,11 @@ export async function localAudioUrlFor(ref) {
   return null;
 }
 
+/** True when this build carries the voice library itself (iOS, macOS, Android). */
+export function hasBundledAudio() {
+  return nativePlatform() !== null;
+}
+
 /** Diagnostics for Settings / bug reports: how much audio the app carries. */
 export async function localAudioStats() {
   const platform = nativePlatform();

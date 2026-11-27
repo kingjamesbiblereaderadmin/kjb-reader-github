@@ -5,6 +5,7 @@ import { publishSpeaking, getProgress } from '@/lib/tts/speaking';
 import { readingArea, revealElement, followVisibleWords } from '@/lib/tts/readerFollow';
 import { publishMediaMetadata, clearMediaMetadata } from '@/lib/tts/mediaSession';
 import useBibleTts from '@/hooks/useBibleTts';
+import { hasBundledAudio } from '@/lib/tts/localAudio';
 import useOfflineBook from '@/hooks/useOfflineBook';
 import OfflineBookControl from '@/components/bible/OfflineBookControl';
 import usePreviewMode from '@/hooks/usePreviewMode';
@@ -182,6 +183,9 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     };
   }, []);
   const offlineBook = useOfflineBook({ bookKey, enabled: open || tts.isActive || !netOnline });
+  // A native build carries every clip, so "not downloaded" there means nothing:
+  // the verse plays from the app's own assets even with the network off.
+  const bundledAudio = hasBundledAudio();
   // Nothing downloaded can be kept in the builder's preview frame or a private
   // window, so the download action is not offered there.
   const previewMode = usePreviewMode();
@@ -557,7 +561,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
           <button onClick={withFollow(tts.prev)} disabled={idle} aria-label="Previous verse" className={`${CONTROL} disabled:opacity-40 disabled:pointer-events-none`}>
             <SkipBack className="w-4 h-4" />
           </button>
-          {idle && !netOnline && !offlineBook.downloaded && !previewMode ? (
+          {idle && !netOnline && !offlineBook.downloaded && !previewMode && !bundledAudio ? (
             // No connection and this book is not on the device: nothing can be
             // fetched, so the button says what would fix it instead of failing
             // silently on the first verse.
