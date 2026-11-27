@@ -626,11 +626,13 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     const FURNITURE = ['col', 'end', 'sub', 'heading', 'title'];
     const just = lastClipRef.current;
     const words = (c) => String(c?.text || '').replace(/\s+/g, ' ').trim().toLowerCase();
-    if (just && just.chapterKey === chapterKey && FURNITURE.includes(list[i].kind)
+    // list[i] is undefined once the chapter has run out, and the end-of-chapter
+    // path below still has to run, so the guard only ever reads a real clip.
+    if (just && list[i] && just.chapterKey === chapterKey && FURNITURE.includes(list[i].kind)
         && words(list[i]) === just.words) {
       return playAtRef.current?.(i + 1, token);
     }
-    lastClipRef.current = { chapterKey, kind: list[i].kind, words: words(list[i]) };
+    if (list[i]) lastClipRef.current = { chapterKey, kind: list[i].kind, words: words(list[i]) };
     holdRef.current = false;
     if (i < 0 || i >= list.length) {
       // End of the chapter. The player decides whether that means "stop" or
