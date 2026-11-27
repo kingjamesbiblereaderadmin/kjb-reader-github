@@ -14,6 +14,11 @@
 //        (two Play asset packs, split so neither pack passes Play's 1.5 GB
 //        per-pack ceiling; MainActivity serves them on the live-site host)
 //
+//   node scripts/fetch-audio-bundle.js apk
+//     -> android/app/src/main/assets/audio/<BOOK>/<CCC>_<VVV>.mp3
+//        (the ApexHub OTA channel: a plain APK cannot carry asset packs, so
+//        the clips go straight into the APK's own assets)
+//
 // Nothing is re-encoded: the mp3 bytes in the archive are the bytes that ship.
 // The step fails loudly if the bundle is short a single verse, because a
 // half-populated bundle would show up as random silent verses in the app.
@@ -28,6 +33,7 @@ const EXPECTED_BOOKS = 66;
 const TOKEN = process.env.AUDIO_RELEASE_TOKEN || process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
 
 const IOS_DEST = path.join('ios', 'App', 'App', 'public', 'audio');
+const APK_DEST = path.join('android', 'app', 'src', 'main', 'assets', 'audio');
 const ANDROID_PACKS = [
   path.join('android', 'audio-pack-1', 'src', 'main', 'assets', 'audio'),
   path.join('android', 'audio-pack-2', 'src', 'main', 'assets', 'audio'),
@@ -52,8 +58,8 @@ async function api(url, accept = 'application/vnd.github+json') {
 
 async function main() {
   const platform = process.argv[2];
-  if (platform !== 'ios' && platform !== 'android') {
-    die('usage: node scripts/fetch-audio-bundle.js ios|android');
+  if (!['ios', 'android', 'apk'].includes(platform)) {
+    die('usage: node scripts/fetch-audio-bundle.js ios|android|apk');
   }
   if (!TOKEN) die('AUDIO_RELEASE_TOKEN is not set');
 
@@ -64,7 +70,7 @@ async function main() {
   if (!assets.length) die(`release ${TAG} has no zip assets`);
 
   // Wipe whatever a previous run left behind so a stale book can't linger.
-  const roots = platform === 'ios' ? [IOS_DEST] : ANDROID_PACKS;
+  const roots = platform === 'ios' ? [IOS_DEST] : platform === 'apk' ? [APK_DEST] : ANDROID_PACKS;
   for (const root of roots) fs.rmSync(root, { recursive: true, force: true });
   for (const root of roots) fs.mkdirSync(root, { recursive: true });
 
@@ -77,7 +83,7 @@ async function main() {
   let clips = 0;
   for (const asset of [...assets].sort((a, b) => a.name.localeCompare(b.name))) {
     const book = asset.name.replace(/\.zip$/, '');
-    let destRoot = IOS_DEST;
+    let destRoot = platform === 'apk' ? APK_DEST : IOS_DEST;
     if (platform === 'android') {
       const pack = packLoad[0] <= packLoad[1] ? 0 : 1;
       packLoad[pack] += asset.size;

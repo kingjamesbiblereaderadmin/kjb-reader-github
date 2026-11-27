@@ -225,6 +225,17 @@ jobs:
       - name: Restore persistent release keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$ANDROID_KEYSTORE_PATH"
 
+      - name: Fetch Listen audio into the APK
+        # ApexHub ships a plain APK, which cannot carry Play asset packs, so
+        # the clips go straight into the APK's assets (~1.5 GB). MainActivity
+        # already serves /audio/... on the live-site host out of the APK
+        # assets, so this is the only change the OTA channel needs: the app
+        # then plays every verse offline from the first launch, exactly like
+        # the iOS/macOS build.
+        env:
+          AUDIO_RELEASE_TOKEN: ${{ secrets.AUDIO_RELEASE_TOKEN }}
+        run: node scripts/fetch-audio-bundle.js apk
+
       - name: Build signed release APK
         working-directory: android
         run: |
@@ -247,6 +258,14 @@ jobs:
             exit 1
           fi
           mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/kjbreader-apexhub.apk
+
+      - name: Verify the APK carries the Listen audio
+        working-directory: android
+        run: |
+          APK=app/build/outputs/apk/release/kjbreader-apexhub.apk
+          N=$(unzip -l "$APK" | grep -c 'assets/audio/.*\.mp3$' || true)
+          echo "audio clips in $APK: $N"
+          test "$N" -eq 31102
 
       - name: Verify signature matches ApexHub cert lock
         working-directory: android
