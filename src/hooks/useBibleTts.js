@@ -222,9 +222,11 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   const tokenRef = useRef(0);
   const playAtRef = useRef(null);
   const playClipRef = useRef(null);
-  // Clips that failed to load once and are being asked for again. A verse that
-  // fails twice is stepped over, never allowed to end the chapter.
-  const retriedRef = useRef(new Set());
+  // How many times each clip has had to be asked for again, so the wait between
+  // attempts can grow. A clip is never skipped: it keeps being asked for until
+  // it plays, so the reading may pause but never loses a verse.
+  const attemptsRef = useRef(new Map());
+  const retryTimerRef = useRef(0);
   // Timer that catches a clip whose request hangs: no audio, no error event.
   const stallRef = useRef(0);
   const voiceRef = useRef(voice);
@@ -319,9 +321,30 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     }
   };
 
+  // Ask for the same clip again, waiting a little longer each time. Nothing is
+  // ever stepped over: a verse the speech service could not deliver yet is
+  // retried until it plays, so the reading never skips and never dies.
+  const retryLater = useCallback((clip, token, onDone, onFail, onStarted) => {
+    const key = audioCacheKey(clip, voiceRef.current);
+    const attempt = (attemptsRef.current.get(key) || 0) + 1;
+    attemptsRef.current.set(key, attempt);
+    if (attempt > 1) setError('Reconnecting to the speech service\u2026');
+    const delay = Math.min(1500 * 2 ** (attempt - 1), 15000);
+    if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+    retryTimerRef.current = setTimeout(() => {
+      retryTimerRef.current = 0;
+      if (token === tokenRef.current) playClipRef.current?.(clip, token, onDone, onFail, onStarted);
+    }, delay);
+  }, []);
+
   const hardStop = useCallback(() => {
     tokenRef.current += 1;
     clearStall();
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = 0;
+    }
+    attemptsRef.current.clear();
     endCleanupRef.current?.();
     endCleanupRef.current = null;
     bufferRef.current?.clear();
@@ -346,6 +369,11 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   }, []);
 
   const playClip = useCallback(async (clip, token, onDone, onFail, onStarted) => {
+    // A pending retry for an older clip must never fire over this one.
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = 0;
+    }
     setStatus('loading');
     setError('');
     fetchingRef.current = true;
@@ -362,8 +390,10 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
         setIntroActive(false);
         const raw = String(err?.message || '');
         const offline = (typeof navigator !== 'undefined' && navigator.onLine === false) || /failed to fetch|load failed|networkerror|network request failed/i.test(raw);
-        setError(offline ? 'Listen needs a connection. Reconnect, then press play again.' : (raw || 'Audio could not be generated.'));
-        setStatus('error');
+        setError(offline ? 'Waiting for a connection. The reading resumes on this verse.' : (raw || 'Waiting for the speech service\u2026'));
+        // Never step over the verse: it is asked for again until it plays.
+        setStatus('loading');
+        retryLater(clip, token, onDone, onFail, onStarted);
       }
       return false;
     }
@@ -372,15 +402,9 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       return false;
     }
     if (!prepared) {
-      // The buffered copy was dropped before it reached the player. Asking for
-      // it once more keeps the reading going instead of leaving it silent.
-      const droppedKey = `${audioCacheKey(clip, voiceRef.current)}:dropped`;
-      if (!retriedRef.current.has(droppedKey)) {
-        retriedRef.current.add(droppedKey);
-        return playClipRef.current?.(clip, token, onDone, onFail, onStarted) ?? false;
-      }
-      retriedRef.current.delete(droppedKey);
-      (onFail || onDone)?.();
+      // The buffered copy was dropped before it reached the player: ask for the
+      // same verse again rather than moving past it.
+      retryLater(clip, token, onDone, onFail, onStarted);
       return false;
     }
 
@@ -429,8 +453,8 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     };
 
     // A clip that will not load must never leave the chapter silent. Its
-    // remembered URL is dropped, the clip is asked for once more, and if the
-    // verse still refuses to sound the player steps over it and carries on.
+    // remembered URL is dropped and the very same verse is asked for again —
+    // never stepped over — until it sounds.
     const clipKey = audioCacheKey(clip, voiceRef.current);
     let failed = false;
     const recover = () => {
@@ -445,13 +469,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       el.pause();
       urlCache.delete(clipKey);
       persistUrlCache();
-      if (!retriedRef.current.has(clipKey)) {
-        retriedRef.current.add(clipKey);
-        playClipRef.current?.(clip, token, onDone, onFail, onStarted);
-        return;
-      }
-      retriedRef.current.delete(clipKey);
-      (onFail || onDone)?.();
+      retryLater(clip, token, onDone, onFail, onStarted);
     };
     el.onerror = recover;
     // A clip can fall silent without any event saying so: a request that hangs
@@ -507,7 +525,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       if (finished || token !== tokenRef.current || audioRef.current !== el) return;
       // The clip is playing, so it no longer counts as a verse that failed
       // earlier. (The stall heartbeat keeps running while it plays.)
-      retriedRef.current.delete(clipKey);
+      attemptsRef.current.delete(clipKey);
       // Only the clip's closing silence is left: move to the next verse now
       // instead of waiting the pause out. The played-time guard keeps a very
       // short clip (a stanza letter, say) from being stepped over entirely.
@@ -674,8 +692,12 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     }
     startAtRef.current = 0;
     introRef.current = intro;
-    // A fresh press deserves a fresh chance for any verse skipped earlier.
-    retriedRef.current.clear();
+    // A fresh press starts the waiting over for every verse.
+    attemptsRef.current.clear();
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = 0;
+    }
     // Don't keep showing the old verse while the chapter announcement plays.
     if (intro) setIndex(-1);
     tokenRef.current += 1;
