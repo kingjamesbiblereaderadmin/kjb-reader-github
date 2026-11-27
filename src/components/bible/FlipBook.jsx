@@ -325,7 +325,15 @@ export default React.forwardRef(function FlipBook({
     if (to >= pageCount) {
       if (canNext) {
         landOnEndRef.current = false;
-        if (spill) { prepareRef.current?.(); onNextChapter(); return; }
+        // Part of the next chapter is already on these pages: carry on after it
+        // (two pages on after a spill, otherwise one) instead of repeating it.
+        if (fillLastPage) {
+          prepareRef.current?.();
+          bridgeRef.current = null;
+          pendingPageRef.current = spill ? 2 : 1;
+          onNextChapter();
+          return;
+        }
         pendingPageRef.current = following && spread ? Math.max(0, to - pageCount) : 0;
         onNextChapter();
       }
@@ -333,7 +341,7 @@ export default React.forwardRef(function FlipBook({
     }
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setPage(to); return; }
     setTurn({ dir, to });
-  }, [loading, turn, page, step, pageCount, onNextChapter, onPrevChapter, canPrev, canNext, following, spread, firstPage, spill]);
+  }, [loading, turn, page, step, pageCount, onNextChapter, onPrevChapter, canPrev, canNext, following, spread, firstPage, spill, fillLastPage]);
 
   // The page on which a verse or section begins.
   const pageOf = useCallback((selector, progress = 0, completed = null) => {
