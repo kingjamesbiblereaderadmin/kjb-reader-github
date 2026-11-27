@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Play, Pause, SkipBack, SkipForward, X, ChevronUp, ChevronRight, RotateCcw, Repeat, CloudDownload } from 'lucide-react';
 import OutputDeviceMenu from '@/components/bible/OutputDeviceMenu';
 import { publishSpeaking, getProgress, getCompletedWords, subscribeProgress } from '@/lib/tts/speaking';
-import { readingArea, revealElement, alignToTop, followVisibleWords } from '@/lib/tts/readerFollow';
+import { readingArea, revealElement, alignToTop, sitsLow, followVisibleWords } from '@/lib/tts/readerFollow';
 import { isMobile } from '@/lib/readerPosition';
 import { publishMediaMetadata, clearMediaMetadata } from '@/lib/tts/mediaSession';
 import useBibleTts from '@/hooks/useBibleTts';
@@ -266,14 +266,16 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     lastSpokenRef.current = { kind: tts.currentKind, verse: tts.currentVerse };
     // On a phone, a verse that follows another verse opens at the top of the
     // reading area, so the reading resumes from a fixed point instead of
-    // carrying on from wherever the previous verse happened to end. Wider
-    // screens keep their place: they show enough of the chapter already.
+    // carrying on from wherever the previous verse happened to end. A wider
+    // screen keeps its place, except when that verse is the last one on the
+    // screen: it then comes to the top, so the reading never runs off the foot
+    // of the page and the verses after it are always in view.
     const verseFollowsVerse = previous.kind === 'verse' && tts.currentKind === 'verse' && previous.verse !== tts.currentVerse;
     // Only one instant positioning pass. A delayed second jump used to fight
     // the long-verse follower and pull the viewport away from the spoken words.
     const reveal = (el) => {
       if (!followRef.current) return;
-      if (verseFollowsVerse && isMobile()) alignToTop(el);
+      if (verseFollowsVerse && (isMobile() || sitsLow(el))) alignToTop(el);
       else revealElement(el);
     };
 

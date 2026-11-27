@@ -54,6 +54,21 @@ export function alignToTop(element) {
   moveTo(area, rect);
 }
 
+// True when the verse the voice has just reached is the last one the reader can
+// see: its first line sits near the foot of the reading area, so the verses
+// after it are below the fold. On a wide screen that is the one case where the
+// page has to move, otherwise the reading runs off the bottom of the screen.
+export function sitsLow(element) {
+  if (!element || element.closest('#kjb-anchored-heading') || document.querySelector('[data-testid="kjb-flipbook"]')) return false;
+  const area = readingArea();
+  if (area.bottom <= area.top) return false;
+  const rect = firstRect(element);
+  if (!rect?.height) return false;
+  // Room left under the verse's first line: under 40% of the reading area means
+  // it is sitting at the bottom of the screen rather than comfortably in view.
+  return area.bottom - rect.top < (area.bottom - area.top) * 0.4;
+}
+
 export function followVisibleWords(element, progress, completedWords = null) {
   if (!element || document.querySelector('[data-testid="kjb-flipbook"]')) return;
   const area = readingArea();
