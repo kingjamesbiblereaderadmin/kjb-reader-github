@@ -1,0 +1,48 @@
+// Match recorded words to the printed words, never divide audio time by text length.
+const tokens = (text) => [...String(text || '').matchAll(/[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*/gu)].map((m) => m[0]);
+const normal = (word) => word.normalize('NFKD').toLowerCase().replace(/æ/g, 'ae').replace(/[^\p{L}\p{N}]/gu, '');
+
+export function buildWordClock(text, recording) {
+  const source = tokens(text).map(normal);
+  const heard = recording?.words || [];
+  const target = heard.map((w) => normal(w.text));
+  const n = source.length, m = target.length;
+  if (!n || !m || n > 250 || m > 250) return null;
+  const table = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+  for (let i = n - 1; i >= 0; i -= 1) {
+    for (let j = m - 1; j >= 0; j -= 1) {
+      table[i][j] = source[i] === target[j] ? 1 + table[i + 1][j + 1] : Math.max(table[i + 1][j], table[i][j + 1]);
+    }
+  }
+  // Poor recognition must not masquerade as reliable word alignment.
+  if (table[0][0] / Math.max(n, m) < 0.55) return null;
+  const anchors = [];
+  let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (source[i] === target[j]) { anchors.push([i++, j++]); }
+    else if (table[i + 1][j] >= table[i][j + 1]) i += 1;
+    else j += 1;
+  }
+  const ends = new Array(n);
+  let previousSource = -1, previousHeard = -1;
+  for (const [si, hi] of [...anchors, [n, m]]) {
+    // A split/respelt name is one measured spoken span. Missing recognition is
+    // held until the next measured word, never assigned an invented timestamp.
+    const end = hi > previousHeard + 1 ? heard[hi - 1].end : (heard[hi]?.start ?? recording.duration);
+    for (let k = previousSource + 1; k < si; k += 1) ends[k] = end;
+    if (si < n) ends[si] = heard[hi].end;
+    previousSource = si;
+    previousHeard = hi;
+  }
+  for (let k = 1; k < ends.length; k += 1) ends[k] = Math.max(ends[k - 1], ends[k]);
+  return ends;
+}
+
+export function completedWordsAt(clock, seconds) {
+  let lo = 0, hi = clock.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (clock[mid] <= seconds) lo = mid + 1; else hi = mid;
+  }
+  return lo;
+}

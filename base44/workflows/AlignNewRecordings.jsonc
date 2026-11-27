@@ -1,0 +1,39 @@
+{
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "TtsClip"
+    }
+  },
+  "name": "Align New Bible Recordings",
+  "description": "Measures word timestamps when a new verse recording is cached. Existing audio is unchanged.",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "align_new_bible_recordings",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "align_recording": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "alignAudioBatch",
+            "args": {
+              "clipId": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Measure recorded word timestamps"
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,5 +1,6 @@
 import { primeClipTrim } from '@/lib/tts/clipTrim';
 import waitForClip from '@/lib/tts/waitForClip';
+import { wordTimingFor } from '@/lib/tts/timingCache';
 
 // A preload hint can be ignored, especially on phones. Fetch the complete file
 // while the previous verse plays, and keep its prepared element by clip identity.
@@ -47,6 +48,8 @@ export default function createClipBuffer(resolveUrl) {
         } finally {
           clearTimeout(timeout);
         }
+      } else {
+        bytes = await fetch(source).then((response) => response.arrayBuffer());
       }
       if (entry.cancelled) return null;
       entry.audio = new Audio();
@@ -54,8 +57,12 @@ export default function createClipBuffer(resolveUrl) {
       entry.audio.src = source;
       const ready = waitForClip(entry);
       entry.audio.load();
-      const [trim] = await Promise.all([primeClipTrim(entry.url, bytes), ready]);
+      const [trim, , wordClock] = await Promise.all([
+        primeClipTrim(entry.url, bytes?.slice(0)), ready,
+        wordTimingFor(clip, voice, entry.url, bytes).catch(() => null),
+      ]);
       entry.trim = trim;
+      entry.wordClock = wordClock;
       return entry.cancelled ? null : entry;
     })().catch((error) => {
       if (entries.get(key) === entry) entries.delete(key);

@@ -21,6 +21,7 @@ export function useSpeaking() {
 // polls it rather than re-rendering the reader on every tick.
 let progress = 0;
 let progressRef = null;
+let completedWords = null;
 const progressListeners = new Set();
 
 // Deliver the final audio-clock position before handing off to the next clip.
@@ -30,10 +31,15 @@ export function subscribeProgress(listener) {
   return () => progressListeners.delete(listener);
 }
 
-export function publishProgress(fraction, clipRef = null) {
+export function publishProgress(fraction, clipRef = null, words = null) {
   progressRef = clipRef;
+  completedWords = words;
   progress = Number.isFinite(fraction) ? Math.min(1, Math.max(0, fraction)) : 0;
-  progressListeners.forEach((listener) => listener(progress, progressRef));
+  progressListeners.forEach((listener) => listener(progress, progressRef, completedWords));
+}
+
+export function getCompletedWords(clipRef) {
+  return clipRef === progressRef ? completedWords : null;
 }
 
 export function getProgress(clipRef = null) {

@@ -42,7 +42,7 @@ export function revealElement(element) {
   moveTo(area, rect);
 }
 
-export function followVisibleWords(element, progress) {
+export function followVisibleWords(element, progress, completedWords = null) {
   if (!element || document.querySelector('[data-testid="kjb-flipbook"]')) return;
   const area = readingArea();
   if (area.bottom <= area.top || progress <= 0) return;
@@ -60,7 +60,8 @@ export function followVisibleWords(element, progress) {
       break;
     }
   }
-  if (!nextRect || lastVisible < 0 || progress < words[lastVisible].end) return;
+  if (!nextRect || lastVisible < 0) return;
+  if (completedWords == null ? progress < words[lastVisible].end : completedWords <= words[lastVisible].index) return;
   // The last whole word on screen has finished. Bring the NEXT unread line to
   // the top, not the verse's bottom edge or a guessed fraction of its height.
   moveTo(area, nextRect);

@@ -1,0 +1,80 @@
+{
+  "name": "AudioTiming",
+  "type": "object",
+  "properties": {
+    "ref": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "chapter_key": {
+      "type": "string",
+      "maxLength": 24
+    },
+    "voice": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "audio_hash": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "audio_url": {
+      "type": "string",
+      "maxLength": 1024
+    },
+    "duration": {
+      "type": "number"
+    },
+    "words": {
+      "type": "array",
+      "maxItems": 250,
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "start": {
+            "type": "number"
+          },
+          "end": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "text",
+          "start",
+          "end"
+        ]
+      }
+    }
+  },
+  "required": [
+    "ref",
+    "chapter_key",
+    "voice",
+    "audio_hash",
+    "audio_url",
+    "duration",
+    "words"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

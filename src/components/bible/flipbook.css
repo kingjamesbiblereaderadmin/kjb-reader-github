@@ -205,6 +205,14 @@
 }
 .kjb-book-player section button { width: 100%; height: 44px; min-height: 44px; padding: 0; }
 .kjb-book-player section button.bg-primary { grid-column: 1 / -1; order: -1; }
+.kjb-book-player button[data-testid='tts-continue-btn'][aria-pressed='true'] {
+  background: var(--fb-ink);
+  color: var(--fb-paper);
+  box-shadow: inset 0 0 0 1px var(--fb-ink);
+}
+.kjb-book-player button[data-testid='tts-continue-btn'][aria-pressed='false'] {
+  box-shadow: inset 0 0 0 1px var(--fb-rule);
+}
 @media (max-width: 480px) {
   .kjb-book-player { width: 190px; right: 54px; }
 }

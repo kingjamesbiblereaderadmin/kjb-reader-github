@@ -56,6 +56,7 @@ export default function BibleReader() {
   // whether audio is currently playing or paused.
   const [listenOpen, setListenOpen] = useState(false);
   const [ttsActive, setTtsActive] = useState(false);
+  const flipbookRef = useRef(null);
   // Offline: the Listen button says so and stays put rather than vanishing.
   const online = useOnline();
   // Optional full-screen printed-book view of the chapter.
@@ -1821,7 +1822,10 @@ export default function BibleReader() {
       colophon={colophon}
       titleText={titlePageSpoken}
       endMarker={resolveEndMarker(book?.apiName, pos.chapter) || ''}
-      onNextChapter={() => goNext(true)}
+      onNextChapter={() => {
+        flipbookRef.current?.prepareListeningAdvance();
+        return goNext(true);
+      }}
     />
   ) : null;
 
@@ -1943,6 +1947,7 @@ export default function BibleReader() {
 
       {flipbookOpen && (
         <FlipBook
+          ref={flipbookRef}
           controls={(bookSlots) => React.cloneElement(toolbarNode, { bookSlots })}
           viewControl={bookToggleNode}
           book={book} abbr={pos.abbr} chapter={pos.chapter} verses={isViewingTitlePage ? [] : verses}

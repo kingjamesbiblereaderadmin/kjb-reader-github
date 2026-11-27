@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Play, Pause, SkipBack, SkipForward, X, ChevronUp, ChevronRight, RotateCcw, Repeat, CloudDownload } from 'lucide-react';
 import OutputDeviceMenu from '@/components/bible/OutputDeviceMenu';
-import { publishSpeaking, getProgress, subscribeProgress } from '@/lib/tts/speaking';
+import { publishSpeaking, getProgress, getCompletedWords, subscribeProgress } from '@/lib/tts/speaking';
 import { readingArea, revealElement, followVisibleWords } from '@/lib/tts/readerFollow';
 import { publishMediaMetadata, clearMediaMetadata } from '@/lib/tts/mediaSession';
 import useBibleTts from '@/hooks/useBibleTts';
@@ -128,6 +128,8 @@ function scrollToTop() {
 
 export default function TtsPlayer({ embedded = false, inline = false, vertical = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, bookKey = '', chapter = null, startVerse = null, label = '', bookName = '', subscript = '', colophon = '', titleText = '', endMarker = '', onNextChapter = null, onRestart }) {
   const [autoContinue, setAutoContinue] = useState(() => readStored(TTS_STORAGE.autoContinue, 'true') !== 'false');
+  const autoContinueRef = useRef(autoContinue);
+  autoContinueRef.current = autoContinue;
   // Hidden = controls collapse to a single pill; audio keeps playing. Remembered
   // per device so a reader who listens while reading never sees the bar again.
   const [hidden, setHidden] = useState(() => readStored(TTS_STORAGE.hidden, 'false') === 'true');
@@ -162,12 +164,14 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   }, []);
 
   const handleChapterEnd = useCallback(() => {
-    if (!autoContinue || !onNextChapter) return;
+    if (!autoContinueRef.current || !onNextChapter) return;
     endedVersesRef.current = verses;
     endedChapterRef.current = chapterKey;
     skipScrollRef.current = true;
-    if (onNextChapter()) continueRef.current = true;
-  }, [autoContinue, onNextChapter, verses, chapterKey]);
+    // Arm before navigation: a warm chapter can commit synchronously.
+    continueRef.current = true;
+    if (!onNextChapter()) continueRef.current = false;
+  }, [onNextChapter, verses, chapterKey]);
 
   const tts = useBibleTts({ verses, chapterKey, subscript, colophon, titleText, endMarker, onChapterEnd: handleChapterEnd });
 
@@ -275,12 +279,12 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   useEffect(() => {
     if (tts.status !== 'playing' || tts.currentKind !== 'verse' || tts.currentVerse == null) return undefined;
     const ref = `${chapterKey}:${tts.currentVerse}`;
-    const follow = (progress, clipRef) => {
+    const follow = (progress, clipRef, completedWords) => {
       if (followRef.current && clipRef === ref) {
-        followVisibleWords(document.getElementById(`v${tts.currentVerse}`), progress);
+        followVisibleWords(document.getElementById(`v${tts.currentVerse}`), progress, completedWords);
       }
     };
-    follow(getProgress(ref), ref);
+    follow(getProgress(ref), ref, getCompletedWords(ref));
     return subscribeProgress(follow);
   }, [tts.status, tts.currentVerse, tts.currentKind, chapterKey]);
 
@@ -353,8 +357,8 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   useEffect(() => () => clearSpeaking(), []);
 
   useEffect(() => {
-    publishSpeaking(tts.isActive ? { verse: tts.currentVerse, kind: tts.currentKind, intro: tts.introActive, playing: tts.status === 'playing' } : null);
-  }, [tts.isActive, tts.currentVerse, tts.currentKind, tts.introActive, tts.status]);
+    publishSpeaking(tts.isActive ? { chapterKey, verse: tts.currentVerse, kind: tts.currentKind, intro: tts.introActive, playing: tts.status === 'playing' } : null);
+  }, [chapterKey, tts.isActive, tts.currentVerse, tts.currentKind, tts.introActive, tts.status]);
   useEffect(() => () => publishSpeaking(null), []);
 
   // What the lock screen and the phone's media card say. Left alone they show
@@ -498,7 +502,8 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   // Carrying on into the next chapter is a switch in the bar itself, so it can
   // be changed while listening rather than from a menu.
   const toggleAutoContinue = () => {
-    const on = !autoContinue;
+    const on = !autoContinueRef.current;
+    autoContinueRef.current = on;
     setAutoContinue(on);
     writeStored(TTS_STORAGE.autoContinue, on);
   };
@@ -632,15 +637,16 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
           <button
             onClick={toggleAutoContinue}
             aria-pressed={autoContinue}
-            aria-label="Continue to the next chapter"
-            title={autoContinue ? 'Carries on into the next chapter' : 'Stops at the end of this chapter'}
+            aria-label={`Continue to the next chapter: ${autoContinue ? 'on' : 'off'}`}
+            title={autoContinue ? 'Continue: on. Carries on into the next chapter' : 'Continue: off. Stops at the end of this chapter'}
             data-testid="tts-continue-btn"
             className={`${CONTROL} gap-1.5 px-2.5 font-sans text-xs font-medium whitespace-nowrap ${autoContinue ? 'bg-accent/20 border-accent/40' : ''}`}
           >
             <Repeat className="w-3.5 h-3.5" />
             {/* The slim bar is short of room, so the switch is its icon alone
                 there; the full row spells it out. */}
-            {!vertical && !inline && (autoContinue ? 'Continues' : 'One chapter')}
+            {vertical ? <span className="text-[10px] font-semibold">{autoContinue ? 'On' : 'Off'}</span>
+              : !inline && (autoContinue ? 'Continues' : 'One chapter')}
           </button>
           <OutputDeviceMenu value={tts.sinkId} onChange={tts.setSink} buttonClass={CONTROL} />
           {!previewMode && <OfflineBookControl offline={offlineBook} online={netOnline} compact={inline || vertical} />}

@@ -11,6 +11,7 @@
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.63';
 import { applyHeteronyms, CORRECTED_IPA } from '../../shared/heteronyms.ts';
+import { splitVerbEndings } from '../../shared/verbEndings.ts';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -460,9 +461,7 @@ function respell(text: string) {
 // Split "-eth" verbs into their own final syllable. The stem keeps its silent e
 // where the table above lists it, so the syllable stays open.
 function splitEth(text: string) {
-  return text.replace(/\b(\w{3,})eth\b/g, (word, stem) =>
-    ETH_SILENT_E[word.toLowerCase()] || `${stem}-eth`,
-  );
+  return splitVerbEndings(text, ETH_SILENT_E, hasIpa);
 }
 
 // The one entry point: clean the source markup, respell the hard words, then

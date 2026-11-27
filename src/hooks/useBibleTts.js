@@ -18,6 +18,8 @@ import { cachedUrl } from '@/lib/tts/offlineAudio';
 import createClipBuffer from '@/lib/tts/createClipBuffer';
 import watchClipEnd from '@/lib/tts/watchClipEnd';
 import createVersePause from '@/lib/tts/createVersePause';
+import { completedWordsAt } from '@/lib/tts/wordClock';
+import pronunciationRevision from '@/lib/tts/pronunciationRevision';
 
 // Verse text arrives with the reader's markup: [italics] brackets, ¶ pilcrows
 // and <<heading>> markers. None of them should be spoken.
@@ -126,8 +128,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // reaches this hook has been through the reader's apostrophe/override pipeline,
 // so hashing it would miss clips generated from the same verse anywhere else
 // (a bulk run, another device, a corrected verse). The reference is stable.
-const needsPronunciationRefresh = (text) => /\b(?:maketh|imputeth)\b/i.test(text)
-  ? 'h4' : /\bmarketh\b|\btheir\s+desert\b|\bbow\s+down\b/i.test(text) ? 'h3' : '';
+const needsPronunciationRefresh = pronunciationRevision;
 
 function audioCacheKey(clip, voice) {
   const revision = needsPronunciationRefresh(clip.text);
@@ -381,7 +382,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       endCleanupRef.current = null;
       el.onended = el.ontimeupdate = el.onerror = el.onplaying = null;
       el.pause();
-      publishProgress(1, clip.ref);
+      publishProgress(1, clip.ref, prepared.wordClock?.length ?? null);
       onDone();
     };
 
@@ -448,7 +449,8 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       }
       const lead = trim?.lead || 0;
       const spokenDuration = el.duration - lead - (trim?.tail || 0);
-      publishProgress(spokenDuration > 0 ? (el.currentTime - lead) / spokenDuration : 0, clip.ref);
+      const completed = prepared.wordClock ? completedWordsAt(prepared.wordClock, el.currentTime) : null;
+      publishProgress(spokenDuration > 0 ? (el.currentTime - lead) / spokenDuration : 0, clip.ref, completed);
       if (verseClip && resumePoint) resumePoint.time = el.currentTime;
     };
     el.playbackRate = rateRef.current;

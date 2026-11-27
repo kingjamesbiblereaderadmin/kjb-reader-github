@@ -24,15 +24,15 @@ export default function verseWords(element) {
     }
   }
   const words = [];
-  // Timing remains an estimate for existing MP3s, which have no word timestamps.
-  // End-of-word gates avoid moving midway through the last visible word.
+  // Word indices are matched to recorded timestamps. Character shares remain
+  // only as the compatibility fallback until a recording has been aligned.
   for (const match of text.matchAll(/[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*/gu)) {
     const start = chars[match.index];
     const end = chars[match.index + match[0].length - 1];
     const range = document.createRange();
     range.setStart(start.node, start.offset);
     range.setEnd(end.node, end.offset + 1);
-    words.push({ range, start: match.index / text.length, end: (match.index + match[0].length) / text.length });
+    words.push({ range, index: words.length, start: match.index / text.length, end: (match.index + match[0].length) / text.length });
   }
   cache.set(root, { raw, words });
   return words;

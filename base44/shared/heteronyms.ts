@@ -44,6 +44,13 @@ const RESPELL: Record<string, string> = {
 export const CORRECTED_IPA: Record<string, string> = {
   maykith: 'ˈmeɪkɪθ',
   impyootith: 'ɪmˈpjuːtɪθ',
+  evildoer: 'ˈiːvəlˌduːə',
+  evildoers: 'ˈiːvəlˌduːəz',
+  teers: 'tɪəz',
+  goeth: 'ˈɡəʊɪθ', doeth: 'ˈduːɪθ', seeth: 'ˈsiːɪθ',
+  lieth: 'ˈlaɪɪθ', dieth: 'ˈdaɪɪθ', useth: 'ˈjuːzɪθ', oweth: 'ˈəʊɪθ',
+  loveth: 'ˈlʌvɪθ', moveth: 'ˈmuːvɪθ', giveth: 'ˈɡɪvɪθ',
+  crieth: 'ˈkraɪɪθ', flieth: 'ˈflaɪɪθ', trieth: 'ˈtraɪɪθ', drieth: 'ˈdraɪɪθ',
 };
 
 const RESPELL_RE = new RegExp(
@@ -123,6 +130,9 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   let changed = false;
   // Only these corrections get a new recording key. Existing h2 recordings for
   // other settled pronunciations are retained and are not generated again.
+  const auditUpdated = /\b(?:goeth|doeth|seeth|lieth|dieth|useth|oweth|loveth|moveth|giveth|crieth|flieth|trieth|drieth|aijeleth|alameth|alemeth|azmaveth|chinnereth|dabbasheth|elisabeth|gennesareth|hammoleketh|hareth|harosheth|haraseth|hareseth|hazarmaveth|japheth|jerubbesheth|jetheth|mephibosheth|meshullemeth|mispereth|nazareth|peleth|beseth|pochereth|remeth|shallecheth|shibboleth|sibboleth|sophereth|tanhumeth|tebeth|topheth|zereth|zoheleth|zoheth|bosheth|ishbosheth|twentieth|thirtieth|fortieth|fiftieth|sixtieth|seventieth|eightieth|ninetieth)\b/i.test(text);
+  const tearsUpdated = /\btears\b/i.test(text);
+  const evilUpdated = /\bevildoers?\b/i.test(text);
   const newlyUpdated = /\b(?:maketh|imputeth)\b/i.test(text);
   const updated = /\bmarketh\b|\btheir\s+desert\b|\bbow\s+down\b/i.test(text);
   const source = String(text || '').replace(/\b(their\s+)desert\b/gi, '$1dih-zurt');
@@ -141,5 +151,5 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
     changed = true;
     return /^[A-Z]/.test(word) ? replacement.charAt(0).toUpperCase() + replacement.slice(1) : replacement;
   });
-  return { text: out, changed, revision: newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
+  return { text: out, changed, revision: auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
 }

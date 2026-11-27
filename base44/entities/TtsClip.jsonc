@@ -25,6 +25,14 @@
       "type": "string",
       "maxLength": 32,
       "description": "Verse reference this clip was first generated for (e.g. 'John 3:16')"
+    },
+    "timing_version": {
+      "type": "integer",
+      "description": "1 when recorded word timestamps are stored, -1 when alignment needs review"
+    },
+    "timing_error": {
+      "type": "string",
+      "maxLength": 300
     }
   },
   "required": [
