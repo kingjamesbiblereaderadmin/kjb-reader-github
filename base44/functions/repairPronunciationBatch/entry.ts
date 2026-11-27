@@ -20,7 +20,7 @@ export default async function(req) {
         verses.forEach((verse) => {
           const text = processVerse(verse, { book, chapter: Number(chapter) }).text;
           const revision = applyHeteronyms(text).revision;
-          if (!['h5','h6','h7','h8','h9'].includes(revision)) return;
+          if (!['h5','h6','h7','h8','h9','h10'].includes(revision)) return;
           const ref = `${books[index]}:${chapter}:${verse.verse}`;
           candidates.push({ ref, text, expected: `${ref}:${revision}` });
         });

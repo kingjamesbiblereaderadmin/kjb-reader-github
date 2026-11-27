@@ -518,10 +518,18 @@ export default React.forwardRef(function FlipBook({
   // "Genesis 2 · pages 1–2 of 4", counting text pages only.
   const shown = Array.from({ length: step }, (_, i) => page + i - front.length + 1).filter((n) => n >= 1 && n <= textTotal);
   const shownContents = front.slice(page, page + step).filter((entry) => typeof entry !== 'string').map((entry) => entry.contentsPage + 1);
+  // The bar under the pages names the next chapter whenever the open pages
+  // carry it on — printed under this chapter's last verse, or on the facing
+  // page — so the foot never says less than the pages show.
+  const nextOnPages = !!following && (shown.length > 0 && ((fillLastPage && shown.includes(textTotal))
+    || (spread && page + 1 === pageCount && page < pageCount)));
+  const whereLabel = !nextOnPages ? `${book.shortName} ${chapter}`
+    : following.book.abbr === abbr ? `${book.shortName} ${chapter}–${following.chapter}`
+      : `${book.shortName} ${chapter} · ${following.book.shortName} ${following.chapter}`;
   const where = !shown.length ? (shownContents.length
     ? `Contents · ${shownContents.length > 1 ? `pages ${shownContents[0]}–${shownContents[1]}` : `page ${shownContents[0]}`} of ${contentsPageCount}`
     : 'Title page')
-    : `${book.shortName} ${chapter} · ${shown.length > 1 ? `pages ${shown[0]}–${shown[1]}` : `page ${shown[0]}`} of ${textTotal}`;
+    : `${whereLabel} · ${shown.length > 1 ? `pages ${shown[0]}–${shown[1]}` : `page ${shown[0]}`} of ${textTotal}`;
 
   // What lies flat underneath, and the sheet that is turning over it.
   let left = page;

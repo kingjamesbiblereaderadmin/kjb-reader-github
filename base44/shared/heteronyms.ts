@@ -51,6 +51,10 @@ export const CORRECTED_IPA: Record<string, string> = {
   // hyphen respelling on its own was flattened back to "blest" by the engine,
   // so the word is pinned in IPA the same way "teers" is.
   'bless-ed': 'ˈblesɪd',
+  // "Cursed" in the Authorised Version carries its own second syllable
+  // (CURS-id), and the hyphen respelling alone was flattened back to "curst"
+  // exactly as "bless-ed" was, so it is pinned in IPA too.
+  'curs-ed': 'ˈkɜːsɪd',
   goeth: 'ˈɡəʊɪθ', doeth: 'ˈduːɪθ', seeth: 'ˈsiːɪθ',
   lieth: 'ˈlaɪɪθ', dieth: 'ˈdaɪɪθ', useth: 'ˈjuːzɪθ', oweth: 'ˈəʊɪθ',
   loveth: 'ˈlʌvɪθ', moveth: 'ˈmuːvɪθ', giveth: 'ˈɡɪvɪθ',
@@ -158,5 +162,8 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
     changed = true;
     return /^[A-Z]/.test(word) ? replacement.charAt(0).toUpperCase() + replacement.slice(1) : replacement;
   });
-  return { text: out, changed, revision: nakedUpdated ? 'h9' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
+  // Only the verses where "cursed" really takes the second syllable are
+  // recorded again; the plain past ("he cursed the ground") keeps its clip.
+  const cursedUpdated = /\bcurs-ed\b/i.test(out);
+  return { text: out, changed, revision: cursedUpdated ? 'h10' : nakedUpdated ? 'h9' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
 }
