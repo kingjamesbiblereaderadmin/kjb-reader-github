@@ -1776,6 +1776,7 @@ export default function BibleReader() {
       onRestart={() => { setHighlightVerse(null); setHighlightSection(null); }}
       verses={isViewingTitlePage ? [] : verses}
       chapterKey={`${pos.abbr}:${pos.chapter}`}
+      bookKey={pos.abbr}
       chapter={pos.chapter}
       startVerse={highlightVerse}
       label={book.shortName}

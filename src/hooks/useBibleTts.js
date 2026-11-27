@@ -14,6 +14,7 @@ import { base44 } from '@/api/base44Client';
 import { DEFAULT_TTS_VOICE, engineForVoice, normalizeVoice, readStored, writeStored, TTS_STORAGE } from '@/lib/tts/voices';
 import { publishProgress } from '@/lib/tts/speaking';
 import { localAudioUrlFor } from '@/lib/tts/localAudio';
+import { cachedUrl } from '@/lib/tts/offlineAudio';
 
 // Verse text arrives with the reader's markup: [italics] brackets, ¶ pilcrows
 // and <<heading>> markers. None of them should be spoken.
@@ -118,6 +119,18 @@ async function audioUrlFor(clip, voice) {
   // urlCache -- a loopback port changes between launches.
   const local = await localAudioUrlFor(clip.ref);
   if (local) return local;
+
+  // A book the reader downloaded for offline listening plays from this device:
+  // the web/PWA's equivalent of the native bundle, and the reason a downloaded
+  // chapter needs no request at all.
+  const stored = await cachedUrl(clip.ref);
+  if (stored) return stored;
+
+  // Nothing on the device and no connection: asking the server can only fail, so
+  // say so straight away instead of retrying a request that cannot go out.
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    throw Object.assign(new Error('Listen needs a connection. Reconnect, then press play again.'), { code: 'offline' });
+  }
 
   const key = `${voice}|${clip.ref || clip.text}`;
   const hit = urlCache.get(key);

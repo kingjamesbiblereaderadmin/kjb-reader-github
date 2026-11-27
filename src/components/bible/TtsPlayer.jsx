@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, RotateCcw, Repeat } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, RotateCcw, Repeat, CloudDownload } from 'lucide-react';
 import { publishSpeaking } from '@/lib/tts/speaking';
 import useBibleTts from '@/hooks/useBibleTts';
+import useOfflineBook from '@/hooks/useOfflineBook';
+import OfflineBookControl from '@/components/bible/OfflineBookControl';
 import { TTS_RATES, TTS_STORAGE, readStored, writeStored } from '@/lib/tts/voices';
 
 // The reader's Listen player.
@@ -111,7 +113,7 @@ function scrollToVerse(verse) {
   revealElement(document.getElementById(`v${verse}`), { center: true });
 }
 
-export default function TtsPlayer({ embedded = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, chapter = null, startVerse = null, label = '', bookName = '', subscript = '', colophon = '', titleText = '', endMarker = '', onNextChapter = null, onRestart }) {
+export default function TtsPlayer({ embedded = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, bookKey = '', chapter = null, startVerse = null, label = '', bookName = '', subscript = '', colophon = '', titleText = '', endMarker = '', onNextChapter = null, onRestart }) {
   const [autoContinue, setAutoContinue] = useState(() => readStored(TTS_STORAGE.autoContinue, 'true') !== 'false');
   // Hidden = controls collapse to a single pill; audio keeps playing. Remembered
   // per device so a reader who listens while reading never sees the bar again.
@@ -153,6 +155,27 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
   }, [autoContinue, onNextChapter, verses]);
 
   const tts = useBibleTts({ verses, chapterKey, subscript, colophon, titleText, endMarker, onChapterEnd: handleChapterEnd });
+
+  // The web/PWA can carry a book for offline listening. Whether it does decides
+  // two things in the bar: the download action itself, and whether Listen can
+  // start at all with no connection.
+  const [netOnline, setNetOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine !== false));
+  useEffect(() => {
+    const sync = () => setNetOnline(typeof navigator === 'undefined' ? true : navigator.onLine !== false);
+    window.addEventListener('online', sync);
+    window.addEventListener('offline', sync);
+    return () => {
+      window.removeEventListener('online', sync);
+      window.removeEventListener('offline', sync);
+    };
+  }, []);
+  const offlineBook = useOfflineBook({ bookKey, enabled: open || tts.isActive || !netOnline });
+  // What to say when the reader asks to listen to a book that is not on this
+  // device and there is no connection to download it.
+  const [offlineNote, setOfflineNote] = useState('');
+  useEffect(() => {
+    if (netOnline) setOfflineNote('');
+  }, [netOnline]);
 
   // Roll into the new chapter once its verses land. Gating on the verses array
   // actually changing (not just on chapterKey) is what stops playback starting
@@ -441,14 +464,30 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
           <button onClick={withFollow(tts.prev)} disabled={idle} aria-label="Previous verse" className={`${CONTROL} disabled:opacity-40 disabled:pointer-events-none`}>
             <SkipBack className="w-4 h-4" />
           </button>
-          <button
-            onClick={idle ? startFromView : onPlayPause}
-            data-testid={idle ? 'tts-listen-btn' : undefined}
-            aria-label={tts.status === 'playing' || tts.status === 'loading' ? 'Pause' : 'Play'}
-            className="h-10 w-14 flex items-center justify-center rounded-lg bg-primary text-primary-foreground hover:opacity-95 transition-opacity touch-manipulation"
-          >
-            {tts.status === 'playing' || tts.status === 'loading' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-          </button>
+          {idle && !netOnline && !offlineBook.downloaded ? (
+            // No connection and this book is not on the device: nothing can be
+            // fetched, so the button says what would fix it instead of failing
+            // silently on the first verse.
+            <button
+              onClick={() => setOfflineNote('Connect to the internet to download this book. Once it is on this device, it plays with no connection.')}
+              aria-disabled="true"
+              data-testid="tts-listen-offline-btn"
+              title="Download this book to listen offline"
+              className="h-10 px-3 flex items-center justify-center gap-1.5 rounded-lg bg-secondary border border-border text-muted-foreground font-sans text-xs font-medium whitespace-nowrap opacity-70 touch-manipulation"
+            >
+              <CloudDownload className="w-4 h-4 flex-shrink-0" />
+              Download this book to listen offline
+            </button>
+          ) : (
+            <button
+              onClick={idle ? startFromView : onPlayPause}
+              data-testid={idle ? 'tts-listen-btn' : undefined}
+              aria-label={tts.status === 'playing' || tts.status === 'loading' ? 'Pause' : 'Play'}
+              className="h-10 w-14 flex items-center justify-center rounded-lg bg-primary text-primary-foreground hover:opacity-95 transition-opacity touch-manipulation"
+            >
+              {tts.status === 'playing' || tts.status === 'loading' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            </button>
+          )}
           <button onClick={withFollow(tts.next)} disabled={idle} aria-label="Next verse" className={`${CONTROL} disabled:opacity-40 disabled:pointer-events-none`}>
             <SkipForward className="w-4 h-4" />
           </button>
@@ -505,6 +544,7 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
             <Repeat className="w-3.5 h-3.5" />
             {autoContinue ? 'Continues' : 'One chapter'}
           </button>
+          <OfflineBookControl offline={offlineBook} online={netOnline} />
           {!idle && (
             <button onClick={() => { setHiddenPersisted(true); onOpenChange?.(false); }} aria-label="Hide player" className={CONTROL}>
               <ChevronDown className="w-4 h-4" />
@@ -519,6 +559,12 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
 
         {tts.error && (
           <p className="border-t border-border pt-1.5 mt-1.5 font-sans text-[11px] text-destructive text-center">{tts.error}</p>
+        )}
+        {offlineBook.error && (
+          <p className="border-t border-border pt-1.5 mt-1.5 font-sans text-[11px] text-destructive text-center">{offlineBook.error}</p>
+        )}
+        {offlineNote && (
+          <p className="border-t border-border pt-1.5 mt-1.5 font-sans text-[11px] text-muted-foreground text-center">{offlineNote}</p>
         )}
     </section>
   );
