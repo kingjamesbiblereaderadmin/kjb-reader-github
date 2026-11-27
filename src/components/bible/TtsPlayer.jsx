@@ -169,30 +169,68 @@ function revealElement(el, { center = false, instant = false } = {}) {
     : above ? r.top - top : r.bottom - bottom);
 }
 
+// The line of text the voice has reached. The clip's clock says nothing about
+// vertical space — a verse's lines are different lengths, and the voice spends
+// its time on words, not pixels — so the fraction played is turned into a
+// character position in the verse's own text and that character's line is
+// measured. That lands on the line actually being read, which is what lets the
+// page keep up with the voice instead of drifting behind it.
+function spokenLineRect(el) {
+  const nodes = [];
+  let total = 0;
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    const len = n.nodeValue.length;
+    if (!len) continue;
+    nodes.push({ node: n, start: total, len });
+    total += len;
+  }
+  if (!total) return null;
+  const at = Math.min(total - 1, Math.max(0, Math.round(getProgress() * (total - 1))));
+  const hit = nodes.find((e) => at >= e.start && at < e.start + e.len);
+  if (!hit) return null;
+  const start = at - hit.start;
+  const range = document.createRange();
+  range.setStart(hit.node, start);
+  range.setEnd(hit.node, Math.min(hit.len, start + 1));
+  const rect = range.getBoundingClientRect();
+  // A collapsed space at the end of a line has no box of its own.
+  return rect.height || rect.width ? rect : null;
+}
+
+// Keep the words being read on screen — short verses and tall ones alike.
 // A verse taller than the screen can never be shown whole, so pinning its top
-// (what revealElement does) left the second half of a long verse under the fold
-// while the voice read on — the page never moved again for that verse. Instead,
-// while such a verse is being read, follow the voice down it: the point the clip
-// has reached walks from the top of the verse to its foot across the part of the
-// verse that does not fit, so every line being read comes into view.
-function followTallVerse(el) {
+// (what revealElement does) left the second half of it under the fold while the
+// voice read on, and the page never moved again for that verse. Here the page
+// walks with the spoken line instead: it holds still while that line sits
+// comfortably inside the reading area, and follows it down — or back up, if the
+// reader scrolled away — once it drifts out of that band. The band is what keeps
+// the page moving about once per line rather than on every clock tick, and in
+// two columns it follows the voice across the column rule, since a line's own
+// rect is where the reader's eye has to be.
+function followSpokenLine(el) {
   if (!el) return;
   const box = scrollBox();
   const r = el.getBoundingClientRect();
   const top = box.top + topInset(box) + GAP_TOP;
-  const visible = box.bottom - PAD_BOTTOM - top;
+  const bottom = box.bottom - PAD_BOTTOM;
+  const visible = bottom - top;
   if (visible <= 0) return;
-  const overflow = r.height - visible;
-  if (overflow <= 0) return;
-  // The page holds still until the voice reaches the reading line, two thirds
-  // down the visible area, then walks the verse up beneath it so the words being
-  // read are never left under the bottom bar. The verse's own audio clock drives
-  // it (nudged every quarter second), so the page moves smoothly with the voice
-  // rather than jumping when a line ends.
-  const target = Math.min(overflow, Math.max(0, r.height * getProgress() - visible * 0.66));
-  const delta = (r.top - top) + target;
+  const line = spokenLineRect(el);
+  if (!line) return;
+  // Two thirds down: the lines just read stay in view above it, and the line
+  // coming next is already visible below.
+  const want = top + visible * 0.66;
+  const drift = line.bottom - want;
+  if (Math.abs(drift) < Math.max(10, visible * 0.07)) return;
+  // Never walk the verse's own first line out of the top of the reading area,
+  // and never scroll past its last line.
+  const delta = Math.max(
+    Math.min(0, r.top - top),
+    Math.min(drift, Math.max(0, r.bottom - bottom))
+  );
   if (Math.abs(delta) < 6) return;
-  (box.scroller || window).scrollBy({ top: delta });
+  (box.scroller || window).scrollBy({ top: delta, behavior: 'smooth' });
 }
 
 // A deliberate jump — a play press, a verse pick, a reset — lands at once and is
@@ -366,7 +404,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     const el = document.getElementById(`v${tts.currentVerse}`);
     if (!el) return undefined;
     const id = window.setInterval(() => {
-      if (followRef.current) followTallVerse(document.getElementById(`v${tts.currentVerse}`));
+      if (followRef.current) followSpokenLine(document.getElementById(`v${tts.currentVerse}`));
     }, 250);
     return () => window.clearInterval(id);
   }, [tts.isActive, tts.currentVerse, tts.currentKind]);
@@ -447,15 +485,17 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   // What the lock screen and the phone's media card say. Left alone they show
   // the page title ("KJB Reader"), so a listener had no way to tell where the
   // voice was. Each verse is read as its own clip, so the card's progress bar
-  // covers that verse; the title therefore names the exact verse being read
-  // (Psalm 28:3), falling back to the chapter while the chapter is announced or
-  // one of the printed notes is being read.
+  // covers that verse; the title therefore names the exact verse being read in
+  // the reader's short book name (Ps 28:3), falling back to the chapter while the
+  // chapter is announced or one of the printed notes is being read.
   useEffect(() => {
     if (!tts.isActive) {
       clearMediaMetadata();
       return;
     }
-    const name = bookName || label;
+    // The short book name, as the reader prints it ("Ps 28:3"): a lock screen
+    // has one line, and the full title ("Psalms 28:3") crowds it out.
+    const name = label || bookName;
     const inVerse = tts.currentVerse != null && !tts.introActive
       && !['sub', 'col', 'end', 'title'].includes(tts.currentKind);
     const title = inVerse
