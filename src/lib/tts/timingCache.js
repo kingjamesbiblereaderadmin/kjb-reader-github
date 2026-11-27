@@ -40,10 +40,18 @@ export function loadWordTimings(chapterKey, voice) {
   }
   return chapters.get(key);
 }
+// A clip re-voiced for a pronunciation fix is keyed with a suffix
+// (MAT:22:17:v2, PSA:119:h1), while its timing row is filed under the plain
+// reference (MAT:22:17). Comparing the references as printed meant a re-voiced
+// verse never found its own timing row, so it played with no word clock. The
+// suffix is dropped on both sides; the audio_url match and the audio_hash
+// fallback below still tell two takes of the same verse apart.
+const plainRef = (ref) => String(ref || '').replace(/^([1-3A-Z]{3}:\d{1,3}:[^:]+):(?:h\d+|v\d+)$/, '$1');
+
 export async function wordTimingFor(clip, voice, url, bytes) {
   if (!clip.ref) return null;
   const rows = await loadWordTimings(clip.ref.split(':').slice(0, 2).join(':'), voice);
-  const candidates = rows.filter((row) => row.ref === clip.ref);
+  const candidates = rows.filter((row) => plainRef(row.ref) === plainRef(clip.ref));
   if (!candidates.length) return null;
   // A native bundle or offline download may hold an older recording. Only use
   // timings whose audio bytes match exactly, never another revision's clock.
