@@ -26,7 +26,7 @@
     ]
   },
   "name": "Finish Bible Recording Word Timing",
-  "description": "Completes the approved word-timing pass over existing Ryan verse recordings, including refreshed pronunciations. Reuses saved timing for identical audio and saves every small batch. No paid processing runs after the pending queue empties. Archives after 144 scheduled runs.",
+  "description": "Completes the approved word-timing pass over existing Ryan verse recordings, including refreshed pronunciations. Reuses saved timing for identical audio and saves every small batch. The schedule has no run limit so a long backfill cannot be cut off; no paid processing happens once the pending queue is empty.",
   "trigger": {
     "condition": null,
     "config": {
@@ -39,9 +39,9 @@
       "interval_value": null,
       "interval_unit": null,
       "interval_anchor": null,
-      "ends_type": "after_count",
+      "ends_type": "never",
       "ends_on_date": null,
-      "ends_after_count": 144
+      "ends_after_count": null
     }
   }
 }

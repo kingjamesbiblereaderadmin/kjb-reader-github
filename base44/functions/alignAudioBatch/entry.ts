@@ -20,7 +20,9 @@ export default async function(req) {
     // which failed every run of this backfill before it could measure anything.
     const query = { timing_version: { $exists: false }, voice: 'en-GB-RyanNeural', url: { $regex: '^https?://' }, ref: { $regex: body.chapterKey ? `^${body.chapterKey}:\\d+(:h\\d+)?$` : '^[1-3A-Z]{3}:\\d+:\\d+(:h\\d+)?$' } };
     if (body.clipId) query.id = String(body.clipId);
-    const passes = body.backfill === true ? 20 : 1;
+    // A backfill run works through the queue until its deadline, so the pass
+    // count only has to be high enough not to cap it (40 × 36 = 1,440 rows).
+    const passes = body.backfill === true ? 40 : 1;
     const deadline = Date.now() + 200000;
     if (body.statusOnly === true) {
       const [remaining, needsReview] = await Promise.all([
@@ -37,9 +39,9 @@ export default async function(req) {
       if (!rows.length) { more = false; break; }
       const existing = await db.entities.AudioTiming.filter({ audio_url: { $in: rows.map((r) => r.url) } }, { limit: 500 });
       const byUrl = new Map((existing.items || existing).map((r) => [`${r.voice}|${r.audio_url}`, r]));
-      for (let at = 0; at < rows.length && Date.now() < deadline; at += 6) {
+      for (let at = 0; at < rows.length && Date.now() < deadline; at += 8) {
         const records = [], updates = [];
-        const group = await Promise.all(rows.slice(at, at + 6).map(async (row) => {
+        const group = await Promise.all(rows.slice(at, at + 8).map(async (row) => {
           if (byUrl.has(`${row.voice}|${row.url}`)) { reused += 1; return { update: { id: row.id, timing_version: 1, timing_error: '' } }; }
           try {
             return { record: await measureRecordedWords(row, key), update: { id: row.id, timing_version: 1, timing_error: '' } };

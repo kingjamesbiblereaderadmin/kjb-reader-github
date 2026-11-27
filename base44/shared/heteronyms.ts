@@ -55,6 +55,8 @@ export const CORRECTED_IPA: Record<string, string> = {
   // (CURS-id), and the hyphen respelling alone was flattened back to "curst"
   // exactly as "bless-ed" was, so it is pinned in IPA too.
   'curs-ed': 'ˈkɜːsɪd',
+  // The month in Esther, said "AY-dar" and not left to the engine's guess.
+  adar: 'ˈeɪdɑː',
   goeth: 'ˈɡəʊɪθ', doeth: 'ˈduːɪθ', seeth: 'ˈsiːɪθ',
   lieth: 'ˈlaɪɪθ', dieth: 'ˈdaɪɪθ', useth: 'ˈjuːzɪθ', oweth: 'ˈəʊɪθ',
   loveth: 'ˈlʌvɪθ', moveth: 'ˈmuːvɪθ', giveth: 'ˈɡɪvɪθ',
@@ -165,5 +167,6 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   // Only the verses where "cursed" really takes the second syllable are
   // recorded again; the plain past ("he cursed the ground") keeps its clip.
   const cursedUpdated = /\bcurs-ed\b/i.test(out);
-  return { text: out, changed, revision: cursedUpdated ? 'h10' : nakedUpdated ? 'h9' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
+  const adarUpdated = /\badar\b/i.test(text);
+  return { text: out, changed, revision: adarUpdated ? 'h11' : cursedUpdated ? 'h10' : nakedUpdated ? 'h9' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
 }
