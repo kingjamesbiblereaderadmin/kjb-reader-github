@@ -5,8 +5,10 @@ import TitlePage from '@/components/bible/TitlePage';
 
 export default function BookContinuation({ passage, side, padLeft, padRight, footerHeight, textW, textH, contentsH, zoomLevel, fontFamilyValue, isCursive, flowProps, textStyle, paragraphs }) {
   const { book, chapter } = passage;
-  const title = chapter <= 1;
-  const type = chapter === 0 ? (book.abbr === 'MAT' ? 'testament-new' : 'testament-old') : 'book';
+  // Only the Bible's own title pages stay; a chapter 1 shows its text, with no
+  // book-title page standing between the books.
+  const title = chapter === 0;
+  const type = book.abbr === 'MAT' ? 'testament-new' : 'testament-old';
   return <div className={`kjb-fb-page kjb-fb-${side} notranslate`} translate="no" data-fb-next={`${book.abbr}:${chapter}`} style={{ padding: `52px ${padRight}px ${footerHeight}px ${padLeft}px` }}>
     {title ? <FittedPage width={textW} height={contentsH} zoom={zoomLevel / 100} fontFamilyValue={fontFamilyValue} isCursive={isCursive}>
       <TitlePage type={type} book={book} />

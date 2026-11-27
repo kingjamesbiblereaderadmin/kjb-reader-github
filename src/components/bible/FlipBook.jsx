@@ -174,7 +174,8 @@ export default React.forwardRef(function FlipBook({
   const contentsH = Math.max(80, contentH - 24);
   const hasContents = chapter === 0 && abbr === 'GEN';
   const front = useMemo(() => {
-    if (chapter !== 0) return chapter === 1 ? ['book'] : [];
+    // A chapter opens straight into its text: no book-title page between books.
+    if (chapter !== 0) return [];
     if (abbr !== 'GEN') return [abbr === 'MAT' ? 'testament-new' : 'book'];
     return ['testament-old', ...Array.from({ length: contentsPageCount }, (_, contentsPage) => ({ contentsPage }))];
   }, [abbr, chapter, contentsPageCount]);
