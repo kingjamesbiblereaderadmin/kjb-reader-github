@@ -16,7 +16,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.63';
 const PAGE = 500;
 const MAX_PAGES = 200; // 100,000 rows: far past the 31,102 verse clips
 const CACHE_MS = 60 * 60 * 1000;
-const INDEX_REVISION = 'h16-complete-31102';
+const INDEX_REVISION = 'notes-1';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -54,6 +54,12 @@ export default async function (req) {
 
     const books: Record<string, Record<string, string>> = {};
     const revisions: Record<string, number> = {};
+    // The chapter's printed notes (Psalm superscriptions, epistle
+    // subscriptions, the Hebrew stanza names, book title pages and the two
+    // closing lines) carry a word where a verse carries a number, so they are
+    // listed separately: the apps bundle them from here.
+    const notes: Record<string, string> = {};
+    const noteRevisions: Record<string, number> = {};
     let cursor: string | null = null;
 
     for (let page = 0; page < MAX_PAGES; page += 1) {
@@ -82,6 +88,20 @@ export default async function (req) {
           bucket[key] = url;
           revisions[revisionKey] = revision;
         }
+
+        // Notes keep their own label as the key ("PSA:3:sub", "PSA:119:h1",
+        // "GEN:0:title", "MAL:4:end"), never a verse number, so they can never
+        // collide with a verse above.
+        const parts = ref.split(':');
+        const label = parts.length > 2 ? parts[2] : '';
+        if (label && /^(?:sub|col|end|title|h\d+)$/.test(label)) {
+          const noteKey = `${book}:${parts[1]}:${label}`;
+          const noteRevision = parts.length > 3 ? Number((parts[3].match(/^h(\d+)$/) || [])[1] || 0) : 0;
+          if (!notes[noteKey] || noteRevision > (noteRevisions[noteKey] || 0)) {
+            notes[noteKey] = url;
+            noteRevisions[noteKey] = noteRevision;
+          }
+        }
       }
 
       const next = Array.isArray(res) ? null : res?.next_cursor;
@@ -97,6 +117,7 @@ export default async function (req) {
       revision: INDEX_REVISION,
       count,
       books,
+      notes,
     });
     cached = { at: now, body };
     return new Response(body, { status: 200, headers: OK_HEADERS });

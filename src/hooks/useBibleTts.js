@@ -140,7 +140,11 @@ function audioCacheKey(clip, voice) {
 }
 
 async function audioUrlFor(clip, voice) {
-  const revised = needsPronunciationRefresh(clip.text);
+  // Only a VERSE can hold a take the device predates. The chapter notes are
+  // bundled from the take stored now, so the device's own copy is always the
+  // current one and is used even for a note that names a revision — which is
+  // what lets the Psalm titles, stanza names and closing lines play offline.
+  const revised = clip.kind === 'verse' && needsPronunciationRefresh(clip.text);
   const useUpdatedRecording = revised && (typeof navigator === 'undefined' || navigator.onLine !== false);
   // Bundled audio first: the native apps ship every verse, so a clip already on
   // the device plays with no request at all. Deliberately not cached in

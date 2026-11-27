@@ -540,7 +540,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
             // fetched, so the button says what would fix it instead of failing
             // silently on the first verse.
             <button
-              onClick={() => setOfflineNote('Connect to the internet to download this book. Once it is on this device, it plays with no connection.')}
+              onClick={() => setOfflineNote('Connect to the internet to download this book. Once it is on this device, it plays with no connection. Or install the native app from your phone\'s app store.')}
               aria-disabled="true"
               data-testid="tts-listen-offline-btn"
               title="Download this book to listen offline"

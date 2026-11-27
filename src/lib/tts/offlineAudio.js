@@ -19,7 +19,11 @@ const DB_VERSION = 1;
 const CLIPS = 'clips';
 const META = 'meta';
 const INDEX_KEY = 'index';
-const INDEX_REVISION = 'h16-complete-31102';
+// notes-1: the index now lists the chapter's printed notes as well as its
+// verses, so a book downloaded from here carries the Psalm titles, stanza names
+// and closing lines too. Bumping the label makes a device fetch the new index
+// instead of reusing the verse-only one it cached.
+const INDEX_REVISION = 'notes-1';
 const INDEX_MAX_AGE = 24 * 60 * 60 * 1000;
 const PROGRESS_EVERY = 10;
 

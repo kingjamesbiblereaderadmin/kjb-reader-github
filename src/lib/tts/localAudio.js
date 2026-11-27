@@ -30,15 +30,22 @@ function nativePlatform() {
   }
 }
 
+// A verse is <CCC>_<VVV>.mp3; the chapter's printed notes carry their own
+// label instead of a verse number ("PSA:3:sub" -> 003_sub.mp3, "PSA:119:h1" ->
+// 119_h1.mp3, "GEN:0:title" -> 000_title.mp3), so they sit beside the verses in
+// the same folder and play from the device exactly like one.
+const NOTE_LABEL = /^(?:sub|col|end|title|h\d+)$/;
+
 function clipPath(ref) {
   const parts = String(ref || '').split(':');
   if (parts.length !== 3) return null;
-  const [book, chapter, verse] = parts;
+  const [book, chapter, third] = parts;
   const ch = Number(chapter);
-  const vs = Number(verse);
-  if (!book || !Number.isFinite(ch) || !Number.isFinite(vs)) return null;
+  if (!book || !Number.isFinite(ch)) return null;
   const pad = (n) => String(n).padStart(3, '0');
-  return `${book}/${pad(ch)}_${pad(vs)}.mp3`;
+  if (/^\d+$/.test(third)) return `${book}/${pad(ch)}_${pad(Number(third))}.mp3`;
+  if (NOTE_LABEL.test(third)) return `${book}/${pad(ch)}_${third}.mp3`;
+  return null;
 }
 
 let iosPrepared = null;

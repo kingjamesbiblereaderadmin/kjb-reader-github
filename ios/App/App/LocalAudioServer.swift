@@ -63,16 +63,25 @@ final class LocalAudioServer {
         return started ? port : nil
     }
 
-    /// Loopback URL for a verse reference ("GEN:1:1"), or nil when that verse
-    /// is not in the bundle.
+    /// Loopback URL for a verse reference ("GEN:1:1") or one of the chapter's
+    /// printed notes ("PSA:3:sub", "PSA:119:h1", "GEN:0:title"), or nil when
+    /// that clip is not in the bundle.
     func url(forRef ref: String) -> URL? {
         guard let root, port != 0 else { return nil }
         let parts = ref.split(separator: ":")
         guard parts.count == 3,
-              let chapter = Int(parts[1]),
-              let verse = Int(parts[2]) else { return nil }
+              let chapter = Int(parts[1]) else { return nil }
         let book = String(parts[0])
-        let name = String(format: "%03d_%03d.mp3", chapter, verse)
+        let third = String(parts[2])
+        let name: String
+        if let verse = Int(third) {
+            name = String(format: "%03d_%03d.mp3", chapter, verse)
+        } else if ["sub", "col", "end", "title"].contains(third)
+                    || (third.hasPrefix("h") && third.dropFirst().allSatisfy(\.isNumber)) {
+            name = String(format: "%03d_%@.mp3", chapter, third)
+        } else {
+            return nil
+        }
         let file = root.appendingPathComponent(book).appendingPathComponent(name)
         guard FileManager.default.fileExists(atPath: file.path) else { return nil }
         var comps = URLComponents()
