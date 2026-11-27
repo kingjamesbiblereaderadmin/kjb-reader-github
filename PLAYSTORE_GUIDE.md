@@ -22,9 +22,9 @@ Store requires for new submissions).
 ## 1. Generate ONE persistent release keystore (do this locally, once)
 
 Play Store rejects any update signed with a different key than the first
-upload, so you must create **one** keystore and reuse it forever. Do **not**
-let CI generate a new key each build (the throwaway fallback exists only for a
-first-time upload with no secret set — avoid it).
+upload, so you must create **one** keystore and reuse it forever. CI never
+generates a key and never supplies a default password: a build without the
+keystore and password secrets fails instead of signing with something guessable.
 
 On a machine with Java installed:
 
@@ -114,27 +114,31 @@ jobs:
             gradle wrapper --gradle-version 8.7
           fi
           chmod +x gradlew || true
-      - name: Prepare signing keystore
-        working-directory: android
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      - name: Require release signing secrets
         run: |
-          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
-            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > release.keystore
-          else
-            echo "⚠️ No ANDROID_KEYSTORE_BASE64 secret — generating a THROWAWAY key (first upload only)."
-            keytool -genkeypair -v -keystore release.keystore -alias appnative \
-              -keyalg RSA -keysize 2048 -validity 10000 \
-              -storepass appnative -keypass appnative \
-              -dname "CN=AppNative, OU=Mobile, O=AppNative, L=, S=, C=US"
+          # No default password is ever used: if a secret is missing, the build
+          # stops here instead of signing with a guessable value.
+          missing=()
+          [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ] || missing+=("ANDROID_KEYSTORE_BASE64")
+          [ -n "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" ] || missing+=("ANDROID_KEYSTORE_PASSWORD")
+          [ -n "${{ secrets.ANDROID_KEY_ALIAS }}" ] || missing+=("ANDROID_KEY_ALIAS")
+          [ -n "${{ secrets.ANDROID_KEY_PASSWORD }}" ] || missing+=("ANDROID_KEY_PASSWORD")
+          if [ ${#missing[@]} -ne 0 ]; then
+            echo "::error::Missing signing secrets: ${missing[*]}. Add them under Settings -> Secrets and variables -> Actions."
+            exit 1
           fi
+      - name: Restore persistent release keystore
+        working-directory: android
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+          test -s release.keystore || { echo "::error::ANDROID_KEYSTORE_BASE64 did not decode to a keystore."; exit 1; }
       - name: Build signed release APK + AAB
         working-directory: android
         env:
           ANDROID_KEYSTORE_PATH: release.keystore
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD || 'appnative' }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS || 'appnative' }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD || 'appnative' }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: ./gradlew assembleRelease bundleRelease
       - name: Zipalign & sign APK (extra guard)
         working-directory: android
@@ -144,9 +148,9 @@ jobs:
           [ -f "$IN_APK" ] || IN_APK=app/build/outputs/apk/release/app-release.apk
           "$BUILD_TOOLS_DIR/zipalign" -p -f 4 "$IN_APK" app-aligned.apk
           "$BUILD_TOOLS_DIR/apksigner" sign --ks release.keystore \
-            --ks-key-alias ${{ secrets.ANDROID_KEY_ALIAS || 'appnative' }} \
-            --ks-pass pass:${{ secrets.ANDROID_KEYSTORE_PASSWORD || 'appnative' }} \
-            --key-pass pass:${{ secrets.ANDROID_KEY_PASSWORD || 'appnative' }} \
+            --ks-key-alias ${{ secrets.ANDROID_KEY_ALIAS }} \
+            --ks-pass pass:${{ secrets.ANDROID_KEYSTORE_PASSWORD }} \
+            --key-pass pass:${{ secrets.ANDROID_KEY_PASSWORD }} \
             --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true \
             --out app-release-signed.apk app-aligned.apk
           "$BUILD_TOOLS_DIR/apksigner" verify --verbose app-release-signed.apk || true

@@ -70,6 +70,16 @@ android {
             // updates signed with a different key than the first upload.
             def ksPath = System.getenv('ANDROID_KEYSTORE_PATH')
             if (ksPath != null) {
+                // No default passwords: every signing value must come from CI
+                // secrets, and a missing one fails the build here rather than
+                // falling back to a guessable value.
+                def missingSigning = ['ANDROID_KEYSTORE_PASSWORD', 'ANDROID_KEY_ALIAS', 'ANDROID_KEY_PASSWORD']
+                        .findAll { name -> !System.getenv(name) }
+                if (!missingSigning.isEmpty()) {
+                    throw new GradleException(
+                            "Missing release signing env vars: ${missingSigning.join(', ')}. " +
+                            "Set the matching GitHub Actions secrets; no default password is used.")
+                }
                 storeFile file(ksPath)
                 storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
                 keyAlias System.getenv('ANDROID_KEY_ALIAS')
