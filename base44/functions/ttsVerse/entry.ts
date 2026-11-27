@@ -687,7 +687,12 @@ export default async function (req) {
   // Only a verse that holds one of those words gets a new key, so it is voiced
   // once more with the right pronunciation; every other verse keeps the clip it
   // already has and is never billed again.
-  const clipRef = SPEECH_FIX_REFS.has(ref) ? `${ref}:v2`
+  // Words the KJB prints with the æ ligature reach this function spelled "ae".
+  // Their old clips were voiced from text where the ligature had been damaged
+  // into a replacement character ("Jud'ea"), so any verse holding one is moved
+  // to the same fresh key as the refs listed above.
+  const ligatureWord = /\b(?:caesar|caesarea|judaea|alphaeus|galilaean|galilaeans|arimathaea|thaddaeus|aeneas|hymenaeus|lebbaeus|idumaea|bartimaeus|timaeus|praetorium|ituraea|aenon|chaldaeans|epaenetus)\b/i.test(text);
+  const clipRef = SPEECH_FIX_REFS.has(ref) || ligatureWord ? `${ref}:v2`
     : spoken.revision ? `${ref}:${spoken.revision}`
       : ref;
   const seed = clipRef ? `${voice}|ref:${clipRef}` : `${voice}|text:${text}`;
