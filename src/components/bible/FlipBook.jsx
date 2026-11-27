@@ -74,6 +74,11 @@ export default function FlipBook({
   const rootRef = useRef(null);
   const [height, setHeight] = useState(520);
   const [footerHeight, setFooterHeight] = useState(64);
+  // Height of the running head and the folio under the text, measured from the
+  // page's own markup. It is not a constant: at a larger root size (the legible
+  // font, browser zoom) both grow, and a fixed reserve then left the text window
+  // taller than the room beneath it — the foot of every column was cut off.
+  const [chromeH, setChromeH] = useState(104);
   const speaking = useSpeaking();
   const [, setHighlightTick] = useState(0);
 
@@ -158,6 +163,16 @@ export default function FlipBook({
     return () => { alive = false; };
   }, []);
 
+  // Measure the running head and the folio as they actually render, so the text
+  // window is always exactly the space left between them.
+  const chromeProbeRef = useRef(null);
+  useLayoutEffect(() => {
+    const el = chromeProbeRef.current;
+    if (!el) return;
+    const next = Math.ceil(el.getBoundingClientRect().height);
+    if (next > 0) setChromeH((current) => (Math.abs(current - next) > 0.5 ? next : current));
+  }, [textW, textStyle, fontTick, chapterKey]);
+
   const spread = stage.w >= 760;
   const step = spread ? 2 : 1;
   // The open book fills the whole reading area: no desk showing around it.
@@ -168,7 +183,7 @@ export default function FlipBook({
   const padRight = 60; // the tools live in the page margin, never over scripture
   const textW = Math.max(120, pageW - padLeft - padRight);
   const contentH = Math.max(120, pageH - 52 - footerHeight);
-  const textH = Math.max(80, contentH - 104); // running head, folio and margins
+  const textH = Math.max(80, contentH - chromeH); // running head, folio and margins
 
   // Contents flow through real page-sized columns, without a testament break.
   const contentsH = Math.max(80, contentH - 24);
@@ -521,6 +536,11 @@ export default function FlipBook({
         )}
         {/* Invisible copy used only to count pages. */}
         <div className="kjb-fb-measure" aria-hidden="true" style={{ width: textW, height: textH }}>
+          {/* Out of flow: only measured, never laid into the page. */}
+          <div ref={chromeProbeRef} style={{ position: 'absolute', left: 0, top: 0, display: 'flex', flexDirection: 'column' }}>
+            <div className="kjb-fb-head">{book.shortName} {chapter}</div>
+            <div className="kjb-fb-folio">1</div>
+          </div>
           <ChapterFlow ref={measureRef} blocks={blocks} {...flowProps} page={0} textStyle={textStyle} />
         </div>
         <div className="kjb-fb-book" style={{ width: pageW ? pageW * step : '100%', height: pageH || '100%', '--fb-footer-height': `${footerHeight}px` }}>
