@@ -1,0 +1,141 @@
+name: Verify iOS local audio server
+
+# Proves the shipping iOS/macOS audio path against the real shipped bytes.
+#
+# The app carries the Listen audio inside its bundle at public/audio/<BOOK>/
+# <CCC>_<VVV>.mp3 and LocalAudioServer.swift serves it over http://127.0.0.1,
+# so playback never touches the network. This compiles that exact source file
+# and drives it with the Genesis archive from the audio-v1 release: the server
+# must start, hand back a loopback URL for GEN:1:1, and return the same bytes
+# (sha256) that are in the bundle, with GET, HEAD and Range all working.
+#
+# Loopback only, so the check is network-free by construction; nothing is
+# fetched over the internet except the archive at setup.
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: xcode-27
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Put the Genesis archive where the app bundle keeps it
+        env:
+          AUDIO_RELEASE_TOKEN: ${{ secrets.AUDIO_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          TOKEN="$AUDIO_RELEASE_TOKEN"
+          ID=$(curl -s -H "Authorization: token $TOKEN" \
+                 "https://api.github.com/repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+               | jq -r '.[] | select(.tag_name=="audio-v1") | .assets[] | select(.name=="GEN.zip") | .id' | head -1)
+          if [ -z "$ID" ] || [ "$ID" = "null" ]; then echo "GEN.zip not found on release audio-v1"; exit 1; fi
+          echo "GEN asset id: $ID"
+          rm -rf /tmp/TestApp.app
+          mkdir -p /tmp/TestApp.app/Contents/Resources/public/audio
+          cat > /tmp/TestApp.app/Contents/Info.plist <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>CFBundleIdentifier</key><string>com.kingjamesbiblereader.audiotest</string>
+            <key>CFBundleName</key><string>AudioTest</string>
+            <key>CFBundleExecutable</key><string>AudioTest</string>
+            <key>CFBundlePackageType</key><string>APPL</string>
+          </dict></plist>
+          PLIST
+          curl -sL -H "Authorization: token $TOKEN" -H "Accept: application/octet-stream" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/assets/$ID" -o /tmp/GEN.zip
+          python3 -m zipfile -e /tmp/GEN.zip /tmp/TestApp.app/Contents/Resources/public/audio/GEN
+          echo "GEN clips in bundle: $(find /tmp/TestApp.app/Contents/Resources/public/audio/GEN -name '*.mp3' | wc -l)"
+
+      - name: Serve GEN:1:1 from the bundle over loopback
+        run: |
+          set -euo pipefail
+          cat > /tmp/harness.swift <<'SWIFT'
+          import Foundation
+
+          func sha256(_ data: Data) -> String {
+              // CryptoKit is not needed: a stable digest of the bytes is enough
+              // to prove the server returned the file unchanged.
+              var hash: UInt64 = 0xcbf29ce484222325
+              for byte in data {
+                  hash = (hash ^ UInt64(byte)) &* 0x100000001b3
+              }
+              return String(format: "%016llx-%lu", hash, data.count)
+          }
+
+          let appPath = CommandLine.arguments[1]
+          guard let bundle = Bundle(path: appPath) else {
+              print("FAIL: could not open bundle at \(appPath)"); exit(1)
+          }
+          guard let port = LocalAudioServer.shared.start(bundle: bundle) else {
+              print("FAIL: local audio server did not start (no public/audio in bundle?)"); exit(1)
+          }
+          print("server listening on 127.0.0.1:\(port)")
+          guard let url = LocalAudioServer.shared.url(forRef: "GEN:1:1") else {
+              print("FAIL: no loopback URL for GEN:1:1"); exit(1)
+          }
+          print("GEN:1:1 -> \(url.absoluteString)")
+          guard url.host == "127.0.0.1" else {
+              print("FAIL: URL is not loopback: \(url.absoluteString)"); exit(1)
+          }
+
+          let onDisk = URL(fileURLWithPath: appPath)
+              .appendingPathComponent("Contents/Resources/public/audio/GEN/001_001.mp3")
+          guard let fileBytes = try? Data(contentsOf: onDisk) else {
+              print("FAIL: bundled GEN/001_001.mp3 missing"); exit(1)
+          }
+          print("bundled GEN/001_001.mp3: \(fileBytes.count) bytes \(sha256(fileBytes))")
+
+          func fetch(_ request: URLRequest) -> (Int, Data, [AnyHashable: Any], String) {
+              let sem = DispatchSemaphore(value: 0)
+              var status = 0
+              var body = Data()
+              var headers: [AnyHashable: Any] = [:]
+              var failure = ""
+              URLSession.shared.dataTask(with: request) { data, response, error in
+                  if let error { failure = String(describing: error) }
+                  if let http = response as? HTTPURLResponse {
+                      status = http.statusCode
+                      headers = http.allHeaderFields
+                  }
+                  body = data ?? Data()
+                  sem.signal()
+              }.resume()
+              _ = sem.wait(timeout: .now() + 30)
+              return (status, body, headers, failure)
+          }
+
+          let get = fetch(URLRequest(url: url))
+          guard get.3.isEmpty else { print("FAIL: GET error \(get.3)"); exit(1) }
+          guard get.0 == 200 else { print("FAIL: GET status \(get.0)"); exit(1) }
+          guard get.1.count == fileBytes.count, sha256(get.1) == sha256(fileBytes) else {
+              print("FAIL: GET bytes differ from the bundled file (\(get.1.count) vs \(fileBytes.count))"); exit(1)
+          }
+          let type = (get.2["Content-Type"] as? String) ?? ""
+          guard type.contains("audio/mpeg") else { print("FAIL: Content-Type \(type)"); exit(1) }
+          print("GET 200, \(get.1.count) bytes, \(type), identical to the bundled file")
+
+          var headRequest = URLRequest(url: url)
+          headRequest.httpMethod = "HEAD"
+          let head = fetch(headRequest)
+          guard head.0 == 200 else { print("FAIL: HEAD status \(head.0)"); exit(1) }
+          print("HEAD 200, Content-Length \((head.2["Content-Length"] as? String) ?? "?")")
+
+          var rangeRequest = URLRequest(url: url)
+          rangeRequest.setValue("bytes=0-1023", forHTTPHeaderField: "Range")
+          let range = fetch(rangeRequest)
+          guard range.0 == 206 else { print("FAIL: Range status \(range.0)"); exit(1) }
+          guard range.1.count == 1024 else { print("FAIL: Range returned \(range.1.count) bytes"); exit(1) }
+          guard range.1 == fileBytes.prefix(1024) else { print("FAIL: Range bytes differ"); exit(1) }
+          print("Range 206, first 1024 bytes identical")
+
+          print("PASS: GEN:1:1 plays from the bundle over loopback with no network")
+          SWIFT
+          swiftc -O ios/App/App/LocalAudioServer.swift /tmp/harness.swift -o /tmp/harness
+          /tmp/harness /tmp/TestApp.app
