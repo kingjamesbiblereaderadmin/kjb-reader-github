@@ -4,6 +4,7 @@ import { useSpeaking } from '@/lib/tts/speaking';
 
 export default function ScrollToTop({ targetId }) {
   const [visible, setVisible] = useState(false);
+  const [scrolling, setScrolling] = useState(false);
   const [footerHeight, setFooterHeight] = useState(80);
   // Out of the way while the chapter is being read aloud; back when paused.
   // 'loading' counts too, so it doesn't flash between verses.
@@ -13,8 +14,13 @@ export default function ScrollToTop({ targetId }) {
     const scroller = (targetId && document.getElementById(targetId)) || document.getElementById('kjb-scroll');
     const target = scroller || window;
     const getY = () => (scroller ? scroller.scrollTop : window.scrollY);
+    // Hidden while the page is moving; it returns once scrolling has settled.
+    let settleTimer = 0;
     const handleScroll = () => {
       setVisible(getY() > 300);
+      setScrolling(true);
+      window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(() => setScrolling(false), 900);
     };
     target.addEventListener('scroll', handleScroll, { passive: true });
 
@@ -41,6 +47,7 @@ export default function ScrollToTop({ targetId }) {
       target.removeEventListener('scroll', handleScroll);
       window.removeEventListener('storage', updateFooterHeight);
       clearInterval(interval);
+      window.clearTimeout(settleTimer);
     };
   }, []);
 
@@ -50,7 +57,7 @@ export default function ScrollToTop({ targetId }) {
     else window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (!visible || reading) return null;
+  if (!visible || scrolling || reading) return null;
 
   return (
     <button
