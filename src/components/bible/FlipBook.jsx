@@ -168,6 +168,7 @@ export default React.forwardRef(function FlipBook({
   }, []);
 
   const chromeProbeRef = useRef(null);
+  const prepareRef = useRef(null);
 
   const spread = stage.w >= 760;
   const step = spread ? 2 : 1;
@@ -316,6 +317,7 @@ export default React.forwardRef(function FlipBook({
     if (to >= pageCount) {
       if (canNext) {
         landOnEndRef.current = false;
+        if (spill) { prepareRef.current?.(); onNextChapter(); return; }
         pendingPageRef.current = following && spread ? Math.max(0, to - pageCount) : 0;
         onNextChapter();
       }
@@ -323,7 +325,7 @@ export default React.forwardRef(function FlipBook({
     }
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setPage(to); return; }
     setTurn({ dir, to });
-  }, [loading, turn, page, step, pageCount, onNextChapter, onPrevChapter, canPrev, canNext, following, spread, firstPage]);
+  }, [loading, turn, page, step, pageCount, onNextChapter, onPrevChapter, canPrev, canNext, following, spread, firstPage, spill]);
 
   // The page on which a verse or section begins.
   const pageOf = useCallback((selector, progress = 0, completed = null) => {
@@ -504,25 +506,28 @@ export default React.forwardRef(function FlipBook({
   // Text pages only (the title page and the table of books come before them).
   const textTotal = Math.max(0, pageCount - front.length);
 
-  // A last page whose facing page already carries the next chapter (the
-  // continuation page) has nothing to fill, or that chapter would appear twice
-  // on the same spread.
+  // The next chapter carries straight on in the space under the last verse,
+  // including an empty second column. When that last page is on the left, the
+  // facing page continues the same flow (spill) rather than starting the next
+  // chapter again at its own opening.
   const lastIsLeft = spread && (((pageCount - 1 - pageOffsetRef.current) % 2) + 2) % 2 === 0;
-  const fillLastPage = fillNext && !!continuationBlocks && !lastIsLeft;
+  const fillLastPage = fillNext && !!continuationBlocks;
+  const spill = fillLastPage && lastIsLeft;
 
   // One printed page: a title page, the contents, or running head and text. Page
   // numbers are shown once, in the book's bottom bar.
   const face = (index, side) => {
     if (index === -1 && hasBridge) return <div data-fb-previous={bridgeRef.current.fromKey || ''} className="h-full">{bridgeRef.current.face}</div>;
-    if (index === pageCount && following && spread) return (
+    if (index === pageCount && following && spread && !spill) return (
       <BookContinuation passage={following} {...{ side, padLeft, padRight, footerHeight, textW, textH, contentsH, zoomLevel, fontFamilyValue, isCursive, flowProps, textStyle, paragraphs }} />
     );
     const textIndex = index - front.length;
     // The chapter's last page, with the next chapter printed on under it.
-    const continuesHere = fillLastPage && textIndex === textTotal - 1;
+    const spillsHere = spill && index === pageCount;
+    const continuesHere = fillLastPage && (textIndex === textTotal - 1 || spillsHere);
     return (
       <div className={`kjb-fb-page kjb-fb-${side}`} style={{ padding: `52px ${padRight}px ${footerHeight}px ${padLeft}px` }}>
-        {index >= 0 && index < pageCount && (textIndex < 0 ? (
+        {index >= 0 && (index < pageCount || spillsHere) && (textIndex < 0 ? (
           typeof front[index] === 'string' ? (
             <FittedPage width={textW} height={contentsH} zoom={zoomLevel / 100} fontFamilyValue={fontFamilyValue} isCursive={isCursive}>
               <TitlePage type={front[index]} book={book} />
@@ -582,6 +587,9 @@ export default React.forwardRef(function FlipBook({
           </>,
         };
         if (spread) bridgeRef.current = { toKey: `${following.book.abbr}-${following.chapter}`, fromKey: `${abbr}:${chapter}`, face: face(page, 'left') };
+        // After a spill both open pages are already read: the next chapter
+        // resumes on the spread that follows them, with no bridge page.
+        if (spill) { bridgeRef.current = null; pendingPageRef.current = 2; return; }
         pendingPageRef.current = spread ? -1 : 0;
         return;
       }
@@ -594,6 +602,7 @@ export default React.forwardRef(function FlipBook({
     };
     pendingPageRef.current = -1;
   };
+  prepareRef.current = preserveFacingPage;
   useImperativeHandle(ref, () => ({ prepareListeningAdvance: preserveFacingPage }));
 
   // "Genesis 2 · pages 1–2 of 4", counting text pages only.
