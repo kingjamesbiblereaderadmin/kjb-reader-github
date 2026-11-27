@@ -11,7 +11,7 @@ export function readingArea() {
   const bar = document.querySelector('[data-kjb-reader-toolbar-wrap], [data-kjb-minimized-header]');
   const band = document.getElementById('kjb-anchored-heading');
   // Use the pinned chrome's sizes, not its transient position during a jump.
-  const top = box.top + (bar?.getBoundingClientRect().height || 0) + (band?.getBoundingClientRect().height || 0) + 14;
+  const top = box.top + (bar?.getBoundingClientRect().height || 0) + (band?.getBoundingClientRect().height || 0) + 4;
   let bottom = box.bottom;
   document.querySelectorAll('nav').forEach((nav) => {
     const rect = nav.getBoundingClientRect();
@@ -40,6 +40,15 @@ export function revealElement(element) {
   if (!rect?.height || area.bottom <= area.top) return;
   if (rect.top >= area.top - 2 && rect.bottom <= area.bottom + 2) return;
   moveTo(area, rect);
+}
+
+// True when the verse opens in the second of the two printed columns.
+export function inRightColumn(element) {
+  const columns = element?.closest('.kjb-two-col');
+  const rect = columns && firstRect(element);
+  if (!rect) return false;
+  const box = columns.getBoundingClientRect();
+  return rect.left > box.left + box.width / 2;
 }
 
 // A verse has finished and the next one begins: put its first line at the top

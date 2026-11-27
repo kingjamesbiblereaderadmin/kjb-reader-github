@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Play, Pause, SkipBack, SkipForward, X, ChevronUp, ChevronRight, RotateCcw, Repeat, CloudDownload } from 'lucide-react';
 import OutputDeviceMenu from '@/components/bible/OutputDeviceMenu';
 import { publishSpeaking, getProgress, getCompletedWords, subscribeProgress } from '@/lib/tts/speaking';
-import { readingArea, revealElement, alignToTop, sitsLow, followVisibleWords } from '@/lib/tts/readerFollow';
+import { readingArea, revealElement, alignToTop, sitsLow, inRightColumn, followVisibleWords } from '@/lib/tts/readerFollow';
 import { isMobile } from '@/lib/readerPosition';
 import { publishMediaMetadata, clearMediaMetadata } from '@/lib/tts/mediaSession';
 import useBibleTts from '@/hooks/useBibleTts';
@@ -272,7 +272,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     // the long-verse follower and pull the viewport away from the spoken words.
     const reveal = (el) => {
       if (!followRef.current) return;
-      if (verseFollowsVerse && (isMobile() || sitsLow(el))) alignToTop(el);
+      if (verseFollowsVerse && (isMobile() || inRightColumn(el) || sitsLow(el))) alignToTop(el);
       else revealElement(el);
     };
 

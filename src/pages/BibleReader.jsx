@@ -1357,7 +1357,7 @@ export default function BibleReader() {
       const el = document.getElementById(anchorId);
       if (!el) return;
       const scroller = document.getElementById('kjb-scroll');
-      const stickyOffset = stickyChromeHeight(topRef) + 20;
+      const stickyOffset = stickyChromeHeight(topRef) + 6;
       if (scroller) {
         const top = el.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - stickyOffset;
         scroller.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
