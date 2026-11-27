@@ -23,7 +23,10 @@ export default async function(req) {
     // A backfill run works through the queue until its deadline, so the pass
     // count only has to be high enough not to cap it (50 × 36 = 1,800 rows).
     const passes = body.backfill === true ? 50 : 1;
-    const deadline = Date.now() + 200000;
+    // The cycle fires every five minutes, so a run may use nearly all of it
+    // without ever overlapping the next one (an overlap would measure the same
+    // recordings twice and pay for them twice).
+    const deadline = Date.now() + 235000;
     if (body.statusOnly === true) {
       const [remaining, needsReview] = await Promise.all([
         db.entities.TtsClip.count(query),
@@ -39,17 +42,28 @@ export default async function(req) {
       if (!rows.length) { more = false; break; }
       const existing = await db.entities.AudioTiming.filter({ audio_url: { $in: rows.map((r) => r.url) } }, { limit: 500 });
       const byUrl = new Map((existing.items || existing).map((r) => [`${r.voice}|${r.audio_url}`, r]));
-      for (let at = 0; at < rows.length && Date.now() < deadline; at += 12) {
+      // 20 recordings are measured at once. A single busy response is retried
+      // once instead of ending the run; only a wave of them (real throttling)
+      // stops the pass, so a higher width never costs the rest of the batch.
+      for (let at = 0; at < rows.length && Date.now() < deadline; at += 20) {
         const records = [], updates = [];
-        const group = await Promise.all(rows.slice(at, at + 12).map(async (row) => {
+        let busy = 0;
+        const group = await Promise.all(rows.slice(at, at + 20).map(async (row) => {
           if (byUrl.has(`${row.voice}|${row.url}`)) { reused += 1; return { update: { id: row.id, timing_version: 1, timing_error: '' } }; }
-          try {
-            return { record: await measureRecordedWords(row, key), update: { id: row.id, timing_version: 1, timing_error: '' } };
-          } catch (error) {
-            if (error.status === 429 || error.status >= 500) { deferred = true; return {}; }
-            return { update: { id: row.id, timing_version: -1, timing_error: String(error.message).slice(0, 300) }, failure: { ref: row.ref, error: String(error.message) } };
+          for (let attempt = 0; ; attempt += 1) {
+            try {
+              return { record: await measureRecordedWords(row, key), update: { id: row.id, timing_version: 1, timing_error: '' } };
+            } catch (error) {
+              if (error.status === 429 || error.status >= 500) {
+                if (attempt === 0) { await new Promise((resolve) => setTimeout(resolve, 1200)); continue; }
+                busy += 1;
+                return {};
+              }
+              return { update: { id: row.id, timing_version: -1, timing_error: String(error.message).slice(0, 300) }, failure: { ref: row.ref, error: String(error.message) } };
+            }
           }
         }));
+        if (busy >= 6) deferred = true;
         group.forEach((item) => { if (item.record) records.push(item.record); if (item.update) updates.push(item.update); if (item.failure) failures.push(item.failure); });
         // Persist each small group immediately. A later timeout cannot make
         // already-paid timing work disappear and get charged again next run.
