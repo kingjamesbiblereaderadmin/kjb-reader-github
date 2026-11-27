@@ -173,31 +173,29 @@
 /* A tap leaves :hover stuck on touch screens; the wash must never dim the one
    filled control in the row. */
 .kjb-book-player button.bg-primary:hover:not(:disabled) { background: var(--fb-ink); }
-/* The player rides in the right margin, opening from the headphones button on
-   the rail as a column of controls directly beneath it — the open page keeps the
-   height that a row in the foot used to take. It is flush with the rail and
-   rounded away from it, so the two read as one grouped panel. */
+/* The player opens from the headphones button as a column of controls directly
+   BENEATH it — same column as the rail, not beside it — so the button and the
+   panel read as one stack. */
 .kjb-book-player {
   position: absolute;
   top: 64px;
-  right: 52px;
+  right: 8px;
   z-index: 2;
-  width: 56px;
-  padding: 6px;
+  width: 60px;
+  padding: 8px;
   max-height: calc(100% - 76px);
   overflow-y: auto;
   overscroll-behavior: contain;
   background: var(--fb-paper);
   border: 1px solid var(--fb-rule);
-  border-right: 0;
-  border-radius: 10px 0 0 10px;
-  box-shadow: -6px 8px 22px rgba(0, 0, 0, 0.18);
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
 }
 .kjb-book-player section { margin: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
-/* A column of icons, one per row, each the full width of the panel — dense
-   enough that the whole set fits beside the rail without scrolling on a phone. */
-.kjb-book-player section button { width: 100%; height: 36px; min-height: 36px; }
-.kjb-book-player section > div { gap: 4px; }
+/* One control per row, each the full width of the panel, with room between the
+   rows so the icons never read as a cramped strip. */
+.kjb-book-player section button { width: 100%; height: 40px; min-height: 40px; }
+.kjb-book-player section > div { gap: 8px; }
 .kjb-book-navigation { display: grid; grid-template-columns: minmax(44px, 1fr) minmax(0, 3fr) minmax(44px, 1fr); align-items: center; gap: 4px; min-height: 64px; margin-inline: 12px; padding-block: 8px; border-top: 1px solid var(--fb-rule); }
 .kjb-book-page-step { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 8px; font-size: 0.8rem; }
 .kjb-book-position { text-align: center; font-family: var(--font-serif); font-size: 0.72rem; line-height: 1.5; font-variant-numeric: tabular-nums; }

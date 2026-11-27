@@ -32,7 +32,8 @@ export default function FlipBookChrome({ controls, viewControl, where, onPreviou
       const button = chrome.querySelector('[data-testid="tts-toolbar-btn"]');
       if (!button) return;
       const box = chrome.getBoundingClientRect();
-      const top = Math.round(button.getBoundingClientRect().bottom - box.top + 6);
+      // Directly beneath the button, in its own column — never beside it.
+      const top = Math.round(button.getBoundingClientRect().bottom - box.top + 8);
       // Never taller than the paper it hangs on, so a long column scrolls
       // inside the panel instead of running off the bottom of the book.
       const maxHeight = Math.max(0, Math.round(box.height - top - 8));
