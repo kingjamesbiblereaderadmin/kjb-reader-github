@@ -311,13 +311,15 @@
 }
 /* The chosen option stays filled, in ink rather than the app accent. */
 .kjb-book-popover button.bg-primary,
-.kjb-book-popover button.border-primary {
+.kjb-book-popover button.border-primary,
+.kjb-book-popover button.bg-accent {
   background: #211c16 !important;
   border-color: #211c16 !important;
   color: #fffefb !important;
 }
 .dark .kjb-book-popover button.bg-primary,
-.dark .kjb-book-popover button.border-primary {
+.dark .kjb-book-popover button.border-primary,
+.dark .kjb-book-popover button.bg-accent {
   background: #e6dfcf !important;
   border-color: #e6dfcf !important;
   color: #1d1b17 !important;
