@@ -1,5 +1,10 @@
 // Mirrors the server's narrowly scoped recording revisions. Printed text never changes.
 export default function pronunciationRevision(text) {
+  // Sosthenes was spelled out letter by letter in every clip made before it was
+  // pinned in IPA, and those clips are what the device still remembers and what
+  // the offline bundle holds. Naming the revision here is what makes the reader
+  // skip both and ask the server for the re-voiced take.
+  if (/\bsosthenes\b/i.test(text)) return 'h17';
   if (/\bcainan\b/i.test(text)) return 'h16';
   if (/\benos\b/i.test(text)) return 'h15';
   if (/\bnaked\b/i.test(text)) return 'h14';
