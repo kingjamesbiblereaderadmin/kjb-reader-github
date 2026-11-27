@@ -1088,6 +1088,28 @@ html.kjb-native-ios select {
   border-radius: 0.4rem;
 }
 
+/* Dark mode: the same accent wash at 10% all but vanishes against a near-black
+   page, so the verse being read looked unhighlighted. The wash is doubled, the
+   rule on the left is a full-strength bar, and every variant below is lifted to
+   match, so the reading highlight stays the brightest thing on the page. */
+.dark .kjb-speaking {
+  background-color: hsl(var(--accent) / 0.28);
+  box-shadow: inset 4px 0 0 hsl(var(--accent)), 0 0 0 1px hsl(var(--accent) / 0.28);
+}
+.dark .kjb-speaking-note,
+.dark #kjb-end-anchor.kjb-speaking .kjb-end-marker,
+.dark .kjb-stanza-heading.kjb-speaking {
+  background-color: hsl(var(--accent) / 0.42);
+  box-shadow: 0 0 0 7px hsl(var(--accent) / 0.26);
+}
+.dark .kjb-book-title.kjb-speaking,
+.dark .kjb-chapter-heading.kjb-speaking,
+.dark .kjb-running-book.kjb-speaking,
+.dark .kjb-running-chapter.kjb-speaking {
+  background-color: hsl(var(--accent) / 0.22);
+  box-shadow: 0 0 0 7px hsl(var(--accent) / 0.26);
+}
+
 /* A drop-cap verse floats its big letter past the verse-number column, so the
    3px inset rule would sit in the gutter beside nothing at all. There the wash
    on its own marks the verse. (:has() keeps this tied to the markup rather than

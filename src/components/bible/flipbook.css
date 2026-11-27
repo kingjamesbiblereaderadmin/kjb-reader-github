@@ -135,6 +135,15 @@
   border-radius: 3px;
 }
 .kjb-flipbook .kjb-fb-note.kjb-fb-speaking { background: hsl(var(--accent) / 0.14); }
+/* Book view in dark mode: same lift as the reader, so the page being read is
+   as unmistakable on a dark page as on a light one. */
+.dark .kjb-flipbook .kjb-fb-speaking { background: hsl(var(--accent) / 0.28); }
+.dark .kjb-flipbook [data-fb-colour].kjb-fb-speaking,
+.dark .kjb-flipbook [data-fb-colour].kjb-fb-speaking mark { background: hsl(var(--accent) / 0.28) !important; }
+.dark .kjb-flipbook .kjb-fb-speaking mark { background: hsl(var(--accent) / 0.5) !important; }
+.dark .kjb-flipbook .kjb-fb-note.kjb-fb-speaking { background: hsl(var(--accent) / 0.34); }
+.dark .kjb-flipbook .kjb-fb-heading.kjb-fb-speaking { background: hsl(var(--accent) / 0.42); box-shadow: 0 0 0 6px hsl(var(--accent) / 0.26); }
+.dark .kjb-flipbook .kjb-fb-endmark.kjb-fb-speaking { background: hsl(var(--accent) / 0.42); }
 /* The explicit drop-cap span supports both the verse wash and word paint. */
 .kjb-flipbook .kjb-fb-first.kjb-fb-first-speaking .kjb-fb-dropcap {
   background: hsl(var(--accent) / 0.14);
