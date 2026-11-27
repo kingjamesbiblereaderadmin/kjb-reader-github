@@ -163,15 +163,7 @@ export default function FlipBook({
     return () => { alive = false; };
   }, []);
 
-  // Measure the running head and the folio as they actually render, so the text
-  // window is always exactly the space left between them.
   const chromeProbeRef = useRef(null);
-  useLayoutEffect(() => {
-    const el = chromeProbeRef.current;
-    if (!el) return;
-    const next = Math.ceil(el.getBoundingClientRect().height);
-    if (next > 0) setChromeH((current) => (Math.abs(current - next) > 0.5 ? next : current));
-  }, [textW, textStyle, fontTick, chapterKey]);
 
   const spread = stage.w >= 760;
   const step = spread ? 2 : 1;
@@ -183,7 +175,9 @@ export default function FlipBook({
   const padRight = 60; // the tools live in the page margin, never over scripture
   const textW = Math.max(120, pageW - padLeft - padRight);
   const contentH = Math.max(120, pageH - 52 - footerHeight);
-  const textH = Math.max(80, contentH - chromeH); // running head, folio and margins
+  // A hair of slack under the last line, so a descender is never shaved off by
+  // the window's edge even when the measured chrome is a pixel out.
+  const textH = Math.max(80, contentH - chromeH - 2); // running head, folio and margins
 
   // Contents flow through real page-sized columns, without a testament break.
   const contentsH = Math.max(80, contentH - 24);
@@ -208,6 +202,16 @@ export default function FlipBook({
     fontSize: `${(zoomLevel / 100) * 1.05}rem`,
     ...(fontFamilyValue ? { fontFamily: fontFamilyValue } : {}),
   }), [zoomLevel, fontFamilyValue]);
+
+  // Measure the running head and the folio as they actually render, so the text
+  // window is always exactly the space left between them. Declared here, after
+  // the sizes it depends on.
+  useLayoutEffect(() => {
+    const el = chromeProbeRef.current;
+    if (!el) return;
+    const next = Math.ceil(el.getBoundingClientRect().height);
+    if (next > 0) setChromeH((current) => (Math.abs(current - next) > 0.5 ? next : current));
+  }, [textW, textStyle, fontTick, chapterKey]);
 
   const blocks = useMemo(() => {
     const markup = (t, term = null) => ({ __html: renderVerseText(String(t).replace(/^<<[^>]*>>\s*/, ''), term) });
