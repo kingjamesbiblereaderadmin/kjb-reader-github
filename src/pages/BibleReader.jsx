@@ -571,17 +571,32 @@ export default function BibleReader() {
     const read = () => {
       const bar = document.querySelector('[data-kjb-reader-toolbar-wrap]')
         || document.querySelector('[data-kjb-minimized-header]');
-      setStickyTop(bar ? Math.round(bar.getBoundingClientRect().height) : 0);
+      if (!bar) { setStickyTop(0); return; }
+      // Where the bar's own bottom edge actually sits in the scroller, not just
+      // how tall it is: the band is pinned exactly there, so anything that
+      // changes that edge (a wrapped toolbar row, the Listen player opening,
+      // zoom or font changes) must move the band with it.
+      const scroller = document.getElementById('kjb-scroll');
+      const base = scroller ? scroller.getBoundingClientRect().top : 0;
+      setStickyTop(Math.max(0, Math.round(bar.getBoundingClientRect().bottom - base)));
     };
     read();
     const ro = new ResizeObserver(read);
     [document.querySelector('[data-kjb-reader-toolbar-wrap]'), document.querySelector('[data-kjb-minimized-header]')]
       .filter(Boolean)
-      .forEach((bar) => ro.observe(bar));
-    window.addEventListener('resize', read);
+      // border-box: padding and border changes resize the bar's real bottom
+      // edge without changing its content box, which the default observation
+      // would miss — leaving the band pinned to a stale offset.
+      .forEach((bar) => ro.observe(bar, { box: 'border-box' }));
+    const onLayoutChange = () => { read(); window.setTimeout(read, 120); };
+    window.addEventListener('resize', onLayoutChange);
+    window.addEventListener('orientationchange', onLayoutChange);
+    window.addEventListener('kjb-layout-zoom-changed', onLayoutChange);
     return () => {
       ro.disconnect();
-      window.removeEventListener('resize', read);
+      window.removeEventListener('resize', onLayoutChange);
+      window.removeEventListener('orientationchange', onLayoutChange);
+      window.removeEventListener('kjb-layout-zoom-changed', onLayoutChange);
     };
   }, [hideHeader, flipbookOpen]);
 
@@ -1953,7 +1968,7 @@ export default function BibleReader() {
           toolbar, so scrolling a long chapter never takes the book's name, its
           chapter number and the way back into book view off the screen. */}
       {!flipbookOpen && (
-      <div id="kjb-anchored-heading" className="print:static sticky z-[95] -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background pt-1 pb-3" style={{ top: stickyTop }}>
+      <div id="kjb-anchored-heading" data-kjb-anchored-band className="print:static sticky z-[95] -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background pt-1 pb-3" style={{ top: stickyTop }}>
       {bookToggleNode}
       {/* In two columns the chapter's name and number are printed as a running
           head instead of the large heading — and it lives in this band too, so

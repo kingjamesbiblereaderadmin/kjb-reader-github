@@ -951,6 +951,26 @@ html.kjb-native-ios select {
   pointer-events: none;
 }
 
+/* Reader anchored chapter band. It sits pinned under the sticky toolbar, so
+   its top edge must meet the toolbar's real bottom edge exactly. Anything that
+   moves that edge a pixel or more — a toolbar row re-wrapping, the Listen
+   player opening or closing, a zoom or font change between measurements — used
+   to leave a thin strip between the two, with verses scrolling through it.
+   The band paints its own background far up past that edge, so nothing can
+   ever show in the strip. Only that strip is affected: the toolbar paints
+   above this (higher z-index) and so does everything inside the band. */
+[data-kjb-anchored-band]::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  bottom: 100%;
+  height: 100vh;
+  left: calc(-1 * env(safe-area-inset-left, 0px));
+  right: calc(-1 * env(safe-area-inset-right, 0px));
+  background: hsl(var(--background));
+  pointer-events: none;
+}
+
 /* ── Thicker panel edge lines in dark mode ──
    The section panels (border-sky-200 … dark:border-border) draw a slightly
    thicker edge in dark mode so each panel's outline reads clearly against
