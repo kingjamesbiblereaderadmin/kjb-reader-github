@@ -290,16 +290,22 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     return () => window.clearTimeout(timer);
   }, [tts.currentVerse, tts.currentKind]);
 
-  // Long verses (Psalm 119, the genealogies) run past the foot of the screen, so
-  // while one is being read the page keeps following the voice down it instead
-  // of stopping once the verse's first line is in view.
+  // Long passages run past the foot of the screen — a verse (Psalm 119, the
+  // genealogies) or a printed note such as a long subscription — so while one is
+  // being read the page keeps following the voice down it instead of stopping
+  // once its first line is in view.
   useEffect(() => {
-    if (tts.status !== 'playing' || tts.currentKind !== 'verse' || tts.currentVerse == null) return undefined;
-    const ref = `${chapterKey}:${tts.currentVerse}`;
+    if (tts.status !== 'playing') return undefined;
+    const note = SECTION_SELECTORS[tts.currentKind] ? tts.currentKind : null;
+    if (!note && (tts.currentKind !== 'verse' || tts.currentVerse == null)) return undefined;
+    const ref = note ? `${chapterKey}:${note}` : `${chapterKey}:${tts.currentVerse}`;
+    // The reader keeps a second, hidden copy of a section for the two-column
+    // layout, so follow the copy that is actually on screen.
+    const element = () => (note
+      ? speakingTargets(note).find((el) => el.getBoundingClientRect().height > 0) || null
+      : document.getElementById(`v${tts.currentVerse}`));
     const follow = (progress, clipRef, completedWords) => {
-      if (followRef.current && clipRef === ref) {
-        followVisibleWords(document.getElementById(`v${tts.currentVerse}`), progress, completedWords);
-      }
+      if (followRef.current && clipRef === ref) followVisibleWords(element(), progress, completedWords);
     };
     follow(getProgress(ref), ref, getCompletedWords(ref));
     return subscribeProgress(follow);

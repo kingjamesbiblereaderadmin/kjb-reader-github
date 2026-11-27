@@ -76,6 +76,11 @@
    one before it. Its opening gets its own breathing space above, so it reads as
    a chapter beginning rather than a run-on of the verse above. */
 .kjb-fb-continues { margin-top: 1.6em; }
+/* The next chapter starts on a fresh page unless its opening and its first verse
+   both fit under the chapter above: verse 1 is never left stranded at the foot
+   of a page with the rest of the chapter overleaf. */
+.kjb-fb-continues .kjb-fb-opening { break-after: avoid; }
+.kjb-fb-continues .kjb-fb-opening + .kjb-fb-verse { break-before: avoid; }
 /* The subscription and the postscript carry on across a page turn when they do
    not fit: at least two lines stay on each side of the break, so a note is never
    left as a single stranded line at the foot of a page. */
