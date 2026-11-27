@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, ChevronRight, RotateCcw, Repeat, CloudDownload } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, X, ChevronUp, ChevronRight, RotateCcw, Repeat, CloudDownload } from 'lucide-react';
 import OutputDeviceMenu from '@/components/bible/OutputDeviceMenu';
 import { publishSpeaking, getProgress } from '@/lib/tts/speaking';
 import { publishMediaMetadata, clearMediaMetadata } from '@/lib/tts/mediaSession';
@@ -147,37 +147,30 @@ function topInset(box) {
 // and had to come back. Set whenever such a move is issued.
 let settleUntil = 0;
 
-function revealElement(el, { center = false, instant = false } = {}) {
+function revealElement(el, { instant = false } = {}) {
   if (!el) return;
   const box = scrollBox();
   const r = el.getBoundingClientRect();
-  const inset = topInset(box);
-  const top = box.top + inset + GAP_TOP;
+  const top = box.top + topInset(box) + GAP_TOP;
   const bottom = box.bottom - PAD_BOTTOM;
-  const scroll = (delta) => {
-    if (!delta) return;
-    settleUntil = performance.now() + 450;
-    const opts = { top: delta };
-    if (!instant) opts.behavior = 'smooth';
-    (box.scroller || window).scrollBy(opts);
-  };
 
-  // A verse taller than the visible area can never be shown whole, so it is
-  // opened at its first line, just below the toolbar, and the reader follows the
-  // voice down it from there. The follow loop stays out of the way until this
-  // move has settled, so the two never scroll for the same distance at once.
-  if (r.height > bottom - top) {
-    if (r.top >= top - 2 && r.top <= top + 12) return;
-    scroll(r.top - top);
-    return;
-  }
+  // A verse is always opened at its FIRST line, just below the sticky chrome,
+  // never at its last. Moving the least distance instead (bottom-aligning a
+  // verse that is still below the fold) pushed the beginning of the verse off
+  // the top of the screen, so listening looked like it had jumped too far and
+  // never landed at the start of the verse. The page then follows the voice
+  // down the verse from there.
+  if (r.top >= top - 2 && r.bottom <= bottom) return; // already wholly in view
+  if (r.top >= top - 2 && r.top <= top + 12) return; // already at the top
 
-  const above = r.top < top;
-  const below = r.bottom > bottom;
-  if (!above && !below) return;
-  scroll(center
-    ? r.top + r.height / 2 - (box.top + box.bottom) / 2
-    : above ? r.top - top : r.bottom - bottom);
+  const delta = r.top - top;
+  if (!delta) return;
+  // The follow loop stays out of the way until this move has settled, so the
+  // two never scroll for the same distance at once.
+  settleUntil = performance.now() + 450;
+  const opts = { top: delta };
+  if (!instant) opts.behavior = 'smooth';
+  (box.scroller || window).scrollBy(opts);
 }
 
 // The line of text the voice has reached. The clip's clock says nothing about
@@ -243,8 +236,8 @@ function followSpokenLine(el) {
 // left the page short of the verse (and short of the top after a reset).
 function jumpTo(el) {
   if (!el) return;
-  revealElement(el, { center: true, instant: true });
-  window.setTimeout(() => revealElement(el, { center: true, instant: true }), 350);
+  revealElement(el, { instant: true });
+  window.setTimeout(() => revealElement(el, { instant: true }), 350);
 }
 
 function scrollToVerse(verse) {
@@ -724,6 +717,10 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
           <button onClick={withFollow(tts.next)} disabled={idle} aria-label="Next verse" className={`${CONTROL} disabled:opacity-40 disabled:pointer-events-none`}>
             <SkipForward className="w-4 h-4" />
           </button>
+          {/* A deliberate line break on a phone: the transport keeps the first
+              row and the rest of the controls form their own centred row, so a
+              single control is never stranded on a line of its own. */}
+          {!inline && !vertical && <div aria-hidden="true" className="basis-full h-0 -my-1 sm:hidden" />}
           <button
             onClick={restartChapter}
             aria-label="Reset playback and start this chapter again from verse 1"
@@ -772,12 +769,14 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
           </button>
           <OutputDeviceMenu value={tts.sinkId} onChange={tts.setSink} buttonClass={CONTROL} />
           {!previewMode && <OfflineBookControl offline={offlineBook} online={netOnline} compact={inline || vertical} />}
-          {/* Inline (the minimized reader's slim bar) has no need for a
-              minimise control: the bar's own chevron restores the header, and a
-              second chevron in the player row read as a duplicate. */}
-          {!idle && !inline && (
-            <button onClick={() => { if (vertical) { onOpenChange?.(false); } else { setHiddenPersisted(true); onOpenChange?.(false); } }} aria-label={vertical ? 'Hide player' : 'Minimise player'} className={CONTROL}>
-              {vertical ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          {/* Only book view needs a minimise control of its own: its panel has no
+              toolbar above it to fold it away. Under the toolbar the headphones
+              button already opens and closes the player, so a second minimise
+              here was a duplicate (and the control that got stranded on a line
+              of its own). */}
+          {!idle && !inline && vertical && (
+            <button onClick={() => onOpenChange?.(false)} aria-label="Hide player" className={CONTROL}>
+              <ChevronRight className="w-4 h-4" />
             </button>
           )}
           {(!idle || embedded || inline) && (

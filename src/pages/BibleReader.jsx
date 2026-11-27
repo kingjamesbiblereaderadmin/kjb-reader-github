@@ -572,13 +572,11 @@ export default function BibleReader() {
       const bar = document.querySelector('[data-kjb-reader-toolbar-wrap]')
         || document.querySelector('[data-kjb-minimized-header]');
       if (!bar) { setStickyTop(0); return; }
-      // Where the bar's own bottom edge actually sits in the scroller, not just
-      // how tall it is: the band is pinned exactly there, so anything that
-      // changes that edge (a wrapped toolbar row, the Listen player opening,
-      // zoom or font changes) must move the band with it.
-      const scroller = document.getElementById('kjb-scroll');
-      const base = scroller ? scroller.getBoundingClientRect().top : 0;
-      setStickyTop(Math.max(0, Math.round(bar.getBoundingClientRect().bottom - base)));
+      // The bar is pinned to the top of the scroller, so its own height IS the
+      // offset the band has to sit at. Anything that changes that height (a
+      // wrapped toolbar row, the Listen player opening, zoom or font changes)
+      // must move the band with it.
+      setStickyTop(Math.max(0, Math.round(bar.getBoundingClientRect().height)));
     };
     read();
     const ro = new ResizeObserver(read);
