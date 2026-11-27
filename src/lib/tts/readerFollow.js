@@ -42,6 +42,18 @@ export function revealElement(element) {
   moveTo(area, rect);
 }
 
+// A verse has finished and the next one begins: put its first line at the top
+// of the reading area, so every verse starts from the same place instead of
+// carrying on from wherever the previous one happened to end.
+export function alignToTop(element) {
+  if (!element || element.closest('#kjb-anchored-heading') || document.querySelector('[data-testid="kjb-flipbook"]')) return;
+  const area = readingArea();
+  const rect = firstRect(element);
+  if (!rect?.height || area.bottom <= area.top) return;
+  if (Math.abs(rect.top - area.top) <= 2) return;
+  moveTo(area, rect);
+}
+
 export function followVisibleWords(element, progress, completedWords = null) {
   if (!element || document.querySelector('[data-testid="kjb-flipbook"]')) return;
   const area = readingArea();

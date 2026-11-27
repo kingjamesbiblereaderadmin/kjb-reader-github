@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Play, Pause, SkipBack, SkipForward, X, ChevronUp, ChevronRight, RotateCcw, Repeat, CloudDownload } from 'lucide-react';
 import OutputDeviceMenu from '@/components/bible/OutputDeviceMenu';
 import { publishSpeaking, getProgress, getCompletedWords, subscribeProgress } from '@/lib/tts/speaking';
-import { readingArea, revealElement, followVisibleWords } from '@/lib/tts/readerFollow';
+import { readingArea, revealElement, alignToTop, followVisibleWords } from '@/lib/tts/readerFollow';
 import { publishMediaMetadata, clearMediaMetadata } from '@/lib/tts/mediaSession';
 import useBibleTts from '@/hooks/useBibleTts';
 import { hasBundledAudio } from '@/lib/tts/localAudio';
@@ -150,6 +150,9 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   const followRef = useRef(true);
   // Suppress one scroll: the clip that starts playback must never move the page.
   const skipScrollRef = useRef(false);
+  // What the voice was on last render, so a verse that follows a verse is told
+  // apart from a verse the reader has just jumped to.
+  const lastSpokenRef = useRef({ kind: null, verse: null });
 
   // Tapping a verse in the reader arms "start from here" for that verse. This
   // listens on the document instead of threading a callback through the reader
@@ -258,10 +261,18 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   useEffect(() => {
     clearSpeaking();
     let timer = 0;
+    const previous = lastSpokenRef.current;
+    lastSpokenRef.current = { kind: tts.currentKind, verse: tts.currentVerse };
+    // A verse that follows another verse opens at the top of the reading area,
+    // so the reading resumes from a fixed point instead of carrying on from
+    // wherever the previous verse happened to end.
+    const verseFollowsVerse = previous.kind === 'verse' && tts.currentKind === 'verse' && previous.verse !== tts.currentVerse;
     // Only one instant positioning pass. A delayed second jump used to fight
     // the long-verse follower and pull the viewport away from the spoken words.
     const reveal = (el) => {
-      if (followRef.current) revealElement(el);
+      if (!followRef.current) return;
+      if (verseFollowsVerse) alignToTop(el);
+      else revealElement(el);
     };
 
     const targets = speakingTargets(tts.currentKind, tts.currentVerse);
