@@ -18,7 +18,7 @@ import { cachedUrl } from '@/lib/tts/offlineAudio';
 import createClipBuffer from '@/lib/tts/createClipBuffer';
 import watchClipEnd from '@/lib/tts/watchClipEnd';
 import createVersePause from '@/lib/tts/createVersePause';
-import { completedWordsAt } from '@/lib/tts/wordClock';
+import { completedWordsAt, speakingWordAt } from '@/lib/tts/wordClock';
 import pronunciationRevision from '@/lib/tts/pronunciationRevision';
 
 // Verse text arrives with the reader's markup: [italics] brackets, ¶ pilcrows
@@ -211,6 +211,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   // Requested audio can still be loading. Only the media's playing event may
   // move the reader to a new verse or chapter announcement.
   const [audibleIndex, setAudibleIndex] = useState(-1);
+  const [audibleClip, setAudibleClip] = useState(null);
   const [error, setError] = useState('');
 
   const audioRef = useRef(null);
@@ -332,6 +333,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     publishWordMark(null, -1);
     setIndex(-1);
     setAudibleIndex(-1);
+    setAudibleClip(null);
     setIntroActive(false);
     setStatus('idle');
   }, []);
@@ -387,7 +389,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     const stepWordMark = () => {
       wordFrame = 0;
       if (finished || token !== tokenRef.current || audioRef.current !== el || el.paused) return;
-      if (prepared.wordClock) publishWordMark(clip.ref, completedWordsAt(prepared.wordClock, el.currentTime));
+      if (prepared.wordClock) publishWordMark(clip.ref, speakingWordAt(prepared.wordClock, el.currentTime));
       wordFrame = requestAnimationFrame(stepWordMark);
     };
     const startWordMark = () => {
@@ -472,6 +474,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       const lead = trim?.lead || 0;
       const spokenDuration = el.duration - lead - (trim?.tail || 0);
       const completed = prepared.wordClock ? completedWordsAt(prepared.wordClock, el.currentTime) : null;
+      if (prepared.wordClock) publishWordMark(clip.ref, speakingWordAt(prepared.wordClock, el.currentTime));
       publishProgress(spokenDuration > 0 ? (el.currentTime - lead) / spokenDuration : 0, clip.ref, completed);
       if (verseClip && resumePoint) resumePoint.time = el.currentTime;
     };
@@ -480,7 +483,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     el.onplaying = () => {
       if (token !== tokenRef.current || audioRef.current !== el) return;
       startWordMark();
-      if (!started) { started = true; onStarted?.(); }
+      if (!started) { started = true; setAudibleClip(clip); onStarted?.(); }
       if (!holdRef.current) setStatus('playing');
     };
     el.onended = finish;
@@ -740,7 +743,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   const currentKind = current?.kind || null;
 
   return {
-    status, error, index, currentVerse, currentKind, voice, rate, introActive, sinkId,
+    status, error, index, currentVerse, currentKind, voice, rate, introActive, sinkId, audibleClip,
     total: clips.length,
     start, pause, resume, resumeSaved, savedPoint, toggle, next, prev, stop,
     setVoice, setRate, setSink,

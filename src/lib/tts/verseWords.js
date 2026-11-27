@@ -10,12 +10,20 @@ export default function verseWords(element) {
   if (saved?.raw === raw && saved.words.every((word) => root.contains(word.range.startContainer) && root.contains(word.range.endContainer))) return saved.words;
   const chars = [];
   let text = '';
+  let previousBlock = null;
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
     const excluded = node.parentElement?.closest('sup, .pilcrow, .kjb-dropcap-num, .kjb-stanza-heading, button, [aria-hidden="true"]');
     // The book measures a hidden copy of its pages. Its aria-hidden ancestor
     // must not suppress every word; only skip controls INSIDE the verse.
-    if (excluded && root.contains(excluded)) continue;
+    if (excluded && excluded !== root && root.contains(excluded)) continue;
+    const block = node.parentElement?.closest('p, h1, h2, h3, h4, h5, h6, div, section');
+    // Title-page blocks and explicit line breaks separate spoken words; a
+    // drop-cap or italic span inside the same line must still join its word.
+    if (text && (block !== previousBlock || node.previousSibling?.nodeName === 'BR')) {
+      text += ' '; chars.push(null);
+    }
+    previousBlock = block;
     for (let offset = 0; offset < node.nodeValue.length; offset += 1) {
       const char = node.nodeValue[offset];
       if (/[\u00ad\u200b\u00b6]/.test(char)) continue;

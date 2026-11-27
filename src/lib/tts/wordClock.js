@@ -14,8 +14,12 @@ export function buildWordClock(text, recording) {
       table[i][j] = source[i] === target[j] ? 1 + table[i + 1][j + 1] : Math.max(table[i + 1][j], table[i][j + 1]);
     }
   }
-  // Poor recognition must not masquerade as reliable word alignment.
-  if (table[0][0] / Math.max(n, m) < 0.55) return null;
+  // One Hebrew name may be recognised as several syllables. Its complete
+  // measured span is still the one printed word, not an estimated duration.
+  if (n === 1) { const clock = [heard[m - 1].end]; clock.starts = [heard[0].start]; return clock; }
+  // Short chapter labels may recognise a number as several spoken words.
+  const numericLabel = n <= 3 && source.some((word) => /^\d+$/.test(word)) && table[0][0] > 0;
+  if (!numericLabel && table[0][0] / Math.max(n, m) < 0.55) return null;
   const anchors = [];
   let i = 0, j = 0;
   while (i < n && j < m) {
@@ -24,18 +28,38 @@ export function buildWordClock(text, recording) {
     else j += 1;
   }
   const ends = new Array(n);
+  const starts = new Array(n);
   let previousSource = -1, previousHeard = -1;
   for (const [si, hi] of [...anchors, [n, m]]) {
     // A split/respelt name is one measured spoken span. Missing recognition is
     // held until the next measured word, never assigned an invented timestamp.
     const end = hi > previousHeard + 1 ? heard[hi - 1].end : (heard[hi]?.start ?? recording.duration);
-    for (let k = previousSource + 1; k < si; k += 1) ends[k] = end;
-    if (si < n) ends[si] = heard[hi].end;
+    const start = heard[previousHeard + 1]?.start ?? heard[previousHeard]?.end ?? 0;
+    for (let k = previousSource + 1; k < si; k += 1) { ends[k] = end; starts[k] = start; }
+    if (si < n) { ends[si] = heard[hi].end; starts[si] = heard[hi].start; }
     previousSource = si;
     previousHeard = hi;
   }
-  for (let k = 1; k < ends.length; k += 1) ends[k] = Math.max(ends[k - 1], ends[k]);
+  for (let k = 1; k < ends.length; k += 1) {
+    ends[k] = Math.max(ends[k - 1], ends[k]);
+    starts[k] = Math.max(starts[k - 1], starts[k]);
+  }
+  ends.starts = starts;
   return ends;
+}
+
+// Paint from measured STARTS, not the previous word's recognised end. Small
+// overlaps in speech recognition must never hold the highlight a word behind.
+export function speakingWordAt(clock, seconds) {
+  const starts = clock.starts;
+  if (!starts?.length) return completedWordsAt(clock, seconds);
+  let lo = 0, hi = starts.length;
+  const displayTime = seconds + 0.08;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (starts[mid] <= displayTime) lo = mid + 1; else hi = mid;
+  }
+  return lo - 1;
 }
 
 export function completedWordsAt(clock, seconds) {

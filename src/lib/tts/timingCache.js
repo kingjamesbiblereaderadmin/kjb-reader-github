@@ -41,13 +41,14 @@ export function loadWordTimings(chapterKey, voice) {
   return chapters.get(key);
 }
 export async function wordTimingFor(clip, voice, url, bytes) {
-  if (clip.kind !== 'verse') return null;
+  if (!clip.ref) return null;
   const rows = await loadWordTimings(clip.ref.split(':').slice(0, 2).join(':'), voice);
   const candidates = rows.filter((row) => row.ref === clip.ref);
   if (!candidates.length) return null;
   // A native bundle or offline download may hold an older recording. Only use
   // timings whose audio bytes match exactly, never another revision's clock.
-  const hash = bytes ? [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map((b) => b.toString(16).padStart(2, '0')).join('') : '';
-  const record = candidates.find((row) => hash ? row.audio_hash === hash : row.audio_url === url);
+  const direct = candidates.find((row) => row.audio_url && row.audio_url === url);
+  const hash = !direct && bytes && globalThis.crypto?.subtle ? [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map((b) => b.toString(16).padStart(2, '0')).join('') : '';
+  const record = direct || candidates.find((row) => hash && row.audio_hash === hash);
   return record ? buildWordClock(clip.text, record) : null;
 }

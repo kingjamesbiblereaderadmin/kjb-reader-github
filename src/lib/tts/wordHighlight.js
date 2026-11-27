@@ -3,6 +3,7 @@
 // in index.css). Word positions come from the verse's own text ranges, matched
 // by index to the recorded word timestamps.
 import verseWords from '@/lib/tts/verseWords';
+import { clearRangeHighlight, paintRangeHighlight } from '@/lib/tts/rangeHighlightOverlay';
 
 const NAME = 'kjb-word';
 const CAP_SELECTOR = '.kjb-dropcap-letter, .kjb-fb-dropcap';
@@ -13,27 +14,31 @@ export function clearWordHighlight() {
   if (supported()) CSS.highlights.delete(NAME);
   markedCaps.forEach((cap) => cap.classList.remove('kjb-word-cap'));
   markedCaps.clear();
+  clearRangeHighlight();
 }
 
-// Paint every open page's copy. CSS clipping hides the parts outside that
-// page, so a word split across a spread never lands on just the other copy.
-export function paintWordHighlight(elements, index) {
+export function paintWordHighlight(groups, index) {
   clearWordHighlight();
   if (index == null || index < 0) return;
-  const targets = Array.isArray(elements) ? elements : [elements];
+  // Some mobile WebViews expose the API but fail to paint fragmented text.
+  const overlay = !supported() || window.matchMedia('(pointer: coarse)').matches;
   const ranges = [];
-  for (const element of targets) {
-    if (!element?.isConnected) continue;
-    const word = verseWords(element)[index];
-    if (!word) continue;
-    for (const range of word.ranges || [word.range]) {
-      if (!range.startContainer.isConnected || !range.endContainer.isConnected) continue;
-      const cap = range.startContainer.parentElement?.closest(CAP_SELECTOR);
-      // Floated first letters are not painted consistently by the Custom
-      // Highlight API. Mark their existing span without changing the text.
-      if (cap) { cap.classList.add('kjb-word-cap'); markedCaps.add(cap); }
-      else ranges.push(range);
+  for (const group of groups) {
+    let remaining = index;
+    for (const element of group) {
+      if (!element?.isConnected) continue;
+      const words = verseWords(element);
+      if (remaining >= words.length) { remaining -= words.length; continue; }
+      const word = words[remaining];
+      for (const range of word?.ranges || []) {
+        if (!range.startContainer.isConnected || !range.endContainer.isConnected) continue;
+        const cap = range.startContainer.parentElement?.closest(CAP_SELECTOR);
+        if (cap && !overlay) { cap.classList.add('kjb-word-cap'); markedCaps.add(cap); }
+        else ranges.push(range);
+      }
+      break;
     }
   }
-  if (supported() && ranges.length) CSS.highlights.set(NAME, new Highlight(...ranges));
+  if (overlay) paintRangeHighlight(ranges);
+  else if (ranges.length) CSS.highlights.set(NAME, new Highlight(...ranges));
 }

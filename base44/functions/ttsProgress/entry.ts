@@ -58,9 +58,10 @@ async function tally(db) {
     }
     if (!rows || rows.length === 0) break;
     for (const row of rows) {
-      if (!row?.ref || !VERSE_REF.test(row.ref)) continue;
-      if (refs.has(row.ref)) continue;
-      refs.add(row.ref);
+      const ref = String(row?.ref || '').replace(/:h\d+$/, '');
+      if (!VERSE_REF.test(ref)) continue;
+      if (refs.has(ref)) continue;
+      refs.add(ref);
       const c = Number(row.chars) || 0;
       chars += c;
       const created = Date.parse(row.created_date || '');
@@ -201,18 +202,18 @@ function pageHtml(d, bundle, work) {
   .foot { margin: 22px 0 0; font-size: 12.5px; color: #9a9487; }
 </style></head>
 <body><div class="card">
-  <h1>Voice library</h1>
-  <p class="sub">King James Bible, read by Ryan (British male, Azure)</p>
+  <h1>Recording cache</h1>
+  <p class="sub">Unique cached verses, including pronunciation replacements. This is not a count of verses still awaiting recording. The complete offline bundle is tracked separately below.</p>
   <p class="big">${pct(versePct)}<span>% of verses</span></p>
   <div class="bar"><div class="fill" style="width:${Math.min(100, charPct * 100).toFixed(2)}%"></div></div>
   <div class="row"><span>${nf(d.verses)} of ${nf(TOTAL_VERSES)} verses</span><span>${pct(charPct)}% of the text</span></div>
   <dl>
     <dt>Characters recorded</dt><dd>${nf(d.chars)} / ${nf(TOTAL_CHARS)}</dd>
-    <dt>Still to voice</dt><dd>${nf(left)} characters</dd>
+    <dt>Outside the current cache</dt><dd>${nf(left)} characters</dd>
     <dt>Recorded audio, at $15/1M</dt><dd>$${spent.toFixed(2)}</dd>
     <dt>Recent pace</dt><dd>${rate > 0 ? `${nf(Math.round(rate))} characters/min` : 'paused'}</dd>
     <dt>Measured over</dt><dd>${rate > 0 ? basis : 'nothing running'}</dd>
-    <dt>Time left at this pace</dt><dd>${etaText}</dd>
+    <dt>Recording status</dt><dd>See timing and repair progress below</dd>
   </dl>
 ${workSection(work)}
 ${bundleSection(bundle)}

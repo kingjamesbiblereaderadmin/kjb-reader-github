@@ -160,7 +160,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   useEffect(() => {
     const onDocumentClick = (event) => {
       const target = event.target instanceof Element ? event.target.closest('[id^="v"], [data-fbv]') : null;
-      if (!target || target.closest('[data-fb-next]')) return;
+      if (!target || target.closest('[data-fb-next], [data-fb-previous]')) return;
       if (target.dataset.fbv) setSelectedVerse(Number(target.dataset.fbv));
       else if (/^v\d+$/.test(target.id)) setSelectedVerse(Number(target.id.slice(1)));
     };
@@ -179,7 +179,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   }, [onNextChapter, verses, chapterKey]);
 
   const tts = useBibleTts({ verses, chapterKey, subscript, colophon, titleText, endMarker, onChapterEnd: handleChapterEnd });
-  useTtsWordHighlight({ active: tts.status === 'playing', kind: tts.currentKind, verse: tts.currentVerse, chapterKey });
+  useTtsWordHighlight({ active: tts.status === 'playing', clip: tts.audibleClip });
 
   // The web/PWA can carry a book for offline listening. Whether it does decides
   // two things in the bar: the download action itself, and whether Listen can

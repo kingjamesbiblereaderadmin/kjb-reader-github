@@ -1145,6 +1145,11 @@ html.kjb-native-ios select {
   text-underline-offset: 0.18em;
 }
 
+/* Mobile fallback paints measured word rectangles, never wraps Bible text. */
+.kjb-word-overlay { position: fixed; inset: 0; z-index: 99; pointer-events: none; user-select: none; }
+.kjb-word-overlay-mark { position: absolute; background: hsl(var(--accent) / 0.3); border-bottom: 2px solid hsl(var(--accent) / 0.75); border-radius: 0.15rem; }
+@media print { .kjb-word-overlay { display: none; } }
+
 /* In two columns the space between verses is each verse's own padding (below,
    plus above for pilcrow verses). Keep the wash and left rule to the text, so
    the gaps stay clear. A box-shadow can't be clipped, hence the gradient. */

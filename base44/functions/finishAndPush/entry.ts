@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.63';
+import { recordingTimingQuery } from '../../shared/timingScope.ts';
 
 // The last step of the audio work: once every recording carries word timing and
 // every pronunciation repair has been re-recorded, the native app builds are
@@ -18,20 +19,21 @@ export default async function (req) {
     const body = await req.json().catch(() => ({}));
     const db = base44.asServiceRole;
 
-    const base = { voice: VOICE, url: { $regex: '^https?://' }, ref: { $regex: '^[1-3A-Z]{3}:\\d+:\\d+(:h\\d+)?$' } };
-    const [untimed, repairClips, markerPage] = await Promise.all([
+    const base = recordingTimingQuery();
+    const [untimed, repairResponse, markerPage] = await Promise.all([
       // A newer recording stores timing_version explicitly as null rather than
       // omitting it. Counting only $exists:false read those as finished and
       // would have started the builds while thousands were still unaligned.
-      db.entities.TtsClip.count({ ...base, $or: [{ timing_version: { $exists: false } }, { timing_version: null }] }),
-      db.entities.TtsClip.count({ ...base, ref: { $regex: ':(h5|h6|h7|h8|h9|h10|h11|h12|h13|h14)$' } }),
+      db.entities.TtsClip.count({ ...base, $or: [{ timing_version: { $exists: false } }, { timing_version: null }, { timing_version: -1 }] }),
+      base44.functions.invoke('repairPronunciationBatch', { statusOnly: true }),
       db.entities.TtsStat.filter({ key: 'push' }, { limit: 1 }),
     ]);
-    const repairsLeft = Math.max(0, REPAIR_TARGETS - repairClips);
+    const repairsLeft = Number((repairResponse.data || repairResponse).remaining);
+    if (!Number.isFinite(repairsLeft)) throw new Error('Could not confirm pronunciation completion');
     const ready = untimed === 0 && repairsLeft === 0;
     const marker = (markerPage.items || markerPage)[0] || null;
 
-    if (!ready) return Response.json({ ready: false, untimed, repairsLeft, pushed: marker?.updated || null });
+    if (body.statusOnly === true || !ready) return Response.json({ ready, untimed, repairsLeft, pushed: marker?.updated || null });
     if (marker && body.force !== true) return Response.json({ ready: true, alreadyPushed: marker.updated, builds: [] });
 
     const { accessToken } = await db.connectors.getConnection('github');

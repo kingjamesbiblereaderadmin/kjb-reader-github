@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.63';
 import { secrets } from 'base44:runtime';
 import { measureRecordedWords } from '../../shared/recordedWordTiming.ts';
+import { recordingTimingQuery, timingReference } from '../../shared/timingScope.ts';
 
 // Admin-only backfill over the EXISTING recordings. Never accepts caller audio.
 export default async function(req) {
@@ -14,11 +15,9 @@ export default async function(req) {
     if (!key) return Response.json({ error: 'Speech key is not configured' }, { status: 503 });
     if (body.chapterKey && !/^[1-3A-Z]{3}:\d{1,3}$/.test(body.chapterKey)) return Response.json({ error: 'Invalid chapter' }, { status: 400 });
     const db = base44.asServiceRole;
-    // Real, fetchable recordings only. A handful of clips carry their audio
-    // inline as a data: URI, and passing one of those (17,000+ characters) as a
-    // query value is rejected by the database as "String value too long",
-    // which failed every run of this backfill before it could measure anything.
-    const query = { voice: 'en-GB-RyanNeural', url: { $regex: '^https?://' }, ref: { $regex: body.chapterKey ? `^${body.chapterKey}:\\d+(:h\\d+)?$` : '^[1-3A-Z]{3}:\\d+:\\d+(:h\\d+)?$' } };
+    // Include verses, announcements, titles, Hebrew names and printed notes.
+    // Inline clips are allowed, but never used as database query values.
+    const query = recordingTimingQuery(body.chapterKey || '');
     if (body.clipId) query.id = String(body.clipId);
     // Newer recordings can explicitly store null rather than omit this field.
     // Both mean unaligned; checking only $exists silently skipped those verses.
@@ -43,16 +42,24 @@ export default async function(req) {
       const page = await db.entities.TtsClip.filter(pendingQuery, { sort: 'created_date', limit: 36 });
       const rows = page.items || page;
       if (!rows.length) { more = false; break; }
-      const existing = await db.entities.AudioTiming.filter({ audio_url: { $in: rows.map((r) => r.url) } }, { limit: 500 });
+      const urls = rows.map((r) => r.url).filter((url) => /^https?:\/\//.test(url));
+      const existing = urls.length ? await db.entities.AudioTiming.filter({ audio_url: { $in: urls } }, { limit: 500 }) : [];
       const byUrl = new Map((existing.items || existing).map((r) => [`${r.voice}|${r.audio_url}`, r]));
-      // 20 recordings are measured at once. A single busy response is retried
-      // once instead of ending the run; only a wave of them (real throttling)
-      // stops the pass, so a higher width never costs the rest of the batch.
-      for (let at = 0; at < rows.length && Date.now() < deadline; at += 20) {
+      // Stay within the worker's six outbound connections. Persist every wave.
+      for (let at = 0; at < rows.length && Date.now() < deadline; at += 6) {
         const records = [], updates = [];
         let busy = 0;
-        const group = await Promise.all(rows.slice(at, at + 20).map(async (row) => {
-          if (byUrl.has(`${row.voice}|${row.url}`)) { reused += 1; return { update: { id: row.id, timing_version: 1, timing_error: '' } }; }
+        const group = await Promise.all(rows.slice(at, at + 6).map(async (row) => {
+          const saved = byUrl.get(`${row.voice}|${row.url}`);
+          if (saved) {
+            reused += 1;
+            const ref = timingReference(row.ref);
+            const record = saved.ref === ref ? null : {
+              ref, chapter_key: ref.split(':').slice(0, 2).join(':'), voice: saved.voice,
+              audio_hash: saved.audio_hash, audio_url: saved.audio_url, duration: saved.duration, words: saved.words,
+            };
+            return { record, update: { id: row.id, timing_version: 1, timing_error: '' } };
+          }
           for (let attempt = 0; ; attempt += 1) {
             try {
               return { record: await measureRecordedWords(row, key), update: { id: row.id, timing_version: 1, timing_error: '' } };
@@ -66,7 +73,7 @@ export default async function(req) {
             }
           }
         }));
-        if (busy >= 6) deferred = true;
+        if (busy >= 3) deferred = true;
         group.forEach((item) => { if (item.record) records.push(item.record); if (item.update) updates.push(item.update); if (item.failure) failures.push(item.failure); });
         // Persist each small group immediately. A later timeout cannot make
         // already-paid timing work disappear and get charged again next run.

@@ -1,6 +1,11 @@
-// Only stored, approved Bible recordings reach this helper.
+import { timingReference } from './timingScope.ts';
+
+// Only stored, approved Bible recordings reach this helper. Inline recordings
+// are decoded in memory, never sent back to the database as oversized queries.
 export async function measureRecordedWords(row, key) {
-  if (!/^https:\/\/([a-z0-9-]+\.)*(base44\.app|base44\.com|wixstatic\.com)\//i.test(row.url)) throw new Error('Recording is not on approved storage');
+  const inline = /^data:audio\/mpeg;base64,[A-Za-z0-9+/=]+$/.test(row.url);
+  if (row.url.length > 2100000) throw new Error('Recording exceeds alignment bounds');
+  if (!inline && !/^https:\/\/([a-z0-9-]+\.)*(base44\.app|base44\.com|wixstatic\.com)\//i.test(row.url)) throw new Error('Recording is not on approved storage');
   const response = await fetch(row.url, { signal: AbortSignal.timeout(12000) });
   if (!response.ok) throw new Error(`Recording download: ${response.status}`);
   const bytes = await response.arrayBuffer();
@@ -21,6 +26,6 @@ export async function measureRecordedWords(row, key) {
   const data = await result.json();
   const words = (data.phrases || []).flatMap((p) => p.words || []).map((w) => ({ text: String(w.text).slice(0, 100), start: w.offsetMilliseconds / 1000, end: (w.offsetMilliseconds + w.durationMilliseconds) / 1000 })).sort((a, b) => a.start - b.start);
   if (!words.length || words.length > 250 || words.some((w) => !Number.isFinite(w.start) || !Number.isFinite(w.end) || w.start < 0 || w.end < w.start)) throw new Error('No usable recorded word timestamps');
-  const ref = String(row.ref).replace(/:h\d+$/, '');
-  return { ref, chapter_key: ref.split(':').slice(0, 2).join(':'), voice: row.voice, audio_hash: audioHash, audio_url: row.url, duration: data.durationMilliseconds / 1000, words };
+  const ref = timingReference(row.ref);
+  return { ref, chapter_key: ref.split(':').slice(0, 2).join(':'), voice: row.voice, audio_hash: audioHash, audio_url: inline ? '' : row.url, duration: data.durationMilliseconds / 1000, words };
 }

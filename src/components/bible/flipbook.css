@@ -32,11 +32,11 @@
 .kjb-fb-endmark { margin: 1.5em 0 0; padding: 14px 0 2px; text-align: center; font-family: Merriweather, Georgia, serif; font-size: 0.76em; letter-spacing: 0.16em; text-transform: uppercase; break-inside: avoid; }
 /* Read last, so it lights up while the voice is on it — same clear wash the
    subscription and postscript get. */
-.kjb-flipbook .kjb-fb-endmark.kjb-fb-speaking { background: rgba(176, 132, 40, 0.22); border-radius: 3px; }
+.kjb-flipbook .kjb-fb-endmark.kjb-fb-speaking { background: hsl(var(--accent) / 0.22); border-radius: 3px; }
 /* Hebrew stanza names (ALEPH, BETH…): printed as their own centred line above
    the verse that opens the stanza, and washed while the voice reads them. */
 .kjb-fb-heading { margin: 1em 0 0.45em; text-align: center; font-weight: 700; letter-spacing: 0.1em; font-family: Merriweather, Georgia, serif; break-inside: avoid; break-after: avoid; }
-.kjb-flipbook .kjb-fb-heading.kjb-fb-speaking { background: rgba(176, 132, 40, 0.22); box-shadow: 0 0 0 6px rgba(176, 132, 40, 0.14); border-radius: 3px; }
+.kjb-flipbook .kjb-fb-heading.kjb-fb-speaking { background: hsl(var(--accent) / 0.22); box-shadow: 0 0 0 6px hsl(var(--accent) / 0.14); border-radius: 3px; }
 
 /* ---- Contents: one continuous, typeset book list ----------------------- */
 .kjb-fb-contents-window { flex: none; margin: 12px 0; overflow: hidden; }
@@ -75,8 +75,9 @@
 /* The next chapter starts on a fresh page unless its opening and its first verse
    both fit under the chapter above: verse 1 is never left stranded at the foot
    of a page with the rest of the chapter overleaf. */
-.kjb-fb-continues .kjb-fb-opening { break-after: avoid; }
-.kjb-fb-continues .kjb-fb-opening + .kjb-fb-verse { break-before: avoid; }
+.kjb-fb-continues .kjb-fb-opening, .kjb-fb-continued-current .kjb-fb-opening { break-after: avoid; }
+.kjb-fb-continues .kjb-fb-opening + .kjb-fb-verse,
+.kjb-fb-continued-current .kjb-fb-opening + .kjb-fb-verse { break-before: avoid; }
 /* The subscription and the postscript carry on across a page turn when they do
    not fit: at least two lines stay on each side of the break, so a note is never
    left as a single stranded line at the foot of a page. */
@@ -118,7 +119,7 @@
 .kjb-flipbook [data-fb-colour='pink'] { background: rgba(244, 114, 182, 0.3); }
 .kjb-flipbook [data-fb-colour='purple'] { background: rgba(192, 132, 252, 0.3); }
 .kjb-flipbook .kjb-fb-tapped { text-decoration: underline dotted var(--fb-red); text-underline-offset: 3px; }
-.kjb-flipbook .kjb-fb-speaking { background: rgba(176, 132, 40, 0.26); }
+.kjb-flipbook .kjb-fb-speaking { background: hsl(var(--accent) / 0.14); }
 /* The subscription and the postscript: one flat wash. A halo around it read as
    a second highlight on the words. The player also puts .kjb-speaking on these
    lines, so its left rule and shadow are cleared here too. */
@@ -127,10 +128,10 @@
   box-shadow: none;
   border-radius: 3px;
 }
-.kjb-flipbook .kjb-fb-note.kjb-fb-speaking { background: rgba(176, 132, 40, 0.26); }
+.kjb-flipbook .kjb-fb-note.kjb-fb-speaking { background: hsl(var(--accent) / 0.14); }
 /* The explicit drop-cap span supports both the verse wash and word paint. */
 .kjb-flipbook .kjb-fb-first.kjb-fb-first-speaking .kjb-fb-dropcap {
-  background: rgba(176, 132, 40, 0.26);
+  background: hsl(var(--accent) / 0.14);
   border-radius: 2px;
 }
 
