@@ -270,15 +270,14 @@ export default React.forwardRef(function FlipBook({
     const end = measureRef.current.querySelector('[data-fb-end]');
     const textPages = chapter === 0 ? 0 : Math.max(1, Math.floor((end.offsetLeft + 1) / (textW + gap)) + 1);
     // Measure the actual next chapter, including its heading and superscription.
-    // All of its first four verses must fit completely on this last page.
+    // It carries on here whenever those and the whole of verse 1 fit in the
+    // space left; the rest flows on to the following column or page.
     const next = measureRef.current.querySelector('[data-fb-next]');
-    const firstFour = next ? [...next.querySelectorAll('[data-fbv]')].slice(0, 4) : [];
+    const firstVerse = next?.querySelector('[data-fbv]');
     const flowLeft = measureRef.current.getBoundingClientRect().left;
     const pageRight = textPages * (textW + gap);
-    const fits = firstFour.length === 4 && firstFour.every((verse) => {
-      const rects = [...verse.getClientRects()].filter((rect) => rect.width && rect.height);
-      return rects.length > 0 && rects.every((rect) => rect.right - flowLeft <= pageRight + 1);
-    });
+    const rects = [...(firstVerse?.getClientRects() || [])].filter((rect) => rect.width && rect.height);
+    const fits = rects.length > 0 && rects.every((rect) => rect.right - flowLeft <= pageRight + 1);
     setFillNext(chapter !== 0 && fits);
     const count = front.length + textPages;
     setPageCount(count);
