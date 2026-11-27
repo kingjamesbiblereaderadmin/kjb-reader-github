@@ -19,6 +19,7 @@ const DB_VERSION = 1;
 const CLIPS = 'clips';
 const META = 'meta';
 const INDEX_KEY = 'index';
+const INDEX_REVISION = 'h16-complete-31102';
 const INDEX_MAX_AGE = 24 * 60 * 60 * 1000;
 const PROGRESS_EVERY = 10;
 
@@ -195,7 +196,7 @@ export async function downloadedBooks() {
  */
 export async function loadIndex({ force = false } = {}) {
   const stored = await readMeta(INDEX_KEY);
-  const fresh = stored?.books && stored.generatedAt
+  const fresh = stored?.books && stored.generatedAt && stored.revision === INDEX_REVISION
     && Date.now() - Date.parse(stored.generatedAt) < INDEX_MAX_AGE;
   if (stored?.books && fresh && !force) return stored;
 
@@ -206,6 +207,7 @@ export async function loadIndex({ force = false } = {}) {
     if (!data?.books) throw new Error('index is empty');
     await writeMeta(INDEX_KEY, {
       generatedAt: data.generatedAt || new Date().toISOString(),
+      revision: data.revision || '',
       count: Number(data.count) || 0,
       books: data.books,
     });

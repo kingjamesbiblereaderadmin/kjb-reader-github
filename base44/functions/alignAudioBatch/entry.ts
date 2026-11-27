@@ -64,7 +64,7 @@ export default async function(req) {
             try {
               return { record: await measureRecordedWords(row, key), update: { id: row.id, timing_version: 1, timing_error: '' } };
             } catch (error) {
-              if (error.status === 429 || error.status >= 500) {
+              if (error.status === 429 || error.status >= 500 || error.name === 'TimeoutError' || error.name === 'AbortError') {
                 if (attempt === 0) { await new Promise((resolve) => setTimeout(resolve, 1200)); continue; }
                 busy += 1;
                 return {};

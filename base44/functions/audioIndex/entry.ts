@@ -16,6 +16,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.63';
 const PAGE = 500;
 const MAX_PAGES = 200; // 100,000 rows: far past the 31,102 verse clips
 const CACHE_MS = 60 * 60 * 1000;
+const INDEX_REVISION = 'h16-complete-31102';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -93,6 +94,7 @@ export default async function (req) {
 
     const body = JSON.stringify({
       generatedAt: new Date().toISOString(),
+      revision: INDEX_REVISION,
       count,
       books,
     });
