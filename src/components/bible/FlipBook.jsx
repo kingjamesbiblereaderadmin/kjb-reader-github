@@ -310,6 +310,14 @@ export default React.forwardRef(function FlipBook({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flowSignature, loading]);
 
+  // The next chapter carries straight on in the space under the last verse,
+  // including an empty second column. When that last page is on the left, the
+  // facing page continues the same flow (spill) rather than starting the next
+  // chapter again at its own opening.
+  const lastIsLeft = spread && (((pageCount - 1 - pageOffsetRef.current) % 2) + 2) % 2 === 0;
+  const fillLastPage = fillNext && !!continuationBlocks;
+  const spill = fillLastPage && lastIsLeft;
+
   const go = useCallback((dir) => {
     if (loading || turn) return;
     const to = page + dir * step;
@@ -505,14 +513,6 @@ export default React.forwardRef(function FlipBook({
 
   // Text pages only (the title page and the table of books come before them).
   const textTotal = Math.max(0, pageCount - front.length);
-
-  // The next chapter carries straight on in the space under the last verse,
-  // including an empty second column. When that last page is on the left, the
-  // facing page continues the same flow (spill) rather than starting the next
-  // chapter again at its own opening.
-  const lastIsLeft = spread && (((pageCount - 1 - pageOffsetRef.current) % 2) + 2) % 2 === 0;
-  const fillLastPage = fillNext && !!continuationBlocks;
-  const spill = fillLastPage && lastIsLeft;
 
   // One printed page: a title page, the contents, or running head and text. Page
   // numbers are shown once, in the book's bottom bar.
