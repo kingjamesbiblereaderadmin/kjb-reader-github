@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Loader2, AlignJustify, AlignLeft, List, Columns2, ChevronDown, CheckSquare, Square, Copy, X, BookMarked, ZoomIn, Minus, Plus, Type, Share2, Printer, Highlighter, Bookmark, BookOpen } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, AlignJustify, AlignLeft, List, Columns2, ChevronDown, CheckSquare, Square, Copy, X, BookMarked, ZoomIn, Minus, Plus, Type, Share2, Printer, Highlighter, Bookmark, BookOpen, Headphones } from 'lucide-react';
 import FlipBook from '@/components/bible/FlipBook';
 import { buildVerseUrl, formatVerseShare, cleanVerseText, centerLine } from '@/lib/formatDailyVerse';
 import { BIBLE_BOOKS, getNextBook, getPrevBook } from '@/lib/bibleData';
@@ -1895,7 +1895,24 @@ export default function BibleReader() {
           same row as its chevron, instead of taking a section of its own. */}
       {hideHeader && !flipbookOpen && (
         <MinimizedHeaderBar setHideHeader={setHideHeader}>
-          {!ttsAttached && ttsPlayerNode ? React.cloneElement(ttsPlayerNode, { inline: true }) : null}
+          {!ttsPlayerVisible ? null : (listenOpen || ttsActive) ? (
+            React.cloneElement(ttsPlayerNode, { inline: true, open: true })
+          ) : (
+            // Nothing is being read and the player has not been opened: the bar
+            // carries just the headphones button that opens it.
+            <div className="flex items-center justify-end">
+              <button
+                onClick={() => { closeAllMenus(); setListenOpen(true); }}
+                title={online ? 'Listen' : 'Listen offline'}
+                aria-label={online ? 'Listen' : 'Listen offline'}
+                aria-expanded={listenOpen}
+                data-testid="tts-bar-btn"
+                className="h-10 w-10 flex items-center justify-center rounded-lg bg-secondary border border-border text-secondary-foreground hover:bg-accent/20 transition-colors touch-manipulation"
+              >
+                <Headphones className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </MinimizedHeaderBar>
       )}
 

@@ -654,7 +654,7 @@ export default function TtsPlayer({ embedded = false, inline = false, open = tru
               <ChevronDown className="w-4 h-4" />
             </button>
           )}
-          {(!idle || embedded) && (
+          {(!idle || embedded || inline) && (
             <button onClick={() => { tts.stop(); onOpenChange?.(false); }} aria-label={idle ? 'Close player' : 'Stop listening'} className={CONTROL}>
               <X className="w-4 h-4" />
             </button>
