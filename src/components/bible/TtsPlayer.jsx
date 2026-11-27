@@ -393,17 +393,15 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
 
   // What the lock screen and the phone's media card say. Left alone they show
   // the page title ("KJB Reader"), so a listener had no way to tell which
-  // chapter was playing; they now name it, and the verse once one is being read.
+  // chapter was playing; they now name the chapter being read.
   useEffect(() => {
     if (!tts.isActive) {
       clearMediaMetadata();
       return;
     }
     const name = bookName || label;
-    const where = chapter >= 1 ? `${name} ${chapter}` : name;
-    const reading = !tts.introActive && tts.currentVerse != null;
-    publishMediaMetadata({ title: reading ? `${where}:${tts.currentVerse}` : where });
-  }, [tts.isActive, tts.currentVerse, tts.introActive, bookName, label, chapter]);
+    publishMediaMetadata({ title: chapter >= 1 ? `${name} ${chapter}` : name });
+  }, [tts.isActive, bookName, label, chapter]);
   useEffect(() => () => clearMediaMetadata(), []);
 
   const setHiddenPersisted = useCallback((value) => {
