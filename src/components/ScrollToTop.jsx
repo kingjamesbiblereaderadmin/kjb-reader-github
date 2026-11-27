@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronUp } from 'lucide-react';
+import { useSpeaking } from '@/lib/tts/speaking';
 
 export default function ScrollToTop({ targetId }) {
   const [visible, setVisible] = useState(false);
   const [footerHeight, setFooterHeight] = useState(80);
+  // Out of the way while the chapter is being read aloud; back when paused.
+  // 'loading' counts too, so it doesn't flash between verses.
+  const reading = Boolean(useSpeaking()?.reading);
 
   useEffect(() => {
     const scroller = (targetId && document.getElementById(targetId)) || document.getElementById('kjb-scroll');
@@ -46,7 +50,7 @@ export default function ScrollToTop({ targetId }) {
     else window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (!visible) return null;
+  if (!visible || reading) return null;
 
   return (
     <button

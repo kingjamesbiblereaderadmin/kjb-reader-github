@@ -377,7 +377,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   useEffect(() => () => clearSpeaking(), []);
 
   useEffect(() => {
-    publishSpeaking(tts.isActive ? { chapterKey, verse: tts.currentVerse, kind: tts.currentKind, intro: tts.introActive, playing: tts.status === 'playing' } : null);
+    publishSpeaking(tts.isActive ? { chapterKey, verse: tts.currentVerse, kind: tts.currentKind, intro: tts.introActive, playing: tts.status === 'playing', reading: tts.status === 'playing' || tts.status === 'loading' } : null);
   }, [chapterKey, tts.isActive, tts.currentVerse, tts.currentKind, tts.introActive, tts.status]);
   useEffect(() => () => publishSpeaking(null), []);
 
