@@ -195,8 +195,9 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   // file name a clip is uploaded under is derived from its key — so the verse
   // needs a key of its own rather than the plain reference it already used.
   const sosthenesUpdated = /\bsosthenes\b/i.test(text);
-  // "Baptize" and its forms were voiced as "bap-tees" before they were pinned
-  // in IPA, so every verse that prints one needs a recording of its own.
+  // "baptize" and its inflections were voiced as "bap-tees", with the stress on
+  // the first syllable, before they were pinned in IPA (which moves it to the
+  // last), so every verse that prints one needs a recording of its own.
   const baptizeUpdated = /\bbaptiz(?:e|ed|est|eth|ing)\b/i.test(text);
   const newlyUpdated = /\b(?:maketh|imputeth)\b/i.test(text);
   const updated = /\bmarketh\b|\btheir\s+desert\b|\bbow\s+down\b/i.test(text);

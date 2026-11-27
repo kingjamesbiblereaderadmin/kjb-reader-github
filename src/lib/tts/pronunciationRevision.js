@@ -3,8 +3,12 @@ export default function pronunciationRevision(text) {
   // A word voiced wrongly before it was pinned in IPA keeps its old take in the
   // device's memory and in the offline bundle. Naming the revision here is what
   // makes the reader skip both and ask the server for the re-voiced clip.
-  // Baptize was read "bap-tees"; Sosthenes was spelled out letter by letter.
+  // "baptize" was recorded with the stress on the first syllable; the IPA pin
+  // moves it to the last, so these verses ask for the re-voiced take.
   if (/\bbaptiz(?:e|ed|est|eth|ing)\b/i.test(text)) return 'h18';
+  // Sosthenes was spelled out letter by letter in every clip made before it was
+  // pinned in IPA, and those clips are what the device still remembers and what
+  // the offline bundle holds.
   if (/\bsosthenes\b/i.test(text)) return 'h17';
   if (/\bcainan\b/i.test(text)) return 'h16';
   if (/\benos\b/i.test(text)) return 'h15';
