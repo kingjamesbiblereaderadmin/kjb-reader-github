@@ -28,7 +28,7 @@ import { readScrollCache, saveScrollCache, saveScrollY } from '@/lib/scrollCache
 import { useToolbarState } from '@/lib/useToolbarState';
 import { useChapterScrollRestore } from '@/lib/useChapterScrollRestore';
 import { computeReaderInitialSnapshot } from '@/lib/readerInitialSnapshot';
-import { scrollToVerse } from '@/lib/scrollToVerse';
+import { scrollToVerse, stickyChromeHeight } from '@/lib/scrollToVerse';
 import { getFontFamilyValue } from '@/lib/readerFonts';
 import { buildTapShareText as buildTapShareTextFor, buildShareText, buildPerVerseText } from '@/lib/readerShareText';
 import { useSearchAndGospelResults } from '@/lib/useSearchAndGospelResults';
@@ -562,6 +562,29 @@ export default function BibleReader() {
   };
 
   const topRef = useRef(null);
+  // How far the anchored chapter heading has to sit from the top of the scroller
+  // to clear the sticky toolbar (and, with the header hidden, the slim bar that
+  // replaces it). Measured rather than guessed, because the toolbar's height
+  // changes with the player and with the header being hidden.
+  const [stickyTop, setStickyTop] = useState(0);
+  useEffect(() => {
+    const read = () => {
+      const bar = document.querySelector('[data-kjb-reader-toolbar-wrap]')
+        || document.querySelector('[data-kjb-minimized-header]');
+      setStickyTop(bar ? Math.round(bar.getBoundingClientRect().height) : 0);
+    };
+    read();
+    const ro = new ResizeObserver(read);
+    [document.querySelector('[data-kjb-reader-toolbar-wrap]'), document.querySelector('[data-kjb-minimized-header]')]
+      .filter(Boolean)
+      .forEach((bar) => ro.observe(bar));
+    window.addEventListener('resize', read);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', read);
+    };
+  }, [hideHeader, flipbookOpen]);
+
   const readerContentRef = useRef(null);
   const setZoomPersist = useCallback((next) => {
     setZoomLevel(next);
@@ -1321,8 +1344,7 @@ export default function BibleReader() {
       const el = document.getElementById(anchorId);
       if (!el) return;
       const scroller = document.getElementById('kjb-scroll');
-      const toolbarH = topRef.current ? topRef.current.getBoundingClientRect().height : 0;
-      const stickyOffset = toolbarH + 48;
+      const stickyOffset = stickyChromeHeight(topRef) + 20;
       if (scroller) {
         const top = el.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - stickyOffset;
         scroller.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
@@ -1845,7 +1867,7 @@ export default function BibleReader() {
 
   // The book's upper-right corner holds the return-to-normal-view control.
   const bookToggleNode = (
-    <div className={`kjb-book-toggle-row print:hidden relative z-[1] flex justify-end ${flipbookOpen ? '-mt-6' : '-mt-4'}`}>
+    <div className={`kjb-book-toggle-row print:hidden relative z-[1] flex justify-end ${flipbookOpen ? '-mt-6' : ''}`}>
       <button
         onClick={() => { closeAllMenus(); setBookView(!flipbookOpen); }}
         data-testid="flipbook-open-btn"
@@ -1883,7 +1905,6 @@ export default function BibleReader() {
         />
       )}
 
-      {!flipbookOpen && bookToggleNode}
       {flipbookOpen && (
         <FlipBook
           controls={(bookSlots) => React.cloneElement(toolbarNode, { bookSlots })}
@@ -1905,12 +1926,18 @@ export default function BibleReader() {
 
       {/* The scrolling page stays mounted (and prints) while the book is open. */}
       <div className={flipbookOpen ? 'hidden print:block' : 'contents'}>
+      {/* The chapter heading and the view switch are anchored under the reader
+          toolbar, so scrolling a long chapter never takes the book's name, its
+          chapter number and the way back into book view off the screen. */}
+      {!flipbookOpen && (
+      <div id="kjb-anchored-heading" className="print:static sticky z-[95] -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background pt-1" style={{ top: stickyTop }}>
+      {bookToggleNode}
       {!isViewingTitlePage && (!(filterMode && selectedVerses.size > 0) || chapterSubscript) && (
-        <div className={`text-center mb-6 pt-8 ${(!columnMode || pos.chapter === 1 || (filterMode && selectedVerses.size > 0)) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
+        <div className={`text-center mb-4 ${(!columnMode || pos.chapter === 1 || (filterMode && selectedVerses.size > 0)) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
           {filterMode && selectedVerses.size > 0 ? null : (
             <>
               <h1 className={`notranslate kjb-book-title ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} text-3xl md:text-4xl font-bold text-foreground mb-2 leading-tight`} style={{ fontStyle: 'normal', fontWeight: '900' }}>{book.name}</h1>
-              <p className={`notranslate kjb-chapter-heading font-sans text-muted-foreground tracking-widest uppercase mt-5 ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100 * 0.875}rem`, fontWeight: fontFamily === 'cursive' ? '400' : undefined }}>
+              <p className={`notranslate kjb-chapter-heading font-sans text-muted-foreground tracking-widest uppercase mt-2 ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100 * 0.875}rem`, fontWeight: fontFamily === 'cursive' ? '400' : undefined }}>
                 Chapter {pos.chapter}
               </p>
             </>
@@ -1925,6 +1952,8 @@ export default function BibleReader() {
             </p>
           )}
         </div>
+      )}
+      </div>
       )}
 
       <div

@@ -8,14 +8,21 @@ import { emphasizeOccurrence } from '@/lib/occurrenceLabel';
 // pass so the FIRST frame the user sees already has the verse in place —
 // a smooth animation started pre-paint still animates across the first
 // painted frames (visible movement from wherever the scroller was).
+// How much of the top of the scroller is covered by the reader's anchored
+// chrome: the sticky toolbar, plus the chapter heading that now stays under it.
+export function stickyChromeHeight(topRef) {
+  const toolbarH = topRef?.current ? topRef.current.getBoundingClientRect().height : 0;
+  const band = typeof document === 'undefined' ? null : document.getElementById('kjb-anchored-heading');
+  return toolbarH + (band ? band.getBoundingClientRect().height : 0);
+}
+
 export function scrollToVerse({ verseNum, posRef, topRef, scrolledVerseRef, instant = false }) {
   const verseEl = document.getElementById(`v${verseNum}`);
   if (!verseEl) return;
   const occ = posRef.current?.occurrence || 0;
   emphasizeOccurrence(verseEl.querySelectorAll('mark[data-occ]'), occ);
   const scroller = document.getElementById('kjb-scroll');
-  const toolbarH = topRef.current ? topRef.current.getBoundingClientRect().height : 0;
-  const stickyOffset = toolbarH + 48;
+  const stickyOffset = stickyChromeHeight(topRef) + 20;
   const numEl = verseEl.querySelector('sup, .kjb-dropcap-num');
   let topRect = numEl ? numEl.getBoundingClientRect().top : verseEl.getBoundingClientRect().top;
   const heading = verseEl.querySelector('.font-bold.text-center');

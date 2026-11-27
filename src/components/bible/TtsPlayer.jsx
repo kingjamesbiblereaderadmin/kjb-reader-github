@@ -117,11 +117,20 @@ function firstVisibleVerse() {
 // bar. Whatever its height today, the verse lands flush beneath it.
 function topInset(box) {
   const bar = document.querySelector('[data-kjb-reader-toolbar-wrap]');
+  let bottom = box.top + PAD_TOP;
   if (bar) {
     const b = bar.getBoundingClientRect();
-    if (b.height > 0) return Math.max(0, Math.round(b.bottom - box.top));
+    if (b.height > 0) bottom = b.bottom;
   }
-  return PAD_TOP;
+  // The chapter heading is anchored under the toolbar, so while it is stuck it
+  // covers that much more of the top of the page — a verse revealed beneath it
+  // would otherwise sit under the heading.
+  const band = document.getElementById('kjb-anchored-heading');
+  if (band) {
+    const b = band.getBoundingClientRect();
+    if (b.height > 0 && b.top <= bottom + 2) bottom = Math.max(bottom, b.bottom);
+  }
+  return Math.max(0, Math.round(bottom - box.top));
 }
 
 function revealElement(el, { center = false, instant = false } = {}) {
