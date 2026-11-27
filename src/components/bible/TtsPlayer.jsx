@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Play, Pause, SkipBack, SkipForward, X, ChevronUp, ChevronRight, RotateCcw, Repeat, CloudDownload } from 'lucide-react';
 import OutputDeviceMenu from '@/components/bible/OutputDeviceMenu';
-import { publishSpeaking, getProgress } from '@/lib/tts/speaking';
+import { publishSpeaking, getProgress, subscribeProgress } from '@/lib/tts/speaking';
 import { readingArea, revealElement, followVisibleWords } from '@/lib/tts/readerFollow';
 import { publishMediaMetadata, clearMediaMetadata } from '@/lib/tts/mediaSession';
 import useBibleTts from '@/hooks/useBibleTts';
@@ -139,6 +139,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   // once that chapter's verses actually arrive.
   const continueRef = useRef(false);
   const endedVersesRef = useRef(null);
+  const endedChapterRef = useRef(null);
   const prevPosRef = useRef({ book: bookName || label, chapter });
   const announcedRef = useRef(false);
   // Follow the spoken verse with the page, until the reader scrolls by hand.
@@ -152,7 +153,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   useEffect(() => {
     const onDocumentClick = (event) => {
       const target = event.target instanceof Element ? event.target.closest('[id^="v"], [data-fbv]') : null;
-      if (!target) return;
+      if (!target || target.closest('[data-fb-next]')) return;
       if (target.dataset.fbv) setSelectedVerse(Number(target.dataset.fbv));
       else if (/^v\d+$/.test(target.id)) setSelectedVerse(Number(target.id.slice(1)));
     };
@@ -163,9 +164,10 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   const handleChapterEnd = useCallback(() => {
     if (!autoContinue || !onNextChapter) return;
     endedVersesRef.current = verses;
+    endedChapterRef.current = chapterKey;
     skipScrollRef.current = true;
     if (onNextChapter()) continueRef.current = true;
-  }, [autoContinue, onNextChapter, verses]);
+  }, [autoContinue, onNextChapter, verses, chapterKey]);
 
   const tts = useBibleTts({ verses, chapterKey, subscript, colophon, titleText, endMarker, onChapterEnd: handleChapterEnd });
 
@@ -205,7 +207,8 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     // continuous listening it is just "Chapter 3". When it does name the book it
     // uses the full canonical title, not the short one shown on screen.
     const fullName = bookName || label;
-    if (continueRef.current && verses.length && verses !== endedVersesRef.current) {
+    if (continueRef.current && chapterKey !== endedChapterRef.current
+        && (titleText || (verses.length && verses !== endedVersesRef.current))) {
       continueRef.current = false;
       // Name the book the first time anything is announced in a session, and
       // whenever the book changes after that. A refresh, or starting on chapter
@@ -221,13 +224,13 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
       announcedRef.current = true;
       skipScrollRef.current = true;
       followRef.current = true;
-      tts.start(1, { ref: introKey, text: introText });
+      tts.start(1, titleText ? null : { ref: introKey, text: introText });
     }
     prevPosRef.current = { book: fullName, chapter };
     // tts.start is stable; depending on the whole hook object would re-run on
     // every status change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [verses, chapterKey, label, bookName, chapter]);
+  }, [verses, chapterKey, label, bookName, chapter, titleText]);
 
   // A refresh restores the browser's old scroll offset, so the page came back
   // somewhere other than the verse the session was up to. Once this chapter's
@@ -271,13 +274,14 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   // of stopping once the verse's first line is in view.
   useEffect(() => {
     if (tts.status !== 'playing' || tts.currentKind !== 'verse' || tts.currentVerse == null) return undefined;
-    const id = window.setInterval(() => {
-      if (followRef.current) followVisibleWords(
-        document.getElementById(`v${tts.currentVerse}`),
-        getProgress(`${chapterKey}:${tts.currentVerse}`),
-      );
-    }, 100);
-    return () => window.clearInterval(id);
+    const ref = `${chapterKey}:${tts.currentVerse}`;
+    const follow = (progress, clipRef) => {
+      if (followRef.current && clipRef === ref) {
+        followVisibleWords(document.getElementById(`v${tts.currentVerse}`), progress);
+      }
+    };
+    follow(getProgress(ref), ref);
+    return subscribeProgress(follow);
   }, [tts.status, tts.currentVerse, tts.currentKind, chapterKey]);
 
   // While the chapter announcement plays, the heading is what is being spoken,

@@ -1793,7 +1793,7 @@ export default function BibleReader() {
   // continuous white block instead of a bar with a card floating under it.
   // A title page has its own Listen button: the page is read, then playback
   // rolls on into chapter 1, so the player has to exist there too.
-  const ttsPlayerVisible = ttsEnabled && !loading && !error && (isViewingTitlePage || verses.length > 0);
+  const ttsPlayerVisible = ttsEnabled && !error && (loading || isViewingTitlePage || verses.length > 0);
   const titlePageSpoken = isViewingTitlePage ? (pos.abbr === 'GEN'
     ? "The Holy Bible. Containing the Old and New Testaments. Translated out of the original tongues, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches. Authorised King James Bible."
     : pos.abbr === 'MAT'
@@ -1956,6 +1956,7 @@ export default function BibleReader() {
           onVerseTap={selectMode ? toggleVerseSelect : toggleTappedVerse}
           onNextChapter={() => goNext()} onPrevChapter={goPrev}
           onSelectBook={(abbr) => navigate(abbr, 1)}
+          onOpenPassage={(abbr, chapter, verse) => navigate(abbr, chapter, verse)}
           canPrev={!isFirstChapterFirstBook} canNext={!isLastChapterLastBook}
         />
       )}

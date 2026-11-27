@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import FlipBookChrome from '@/components/bible/FlipBookChrome';
-import { renderVerseText } from '@/lib/bibleApi';
+import BookChapterBlocks from '@/components/bible/BookChapterBlocks';
+import BookContinuation from '@/components/bible/BookContinuation';
+import useFollowingChapter from '@/hooks/useFollowingChapter';
 import TitlePage from '@/components/bible/TitlePage';
 import ContentsFlow from '@/components/bible/ContentsFlow';
 import FittedPage from '@/components/bible/FittedPage';
-import { useSpeaking, getProgress } from '@/lib/tts/speaking';
+import { useSpeaking, getProgress, subscribeProgress } from '@/lib/tts/speaking';
 import verseWords from '@/lib/tts/verseWords';
 import { getVerseHighlight } from '@/lib/verseHighlights';
 import './flipbook.css';
@@ -47,7 +49,7 @@ export default function FlipBook({
   book, abbr, chapter, verses, subscript, colophon, endMarker, loading, error,
   fontFamilyValue, isCursive, zoomLevel, jumpVerse, jumpSection, tappedVerses, onVerseTap,
   twoColumns, paragraphs, searchTerm, selectMode, selectedVerses, filterMode,
-  onNextChapter, onPrevChapter, canPrev, canNext, controls, viewControl, onSelectBook,
+  onNextChapter, onPrevChapter, canPrev, canNext, controls, viewControl, onSelectBook, onOpenPassage,
 }) {
   const bookName = book.name;
   const rootRef = useRef(null);
@@ -68,6 +70,9 @@ export default function FlipBook({
   const measureRef = useRef(null);
   const touchRef = useRef(null);
   const landOnEndRef = useRef(false);
+  const pendingPageRef = useRef(null);
+  const pageOffsetRef = useRef(0);
+  const pageOffsetsRef = useRef(new Map());
   const [stage, setStage] = useState({ w: 0, h: 0 });
   const [pageCount, setPageCount] = useState(1);
   const [contentsPageCount, setContentsPageCount] = useState(1);
@@ -192,63 +197,10 @@ export default function FlipBook({
     if (next > 0) setChromeH((current) => (Math.abs(current - next) > 0.5 ? next : current));
   }, [textW, textStyle, fontTick, chapterKey]);
 
-  const blocks = useMemo(() => {
-    const markup = (t, term = null) => ({ __html: renderVerseText(String(t).replace(/^<<[^>]*>>\s*/, ''), term) });
-    // The subscription and the postscript open with the printed pilcrow (¶), as
-    // they do in the normal reader. The source text only carries it sometimes,
-    // so it is added here — and stripped first, so it is never doubled.
-    const noteMarkup = (t, term = null) => ({
-      __html: `<span class="pilcrow">¶</span> ${renderVerseText(String(t).replace(/^<<[^>]*>>\s*/, '').replace(/^[\u00B6\uFFFD]\s*/, ''), term)}`,
-    });
-    if (chapter === 0) return null;
-
-    // "Reading verses 3-5" shows only those, as the normal reader does.
-    const picked = (v) => selectedVerses?.has(Number(v.verse)) || selectedVerses?.has(String(v.verse));
-    const filtered = !!(filterMode && !selectMode && selectedVerses?.size);
-    const shown = filtered ? verses.filter(picked) : verses;
-    const jumped = parseInt(jumpVerse, 10);
-
-    const verseNode = (v) => (
-      <span data-fbv={v.verse}>
-        {Number(v.verse) !== 1 && <sup>{v.verse}</sup>}
-        <span className="kjb-verse-text" dangerouslySetInnerHTML={markup(v.text, Number(v.verse) === jumped ? searchTerm : null)} />
-      </span>
-    );
-
-    // Paragraph layout runs verses together, breaking at each pilcrow.
-    const groups = [];
-    shown.forEach((v) => {
-      const breaks = /(^|[\s.,;:!?'")\]])[\u00B6\uFFFD\u000F]/.test(v.text);
-      // A verse carrying a Hebrew stanza name starts its own section, so the
-      // name is printed above it rather than being swallowed into the
-      // paragraph that came before.
-      if (!paragraphs || breaks || v.heading || !groups.length) groups.push([v]);
-      else groups[groups.length - 1].push(v);
-    });
-
-    return (
-      <>
-        <div className="kjb-fb-opening" data-fb-sec="head">
-          <h2 className="kjb-fb-title">{bookName}</h2>
-          <p className="kjb-fb-chapter">Chapter {chapter}</p>
-        </div>
-        {subscript && <p className="kjb-fb-note" data-fb-sec="sub" dangerouslySetInnerHTML={noteMarkup(subscript, jumpSection === 'subscript' ? searchTerm : null)} />}
-        {groups.map((group, i) => (
-          <React.Fragment key={group[0].verse}>
-            {group[0].heading && (
-              <p className="kjb-fb-heading notranslate" data-fb-heading={group[0].verse}>
-                {String(group[0].heading).replace(/^<<[^>]*>>\s*/, '')}
-              </p>
-            )}
-            <p className={`kjb-fb-verse ${i === 0 && Number(group[0].verse) === 1 ? 'kjb-fb-first' : ''} ${paragraphs ? 'kjb-fb-para' : ''}`}>
-              {group.map((v) => <React.Fragment key={v.verse}>{verseNode(v)}{' '}</React.Fragment>)}
-            </p>
-          </React.Fragment>
-        ))}
-        {colophon && (!filtered || picked(verses[verses.length - 1] || {})) && <p className="kjb-fb-note" data-fb-sec="col" dangerouslySetInnerHTML={noteMarkup(colophon, jumpSection === 'colophon' ? searchTerm : null)} />}
-      </>
-    );
-  }, [bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses]);
+  const blocks = useMemo(() => (
+    <BookChapterBlocks {...{ bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses }} />
+  ), [bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses]);
+  const following = useFollowingChapter(book, chapter, canNext && !filterMode && !selectMode);
 
   // A new chapter opens at its first page, or its last when turning backwards.
   const shownKeyRef = useRef(null);
@@ -260,13 +212,26 @@ export default function FlipBook({
     setPageCount(count);
     const isNew = shownKeyRef.current !== chapterKey;
     shownKeyRef.current = chapterKey;
-    const lastStart = Math.floor((count - 1) / step) * step;
     const toEnd = landOnEndRef.current;
+    const pendingStart = pendingPageRef.current || 0;
+    // A one-page title may already have been read on the preceding spread.
+    // Carry the unused page count forward instead of showing that title twice.
+    if (isNew && !toEnd && pendingStart >= count && canNext && following) {
+      pendingPageRef.current = pendingStart - count;
+      onNextChapter();
+      return;
+    }
+    if (isNew) {
+      pageOffsetRef.current = toEnd ? (pageOffsetsRef.current.get(chapterKey) || 0) % step : (pendingPageRef.current || 0) % step;
+      pageOffsetsRef.current.set(chapterKey, pageOffsetRef.current);
+    } else pageOffsetRef.current %= step;
+    const offset = pageOffsetRef.current;
+    const lastStart = Math.max(0, offset + Math.floor((count - 1 - offset) / step) * step);
     setPage((p) => {
-      if (isNew) return toEnd ? lastStart : 0;
-      return Math.min(Math.floor(p / step) * step, lastStart);
+      if (isNew) return toEnd ? lastStart : Math.min(pendingStart, count - 1);
+      return Math.max(0, Math.min(offset + Math.floor((p - offset) / step) * step, lastStart));
     });
-    if (isNew) landOnEndRef.current = false;
+    if (isNew) { landOnEndRef.current = false; pendingPageRef.current = null; }
     setTurn(null);
   }, [blocks, front, textW, textH, gap, textStyle, step, pageW, loading, chapterKey, fontTick]);
 
@@ -274,20 +239,33 @@ export default function FlipBook({
     if (loading || turn) return;
     const to = page + dir * step;
     if (to < 0) { if (canPrev) { landOnEndRef.current = true; onPrevChapter(); } return; }
-    if (to >= pageCount) { if (canNext) { landOnEndRef.current = false; onNextChapter(); } return; }
+    if (to >= pageCount) {
+      if (canNext) {
+        landOnEndRef.current = false;
+        pendingPageRef.current = following && spread ? Math.max(0, to - pageCount) : 0;
+        onNextChapter();
+      }
+      return;
+    }
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setPage(to); return; }
     setTurn({ dir, to });
-  }, [loading, turn, page, step, pageCount, onNextChapter, onPrevChapter, canPrev, canNext]);
+  }, [loading, turn, page, step, pageCount, onNextChapter, onPrevChapter, canPrev, canNext, following, spread]);
 
   // The page on which a verse or section begins.
-  const pageOf = useCallback((selector) => {
-    const el = measureRef.current?.querySelector(selector);
-    return el ? front.length + Math.floor((el.offsetLeft + 1) / (textW + gap)) : null;
+  const pageOf = useCallback((selector, progress = 0) => {
+    const flow = measureRef.current;
+    const el = flow?.querySelector(selector);
+    if (!el) return null;
+    const words = verseWords(el);
+    const word = words.find((item) => item.end > progress) || words[words.length - 1];
+    const rect = word?.range.getClientRects()[0] || el.getClientRects()[0];
+    return rect ? front.length + Math.floor((rect.left - flow.getBoundingClientRect().left + 1) / (textW + gap)) : null;
   }, [front, textW, gap]);
 
   const turnTo = (target) => {
     if (target == null) return;
-    const to = Math.floor(Math.min(target, pageCount - 1) / step) * step;
+    const offset = pageOffsetRef.current;
+    const to = Math.max(0, offset + Math.floor((Math.min(target, pageCount - 1) - offset) / step) * step);
     if (to === page) return;
     const near = Math.abs(to - page) === step;
     if (near && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) setTurn({ dir: to > page ? 1 : -1, to });
@@ -303,11 +281,12 @@ export default function FlipBook({
         : speaking.kind === 'heading' ? `[data-fb-heading="${speaking.verse}"]`
           : speaking.verse != null ? `[data-fbv="${speaking.verse}"]` : '';
   useEffect(() => {
-    if (!spokenAt || loading) return;
-    turnTo(spokenAt === 'intro' ? 0 : spokenAt === 'end' ? pageCount - 1 : pageOf(spokenAt));
+    if (!spokenAt || !speaking?.playing || loading) return;
+    const progress = speaking.kind === 'verse' ? getProgress(`${abbr}:${chapter}:${speaking.verse}`) : 0;
+    turnTo(spokenAt === 'intro' ? 0 : spokenAt === 'end' ? pageCount - 1 : pageOf(spokenAt, progress));
     // Only when the voice moves or the pages are re-laid: turning by hand stays.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spokenAt, pageCount, step, loading, chapterKey]);
+  }, [spokenAt, speaking?.playing, pageCount, step, loading, chapterKey]);
 
   // A verse can run past the foot of the page it starts on, and the voice reads
   // on regardless — so the book used to sit on the page holding only the first
@@ -320,8 +299,9 @@ export default function FlipBook({
     if (!flow) return undefined;
     const flowLeft = flow.getBoundingClientRect().left;
     let need = 0;
+    let requested = false;
     const read = () => {
-      if (turn) return true;
+      if (turn || requested) return true;
       if (!need) {
         const el = flow.querySelector(spokenAt);
         const rects = el ? el.getClientRects() : null;
@@ -338,12 +318,17 @@ export default function FlipBook({
         if (!need || need >= 1) return false;
       }
       if (getProgress(`${abbr}:${chapter}:${speaking.verse}`) < need) return true;
-      turnTo(page + step);
+      requested = true;
+      // During listening, reveal the next text immediately. A decorative turn
+      // otherwise hides its first words for another 650 ms while speech goes on.
+      setTurn(null);
+      setPage(page + step);
       return false;
     };
     if (!read()) return undefined;
-    const timer = window.setInterval(read, 120);
-    return () => window.clearInterval(timer);
+    return subscribeProgress((_progress, ref) => {
+      if (ref === `${abbr}:${chapter}:${speaking.verse}`) read();
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spokenAt, speaking?.playing, page, step, pageCount, turn, loading, textW, gap, colW, perPage, front.length, abbr, chapter]);
 
@@ -361,6 +346,7 @@ export default function FlipBook({
     const root = rootRef.current;
     if (!root) return;
     root.querySelectorAll('[data-fbv]').forEach((el) => {
+      if (el.closest('[data-fb-next]')) return;
       const n = Number(el.dataset.fbv);
       el.classList.toggle('kjb-fb-speaking', spokenAt === `[data-fbv="${el.dataset.fbv}"]`);
       el.classList.toggle('kjb-fb-tapped', !!tappedVerses?.has(n));
@@ -370,6 +356,7 @@ export default function FlipBook({
       if (colour) el.dataset.fbColour = colour; else delete el.dataset.fbColour;
     });
     root.querySelectorAll('[data-fb-heading]').forEach((el) => {
+      if (el.closest('[data-fb-next]')) return;
       el.classList.toggle('kjb-fb-speaking', spokenAt === `[data-fb-heading="${el.dataset.fbHeading}"]`);
     });
     // The drop cap is the paragraph's ::first-letter, outside the verse span's
@@ -378,10 +365,11 @@ export default function FlipBook({
       el.classList.toggle('kjb-fb-first-speaking', !!el.querySelector('.kjb-fb-speaking'));
     });
     root.querySelectorAll('[data-fb-sec]').forEach((el) => {
+      if (el.closest('[data-fb-next]')) return;
       const kind = el.dataset.fbSec;
       el.classList.toggle('kjb-fb-speaking', kind === 'head' ? spokenAt === 'intro' : spokenAt === `[data-fb-sec="${kind}"]`);
     });
-    root.querySelectorAll('.kjb-fb-titlewrap').forEach((el) => el.classList.toggle('kjb-fb-speaking', spokenAt === 'intro'));
+    root.querySelectorAll('.kjb-fb-titlewrap').forEach((el) => el.classList.toggle('kjb-fb-speaking', !el.closest('[data-fb-next]') && spokenAt === 'intro'));
     // The closing line ("The End", "The End of the Prophets") is read last, so
     // it lights up like the notes do while the voice is on it.
     root.querySelectorAll('.kjb-fb-endmark').forEach((el) => el.classList.toggle('kjb-fb-speaking', spokenAt === 'end'));
@@ -419,6 +407,9 @@ export default function FlipBook({
 
   // One printed page: a title page, the contents, or running head, text and page number.
   const face = (index, side) => {
+    if (index === pageCount && following && spread) return (
+      <BookContinuation passage={following} {...{ side, padLeft, padRight, footerHeight, textW, textH, contentsH, zoomLevel, fontFamilyValue, isCursive, flowProps, textStyle, paragraphs }} />
+    );
     const textIndex = index - front.length;
     return (
       <div className={`kjb-fb-page kjb-fb-${side}`} style={{ padding: `52px ${padRight}px ${footerHeight}px ${padLeft}px` }}>
@@ -489,6 +480,11 @@ export default function FlipBook({
   // A tap on a verse selects it, as in the normal reader; a tap elsewhere turns.
   const onPageTap = (dir) => (e) => {
     const verse = e.target.closest('[data-fbv]');
+    if (e.target.closest('[data-fb-next]') && following) {
+      pendingPageRef.current = null;
+      onOpenPassage?.(following.book.abbr, following.chapter, verse ? Number(verse.dataset.fbv) : null);
+      return;
+    }
     if (verse) { onVerseTap?.(Number(verse.dataset.fbv)); return; }
     go(dir);
   };

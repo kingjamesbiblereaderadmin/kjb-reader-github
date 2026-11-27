@@ -1,4 +1,5 @@
 import { primeClipTrim } from '@/lib/tts/clipTrim';
+import waitForClip from '@/lib/tts/waitForClip';
 
 // A preload hint can be ignored, especially on phones. Fetch the complete file
 // while the previous verse plays, and keep its prepared element by clip identity.
@@ -12,8 +13,9 @@ export default function createClipBuffer(resolveUrl) {
     entry.release = () => {
       entry.cancelled = true;
       entry.controller?.abort();
+      entry.cancelReady?.();
       if (entry.audio) {
-        entry.audio.onended = entry.audio.onerror = entry.audio.ontimeupdate = null;
+        entry.audio.onended = entry.audio.onerror = entry.audio.ontimeupdate = entry.audio.onplaying = null;
         entry.audio.pause();
         entry.audio.removeAttribute('src');
         entry.audio.load();
@@ -50,8 +52,10 @@ export default function createClipBuffer(resolveUrl) {
       entry.audio = new Audio();
       entry.audio.preload = 'auto';
       entry.audio.src = source;
+      const ready = waitForClip(entry);
       entry.audio.load();
-      entry.trim = await primeClipTrim(entry.url, bytes);
+      const [trim] = await Promise.all([primeClipTrim(entry.url, bytes), ready]);
+      entry.trim = trim;
       return entry.cancelled ? null : entry;
     })().catch((error) => {
       if (entries.get(key) === entry) entries.delete(key);

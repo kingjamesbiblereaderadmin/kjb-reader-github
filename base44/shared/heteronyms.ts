@@ -36,6 +36,14 @@ const RESPELL: Record<string, string> = {
   hallowed: 'hal-low-ed',
   // Keep the "mark" stem distinct from "make", including through the proxy.
   marketh: 'mahr-keth',
+  // Unambiguous tokens also carry IPA through both direct Azure and the proxy.
+  maketh: 'maykith',
+  imputeth: 'impyootith',
+};
+
+export const CORRECTED_IPA: Record<string, string> = {
+  maykith: 'ˈmeɪkɪθ',
+  impyootith: 'ɪmˈpjuːtɪθ',
 };
 
 const RESPELL_RE = new RegExp(
@@ -115,6 +123,7 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   let changed = false;
   // Only these corrections get a new recording key. Existing h2 recordings for
   // other settled pronunciations are retained and are not generated again.
+  const newlyUpdated = /\b(?:maketh|imputeth)\b/i.test(text);
   const updated = /\bmarketh\b|\btheir\s+desert\b|\bbow\s+down\b/i.test(text);
   const source = String(text || '').replace(/\b(their\s+)desert\b/gi, '$1dih-zurt');
   if (source !== text) changed = true;
@@ -132,5 +141,5 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
     changed = true;
     return /^[A-Z]/.test(word) ? replacement.charAt(0).toUpperCase() + replacement.slice(1) : replacement;
   });
-  return { text: out, changed, revision: updated ? 'h3' : changed ? 'h2' : '' };
+  return { text: out, changed, revision: newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
 }

@@ -17,6 +17,7 @@ import { localAudioUrlFor } from '@/lib/tts/localAudio';
 import { cachedUrl } from '@/lib/tts/offlineAudio';
 import createClipBuffer from '@/lib/tts/createClipBuffer';
 import watchClipEnd from '@/lib/tts/watchClipEnd';
+import createVersePause from '@/lib/tts/createVersePause';
 
 // Verse text arrives with the reader's markup: [italics] brackets, ¶ pilcrows
 // and <<heading>> markers. None of them should be spoken.
@@ -125,10 +126,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // reaches this hook has been through the reader's apostrophe/override pipeline,
 // so hashing it would miss clips generated from the same verse anywhere else
 // (a bulk run, another device, a corrected verse). The reference is stable.
-const needsPronunciationRefresh = (text) => /\bmarketh\b|\btheir\s+desert\b|\bbow\s+down\b/i.test(text);
+const needsPronunciationRefresh = (text) => /\b(?:maketh|imputeth)\b/i.test(text)
+  ? 'h4' : /\bmarketh\b|\btheir\s+desert\b|\bbow\s+down\b/i.test(text) ? 'h3' : '';
 
 function audioCacheKey(clip, voice) {
-  return `${voice}|${clip.ref || clip.text}${needsPronunciationRefresh(clip.text) ? '|pronunciation-h3' : ''}`;
+  const revision = needsPronunciationRefresh(clip.text);
+  return `${voice}|${clip.ref || clip.text}${revision ? `|pronunciation-${revision}` : ''}`;
 }
 
 async function audioUrlFor(clip, voice) {
@@ -204,6 +207,9 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   // the reader can highlight the book name and chapter line instead of a verse.
   const [introActive, setIntroActive] = useState(false);
   const [index, setIndex] = useState(-1);
+  // Requested audio can still be loading. Only the media's playing event may
+  // move the reader to a new verse or chapter announcement.
+  const [audibleIndex, setAudibleIndex] = useState(-1);
   const [error, setError] = useState('');
 
   const audioRef = useRef(null);
@@ -284,6 +290,8 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   if (!bufferRef.current) bufferRef.current = createClipBuffer(audioUrlFor);
   const activeBufferRef = useRef(null);
   const endCleanupRef = useRef(null);
+  const versePauseRef = useRef(null);
+  if (!versePauseRef.current) versePauseRef.current = createVersePause();
 
   const adoptBuffered = useCallback((prepared) => {
     endCleanupRef.current?.();
@@ -308,6 +316,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     endCleanupRef.current?.();
     endCleanupRef.current = null;
     bufferRef.current?.clear();
+    versePauseRef.current?.clear();
     activeBufferRef.current?.release();
     activeBufferRef.current = null;
     const el = audioRef.current;
@@ -320,14 +329,18 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     }
     publishProgress(0);
     setIndex(-1);
+    setAudibleIndex(-1);
     setIntroActive(false);
     setStatus('idle');
   }, []);
 
-  const playClip = useCallback(async (clip, token, onDone, onFail) => {
+  const playClip = useCallback(async (clip, token, onDone, onFail, onStarted) => {
     setStatus('loading');
     setError('');
     fetchingRef.current = true;
+    // A skip or restart must silence the outgoing clip immediately, not after
+    // the requested replacement finishes downloading.
+    audioRef.current?.pause();
 
     let prepared;
     try {
@@ -366,9 +379,9 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       clearStall();
       endCleanupRef.current?.();
       endCleanupRef.current = null;
-      el.onended = el.ontimeupdate = el.onerror = null;
+      el.onended = el.ontimeupdate = el.onerror = el.onplaying = null;
       el.pause();
-      publishProgress(0);
+      publishProgress(1, clip.ref);
       onDone();
     };
 
@@ -384,13 +397,13 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       clearStall();
       endCleanupRef.current?.();
       endCleanupRef.current = null;
-      el.onended = el.ontimeupdate = el.onerror = null;
+      el.onended = el.ontimeupdate = el.onerror = el.onplaying = null;
       el.pause();
       urlCache.delete(clipKey);
       persistUrlCache();
       if (!retriedRef.current.has(clipKey)) {
         retriedRef.current.add(clipKey);
-        playClipRef.current?.(clip, token, onDone, onFail);
+        playClipRef.current?.(clip, token, onDone, onFail, onStarted);
         return;
       }
       retriedRef.current.delete(clipKey);
@@ -439,8 +452,14 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       if (verseClip && resumePoint) resumePoint.time = el.currentTime;
     };
     el.playbackRate = rateRef.current;
+    let started = false;
+    el.onplaying = () => {
+      if (token !== tokenRef.current || audioRef.current !== el) return;
+      if (!started) { started = true; onStarted?.(); }
+      if (!holdRef.current) setStatus('playing');
+    };
     el.onended = finish;
-    endCleanupRef.current = watchClipEnd(el, trim?.tail || 0, finish);
+    endCleanupRef.current = watchClipEnd(el, trim?.tail || 0, finish, () => el.ontimeupdate?.());
 
     if (holdRef.current) {
       setStatus('paused');
@@ -487,6 +506,8 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   }, [applySink]);
 
   const playAt = useCallback(async (i, token) => {
+    versePauseRef.current.clear();
+    if (token !== tokenRef.current) return;
     const list = clipsRef.current;
     if (!list.length) return;
     holdRef.current = false;
@@ -496,6 +517,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       resumePoint = null;
       setStatus('idle');
       setIndex(-1);
+      setAudibleIndex(-1);
       onEndRef.current?.();
       return;
     }
@@ -508,12 +530,14 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       // highlight for as long as the announcement lasts.
       prefetch(list[i]);
       prefetch(list[i + 1]);
-      setIntroActive(true);
       const fallThrough = () => {
         setIntroActive(false);
         playAtRef.current?.(i, token);
       };
-      const announced = await playClip(intro, token, fallThrough, fallThrough);
+      const announced = await playClip(intro, token, fallThrough, fallThrough, () => {
+        setAudibleIndex(-1);
+        setIntroActive(true);
+      });
       // A chapter announcement that cannot be fetched must never strand
       // playback on a silent "Listening": fall through to the verse itself.
       if (!announced && token === tokenRef.current) {
@@ -530,14 +554,16 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     setIntroActive(false);
     setIndex(i);
     resumePoint = { chapterKey, verse: list[i].verse, time: startAtRef.current };
-    // Warm the next verses while this one plays — the gap between clips is what
-    // makes a per-verse player feel stuttery otherwise.
+    // Start the requested clip before competing next-verse downloads.
+    const advance = () => {
+      const nextClip = () => { if (token === tokenRef.current) playAtRef.current?.(i + 1, token); };
+      if (list[i].kind === 'verse') versePauseRef.current.wait(nextClip, 250);
+      else nextClip();
+    };
+    const playing = playClip(list[i], token, advance, advance, () => setAudibleIndex(i));
     prefetch(list[i + 1]);
     prefetch(list[i + 2]);
-
-    // A verse that cannot be voiced is stepped over, so listening carries on.
-    const advance = () => playAtRef.current?.(i + 1, token);
-    await playClip(list[i], token, advance, advance);
+    await playing;
   }, [playClip, chapterKey, prefetch]);
 
   playAtRef.current = playAt;
@@ -600,12 +626,14 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
 
   const pause = useCallback(() => {
     holdRef.current = true;
+    versePauseRef.current.pause();
     audioRef.current?.pause();
     setStatus((s) => (s === 'playing' || s === 'loading' ? 'paused' : s));
   }, []);
 
   const resume = useCallback(() => {
     holdRef.current = false;
+    if (versePauseRef.current.resume()) { setStatus('playing'); return; }
     // Still fetching: the element holds the previous clip, so don't replay it.
     // A failed fetch also leaves the previous clip loaded: retry this verse.
     if (status === 'error' && index >= 0) {
@@ -638,12 +666,14 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   }, [index, playAt]);
 
   const prev = useCallback(() => {
+    versePauseRef.current.clear();
+    holdRef.current = false;
     // Restart the current verse first (like a chapter repeat), then step back.
     const el = audioRef.current;
     if (el && el.currentTime > 2 && index >= 0) {
-      el.currentTime = 0;
-      el.play().catch(() => {});
-      setStatus('playing');
+      startAtRef.current = 0;
+      tokenRef.current += 1;
+      playAt(index, tokenRef.current);
       return;
     }
     tokenRef.current += 1;
@@ -677,7 +707,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     audioRef.current?.pause();
   }, []);
 
-  const current = index >= 0 ? clipsRef.current[index] : null;
+  const current = audibleIndex >= 0 ? clipsRef.current[audibleIndex] : null;
   // A verse number drives the reader's highlight; the superscription and the
   // subscription have no verse, so their kind tells the player what to wash.
   const currentVerse = current && (current.kind === 'verse' || current.kind === 'heading') ? current.verse : null;

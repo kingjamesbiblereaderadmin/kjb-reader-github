@@ -21,10 +21,19 @@ export function useSpeaking() {
 // polls it rather than re-rendering the reader on every tick.
 let progress = 0;
 let progressRef = null;
+const progressListeners = new Set();
+
+// Deliver the final audio-clock position before handing off to the next clip.
+// Polling could miss it completely when a verse finished between two polls.
+export function subscribeProgress(listener) {
+  progressListeners.add(listener);
+  return () => progressListeners.delete(listener);
+}
 
 export function publishProgress(fraction, clipRef = null) {
   progressRef = clipRef;
   progress = Number.isFinite(fraction) ? Math.min(1, Math.max(0, fraction)) : 0;
+  progressListeners.forEach((listener) => listener(progress, progressRef));
 }
 
 export function getProgress(clipRef = null) {

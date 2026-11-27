@@ -10,7 +10,7 @@
 // nothing, so audio is fetched from Azure exactly once per voice per verse.
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.63';
-import { applyHeteronyms } from '../../shared/heteronyms.ts';
+import { applyHeteronyms, CORRECTED_IPA } from '../../shared/heteronyms.ts';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -413,6 +413,7 @@ const ETH_SILENT_E: Record<string, string> = {
 // never respelled: it keeps its printed spelling and travels as a phoneme tag,
 // so the engine says the dictionary form instead of guessing at the letters.
 const IPA_NAMES: Record<string, string> = {
+  ...CORRECTED_IPA,
   pharaoh: 'ˈfeərəʊ', jehovah: 'dʒɪˈhəʊvə', jerusalem: 'dʒəˈruːsələm',
   israel: 'ˈɪzreɪl', isaiah: 'aɪˈzaɪə', hezekiah: 'ˌhezɪˈkaɪə',
   nebuchadnezzar: 'ˌnebjʊkədˈnezə', melchizedek: 'melˈkɪzɪdek',
