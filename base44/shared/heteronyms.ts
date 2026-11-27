@@ -187,6 +187,9 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   // file name a clip is uploaded under is derived from its key — so the verse
   // needs a key of its own rather than the plain reference it already used.
   const sosthenesUpdated = /\bsosthenes\b/i.test(text);
+  // "baptize" and its inflections were voiced with the stress on the first
+  // syllable; the IPA pins it to the last, so those verses take a fresh key.
+  const baptizeUpdated = /\bbaptiz(?:e|ed|est|eth|ing)\b/i.test(text);
   const newlyUpdated = /\b(?:maketh|imputeth)\b/i.test(text);
   const updated = /\bmarketh\b|\btheir\s+desert\b|\bbow\s+down\b/i.test(text);
   const source = String(text || '').replace(/\b(their\s+)desert\b/gi, '$1dih-zurt');
@@ -210,5 +213,5 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   const cursedUpdated = /\bcurs-ed\b/i.test(out);
   const adarUpdated = /\badar\b/i.test(text);
   const satUpdated = /\bsatest\b/i.test(text);
-  return { text: out, changed, revision: sosthenesUpdated ? 'h17' : cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
+  return { text: out, changed, revision: baptizeUpdated ? 'h18' : sosthenesUpdated ? 'h17' : cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
 }

@@ -291,7 +291,7 @@ const PRONOUNCE_RE = new RegExp(
 const ETH_SILENT_E: Record<string, string> = {
   'abideth': 'abide-eth', 'accuseth': 'accuse-eth', 'acknowledgeth': 'acknowledge-eth', 'advantageth': 'advantage-eth',
   'agreeth': 'agree-eth', 'appeaseth': 'appease-eth', 'approveth': 'approve-eth', 'ariseth': 'arise-eth',
-  'avengeth': 'avenge-eth', 'awaketh': 'awake-eth', 'backbiteth': 'backbite-eth', 'baptizeth': 'baptize-eth',
+  'avengeth': 'avenge-eth', 'awaketh': 'awake-eth', 'backbiteth': 'backbite-eth', 
   'becometh': 'become-eth', 'behaveth': 'behave-eth', 'believeth': 'believe-eth', 'bereaveth': 'bereave-eth',
   'biteth': 'bite-eth', 'blasphemeth': 'blaspheme-eth', 'breatheth': 'breathe-eth', 'calveth': 'calve-eth',
   'careth': 'care-eth', 'carrieth': 'carry-eth', 'causeth': 'cause-eth', 'ceaseth': 'cease-eth',
@@ -331,8 +331,15 @@ const ETH_SILENT_E: Record<string, string> = {
 // international standard the voice understands directly. A word listed here is
 // never respelled: it keeps its printed spelling and travels as a phoneme tag,
 // so the engine says the dictionary form instead of guessing at the letters.
+// baptizeth is deliberately absent from the respell table: the IPA entry
+// below carries the whole word, so splitting it would leave the tag behind.
 const IPA_NAMES: Record<string, string> = {
   ...CORRECTED_IPA,
+  // The "-ize" verbs carry their stress on the last syllable, and left to the
+  // engine the first syllable takes it ("BAP-tize"). Pinned in IPA like the
+  // names above, so the stress cannot drift.
+  baptized: 'bæpˈtaɪzd', baptizing: 'bæpˈtaɪzɪŋ', baptizeth: 'bæpˈtaɪzɪθ',
+  baptizest: 'bæpˈtaɪzɪst', baptize: 'bæpˈtaɪz',
   pharaoh: 'ˈfeərəʊ', jehovah: 'dʒɪˈhəʊvə', jerusalem: 'dʒəˈruːsələm',
   israel: 'ˈɪzreɪl', isaiah: 'aɪˈzaɪə', hezekiah: 'ˌhezɪˈkaɪə',
   nebuchadnezzar: 'ˌnebjʊkədˈnezə', melchizedek: 'melˈkɪzɪdek',

@@ -1,5 +1,8 @@
 // Mirrors the server's narrowly scoped recording revisions. Printed text never changes.
 export default function pronunciationRevision(text) {
+  // "baptize" was recorded with the stress on the first syllable; the IPA pin
+  // moves it to the last, so these verses ask for the re-voiced take.
+  if (/\bbaptiz(?:e|ed|est|eth|ing)\b/i.test(text)) return 'h18';
   // Sosthenes was spelled out letter by letter in every clip made before it was
   // pinned in IPA, and those clips are what the device still remembers and what
   // the offline bundle holds. Naming the revision here is what makes the reader
