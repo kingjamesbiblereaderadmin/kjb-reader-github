@@ -198,8 +198,14 @@ export default React.forwardRef(function FlipBook({
   const perPage = twoColumns ? 2 : 1;
   const gap = perPage === 2 ? 18 : 40;
   const colW = (textW - gap * (perPage - 1)) / perPage;
-  const carry = carryRef.current?.toKey === chapterKey && carryRef.current.width === textW
-    && carryRef.current.height === textH && carryRef.current.gap === gap ? carryRef.current : null;
+  // The reserved tail is measured in the chapter that has just ended, and the
+  // new chapter's own running head can move the text window by a pixel or two
+  // (the head carries the other chapter's name). An exact height match threw the
+  // carry away in that case, so the book flipped to a page showing the next
+  // chapter on its own instead of carrying on where the voice already was.
+  const near = (a, b) => Math.abs((a || 0) - (b || 0)) <= 2;
+  const carry = carryRef.current?.toKey === chapterKey && near(carryRef.current.width, textW)
+    && near(carryRef.current.height, textH) && near(carryRef.current.gap, gap) ? carryRef.current : null;
   const flowProps = {
     width: textW, height: textH, gap, columnWidth: Math.floor(colW * 100) / 100,
     className: `${isCursive ? 'cursive-em-style' : ''} ${perPage === 2 ? 'kjb-fb-twocol' : ''}`,
