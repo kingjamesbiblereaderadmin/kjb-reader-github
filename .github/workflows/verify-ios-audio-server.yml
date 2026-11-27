@@ -56,7 +56,7 @@ jobs:
       - name: Serve GEN:1:1 from the bundle over loopback
         run: |
           set -euo pipefail
-          cat > /tmp/harness.swift <<'SWIFT'
+          cat > /tmp/main.swift <<'SWIFT'
           import Foundation
 
           func sha256(_ data: Data) -> String {
@@ -137,5 +137,5 @@ jobs:
 
           print("PASS: GEN:1:1 plays from the bundle over loopback with no network")
           SWIFT
-          swiftc -O ios/App/App/LocalAudioServer.swift /tmp/harness.swift -o /tmp/harness
+          swiftc -O ios/App/App/LocalAudioServer.swift /tmp/main.swift -o /tmp/harness
           /tmp/harness /tmp/TestApp.app
