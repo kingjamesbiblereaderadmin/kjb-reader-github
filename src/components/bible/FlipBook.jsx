@@ -244,6 +244,21 @@ export default React.forwardRef(function FlipBook({
   ) : null, [following?.book, following?.chapter, following?.verses, following?.subscript, following?.colophon, paragraphs]);
 
   // A new chapter opens at its first page, or its last when turning backwards.
+  // The measuring effect below must re-run when the text or the page geometry
+  // really changes, not on every render: it used to depend on freshly created
+  // objects (blocks, front, continuationBlocks, textStyle), so a page turn —
+  // which sets state and re-renders — re-ran it at once, and its closing
+  // setTurn(null) unmounted the turning sheet in the same frame. That is why
+  // Next did nothing and Prev only jumped chapter.
+  const flowSignature = useMemo(() => [
+    chapterKey, front.length, contentsPageCount, textW, textH, gap, step, pageW, fontTick,
+    zoomLevel, fontFamilyValue || '', perPage,
+    verses.length, verses.reduce((total, verse) => total + String(verse.text || '').length, 0),
+    colophon ? String(colophon).length : 0,
+    subscript ? String(subscript).length : 0,
+    following ? `${following.book?.abbr}:${following.chapter}:${following.verses?.length || 0}` : '',
+  ].join('|'), [chapterKey, front.length, contentsPageCount, textW, textH, gap, step, pageW, fontTick,
+    zoomLevel, fontFamilyValue, perPage, verses, colophon, subscript, following]);
   const shownKeyRef = useRef(null);
   // The measuring effect below must run when the LAYOUT or the chapter's text
   // changes — not on every render. Several of its inputs (the rendered blocks,
