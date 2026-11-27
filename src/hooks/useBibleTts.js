@@ -388,6 +388,30 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
 
   playClipRef.current = playClip;
 
+  // The clips after the one playing are fetched while it plays, so the next
+  // verse starts the moment this one ends instead of showing "Preparing…".
+  // Resolving the URL is only half of that wait: the mp3 itself still has to be
+  // downloaded, which a hidden <audio> element does now so the player reads it
+  // from the media cache when its turn comes.
+  const prefetchedRef = useRef(new Map()); // url -> Audio
+  const prefetch = useCallback((clip) => {
+    if (!clip) return;
+    audioUrlFor(clip, voiceRef.current)
+      .then((url) => {
+        if (!url || prefetchedRef.current.has(url)) return;
+        const el = new Audio();
+        el.preload = 'auto';
+        el.src = url;
+        prefetchedRef.current.set(url, el);
+        // Two ahead is all that is needed; drop the oldest so this can't grow.
+        if (prefetchedRef.current.size > 4) {
+          const [oldest] = prefetchedRef.current.keys();
+          prefetchedRef.current.delete(oldest);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const playAt = useCallback(async (i, token) => {
     const list = clipsRef.current;
     if (!list.length) return;
@@ -408,7 +432,8 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       // Warm the verse while the label speaks, and do not move the highlight
       // until the verse itself starts: the book name and chapter line carry the
       // highlight for as long as the announcement lasts.
-      audioUrlFor(list[i], voiceRef.current).catch(() => {});
+      prefetch(list[i]);
+      prefetch(list[i + 1]);
       setIntroActive(true);
       const fallThrough = () => {
         setIntroActive(false);
@@ -427,14 +452,15 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     setIntroActive(false);
     setIndex(i);
     resumePoint = { chapterKey, verse: list[i].verse, time: startAtRef.current };
-    // Warm the next verse while this one plays — the gap between clips is what
+    // Warm the next verses while this one plays — the gap between clips is what
     // makes a per-verse player feel stuttery otherwise.
-    if (list[i + 1]) audioUrlFor(list[i + 1], voiceRef.current).catch(() => {});
+    prefetch(list[i + 1]);
+    prefetch(list[i + 2]);
 
     // A verse that cannot be voiced is stepped over, so listening carries on.
     const advance = () => playAtRef.current?.(i + 1, token);
     await playClip(list[i], token, advance, advance);
-  }, [playClip, chapterKey]);
+  }, [playClip, chapterKey, prefetch]);
 
   playAtRef.current = playAt;
 

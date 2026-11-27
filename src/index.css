@@ -1031,6 +1031,17 @@ html.kjb-native-ios select {
   background-color: transparent;
 }
 
+/* One highlight only while a verse is being read. The row's wash is the "this
+   is playing" state, but the text inside it carried its own tint as well — the
+   navigation/search tint, a saved highlighter colour, or the hover tint that
+   sticks to a verse after it is tapped on a phone — so the verse showed two
+   shades at once. They are held back only while it plays, and come straight
+   back when playback moves on. */
+.kjb-speaking .kjb-verse-text,
+.kjb-speaking .kjb-verse-text:hover {
+  background-color: transparent !important;
+}
+
 /* The word being spoken inside the verse that is playing. Painted with the
    Custom Highlight API so the reader's own markup is never touched — nothing
    wraps the text, so nothing can go stale when the page re-renders. */

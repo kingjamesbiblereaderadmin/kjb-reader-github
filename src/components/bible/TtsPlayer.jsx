@@ -19,6 +19,15 @@ import { TTS_RATES, TTS_STORAGE, readStored, writeStored } from '@/lib/tts/voice
 // class is also what makes the highlight survive the reader's own re-renders.
 const SPEAKING_CLASS = 'kjb-speaking';
 
+// The non-verse pieces the player reads: the superscription, the subscription
+// and the closing line. The reader gives the first two anchors; book view marks
+// all three with its own page attributes, so each kind matches either form.
+const SECTION_SELECTORS = {
+  sub: '#kjb-subscript-anchor, [data-fb-sec="sub"]',
+  col: '#kjb-colophon-anchor, [data-fb-sec="col"]',
+  end: '#kjb-end-anchor, .kjb-fb-endmark',
+};
+
 // The player is a second row of the reader toolbar: a full-width divider on
 // top, then the same 12px (3) spacing the toolbar uses above its buttons and
 // between its rows. No w-full here: it would stop the negative margins from
@@ -42,7 +51,10 @@ function clearSpeaking() {
 // while the bottom of the scroller was still cutting it off - the last verses of
 // a chapter were never brought into view. Everything below measures the scroller.
 const PAD_TOP = 96;    // clear the sticky header
-const PAD_BOTTOM = 56; // clear the nav bar / footer, with room to breathe
+// Clear the fixed bottom nav (which can be two rows tall on a phone) plus the
+// footer, with room to breathe — 56 left the last line of a verse sitting under
+// the nav bar. Matches #kjb-scroll's own scroll-padding-bottom.
+const PAD_BOTTOM = 104;
 // Space kept between the sticky toolbar and a verse at the top of the page, so
 // a verse being brought into view never sits jammed under the bar.
 const GAP_TOP = 14;
@@ -98,14 +110,27 @@ function revealElement(el, { center = false } = {}) {
   const box = scrollBox();
   const r = el.getBoundingClientRect();
   const inset = topInset(box);
-  const above = r.top < box.top + inset + GAP_TOP;
-  const below = r.bottom > box.bottom - PAD_BOTTOM;
+  const top = box.top + inset + GAP_TOP;
+  const bottom = box.bottom - PAD_BOTTOM;
+  const scroll = (delta) => {
+    if (delta) (box.scroller || window).scrollBy({ top: delta, behavior: 'smooth' });
+  };
+
+  // A verse taller than the visible area can never be shown whole. Trying to
+  // bring its foot into view scrolled its first line up under the toolbar, so
+  // put the top just below the bar and let the reader follow the voice down.
+  if (r.height > bottom - top) {
+    if (r.top >= top - 2 && r.top <= top + 12) return;
+    scroll(r.top - top);
+    return;
+  }
+
+  const above = r.top < top;
+  const below = r.bottom > bottom;
   if (!above && !below) return;
-  const delta = center
+  scroll(center
     ? r.top + r.height / 2 - (box.top + box.bottom) / 2
-    : above ? r.top - (box.top + inset + GAP_TOP) : r.bottom - (box.bottom - PAD_BOTTOM);
-  if (!delta) return;
-  (box.scroller || window).scrollBy({ top: delta, behavior: 'smooth' });
+    : above ? r.top - top : r.bottom - bottom);
 }
 
 function scrollToVerse(verse) {
@@ -229,27 +254,39 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
   // scrolled off AND the reader has not taken over scrolling themselves.
   useEffect(() => {
     clearSpeaking();
-    // The superscription above verse 1 and the subscription after the last verse
-    // are spoken too, so they carry the highlight while they are read.
-    const sectionId = tts.currentKind === 'sub' ? 'kjb-subscript-anchor'
-      : tts.currentKind === 'col' ? 'kjb-colophon-anchor'
-        : null;
-    if (sectionId) {
-      const section = document.getElementById(sectionId);
+    let timer = 0;
+    // Bringing a verse into view twice — once now and once after the browser has
+    // settled the new highlight and any reflow (fonts, the bar's own height) —
+    // is what stopped a verse being left half under the toolbar on a phone.
+    const reveal = (el) => {
+      if (!followRef.current) return;
+      revealElement(el);
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => { if (followRef.current) revealElement(el); }, 320);
+    };
+
+    // The printed furniture spoken around the verses — the superscription above
+    // verse 1, the subscription after the last verse, the closing line — carries
+    // the highlight while it is read. Book view marks them with its own
+    // attributes instead of the reader's anchors, so both are matched; matching
+    // only the anchors left them unhighlighted there.
+    const sectionSelector = SECTION_SELECTORS[tts.currentKind];
+    if (sectionSelector) {
+      const section = document.querySelector(sectionSelector);
       if (section) {
         section.classList.add(SPEAKING_CLASS);
-        if (followRef.current && !skipScrollRef.current) revealElement(section);
+        if (!skipScrollRef.current) reveal(section);
       }
       skipScrollRef.current = false;
-      return;
+      return () => window.clearTimeout(timer);
     }
-    if (tts.currentVerse == null) return;
+    if (tts.currentVerse == null) return () => window.clearTimeout(timer);
     const el = document.getElementById(`v${tts.currentVerse}`);
-    if (!el) return;
+    if (!el) return () => window.clearTimeout(timer);
     el.classList.add(SPEAKING_CLASS);
-    if (skipScrollRef.current) { skipScrollRef.current = false; return; }
-    if (!followRef.current) return;
-    revealElement(el);
+    if (skipScrollRef.current) { skipScrollRef.current = false; return () => window.clearTimeout(timer); }
+    reveal(el);
+    return () => window.clearTimeout(timer);
   }, [tts.currentVerse, tts.currentKind]);
 
   // While the chapter announcement plays, the heading is what is being spoken,
@@ -500,15 +537,6 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
           >
             <RotateCcw className="w-4 h-4" />
           </button>
-
-          <div className="px-2 text-center min-w-0 max-w-[10rem] sm:max-w-none">
-            <p className="font-sans text-xs font-medium truncate">
-              {tts.status === 'loading' && !tts.introActive ? 'Preparing…' : verseRef || (idle ? 'Ready to play' : 'Listening')}
-            </p>
-            <p className="font-sans text-[10px] text-muted-foreground truncate">
-              {tts.index >= 0 && tts.total ? `${tts.index + 1} of ${tts.total}` : '\u00A0'}
-            </p>
-          </div>
 
           {selectedVerse != null && (
             <button
