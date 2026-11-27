@@ -12,7 +12,10 @@ export default function verseWords(element) {
   let text = '';
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-    if (node.parentElement?.closest('sup, .pilcrow, .kjb-dropcap-num, .kjb-stanza-heading, button, [aria-hidden="true"]')) continue;
+    const excluded = node.parentElement?.closest('sup, .pilcrow, .kjb-dropcap-num, .kjb-stanza-heading, button, [aria-hidden="true"]');
+    // The book measures a hidden copy of its pages. Its aria-hidden ancestor
+    // must not suppress every word; only skip controls INSIDE the verse.
+    if (excluded && root.contains(excluded)) continue;
     for (let offset = 0; offset < node.nodeValue.length; offset += 1) {
       const char = node.nodeValue[offset];
       if (/[\u00ad\u200b\u00b6]/.test(char)) continue;
