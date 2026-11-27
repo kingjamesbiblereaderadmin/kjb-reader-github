@@ -671,7 +671,10 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
           </button>
           <OutputDeviceMenu value={tts.sinkId} onChange={tts.setSink} buttonClass={CONTROL} />
           <OfflineBookControl offline={offlineBook} online={netOnline} compact={inline || vertical} />
-          {!idle && (
+          {/* Inline (the minimized reader's slim bar) has no need for a
+              minimise control: the bar's own chevron restores the header, and a
+              second chevron in the player row read as a duplicate. */}
+          {!idle && !inline && (
             <button onClick={() => { if (vertical) { onOpenChange?.(false); } else { setHiddenPersisted(true); onOpenChange?.(false); } }} aria-label={vertical ? 'Hide player' : 'Minimise player'} className={CONTROL}>
               {vertical ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
