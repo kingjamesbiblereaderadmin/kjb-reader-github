@@ -181,7 +181,7 @@ const PRONOUNCE: Record<string, string> = {
   teraphim: 'TER-uh-fim',
   nazarite: 'NAZ-uh-rite',
   nazarene: 'naz-uh-REEN',
-  judaea: 'joo-DEE-uh',
+  judaea: 'joo-DAY-uh',
   ashtoreth: 'ASH-tuh-reth',
   milcom: 'MIL-kom',
   rimmon: 'RIM-on',

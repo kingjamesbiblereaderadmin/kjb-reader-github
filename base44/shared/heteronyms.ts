@@ -48,7 +48,8 @@ export const CORRECTED_IPA: Record<string, string> = {
   // engine can guess ("KAI-zar", "joo-DAY-uh").
   caesar: 'ˈsiːzə',
   caesarea: 'ˌsiːzəˈriːə',
-  judaea: 'dʒuːˈdiːə',
+  // Shawn's chosen pronunciation: joo-DAY-uh, not joo-DEE-uh.
+  judaea: 'dʒuːˈdeɪə',
   alphaeus: 'ælˈfiːəs',
   galilaean: 'ˌɡælɪˈliːən',
   galilaeans: 'ˌɡælɪˈliːənz',
