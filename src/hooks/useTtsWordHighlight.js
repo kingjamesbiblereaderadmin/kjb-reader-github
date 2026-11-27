@@ -8,6 +8,10 @@ export default function useTtsWordHighlight({ active, clip }) {
     clearWordHighlight();
     if (!active || !clip?.ref) return undefined;
     let frame = 0;
+    // Measured timings drive the mark. A clip that has none (a recording the
+    // aligner could not measure, e.g. one stored on the clip host) still gets a
+    // word-by-word mark from the clip's own progress instead of falling back to
+    // washing the whole verse.
     const paint = () => {
       const groups = wordHighlightTargets(clip);
       const mark = getWordMark(clip.ref);

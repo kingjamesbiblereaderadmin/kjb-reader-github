@@ -4,6 +4,11 @@ import { readingArea } from '@/lib/tts/readerFollow';
 let layer;
 export function clearRangeHighlight() { layer?.replaceChildren(); }
 
+// Book view keeps every page of the chapter in one flow, translated sideways.
+// A word on the page just turned away still has client rectangles — they sit
+// outside the visible page window but inside the flipbook — so painting them
+// leaked the mark onto the page that was flipped. Each mark is confined to the
+// open page window(s) instead.
 function pageWindows() {
   const book = document.querySelector('[data-testid="kjb-flipbook"]');
   if (!book) return null;
@@ -13,6 +18,8 @@ function pageWindows() {
   return slots.length ? slots : null;
 }
 
+// The shading sits above the page, so a word scrolled under the pinned toolbar
+// and heading must be cut off there. The heading's own words are left alone.
 function pinnedEdge(element) {
   if (!element || element.closest('#kjb-anchored-heading, [data-testid="kjb-flipbook"]')
     || document.querySelector('[data-testid="kjb-flipbook"]')) return 0;

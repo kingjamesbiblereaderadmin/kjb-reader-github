@@ -26,6 +26,11 @@ export function paintWordHighlight(groups, index) {
   paintRangeHighlight(ranges);
 }
 
+// A clip with no measured timings (a recording made before it was aligned, or
+// one whose alignment failed) still steps word by word: the printed words are
+// spread across the clip's own progress, which is what the reader did before
+// any recording was aligned. It is an estimate, so it is only used when no
+// measured clock exists — never in place of one.
 export function paintWordHighlightByProgress(groups, fraction) {
   if (!(fraction > 0)) { clearWordHighlight(); return; }
   let total = 0;
