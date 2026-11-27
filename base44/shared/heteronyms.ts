@@ -58,6 +58,8 @@ export const CORRECTED_IPA: Record<string, string> = {
   // The month in Esther, kept with its Hebrew stress: "ah-DAR", the second
   // syllable carrying the accent, not the English "AY-dar".
   adar: 'ɑːˈdɑː',
+  // "thou satest in the throne" (Psalm 9:4) is SAT-est, not "say-test".
+  satest: 'ˈsætest',
   goeth: 'ˈɡəʊɪθ', doeth: 'ˈduːɪθ', seeth: 'ˈsiːɪθ',
   lieth: 'ˈlaɪɪθ', dieth: 'ˈdaɪɪθ', useth: 'ˈjuːzɪθ', oweth: 'ˈəʊɪθ',
   loveth: 'ˈlʌvɪθ', moveth: 'ˈmuːvɪθ', giveth: 'ˈɡɪvɪθ',
@@ -169,5 +171,6 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   // recorded again; the plain past ("he cursed the ground") keeps its clip.
   const cursedUpdated = /\bcurs-ed\b/i.test(out);
   const adarUpdated = /\badar\b/i.test(text);
-  return { text: out, changed, revision: adarUpdated ? 'h12' : cursedUpdated ? 'h10' : nakedUpdated ? 'h9' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
+  const satUpdated = /\bsatest\b/i.test(text);
+  return { text: out, changed, revision: satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : nakedUpdated ? 'h9' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
 }
