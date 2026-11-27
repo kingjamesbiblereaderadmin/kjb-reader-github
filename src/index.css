@@ -1029,7 +1029,7 @@ html.kjb-native-ios select {
    left rule plus a wash of the accent colour, so it reads as "this is playing"
    without competing with the user's own highlighter colours. */
 .kjb-speaking {
-  background-color: hsl(var(--accent) / 0.14);
+  background-color: hsl(var(--accent) / 0.10);
   box-shadow: inset 3px 0 0 hsl(var(--accent));
   border-radius: 0.2rem;
   -webkit-box-decoration-break: clone;
@@ -1119,6 +1119,11 @@ html.kjb-native-ios select {
    sticks to a verse after it is tapped on a phone — so the verse showed two
    shades at once. They are held back only while it plays, and come straight
    back when playback moves on. */
+.kjb-speaking mark {
+  background-color: hsl(var(--accent) / 0.32) !important;
+  color: inherit;
+}
+
 .kjb-speaking .kjb-verse-text,
 .kjb-speaking .kjb-verse-text:hover {
   background-color: transparent !important;
@@ -1127,7 +1132,7 @@ html.kjb-native-ios select {
 /* The word being spoken: measured rectangles over the page, never wrapping Bible
    text. Shading only, no underline. */
 .kjb-word-overlay { position: fixed; inset: 0; z-index: 99; pointer-events: none; user-select: none; }
-.kjb-word-overlay-mark { position: absolute; background: hsl(var(--accent) / 0.38); border-radius: 0.15rem; }
+.kjb-word-overlay-mark { position: absolute; background: hsl(var(--accent) / 0.32); border-radius: 0.15rem; }
 @media print { .kjb-word-overlay { display: none; } }
 
 /* In two columns the space between verses is each verse's own padding (below,

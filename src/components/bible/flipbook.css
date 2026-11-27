@@ -119,7 +119,13 @@
 .kjb-flipbook [data-fb-colour='pink'] { background: rgba(244, 114, 182, 0.3); }
 .kjb-flipbook [data-fb-colour='purple'] { background: rgba(192, 132, 252, 0.3); }
 .kjb-flipbook .kjb-fb-tapped { text-decoration: underline dotted var(--fb-red); text-underline-offset: 3px; }
-.kjb-flipbook .kjb-fb-speaking { background: hsl(var(--accent) / 0.14); }
+.kjb-flipbook .kjb-fb-speaking { background: hsl(var(--accent) / 0.10); }
+/* The verse being read is marked in the accent colour, so a highlighter colour
+   stored on that verse gives way to it while the voice is on it: a yellow
+   highlight under an accent wash read as two clashing tints. */
+.kjb-flipbook [data-fb-colour].kjb-fb-speaking,
+.kjb-flipbook [data-fb-colour].kjb-fb-speaking mark { background: hsl(var(--accent) / 0.10) !important; }
+.kjb-flipbook .kjb-fb-speaking mark { background: hsl(var(--accent) / 0.32) !important; color: inherit; }
 /* The subscription and the postscript: one flat wash. A halo around it read as
    a second highlight on the words. The player also puts .kjb-speaking on these
    lines, so its left rule and shadow are cleared here too. */
