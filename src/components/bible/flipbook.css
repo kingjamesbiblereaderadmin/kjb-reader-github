@@ -31,6 +31,10 @@
 /* Read last, so it lights up while the voice is on it — same clear wash the
    subscription and postscript get. */
 .kjb-flipbook .kjb-fb-endmark.kjb-fb-speaking { background: rgba(176, 132, 40, 0.22); border-radius: 3px; }
+/* Hebrew stanza names (ALEPH, BETH…): printed as their own centred line above
+   the verse that opens the stanza, and washed while the voice reads them. */
+.kjb-fb-heading { margin: 1em 0 0.45em; text-align: center; font-weight: 700; letter-spacing: 0.1em; font-family: Merriweather, Georgia, serif; break-inside: avoid; }
+.kjb-flipbook .kjb-fb-heading.kjb-fb-speaking { background: rgba(176, 132, 40, 0.22); box-shadow: 0 0 0 6px rgba(176, 132, 40, 0.14); border-radius: 3px; }
 
 /* ---- Contents: one continuous, typeset book list ----------------------- */
 .kjb-fb-contents-window { flex: none; margin: 12px 0; overflow: hidden; }

@@ -221,7 +221,10 @@ export default function FlipBook({
     const groups = [];
     shown.forEach((v) => {
       const breaks = /(^|[\s.,;:!?'")\]])[\u00B6\uFFFD\u000F]/.test(v.text);
-      if (!paragraphs || breaks || !groups.length) groups.push([v]);
+      // A verse carrying a Hebrew stanza name starts its own section, so the
+      // name is printed above it rather than being swallowed into the
+      // paragraph that came before.
+      if (!paragraphs || breaks || v.heading || !groups.length) groups.push([v]);
       else groups[groups.length - 1].push(v);
     });
 
@@ -233,9 +236,16 @@ export default function FlipBook({
         </div>
         {subscript && <p className="kjb-fb-note" data-fb-sec="sub" dangerouslySetInnerHTML={noteMarkup(subscript, jumpSection === 'subscript' ? searchTerm : null)} />}
         {groups.map((group, i) => (
-          <p key={group[0].verse} className={`kjb-fb-verse ${i === 0 && Number(group[0].verse) === 1 ? 'kjb-fb-first' : ''} ${paragraphs ? 'kjb-fb-para' : ''}`}>
-            {group.map((v) => <React.Fragment key={v.verse}>{verseNode(v)}{' '}</React.Fragment>)}
-          </p>
+          <React.Fragment key={group[0].verse}>
+            {group[0].heading && (
+              <p className="kjb-fb-heading notranslate" data-fb-heading={group[0].verse}>
+                {String(group[0].heading).replace(/^<<[^>]*>>\s*/, '')}
+              </p>
+            )}
+            <p className={`kjb-fb-verse ${i === 0 && Number(group[0].verse) === 1 ? 'kjb-fb-first' : ''} ${paragraphs ? 'kjb-fb-para' : ''}`}>
+              {group.map((v) => <React.Fragment key={v.verse}>{verseNode(v)}{' '}</React.Fragment>)}
+            </p>
+          </React.Fragment>
         ))}
         {colophon && (!filtered || picked(verses[verses.length - 1] || {})) && <p className="kjb-fb-note" data-fb-sec="col" dangerouslySetInnerHTML={noteMarkup(colophon, jumpSection === 'colophon' ? searchTerm : null)} />}
       </>
@@ -289,7 +299,11 @@ export default function FlipBook({
   // The book turns itself to wherever the voice is.
   const spokenAt = !speaking ? '' : speaking.intro || speaking.kind === 'title' ? 'intro'
     : speaking.kind === 'sub' ? '[data-fb-sec="sub"]' : speaking.kind === 'col' ? '[data-fb-sec="col"]'
-      : speaking.kind === 'end' ? 'end' : speaking.verse != null ? `[data-fbv="${speaking.verse}"]` : '';
+      : speaking.kind === 'end' ? 'end'
+        // A Hebrew stanza name (ALEPH, BETH…) is its own line, so it lights up
+        // instead of the verse printed beneath it.
+        : speaking.kind === 'heading' ? `[data-fb-heading="${speaking.verse}"]`
+          : speaking.verse != null ? `[data-fbv="${speaking.verse}"]` : '';
   useEffect(() => {
     if (!spokenAt || loading) return;
     turnTo(spokenAt === 'intro' ? 0 : spokenAt === 'end' ? pageCount - 1 : pageOf(spokenAt));
@@ -353,6 +367,9 @@ export default function FlipBook({
       el.classList.toggle('kjb-fb-jumped', !selectMode && !searchTerm && n === parseInt(jumpVerse, 10));
       const colour = getVerseHighlight(abbr, chapter, n);
       if (colour) el.dataset.fbColour = colour; else delete el.dataset.fbColour;
+    });
+    root.querySelectorAll('[data-fb-heading]').forEach((el) => {
+      el.classList.toggle('kjb-fb-speaking', spokenAt === `[data-fb-heading="${el.dataset.fbHeading}"]`);
     });
     // The drop cap is the paragraph's ::first-letter, outside the verse span's
     // own background, so the paragraph is marked too while its verse is spoken.
