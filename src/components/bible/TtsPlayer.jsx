@@ -573,7 +573,12 @@ export default function TtsPlayer({ embedded = false, inline = false, open = tru
   // ---- expanded: the full bar, centred ------------------------------------
   return (
     <section className={shell}>
-        <div className={`flex flex-wrap items-center gap-2 sm:gap-3 ${inline ? 'justify-end' : 'justify-center'}`}>
+        {/* In the minimized bar every control stays on one line at its own size
+            (no wrapping, no stretching): the row scrolls sideways on a phone
+            instead of stacking onto a second line. */}
+        <div className={inline
+          ? 'flex flex-nowrap items-center justify-end gap-1.5 [&>*]:flex-none overflow-x-auto'
+          : 'flex flex-wrap items-center justify-center gap-2 sm:gap-3'}>
           <button onClick={withFollow(tts.prev)} disabled={idle} aria-label="Previous verse" className={`${CONTROL} disabled:opacity-40 disabled:pointer-events-none`}>
             <SkipBack className="w-4 h-4" />
           </button>
@@ -648,7 +653,7 @@ export default function TtsPlayer({ embedded = false, inline = false, open = tru
             <Repeat className="w-3.5 h-3.5" />
             {autoContinue ? 'Continues' : 'One chapter'}
           </button>
-          <OfflineBookControl offline={offlineBook} online={netOnline} />
+          <OfflineBookControl offline={offlineBook} online={netOnline} compact={inline} />
           {!idle && (
             <button onClick={() => { setHiddenPersisted(true); onOpenChange?.(false); }} aria-label="Hide player" className={CONTROL}>
               <ChevronDown className="w-4 h-4" />

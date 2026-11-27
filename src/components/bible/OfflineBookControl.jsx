@@ -15,7 +15,7 @@ const REMOVE = `${PILL} bg-destructive/10 border-destructive/40 text-destructive
 
 const count = (n) => Number(n || 0).toLocaleString('en-GB');
 
-export default function OfflineBookControl({ offline, online }) {
+export default function OfflineBookControl({ offline, online, compact = false }) {
   const [confirmRemove, setConfirmRemove] = useState(false);
 
   // A finished download, a new book or a restart always starts from "Downloaded".
@@ -29,9 +29,9 @@ export default function OfflineBookControl({ offline, online }) {
     const done = offline.progress?.done || 0;
     const total = offline.progress?.total || offline.status?.total || 0;
     return (
-      <div className={`${PILL} bg-secondary text-secondary-foreground tabular-nums`} data-testid="tts-download-progress">
+      <div className={`${PILL} bg-secondary text-secondary-foreground tabular-nums`} title={`Downloading ${count(done)} / ${count(total)}`} data-testid="tts-download-progress">
         <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
-        <span>Downloading {count(done)} / {count(total)}</span>
+        {!compact && <span>Downloading {count(done)} / {count(total)}</span>}
         <button
           onClick={offline.cancel}
           aria-label="Cancel download"
@@ -67,11 +67,12 @@ export default function OfflineBookControl({ offline, online }) {
       <button
         onClick={() => setConfirmRemove(true)}
         title="Downloaded for offline listening. Tap again to remove it."
+        aria-label="Downloaded for offline listening"
         className={DONE}
         data-testid="tts-downloaded-btn"
       >
         <Check className="w-3.5 h-3.5 flex-shrink-0" />
-        Downloaded
+        {!compact && 'Downloaded'}
       </button>
     );
   }
@@ -82,11 +83,12 @@ export default function OfflineBookControl({ offline, online }) {
     <button
       onClick={offline.start}
       title="Download this book so it plays with no connection"
+      aria-label="Download this book to listen offline"
       className={ACTION}
       data-testid="tts-download-book-btn"
     >
       <CloudDownload className="w-3.5 h-3.5 flex-shrink-0" />
-      Download book
+      {!compact && 'Download book'}
     </button>
   );
 }
