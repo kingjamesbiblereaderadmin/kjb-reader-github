@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Loader2, AlignJustify, AlignLeft, List, Columns2, ChevronDown, CheckSquare, Square, Copy, X, BookMarked, ZoomIn, Minus, Plus, Type, Share2, Printer, Highlighter, Bookmark, BookOpen, Headphones } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, AlignJustify, AlignLeft, List, Columns2, ChevronDown, CheckSquare, Square, Copy, X, BookMarked, ZoomIn, Minus, Plus, Type, Share2, Printer, Highlighter, Bookmark, BookOpen } from 'lucide-react';
 import FlipBook from '@/components/bible/FlipBook';
 import { buildVerseUrl, formatVerseShare, cleanVerseText, centerLine } from '@/lib/formatDailyVerse';
 import { BIBLE_BOOKS, getNextBook, getPrevBook } from '@/lib/bibleData';
@@ -12,7 +12,6 @@ import VerseText from '@/components/bible/VerseText';
 import TitlePage from '@/components/bible/TitlePage';
 import BibleContents from '@/components/bible/ContentsPage';
 import RunningHead from '@/components/bible/RunningHead';
-import MinimizedHeaderBar from '@/components/bible/MinimizedHeaderBar';
 import { useHeaderHide } from '@/lib/HeaderHideContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Accessibility } from 'lucide-react';
@@ -1800,12 +1799,15 @@ export default function BibleReader() {
     : pos.abbr === 'MAT'
       ? "The New Testament of our Lord and Saviour Jesus Christ. Translated out of the original Greek, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches."
       : `${book?.testament === 'new' ? 'New Testament' : 'Old Testament'}. ${book?.name || ''}. ${book?.chapters || 0} ${book?.chapters === 1 ? 'chapter' : 'chapters'}.`) : '';
-  const ttsAttached = (!hideHeader || flipbookOpen) && ttsPlayerVisible;
+  // The player is rendered in both header states (the toolbar becomes the slim
+  // bar when the header is hidden), so hiding the header no longer unmounts it.
+  const ttsAttached = ttsPlayerVisible;
   // With the header hidden there is no headphones button, so the section stays.
   const ttsSectionShown = listenOpen || ttsActive;
   const ttsPlayerNode = ttsPlayerVisible ? (
     <TtsPlayer
       embedded={!hideHeader || flipbookOpen}
+      inline={hideHeader && !flipbookOpen}
       vertical={flipbookOpen}
       open={(hideHeader && !flipbookOpen) || listenOpen}
       onOpenChange={setListenOpen}
@@ -1903,36 +1905,14 @@ export default function BibleReader() {
   return (
     <div onClick={(e) => { if (!e.target.closest('.kjb-flipbook, .kjb-verse-container, [id^="v"], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a, [role="menu"], [role="menuitem"], [data-radix-popper-content-wrapper]')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerses(new Set()); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 pb-3 ${flipbookOpen ? 'kjb-book-mode !px-0 !pb-0' : ''}`}
       style={hideHeader && !flipbookOpen ? { paddingTop: `${Math.max(56, stickyTop + 6)}px` } : undefined}>
-      {!hideHeader && !flipbookOpen && toolbarNode}
-
       {/* Listen: reads the chapter verse by verse and highlights each verse as
           it is spoken. Audio is generated per verse and cached, so a verse is
           only ever billed once — see base44/functions/ttsVerse. Settings has a
           master switch that removes the whole player from the reader.
-          With the header hidden the player rides in the slim bar itself, on the
-          same row as its chevron, instead of taking a section of its own. */}
-      {hideHeader && !flipbookOpen && (
-        <MinimizedHeaderBar setHideHeader={setHideHeader}>
-          {!ttsPlayerVisible ? null : (listenOpen || ttsActive) ? (
-            React.cloneElement(ttsPlayerNode, { inline: true, open: true })
-          ) : (
-            // Nothing is being read and the player has not been opened: the bar
-            // carries just the headphones button that opens it.
-            <div className="flex items-center justify-end">
-              <button
-                onClick={() => { closeAllMenus(); setListenOpen(true); }}
-                title={online ? 'Listen' : 'Listen offline'}
-                aria-label={online ? 'Listen' : 'Listen offline'}
-                aria-expanded={listenOpen}
-                data-testid="tts-bar-btn"
-                className="h-10 w-10 flex items-center justify-center rounded-lg bg-secondary border border-border text-secondary-foreground hover:bg-accent/20 transition-colors touch-manipulation"
-              >
-                <Headphones className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-        </MinimizedHeaderBar>
-      )}
+          The toolbar is rendered in both header states: with the header hidden
+          it IS the slim bar, so the player it carries is never unmounted and the
+          reading keeps going when the header is minimised. */}
+      {!flipbookOpen && toolbarNode}
 
 
       {/* Desktop-only backdrop for the inline popovers. On mobile the selectors

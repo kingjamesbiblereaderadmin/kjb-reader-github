@@ -54,8 +54,34 @@ export default function ReaderToolbar({
   tappedVerseNums, handleTapHighlightToggle, handleTapCopy, handleTapShare, handleTapSave,
   tapCopyFeedback, tapShareFeedback, tapSaveFeedback,
 }) {
+  // With the header hidden the toolbar folds down to a slim fixed bar that
+  // carries the Listen player on the same row. The player is the bar's LAST
+  // child in both states, so it keeps its place in the tree: hiding the header
+  // never unmounts it, and the reading carries on instead of being cut off.
+  const slim = hideHeader && !bookMode;
   return (
-    <div ref={bookMode ? null : topRef} data-kjb-reader-toolbar-wrap={bookMode ? undefined : true} className={bookMode ? 'contents print:hidden' : `print:hidden sticky top-0 z-[100] border-b pt-3 relative -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background border-border mb-8 shadow-sm ${ttsAttached ? 'pb-0' : 'pb-3'}  before:content-[''] before:absolute before:bottom-full before:left-[calc(-1*env(safe-area-inset-left,0px))] before:right-[calc(-1*env(safe-area-inset-right,0px))] before:h-12 before:bg-background`}>
+    <div
+      ref={bookMode ? null : topRef}
+      data-kjb-reader-toolbar-wrap={bookMode ? undefined : true}
+      data-kjb-minimized-header={slim ? true : undefined}
+      style={slim ? { paddingTop: 'env(safe-area-inset-top)', paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' } : undefined}
+      className={bookMode ? 'contents print:hidden' : slim
+        ? 'print:hidden fixed top-0 left-0 right-0 z-[110] flex flex-row-reverse items-center gap-2 px-2 py-1.5 border-b border-border bg-background/95 backdrop-blur'
+        : `print:hidden sticky top-0 z-[100] border-b pt-3 relative -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background border-border mb-8 shadow-sm ${ttsAttached ? 'pb-0' : 'pb-3'}  before:content-[''] before:absolute before:bottom-full before:left-[calc(-1*env(safe-area-inset-left,0px))] before:right-[calc(-1*env(safe-area-inset-right,0px))] before:h-12 before:bg-background`}>
+      {slim ? (
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => setHideHeader(false)}
+            title="Show header"
+            aria-label="Show header"
+            className="p-2 rounded-lg bg-secondary hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation flex items-center justify-center cursor-pointer"
+          >
+            <ChevronDown className="w-4 h-4 rotate-180 transition-transform duration-200 pointer-events-none" />
+          </button>
+        </div>
+      ) : (
+      <>
       <div
         onClickCapture={(e) => {
           // Tapping empty space inside the toolbar (the gaps/padding between
@@ -613,8 +639,25 @@ export default function ReaderToolbar({
       )}
 
       </ReaderControlSlot>
+      </>
+      )}
       <ReaderControlSlot enabled={bookMode} target={bookSlots.player}>
-        {playerSlot}
+        {/* In the slim bar the player takes the row while something is playing
+            (or it has been opened); idle, the bar offers the headphones button
+            that opens it, exactly as it did before. */}
+        {slim && !(listenOpen || listenActive) ? (
+          <div className="flex-1 min-w-0 flex items-center justify-start">
+            <button
+              onClick={onToggleListen}
+              title="Listen"
+              aria-label="Listen"
+              data-testid="tts-bar-btn"
+              className="h-10 w-10 flex items-center justify-center rounded-lg bg-secondary border border-border text-secondary-foreground hover:bg-accent/20 transition-colors touch-manipulation"
+            >
+              <Headphones className="w-4 h-4" />
+            </button>
+          </div>
+        ) : playerSlot}
       </ReaderControlSlot>
 
     </div>
