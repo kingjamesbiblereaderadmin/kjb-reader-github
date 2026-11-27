@@ -1770,7 +1770,6 @@ export default function BibleReader() {
   const ttsPlayerNode = ttsPlayerVisible ? (
     <TtsPlayer
       embedded={!hideHeader || flipbookOpen}
-      bookMode={flipbookOpen}
       open={(hideHeader && !flipbookOpen) || listenOpen}
       onOpenChange={setListenOpen}
       onActiveChange={setTtsActive}

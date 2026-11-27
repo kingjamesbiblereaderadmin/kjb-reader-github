@@ -100,17 +100,41 @@ export default function FlipBook({
     const read = () => {
       const el = rootRef.current;
       if (!el) return;
-      const bottom = scroller ? scroller.getBoundingClientRect().bottom - parseFloat(getComputedStyle(scroller).paddingBottom || '0') : window.innerHeight;
+      // Stop at the footer's real top edge. The bottom nav is fixed and sits
+      // over the scroller, so the scroller's own bottom is the screen bottom,
+      // not the visible one — and how much room the footer takes differs in
+      // each footer mode. Measuring the nav itself is what keeps the book's
+      // page controls flush with the footer after it is expanded or minimized,
+      // instead of leaving a band of empty space under them.
+      let bottom = scroller ? scroller.getBoundingClientRect().bottom : window.innerHeight;
+      bottom = Math.min(bottom, window.innerHeight);
+      const nav = document.querySelector('[data-kjb-bottom-nav]');
+      if (nav && getComputedStyle(nav).display !== 'none') {
+        const navTop = nav.getBoundingClientRect().top;
+        if (navTop > 0) bottom = Math.min(bottom, navTop);
+      }
       const top = el.getBoundingClientRect().top + (scroller ? scroller.scrollTop : window.scrollY);
-      setHeight(Math.max(420, Math.floor(bottom - top - 12)));
+      setHeight(Math.max(420, Math.floor(bottom - top - 6)));
     };
     read();
     const bar = document.querySelector('[data-kjb-reader-toolbar-wrap]');
+    const nav = document.querySelector('[data-kjb-bottom-nav]');
     const ro = new ResizeObserver(read);
     if (bar) ro.observe(bar);
+    if (nav) ro.observe(nav);
     if (scroller) ro.observe(scroller);
+    // The footer swaps to a different element when its mode changes, so the
+    // observed node goes away with it: measure again once the DOM has settled.
+    const onFooterMode = () => { read(); window.setTimeout(read, 80); };
     window.addEventListener('resize', read);
-    return () => { ro.disconnect(); window.removeEventListener('resize', read); };
+    window.addEventListener('orientationchange', read);
+    window.addEventListener('kjb-footer-mode-change', onFooterMode);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', read);
+      window.removeEventListener('orientationchange', read);
+      window.removeEventListener('kjb-footer-mode-change', onFooterMode);
+    };
   }, []);
 
   useEffect(() => {

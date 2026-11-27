@@ -180,7 +180,7 @@ function scrollToTop() {
   (document.getElementById('kjb-scroll') || window).scrollTo({ top: 0, behavior: 'instant' });
 }
 
-export default function TtsPlayer({ embedded = false, bookMode = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, bookKey = '', chapter = null, startVerse = null, label = '', bookName = '', subscript = '', colophon = '', titleText = '', endMarker = '', onNextChapter = null, onRestart }) {
+export default function TtsPlayer({ embedded = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, bookKey = '', chapter = null, startVerse = null, label = '', bookName = '', subscript = '', colophon = '', titleText = '', endMarker = '', onNextChapter = null, onRestart }) {
   const [autoContinue, setAutoContinue] = useState(() => readStored(TTS_STORAGE.autoContinue, 'true') !== 'false');
   // Hidden = controls collapse to a single pill; audio keeps playing. Remembered
   // per device so a reader who listens while reading never sees the bar again.
@@ -523,17 +523,26 @@ export default function TtsPlayer({ embedded = false, bookMode = false, open = t
   const idle = !tts.isActive;
   if (idle && !open && !tts.error) return null;
 
-  // ---- hidden: a centred play/pause pill -----------------------------------
+  // ---- hidden: a compact bar that still drives playback --------------------
+  // Minimising the player folds away the extra controls, never the playback
+  // itself: prev, play/pause and next stay, so listening can be driven without
+  // reopening the full row.
   if (hidden && !idle) {
-    // In the book there is no room for a second bar above the turning controls:
-    // minimising the player folds the whole row away, and the Listen icon in
-    // the page margin is what brings it back.
-    if (bookMode) return null;
     return (
       <section className={embedded ? SHELL : SHELL_STANDALONE}>
-        <div className="flex items-center justify-center gap-3">
-          <button onClick={onPlayPause} aria-label={tts.status === 'playing' ? 'Pause' : 'Play'} className={CONTROL}>
+        <div className="flex items-center justify-center gap-2">
+          <button onClick={withFollow(tts.prev)} aria-label="Previous verse" className={CONTROL}>
+            <SkipBack className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onPlayPause}
+            aria-label={tts.status === 'playing' || tts.status === 'loading' ? 'Pause' : 'Play'}
+            className={`${CONTROL} w-14 bg-primary text-primary-foreground dark:text-white`}
+          >
             {tts.status === 'playing' || tts.status === 'loading' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+          </button>
+          <button onClick={withFollow(tts.next)} aria-label="Next verse" className={CONTROL}>
+            <SkipForward className="w-4 h-4" />
           </button>
           <span className="font-sans text-xs text-muted-foreground tabular-nums px-1 whitespace-nowrap">{verseRef || 'Paused'}</span>
           <button onClick={() => { setHiddenPersisted(false); onOpenChange?.(true); }} aria-label="Show player" className={CONTROL}>
