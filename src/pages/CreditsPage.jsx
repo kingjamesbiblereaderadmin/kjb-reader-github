@@ -27,7 +27,7 @@ function getVisibleCards() {
 const TM_CARDS = [
   { owner: 'Apple Inc.', slug: 'apple', color: '#000000', darkColor: '#FFFFFF', marks: 'Apple, App Store, Xcode, WebKit, Safari, iPhone, iPad, iOS, macOS', extra: 'registered in the U.S. and other countries.', use: 'iOS development tools (Xcode, WebKit) and App Store distribution.' },
   { owner: 'Google LLC', slug: 'google', color: '#4285F4', marks: 'Google, Google Play, Google Play Console, Chrome, Android, Android Studio, YouTube', use: 'Android tooling and Play Store distribution; Google Fonts; browser-compatibility references.' },
-  { owner: 'Microsoft Corporation', logo: 'microsoft', marks: 'Microsoft, Edge, Windows, Internet Explorer', use: 'Browser-compatibility references for the web app and extension.' },
+  { owner: 'Microsoft Corporation', logo: 'microsoft', marks: 'Microsoft, Azure, Edge, Windows, Internet Explorer', use: 'Browser-compatibility references for the web app and extension; Microsoft Azure AI Speech neural voices for the Listen audio.' },
   { owner: 'Oracle', slug: 'oracle', color: '#F80000', marks: 'Java', extra: 'Java is a registered trademark of Oracle and/or its affiliates.', use: 'The Java toolchain inside the Android app build.' },
   { owner: 'Gradle, Inc.', slug: 'gradle', color: '#02303A', darkColor: '#5FC8CE', marks: 'Gradle', use: 'Build tool that compiles and signs the Android app.' },
   { owner: 'Anthropic PBC', slug: 'anthropic', color: '#191919', darkColor: '#D4A27F', marks: 'Claude', use: 'AI assistance used to help generate the app code.' },
@@ -231,6 +231,7 @@ export default function CreditsPage() {
           <div className="space-y-2.5">
             {[
               [<span key="b"><strong className="text-foreground">Base44</strong></span>, 'the web app platform — hosting, backend, and optional user authentication.'],
+              [<span key="v"><strong className="text-foreground">Microsoft Azure AI Speech</strong></span>, 'neural voice synthesis for the Listen player. Each verse is voiced once and the audio is cached, so replays cost nothing.'],
               [<span key="c"><strong className="text-foreground">Capacitor</strong></span>, (isAppleStoreApp() ? 'open source (MIT License) — wraps the web app into the native iOS app.' : 'open source (MIT License) — wraps the web app into the native Android and iOS apps.')],
               [<span key="g"><strong className="text-foreground">Gradle + Android SDK</strong></span>, 'compile and sign the Android app.'],
               [<span key="p"><strong className="text-foreground">Google Play Console</strong></span>, 'distributes the Android app on Google Play.'],

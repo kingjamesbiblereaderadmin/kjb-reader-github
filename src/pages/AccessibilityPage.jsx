@@ -126,6 +126,30 @@ export default function AccessibilityPage() {
           </p>
         </Section>
 
+        <Section title="Listening to the Bible">
+          <p>
+            The Listen player reads a chapter aloud verse by verse, highlighting each verse and the
+            words being spoken as it goes, so the reading can be followed with the eyes and the ears
+            together. It is switched on from Settings &rarr; Audio and opens with the headphones
+            button in the reader.
+          </p>
+          <p>
+            Speed is adjustable in the player itself, and it can carry on into the next chapter
+            without being restarted. On devices that offer it, the spoken audio can be sent to a
+            chosen output device, and the verse being read is named on the lock screen and on the
+            phone&rsquo;s media card.
+          </p>
+          <p>
+            On the web and PWA a whole book can be downloaded from the player and kept on the device,
+            so listening works with no connection at all. Downloaded books are listed in Settings
+            &rarr; Offline Library, where they can be removed again. The native apps already carry
+            the full voice library offline.
+          </p>
+          <p>
+            <Link to="/settings" className="text-primary hover:underline">Open Settings</Link> to turn the Listen player on or off.
+          </p>
+        </Section>
+
         <Section title="Dark mode">
           <p>
             The website supports dark mode via a toggle. Use the moon button in the header to
