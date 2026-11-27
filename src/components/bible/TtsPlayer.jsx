@@ -154,23 +154,30 @@ function revealElement(el, { instant = false } = {}) {
   const top = box.top + topInset(box) + GAP_TOP;
   const bottom = box.bottom - PAD_BOTTOM;
 
-  // A verse is always opened at its FIRST line, just below the sticky chrome,
-  // never at its last. Moving the least distance instead (bottom-aligning a
-  // verse that is still below the fold) pushed the beginning of the verse off
-  // the top of the screen, so listening looked like it had jumped too far and
-  // never landed at the start of the verse. The page then follows the voice
-  // down the verse from there.
-  if (r.top >= top - 2 && r.bottom <= bottom) return; // already wholly in view
-  if (r.top >= top - 2 && r.top <= top + 12) return; // already at the top
+  // Its first line is already on screen: leave the page exactly where it is.
+  // The verse is being read from a line the reader can see, and the follow loop
+  // brings the rest of a long verse down as the voice reaches it. Moving a verse
+  // that is already in view up to the top is what made each new verse scroll far
+  // more than it needed to.
+  if (r.top >= top - 2 && r.top <= bottom - 24) return;
 
-  const delta = r.top - top;
-  if (!delta) return;
+  // Otherwise the verse starts off screen (below the fold, or with its first
+  // line already scrolled under the chrome): open it at its FIRST line, just
+  // below the sticky chrome, and follow the voice down it from there.
+  //
+  // The scroll is stated as an absolute position, not as a relative jump: this
+  // runs again once the layout has settled, and a second relative scroll issued
+  // mid-animation added its distance on top of the move already in flight — the
+  // page then landed past the verse instead of on it.
+  const current = box.scroller ? box.scroller.scrollTop : window.scrollY;
+  const target = current + (r.top - top);
+  if (Math.abs(target - current) < 2) return;
   // The follow loop stays out of the way until this move has settled, so the
   // two never scroll for the same distance at once.
   settleUntil = performance.now() + 450;
-  const opts = { top: delta };
+  const opts = { top: target };
   if (!instant) opts.behavior = 'smooth';
-  (box.scroller || window).scrollBy(opts);
+  (box.scroller || window).scrollTo(opts);
 }
 
 // The line of text the voice has reached. The clip's clock says nothing about

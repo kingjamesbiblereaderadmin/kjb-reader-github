@@ -15,6 +15,7 @@ import { DEFAULT_TTS_VOICE, engineForVoice, normalizeVoice, readStored, writeSto
 import { publishProgress } from '@/lib/tts/speaking';
 import { localAudioUrlFor } from '@/lib/tts/localAudio';
 import { cachedUrl } from '@/lib/tts/offlineAudio';
+import { primeClipTrim, clipTrim } from '@/lib/tts/clipTrim';
 
 // Verse text arrives with the reader's markup: [italics] brackets, ¶ pilcrows
 // and <<heading>> markers. None of them should be spoken.
@@ -359,6 +360,20 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     if (el.getAttribute('src') !== url) el.src = url;
     publishProgress(0);
 
+    // The pause baked into the start and end of each clip is what a listener
+    // hears as a gap between verses (see clipTrim). Measured while the clip was
+    // being buffered: the head is skipped below, and the reading steps on as soon
+    // as only the tail is left. A clip that could not be measured plays exactly
+    // as it did before.
+    primeClipTrim(url);
+    const trim = clipTrim(url);
+    let finished = false;
+    const finish = () => {
+      if (finished || token !== tokenRef.current) return;
+      finished = true;
+      onDone();
+    };
+
     // A clip that will not load must never leave the chapter silent. Its
     // remembered URL is dropped, the clip is asked for once more, and if the
     // verse still refuses to sound the player steps over it and carries on.
@@ -388,10 +403,16 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       if (!el.paused && el.currentTime === 0) recover();
     }, 20000);
     const verseClip = clip.verse != null;
+    let startAt = 0;
     if (verseClip) {
-      const startAt = startAtRef.current;
+      startAt = startAtRef.current;
       startAtRef.current = 0;
-      if (startAt > 0) el.currentTime = startAt;
+    }
+    // A saved resume point is further in than any leading silence, so it wins.
+    const startOffset = startAt > 0 ? startAt : (trim ? trim.lead : 0);
+    if (startOffset > 0) {
+      if (el.readyState >= 1) el.currentTime = startOffset;
+      else el.addEventListener('loadedmetadata', () => { el.currentTime = startOffset; }, { once: true });
     }
     // The verse being read is washed whole, not word by word. How far the clip
     // has got is reported too, so the book view can turn the page when the voice
@@ -402,13 +423,19 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       // verse that failed earlier.
       clearStall();
       retriedRef.current.delete(clipKey);
+      // Only the clip's closing silence is left: move to the next verse now
+      // instead of waiting the pause out. The played-time guard keeps a very
+      // short clip (a stanza letter, say) from being stepped over entirely.
+      if (trim && trim.tail > 0 && el.duration && el.duration - el.currentTime <= trim.tail
+          && el.currentTime - startOffset > 0.25) {
+        finish();
+        return;
+      }
       publishProgress(el.duration ? el.currentTime / el.duration : 0);
       if (verseClip && resumePoint) resumePoint.time = el.currentTime;
     };
     el.playbackRate = rateRef.current;
-    el.onended = () => {
-      if (token === tokenRef.current) onDone();
-    };
+    el.onended = finish;
 
     if (holdRef.current) {
       setStatus('paused');
@@ -444,7 +471,11 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     if (!clip) return;
     audioUrlFor(clip, voiceRef.current)
       .then((url) => {
-        if (!url || prefetchedRef.current.has(url)) return;
+        if (!url) return;
+        // Measure its silence while it is being buffered, so playback can skip it
+        // when this verse's turn comes.
+        primeClipTrim(url);
+        if (prefetchedRef.current.has(url)) return;
         const el = new Audio();
         el.preload = 'auto';
         applySink(el);
