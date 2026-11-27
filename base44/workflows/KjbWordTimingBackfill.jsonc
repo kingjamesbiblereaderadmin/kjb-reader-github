@@ -1,0 +1,47 @@
+{
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "kjb_word_timing_backfill",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "align_recordings": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "alignAudioBatch",
+            "args": {
+              "backfill": true
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Measure word timestamps",
+            "description": "Clips with no timing yet"
+          }
+        }
+      }
+    ]
+  },
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "*/5 * * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "description": "Measures word timestamps for any stored recording that has no timing row yet, so every clip carries a word clock. Only clips with missing timing are measured; already-aligned recordings are skipped and no speech is generated.",
+  "name": "KJB Word Timing Backfill"
+}
