@@ -40,10 +40,18 @@ export function loadWordTimings(chapterKey, voice) {
   }
   return chapters.get(key);
 }
+// A revision or re-voiced clip carries a suffix the timing row never has:
+// MAT:22:17:v2 is stored as MAT:22:17, and PSA:119:h1 as PSA:119:h1. Comparing
+// the raw references therefore found no row at all for every clip that was
+// re-voiced for a pronunciation fix, so those verses fell back to the
+// whole-verse wash and never stepped word by word. Strip the suffix on both
+// sides; the audio url or hash below is what tells two takes apart.
+const plainRef = (ref) => String(ref || '').replace(/^([1-3A-Z]{3}:\d{1,3}:[^:]+):(?:h\d+|v\d+)$/, '$1');
+
 export async function wordTimingFor(clip, voice, url, bytes) {
   if (!clip.ref) return null;
   const rows = await loadWordTimings(clip.ref.split(':').slice(0, 2).join(':'), voice);
-  const candidates = rows.filter((row) => row.ref === clip.ref);
+  const candidates = rows.filter((row) => plainRef(row.ref) === plainRef(clip.ref));
   if (!candidates.length) return null;
   // A native bundle or offline download may hold an older recording. Only use
   // timings whose audio bytes match exactly, never another revision's clock.
