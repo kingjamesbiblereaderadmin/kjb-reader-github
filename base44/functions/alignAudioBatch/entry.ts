@@ -14,7 +14,11 @@ export default async function(req) {
     if (!key) return Response.json({ error: 'Speech key is not configured' }, { status: 503 });
     if (body.chapterKey && !/^[1-3A-Z]{3}:\d{1,3}$/.test(body.chapterKey)) return Response.json({ error: 'Invalid chapter' }, { status: 400 });
     const db = base44.asServiceRole;
-    const query = { timing_version: { $exists: false }, voice: 'en-GB-RyanNeural', ref: { $regex: body.chapterKey ? `^${body.chapterKey}:\\d+(:h\\d+)?$` : '^[1-3A-Z]{3}:\\d+:\\d+(:h\\d+)?$' } };
+    // Real, fetchable recordings only. A handful of clips carry their audio
+    // inline as a data: URI, and passing one of those (17,000+ characters) as a
+    // query value is rejected by the database as "String value too long",
+    // which failed every run of this backfill before it could measure anything.
+    const query = { timing_version: { $exists: false }, voice: 'en-GB-RyanNeural', url: { $regex: '^https?://' }, ref: { $regex: body.chapterKey ? `^${body.chapterKey}:\\d+(:h\\d+)?$` : '^[1-3A-Z]{3}:\\d+:\\d+(:h\\d+)?$' } };
     if (body.clipId) query.id = String(body.clipId);
     const passes = body.backfill === true ? 20 : 1;
     const deadline = Date.now() + 200000;
