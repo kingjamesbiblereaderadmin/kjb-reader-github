@@ -260,22 +260,6 @@ export default React.forwardRef(function FlipBook({
   ].join('|'), [chapterKey, front.length, contentsPageCount, textW, textH, gap, step, pageW, fontTick,
     zoomLevel, fontFamilyValue, perPage, verses, colophon, subscript, following]);
   const shownKeyRef = useRef(null);
-  // The measuring effect below must run when the LAYOUT or the chapter's text
-  // changes — not on every render. Several of its inputs (the rendered blocks,
-  // the next-chapter preview) are new objects each render, so depending on them
-  // re-ran the effect on any state change, including the one that starts a page
-  // turn: it cleared the pending turn before the browser could animate the
-  // sheet, and the page never moved while the buttons still looked live.
-  const flowSignature = useMemo(() => [
-    chapterKey, front.length, contentsPageCount, textW, textH, gap, step, pageW, fontTick,
-    zoomLevel, fontFamilyValue || '', perPage,
-    verses.length, verses.reduce((total, verse) => total + String(verse.text || '').length, 0),
-    colophon ? String(colophon).length : 0,
-    subscript ? String(subscript).length : 0,
-    following ? `${following.book?.abbr}:${following.chapter}:${following.verses?.length || 0}` : '',
-  ].join('|'), [chapterKey, front.length, contentsPageCount, textW, textH, gap, step, pageW, fontTick,
-    zoomLevel, fontFamilyValue, perPage, verses, colophon, subscript, following]);
-
   useLayoutEffect(() => {
     if (loading || !measureRef.current || !pageW) return;
     const end = measureRef.current.querySelector('[data-fb-end]');
@@ -504,9 +488,9 @@ export default React.forwardRef(function FlipBook({
     setTurn(null);
   };
 
-  // A sheet that never reports its animation end (hidden tab, animation
-  // skipped by the browser) used to leave the turn pending forever, which
-  // disabled both page buttons. Commit the page on a timer as well.
+  // Safety commit: if the sheet's animationend never arrives (a dropped
+  // animation, a backgrounded tab), the turn still lands and the controls are
+  // never left disabled by a turn that will not finish.
   useEffect(() => {
     if (!turn) return undefined;
     const id = window.setTimeout(() => { setPage(turn.to); setTurn(null); }, 900);
