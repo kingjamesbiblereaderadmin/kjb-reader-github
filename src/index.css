@@ -1124,22 +1124,8 @@ html.kjb-native-ios select {
   background-color: transparent !important;
 }
 
-/* Shading only, no underline: the line sat outside the text box and could stay
-   painted on a verse's first line after the reading had moved on. */
-/* The word being spoken inside the verse that is playing. Painted with the
-   Custom Highlight API so the reader's own markup is never touched — nothing
-   wraps the text, so nothing can go stale when the page re-renders. */
-/* Floated drop caps use their existing span because browser highlight painting
-   can omit floats. No wrapping or layout changes happen during playback. */
-.kjb-word-cap {
-  background-color: hsl(var(--accent) / 0.3) !important;
-}
-::highlight(kjb-word) {
-  background-color: hsl(var(--accent) / 0.3);
-  color: inherit;
-}
-
-/* Mobile fallback paints measured word rectangles, never wraps Bible text. */
+/* The word being spoken: measured rectangles over the page, never wrapping Bible
+   text. Shading only, no underline. */
 .kjb-word-overlay { position: fixed; inset: 0; z-index: 99; pointer-events: none; user-select: none; }
 .kjb-word-overlay-mark { position: absolute; background: hsl(var(--accent) / 0.3); border-radius: 0.15rem; }
 @media print { .kjb-word-overlay { display: none; } }

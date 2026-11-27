@@ -1,9 +1,19 @@
-// Range rectangles work in older mobile WebViews without modifying scripture.
+// Range rectangles work in every browser and WebView without modifying scripture.
+import { readingArea } from '@/lib/tts/readerFollow';
+
 let layer;
 export function clearRangeHighlight() { layer?.replaceChildren(); }
 
+// The shading sits above the page, so a word scrolled under the pinned toolbar
+// and heading must be cut off there. The heading's own words are left alone.
+function pinnedEdge(element) {
+  if (!element || element.closest('#kjb-anchored-heading, [data-testid="kjb-flipbook"]')
+    || document.querySelector('[data-testid="kjb-flipbook"]')) return 0;
+  return readingArea().top - 4;
+}
+
 function clippedRect(rect, element) {
-  let left = Math.max(0, rect.left), top = Math.max(0, rect.top);
+  let left = Math.max(0, rect.left), top = Math.max(0, pinnedEdge(element), rect.top);
   let right = Math.min(innerWidth, rect.right), bottom = Math.min(innerHeight, rect.bottom);
   for (let parent = element; parent && parent !== document.documentElement; parent = parent.parentElement) {
     const style = getComputedStyle(parent);
