@@ -5,7 +5,7 @@
     "key": {
       "type": "string",
       "maxLength": 32,
-      "description": "Which counter this row holds — 'library' is the whole Bible voice library"
+      "description": "Which counter this row holds \u2014 'library' is the whole Bible voice library"
     },
     "verses": {
       "type": "integer",
@@ -29,9 +29,25 @@
     "key"
   ],
   "rls": {
-    "read": {},
-    "create": {},
-    "update": {},
-    "delete": {}
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
   }
 }
