@@ -111,6 +111,10 @@ export default React.forwardRef(function FlipBook({
         const navTop = nav.getBoundingClientRect().top;
         if (navTop > 0) bottom = Math.min(bottom, navTop);
       }
+      // With the footer put away, still keep clear of the home indicator.
+      if (scroller && document.documentElement.hasAttribute('data-kjb-book-immersive')) {
+        bottom -= parseFloat(getComputedStyle(scroller).paddingBottom) || 0;
+      }
       const top = el.getBoundingClientRect().top + (scroller ? scroller.scrollTop : window.scrollY);
       setHeight(Math.max(420, Math.floor(bottom - top - 6)));
     };

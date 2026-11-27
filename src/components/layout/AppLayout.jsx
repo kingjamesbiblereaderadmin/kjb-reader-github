@@ -598,6 +598,7 @@ function DesktopFooter({ navigate, setMenuOpen, pathname }) {
   };
   return (
       <footer
+        data-kjb-app-footer
         className={`print:hidden hidden sm:block border-t border-border/60 bg-card/70 backdrop-blur-xl flex-shrink-0 ${open ? 'py-3' : 'py-0.5'}`}
         style={{ paddingBottom: `calc(${open ? '0.75rem' : '0.125rem'} + env(safe-area-inset-bottom))`, paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}
       >

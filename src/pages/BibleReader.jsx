@@ -66,6 +66,15 @@ export default function BibleReader() {
     setFlipbookOpen(on);
     try { localStorage.setItem('kjb-book-view', String(on)); } catch {}
   };
+  // In book view the header chevron also puts away the app's main footer. A
+  // flag on <html> leaves the saved footer mode alone, so it returns as it was.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.toggleAttribute('data-kjb-book-immersive', flipbookOpen && hideHeader);
+    // The book re-measures its height on this event.
+    window.dispatchEvent(new Event('kjb-footer-mode-change'));
+    return () => root.removeAttribute('data-kjb-book-immersive');
+  }, [flipbookOpen, hideHeader]);
   // Master switch for the Listen player (Settings -> Audio).
   // isTtsAvailable() keeps the whole player out of the native app shells until
   // the feature is signed off (see src/lib/tts/voices.js).

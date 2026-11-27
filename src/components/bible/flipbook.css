@@ -349,3 +349,7 @@
 .dark .kjb-book-sheet [role='menuitem']:hover {
   background: rgba(230, 223, 207, 0.12) !important;
 }
+/* Book view with the header chevron closed: the app's main footer goes too. */
+html[data-kjb-book-immersive] [data-kjb-bottom-nav],
+html[data-kjb-book-immersive] [data-kjb-app-footer] { display: none !important; }
+html[data-kjb-book-immersive] #kjb-scroll { padding-bottom: env(safe-area-inset-bottom, 0px) !important; }
