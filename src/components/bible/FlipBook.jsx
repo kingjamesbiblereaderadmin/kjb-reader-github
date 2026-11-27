@@ -245,6 +245,22 @@ export default React.forwardRef(function FlipBook({
 
   // A new chapter opens at its first page, or its last when turning backwards.
   const shownKeyRef = useRef(null);
+  // The measuring effect below must run when the LAYOUT or the chapter's text
+  // changes — not on every render. Several of its inputs (the rendered blocks,
+  // the next-chapter preview) are new objects each render, so depending on them
+  // re-ran the effect on any state change, including the one that starts a page
+  // turn: it cleared the pending turn before the browser could animate the
+  // sheet, and the page never moved while the buttons still looked live.
+  const flowSignature = useMemo(() => [
+    chapterKey, front.length, contentsPageCount, textW, textH, gap, step, pageW, fontTick,
+    zoomLevel, fontFamilyValue || '', perPage,
+    verses.length, verses.reduce((total, verse) => total + String(verse.text || '').length, 0),
+    colophon ? String(colophon).length : 0,
+    subscript ? String(subscript).length : 0,
+    following ? `${following.book?.abbr}:${following.chapter}:${following.verses?.length || 0}` : '',
+  ].join('|'), [chapterKey, front.length, contentsPageCount, textW, textH, gap, step, pageW, fontTick,
+    zoomLevel, fontFamilyValue, perPage, verses, colophon, subscript, following]);
+
   useLayoutEffect(() => {
     if (loading || !measureRef.current || !pageW) return;
     const end = measureRef.current.querySelector('[data-fb-end]');
@@ -287,7 +303,8 @@ export default React.forwardRef(function FlipBook({
     });
     if (isNew) { landOnEndRef.current = false; pendingPageRef.current = null; }
     setTurn(null);
-  }, [blocks, front, continuationBlocks, textW, textH, gap, textStyle, step, pageW, loading, chapterKey, fontTick]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flowSignature, loading]);
 
   const go = useCallback((dir) => {
     if (loading || turn) return;
@@ -471,6 +488,15 @@ export default React.forwardRef(function FlipBook({
     setPage(turn.to);
     setTurn(null);
   };
+
+  // A sheet that never reports its animation end (hidden tab, animation
+  // skipped by the browser) used to leave the turn pending forever, which
+  // disabled both page buttons. Commit the page on a timer as well.
+  useEffect(() => {
+    if (!turn) return undefined;
+    const id = window.setTimeout(() => { setPage(turn.to); setTurn(null); }, 900);
+    return () => window.clearTimeout(id);
+  }, [turn]);
 
   // Text pages only (the title page and the table of books come before them).
   const textTotal = Math.max(0, pageCount - front.length);
