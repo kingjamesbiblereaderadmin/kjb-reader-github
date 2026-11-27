@@ -2,6 +2,7 @@ import { base44 } from '@/api/base44Client';
 import { buildWordClock } from '@/lib/tts/wordClock';
 
 const chapters = new Map();
+const chapterExpiry = new Map();
 let dbPromise;
 function database() {
   if (!dbPromise) dbPromise = new Promise((resolve, reject) => {
@@ -23,14 +24,20 @@ async function stored(key, rows) {
 }
 export function loadWordTimings(chapterKey, voice) {
   const key = `${voice}|${chapterKey}`;
-  if (!chapters.has(key)) chapters.set(key, (async () => {
+  // A chapter opened before backfilling must not keep an empty clock forever.
+  // Refresh only when another clip needs it, at most once a minute per chapter.
+  if (Date.now() >= (chapterExpiry.get(key) || 0)) chapters.delete(key);
+  if (!chapters.has(key)) {
+    chapterExpiry.set(key, Date.now() + 60000);
+    chapters.set(key, (async () => {
     const saved = await stored(key).catch(() => []);
     if (navigator.onLine === false) return saved;
     const page = await base44.entities.AudioTiming.filter({ chapter_key: chapterKey, voice }, { limit: 500 });
     const rows = page.items || page;
     if (rows.length) await stored(key, rows).catch(() => {});
     return rows.length ? rows : saved;
-  })().catch(() => []));
+    })().catch(() => []));
+  }
   return chapters.get(key);
 }
 export async function wordTimingFor(clip, voice, url, bytes) {

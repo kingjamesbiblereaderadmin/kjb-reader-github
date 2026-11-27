@@ -1,0 +1,47 @@
+{
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "finish_bible_word_timing",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "measure_pending_recordings": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "alignAudioBatch",
+            "args": {
+              "backfill": true
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Measure remaining recording timestamps",
+            "description": "Reuse completed timing"
+          }
+        }
+      }
+    ]
+  },
+  "name": "Finish Bible Recording Word Timing",
+  "description": "Completes the approved word-timing pass over existing Ryan verse recordings, including refreshed pronunciations. Reuses saved timing for identical audio and saves every small batch. No paid processing runs after the pending queue empties. Archives after 144 scheduled runs.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "*/5 * * * *",
+      "one_time_date": null,
+      "timezone": "Asia/Singapore",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "after_count",
+      "ends_on_date": null,
+      "ends_after_count": 144
+    }
+  }
+}

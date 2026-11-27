@@ -18,6 +18,13 @@ export default async function(req) {
     if (body.clipId) query.id = String(body.clipId);
     const passes = body.backfill === true ? 20 : 1;
     const deadline = Date.now() + 200000;
+    if (body.statusOnly === true) {
+      const [remaining, needsReview] = await Promise.all([
+        db.entities.TtsClip.count(query),
+        db.entities.TtsClip.count({ ...query, timing_version: -1 }),
+      ]);
+      return Response.json({ aligned: 0, remaining, needsReview, complete: remaining === 0 && needsReview === 0 });
+    }
     const failures = [];
     let aligned = 0, reused = 0, more = false, deferred = false;
     for (let pass = 0; pass < passes && Date.now() < deadline; pass += 1) {
@@ -49,7 +56,11 @@ export default async function(req) {
       more = Boolean(page.has_more) || Date.now() >= deadline || deferred;
       if (!more || deferred) break;
     }
-    return Response.json({ aligned, reused, failures, more, deferred });
+    const [remaining, needsReview] = await Promise.all([
+      db.entities.TtsClip.count(query),
+      db.entities.TtsClip.count({ ...query, timing_version: -1 }),
+    ]);
+    return Response.json({ aligned, reused, failures, remaining, needsReview, more: remaining > 0, deferred, complete: remaining === 0 && needsReview === 0 });
   } catch (error) {
     console.error('[alignAudioBatch]', error.message);
     return Response.json({ error: error.message }, { status: 500 });

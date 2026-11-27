@@ -559,7 +559,8 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     // Start the requested clip before competing next-verse downloads.
     const advance = () => {
       const nextClip = () => { if (token === tokenRef.current) playAtRef.current?.(i + 1, token); };
-      if (list[i].kind === 'verse') versePauseRef.current.wait(nextClip, 250);
+      if (list[i].kind === 'sub') versePauseRef.current.wait(nextClip, 500);
+      else if (list[i].kind === 'verse') versePauseRef.current.wait(nextClip, 250);
       else nextClip();
     };
     const playing = playClip(list[i], token, advance, advance, () => setAudibleIndex(i));

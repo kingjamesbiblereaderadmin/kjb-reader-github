@@ -579,13 +579,14 @@ export default async function (req) {
   if (!body.fresh) {
     try {
       const rows = await db.entities.TtsClip.filter(
-        { ref: { $in: clean.map((i) => i.key) } },
-        { limit: MAX_ITEMS },
+        { voice, ref: { $in: clean.map((i) => i.key) } },
+        { limit: 500, sort: '-created_date' },
       );
       const list = Array.isArray(rows) ? rows : rows?.items || [];
-      for (const row of list) if (row?.ref && row?.url) hits.set(row.ref, row.url);
+      for (const row of list) if (row?.ref && row?.url && !hits.has(row.ref)) hits.set(row.ref, row.url);
     } catch (err) {
       console.error('[ttsBulk] cache lookup failed', err?.message);
+      return json({ error: 'cache_lookup_failed', detail: 'Recording lookup unavailable; no audio was generated.' }, 503);
     }
   }
 

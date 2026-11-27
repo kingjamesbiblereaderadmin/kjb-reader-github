@@ -111,9 +111,11 @@ function jumpTo(el) {
   window.requestAnimationFrame(() => { if (el.isConnected) revealElement(el); });
 }
 
-function scrollToVerse(verse) {
+function scrollToVerse(verse, clipRef = null) {
   if (verse == null) return;
-  jumpTo(document.getElementById(`v${verse}`));
+  const element = document.getElementById(`v${verse}`);
+  if (clipRef) followVisibleWords(element, getProgress(clipRef), getCompletedWords(clipRef));
+  else jumpTo(element);
 }
 
 // Reset means the top of the chapter, heading and all — not merely verse 1.
@@ -471,7 +473,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
       // paused: the verse itself, or the printed section being read.
       const section = SECTION_SELECTORS[tts.currentKind];
       if (section) jumpTo(document.querySelector(section));
-      else scrollToVerse(tts.currentVerse);
+      else scrollToVerse(tts.currentVerse, `${chapterKey}:${tts.currentVerse}`);
     }
     tts.toggle();
   };

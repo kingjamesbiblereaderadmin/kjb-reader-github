@@ -34,7 +34,7 @@ function moveTo(area, rect) {
 }
 
 export function revealElement(element) {
-  if (!element || document.querySelector('[data-testid="kjb-flipbook"]')) return;
+  if (!element || element.closest('#kjb-anchored-heading') || document.querySelector('[data-testid="kjb-flipbook"]')) return;
   const area = readingArea();
   const rect = firstRect(element);
   if (!rect?.height || area.bottom <= area.top) return;
@@ -45,24 +45,17 @@ export function revealElement(element) {
 export function followVisibleWords(element, progress, completedWords = null) {
   if (!element || document.querySelector('[data-testid="kjb-flipbook"]')) return;
   const area = readingArea();
-  if (area.bottom <= area.top || progress <= 0) return;
+  if (area.bottom <= area.top) return;
   const words = verseWords(element);
-  let lastVisible = -1;
-  let nextRect = null;
-  for (let index = 0; index < words.length; index += 1) {
-    const rects = [...words[index].range.getClientRects()].filter((rect) => rect.width && rect.height);
-    if (!rects.length) continue;
-    const first = rects[0];
-    if (rects.every((rect) => rect.bottom <= area.bottom + 1)) {
-      lastVisible = index;
-    } else {
-      nextRect = first;
-      break;
-    }
-  }
-  if (!nextRect || lastVisible < 0) return;
-  if (completedWords == null ? progress < words[lastVisible].end : completedWords <= words[lastVisible].index) return;
-  // The last whole word on screen has finished. Bring the NEXT unread line to
-  // the top, not the verse's bottom edge or a guessed fraction of its height.
-  moveTo(area, nextRect);
+  // Follow the next unread word, exactly as book view does. Scanning from the
+  // verse's beginning breaks when its second column returns to the page top,
+  // or playback resumes halfway through a long verse.
+  const word = (completedWords == null
+    ? words.find((item) => item.end > progress)
+    : words[completedWords]) || words[words.length - 1];
+  const rects = word ? [...word.range.getClientRects()].filter((rect) => rect.width && rect.height) : [];
+  if (!rects.length) return;
+  if (rects.every((rect) => rect.top >= area.top - 2 && rect.bottom <= area.bottom + 1)) return;
+  const rect = rects.find((item) => item.top < area.top - 2 || item.bottom > area.bottom + 1);
+  if (rect && Math.abs(rect.top - area.top) > 2) moveTo(area, rect);
 }
