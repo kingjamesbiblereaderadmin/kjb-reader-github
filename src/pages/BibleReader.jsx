@@ -1803,6 +1803,19 @@ export default function BibleReader() {
   // A title page has its own Listen button: the page is read, then playback
   // rolls on into chapter 1, so the player has to exist there too.
   const ttsPlayerVisible = ttsEnabled && !error && (loading || isViewingTitlePage || verses.length > 0);
+  // A filtered passage (search results, a looked-up reference, a hand-picked
+  // selection) shows only the verses in its selection, so Listen reads only
+  // those. Handing the player the whole chapter meant the voice went on through
+  // verses that were not on the page, with nothing for the reader to follow.
+  const passageFilter = filterMode && selectedVerses.size > 0;
+  const spokenVerses = useMemo(() => {
+    if (!passageFilter) return verses;
+    return verses.filter((v) => selectedVerses.has(parseInt(v.verse, 10)) || selectedVerses.has(String(v.verse)));
+  }, [passageFilter, verses, selectedVerses]);
+  // The printed notes are read only where they are printed: the subscription
+  // travels with verse 1, the colophon follows the chapter's own last verse.
+  const spokenSubscript = !passageFilter || selectedVerses.has(1) || selectedVerses.has('1') ? chapterSubscript : '';
+  const spokenColophon = !passageFilter || (verses.length > 0 && selectedVerses.has(parseInt(verses[verses.length - 1].verse, 10))) ? colophon : '';
   const titlePageSpoken = isViewingTitlePage ? (pos.abbr === 'GEN'
     ? "The Holy Bible. Containing the Old and New Testaments. Translated out of the original tongues, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches. Authorised King James Bible."
     : pos.abbr === 'MAT'
@@ -1821,18 +1834,18 @@ export default function BibleReader() {
       onOpenChange={setListenOpen}
       onActiveChange={setTtsActive}
       onRestart={() => { setHighlightVerse(null); setHighlightSection(null); }}
-      verses={isViewingTitlePage ? [] : verses}
+      verses={isViewingTitlePage ? [] : spokenVerses}
       chapterKey={`${pos.abbr}:${pos.chapter}`}
       bookKey={pos.abbr}
       chapter={pos.chapter}
       startVerse={highlightVerse}
       label={book.shortName}
       bookName={book.name}
-      subscript={chapterSubscript}
-      colophon={colophon}
+      subscript={spokenSubscript}
+      colophon={spokenColophon}
       titleText={titlePageSpoken}
       endMarker={resolveEndMarker(book?.apiName, pos.chapter) || ''}
-      onNextChapter={() => {
+      onNextChapter={passageFilter ? null : () => {
         flipbookRef.current?.prepareListeningAdvance();
         return goNext(true);
       }}
