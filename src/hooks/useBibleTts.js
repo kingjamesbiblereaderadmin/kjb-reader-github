@@ -68,7 +68,11 @@ export function cleanHeadingForSpeech(raw) {
 // v2: the verses holding a word whose sense is now settled are voiced again
 // (lead, bow, sow, blessed ...), so every device must ask the server for the
 // fresh clip instead of playing the one it remembered.
-const URL_CACHE_KEY = 'kjb-tts-urls-v2';
+// v3: verse 1 of a Psalm was once voiced together with its superscription, so
+// the clip already said "A Psalm of David" and the player then said it again as
+// the chapter's own line. Those clips are gone; asking the server again gets
+// the verse on its own.
+const URL_CACHE_KEY = 'kjb-tts-urls-v3';
 const URL_CACHE_MAX = 4000;
 const urlCache = new Map(); // `${voice}|${ref}` -> mp3 url
 let urlSaveTimer = null;
