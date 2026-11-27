@@ -163,6 +163,31 @@ async function bookBytes(book) {
   });
 }
 
+/** Every book with clips on this device: [{ book, verses, bytes }], largest first. */
+export async function downloadedBooks() {
+  if (!canStoreOfflineAudio()) return [];
+  const db = await openDb();
+  const found = new Map();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(CLIPS, 'readonly');
+    const req = tx.objectStore(CLIPS).openCursor();
+    req.onsuccess = () => {
+      const cursor = req.result;
+      if (!cursor) return;
+      const book = String(cursor.key).split(':')[0];
+      const row = found.get(book) || { book, verses: 0, bytes: 0 };
+      row.verses += 1;
+      row.bytes += Number(cursor.value?.blob?.size) || 0;
+      found.set(book, row);
+      cursor.continue();
+    };
+    req.onerror = () => reject(req.error);
+    tx.oncomplete = () => resolve();
+    tx.onabort = () => reject(tx.error);
+  });
+  return [...found.values()].sort((a, b) => b.bytes - a.bytes);
+}
+
 /**
  * The list of every voiced verse on the server, grouped by book, kept on the
  * device and refreshed at most once a day. Offline, the copy already here is

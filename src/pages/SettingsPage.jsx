@@ -10,6 +10,7 @@ import ThemeColorPicker from '@/components/bible/ThemeColorPicker';
 import { TTS_VOICES, TTS_RATES, TTS_STORAGE, readStored, writeStored, isTtsEnabled, isTtsAvailable, setTtsEnabled, normalizeVoice, TTS_SETTINGS_EVENT } from '@/lib/tts/voices';
 import { Switch } from '@/components/ui/switch';
 import { InstallAppSection } from '@/components/settings/InstallAppSection';
+import OfflineAudioSection from '@/components/settings/OfflineAudioSection';
 import DownloadOptionsButton from '@/components/settings/DownloadOptionsButton';
 import { base44 } from '@/api/base44Client';
 import { clearAllUserData } from '@/lib/clearAllData';
@@ -1051,6 +1052,8 @@ export default function SettingsPage() {
             )}
                 </>
               )}
+
+              <OfflineAudioSection />
           </div>
         )}
       </div>
