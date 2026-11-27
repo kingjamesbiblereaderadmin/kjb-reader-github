@@ -22,6 +22,10 @@ const USD_PER_CHAR = 15 / 1e6; // Azure neural, S0
 const VERSE_REF = /^[A-Z0-9]{2,3}:\d{1,3}:\d{1,3}$/;
 const PAGE = 1000;
 const CACHE_MS = 120000;
+// The library voice, and the verses the pronunciation audit found needing a
+// fresh recording (its h5, h6 and h7 revisions).
+const VOICE = 'en-GB-RyanNeural';
+const REPAIR_TARGETS = 782;
 
 let cache = { at: 0, data: null };
 
@@ -70,6 +74,24 @@ async function tally(db) {
   return { verses: refs.size, chars, recentChars, hourChars };
 }
 
+// The two passes that run over the finished library: measured word timing and
+// the audited pronunciation re-recordings. Counts only — no rows are read, so
+// this adds nothing to the page's own entity allowance.
+async function workProgress(db) {
+  const verse = { voice: VOICE, ref: { $regex: '^[1-3A-Z]{3}:\\d+:\\d+(:h\\d+)?$' } };
+  const [recordings, pending, repaired] = await Promise.all([
+    db.entities.TtsClip.count(verse),
+    db.entities.TtsClip.count({ ...verse, timing_version: { $exists: false } }),
+    db.entities.TtsClip.count({ voice: VOICE, ref: { $regex: ':(h5|h6|h7)$' } }),
+  ]);
+  return {
+    recordings,
+    timed: Math.max(0, recordings - pending),
+    repairs: Math.min(repaired, REPAIR_TARGETS),
+    repairTargets: REPAIR_TARGETS,
+  };
+}
+
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function escapeHtml(value) {
@@ -111,7 +133,30 @@ function bundleSection(bundle) {
   </section>`;
 }
 
-function pageHtml(d, bundle) {
+// Progress of the two passes still running over the library, in the same shape
+// as the voice-library card above it.
+function workSection(work) {
+  if (!work || !work.recordings) return '';
+  const nf = (n) => n.toLocaleString('en-GB');
+  const share = (done, total) => (total > 0 ? Math.max(0, Math.min(100, (done / total) * 100)) : 0).toFixed(1);
+  return `
+  <section style="margin-top:26px;padding-top:20px;border-top:1px solid #ece8e0">
+    <h1>Word timing</h1>
+    <p class="sub">Matching each recorded verse to the words it speaks</p>
+    <p class="big">${nf(work.timed)}<span> of ${nf(work.recordings)} recordings</span></p>
+    <div class="bar"><div class="fill" style="width:${share(work.timed, work.recordings)}%"></div></div>
+    <div class="row"><span>${nf(Math.max(0, work.recordings - work.timed))} left</span><span>${share(work.timed, work.recordings)}%</span></div>
+  </section>
+  <section style="margin-top:26px;padding-top:20px;border-top:1px solid #ece8e0">
+    <h1>Pronunciation repairs</h1>
+    <p class="sub">Verses re-recorded for a corrected pronunciation</p>
+    <p class="big">${nf(work.repairs)}<span> of ${nf(work.repairTargets)} verses</span></p>
+    <div class="bar"><div class="fill" style="width:${share(work.repairs, work.repairTargets)}%"></div></div>
+    <div class="row"><span>${nf(Math.max(0, work.repairTargets - work.repairs))} left</span><span>${share(work.repairs, work.repairTargets)}%</span></div>
+  </section>`;
+}
+
+function pageHtml(d, bundle, work) {
   const pct = (n) => (n * 100).toFixed(1);
   const nf = (n) => n.toLocaleString('en-GB');
   const versePct = d.verses / TOTAL_VERSES;
@@ -169,6 +214,7 @@ function pageHtml(d, bundle) {
     <dt>Measured over</dt><dd>${rate > 0 ? basis : 'nothing running'}</dd>
     <dt>Time left at this pace</dt><dd>${etaText}</dd>
   </dl>
+${workSection(work)}
 ${bundleSection(bundle)}
   <p class="foot">${d.stale ? 'Counted a moment ago while the library was busy · ' : ''}Updated ${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Singapore' })} SGT · refreshes every 15 seconds</p>
 </div>
@@ -231,6 +277,14 @@ Deno.serve(async (req) => {
     bundle = null;
   }
 
+  // A failed count only leaves these two cards off the page.
+  let work = null;
+  try {
+    work = await workProgress(db);
+  } catch (_) {
+    work = null;
+  }
+
   let stale = false;
   try {
     if (!cache.data || Date.now() - cache.at > CACHE_MS) {
@@ -249,20 +303,20 @@ Deno.serve(async (req) => {
         }
       }
     }
-    const data = { totalVerses: TOTAL_VERSES, totalChars: TOTAL_CHARS, stale, ...cache.data };
+    const data = { totalVerses: TOTAL_VERSES, totalChars: TOTAL_CHARS, stale, ...cache.data, work };
     if (url.searchParams.get('format') === 'json') {
       return Response.json(data, { headers: { 'Access-Control-Allow-Origin': '*' } });
     }
-    return new Response(pageHtml(data, bundle), {
+    return new Response(pageHtml(data, bundle, work), {
       headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
     });
   } catch (err) {
     // Never a blank page: report what is known and say it is behind.
-    const data = { totalVerses: TOTAL_VERSES, totalChars: TOTAL_CHARS, stale: true, ...(cache.data || { verses: 0, chars: 0, recentChars: 0 }) };
+    const data = { totalVerses: TOTAL_VERSES, totalChars: TOTAL_CHARS, stale: true, ...(cache.data || { verses: 0, chars: 0, recentChars: 0 }), work };
     if (url.searchParams.get('format') === 'json') {
       return Response.json(data, { headers: { 'Access-Control-Allow-Origin': '*' } });
     }
-    return new Response(pageHtml(data, bundle), {
+    return new Response(pageHtml(data, bundle, work), {
       headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
     });
   }
