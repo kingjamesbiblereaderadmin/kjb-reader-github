@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, RotateCcw, Repeat, CloudDownload } from 'lucide-react';
 import { publishSpeaking } from '@/lib/tts/speaking';
+import { publishMediaMetadata, clearMediaMetadata } from '@/lib/tts/mediaSession';
 import useBibleTts from '@/hooks/useBibleTts';
 import useOfflineBook from '@/hooks/useOfflineBook';
 import OfflineBookControl from '@/components/bible/OfflineBookControl';
@@ -389,6 +390,21 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
     publishSpeaking(tts.isActive ? { verse: tts.currentVerse, kind: tts.currentKind, intro: tts.introActive } : null);
   }, [tts.isActive, tts.currentVerse, tts.currentKind, tts.introActive]);
   useEffect(() => () => publishSpeaking(null), []);
+
+  // What the lock screen and the phone's media card say. Left alone they show
+  // the page title ("KJB Reader"), so a listener had no way to tell which
+  // chapter was playing; they now name it, and the verse once one is being read.
+  useEffect(() => {
+    if (!tts.isActive) {
+      clearMediaMetadata();
+      return;
+    }
+    const name = bookName || label;
+    const where = chapter >= 1 ? `${name} ${chapter}` : name;
+    const reading = !tts.introActive && tts.currentVerse != null;
+    publishMediaMetadata({ title: reading ? `${where}:${tts.currentVerse}` : where });
+  }, [tts.isActive, tts.currentVerse, tts.introActive, bookName, label, chapter]);
+  useEffect(() => () => clearMediaMetadata(), []);
 
   const setHiddenPersisted = useCallback((value) => {
     setHidden(value);
