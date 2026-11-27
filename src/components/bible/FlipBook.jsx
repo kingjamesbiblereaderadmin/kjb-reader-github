@@ -180,9 +180,11 @@ export default React.forwardRef(function FlipBook({
     return ['testament-old', ...Array.from({ length: contentsPageCount }, (_, contentsPage) => ({ contentsPage }))];
   }, [abbr, chapter, contentsPageCount]);
 
-  // A page holds one or two text columns. Wide paper always gets two, so no
-  // line of scripture runs the full width of the screen.
-  const perPage = twoColumns || textW > 560 ? 2 : 1;
+  // A page holds one or two text columns, decided by the reader's column
+  // button. Wide paper used to force two columns whatever the button said, so
+  // turning columns off changed the icon but never the page. Wide screens still
+  // open in two columns because that is the column setting's own default there.
+  const perPage = twoColumns ? 2 : 1;
   const gap = perPage === 2 ? 18 : 40;
   const colW = (textW - gap * (perPage - 1)) / perPage;
   const flowProps = {
