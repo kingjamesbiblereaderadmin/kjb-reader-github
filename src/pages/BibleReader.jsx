@@ -44,6 +44,7 @@ import { HIGHLIGHT_COLORS } from '@/lib/highlightColors';
 import { usePinchZoom } from '@/hooks/usePinchZoom';
 import TtsPlayer from '@/components/bible/TtsPlayer';
 import useTtsEnabled from '@/hooks/useTtsEnabled';
+import useOnline from '@/hooks/useOnline';
 import { isTtsAvailable } from '@/lib/tts/voices';
 import { useReadingProgressTracker } from '@/hooks/useReadingProgressTracker';
 
@@ -55,6 +56,8 @@ export default function BibleReader() {
   // whether audio is currently playing or paused.
   const [listenOpen, setListenOpen] = useState(false);
   const [ttsActive, setTtsActive] = useState(false);
+  // Offline: the Listen button says so and stays put rather than vanishing.
+  const online = useOnline();
   // Optional full-screen printed-book view of the chapter.
   const [flipbookOpen, setFlipbookOpen] = useState(() => {
     try { return localStorage.getItem('kjb-book-view') === 'true'; } catch { return false; }
@@ -1792,7 +1795,7 @@ export default function BibleReader() {
       bookMode={flipbookOpen}
       topRef={topRef} hideHeader={hideHeader} setHideHeader={setHideHeader}
       anyMenuOpen={anyMenuOpen} closeAllMenus={closeAllMenus} ttsAttached={ttsAttached && ttsSectionShown}
-      listenAvailable={ttsAttached} listenOpen={listenOpen} listenActive={ttsActive}
+      listenAvailable={ttsAttached} listenOpen={listenOpen} listenActive={ttsActive} listenOffline={!online}
       onToggleListen={() => { closeAllMenus(); setListenOpen(v => !v); }}
       playerSlot={ttsAttached ? ttsPlayerNode : null}
       pos={pos} book={book} isViewingTitlePage={isViewingTitlePage}

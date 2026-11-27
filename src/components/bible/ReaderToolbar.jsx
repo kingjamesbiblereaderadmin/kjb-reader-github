@@ -30,7 +30,7 @@ import { isMobile } from '@/lib/readerPosition';
 export default function ReaderToolbar({
   topRef, hideHeader, setHideHeader, anyMenuOpen, closeAllMenus, ttsAttached = false, playerSlot = null,
   bookMode = false, bookSlots = {},
-  listenAvailable = false, listenOpen = false, listenActive = false, onToggleListen,
+  listenAvailable = false, listenOpen = false, listenActive = false, listenOffline = false, onToggleListen,
   pos, book, isViewingTitlePage,
   showBookPicker, setShowBookPicker, showChapterPicker, setShowChapterPicker,
   showVersePicker, setShowVersePicker, showZoomPopover, setShowZoomPopover,
@@ -399,14 +399,15 @@ export default function ReaderToolbar({
           {listenAvailable && (
             <button
               onClick={onToggleListen}
-              title="Listen"
-              aria-label="Listen"
+              disabled={listenOffline}
+              title={listenOffline ? 'Listen needs a connection' : 'Listen'}
+              aria-label={listenOffline ? 'Listen needs a connection' : 'Listen'}
               aria-expanded={listenOpen}
               data-testid="tts-toolbar-btn"
-              className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap ${listenOpen || listenActive ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}
+              className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed ${listenOpen || listenActive ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}
             >
               <Headphones className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden lg:inline">Listen</span>
+              <span className="hidden lg:inline">{listenOffline ? 'Offline' : 'Listen'}</span>
             </button>
           )}
           <button onClick={(e) => { e.stopPropagation(); setHideHeader(!hideHeader); }} title={hideHeader ? "Show header" : "Hide header"} className="kjb-fixed-btn flex-shrink-0 flex items-center justify-center px-2.5 rounded-lg bg-secondary border border-border hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation h-10  whitespace-nowrap"><ChevronDown className={`w-5 h-5 transition-transform duration-200 flex-shrink-0 ${hideHeader ? '' : 'rotate-180'}`} /></button>
@@ -520,8 +521,8 @@ export default function ReaderToolbar({
           <>
             <ReaderControlSlot enabled={bookMode} target={bookSlots.tools}>
               {listenAvailable && (
-                <button onClick={onToggleListen} title="Listen" aria-label="Listen" aria-expanded={listenOpen} data-testid="tts-toolbar-btn" className={`flex flex-1 items-center justify-center gap-1.5 px-2.5 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap ${listenOpen || listenActive ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}>
-                  <Headphones className="w-5 h-5 flex-shrink-0" /><span className="hidden lg:inline">Listen</span>
+                <button onClick={onToggleListen} disabled={listenOffline} title={listenOffline ? 'Listen needs a connection' : 'Listen'} aria-label={listenOffline ? 'Listen needs a connection' : 'Listen'} aria-expanded={listenOpen} data-testid="tts-toolbar-btn" className={`flex flex-1 items-center justify-center gap-1.5 px-2.5 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed ${listenOpen || listenActive ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}>
+                  <Headphones className="w-5 h-5 flex-shrink-0" /><span className="hidden lg:inline">{listenOffline ? 'Offline' : 'Listen'}</span>
                 </button>
               )}
             </ReaderControlSlot>

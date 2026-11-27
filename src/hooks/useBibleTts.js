@@ -274,7 +274,9 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       if (token === tokenRef.current) {
         fetchingRef.current = false;
         setIntroActive(false);
-        setError(err?.message || 'Audio could not be generated.');
+        const raw = String(err?.message || '');
+        const offline = (typeof navigator !== 'undefined' && navigator.onLine === false) || /failed to fetch|load failed|networkerror|network request failed/i.test(raw);
+        setError(offline ? 'Listen needs a connection. Reconnect, then press play again.' : (raw || 'Audio could not be generated.'));
         setStatus('error');
       }
       return false;
