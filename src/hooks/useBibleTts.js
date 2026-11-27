@@ -15,7 +15,8 @@ import { DEFAULT_TTS_VOICE, engineForVoice, normalizeVoice, readStored, writeSto
 import { publishProgress } from '@/lib/tts/speaking';
 import { localAudioUrlFor } from '@/lib/tts/localAudio';
 import { cachedUrl } from '@/lib/tts/offlineAudio';
-import { primeClipTrim, clipTrim } from '@/lib/tts/clipTrim';
+import createClipBuffer from '@/lib/tts/createClipBuffer';
+import watchClipEnd from '@/lib/tts/watchClipEnd';
 
 // Verse text arrives with the reader's markup: [italics] brackets, ¶ pilcrows
 // and <<heading>> markers. None of them should be spoken.
@@ -124,17 +125,25 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // reaches this hook has been through the reader's apostrophe/override pipeline,
 // so hashing it would miss clips generated from the same verse anywhere else
 // (a bulk run, another device, a corrected verse). The reference is stable.
+const needsPronunciationRefresh = (text) => /\bmarketh\b|\btheir\s+desert\b|\bbow\s+down\b/i.test(text);
+
+function audioCacheKey(clip, voice) {
+  return `${voice}|${clip.ref || clip.text}${needsPronunciationRefresh(clip.text) ? '|pronunciation-h3' : ''}`;
+}
+
 async function audioUrlFor(clip, voice) {
+  const revised = needsPronunciationRefresh(clip.text);
+  const useUpdatedRecording = revised && (typeof navigator === 'undefined' || navigator.onLine !== false);
   // Bundled audio first: the native apps ship every verse, so a clip already on
   // the device plays with no request at all. Deliberately not cached in
   // urlCache -- a loopback port changes between launches.
-  const local = await localAudioUrlFor(clip.ref);
+  const local = useUpdatedRecording ? null : await localAudioUrlFor(clip.ref);
   if (local) return local;
 
   // A book the reader downloaded for offline listening plays from this device:
   // the web/PWA's equivalent of the native bundle, and the reason a downloaded
   // chapter needs no request at all.
-  const stored = await cachedUrl(clip.ref);
+  const stored = useUpdatedRecording ? null : await cachedUrl(clip.ref);
   if (stored) return stored;
 
   // Nothing on the device and no connection: asking the server can only fail, so
@@ -143,7 +152,7 @@ async function audioUrlFor(clip, voice) {
     throw Object.assign(new Error('Listen needs a connection. Reconnect, then press play again.'), { code: 'offline' });
   }
 
-  const key = `${voice}|${clip.ref || clip.text}`;
+  const key = audioCacheKey(clip, voice);
   const hit = urlCache.get(key);
   if (hit) return hit;
 
@@ -271,38 +280,20 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   const clipsRef = useRef(clips);
   clipsRef.current = clips;
 
-  const prefetchedRef = useRef(new Map()); // url -> Audio
+  const bufferRef = useRef(null);
+  if (!bufferRef.current) bufferRef.current = createClipBuffer(audioUrlFor);
+  const activeBufferRef = useRef(null);
+  const endCleanupRef = useRef(null);
 
-  const getAudio = useCallback(() => {
-    if (!audioRef.current) {
-      const el = new Audio();
-      el.preload = 'auto';
-      applySink(el);
-      audioRef.current = el;
-    }
-    return audioRef.current;
+  const adoptBuffered = useCallback((prepared) => {
+    endCleanupRef.current?.();
+    endCleanupRef.current = null;
+    activeBufferRef.current?.release();
+    activeBufferRef.current = prepared;
+    audioRef.current = prepared.audio;
+    applySink(prepared.audio);
+    return prepared.audio;
   }, [applySink]);
-
-  // Hand playback to the element that has already been buffering this clip.
-  // Re-pointing one element at a new src tears its pipeline down and waits for
-  // the file again, and that wait is the pause heard between verses; the
-  // prefetched element already holds the audio, so it starts at once.
-  const adoptBuffered = useCallback((url) => {
-    const ready = prefetchedRef.current.get(url);
-    const current = audioRef.current;
-    if (!ready) return getAudio();
-    prefetchedRef.current.delete(url);
-    if (current && current !== ready) {
-      current.pause();
-      current.onended = null;
-      current.onerror = null;
-      current.ontimeupdate = null;
-      current.removeAttribute('src');
-    }
-    applySink(ready);
-    audioRef.current = ready;
-    return ready;
-  }, [applySink, getAudio]);
 
   const clearStall = () => {
     if (stallRef.current) {
@@ -314,6 +305,11 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   const hardStop = useCallback(() => {
     tokenRef.current += 1;
     clearStall();
+    endCleanupRef.current?.();
+    endCleanupRef.current = null;
+    bufferRef.current?.clear();
+    activeBufferRef.current?.release();
+    activeBufferRef.current = null;
     const el = audioRef.current;
     if (el) {
       el.pause();
@@ -333,9 +329,9 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     setError('');
     fetchingRef.current = true;
 
-    let url;
+    let prepared;
     try {
-      url = await audioUrlFor(clip, voiceRef.current);
+      prepared = await bufferRef.current.take(clip, voiceRef.current);
     } catch (err) {
       if (token === tokenRef.current) {
         fetchingRef.current = false;
@@ -347,43 +343,49 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       }
       return false;
     }
-    if (token !== tokenRef.current) return false;
+    if (token !== tokenRef.current || !prepared) {
+      prepared?.release();
+      return false;
+    }
 
     fetchingRef.current = false;
-
-    const el = adoptBuffered(url);
+    const el = adoptBuffered(prepared);
     clearStall();
-    el.ontimeupdate = null;
-    el.onerror = null;
-    // The adopted element already holds this clip: re-assigning the attribute
-    // would make the browser load it again, undoing the head start.
-    if (el.getAttribute('src') !== url) el.src = url;
-    publishProgress(0);
+    publishProgress(0, clip.ref);
 
     // The pause baked into the start and end of each clip is what a listener
     // hears as a gap between verses (see clipTrim). Measured while the clip was
     // being buffered: the head is skipped below, and the reading steps on as soon
     // as only the tail is left. A clip that could not be measured plays exactly
     // as it did before.
-    primeClipTrim(url);
-    const trim = clipTrim(url);
+    const trim = prepared.trim;
     let finished = false;
     const finish = () => {
       if (finished || token !== tokenRef.current) return;
       finished = true;
+      clearStall();
+      endCleanupRef.current?.();
+      endCleanupRef.current = null;
+      el.onended = el.ontimeupdate = el.onerror = null;
+      el.pause();
+      publishProgress(0);
       onDone();
     };
 
     // A clip that will not load must never leave the chapter silent. Its
     // remembered URL is dropped, the clip is asked for once more, and if the
     // verse still refuses to sound the player steps over it and carries on.
-    const clipKey = `${voiceRef.current}|${clip.ref || clip.text}`;
+    const clipKey = audioCacheKey(clip, voiceRef.current);
     let failed = false;
     const recover = () => {
       if (failed || token !== tokenRef.current) return;
       failed = true;
+      finished = true;
       clearStall();
-      el.onerror = null;
+      endCleanupRef.current?.();
+      endCleanupRef.current = null;
+      el.onended = el.ontimeupdate = el.onerror = null;
+      el.pause();
       urlCache.delete(clipKey);
       persistUrlCache();
       if (!retriedRef.current.has(clipKey)) {
@@ -418,7 +420,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     // has got is reported too, so the book view can turn the page when the voice
     // passes the foot of the page a long verse starts on.
     el.ontimeupdate = () => {
-      if (token !== tokenRef.current) return;
+      if (finished || token !== tokenRef.current || audioRef.current !== el) return;
       // The clip is playing: it is not stalled, and it no longer counts as a
       // verse that failed earlier.
       clearStall();
@@ -431,11 +433,14 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
         finish();
         return;
       }
-      publishProgress(el.duration ? el.currentTime / el.duration : 0);
+      const lead = trim?.lead || 0;
+      const spokenDuration = el.duration - lead - (trim?.tail || 0);
+      publishProgress(spokenDuration > 0 ? (el.currentTime - lead) / spokenDuration : 0, clip.ref);
       if (verseClip && resumePoint) resumePoint.time = el.currentTime;
     };
     el.playbackRate = rateRef.current;
     el.onended = finish;
+    endCleanupRef.current = watchClipEnd(el, trim?.tail || 0, finish);
 
     if (holdRef.current) {
       setStatus('paused');
@@ -456,7 +461,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       recover();
       return true;
     }
-    if (token === tokenRef.current) setStatus('playing');
+    if (!finished && token === tokenRef.current && audioRef.current === el && !holdRef.current) setStatus('playing');
     return true;
   }, [adoptBuffered]);
 
@@ -468,27 +473,8 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   // downloaded, which a hidden <audio> element does now so the player reads it
   // from the media cache when its turn comes.
   const prefetch = useCallback((clip) => {
-    if (!clip) return;
-    audioUrlFor(clip, voiceRef.current)
-      .then((url) => {
-        if (!url) return;
-        // Measure its silence while it is being buffered, so playback can skip it
-        // when this verse's turn comes.
-        primeClipTrim(url);
-        if (prefetchedRef.current.has(url)) return;
-        const el = new Audio();
-        el.preload = 'auto';
-        applySink(el);
-        el.src = url;
-        prefetchedRef.current.set(url, el);
-        // Two ahead is all that is needed; drop the oldest so this can't grow.
-        if (prefetchedRef.current.size > 4) {
-          const [oldest] = prefetchedRef.current.keys();
-          prefetchedRef.current.delete(oldest);
-        }
-      })
-      .catch(() => {});
-  }, [applySink]);
+    if (clip) bufferRef.current.prepare(clip, voiceRef.current).catch(() => {});
+  }, []);
 
   // Move the reading to another speaker, now and for every clip after it: the
   // element playing, plus the ones already buffering the next verses.
@@ -498,7 +484,6 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     sinkRef.current = next;
     writeStored(TTS_STORAGE.sink, next);
     applySink(audioRef.current);
-    prefetchedRef.current.forEach((el) => applySink(el));
   }, [applySink]);
 
   const playAt = useCallback(async (i, token) => {
@@ -538,6 +523,10 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       return;
     }
 
+    // Clear the previous clip's clock BEFORE exposing the next verse. A slow
+    // lookup used to leave its 90%-played value attached to the new verse,
+    // making the scroll follower jump straight to that verse's final lines.
+    publishProgress(0, list[i].ref);
     setIntroActive(false);
     setIndex(i);
     resumePoint = { chapterKey, verse: list[i].verse, time: startAtRef.current };

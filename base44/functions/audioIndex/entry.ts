@@ -52,6 +52,7 @@ export default async function (req) {
     const db = base44.asServiceRole || base44;
 
     const books: Record<string, Record<string, string>> = {};
+    const revisions: Record<string, number> = {};
     let cursor: string | null = null;
 
     for (let page = 0; page < MAX_PAGES; page += 1) {
@@ -70,13 +71,16 @@ export default async function (req) {
         const book = ref.slice(0, cut);
         let key = ref.slice(cut + 1);
         if (!key) continue;
-        // A verse voiced again for a settled pronunciation is cached under
-        // "<ref>:h2". The player asks for the plain reference, so the newer clip
-        // answers for it and wins over the older one.
-        const fresh = key.endsWith(':h2');
-        if (fresh) key = key.slice(0, -3);
+        // Prefer the newest pronunciation revision regardless of row order.
+        const suffix = key.match(/:h(\d+)$/);
+        const revision = suffix ? Number(suffix[1]) : 0;
+        if (suffix) key = key.slice(0, -suffix[0].length);
+        const revisionKey = `${book}:${key}`;
         const bucket = books[book] || (books[book] = {});
-        if (fresh || !bucket[key]) bucket[key] = url;
+        if (!bucket[key] || revision > (revisions[revisionKey] || 0)) {
+          bucket[key] = url;
+          revisions[revisionKey] = revision;
+        }
       }
 
       const next = Array.isArray(res) ? null : res?.next_cursor;

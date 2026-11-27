@@ -393,6 +393,7 @@ function speechText(raw: string) {
   return {
     text: splitEth(respell(fixed.text)),
     changed: fixed.changed,
+    revision: fixed.revision,
   };
 }
 
@@ -565,7 +566,7 @@ export default async function (req) {
     if (text.length > MAX_CHARS) return json({ error: 'too_long', ref, max: MAX_CHARS }, 400);
     // A verse with a settled pronunciation gets its own cache key so it is
     // voiced once more; the caller still hears back the reference it sent.
-    clean.push({ ref, key: spoken.changed ? `${ref}:h2` : ref, text });
+    clean.push({ ref, key: spoken.revision ? `${ref}:${spoken.revision}` : ref, text });
   }
 
   const client = createClientFromRequest(req);

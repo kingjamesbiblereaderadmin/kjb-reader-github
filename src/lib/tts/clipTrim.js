@@ -34,12 +34,15 @@ function audioContext() {
   return ctx;
 }
 
-async function measure(url) {
+async function measure(url, bytes) {
   const ac = audioContext();
   if (!ac) return null;
-  const res = await fetch(url);
-  if (!res.ok) return null;
-  const audio = await ac.decodeAudioData(await res.arrayBuffer());
+  if (!bytes) {
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) return null;
+    bytes = await res.arrayBuffer();
+  }
+  const audio = await ac.decodeAudioData(bytes);
   const channel = audio.getChannelData(0);
   const total = channel.length;
   if (!total) return null;
@@ -66,12 +69,15 @@ async function measure(url) {
 }
 
 // Start measuring a clip (no-op if it already has been, or is being measured).
-export function primeClipTrim(url) {
-  if (!url || cache.has(url) || queued.has(url)) return;
-  queued.set(url, measure(url)
+export function primeClipTrim(url, bytes) {
+  if (!url || cache.has(url)) return Promise.resolve(cache.get(url) || null);
+  if (queued.has(url)) return queued.get(url);
+  const promise = measure(url, bytes)
     .then((value) => { cache.set(url, value); return value; })
     .catch(() => { cache.set(url, null); return null; })
-    .finally(() => queued.delete(url)));
+    .finally(() => queued.delete(url));
+  queued.set(url, promise);
+  return promise;
 }
 
 // What is known about a clip right now, or null if it has not been measured.

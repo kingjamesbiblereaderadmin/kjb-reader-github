@@ -34,6 +34,8 @@ const RESPELL: Record<string, string> = {
   thummim: 'thum-im',
   jubile: 'joo-buh-lee',
   hallowed: 'hal-low-ed',
+  // Keep the "mark" stem distinct from "make", including through the proxy.
+  marketh: 'mahr-keth',
 };
 
 const RESPELL_RE = new RegExp(
@@ -70,7 +72,7 @@ function say(word: string, prev: string, next: string, next2: string): string {
       return 'leed';
     // The weapon and the rainbow are long "o"; bending the knee is "bau".
     case 'bow':
-      if (/^(down|yourselves|yourself|thyself|himself|themselves|unto|to|before|at)$/.test(next)) return 'bau';
+      if (/^(down|yourselves|yourself|thyself|himself|themselves|unto|to|before|at)$/.test(next)) return 'bough';
       if (next === 'the' && /^(knee|knees)$/.test(next2)) return 'bau';
       if (/^(my|his|her|their|thy|our|your|the|a|this|that)$/.test(prev)) return 'boh';
       return 'bau';
@@ -109,9 +111,14 @@ function say(word: string, prev: string, next: string, next2: string): string {
  * `changed` is true when at least one word was rewritten, which is what tells
  * the cache that this verse needs a fresh clip.
  */
-export function applyHeteronyms(text: string): { text: string; changed: boolean } {
+export function applyHeteronyms(text: string): { text: string; changed: boolean; revision: string } {
   let changed = false;
-  const fixed = String(text || '').replace(RESPELL_RE, (word: string) => {
+  // Only these corrections get a new recording key. Existing h2 recordings for
+  // other settled pronunciations are retained and are not generated again.
+  const updated = /\bmarketh\b|\btheir\s+desert\b|\bbow\s+down\b/i.test(text);
+  const source = String(text || '').replace(/\b(their\s+)desert\b/gi, '$1dih-zurt');
+  if (source !== text) changed = true;
+  const fixed = source.replace(RESPELL_RE, (word: string) => {
     const replacement = RESPELL[word.toLowerCase()];
     if (!replacement) return word;
     changed = true;
@@ -125,5 +132,5 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean 
     changed = true;
     return /^[A-Z]/.test(word) ? replacement.charAt(0).toUpperCase() + replacement.slice(1) : replacement;
   });
-  return { text: out, changed };
+  return { text: out, changed, revision: updated ? 'h3' : changed ? 'h2' : '' };
 }

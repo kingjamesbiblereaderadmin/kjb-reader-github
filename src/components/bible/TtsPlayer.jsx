@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Play, Pause, SkipBack, SkipForward, X, ChevronUp, ChevronRight, RotateCcw, Repeat, CloudDownload } from 'lucide-react';
 import OutputDeviceMenu from '@/components/bible/OutputDeviceMenu';
 import { publishSpeaking, getProgress } from '@/lib/tts/speaking';
+import { readingArea, revealElement, followVisibleWords } from '@/lib/tts/readerFollow';
 import { publishMediaMetadata, clearMediaMetadata } from '@/lib/tts/mediaSession';
 import useBibleTts from '@/hooks/useBibleTts';
 import useOfflineBook from '@/hooks/useOfflineBook';
@@ -76,23 +77,7 @@ function speakingTargets(kind, verse) {
 // below), so measuring against window.innerHeight called a verse "on screen"
 // while the bottom of the scroller was still cutting it off - the last verses of
 // a chapter were never brought into view. Everything below measures the scroller.
-const PAD_TOP = 96;    // clear the sticky header
-// Clear the fixed bottom nav (which can be two rows tall on a phone) plus the
-// footer, with room to breathe — 56 left the last line of a verse sitting under
-// the nav bar. Matches #kjb-scroll's own scroll-padding-bottom.
-const PAD_BOTTOM = 104;
-// Space kept between the sticky toolbar and a verse at the top of the page, so
-// a verse being brought into view never sits jammed under the bar.
-const GAP_TOP = 14;
 
-function scrollBox() {
-  const scroller = document.getElementById('kjb-scroll');
-  if (scroller && scroller.scrollHeight > scroller.clientHeight + 1) {
-    const r = scroller.getBoundingClientRect();
-    return { top: r.top, bottom: r.bottom, scroller };
-  }
-  return { top: 0, bottom: window.innerHeight, scroller: null };
-}
 
 // The first verse the reader can actually see. Starting from here is what stops
 // "Listen" from yanking the page back to verse 1 when the reader has scrolled
@@ -101,141 +86,19 @@ function firstVisibleVerse() {
   // Book view: start from the first verse that begins on the open pages.
   const book = document.querySelector('[data-testid=kjb-flipbook]');
   if (book) return book.dataset.firstVerse ? Number(book.dataset.firstVerse) : null;
-  const box = scrollBox();
+  const box = readingArea();
   const nodes = document.querySelectorAll('[id^="v"]');
   for (const el of nodes) {
     if (!/^v\d+$/.test(el.id)) continue;
     const r = el.getBoundingClientRect();
-    if (r.height > 0 && r.bottom > box.top + 24 && r.top < box.bottom - 40) {
+    if (r.height > 0 && r.bottom > box.top && r.top < box.bottom) {
       return Number(el.id.slice(1));
     }
   }
   return null;
 }
 
-// Bring an element fully inside the visible part of the scroller, moving the
-// least amount that does it. "centre" is used when the listener asked to go
-// somewhere (a play press, a verse pick) rather than for the verse that just
-// started speaking, which only moves the page when it would otherwise be cut off.
-// How much of the top of the scroller is covered by the sticky reader toolbar.
-// Measured rather than guessed: the toolbar grows and shrinks (it holds the
-// Listen player, and it is shorter when the header is hidden), and a fixed
-// number either left a gap above the verse or tucked its first line under the
-// bar. Whatever its height today, the verse lands flush beneath it.
-function topInset(box) {
-  const bar = document.querySelector('[data-kjb-reader-toolbar-wrap]');
-  let bottom = box.top + PAD_TOP;
-  if (bar) {
-    const b = bar.getBoundingClientRect();
-    if (b.height > 0) bottom = b.bottom;
-  }
-  // The chapter heading is anchored under the toolbar, so while it is stuck it
-  // covers that much more of the top of the page — a verse revealed beneath it
-  // would otherwise sit under the heading.
-  const band = document.getElementById('kjb-anchored-heading');
-  if (band) {
-    const b = band.getBoundingClientRect();
-    if (b.height > 0 && b.top <= bottom + 2) bottom = Math.max(bottom, b.bottom);
-  }
-  return Math.max(0, Math.round(bottom - box.top));
-}
 
-// A deliberate move — the page being taken to the top of a newly spoken verse, a
-// play press, a verse pick — is still settling for a moment. The follow loop must
-// not add its own scroll on top of it: measured mid-animation, it would scroll
-// for a distance the jump was already covering, so the page overshot the verse
-// and had to come back. Set whenever such a move is issued.
-let settleUntil = 0;
-
-function revealElement(el, { instant = false } = {}) {
-  if (!el) return;
-  const box = scrollBox();
-  const r = el.getBoundingClientRect();
-  const top = box.top + topInset(box) + GAP_TOP;
-  const bottom = box.bottom - PAD_BOTTOM;
-
-  // Its first line is already on screen: leave the page exactly where it is.
-  // The verse is being read from a line the reader can see, and the follow loop
-  // brings the rest of a long verse down as the voice reaches it. Moving a verse
-  // that is already in view up to the top is what made each new verse scroll far
-  // more than it needed to.
-  if (r.top >= top - 2 && r.top <= bottom - 24) return;
-
-  // Otherwise the verse starts off screen (below the fold, or with its first
-  // line already scrolled under the chrome): open it at its FIRST line, just
-  // below the sticky chrome, and follow the voice down it from there.
-  //
-  // The scroll is stated as an absolute position, not as a relative jump: this
-  // runs again once the layout has settled, and a second relative scroll issued
-  // mid-animation added its distance on top of the move already in flight — the
-  // page then landed past the verse instead of on it.
-  const current = box.scroller ? box.scroller.scrollTop : window.scrollY;
-  const target = current + (r.top - top);
-  if (Math.abs(target - current) < 2) return;
-  // The follow loop stays out of the way until this move has settled, so the
-  // two never scroll for the same distance at once.
-  settleUntil = performance.now() + 450;
-  const opts = { top: target };
-  if (!instant) opts.behavior = 'smooth';
-  (box.scroller || window).scrollTo(opts);
-}
-
-// The line of text the voice has reached. The clip's clock says nothing about
-// vertical space — a verse's lines are different lengths, and the voice spends
-// its time on words, not pixels — so the fraction played is turned into a
-// character position in the verse's own text and that character's line is
-// measured. That lands on the line actually being read, which is what lets the
-// page keep up with the voice instead of drifting behind it.
-function spokenLineRect(el) {
-  const nodes = [];
-  let total = 0;
-  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-    const len = n.nodeValue.length;
-    if (!len) continue;
-    nodes.push({ node: n, start: total, len });
-    total += len;
-  }
-  if (!total) return null;
-  const at = Math.min(total - 1, Math.max(0, Math.round(getProgress() * (total - 1))));
-  const hit = nodes.find((e) => at >= e.start && at < e.start + e.len);
-  if (!hit) return null;
-  const start = at - hit.start;
-  const range = document.createRange();
-  range.setStart(hit.node, start);
-  range.setEnd(hit.node, Math.min(hit.len, start + 1));
-  const rect = range.getBoundingClientRect();
-  // A collapsed space at the end of a line has no box of its own.
-  return rect.height || rect.width ? rect : null;
-}
-
-// A verse taller than the screen can never be shown whole, so the page opens it
-// at its first line (revealElement) and then holds still. This keeps it still
-// only until the words being read reach the foot of the reading area — the part
-// that would otherwise be hidden — and then moves just enough to keep that line
-// in view, a line at a time. So the reader always sees the verse from its top,
-// and the page follows only the portion that would have been out of sight.
-function followSpokenLine(el) {
-  if (!el) return;
-  // A deliberate move to this verse is still settling: scrolling now would add
-  // to it and overshoot.
-  if (performance.now() < settleUntil) return;
-  const box = scrollBox();
-  const r = el.getBoundingClientRect();
-  const top = box.top + topInset(box) + GAP_TOP;
-  const bottom = box.bottom - PAD_BOTTOM;
-  if (bottom - top <= 0) return;
-  const line = spokenLineRect(el);
-  if (!line) return;
-  // Only the words below the fold pull the page: nothing moves while the verse
-  // is being read from what is already on screen.
-  const drift = line.bottom - bottom;
-  if (drift <= 2) return;
-  // Never scroll past the verse's own last line.
-  const delta = Math.min(drift, Math.max(0, r.bottom - bottom));
-  if (delta < 2) return;
-  (box.scroller || window).scrollBy({ top: delta });
-}
 
 // A deliberate jump — a play press, a verse pick, a reset — lands at once and is
 // checked again after the bar has settled. Opening the player changes the
@@ -243,8 +106,8 @@ function followSpokenLine(el) {
 // left the page short of the verse (and short of the top after a reset).
 function jumpTo(el) {
   if (!el) return;
-  revealElement(el, { instant: true });
-  window.setTimeout(() => revealElement(el, { instant: true }), 350);
+  revealElement(el);
+  window.requestAnimationFrame(() => { if (el.isConnected) revealElement(el); });
 }
 
 function scrollToVerse(verse) {
@@ -382,14 +245,10 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   useEffect(() => {
     clearSpeaking();
     let timer = 0;
-    // Bringing a verse into view twice — once now and once after the browser has
-    // settled the new highlight and any reflow (fonts, the bar's own height) —
-    // is what stopped a verse being left half under the toolbar on a phone.
+    // Only one instant positioning pass. A delayed second jump used to fight
+    // the long-verse follower and pull the viewport away from the spoken words.
     const reveal = (el) => {
-      if (!followRef.current) return;
-      revealElement(el);
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => { if (followRef.current) revealElement(el); }, 320);
+      if (followRef.current) revealElement(el);
     };
 
     const targets = speakingTargets(tts.currentKind, tts.currentVerse);
@@ -407,14 +266,15 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   // while one is being read the page keeps following the voice down it instead
   // of stopping once the verse's first line is in view.
   useEffect(() => {
-    if (!tts.isActive || tts.currentVerse == null) return undefined;
-    const el = document.getElementById(`v${tts.currentVerse}`);
-    if (!el) return undefined;
+    if (tts.status !== 'playing' || tts.currentKind !== 'verse' || tts.currentVerse == null) return undefined;
     const id = window.setInterval(() => {
-      if (followRef.current) followSpokenLine(document.getElementById(`v${tts.currentVerse}`));
-    }, 150);
+      if (followRef.current) followVisibleWords(
+        document.getElementById(`v${tts.currentVerse}`),
+        getProgress(`${chapterKey}:${tts.currentVerse}`),
+      );
+    }, 100);
     return () => window.clearInterval(id);
-  }, [tts.isActive, tts.currentVerse, tts.currentKind]);
+  }, [tts.status, tts.currentVerse, tts.currentKind, chapterKey]);
 
   // While the chapter announcement plays, the heading is what is being spoken,
   // so the book name and chapter line carry the highlight (both the large
@@ -485,8 +345,8 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   useEffect(() => () => clearSpeaking(), []);
 
   useEffect(() => {
-    publishSpeaking(tts.isActive ? { verse: tts.currentVerse, kind: tts.currentKind, intro: tts.introActive } : null);
-  }, [tts.isActive, tts.currentVerse, tts.currentKind, tts.introActive]);
+    publishSpeaking(tts.isActive ? { verse: tts.currentVerse, kind: tts.currentKind, intro: tts.introActive, playing: tts.status === 'playing' } : null);
+  }, [tts.isActive, tts.currentVerse, tts.currentKind, tts.introActive, tts.status]);
   useEffect(() => () => publishSpeaking(null), []);
 
   // What the lock screen and the phone's media card say. Left alone they show

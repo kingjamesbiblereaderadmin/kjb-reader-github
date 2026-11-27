@@ -5,6 +5,7 @@ import TitlePage from '@/components/bible/TitlePage';
 import ContentsFlow from '@/components/bible/ContentsFlow';
 import FittedPage from '@/components/bible/FittedPage';
 import { useSpeaking, getProgress } from '@/lib/tts/speaking';
+import verseWords from '@/lib/tts/verseWords';
 import { getVerseHighlight } from '@/lib/verseHighlights';
 import './flipbook.css';
 
@@ -30,37 +31,15 @@ const ChapterFlow = React.forwardRef(function ChapterFlow({ blocks, width, heigh
 // this lands on that word's end far more closely than the verse's pixel width —
 // which is what made the turn happen before the word was finished.
 function visibleShare(el, flowLeft, colPeriod, boundaryCol) {
-  const nodes = [];
-  let total = 0;
-  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-    const len = n.nodeValue.length;
-    if (!len) continue;
-    nodes.push({ node: n, start: total, len });
-    total += len;
+  let end = 0;
+  for (const word of verseWords(el)) {
+    const rects = [...word.range.getClientRects()].filter((rect) => rect.width && rect.height);
+    if (!rects.length) continue;
+    const visible = rects.every((rect) => Math.floor((rect.right - flowLeft - 1) / colPeriod) < boundaryCol);
+    if (!visible) break;
+    end = word.end;
   }
-  if (!total) return 0;
-  const range = document.createRange();
-  const onOpenPages = (i) => {
-    const hit = nodes.find((e) => i >= e.start && i < e.start + e.len);
-    if (!hit) return false;
-    range.setStart(hit.node, i - hit.start);
-    range.setEnd(hit.node, i - hit.start + 1);
-    const r = range.getBoundingClientRect();
-    // A collapsed space at the end of a line has no box of its own.
-    if (!r.width && !r.height) return true;
-    // The column a character ends in. Characters are laid out in reading
-    // order, so this is true up to the last visible one and false after it.
-    return Math.floor(((r.width ? r.right : r.left) - flowLeft - 1) / colPeriod) < boundaryCol;
-  };
-  let lo = 0;
-  let hi = total - 1;
-  let last = -1;
-  while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
-    if (onOpenPages(mid)) { last = mid; lo = mid + 1; } else hi = mid - 1;
-  }
-  return last < 0 ? 0 : (last + 1) / total;
+  return end;
 }
 
 /** Printed-book view with controls anchored to the actual open pages. */
@@ -232,7 +211,7 @@ export default function FlipBook({
     const verseNode = (v) => (
       <span data-fbv={v.verse}>
         {Number(v.verse) !== 1 && <sup>{v.verse}</sup>}
-        <span dangerouslySetInnerHTML={markup(v.text, Number(v.verse) === jumped ? searchTerm : null)} />
+        <span className="kjb-verse-text" dangerouslySetInnerHTML={markup(v.text, Number(v.verse) === jumped ? searchTerm : null)} />
       </span>
     );
 
@@ -336,7 +315,7 @@ export default function FlipBook({
   // the open pages show: the share below is the end of that word, measured in
   // characters, which is what the voice spends its time on.
   useEffect(() => {
-    if (!spokenAt || spokenAt === 'intro' || spokenAt === 'end' || loading) return undefined;
+    if (!spokenAt || !speaking?.playing || speaking.kind !== 'verse' || loading) return undefined;
     const flow = measureRef.current;
     if (!flow) return undefined;
     const flowLeft = flow.getBoundingClientRect().left;
@@ -350,12 +329,15 @@ export default function FlipBook({
         let x1 = -Infinity;
         for (const r of rects) x1 = Math.max(x1, r.right - flowLeft);
         // Where the open pages stop in the chapter's flow.
-        const visibleEnd = (page + step) * (textW + gap);
+        // Cover/contents pages precede the scripture flow and must NOT count
+        // as visible text columns. Counting them delayed turns by a full page.
+        const textEnd = Math.max(0, page + step - front.length);
+        const visibleEnd = textEnd * (textW + gap);
         if (x1 <= visibleEnd + 1) return false;
-        need = visibleShare(el, flowLeft, colW + gap, (page + step) * perPage);
+        need = visibleShare(el, flowLeft, colW + gap, textEnd * perPage);
         if (!need || need >= 1) return false;
       }
-      if (getProgress() < need) return true;
+      if (getProgress(`${abbr}:${chapter}:${speaking.verse}`) < need) return true;
       turnTo(page + step);
       return false;
     };
@@ -363,7 +345,7 @@ export default function FlipBook({
     const timer = window.setInterval(read, 120);
     return () => window.clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spokenAt, page, step, pageCount, turn, loading, textW, gap, colW, perPage]);
+  }, [spokenAt, speaking?.playing, page, step, pageCount, turn, loading, textW, gap, colW, perPage, front.length, abbr, chapter]);
 
   // A verse or section picked in the toolbar, or a search result, opens its page.
   useEffect(() => {

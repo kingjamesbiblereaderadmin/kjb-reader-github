@@ -477,6 +477,7 @@ function speechText(raw: string) {
   return {
     text: splitEth(respell(fixed.text)),
     changed: fixed.changed,
+    revision: fixed.revision,
   };
 }
 
@@ -604,7 +605,7 @@ export default async function (req) {
   // Only a verse that holds one of those words gets a new key, so it is voiced
   // once more with the right pronunciation; every other verse keeps the clip it
   // already has and is never billed again.
-  const clipRef = spoken.changed ? `${ref}:h2` : ref;
+  const clipRef = spoken.revision ? `${ref}:${spoken.revision}` : ref;
   const seed = clipRef ? `${voice}|ref:${clipRef}` : `${voice}|text:${text}`;
   const hash = await sha256Hex(`${engine}|${seed}`);
 

@@ -20,11 +20,13 @@ export function useSpeaking() {
 // reactive store above: it changes several times a second, and the book view
 // polls it rather than re-rendering the reader on every tick.
 let progress = 0;
+let progressRef = null;
 
-export function publishProgress(fraction) {
+export function publishProgress(fraction, clipRef = null) {
+  progressRef = clipRef;
   progress = Number.isFinite(fraction) ? Math.min(1, Math.max(0, fraction)) : 0;
 }
 
-export function getProgress() {
-  return progress;
+export function getProgress(clipRef = null) {
+  return clipRef && clipRef !== progressRef ? 0 : progress;
 }
