@@ -23,6 +23,41 @@ const CORS_HEADERS = {
 const MAX_CHARS = 900;
 const ENGINE = 'azure';
 
+// Spend guard. A clip that is already cached is free to serve, but every cache
+// miss is billed to the app's speech account, and this endpoint is public: the
+// reader plays without an account, so it cannot simply demand a login. Two
+// module-level windows bound what an anonymous caller can cost: one caller can
+// generate a handful of new verses in a window, and the endpoint as a whole has
+// an hourly ceiling well above ordinary reading.
+const CALLER_MAX = 12;
+const CALLER_WINDOW_MS = 10 * 60 * 1000;
+const GLOBAL_MAX = 240;
+const GLOBAL_WINDOW_MS = 60 * 60 * 1000;
+const callerHits = new Map<string, number[]>();
+let globalHits: number[] = [];
+
+function callerKey(req) {
+  const fwd = String(req.headers.get('x-forwarded-for') || '');
+  return (fwd.split(',')[0] || req.headers.get('cf-connecting-ip') || 'unknown').trim() || 'unknown';
+}
+
+function takeBudget(key: string) {
+  const now = Date.now();
+  const mine = (callerHits.get(key) || []).filter((t) => now - t < CALLER_WINDOW_MS);
+  if (mine.length >= CALLER_MAX) {
+    callerHits.set(key, mine);
+    return false;
+  }
+  globalHits = globalHits.filter((t) => now - t < GLOBAL_WINDOW_MS);
+  if (globalHits.length >= GLOBAL_MAX) return false;
+  mine.push(now);
+  globalHits.push(now);
+  callerHits.set(key, mine);
+  // The map only has to hold the callers active in this window.
+  if (callerHits.size > 5000) callerHits.clear();
+  return true;
+}
+
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -552,7 +587,12 @@ export default async function (req) {
     console.error('[ttsVerse] cache lookup failed', err?.message);
   }
 
-  // 2. Generate.
+  // 2. Generate. Only a miss reaches this point, so only a miss is charged to a
+  // caller's budget: replays of a voiced verse are served from the cache above
+  // and never counted.
+  if (!takeBudget(callerKey(req))) {
+    return json({ error: 'busy', detail: 'Too many new verses at once. Try again in a few minutes.' }, 429);
+  }
   const generated = await synthesize(text, voice);
   if (!generated.ok) {
     return json({ error: generated.error, status: generated.status, detail: generated.detail }, generated.status === 501 ? 501 : 502);

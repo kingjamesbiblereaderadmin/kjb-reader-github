@@ -451,6 +451,23 @@ async function azureSpeech(text: string, voice: string) {
   return { ok: true as const, audio };
 }
 
+// Who may use this endpoint: every mode of it either spends the app's speech
+// budget or writes the shared clip library with the service role, and a backend
+// function is reachable by anyone who knows its URL. So the caller must prove it
+// is the owner — a signed-in admin, or the bulk runner presenting the app's own
+// token in the x-kjb-bulk-token header.
+async function isOwner(req) {
+  const expected = Deno.env.get('TTS_BULK_TOKEN') || '';
+  const given = req.headers.get('x-kjb-bulk-token') || '';
+  if (expected && given && given === expected) return true;
+  try {
+    const me = await createClientFromRequest(req).auth.me();
+    return me?.role === 'admin';
+  } catch {
+    return false;
+  }
+}
+
 export default async function (req) {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
@@ -461,6 +478,11 @@ export default async function (req) {
   } catch {
     return json({ error: 'bad_json' }, 400);
   }
+
+  // Nothing below this line runs for an anonymous caller: purge deletes the
+  // shared cache, store writes rows into it, and the batch path voices text at
+  // the app's expense.
+  if (!(await isOwner(req))) return json({ error: 'forbidden' }, 403);
 
   const voice = String(body.voice || '').trim();
 
