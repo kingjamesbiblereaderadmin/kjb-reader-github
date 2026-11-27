@@ -182,6 +182,8 @@ const PRONOUNCE: Record<string, string> = {
   nazarite: 'NAZ-uh-rite',
   nazarene: 'naz-uh-REEN',
   judaea: 'joo-DAY-uh',
+  heretick: 'HER-e-tik',
+  hereticks: 'HER-e-tiks',
   ashtoreth: 'ASH-tuh-reth',
   milcom: 'MIL-kom',
   rimmon: 'RIM-on',

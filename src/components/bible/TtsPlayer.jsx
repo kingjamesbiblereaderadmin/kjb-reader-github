@@ -4,7 +4,6 @@ import OutputDeviceMenu from '@/components/bible/OutputDeviceMenu';
 import { publishSpeaking, getProgress, getCompletedWords, subscribeProgress } from '@/lib/tts/speaking';
 import { readingArea, revealElement, alignToTop, sitsLow, inRightColumn, followVisibleWords } from '@/lib/tts/readerFollow';
 import { isMobile } from '@/lib/readerPosition';
-import useTtsWordHighlight from '@/hooks/useTtsWordHighlight';
 import { publishMediaMetadata, clearMediaMetadata } from '@/lib/tts/mediaSession';
 import useBibleTts from '@/hooks/useBibleTts';
 import { hasBundledAudio } from '@/lib/tts/localAudio';
@@ -179,7 +178,11 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   }, [onNextChapter, verses, chapterKey]);
 
   const tts = useBibleTts({ verses, chapterKey, subscript, colophon, titleText, endMarker, onChapterEnd: handleChapterEnd });
-  useTtsWordHighlight({ active: tts.status === 'playing', clip: tts.audibleClip });
+  // Owner's call (2026-11-27): the whole verse is washed, not word by word.
+  // The word mark was over-tall on a drop cap, stepped only part of a long
+  // verse, and left marks on the page just turned away. The wash below is the
+  // reading highlight: it covers the verse number and the text together, and
+  // covers the book name, superscription, colophon and closing line as well.
 
   // The web/PWA can carry a book for offline listening. Whether it does decides
   // two things in the bar: the download action itself, and whether Listen can
