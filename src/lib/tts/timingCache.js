@@ -59,6 +59,14 @@ export async function wordTimingFor(clip, voice, url, bytes) {
   // timings whose audio bytes match exactly, never another revision's clock.
   const direct = candidates.find((row) => row.audio_url && row.audio_url === url);
   const hash = !direct && bytes && globalThis.crypto?.subtle ? [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map((b) => b.toString(16).padStart(2, '0')).join('') : '';
-  const record = direct || candidates.find((row) => hash && row.audio_hash === hash);
+  // A native app plays the copy in its own bundle (a loopback or asset-pack
+  // URL) and a downloaded book plays a blob, so the URL never equals the row's
+  // own and the bytes are not always readable — the iOS loopback fetch is
+  // refused as mixed content, which left every verse on the phone without a word
+  // clock while the desktop, streaming from storage, matched directly. With a
+  // single timing row for the verse there is no second take to confuse it with,
+  // so the row is used as it stands.
+  const record = direct || candidates.find((row) => hash && row.audio_hash === hash)
+    || (candidates.length === 1 ? candidates[0] : null);
   return record ? buildWordClock(clip.text, record) : null;
 }
