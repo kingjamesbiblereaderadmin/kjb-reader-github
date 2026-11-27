@@ -6,6 +6,7 @@ import { publishMediaMetadata, clearMediaMetadata } from '@/lib/tts/mediaSession
 import useBibleTts from '@/hooks/useBibleTts';
 import useOfflineBook from '@/hooks/useOfflineBook';
 import OfflineBookControl from '@/components/bible/OfflineBookControl';
+import usePreviewMode from '@/hooks/usePreviewMode';
 import { TTS_RATES, TTS_STORAGE, readStored, writeStored } from '@/lib/tts/voices';
 import { getBookByAbbr } from '@/lib/bibleData';
 
@@ -318,6 +319,9 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     };
   }, []);
   const offlineBook = useOfflineBook({ bookKey, enabled: open || tts.isActive || !netOnline });
+  // Nothing downloaded can be kept in the builder's preview frame or a private
+  // window, so the download action is not offered there.
+  const previewMode = usePreviewMode();
   // What to say when the reader asks to listen to a book that is not on this
   // device and there is no connection to download it.
   const [offlineNote, setOfflineNote] = useState('');
@@ -693,7 +697,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
           <button onClick={withFollow(tts.prev)} disabled={idle} aria-label="Previous verse" className={`${CONTROL} disabled:opacity-40 disabled:pointer-events-none`}>
             <SkipBack className="w-4 h-4" />
           </button>
-          {idle && !netOnline && !offlineBook.downloaded ? (
+          {idle && !netOnline && !offlineBook.downloaded && !previewMode ? (
             // No connection and this book is not on the device: nothing can be
             // fetched, so the button says what would fix it instead of failing
             // silently on the first verse.
@@ -767,7 +771,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
             {!vertical && !inline && (autoContinue ? 'Continues' : 'One chapter')}
           </button>
           <OutputDeviceMenu value={tts.sinkId} onChange={tts.setSink} buttonClass={CONTROL} />
-          <OfflineBookControl offline={offlineBook} online={netOnline} compact={inline || vertical} />
+          {!previewMode && <OfflineBookControl offline={offlineBook} online={netOnline} compact={inline || vertical} />}
           {/* Inline (the minimized reader's slim bar) has no need for a
               minimise control: the bar's own chevron restores the header, and a
               second chevron in the player row read as a duplicate. */}

@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, BookOpen, Type, Wrench, Info, ArrowLeft, Scale } from 'lucide-react';
 import FontsSection from '@/components/credits/FontsSection';
+import LicensingSection from '@/components/credits/LicensingSection';
 import { isAppleStoreApp } from '@/lib/isAppleStoreApp';
 
 // App Store Review (2.3.10): on Apple builds, leave out Android / Google Play
@@ -285,6 +286,11 @@ export default function CreditsPage() {
             <span className="notranslate" translate="no">Google LLC</span>, or any other company or trademark owner
             listed above.
           </p>
+        </Section>
+
+        {/* Licensing & Permissions */}
+        <Section edge="from-slate-600 to-slate-400" iconBg="from-slate-600 to-slate-500" eyebrow="Licensing" icon={<BookOpen className="w-5 h-5" />} title="Licensing &amp; Permissions">
+          <LicensingSection />
         </Section>
 
         {/* Disclaimers & Legal */}
