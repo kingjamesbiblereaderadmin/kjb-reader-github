@@ -423,11 +423,12 @@ async function azureViaProxy(text: string, voice: string) {
 }
 
 async function azureSpeech(text: string, voice: string) {
-  // The secret's own registered name only: reading an unregistered name is what
-  // the security scan flags. Without a key the clip is voiced through the
-  // speech proxy below, which is how this app runs today.
-  const key = Deno.env.get('AZURE_SPEECH_KEY');
-  const region = Deno.env.get('AZURE_SPEECH_REGION') || 'southeastasia';
+  // Only a registered secret name is read: 'Azure' is the one this app has for
+  // its speech key. No region secret is registered, so the resource's region is
+  // fixed here rather than read from an unregistered name. Without a key the
+  // clip is voiced through the speech proxy below.
+  const key = Deno.env.get('Azure');
+  const region = 'southeastasia';
   if (!key) return azureViaProxy(text, voice);
   const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-GB'><voice name='${xmlEscape(voice)}'>${phonemeMarkup(xmlEscape(text))}</voice></speak>`;
   let upstream: Response;

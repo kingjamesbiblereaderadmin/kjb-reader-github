@@ -484,12 +484,12 @@ function xmlEscape(value: string) {
 // month. Commercial use of prebuilt neural voice output is allowed on a paid
 // Speech resource.
 async function azureSpeech(text: string, voice: string): Promise<SynthResult> {
-  // Only the secret's own registered name is read. The old fallback to a name
-  // the secret detector had guessed is gone: reading a name that is not a
-  // registered secret is what the security scan flags, and with no key here the
-  // clip is voiced through the speech proxy below, which is how this app runs.
-  const key = Deno.env.get('AZURE_SPEECH_KEY');
-  const region = Deno.env.get('AZURE_SPEECH_REGION') || 'southeastasia';
+  // Only a registered secret name is read: 'Azure' is the one this app has for
+  // its speech key. No region secret is registered, so the resource's region is
+  // fixed here rather than read from an unregistered name. With no key the clip
+  // is voiced through the speech proxy below.
+  const key = Deno.env.get('Azure');
+  const region = 'southeastasia';
   if (!key) return azureViaProxy(text, voice);
   const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-GB'><voice name='${xmlEscape(voice)}'>${phonemeMarkup(xmlEscape(text))}</voice></speak>`;
   let upstream: Response;
