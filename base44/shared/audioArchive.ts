@@ -112,6 +112,13 @@ export async function refreshBookArchive({ db, release, book, expected, latest, 
     await githubDeleteQuiet(`${api}/${uploaded.id}`, headers);
     return { book, alreadyRefreshed: true };
   }
-  await githubRequest(`${api}/${uploaded.id}`, headers, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+  try {
+    await githubRequest(`${api}/${uploaded.id}`, headers, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+  } catch (error) {
+    // A parallel run already renamed or cleared this copy: the book's archive is
+    // in place, so the batch carries on instead of failing over it.
+    if (/\(404\)/.test(String(error?.message))) return { book, alreadyRefreshed: true };
+    throw error;
+  }
   return { book, replaced, verses: originalCount, bytes: zipped.size };
 }

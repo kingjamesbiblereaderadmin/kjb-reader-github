@@ -26,25 +26,40 @@ export default async function(req) {
       return size(a) - size(b);
     });
     if (body.statusOnly === true) return Response.json({ remainingBooks: pending.length, totalBooks: Object.keys(targets.latestByBook).length });
-    const total = Object.keys(targets.latestByBook).length;
-    const progressPage = await db.entities.TtsStat.filter({ key: 'bundle_refresh' }, { limit: 1 });
-    let progress = (progressPage.items || progressPage)[0];
-    const save = async (done) => {
-      const data = { key: 'bundle_refresh', verses: done, recentChars: total, updated: new Date().toISOString() };
-      progress = progress ? await db.entities.TtsStat.update(progress.id, data) : await db.entities.TtsStat.create(data);
-    };
-    await save(total - pending.length);
-    const updatedBooks = [];
-    const deadline = Date.now() + 190000;
-    for (const [book, latest] of pending.slice(0, maxBooks)) {
-      if (Date.now() > deadline) break;
-      const expected = targets.candidates.filter((item) => item.ref.startsWith(`${book}:`)).map((item) => item.expected);
-      const result = await refreshBookArchive({ db, release, book, expected, latest, headers });
-      if (result.waitingForTiming) return Response.json({ updatedBooks, remainingBooks: pending.length - updatedBooks.length, waitingForTiming: book });
-      updatedBooks.push(result);
-      await save(total - pending.length + updatedBooks.length);
+
+    // One refresh at a time. Two runs working the same book fight over its
+    // archive asset and one of them fails, so a run that finds another in
+    // progress steps aside; the schedule picks the work up again shortly.
+    const lockPage = await db.entities.TtsStat.filter({ key: 'bundle_lock' }, { limit: 1 });
+    const held = (lockPage.items || lockPage)[0];
+    const heldFor = held ? Date.now() - Date.parse(held.updated || '') : Infinity;
+    if (held && heldFor < 240000) return Response.json({ busy: true, remainingBooks: pending.length });
+    const lockBody = { key: 'bundle_lock', updated: new Date().toISOString() };
+    const lock = held ? await db.entities.TtsStat.update(held.id, lockBody) : await db.entities.TtsStat.create(lockBody);
+
+    try {
+      const total = Object.keys(targets.latestByBook).length;
+      const progressPage = await db.entities.TtsStat.filter({ key: 'bundle_refresh' }, { limit: 1 });
+      let progress = (progressPage.items || progressPage)[0];
+      const save = async (done) => {
+        const data = { key: 'bundle_refresh', verses: done, recentChars: total, updated: new Date().toISOString() };
+        progress = progress ? await db.entities.TtsStat.update(progress.id, data) : await db.entities.TtsStat.create(data);
+      };
+      await save(total - pending.length);
+      const updatedBooks = [];
+      const deadline = Date.now() + 190000;
+      for (const [book, latest] of pending.slice(0, maxBooks)) {
+        if (Date.now() > deadline) break;
+        const expected = targets.candidates.filter((item) => item.ref.startsWith(`${book}:`)).map((item) => item.expected);
+        const result = await refreshBookArchive({ db, release, book, expected, latest, headers });
+        if (result.waitingForTiming) return Response.json({ updatedBooks, remainingBooks: pending.length - updatedBooks.length, waitingForTiming: book });
+        updatedBooks.push(result);
+        await save(total - pending.length + updatedBooks.length);
+      }
+      return Response.json({ updatedBooks, remainingBooks: pending.length - updatedBooks.length, complete: updatedBooks.length === pending.length });
+    } finally {
+      await db.entities.TtsStat.delete(lock.id).catch(() => {});
     }
-    return Response.json({ updatedBooks, remainingBooks: pending.length - updatedBooks.length, complete: updatedBooks.length === pending.length });
   } catch (error) {
     console.error('[refreshAudioBundles]', error.message);
     return Response.json({ error: error.message }, { status: 500 });
