@@ -19,13 +19,9 @@
 /* An opening page has no running head, but the ruled line still separates the
    controls from the title and keeps the foot rules of both pages level. */
 .kjb-fb-head-blank { letter-spacing: 0; }
-/* page number at the foot, centred beneath a hairline rule, as in a printed Bible */
-.kjb-fb-folio { flex: 1; display: flex; align-items: flex-start; justify-content: center; margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--fb-rule); font-family: Merriweather, Georgia, serif; font-size: 0.8rem; font-variant-numeric: oldstyle-nums; }
-
 /* Never shrink: the text window's height is exactly the column height the flow
    is fragmented at, so a few pixels of squeeze (a taller running head, a larger
-   root size) cut the foot off every column. The folio below gives up its slack
-   instead. */
+   root size) cut the foot off every column. */
 .kjb-fb-window { position: relative; overflow: hidden; flex: none; }
 
 /* The closing marker of a testament ("The End of the Prophets", "The End") is

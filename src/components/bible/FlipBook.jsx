@@ -58,7 +58,7 @@ export default React.forwardRef(function FlipBook({
   const rootRef = useRef(null);
   const [height, setHeight] = useState(520);
   const [footerHeight, setFooterHeight] = useState(64);
-  // Height of the running head and the folio under the text, measured from the
+  // Height of the running head above the text, measured from the
   // page's own markup. It is not a constant: at a larger root size (the legible
   // font, browser zoom) both grow, and a fixed reserve then left the text window
   // taller than the room beneath it — the foot of every column was cut off.
@@ -176,7 +176,7 @@ export default React.forwardRef(function FlipBook({
   const contentH = Math.max(120, pageH - 52 - footerHeight);
   // A hair of slack under the last line, so a descender is never shaved off by
   // the window's edge even when the measured chrome is a pixel out.
-  const textH = Math.max(80, contentH - chromeH - 2); // running head, folio and margins
+  const textH = Math.max(80, contentH - chromeH - 10); // running head, its margins and a little foot room
 
   // Contents flow through real page-sized columns, without a testament break.
   const contentsH = Math.max(80, contentH - 24);
@@ -205,8 +205,8 @@ export default React.forwardRef(function FlipBook({
     ...(fontFamilyValue ? { fontFamily: fontFamilyValue } : {}),
   }), [zoomLevel, fontFamilyValue]);
 
-  // Measure the running head and the folio as they actually render, so the text
-  // window is always exactly the space left between them. Declared here, after
+  // Measure the running head as it actually renders, so the text window is
+  // always exactly the space left under it. Declared here, after
   // the sizes it depends on.
   useLayoutEffect(() => {
     const el = chromeProbeRef.current;
@@ -461,7 +461,8 @@ export default React.forwardRef(function FlipBook({
   const lastIsLeft = spread && (((pageCount - 1 - pageOffsetRef.current) % 2) + 2) % 2 === 0;
   const fillLastPage = fillNext && !!continuationBlocks && !lastIsLeft;
 
-  // One printed page: a title page, the contents, or running head, text and page number.
+  // One printed page: a title page, the contents, or running head and text. Page
+  // numbers are shown once, in the book's bottom bar.
   const face = (index, side) => {
     if (index === -1 && hasBridge) return <div data-fb-previous="" className="h-full">{bridgeRef.current.face}</div>;
     if (index === pageCount && following && spread) return (
@@ -505,7 +506,6 @@ export default React.forwardRef(function FlipBook({
                 continuation={continuesHere ? continuationBlocks : null}
               />
             </div>
-            <div className="kjb-fb-folio">{textIndex + 1}</div>
           </>
         ))}
       </div>
@@ -605,7 +605,6 @@ export default React.forwardRef(function FlipBook({
           {/* Out of flow: only measured, never laid into the page. */}
           <div ref={chromeProbeRef} style={{ position: 'absolute', left: 0, top: 0, display: 'flex', flexDirection: 'column' }}>
             <div className="kjb-fb-head">{book.shortName} {chapter}</div>
-            <div className="kjb-fb-folio">1</div>
           </div>
           <ChapterFlow ref={measureRef} blocks={blocks} {...flowProps} page={0} textStyle={textStyle} />
         </div>

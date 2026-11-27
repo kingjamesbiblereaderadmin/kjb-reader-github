@@ -19,7 +19,6 @@ export default function BookContinuation({ passage, side, padLeft, padRight, foo
           <BookChapterBlocks {...passage} bookName={book.name} paragraphs={paragraphs} />
         </div>
       </div>
-      <div className="kjb-fb-folio">1</div>
     </>}
   </div>;
 }
