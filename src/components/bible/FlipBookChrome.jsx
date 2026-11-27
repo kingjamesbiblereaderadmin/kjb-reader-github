@@ -24,9 +24,11 @@ export default function FlipBookChrome({ controls, viewControl, where, onPreviou
       <div ref={refs.tools} className="kjb-reader-toolbar kjb-book-toolrail" role="group" aria-label="Reading tools" />
       <div ref={footerRef} className="kjb-book-bottom">
         <div ref={refs.context} className="kjb-reader-toolbar kjb-book-context" />
-        <div ref={refs.player} className="kjb-book-player" />
         <FlipBookNavigation where={where} onPrevious={onPrevious} onNext={onNext} canPrevious={canPrevious} canNext={canNext} busy={busy} />
       </div>
+      {/* The player is not part of the foot: it opens from the headphones button
+          on the right rail as a panel beside it, so the page keeps its height. */}
+      <div ref={refs.player} className="kjb-book-player" />
       {controls?.(slots)}
     </div>
   );
