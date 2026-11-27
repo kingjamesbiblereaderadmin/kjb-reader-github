@@ -139,6 +139,12 @@
 .kjb-fb-twocol .kjb-fb-title { font-size: 1.12em; }
 .kjb-fb-para { text-indent: 1.1em; }
 .kjb-fb-para.kjb-fb-first { text-indent: 0; }
+/* A pilcrow verse that opens a paragraph part-way down the page gets the same
+   blank line above it as the Read view gives it; when it lands at the top of a
+   page the gap is cleared (kjb-fb-flush) so it starts flush, like a
+   column-leading pilcrow verse. */
+.kjb-fb-para.kjb-fb-gap { margin-top: 1.25em; }
+.kjb-fb-para.kjb-fb-gap.kjb-fb-flush { margin-top: 0; }
 .kjb-flipbook mark { background: rgba(250, 204, 21, 0.55); color: inherit; border-radius: 2px; }
 .kjb-flipbook .kjb-fb-jumped { background: rgba(140, 47, 35, 0.12); }
 .kjb-flipbook .kjb-fb-selected { background: rgba(37, 99, 235, 0.18); box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.45); }

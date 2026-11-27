@@ -42,6 +42,29 @@ const RESPELL: Record<string, string> = {
 };
 
 export const CORRECTED_IPA: Record<string, string> = {
+  // Words the KJB prints with the æ ligature (Cæsar, Judæa, Cæsarea …). The
+  // reader spells the ligature out as "ae" before speaking, so they are keyed by
+  // the plain spelling and pinned to standard British forms; left to itself the
+  // engine can guess ("KAI-zar", "joo-DAY-uh").
+  caesar: 'ˈsiːzə',
+  caesarea: 'ˌsiːzəˈriːə',
+  judaea: 'dʒuːˈdiːə',
+  alphaeus: 'ælˈfiːəs',
+  galilaean: 'ˌɡælɪˈliːən',
+  galilaeans: 'ˌɡælɪˈliːənz',
+  arimathaea: 'ˌærɪməˈθiːə',
+  thaddaeus: 'ˈθædiːəs',
+  aeneas: 'ɪˈniːəs',
+  hymenaeus: 'ˌhaɪməˈniːəs',
+  lebbaeus: 'leˈbiːəs',
+  idumaea: 'aɪˈdjuːmiə',
+  bartimaeus: 'bɑːtɪˈmiːəs',
+  timaeus: 'tɪˈmiːəs',
+  praetorium: 'priːˈtɔːriəm',
+  ituraea: 'ˌɪtjʊˈriːə',
+  aenon: 'ˈiːnɒn',
+  chaldaeans: 'kælˈdiːənz',
+  epaenetus: 'ɪˈpiːnɪtəs',
   maykith: 'ˈmeɪkɪθ',
   impyootith: 'ɪmˈpjuːtɪθ',
   evildoer: 'ˈiːvəlˌduːə',

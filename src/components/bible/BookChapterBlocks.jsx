@@ -25,7 +25,7 @@ export default function BookChapterBlocks({ bookName, chapter, verses = [], subs
     {subscript && <p className="kjb-fb-note" data-fb-sec="sub" dangerouslySetInnerHTML={note(subscript, jumpSection === 'subscript' ? searchTerm : null)} />}
     {groups.map((group, index) => <React.Fragment key={group[0].verse}>
       {group[0].heading && <p className="kjb-fb-heading notranslate" data-fb-heading={group[0].verse}>{String(group[0].heading).replace(/^<<[^>]*>>\s*/, '')}</p>}
-      <p className={`kjb-fb-verse ${index === 0 && Number(group[0].verse) === 1 ? 'kjb-fb-first' : ''} ${paragraphs ? 'kjb-fb-para' : ''}`}>
+      <p className={`kjb-fb-verse ${index === 0 && Number(group[0].verse) === 1 ? 'kjb-fb-first' : ''} ${paragraphs ? 'kjb-fb-para' : ''} ${index > 0 && Number(group[0].verse) !== 1 ? 'kjb-fb-gap' : ''}`}>
         {group.map((v) => <React.Fragment key={v.verse}>
           <span data-fbv={v.verse}>
             {Number(v.verse) !== 1 && <sup>{v.verse}</sup>}

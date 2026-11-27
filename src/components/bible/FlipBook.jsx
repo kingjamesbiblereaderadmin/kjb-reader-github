@@ -415,6 +415,18 @@ export default React.forwardRef(function FlipBook({
     });
     // The drop cap is the paragraph's ::first-letter, outside the verse span's
     // own background, so the paragraph is marked too while its verse is spoken.
+    // A paragraph that opens part-way down a page keeps the blank line the Read
+    // view puts above a pilcrow verse. At the top of a page the same verse must
+    // sit flush with the first line of the text block, exactly as a
+    // column-leading pilcrow verse does in the Read view — so clear the gap only
+    // for the groups that land at a page's top edge.
+    root.querySelectorAll('.kjb-fb-gap').forEach((el) => {
+      const pageEl = el.closest('.kjb-fb-page');
+      if (!pageEl) return;
+      const padTop = parseFloat(getComputedStyle(pageEl).paddingTop || '0') || 0;
+      const top = el.getBoundingClientRect().top;
+      el.classList.toggle('kjb-fb-flush', top <= pageEl.getBoundingClientRect().top + padTop + 6);
+    });
     root.querySelectorAll('.kjb-fb-first').forEach((el) => {
       el.classList.toggle('kjb-fb-first-speaking', !!el.querySelector('.kjb-fb-speaking'));
     });

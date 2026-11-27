@@ -438,6 +438,58 @@ const IPA_NAMES: Record<string, string> = {
   midianites: 'ˈmɪdiənaɪts', moabites: 'ˈməʊəbaɪts', edomites: 'ˈiːdəmaɪts',
   kenites: 'ˈkiːnaɪts', philistines: 'fɪˈlɪstaɪnz', canaanites: 'ˈkeɪnənaɪts',
 };
+// Verses whose stored clip was voiced from damaged source text. The KJB text
+// file is windows-1252, so a reader that decoded it as UTF-8 turned the æ
+// ligature (Cæsar, Judæa) and the closing quote into one replacement
+// character: those clips say the wrong word ("C'sar"), and a book's last verse
+// also swallowed the colophon and the next book's title, which the player then
+// read a second time with no highlight. A clip is keyed by its reference, so
+// these refs move to a fresh key and are voiced once from the text the reader
+// sends now; every other verse keeps the clip it already has.
+const SPEECH_FIX_REFS = new Set([
+  '1CO:16:24', '1SA:31:13', '1TH:2:14', '1TH:5:28', '1TI:1:20', '1TI:6:21',
+  '2CO:13:14', '2CO:1:16', '2TH:3:18', '2TI:2:17', '2TI:4:22', 'ACT:10:1',
+  'ACT:10:24', 'ACT:10:37', 'ACT:11:1', 'ACT:11:11', 'ACT:11:28', 'ACT:11:29',
+  'ACT:12:19', 'ACT:15:1', 'ACT:17:7', 'ACT:18:22', 'ACT:1:13', 'ACT:1:8',
+  'ACT:21:10', 'ACT:21:16', 'ACT:21:8', 'ACT:23:23', 'ACT:23:33', 'ACT:25:1',
+  'ACT:25:10', 'ACT:25:11', 'ACT:25:12', 'ACT:25:13', 'ACT:25:21', 'ACT:25:4',
+  'ACT:25:6', 'ACT:25:8', 'ACT:26:20', 'ACT:26:32', 'ACT:27:24', 'ACT:28:19',
+  'ACT:28:21', 'ACT:2:14', 'ACT:2:7', 'ACT:2:9', 'ACT:7:4', 'ACT:8:1',
+  'ACT:8:40', 'ACT:9:30', 'ACT:9:31', 'ACT:9:33', 'ACT:9:34', 'COL:4:18',
+  'EPH:6:24', 'GAL:1:22', 'GAL:6:18', 'HEB:13:25', 'JHN:11:7', 'JHN:19:12',
+  'JHN:19:15', 'JHN:19:38', 'JHN:3:22', 'JHN:3:23', 'JHN:4:3', 'JHN:4:45',
+  'JHN:4:47', 'JHN:4:54', 'JHN:7:3', 'LUK:13:1', 'LUK:13:2', 'LUK:19:2',
+  'LUK:19:5', 'LUK:19:8', 'LUK:1:5', 'LUK:1:65', 'LUK:20:22', 'LUK:20:24',
+  'LUK:20:25', 'LUK:21:21', 'LUK:22:59', 'LUK:23:2', 'LUK:23:51', 'LUK:23:6',
+  'LUK:2:1', 'LUK:2:4', 'LUK:3:1', 'LUK:5:17', 'LUK:6:15', 'LUK:6:17',
+  'LUK:7:17', 'MAT:10:3', 'MAT:16:13', 'MAT:19:1', 'MAT:22:17', 'MAT:22:21',
+  'MAT:24:16', 'MAT:27:57', 'MAT:2:1', 'MAT:2:22', 'MAT:2:5', 'MAT:3:1',
+  'MAT:3:5', 'MAT:4:25', 'MRK:10:1', 'MRK:10:46', 'MRK:12:14', 'MRK:12:16',
+  'MRK:12:17', 'MRK:13:14', 'MRK:14:70', 'MRK:15:16', 'MRK:15:43', 'MRK:1:5',
+  'MRK:2:14', 'MRK:3:18', 'MRK:3:7', 'MRK:3:8', 'MRK:8:27', 'PHM:1:25',
+  'PHP:4:22', 'PHP:4:23', 'PSA:100:1', 'PSA:101:1', 'PSA:102:1', 'PSA:103:1',
+  'PSA:108:1', 'PSA:109:1', 'PSA:110:1', 'PSA:11:1', 'PSA:120:1', 'PSA:121:1',
+  'PSA:122:1', 'PSA:123:1', 'PSA:124:1', 'PSA:125:1', 'PSA:126:1', 'PSA:127:1',
+  'PSA:128:1', 'PSA:129:1', 'PSA:12:1', 'PSA:130:1', 'PSA:131:1', 'PSA:132:1',
+  'PSA:133:1', 'PSA:134:1', 'PSA:138:1', 'PSA:139:1', 'PSA:13:1', 'PSA:140:1',
+  'PSA:141:1', 'PSA:142:1', 'PSA:143:1', 'PSA:144:1', 'PSA:145:1', 'PSA:14:1',
+  'PSA:15:1', 'PSA:16:1', 'PSA:17:1', 'PSA:18:1', 'PSA:19:1', 'PSA:20:1',
+  'PSA:21:1', 'PSA:22:1', 'PSA:23:1', 'PSA:24:1', 'PSA:25:1', 'PSA:26:1',
+  'PSA:27:1', 'PSA:28:1', 'PSA:29:1', 'PSA:30:1', 'PSA:31:1', 'PSA:32:1',
+  'PSA:34:1', 'PSA:35:1', 'PSA:36:1', 'PSA:37:1', 'PSA:38:1', 'PSA:39:1',
+  'PSA:3:1', 'PSA:40:1', 'PSA:41:1', 'PSA:42:1', 'PSA:44:1', 'PSA:45:1',
+  'PSA:46:1', 'PSA:47:1', 'PSA:48:1', 'PSA:49:1', 'PSA:4:1', 'PSA:50:1',
+  'PSA:51:1', 'PSA:52:1', 'PSA:53:1', 'PSA:54:1', 'PSA:55:1', 'PSA:56:1',
+  'PSA:57:1', 'PSA:58:1', 'PSA:59:1', 'PSA:5:1', 'PSA:60:1', 'PSA:61:1',
+  'PSA:62:1', 'PSA:63:1', 'PSA:64:1', 'PSA:65:1', 'PSA:66:1', 'PSA:67:1',
+  'PSA:68:1', 'PSA:69:1', 'PSA:6:1', 'PSA:70:1', 'PSA:72:1', 'PSA:73:1',
+  'PSA:74:1', 'PSA:75:1', 'PSA:76:1', 'PSA:77:1', 'PSA:78:1', 'PSA:79:1',
+  'PSA:7:1', 'PSA:80:1', 'PSA:81:1', 'PSA:82:1', 'PSA:83:1', 'PSA:84:1',
+  'PSA:85:1', 'PSA:86:1', 'PSA:87:1', 'PSA:88:1', 'PSA:89:1', 'PSA:8:1',
+  'PSA:90:1', 'PSA:92:1', 'PSA:98:1', 'PSA:9:1', 'ROM:15:31', 'ROM:16:27',
+  'ROM:16:5', 'RUT:4:22', 'TIT:3:15',
+]);
+
 const IPA_RE = new RegExp(`\\b(${Object.keys(IPA_NAMES).join('|')})\\b`, 'gi');
 const hasIpa = (word: string) => Object.prototype.hasOwnProperty.call(IPA_NAMES, word.toLowerCase());
 
@@ -605,7 +657,9 @@ export default async function (req) {
   // Only a verse that holds one of those words gets a new key, so it is voiced
   // once more with the right pronunciation; every other verse keeps the clip it
   // already has and is never billed again.
-  const clipRef = spoken.revision ? `${ref}:${spoken.revision}` : ref;
+  const clipRef = SPEECH_FIX_REFS.has(ref) ? `${ref}:v2`
+    : spoken.revision ? `${ref}:${spoken.revision}`
+      : ref;
   const seed = clipRef ? `${voice}|ref:${clipRef}` : `${voice}|text:${text}`;
   const hash = await sha256Hex(`${engine}|${seed}`);
 

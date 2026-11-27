@@ -439,7 +439,11 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     // only need "Chapter 4". Marking it here is what keeps continuous playback
     // from naming the book again at a chapter boundary, which used to happen
     // whenever the player briefly went idle between chapters.
-    announcedRef.current = true;
+    // A title page ("The New Testament of our Lord and Saviour Jesus Christ…")
+    // is not a book name, so a session that starts there has still announced
+    // nothing: the chapter it rolls into must say "Matthew, chapter 1" rather
+    // than a bare "Chapter 1" with no word of which book is open.
+    announcedRef.current = chapter >= 1;
     tts.start(verse, intro);
   };
 
