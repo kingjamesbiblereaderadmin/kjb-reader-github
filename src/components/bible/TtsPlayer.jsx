@@ -4,6 +4,7 @@ import OutputDeviceMenu from '@/components/bible/OutputDeviceMenu';
 import { publishSpeaking, getProgress, getCompletedWords, subscribeProgress } from '@/lib/tts/speaking';
 import { readingArea, revealElement, alignToTop, sitsLow, inRightColumn, followVisibleWords } from '@/lib/tts/readerFollow';
 import { isMobile } from '@/lib/readerPosition';
+import { paintWordHighlight, clearWordHighlight } from '@/lib/tts/wordHighlight';
 import { publishMediaMetadata, clearMediaMetadata } from '@/lib/tts/mediaSession';
 import useBibleTts from '@/hooks/useBibleTts';
 import { hasBundledAudio } from '@/lib/tts/localAudio';
@@ -300,12 +301,20 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     // layout, so follow the copy that is actually on screen.
     const element = () => (note
       ? speakingTargets(note).find((el) => el.getBoundingClientRect().height > 0) || null
-      : document.getElementById(`v${tts.currentVerse}`));
+      : document.getElementById(`v${tts.currentVerse}`) || document.querySelector(`[data-fbv="${tts.currentVerse}"]`));
     const follow = (progress, clipRef, completedWords) => {
-      if (followRef.current && clipRef === ref) followVisibleWords(element(), progress, completedWords);
+      if (clipRef !== ref) return;
+      // Word by word: the word the voice is on is painted inside the verse that
+      // is playing, from that verse's own text (no wrapper elements).
+      if (!note) paintWordHighlight(element(), completedWords);
+      if (followRef.current) followVisibleWords(element(), progress, completedWords);
     };
     follow(getProgress(ref), ref, getCompletedWords(ref));
-    return subscribeProgress(follow);
+    const unsubscribe = subscribeProgress(follow);
+    return () => {
+      unsubscribe();
+      clearWordHighlight();
+    };
   }, [tts.status, tts.currentVerse, tts.currentKind, chapterKey]);
 
   // While the chapter announcement plays, the heading is what is being spoken,
