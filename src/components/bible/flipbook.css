@@ -98,6 +98,14 @@
 .kjb-flipbook [data-fb-colour='purple'] { background: rgba(192, 132, 252, 0.3); }
 .kjb-flipbook .kjb-fb-tapped { text-decoration: underline dotted var(--fb-red); text-underline-offset: 3px; }
 .kjb-flipbook .kjb-fb-speaking { background: rgba(176, 132, 40, 0.26); }
+/* The subscription and the postscript sit on their own centred line, so a flat
+   wash alone read as barely there while they were being spoken: the same halo
+   the reader's own headings use gives them a clear, unmistakable edge. */
+.kjb-flipbook .kjb-fb-note.kjb-fb-speaking {
+  background: rgba(176, 132, 40, 0.22);
+  box-shadow: 0 0 0 7px rgba(176, 132, 40, 0.14);
+  border-radius: 3px;
+}
 /* The opening drop cap is the paragraph's ::first-letter, so the verse span's
    wash never reached it: the big letter sat outside the highlight while the
    rest of verse 1 was marked. FlipBook marks the verse-1 paragraph itself

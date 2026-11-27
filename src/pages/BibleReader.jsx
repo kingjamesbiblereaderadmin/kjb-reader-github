@@ -1954,6 +1954,13 @@ export default function BibleReader() {
       {!flipbookOpen && (
       <div id="kjb-anchored-heading" className="print:static sticky z-[95] -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background pt-1" style={{ top: stickyTop }}>
       {bookToggleNode}
+      {/* In two columns the chapter's name and number are printed as a running
+          head instead of the large heading — and it lives in this band too, so
+          the book you are in never scrolls away. (The large heading stays for
+          print, where the running head is not shown.) */}
+      {!isViewingTitlePage && columnMode && pos.chapter !== 1 && !(filterMode && selectedVerses.size > 0) && (
+        <RunningHead bookName={book.name} chapter={pos.chapter} baseFontRem={zoomLevel / 100 * 0.7} isCursive={fontFamily === 'cursive'} />
+      )}
       {!isViewingTitlePage && (!(filterMode && selectedVerses.size > 0) || chapterSubscript) && (
         <div className={`text-center mb-4 ${(!columnMode || pos.chapter === 1 || (filterMode && selectedVerses.size > 0)) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
           {filterMode && selectedVerses.size > 0 ? null : (
@@ -1996,9 +2003,8 @@ export default function BibleReader() {
           </div>
         )}
         <div className="relative">
-        {!loading && !error && verses.length > 0 && columnMode && !isViewingTitlePage && pos.chapter !== 1 && (
-          <RunningHead bookName={book.name} chapter={pos.chapter} baseFontRem={zoomLevel / 100 * 0.7} isCursive={fontFamily === 'cursive'} />
-        )}
+        {/* The running head lives in the anchored band above, so the columns
+            start straight away. */}
         {!loading && !error && verses.length > 0 && (() => {
           // selectedVerses may contain numbers (restored from localStorage) while
           // v.verse can be a string from the cached Bible data. Coerce both so the
@@ -2062,7 +2068,7 @@ export default function BibleReader() {
               aria-hidden="true"
               data-testid="kjb-two-col-flow-divider"
               className="absolute bottom-0 left-1/2 w-px -translate-x-1/2 pointer-events-none"
-              style={{ top: !isViewingTitlePage && pos.chapter !== 1 ? '-1.5rem' : '0', backgroundColor: 'hsl(var(--border))' }}
+              style={{ top: '0', backgroundColor: 'hsl(var(--border))' }}
             />
           )}
           <div ref={useColumns ? columnsContainerRef : null} data-testid={useColumns ? 'kjb-two-col-container' : undefined} className={`${useColumns ? 'kjb-two-col text-justify hyphens-auto' : 'text-justify'} ${paragraphMode ? 'text-justify px-2 sm:px-4' : ''}`} style={useColumns ? { fontSize: 'inherit', columnCount: 2, columnGap: fontFamily === 'cursive' ? '3.5rem' : '2.5rem', columnRule: '1px solid hsl(var(--border))' } : { fontSize: 'inherit' }}>

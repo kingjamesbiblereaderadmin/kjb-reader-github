@@ -196,6 +196,12 @@ export default function FlipBook({
 
   const blocks = useMemo(() => {
     const markup = (t, term = null) => ({ __html: renderVerseText(String(t).replace(/^<<[^>]*>>\s*/, ''), term) });
+    // The subscription and the postscript open with the printed pilcrow (¶), as
+    // they do in the normal reader. The source text only carries it sometimes,
+    // so it is added here — and stripped first, so it is never doubled.
+    const noteMarkup = (t, term = null) => ({
+      __html: `<span class="pilcrow">¶</span> ${renderVerseText(String(t).replace(/^<<[^>]*>>\s*/, '').replace(/^[\u00B6\uFFFD]\s*/, ''), term)}`,
+    });
     if (chapter === 0) return null;
 
     // "Reading verses 3-5" shows only those, as the normal reader does.
@@ -225,13 +231,13 @@ export default function FlipBook({
           <h2 className="kjb-fb-title">{bookName}</h2>
           <p className="kjb-fb-chapter">Chapter {chapter}</p>
         </div>
-        {subscript && <p className="kjb-fb-note" data-fb-sec="sub" dangerouslySetInnerHTML={markup(subscript, jumpSection === 'subscript' ? searchTerm : null)} />}
+        {subscript && <p className="kjb-fb-note" data-fb-sec="sub" dangerouslySetInnerHTML={noteMarkup(subscript, jumpSection === 'subscript' ? searchTerm : null)} />}
         {groups.map((group, i) => (
           <p key={group[0].verse} className={`kjb-fb-verse ${i === 0 && Number(group[0].verse) === 1 ? 'kjb-fb-first' : ''} ${paragraphs ? 'kjb-fb-para' : ''}`}>
             {group.map((v) => <React.Fragment key={v.verse}>{verseNode(v)}{' '}</React.Fragment>)}
           </p>
         ))}
-        {colophon && (!filtered || picked(verses[verses.length - 1] || {})) && <p className="kjb-fb-note" data-fb-sec="col" dangerouslySetInnerHTML={markup(colophon, jumpSection === 'colophon' ? searchTerm : null)} />}
+        {colophon && (!filtered || picked(verses[verses.length - 1] || {})) && <p className="kjb-fb-note" data-fb-sec="col" dangerouslySetInnerHTML={noteMarkup(colophon, jumpSection === 'colophon' ? searchTerm : null)} />}
       </>
     );
   }, [bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses]);
