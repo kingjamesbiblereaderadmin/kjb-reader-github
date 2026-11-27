@@ -1129,10 +1129,23 @@ html.kjb-native-ios select {
   letter-spacing: 0.01em;
 }
 
-/* Normal reading uses the verse's wash alone. A second fill behind the
-   floated cap darkened that letter; book mode has its own first-letter rule. */
-.kjb-speaking .kjb-dropcap-group {
-  background-color: transparent;
+/* The drop cap must have the same layers as every other spoken word: the
+   verse wash underneath, then the word mark. Clear any tint or page-colour
+   mask set inline (saved highlight, direct jump), which beats a plain rule. */
+.kjb-speaking .kjb-dropcap-group,
+.kjb-speaking .kjb-dropcap-letter {
+  background-color: transparent !important;
+}
+/* Paragraph flow: verse 1 is an inline box, so its wash never reaches behind
+   the floated cap. Give the letter that same wash itself. */
+span.inline.kjb-speaking .kjb-dropcap-letter {
+  background-color: hsl(var(--accent) / 0.10) !important;
+}
+.dark span.inline.kjb-speaking .kjb-dropcap-letter {
+  background-color: hsl(var(--accent) / 0.28) !important;
+}
+.kjb-two-col > span.inline.kjb-speaking .kjb-dropcap-letter {
+  background-color: hsl(var(--accent) / 0.14) !important;
 }
 
 /* One highlight only while a verse is being read. The row's wash is the "this
