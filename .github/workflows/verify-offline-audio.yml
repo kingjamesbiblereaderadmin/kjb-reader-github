@@ -1,0 +1,108 @@
+name: Verify offline Listen audio
+
+# One-off proof that a book's Listen audio plays out of the app's own bundled
+# assets with the network off.
+#
+# Builds a debug APK that carries only Genesis (72 MB, so the emulator can
+# install it quickly), puts the emulator in airplane mode, launches the app,
+# attaches to its WebView over the devtools socket and asks the app's own
+# origin for clips: the shell serves /audio/... straight out of the APK assets.
+# The shipping AAB is checked separately for all 66 books / 31,102 clips.
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web + sync
+        run: npm run build && npx cap sync android
+
+      - name: Put the Genesis archive into the APK assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p android/app/src/main/assets/audio
+          ID=$(curl -s -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/audio-v1" | jq -r '.assets[] | select(.name=="GEN.zip") | .id') && echo "GEN asset id: $ID" && curl -sL -H "Authorization: token $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/assets/$ID" -o /tmp/GEN.zip && python3 -m zipfile -e /tmp/GEN.zip android/app/src/main/assets/audio/GEN && echo "GEN clips: $(find android/app/src/main/assets/audio/GEN -name '*.mp3' | wc -l)"
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4.0.4
+
+      - name: Generate Gradle wrapper (if missing)
+        working-directory: android
+        run: |
+          if [ ! -f gradlew ]; then gradle wrapper --gradle-version 8.13; fi
+          chmod +x gradlew || true
+
+      - name: Build debug APK (carries Genesis audio)
+        working-directory: android
+        run: ./gradlew --stacktrace assembleDebug
+
+      - name: Enable KVM (hardware-accelerated emulation on the Linux runner)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Play a chapter with the network off
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          APK: android/app/build/outputs/apk/debug/app-debug.apk
+          APP_ID: com.kingjamesbiblereader.twa
+        with:
+          api-level: 33
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-boot-timeout: 300
+          script: |
+            adb install -r "$APK"
+            adb shell settings put global airplane_mode_on 1
+            adb shell cmd connectivity airplane-mode enable || true
+            adb shell svc wifi disable || true
+            adb shell svc data disable || true
+            sleep 5
+            adb shell ping -c 1 -W 2 8.8.8.8 || echo "host unreachable from the device (expected)"
+            adb logcat -c
+            adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
+            sleep 40
+            adb exec-out screencap -p > offline-audio-screen.png
+            PID=$(adb shell pidof "$APP_ID" | tr -d '\r') && echo "app pid=$PID" && adb forward tcp:9222 localabstract:webview_devtools_remote_$PID
+            sleep 3
+            curl -s http://127.0.0.1:9222/json/version
+            node scripts/verify-offline-audio.mjs
+            adb logcat -d > logcat-offline.txt
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: offline-audio-evidence
+          path: |
+            offline-audio-screen.png
+            logcat-offline.txt
+          if-no-files-found: ignore
+          retention-days: 14
