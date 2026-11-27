@@ -1123,7 +1123,6 @@ html.kjb-native-ios select {
   background-color: hsl(var(--accent) / 0.32) !important;
   color: inherit;
 }
-
 .kjb-speaking .kjb-verse-text,
 .kjb-speaking .kjb-verse-text:hover {
   background-color: transparent !important;
