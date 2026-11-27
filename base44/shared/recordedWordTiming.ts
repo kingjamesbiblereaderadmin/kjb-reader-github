@@ -5,7 +5,7 @@ import { timingReference } from './timingScope.ts';
 export async function measureRecordedWords(row, key) {
   const inline = /^data:audio\/mpeg;base64,[A-Za-z0-9+/=]+$/.test(row.url);
   if (row.url.length > 2100000) throw new Error('Recording exceeds alignment bounds');
-  if (!inline && !/^https:\/\/([a-z0-9-]+\.)*(base44\.app|base44\.com|wixstatic\.com)\//i.test(row.url)) throw new Error('Recording is not on approved storage');
+  if (!inline && !/^https:\/\/([a-z0-9-]+\.)*(base44\.app|base44\.com|wixstatic\.com|discloud\.dev)\//i.test(row.url)) throw new Error('Recording is not on approved storage');
   const response = await fetch(row.url, { signal: AbortSignal.timeout(12000) });
   if (!response.ok) throw new Error(`Recording download: ${response.status}`);
   const bytes = await response.arrayBuffer();

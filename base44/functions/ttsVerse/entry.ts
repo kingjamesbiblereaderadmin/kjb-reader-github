@@ -99,7 +99,7 @@ async function takeGlobalBudget(db): Promise<boolean> {
 // skipped for listening. Such a row is treated as a miss and replaced with a
 // fresh upload the next time the verse is asked for.
 function clipUrlUsable(url: string): boolean {
-  return /^https:\/\/([a-z0-9-]+\.)*(base44\.app|base44\.com|wixstatic\.com)\//i.test(String(url || ''));
+  return /^https:\/\/([a-z0-9-]+\.)*(base44\.app|base44\.com|wixstatic\.com|discloud\.dev)\//i.test(String(url || ''));
 }
 
 function json(data, status = 200) {
