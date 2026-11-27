@@ -139,6 +139,13 @@ function topInset(box) {
   return Math.max(0, Math.round(bottom - box.top));
 }
 
+// A deliberate move — the page being taken to the top of a newly spoken verse, a
+// play press, a verse pick — is still settling for a moment. The follow loop must
+// not add its own scroll on top of it: measured mid-animation, it would scroll
+// for a distance the jump was already covering, so the page overshot the verse
+// and had to come back. Set whenever such a move is issued.
+let settleUntil = 0;
+
 function revealElement(el, { center = false, instant = false } = {}) {
   if (!el) return;
   const box = scrollBox();
@@ -148,19 +155,18 @@ function revealElement(el, { center = false, instant = false } = {}) {
   const bottom = box.bottom - PAD_BOTTOM;
   const scroll = (delta) => {
     if (!delta) return;
+    settleUntil = performance.now() + 450;
     const opts = { top: delta };
     if (!instant) opts.behavior = 'smooth';
     (box.scroller || window).scrollBy(opts);
   };
 
-  // A verse taller than the visible area can never be shown whole. Pinning its
-  // top (what this used to do) jumped the page at the start of every long verse,
-  // and the follow loop then scrolled straight back down to the words being read
-  // — the page lurched to the verse's first line and hunted from there. Once any
-  // of the verse is on screen the follow loop owns it, so nothing moves here;
-  // only a verse that is entirely off screen is brought in.
+  // A verse taller than the visible area can never be shown whole, so it is
+  // opened at its first line, just below the toolbar, and the reader follows the
+  // voice down it from there. The follow loop stays out of the way until this
+  // move has settled, so the two never scroll for the same distance at once.
   if (r.height > bottom - top) {
-    if (r.bottom > top + 8 && r.top < bottom - 8) return;
+    if (r.top >= top - 2 && r.top <= top + 12) return;
     scroll(r.top - top);
     return;
   }
@@ -202,43 +208,31 @@ function spokenLineRect(el) {
   return rect.height || rect.width ? rect : null;
 }
 
-// Keep the words being read on screen — short verses and tall ones alike.
-// A verse taller than the screen can never be shown whole, so pinning its top
-// (what revealElement does) left the second half of it under the fold while the
-// voice read on, and the page never moved again for that verse. Here the page
-// walks with the spoken line instead: it holds still while that line sits
-// comfortably inside the reading area, and follows it down — or back up, if the
-// reader scrolled away — once it drifts out of that band. The band is what keeps
-// the page moving about once per line rather than on every clock tick, and in
-// two columns it follows the voice across the column rule, since a line's own
-// rect is where the reader's eye has to be.
+// A verse taller than the screen can never be shown whole, so the page opens it
+// at its first line (revealElement) and then holds still. This keeps it still
+// only until the words being read reach the foot of the reading area — the part
+// that would otherwise be hidden — and then moves just enough to keep that line
+// in view, a line at a time. So the reader always sees the verse from its top,
+// and the page follows only the portion that would have been out of sight.
 function followSpokenLine(el) {
   if (!el) return;
+  // A deliberate move to this verse is still settling: scrolling now would add
+  // to it and overshoot.
+  if (performance.now() < settleUntil) return;
   const box = scrollBox();
   const r = el.getBoundingClientRect();
   const top = box.top + topInset(box) + GAP_TOP;
   const bottom = box.bottom - PAD_BOTTOM;
-  const visible = bottom - top;
-  if (visible <= 0) return;
+  if (bottom - top <= 0) return;
   const line = spokenLineRect(el);
   if (!line) return;
-  // Two thirds down: the lines just read stay in view above it, and the line
-  // coming next is already visible below.
-  const want = top + visible * 0.66;
-  const drift = line.bottom - want;
-  if (Math.abs(drift) < Math.max(10, visible * 0.07)) return;
-  // Never walk the verse's own first line out of the top of the reading area,
-  // and never scroll past its last line.
-  const delta = Math.max(
-    Math.min(0, r.top - top),
-    Math.min(drift, Math.max(0, r.bottom - bottom))
-  );
-  if (Math.abs(delta) < 6) return;
-  // Scrolled instantly, not smoothly: the loop measures the spoken line again a
-  // quarter second later, and a smooth animation still in flight is measured
-  // mid-way — each tick would then add the whole remaining distance again, so
-  // the page overshot the line and hunted back up. A single line's step looks
-  // the same either way.
+  // Only the words below the fold pull the page: nothing moves while the verse
+  // is being read from what is already on screen.
+  const drift = line.bottom - bottom;
+  if (drift <= 2) return;
+  // Never scroll past the verse's own last line.
+  const delta = Math.min(drift, Math.max(0, r.bottom - bottom));
+  if (delta < 2) return;
   (box.scroller || window).scrollBy({ top: delta });
 }
 
@@ -414,7 +408,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     if (!el) return undefined;
     const id = window.setInterval(() => {
       if (followRef.current) followSpokenLine(document.getElementById(`v${tts.currentVerse}`));
-    }, 250);
+    }, 150);
     return () => window.clearInterval(id);
   }, [tts.isActive, tts.currentVerse, tts.currentKind]);
 
