@@ -135,7 +135,7 @@
    Passage tabs occupy the top-left corner, tools the outer right margin,
    and navigation the foot. The text reserves all three areas. */
 .kjb-fb-chrome { position: absolute; inset: 0; z-index: 20; pointer-events: none; font-family: var(--font-sans); }
-.kjb-book-location, .kjb-book-view-control, .kjb-book-toolrail, .kjb-book-bottom, .kjb-book-player { pointer-events: auto; }
+.kjb-book-location, .kjb-book-view-control, .kjb-book-rail, .kjb-book-bottom { pointer-events: auto; }
 .kjb-fb-chrome button { cursor: pointer; min-height: 44px; color: var(--fb-ink); background: transparent; border: 0; box-shadow: none; transition: background-color 160ms ease; }
 .kjb-fb-chrome button:hover:not(:disabled) { background: hsl(var(--foreground) / 0.08); }
 .kjb-fb-chrome button:focus-visible { outline: 2px solid var(--fb-ink); outline-offset: -2px; }
@@ -149,7 +149,11 @@
 .kjb-book-view-control { position: absolute; top: 6px; right: 12px; }
 .kjb-book-view-control .kjb-book-toggle-row { margin: 0; }
 .kjb-book-view-control .kjb-book-toggle { min-width: 44px; padding: 0 8px; text-decoration: none; font-family: var(--font-sans); font-size: 0.75rem; }
-.kjb-book-toolrail { position: absolute; top: 64px; right: 8px; bottom: calc(var(--fb-footer-height) + 8px); display: flex; flex-direction: column; align-items: center; gap: 4px; width: 44px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; border-left: 1px solid var(--fb-rule); }
+/* The right rail is one column: the tools, then the player continuing beneath
+   them in the same panel. It scrolls as a whole if the set outgrows the page. */
+.kjb-book-rail { position: absolute; top: 64px; right: 8px; bottom: calc(var(--fb-footer-height) + 8px); display: flex; flex-direction: column; align-items: center; gap: 4px; width: 44px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; border-left: 1px solid var(--fb-rule); }
+.kjb-book-rail::-webkit-scrollbar { display: none; }
+.kjb-book-toolrail { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; flex: none; }
 .kjb-book-toolrail > div { flex: none; }
 .kjb-book-toolrail button { flex: none; width: 44px; height: 44px; padding: 0; }
 .kjb-book-toolrail button > span { display: none; }
@@ -165,42 +169,17 @@
 /* A tap leaves :hover stuck on touch screens; the wash must never dim the one
    filled control in the row. */
 .kjb-book-player button.bg-primary:hover:not(:disabled) { background: var(--fb-ink); }
-/* The player opens from the headphones button as a column of controls directly
-   BENEATH it — same column as the rail, not beside it — so the button and the
-   panel read as one stack. */
-.kjb-book-player {
-  position: absolute;
-  top: 64px;
-  right: 8px;
-  z-index: 2;
-  width: 112px;
-  padding: 8px;
-  max-height: calc(100% - 76px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  background: var(--fb-paper);
-  border: 1px solid var(--fb-rule);
-  border-radius: 10px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
-  /* The panel is sized to hold every control, so a scrollbar only ever appeared
-     as a sliver eating the right-hand column of icons. Hidden, and the panel
-     still scrolls if a very short screen leaves it no room. */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.kjb-book-player::-webkit-scrollbar { display: none; }
+/* The player is part of the rail, not a panel of its own: same column, same
+   icons, continuing directly beneath the headphones button it opens from. */
+.kjb-book-player { flex: none; width: 100%; padding-top: 4px; border-top: 1px solid var(--fb-rule); }
 .kjb-book-player section { margin: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
-/* Two short columns instead of one long strip, so the whole set fits under the
-   headphones button without scrolling, with room around every icon. */
 .kjb-book-player section > div {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
 }
 .kjb-book-player section button { width: 100%; height: 44px; min-height: 44px; padding: 0; }
-/* Play takes a full-width row of its own above the grid — the one control a
-   listener reaches for, sized like the rail's buttons. */
-.kjb-book-player section button.bg-primary { grid-column: 1 / -1; order: -1; }
 .kjb-book-navigation { display: grid; grid-template-columns: minmax(44px, 1fr) minmax(0, 3fr) minmax(44px, 1fr); align-items: center; gap: 4px; min-height: 64px; margin-inline: 12px; padding-block: 8px; border-top: 1px solid var(--fb-rule); }
 .kjb-book-page-step { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 8px; font-size: 0.8rem; }
 .kjb-book-position { text-align: center; font-family: var(--font-serif); font-size: 0.72rem; line-height: 1.5; font-variant-numeric: tabular-nums; }
