@@ -1,14 +1,18 @@
 import React from 'react';
 import { renderVerseText } from '@/lib/bibleApi';
+import { getShyMap, injectShyHtml } from '@/lib/softHyphens';
 
 export default function BookChapterBlocks({ bookName, chapter, verses = [], subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses }) {
   if (chapter === 0) return null;
   const markup = (text, term = null, dropCap = false) => {
     let html = renderVerseText(String(text).replace(/^<<[^>]*>>\s*/, ''), term);
     if (dropCap) html = html.replace(/^((?:<[^>]+>|\s|¶)*)(\p{L})/u, '$1<span class="kjb-fb-dropcap">$2</span>');
-    return { __html: html };
+    // The app's own break points (as in the Read view), so justified lines break
+    // words with a dash instead of stretching the spaces, even beside the drop
+    // cap, where the browser's own hyphenation often gives up.
+    return { __html: injectShyHtml(html, getShyMap()) };
   };
-  const note = (text, term = null) => ({ __html: `<span class="pilcrow">¶</span> ${renderVerseText(String(text).replace(/^<<[^>]*>>\s*/, '').replace(/^[\u00B6\uFFFD]\s*/, ''), term)}` });
+  const note = (text, term = null) => ({ __html: injectShyHtml(`<span class="pilcrow">¶</span> ${renderVerseText(String(text).replace(/^<<[^>]*>>\s*/, '').replace(/^[\u00B6\uFFFD]\s*/, ''), term)}`, getShyMap()) });
   const picked = (v) => selectedVerses?.has(Number(v.verse)) || selectedVerses?.has(String(v.verse));
   const filtered = !!(filterMode && !selectMode && selectedVerses?.size);
   const groups = [];

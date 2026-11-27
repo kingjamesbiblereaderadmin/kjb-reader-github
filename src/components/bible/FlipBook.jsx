@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useImperativeHandle, useLayoutEffect, us
 import FlipBookChrome from '@/components/bible/FlipBookChrome';
 import BookChapterBlocks from '@/components/bible/BookChapterBlocks';
 import BookContinuation from '@/components/bible/BookContinuation';
+import { ensureShyMap, installShyCopySanitizer } from '@/lib/softHyphens';
 import BookFlowPrefix from '@/components/bible/BookFlowPrefix';
 import useFollowingChapter from '@/hooks/useFollowingChapter';
 import TitlePage from '@/components/bible/TitlePage';
@@ -160,6 +161,9 @@ export default React.forwardRef(function FlipBook({
   useEffect(() => {
     let alive = true;
     document.fonts?.ready.then(() => alive && setFontTick((t) => t + 1));
+    // Break points change where lines fall, so the pages are set and measured again.
+    installShyCopySanitizer();
+    ensureShyMap().then(() => alive && setFontTick((t) => t + 1));
     return () => { alive = false; };
   }, []);
 
@@ -234,14 +238,14 @@ export default React.forwardRef(function FlipBook({
   const blocks = useMemo(() => (<>
     <BookChapterBlocks {...{ bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses }} />
     {showEnd && <p className="kjb-fb-endmark">{endMarker}</p>}
-  </>), [bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses, showEnd, endMarker]);
+  </>), [bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses, showEnd, endMarker, fontTick]);
   const following = useFollowingChapter(book, chapter, canNext && !filterMode && !selectMode);
   const continuationBlocks = useMemo(() => following?.verses?.length ? (
     <div className="kjb-fb-continues" data-fb-next={`${following.book.abbr}:${following.chapter}`}>
       <BookChapterBlocks bookName={following.book.name} chapter={following.chapter}
         verses={following.verses} subscript={following.subscript} colophon={following.colophon} paragraphs={paragraphs} />
     </div>
-  ) : null, [following?.book, following?.chapter, following?.verses, following?.subscript, following?.colophon, paragraphs]);
+  ) : null, [following?.book, following?.chapter, following?.verses, following?.subscript, following?.colophon, paragraphs, fontTick]);
 
   // A new chapter opens at its first page, or its last when turning backwards.
   // The measuring effect below must re-run when the text or the page geometry
