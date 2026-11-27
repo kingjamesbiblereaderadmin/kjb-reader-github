@@ -652,9 +652,9 @@ export default function ReaderToolbar({
               title="Listen"
               aria-label="Listen"
               data-testid="tts-bar-btn"
-              className="h-10 w-10 flex items-center justify-center rounded-lg bg-secondary border border-border text-secondary-foreground hover:bg-accent/20 transition-colors touch-manipulation"
+              className="p-2 rounded-lg bg-secondary hover:bg-accent/20 text-foreground transition-all duration-200 touch-manipulation flex items-center justify-center cursor-pointer"
             >
-              <Headphones className="w-4 h-4" />
+              <Headphones className="w-4 h-4 pointer-events-none" />
             </button>
           </div>
         ) : playerSlot}
