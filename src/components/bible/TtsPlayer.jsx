@@ -416,30 +416,11 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     onActiveChange?.(tts.isActive);
     if (!tts.isActive || autoOpenedRef.current) return;
     autoOpenedRef.current = true;
-    // In book view the panel is opened and closed by the headphones button, so
-    // starting the reading leaves it as it is rather than closing it.
     onOpenChange?.(true);
     // Only react to playback starting or stopping.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tts.isActive]);
   useEffect(() => () => onActiveChange?.(false), []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // While the book and chapter are being announced there is no verse yet, so
-  // name what is being read.
-  const introLabel = chapter >= 1 ? `${label ? `${label} · ` : ''}Chapter ${chapter}` : 'Title Page';
-  const verseRef = tts.introActive
-    ? introLabel
-    : tts.currentKind === 'title'
-      ? 'Title Page'
-      : tts.currentKind === 'end'
-        ? 'The End'
-        : tts.currentKind === 'sub'
-      ? `${label ? `${label} ` : ''}${chapter} · title`
-      : tts.currentKind === 'col'
-        ? `${label ? `${label} ` : ''}${chapter} · subscription`
-        : tts.currentVerse != null
-          ? `${label ? `${label} ` : ''}${chapter}:${tts.currentVerse}`
-          : '';
 
   // Every explicit press re-takes control of scrolling. Starting fresh also
   // says where we are — full book name then chapter — which is what makes the
