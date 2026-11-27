@@ -1883,16 +1883,21 @@ export default function BibleReader() {
   );
 
   return (
-    <div onClick={(e) => { if (!e.target.closest('.kjb-flipbook, .kjb-verse-container, [id^="v"], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a, [role="menu"], [role="menuitem"], [data-radix-popper-content-wrapper]')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerses(new Set()); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 pb-3 ${hideHeader && !flipbookOpen ? 'pt-16' : ''} ${flipbookOpen ? 'kjb-book-mode !px-0 !pb-0' : ''}`}>
+    <div onClick={(e) => { if (!e.target.closest('.kjb-flipbook, .kjb-verse-container, [id^="v"], h1, h2, h3, .kjb-subscript, .kjb-colophon, #kjb-colophon-anchor, #kjb-subscript-anchor, button, a, [role="menu"], [role="menuitem"], [data-radix-popper-content-wrapper]')) { setHighlightVerse(null); setHighlightSection(null); setTappedVerses(new Set()); if (!selectMode) setHighlightedVerses(new Set()); } }} className={`w-full kjb-frame mx-auto px-5 sm:px-8 lg:px-12 pb-3 ${flipbookOpen ? 'kjb-book-mode !px-0 !pb-0' : ''}`}
+      style={hideHeader && !flipbookOpen ? { paddingTop: `${Math.max(56, stickyTop + 6)}px` } : undefined}>
       {!hideHeader && !flipbookOpen && toolbarNode}
-
-      {hideHeader && !flipbookOpen && <MinimizedHeaderBar setHideHeader={setHideHeader} />}
 
       {/* Listen: reads the chapter verse by verse and highlights each verse as
           it is spoken. Audio is generated per verse and cached, so a verse is
           only ever billed once — see base44/functions/ttsVerse. Settings has a
-          master switch that removes the whole player from the reader. */}
-      {!ttsAttached && ttsPlayerNode}
+          master switch that removes the whole player from the reader.
+          With the header hidden the player rides in the slim bar itself, on the
+          same row as its chevron, instead of taking a section of its own. */}
+      {hideHeader && !flipbookOpen && (
+        <MinimizedHeaderBar setHideHeader={setHideHeader}>
+          {!ttsAttached && ttsPlayerNode ? React.cloneElement(ttsPlayerNode, { inline: true }) : null}
+        </MinimizedHeaderBar>
+      )}
 
 
       {/* Desktop-only backdrop for the inline popovers. On mobile the selectors

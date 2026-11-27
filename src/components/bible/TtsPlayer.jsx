@@ -39,6 +39,10 @@ const SHELL = 'print:hidden -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 mt-3 
 // plus its own bottom rule and shadow.
 const SHELL_STANDALONE = `${SHELL} border-b shadow-sm mb-8`;
 
+// Sitting inside the minimized header bar, on the same row as its chevron: no
+// margins, borders or padding of its own — the bar supplies those.
+const SHELL_INLINE = 'print:hidden flex-1 min-w-0';
+
 // Controls share the toolbar buttons' height, shape and colours.
 const CONTROL = 'h-10 min-w-[2.5rem] flex items-center justify-center rounded-lg bg-secondary border border-border text-secondary-foreground hover:bg-accent/20 transition-colors touch-manipulation';
 
@@ -189,7 +193,7 @@ function scrollToTop() {
   (document.getElementById('kjb-scroll') || window).scrollTo({ top: 0, behavior: 'instant' });
 }
 
-export default function TtsPlayer({ embedded = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, bookKey = '', chapter = null, startVerse = null, label = '', bookName = '', subscript = '', colophon = '', titleText = '', endMarker = '', onNextChapter = null, onRestart }) {
+export default function TtsPlayer({ embedded = false, inline = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, bookKey = '', chapter = null, startVerse = null, label = '', bookName = '', subscript = '', colophon = '', titleText = '', endMarker = '', onNextChapter = null, onRestart }) {
   const [autoContinue, setAutoContinue] = useState(() => readStored(TTS_STORAGE.autoContinue, 'true') !== 'false');
   // Hidden = controls collapse to a single pill; audio keeps playing. Remembered
   // per device so a reader who listens while reading never sees the bar again.
@@ -532,13 +536,17 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
   const idle = !tts.isActive;
   if (idle && !open && !tts.error) return null;
 
+  // Where the player sits: its own row under the toolbar, a standalone section
+  // with the header hidden, or inline in the minimized header bar.
+  const shell = inline ? SHELL_INLINE : embedded ? SHELL : SHELL_STANDALONE;
+
   // ---- hidden: a compact bar that still drives playback --------------------
   // Minimising the player folds away the extra controls, never the playback
   // itself: prev, play/pause and next stay, so listening can be driven without
   // reopening the full row.
   if (hidden && !idle) {
     return (
-      <section className={embedded ? SHELL : SHELL_STANDALONE}>
+      <section className={shell}>
         <div className="flex items-center justify-center gap-2">
           <button onClick={withFollow(tts.prev)} aria-label="Previous verse" className={CONTROL}>
             <SkipBack className="w-4 h-4" />
@@ -564,8 +572,8 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
 
   // ---- expanded: the full bar, centred ------------------------------------
   return (
-    <section className={embedded ? SHELL : SHELL_STANDALONE}>
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+    <section className={shell}>
+        <div className={`flex flex-wrap items-center gap-2 sm:gap-3 ${inline ? 'justify-end' : 'justify-center'}`}>
           <button onClick={withFollow(tts.prev)} disabled={idle} aria-label="Previous verse" className={`${CONTROL} disabled:opacity-40 disabled:pointer-events-none`}>
             <SkipBack className="w-4 h-4" />
           </button>

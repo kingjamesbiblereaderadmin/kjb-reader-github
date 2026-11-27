@@ -3,11 +3,13 @@ import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 
 // The slim header bar shown when the main reader header is hidden.
-// Provides a button to restore the full header.
-export default function MinimizedHeaderBar({ setHideHeader }) {
+// Provides a button to restore the full header, and carries the Listen player
+// on the same row so the minimized reader never stacks the two.
+export default function MinimizedHeaderBar({ setHideHeader, children = null }) {
   return createPortal(
     <div data-kjb-minimized-header className="print:hidden fixed top-0 left-0 right-0 border-b border-border bg-background/95 backdrop-blur z-[110]" style={{ paddingTop: 'env(safe-area-inset-top)', paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}>
-      <div className="w-full kjb-frame mx-auto px-2 py-1.5 flex items-center justify-end gap-1">
+      <div className="w-full kjb-frame mx-auto px-2 py-1.5 flex items-center gap-2">
+        {children && <div className="flex-1 min-w-0">{children}</div>}
         <div className="flex items-center gap-1">
           <button
             type="button"
