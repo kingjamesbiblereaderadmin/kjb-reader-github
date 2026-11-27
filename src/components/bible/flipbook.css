@@ -160,16 +160,8 @@
 .kjb-book-context > div { margin-top: 0; padding-block: 8px; }
 .kjb-book-player section { margin: 0; padding: 8px 12px; background: var(--fb-paper); border-color: var(--fb-rule); box-shadow: none; }
 .kjb-book-player button.bg-primary { background: var(--fb-ink); color: var(--fb-paper); }
-/* The chrome paints every button transparent, which left the player's controls
-   as bare, faint icons on the paper — on a phone they read as greyed out, worst
-   in dark mode where a pale icon sits on dark paper with no shape around it.
-   They keep a printed-looking surface and edge instead. */
-.kjb-book-player button.bg-secondary {
-  background: rgba(33, 28, 22, 0.07);
-  border: 1px solid var(--fb-rule);
-  color: var(--fb-ink);
-}
-.dark .kjb-book-player button.bg-secondary { background: rgba(230, 223, 207, 0.14); }
+/* The panel's controls are the rail's own icons: bare marks on the paper, no
+   box around them, so the two columns read as one set of tools. */
 /* A tap leaves :hover stuck on touch screens; the wash must never dim the one
    filled control in the row. */
 .kjb-book-player button.bg-primary:hover:not(:disabled) { background: var(--fb-ink); }
@@ -181,7 +173,7 @@
   top: 64px;
   right: 8px;
   z-index: 2;
-  width: 60px;
+  width: 112px;
   padding: 8px;
   max-height: calc(100% - 76px);
   overflow-y: auto;
@@ -190,12 +182,25 @@
   border: 1px solid var(--fb-rule);
   border-radius: 10px;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  /* The panel is sized to hold every control, so a scrollbar only ever appeared
+     as a sliver eating the right-hand column of icons. Hidden, and the panel
+     still scrolls if a very short screen leaves it no room. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.kjb-book-player::-webkit-scrollbar { display: none; }
 .kjb-book-player section { margin: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
-/* One control per row, each the full width of the panel, with room between the
-   rows so the icons never read as a cramped strip. */
-.kjb-book-player section button { width: 100%; height: 40px; min-height: 40px; }
-.kjb-book-player section > div { gap: 8px; }
+/* Two short columns instead of one long strip, so the whole set fits under the
+   headphones button without scrolling, with room around every icon. */
+.kjb-book-player section > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.kjb-book-player section button { width: 100%; height: 44px; min-height: 44px; padding: 0; }
+/* Play takes a full-width row of its own above the grid — the one control a
+   listener reaches for, sized like the rail's buttons. */
+.kjb-book-player section button.bg-primary { grid-column: 1 / -1; order: -1; }
 .kjb-book-navigation { display: grid; grid-template-columns: minmax(44px, 1fr) minmax(0, 3fr) minmax(44px, 1fr); align-items: center; gap: 4px; min-height: 64px; margin-inline: 12px; padding-block: 8px; border-top: 1px solid var(--fb-rule); }
 .kjb-book-page-step { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 8px; font-size: 0.8rem; }
 .kjb-book-position { text-align: center; font-family: var(--font-serif); font-size: 0.72rem; line-height: 1.5; font-variant-numeric: tabular-nums; }
