@@ -24,6 +24,10 @@ export function paintWordHighlight(element, completed) {
     return;
   }
   const index = Math.min(completed, words.length - 1);
+  if (!(index >= 0)) {
+    CSS.highlights.delete(NAME);
+    return;
+  }
   const { range } = words[index];
   if (!range || !range.startContainer.isConnected) return;
   const ranges = [range];

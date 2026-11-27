@@ -12,7 +12,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { DEFAULT_TTS_VOICE, engineForVoice, normalizeVoice, readStored, writeStored, TTS_STORAGE } from '@/lib/tts/voices';
-import { publishProgress } from '@/lib/tts/speaking';
+import { publishProgress, publishWordMark } from '@/lib/tts/speaking';
 import { localAudioUrlFor } from '@/lib/tts/localAudio';
 import { cachedUrl } from '@/lib/tts/offlineAudio';
 import createClipBuffer from '@/lib/tts/createClipBuffer';
@@ -374,9 +374,28 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     // as it did before.
     const trim = prepared.trim;
     let finished = false;
+    // The word being spoken is worked out from the audio element's own clock on
+    // every frame: timeupdate (below) is far too coarse to keep a word mark on
+    // the word the voice is actually on.
+    let wordFrame = 0;
+    const stopWordMark = () => {
+      if (wordFrame) cancelAnimationFrame(wordFrame);
+      wordFrame = 0;
+    };
+    const stepWordMark = () => {
+      wordFrame = 0;
+      if (finished || token !== tokenRef.current || audioRef.current !== el || el.paused) return;
+      if (prepared.wordClock) publishWordMark(clip.ref, completedWordsAt(prepared.wordClock, el.currentTime));
+      wordFrame = requestAnimationFrame(stepWordMark);
+    };
+    const startWordMark = () => {
+      stopWordMark();
+      wordFrame = requestAnimationFrame(stepWordMark);
+    };
     const finish = () => {
       if (finished || token !== tokenRef.current) return;
       finished = true;
+      stopWordMark();
       clearStall();
       endCleanupRef.current?.();
       endCleanupRef.current = null;
@@ -395,6 +414,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       if (failed || token !== tokenRef.current) return;
       failed = true;
       finished = true;
+      stopWordMark();
       clearStall();
       endCleanupRef.current?.();
       endCleanupRef.current = null;
@@ -457,6 +477,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     let started = false;
     el.onplaying = () => {
       if (token !== tokenRef.current || audioRef.current !== el) return;
+      startWordMark();
       if (!started) { started = true; onStarted?.(); }
       if (!holdRef.current) setStatus('playing');
     };

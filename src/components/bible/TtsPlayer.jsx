@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Play, Pause, SkipBack, SkipForward, X, ChevronUp, ChevronRight, RotateCcw, Repeat, CloudDownload } from 'lucide-react';
 import OutputDeviceMenu from '@/components/bible/OutputDeviceMenu';
-import { publishSpeaking, getProgress, getCompletedWords, subscribeProgress } from '@/lib/tts/speaking';
+import { publishSpeaking, getProgress, getCompletedWords, subscribeProgress, getWordMark, subscribeWordMark } from '@/lib/tts/speaking';
 import { readingArea, revealElement, alignToTop, sitsLow, inRightColumn, followVisibleWords } from '@/lib/tts/readerFollow';
 import { isMobile } from '@/lib/readerPosition';
 import { paintWordHighlight, clearWordHighlight } from '@/lib/tts/wordHighlight';
@@ -320,16 +320,24 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
       : document.getElementById(`v${tts.currentVerse}`));
     // Word by word: the word the voice is on is painted inside the verse that is
     // playing, from that verse's own text (no wrapper elements). Book view has no
-    // #v element, so its open page's copy of the verse is painted instead.
+    // #v element, so its open page's copy of the verse is painted instead. It
+    // follows the player's per-frame word mark rather than the coarse progress
+    // events, so the mark sits on the word being spoken as it is spoken.
     const paintTarget = () => element() || (!note ? bookVerseElement(tts.currentVerse) : null);
+    const paint = (index) => { if (!note) paintWordHighlight(paintTarget(), index); };
     const follow = (progress, clipRef, completedWords) => {
       if (clipRef !== ref) return;
-      if (!note) paintWordHighlight(paintTarget(), completedWords);
       if (followRef.current) followVisibleWords(element(), progress, completedWords);
     };
+    clearWordHighlight();
     follow(getProgress(ref), ref, getCompletedWords(ref));
+    paint(getWordMark(ref));
+    const unpaint = subscribeWordMark((index, markRef) => {
+      if (markRef === ref) paint(index);
+    });
     const unsubscribe = subscribeProgress(follow);
     return () => {
+      unpaint();
       unsubscribe();
       clearWordHighlight();
     };

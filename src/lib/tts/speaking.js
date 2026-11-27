@@ -45,3 +45,28 @@ export function getCompletedWords(clipRef) {
 export function getProgress(clipRef = null) {
   return clipRef && clipRef !== progressRef ? 0 : progress;
 }
+
+// Which word of the clip the voice is on, updated from the audio element's own
+// clock on every animation frame. The progress above only arrives on
+// timeupdate — about four times a second — which left a word highlight up to a
+// quarter of a second behind the voice and stepping unevenly. Only an actual
+// change of word is published.
+let markRef = null;
+let markIndex = -1;
+const markListeners = new Set();
+
+export function subscribeWordMark(listener) {
+  markListeners.add(listener);
+  return () => markListeners.delete(listener);
+}
+
+export function publishWordMark(clipRef, index) {
+  if (clipRef === markRef && index === markIndex) return;
+  markRef = clipRef;
+  markIndex = index;
+  markListeners.forEach((listener) => listener(markIndex, markRef));
+}
+
+export function getWordMark(clipRef) {
+  return clipRef === markRef ? markIndex : -1;
+}
