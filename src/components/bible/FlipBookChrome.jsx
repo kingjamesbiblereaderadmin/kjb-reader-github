@@ -24,12 +24,13 @@ export default function FlipBookChrome({ controls, viewControl, where, onPreviou
     <div className="kjb-fb-chrome" data-kjb-book-controls>
       <div ref={refs.location} className="kjb-reader-toolbar kjb-book-location" role="group" aria-label="Choose passage" />
       <div className="kjb-book-view-control">{viewControl}</div>
-      {/* One column on the right edge: the tools, and directly beneath them the
-          player, which continues the same stack from the headphones button. */}
+      {/* The tool column on the right edge. The player is not part of it: it
+          opens as its own panel to the left of the rail, so the book keeps the
+          same width whether listening or not. */}
       <div className="kjb-book-rail">
         <div ref={refs.tools} className="kjb-reader-toolbar kjb-book-toolrail" role="group" aria-label="Reading tools" />
-        <div ref={refs.player} className="kjb-book-player" />
       </div>
+      <div ref={refs.player} className="kjb-book-player" />
       <div ref={footerRef} className="kjb-book-bottom">
         <div ref={refs.context} className="kjb-reader-toolbar kjb-book-context" />
         <FlipBookNavigation where={where} onPrevious={onPrevious} onNext={onNext} canPrevious={canPrevious} canNext={canNext} busy={busy} />

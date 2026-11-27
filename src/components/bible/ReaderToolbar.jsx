@@ -402,10 +402,12 @@ export default function ReaderToolbar({
               title={listenOffline ? 'Listen offline' : 'Listen'}
               aria-label={listenOffline ? 'Listen offline' : 'Listen'}
               aria-expanded={listenOpen}
+              data-listen-active={listenActive ? 'true' : undefined}
               data-testid="tts-toolbar-btn"
-              className={`flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap ${listenOpen || listenActive ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}
+              className={`relative flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap ${listenOpen || listenActive ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}
             >
               <Headphones className="w-4 h-4 flex-shrink-0" />
+              {listenActive && <span className="kjb-listen-live" aria-hidden="true" />}
               <span className="hidden lg:inline">{listenOffline ? 'Listen offline' : 'Listen'}</span>
             </button>
           )}
@@ -520,8 +522,8 @@ export default function ReaderToolbar({
           <>
             <ReaderControlSlot enabled={bookMode} target={bookSlots.tools}>
               {listenAvailable && (
-                <button onClick={onToggleListen} title={listenOffline ? 'Listen offline' : 'Listen'} aria-label={listenOffline ? 'Listen offline' : 'Listen'} aria-expanded={listenOpen} data-testid="tts-toolbar-btn" className={`flex flex-1 items-center justify-center gap-1.5 px-2.5 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap ${listenOpen || listenActive ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}>
-                  <Headphones className="w-5 h-5 flex-shrink-0" /><span className="hidden lg:inline">{listenOffline ? 'Listen offline' : 'Listen'}</span>
+                <button onClick={onToggleListen} title={listenOffline ? 'Listen offline' : 'Listen'} aria-label={listenOffline ? 'Listen offline' : 'Listen'} aria-expanded={listenOpen} data-listen-active={listenActive ? 'true' : undefined} data-testid="tts-toolbar-btn" className={`relative flex flex-1 items-center justify-center gap-1.5 px-2.5 rounded-lg border border-border font-sans text-sm font-medium transition-all duration-200 touch-manipulation h-10 whitespace-nowrap ${listenOpen || listenActive ? 'bg-accent/20 text-accent' : 'bg-secondary text-secondary-foreground hover:bg-accent/20'}`}>
+                  <Headphones className="w-5 h-5 flex-shrink-0" />{listenActive && <span className="kjb-listen-live" aria-hidden="true" />}<span className="hidden lg:inline">{listenOffline ? 'Listen offline' : 'Listen'}</span>
                 </button>
               )}
             </ReaderControlSlot>

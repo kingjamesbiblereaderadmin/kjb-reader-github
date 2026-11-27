@@ -980,6 +980,29 @@ html.kjb-native-ios select {
   border-top-width: 1.5px;
 }
 
+/* ---- Listen: the headphones button while a chapter is being read ---------
+   The player panel can be closed with the reading still going, so the button
+   that opens it carries a live mark of its own: a pulsing dot in the accent
+   colour, haloed in the surface behind it so it reads on the wash. */
+.kjb-listen-live {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: hsl(var(--accent));
+  box-shadow: 0 0 0 2px var(--fb-paper, hsl(var(--background)));
+  animation: kjb-listen-pulse 1.8s ease-in-out infinite;
+}
+@keyframes kjb-listen-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.78); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kjb-listen-live { animation: none; }
+}
+
 /* ---- Listen player: the verse currently being spoken ---------------------
    Toggled on the verse element itself (id="v{verse}") by TtsPlayer, not through
    React state — see the comment in TtsPlayer.jsx. Kept deliberately quiet: a
