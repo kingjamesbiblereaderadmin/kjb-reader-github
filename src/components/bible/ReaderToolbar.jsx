@@ -67,7 +67,7 @@ export default function ReaderToolbar({
       style={slim ? { paddingTop: 'calc(env(safe-area-inset-top) + 6px)', paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 1rem)', paddingRight: 'calc(env(safe-area-inset-right, 0px) + 1rem)' } : undefined}
       className={bookMode ? 'contents print:hidden' : slim
         ? 'print:hidden sticky top-0 z-[110] flex flex-row-reverse items-center gap-2 -mx-5 sm:-mx-8 lg:-mx-12 pb-1.5 border-b border-border bg-background'
-        : `print:hidden sticky top-0 z-[100] border-b pt-3 relative -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background border-border mb-8 shadow-sm ${ttsAttached ? 'pb-0' : 'pb-3'}  before:content-[''] before:absolute before:bottom-full before:left-[calc(-1*env(safe-area-inset-left,0px))] before:right-[calc(-1*env(safe-area-inset-right,0px))] before:h-12 before:bg-background`}>
+        : `print:hidden sticky top-0 z-[100] border-b pt-3 relative -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background border-border mb-1 shadow-sm ${ttsAttached ? 'pb-0' : 'pb-3'}  before:content-[''] before:absolute before:bottom-full before:left-[calc(-1*env(safe-area-inset-left,0px))] before:right-[calc(-1*env(safe-area-inset-right,0px))] before:h-12 before:bg-background`}>
       {slim ? (
         <div className="flex items-center gap-1 flex-shrink-0">
           <button
