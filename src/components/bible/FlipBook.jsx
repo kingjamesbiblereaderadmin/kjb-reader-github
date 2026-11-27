@@ -595,9 +595,10 @@ export default React.forwardRef(function FlipBook({
           </>,
         };
         if (spread) bridgeRef.current = { toKey: `${following.book.abbr}-${following.chapter}`, fromKey: `${abbr}:${chapter}`, face: face(page, 'left') };
-        // After a spill both open pages are already read: the next chapter
-        // resumes on the spread that follows them, with no bridge page.
-        if (spill) { bridgeRef.current = null; pendingPageRef.current = 2; return; }
+        // After a spill the new chapter's first two pages ARE this spread, so
+        // it stays open: listening carries on from verse 1 where it is printed.
+        // (A manual Next moves past it; see go().)
+        if (spill) { bridgeRef.current = null; pendingPageRef.current = 0; return; }
         pendingPageRef.current = spread ? -1 : 0;
         return;
       }
