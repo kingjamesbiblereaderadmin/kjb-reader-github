@@ -1,23 +1,14 @@
 import React, { useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Loader2, Lock, BookOpen } from 'lucide-react';
-
-// Resolve a same-origin returnTo path from the URL query (falls back to '/').
-// The SDK's loginViaEmailPassword reads this same param for its post-login
-// redirect, so we keep it consistent here.
-function resolveReturnTo(search) {
-  try {
-    const p = new URLSearchParams(search);
-    const r = p.get('returnTo');
-    if (r && r.startsWith('/') && !r.startsWith('//')) return r;
-  } catch {}
-  return '/';
-}
+// One hardened resolver for every auth page: a local check that only rejected
+// "//host" let "/\evil.com" through, and the browser turns that backslash into
+// a slash when it is assigned to location.href — an open redirect.
+import { safeReturnTo } from '@/lib/authReturnTo';
 
 export default function Login() {
-  const location = useLocation();
-  const returnTo = resolveReturnTo(location.search);
+  const returnTo = safeReturnTo();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
