@@ -1,5 +1,7 @@
 // Mirrors the server's narrowly scoped recording revisions. Printed text never changes.
 export default function pronunciationRevision(text) {
+  if (/\b(?:soweth|sowest|sowed|sower|sowers|sowing)\b/i.test(text)) return 'h19';
+  if (/\b(?:caesar|caesarea|judaea|alphaeus|galilaean|galilaeans|arimathaea|thaddaeus|aeneas|hymenaeus|lebbaeus|idumaea|bartimaeus|timaeus|praetorium|ituraea|aenon|chaldaeans|epaenetus)\b/i.test(text)) return 'h19';
   // A word voiced wrongly before it was pinned in IPA keeps its old take in the
   // device's memory and in the offline bundle. Naming the revision here is what
   // makes the reader skip both and ask the server for the re-voiced clip.
