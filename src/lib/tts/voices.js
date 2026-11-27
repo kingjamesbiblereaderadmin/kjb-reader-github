@@ -1,6 +1,3 @@
-import { isNativeIos } from '@/lib/isNativeIos';
-import { isNativeAndroid } from '@/lib/isNativeAndroid';
-
 // Voices offered by the reader's Listen player.
 //
 // One British male, Microsoft Azure AI Speech, and nothing else: the whole
@@ -50,21 +47,15 @@ export const TTS_SETTINGS_EVENT = 'kjb-tts-settings-changed';
 
 // Whether the Listen player is allowed to exist at all on this platform.
 //
-// Audio is web-only until the feature is finished and signed off. The native
-// shells (Capacitor iOS/Android) load this same live site in remote-URL mode,
-// so any audio control left reachable there would put an unreleased feature in
-// front of App Store review — and Apple rejects apps that ship hidden or
-// unfinished functionality. Nothing is bundled differently: the gate simply
-// means no Listen button, no Settings section and no ttsVerse request in the
-// apps. Set VITE_TTS_NATIVE=true in a build when it is time to test the player
-// inside the shells.
+// It is on everywhere now. The native shells used to hide the player because
+// the audio lived only on the server, so a listener there needed a live network
+// call for every verse. Both apps now carry the whole library (66 per-book
+// archives: ios/App/App/public/audio for iOS and macOS, Play asset packs for
+// Android) and src/lib/tts/localAudio.js hands the player a local clip, so the
+// apps play from disk with no request. A verse the installed build does not
+// carry falls back to the normal ttsVerse lookup, exactly as the web does.
 export function isTtsAvailable() {
-  try {
-    if (import.meta.env?.VITE_TTS_NATIVE === 'true') return true;
-  } catch {
-    /* no import.meta in a plain node context */
-  }
-  return !isNativeIos() && !isNativeAndroid();
+  return true;
 }
 
 export function isTtsEnabled() {

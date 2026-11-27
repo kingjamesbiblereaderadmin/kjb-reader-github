@@ -39,6 +39,19 @@ const ANDROID_PACKS = [
   path.join('android', 'audio-pack-2', 'src', 'main', 'assets', 'audio'),
 ];
 
+
+// Extract one archive. Python's zipfile is used first because it behaves the
+// same everywhere (macOS and Linux runners, and the python shim some sandboxes
+// put on PATH as `unzip`); the real `unzip` is the fallback.
+function extractZip(zipPath, dest) {
+  fs.mkdirSync(dest, { recursive: true });
+  try {
+    execFileSync('python3', ['-m', 'zipfile', '-e', zipPath, dest], { stdio: 'pipe' });
+  } catch (err) {
+    execFileSync('unzip', [zipPath, '-o', '-q', '-d', dest], { stdio: 'pipe' });
+  }
+}
+
 function die(msg) {
   console.error(`fetch-audio-bundle: ${msg}`);
   process.exit(1);
@@ -100,7 +113,7 @@ async function main() {
 
     const bookDir = path.join(destRoot, book);
     fs.mkdirSync(bookDir, { recursive: true });
-    execFileSync('unzip', ['-oq', zipPath, '-x', 'index.json', '-d', bookDir], { stdio: 'inherit' });
+    extractZip(zipPath, bookDir);
     const n = fs.readdirSync(bookDir).filter((f) => f.endsWith('.mp3')).length;
     clips += n;
     console.log(`  ${book}: ${n} clips (${(asset.size / 1e6).toFixed(1)} MB)`);
