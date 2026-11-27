@@ -93,7 +93,8 @@ export const CORRECTED_IPA: Record<string, string> = {
   // by one. Pinned in IPA so the engine says the name: SOS-thuh-neez.
   sosthenes: 'ˈsɒsθəniːz',
   // Baptize keeps the Greek -IZE ending (bap-TIZE), not the "bap-tees" the
-  // engine guesses at from the printed letters. Every printed form is pinned.
+  // engine guesses at from the printed letters. Every printed form is pinned in
+  // IPA, so the verse keeps its spelling and only the spoken word changes.
   baptize: 'bæpˈtaɪz',
   baptized: 'bæpˈtaɪzd',
   baptizest: 'bæpˈtaɪzɪst',
