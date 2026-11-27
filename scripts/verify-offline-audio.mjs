@@ -3,28 +3,134 @@
 // Attaches to the app's own WebView over the devtools socket, then, inside that
 // page: confirms the internet is unreachable, asks the app's own origin for a
 // handful of Genesis clips (the shell serves /audio/... out of the APK assets),
-// decodes one, and plays one, reporting how far playback got.
-import { chromium } from '@playwright/test';
+// decodes one, plays one, and finally drives the real reader UI (Listen ->
+// Start here) and watches the app's own <audio> element advance.
+//
+// Raw CDP over the page's websocket, no Playwright: connectOverCDP() sends
+// Browser.setDownloadBehavior, which an Android WebView answers with
+// "Browser context management is not supported", killing the whole check.
+import { writeFileSync } from 'node:fs';
 
+const PORT = process.env.CDP_PORT || 9222;
+const BASE = `http://127.0.0.1:${PORT}`;
 const REFS = ['GEN:1:1', 'GEN:1:2', 'GEN:1:31', 'GEN:2:1', 'GEN:3:15', 'GEN:50:26'];
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Node 22 has a global WebSocket; older runtimes fall back to the ws package.
+let WS = globalThis.WebSocket;
+if (!WS) {
+  const mod = await import('ws');
+  WS = mod.default || mod.WebSocket;
+}
 
 function clipPath(ref) {
   const [book, chapter, verse] = ref.split(':');
   return `${book}/${String(Number(chapter)).padStart(3, '0')}_${String(Number(verse)).padStart(3, '0')}.mp3`;
 }
 
-const browser = await chromium.connectOverCDP('http://127.0.0.1:9222');
-const pages = [];
-for (const ctx of browser.contexts()) for (const p of ctx.pages()) pages.push(p);
-if (!pages.length) throw new Error('no WebView page on the devtools socket');
-const page = pages.find((p) => p.url().includes('kingjamesbiblereader')) || pages[0];
-console.log('attached to', page.url());
+async function findPage(timeoutMs = 90000) {
+  const deadline = Date.now() + timeoutMs;
+  let lastErr = null;
+  while (Date.now() < deadline) {
+    try {
+      const res = await fetch(`${BASE}/json/list`);
+      const list = await res.json();
+      const pages = list.filter((t) => t.type === 'page' && t.webSocketDebuggerUrl);
+      const pick =
+        pages.find((t) => /kingjamesbiblereader|localhost|capacitor/i.test(t.url || '')) ||
+        pages.find((t) => !/^(about:blank|devtools:)/.test(t.url || '')) ||
+        pages[0];
+      if (pick) return pick;
+    } catch (e) {
+      lastErr = e;
+    }
+    await sleep(1000);
+  }
+  throw new Error(`no WebView page on the devtools socket (${lastErr || 'no targets'})`);
+}
 
-// A trusted click gives the page user activation, which is what the WebView's
-// media autoplay policy asks for before it will start an <audio> element.
-await page.mouse.click(4, 4).catch(() => {});
+class CDP {
+  constructor(url) {
+    this.url = url;
+    this.id = 0;
+    this.pending = new Map();
+  }
 
-const result = await page.evaluate(async (paths) => {
+  async open() {
+    this.ws = new WS(this.url);
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('devtools websocket did not open')), 15000);
+      this.ws.addEventListener('open', () => { clearTimeout(timer); resolve(); }, { once: true });
+      this.ws.addEventListener('error', () => { clearTimeout(timer); reject(new Error('devtools websocket error')); }, { once: true });
+    });
+    this.ws.addEventListener('message', (ev) => {
+      let msg;
+      try { msg = JSON.parse(ev.data); } catch { return; }
+      if (msg.id && this.pending.has(msg.id)) {
+        const { resolve, reject } = this.pending.get(msg.id);
+        this.pending.delete(msg.id);
+        if (msg.error) reject(new Error(`${msg.error.message}${msg.error.data ? ` (${msg.error.data})` : ''}`));
+        else resolve(msg.result);
+      }
+    });
+  }
+
+  send(method, params = {}, timeoutMs = 30000) {
+    const id = ++this.id;
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`${method} timed out after ${timeoutMs}ms`));
+      }, timeoutMs);
+      this.pending.set(id, {
+        resolve: (v) => { clearTimeout(timer); resolve(v); },
+        reject: (e) => { clearTimeout(timer); reject(e); },
+      });
+      this.ws.send(JSON.stringify({ id, method, params }));
+    });
+  }
+
+  // userGesture:true gives the evaluation user activation, which is what the
+  // WebView's autoplay policy asks for before an <audio> element may start.
+  async eval(expression, timeoutMs = 150000) {
+    const r = await this.send(
+      'Runtime.evaluate',
+      { expression, awaitPromise: true, returnByValue: true, userGesture: true },
+      timeoutMs,
+    );
+    if (r.exceptionDetails) {
+      const d = r.exceptionDetails.exception?.description || r.exceptionDetails.text || 'page error';
+      throw new Error(d);
+    }
+    return r.result?.value;
+  }
+
+  close() {
+    try { this.ws.close(); } catch {}
+  }
+}
+
+const target = await findPage();
+console.log('attached to', target.url, target.id);
+const cdp = new CDP(target.webSocketDebuggerUrl);
+await cdp.open();
+await cdp.send('Runtime.enable');
+await cdp.send('Page.enable');
+
+const mounted = await cdp.eval(`(async () => {
+  const deadline = Date.now() + 60000;
+  while (Date.now() < deadline) {
+    const root = document.querySelector('#root');
+    if (root && root.children.length) return { ready: document.readyState, title: document.title, path: location.pathname };
+    await new Promise((s) => setTimeout(s, 300));
+  }
+  return { ready: document.readyState, title: document.title, path: location.pathname, mounted: false };
+})()`);
+console.log('app', JSON.stringify(mounted));
+
+const result = await cdp.eval(`(async () => {
+  const paths = ${JSON.stringify(REFS.map(clipPath))};
   const out = { origin: location.origin, ua: navigator.userAgent, heads: [] };
 
   try {
@@ -78,18 +184,106 @@ const result = await page.evaluate(async (paths) => {
   }
 
   return out;
-}, REFS.map(clipPath));
-
+})()`);
 console.log(JSON.stringify(result, null, 1));
-await browser.close().catch(() => {});
 
-const headsOk = result.heads.length === REFS.length && result.heads.every((h) => h.status === 200 && (h.type || '').includes('audio/mpeg'));
+// The real thing: the reader's own Listen player, from the bundled audio.
+const ui = await cdp.eval(`(async () => {
+  const log = [];
+  const waitFor = async (sel, ms) => {
+    const deadline = Date.now() + ms;
+    while (Date.now() < deadline) {
+      const el = document.querySelector(sel);
+      if (el) return el;
+      await new Promise((s) => setTimeout(s, 300));
+    }
+    return null;
+  };
+
+  // Remember every media element the app itself starts, and where it points.
+  window.__kjbPlayed = [];
+  if (!window.__kjbHook) {
+    const proto = HTMLMediaElement.prototype;
+    const orig = proto.play;
+    proto.play = function () {
+      try { window.__kjbPlayed.push(this); } catch {}
+      return orig.apply(this, arguments);
+    };
+    window.__kjbHook = true;
+  }
+
+  if (!location.pathname.startsWith('/read')) {
+    history.pushState({}, '', '/read');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    log.push('routed to /read');
+  }
+
+  let toolbar = await waitFor('[data-testid="tts-toolbar-btn"]', 45000);
+  if (!toolbar) {
+    // Onboarding / welcome screens: take any obvious way into the reader.
+    const candidates = [...document.querySelectorAll('a,button')].filter((el) =>
+      /^(read|start reading|begin reading|get started|continue|open reader)$/i.test((el.textContent || '').trim()),
+    );
+    for (const el of candidates.slice(0, 3)) {
+      el.click();
+      log.push('clicked ' + (el.textContent || '').trim());
+      await new Promise((s) => setTimeout(s, 2500));
+      toolbar = await waitFor('[data-testid="tts-toolbar-btn"]', 15000);
+      if (toolbar) break;
+    }
+  }
+  if (!toolbar) {
+    toolbar = await waitFor('[data-testid="tts-toolbar-btn"]', 5000);
+  }
+  if (!toolbar) return { ok: false, stage: 'no-listen-button', path: location.pathname, log };
+
+  toolbar.click();
+  await new Promise((s) => setTimeout(s, 1200));
+  const start =
+    (await waitFor('[data-testid="tts-start-here-btn"]', 4000)) ||
+    (await waitFor('[data-testid="tts-listen-btn"]', 4000)) ||
+    (await waitFor('button[aria-label="Play"]', 4000));
+  if (start) {
+    start.click();
+    log.push('pressed ' + (start.getAttribute('data-testid') || start.getAttribute('aria-label') || 'play'));
+  } else {
+    log.push('no start button found');
+  }
+
+  const deadline = Date.now() + 60000;
+  let last = null;
+  while (Date.now() < deadline) {
+    const els = (window.__kjbPlayed || []).filter((e) => e && e.src && e.src.indexOf('/audio/') !== -1);
+    if (els.length) {
+      const e = els[els.length - 1];
+      last = { src: e.src, t: +e.currentTime.toFixed(2), paused: e.paused, dur: Number.isFinite(e.duration) ? +e.duration.toFixed(2) : null };
+      if (e.currentTime > 0.5) return { ok: true, stage: 'playing', path: location.pathname, log, last };
+    }
+    await new Promise((s) => setTimeout(s, 500));
+  }
+  return { ok: false, stage: 'no-playback', path: location.pathname, log, last, played: (window.__kjbPlayed || []).length };
+})()`);
+console.log('ui', JSON.stringify(ui, null, 1));
+
+try {
+  const shot = await cdp.send('Page.captureScreenshot', { format: 'png', fromSurface: true }, 20000);
+  writeFileSync('offline-audio-player.png', Buffer.from(shot.data, 'base64'));
+  console.log('wrote offline-audio-player.png');
+} catch (e) {
+  console.log('screenshot failed:', String(e).slice(0, 120));
+}
+
+cdp.close();
+
+const headsOk =
+  result.heads.length === REFS.length &&
+  result.heads.every((h) => h.status === 200 && (h.type || '').includes('audio/mpeg'));
 const decodedOk = !!result.decoded && result.decoded.duration > 0.5;
 const playedOk = result.currentTime > 0.5;
 const offline = result.internet === false;
 
-console.log(`offline=${offline} heads=${headsOk} decoded=${decodedOk} played=${playedOk}`);
-if (!offline || !headsOk || !decodedOk || !playedOk) {
+console.log(`offline=${offline} heads=${headsOk} decoded=${decodedOk} played=${playedOk} ui=${ui.ok}`);
+if (!offline || !headsOk || !decodedOk || !playedOk || !ui.ok) {
   console.log('VERIFY_FAILED');
   process.exit(1);
 }

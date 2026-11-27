@@ -101,13 +101,18 @@ jobs:
             adb shell ping -c 1 -W 2 8.8.8.8 || echo "host unreachable from the device (expected)"
             adb logcat -c
             adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
-            sleep 40
+            sleep 45
             adb exec-out screencap -p > offline-audio-screen.png
             PID=$(adb shell pidof "$APP_ID" | tr -d '\r') && echo "app pid=$PID" && adb forward tcp:9222 localabstract:webview_devtools_remote_$PID
             sleep 3
-            curl -s http://127.0.0.1:9222/json/version
+            curl -s http://127.0.0.1:9222/json/list | head -c 2000; echo
+            set +e
             node scripts/verify-offline-audio.mjs
+            RC=$?
             adb logcat -d > logcat-offline.txt
+            adb exec-out screencap -p > offline-audio-after.png
+            echo "verify exit code: $RC"
+            exit $RC
 
       - name: Upload evidence
         if: always()
@@ -116,6 +121,8 @@ jobs:
           name: offline-audio-evidence
           path: |
             offline-audio-screen.png
+            offline-audio-player.png
+            offline-audio-after.png
             logcat-offline.txt
           if-no-files-found: ignore
           retention-days: 14
