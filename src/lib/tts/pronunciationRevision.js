@@ -7,6 +7,12 @@ export default function pronunciationRevision(text) {
   // makes the reader skip both and ask the server for the re-voiced clip.
   // "baptize" was recorded with the stress on the first syllable; the IPA pin
   // moves it to the last, so these verses ask for the re-voiced take.
+  // The sowing forms were recorded as "sow-eth" (the animal) before they were
+  // pinned, and the æ-ligature names were re-voiced once before Judaea and
+  // Cæsar were pinned. Both ask for the corrected take by name, so a device
+  // holding the old bundle or download does not replay it.
+  if (/\b(?:soweth|sowest|sowed|sower|sowers|sowing)\b/i.test(text)) return 'h19';
+  if (/\b(?:caesar|caesarea|judaea|alphaeus|galilaean|galilaeans|arimathaea|thaddaeus|aeneas|hymenaeus|lebbaeus|idumaea|bartimaeus|timaeus|praetorium|ituraea|aenon|chaldaeans|epaenetus)\b/i.test(text)) return 'h19';
   if (/\bbaptiz(?:e|ed|est|eth|ing)\b/i.test(text)) return 'h18';
   // Sosthenes was spelled out letter by letter in every clip made before it was
   // pinned in IPA, and those clips are what the device still remembers and what

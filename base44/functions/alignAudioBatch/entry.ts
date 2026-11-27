@@ -21,7 +21,12 @@ export default async function(req) {
     if (body.clipId) query.id = String(body.clipId);
     // Newer recordings can explicitly store null rather than omit this field.
     // Both mean unaligned; checking only $exists silently skipped those verses.
-    const pendingQuery = { ...query, $or: [{ timing_version: { $exists: false } }, { timing_version: null }] };
+    // A row whose alignment failed is parked at -1 ("needs review"). Those rows
+    // are retried too: a failure is usually a transient download or a storage
+    // host the allowlist has since learned, not a recording that can never be
+    // measured. Without this, a single early failure left a clip with no word
+    // timings forever, and the reader washed the whole verse instead.
+    const pendingQuery = { ...query, $or: [{ timing_version: { $exists: false } }, { timing_version: null }, { timing_version: -1 }] };
     // A backfill run works through the queue until its deadline, so the pass
     // count only has to be high enough not to cap it (50 × 36 = 1,800 rows).
     const passes = body.backfill === true ? 50 : 1;

@@ -71,7 +71,7 @@ export async function refreshBookArchive({ db, release, book, expected, latest, 
       const filename = `${String(chapter).padStart(3, '0')}_${String(verse).padStart(3, '0')}.mp3`;
       const path = Object.keys(entries).find((key) => key === filename || key.endsWith(`/${filename}`));
       if (!path) throw new Error(`${row.ref} was not found in the original archive`);
-      if (!/^https:\/\/([a-z0-9-]+\.)*(base44\.app|base44\.com|wixstatic\.com)\//i.test(row.url)) throw new Error('Replacement audio is not on approved storage');
+      if (!/^https:\/\/([a-z0-9-]+\.)*(base44\.app|base44\.com|wixstatic\.com|discloud\.dev)\//i.test(row.url)) throw new Error('Replacement audio is not on approved storage');
       const response = await fetch(row.url, { signal: AbortSignal.timeout(20000) });
       if (!response.ok) throw new Error(`Replacement recording unavailable (${response.status})`);
       const bytes = new Uint8Array(await response.arrayBuffer());

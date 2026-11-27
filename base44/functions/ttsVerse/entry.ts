@@ -99,7 +99,7 @@ async function takeGlobalBudget(db): Promise<boolean> {
 // skipped for listening. Such a row is treated as a miss and replaced with a
 // fresh upload the next time the verse is asked for.
 function clipUrlUsable(url: string): boolean {
-  return /^https:\/\/([a-z0-9-]+\.)*(base44\.app|base44\.com|wixstatic\.com)\//i.test(String(url || ''));
+  return /^https:\/\/([a-z0-9-]+\.)*(base44\.app|base44\.com|wixstatic\.com|discloud\.dev)\//i.test(String(url || ''));
 }
 
 function json(data, status = 200) {
@@ -181,7 +181,7 @@ const PRONOUNCE: Record<string, string> = {
   teraphim: 'TER-uh-fim',
   nazarite: 'NAZ-uh-rite',
   nazarene: 'naz-uh-REEN',
-  judaea: 'joo-DEE-uh',
+  judaea: 'joo-DAY-uh',
   ashtoreth: 'ASH-tuh-reth',
   milcom: 'MIL-kom',
   rimmon: 'RIM-on',
@@ -699,7 +699,11 @@ export default async function (req) {
   // into a replacement character ("Jud'ea"), so any verse holding one is moved
   // to the same fresh key as the refs listed above.
   const ligatureWord = /\b(?:caesar|caesarea|judaea|alphaeus|galilaean|galilaeans|arimathaea|thaddaeus|aeneas|hymenaeus|lebbaeus|idumaea|bartimaeus|timaeus|praetorium|ituraea|aenon|chaldaeans|epaenetus)\b/i.test(text);
-  const clipRef = SPEECH_FIX_REFS.has(ref) || ligatureWord ? `${ref}:v2`
+  // v3: the æ-ligature names were first re-voiced as :v2, before Judaea and
+  // Cæsar were pinned in IPA, so those takes still said "joo-DAY-uh". A new key
+  // is what makes the reader ask for the pinned take instead of replaying the
+  // one it already holds.
+  const clipRef = SPEECH_FIX_REFS.has(ref) ? `${ref}:v2` : ligatureWord ? `${ref}:v3`
     : spoken.revision ? `${ref}:${spoken.revision}`
       : ref;
   const seed = clipRef ? `${voice}|ref:${clipRef}` : `${voice}|text:${text}`;
