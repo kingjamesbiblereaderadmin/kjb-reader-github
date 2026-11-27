@@ -236,9 +236,13 @@ jobs:
           ARC=build/App.xcarchive/Products/Applications/App.app
           N=$(find "$ARC/public/audio" -name '*.mp3' | wc -l | tr -d ' ')
           B=$(find "$ARC/public/audio" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
-          echo "audio in .app: $B books, $N clips"
+          NOTES=$(find "$ARC/public/audio" -name '*_[A-Za-z]*.mp3' | wc -l | tr -d ' ')
+          echo "audio in .app: $B books, $N clips ($NOTES chapter notes)"
           test "$B" -eq 66
-          test "$N" -eq 31102
+          # 31,102 verses plus the chapter's printed notes (superscriptions,
+          # colophons, stanza letters, title pages, the two closing lines).
+          test "$N" -ge 31102
+          test "$NOTES" -ge 200
 
       - name: Generate export options (with team ID)
         env:

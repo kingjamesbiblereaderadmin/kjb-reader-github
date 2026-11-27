@@ -125,8 +125,15 @@ jobs:
           AAB=$(ls app/build/outputs/bundle/release/*.aab | head -1)
           N=$(unzip -l "$AAB" | grep -c 'assets/audio/.*\.mp3$' || true)
           P=$(unzip -l "$AAB" | grep -c 'assets.pb$' || true)
-          echo "audio clips in $AAB: $N (pack descriptors: $P)"
-          test "$N" -eq 31102
+          NOTES=$(unzip -l "$AAB" | grep -c "assets/audio/.*_[A-Za-z][A-Za-z0-9]*\.mp3$" || true)
+
+          echo "audio clips in $AAB: $N ($NOTES chapter notes, pack descriptors: $P)"
+
+          # 31,102 verses plus the chapter's printed notes.
+
+          test "$N" -ge 31102
+
+          test "$NOTES" -ge 200
 
       - name: Rename outputs to kjbreader
         working-directory: android

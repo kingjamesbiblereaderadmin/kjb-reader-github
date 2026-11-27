@@ -264,8 +264,11 @@ jobs:
         run: |
           APK=app/build/outputs/apk/release/kjbreader-apexhub.apk
           N=$(unzip -l "$APK" | grep -c 'assets/audio/.*\.mp3$' || true)
-          echo "audio clips in $APK: $N"
-          test "$N" -eq 31102
+          NOTES=$(unzip -l "$APK" | grep -c "assets/audio/.*_[A-Za-z][A-Za-z0-9]*\.mp3$" || true)
+          echo "audio clips in $APK: $N ($NOTES chapter notes)"
+          # 31,102 verses plus the chapter's printed notes.
+          test "$N" -ge 31102
+          test "$NOTES" -ge 200
 
       - name: Verify signature matches ApexHub cert lock
         working-directory: android
