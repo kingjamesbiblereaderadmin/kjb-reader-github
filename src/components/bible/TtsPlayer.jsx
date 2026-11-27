@@ -105,7 +105,7 @@ function topInset(box) {
   return PAD_TOP;
 }
 
-function revealElement(el, { center = false } = {}) {
+function revealElement(el, { center = false, instant = false } = {}) {
   if (!el) return;
   const box = scrollBox();
   const r = el.getBoundingClientRect();
@@ -113,7 +113,10 @@ function revealElement(el, { center = false } = {}) {
   const top = box.top + inset + GAP_TOP;
   const bottom = box.bottom - PAD_BOTTOM;
   const scroll = (delta) => {
-    if (delta) (box.scroller || window).scrollBy({ top: delta, behavior: 'smooth' });
+    if (!delta) return;
+    const opts = { top: delta };
+    if (!instant) opts.behavior = 'smooth';
+    (box.scroller || window).scrollBy(opts);
   };
 
   // A verse taller than the visible area can never be shown whole. Trying to
@@ -133,9 +136,29 @@ function revealElement(el, { center = false } = {}) {
     : above ? r.top - top : r.bottom - bottom);
 }
 
+// A deliberate jump — a play press, a verse pick, a reset — lands at once and is
+// checked again after the bar has settled. Opening the player changes the
+// toolbar's height, and that reflow aborts a smooth scroll partway, which is what
+// left the page short of the verse (and short of the top after a reset).
+function jumpTo(el) {
+  if (!el) return;
+  revealElement(el, { center: true, instant: true });
+  window.setTimeout(() => revealElement(el, { center: true, instant: true }), 350);
+}
+
 function scrollToVerse(verse) {
   if (verse == null) return;
-  revealElement(document.getElementById(`v${verse}`), { center: true });
+  jumpTo(document.getElementById(`v${verse}`));
+}
+
+// Reset means the top of the chapter, heading and all — not merely verse 1.
+function scrollToTop() {
+  const bookView = document.querySelector('[data-testid="kjb-flipbook"]');
+  if (bookView) {
+    bookView.querySelectorAll('.kjb-fb-titlewrap').forEach((page) => page.scrollTo({ top: 0, left: 0 }));
+    return;
+  }
+  (document.getElementById('kjb-scroll') || window).scrollTo({ top: 0, behavior: 'instant' });
 }
 
 export default function TtsPlayer({ embedded = false, open = true, onOpenChange, onActiveChange, verses, chapterKey, bookKey = '', chapter = null, startVerse = null, label = '', bookName = '', subscript = '', colophon = '', titleText = '', endMarker = '', onNextChapter = null, onRestart }) {
@@ -436,7 +459,13 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
   // the page used to stay wherever the reader had scrolled to.
   const onPlayPause = () => {
     followRef.current = true;
-    if (tts.status !== 'playing' && tts.status !== 'loading') scrollToVerse(tts.currentVerse);
+    if (tts.status !== 'playing' && tts.status !== 'loading') {
+      // Come back to whatever is speaking, wherever the reader scrolled to while
+      // paused: the verse itself, or the printed section being read.
+      const section = SECTION_SELECTORS[tts.currentKind];
+      if (section) jumpTo(document.querySelector(section));
+      else scrollToVerse(tts.currentVerse);
+    }
     tts.toggle();
   };
 
@@ -453,7 +482,7 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
     setSelectedVerse(null);
     onRestart?.();
     playFrom(1);
-    scrollToVerse(1);
+    scrollToTop();
   };
 
   // One tap moves to the next speed and wraps round, so the bar keeps a single
