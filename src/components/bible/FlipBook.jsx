@@ -211,9 +211,15 @@ export default React.forwardRef(function FlipBook({
     if (next > 0) setChromeH((current) => (Math.abs(current - next) > 0.5 ? next : current));
   }, [textW, textStyle, fontTick, chapterKey]);
 
-  const blocks = useMemo(() => (
+  // The closing marker of a testament ("The End", "The End of the Prophets") is
+  // printed last, so it belongs in the chapter's own flow: when the final page
+  // has no room left under the colophon it turns onto the next page with the
+  // rest of the text instead of sitting over the verse above it.
+  const showEnd = !!endMarker && !(filterMode && !selectMode && selectedVerses?.size);
+  const blocks = useMemo(() => (<>
     <BookChapterBlocks {...{ bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses }} />
-  ), [bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses]);
+    {showEnd && <p className="kjb-fb-endmark">{endMarker}</p>}
+  </>), [bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses, showEnd, endMarker]);
   const following = useFollowingChapter(book, chapter, canNext && !filterMode && !selectMode);
 
   // A new chapter opens at its first page, or its last when turning backwards.
@@ -429,8 +435,6 @@ export default React.forwardRef(function FlipBook({
 
   // Text pages only (the title page and the table of books come before them).
   const textTotal = Math.max(0, pageCount - front.length);
-  // The closing marker of a testament is printed at the foot of the last page.
-  const showEnd = !!endMarker && !(filterMode && !selectMode && selectedVerses?.size);
 
   // The next chapter, printed on under this one's last verse when the page has
   // room for it. Its own opening ("Genesis / Chapter 3") marks where it begins,
@@ -496,7 +500,6 @@ export default React.forwardRef(function FlipBook({
                 blocks={blocks} {...flowProps} page={textIndex} textStyle={textStyle}
                 continuation={continuesHere ? continuationBlocks : null}
               />
-              {showEnd && textIndex === textTotal - 1 && <p className="kjb-fb-endmark">{endMarker}</p>}
             </div>
             <div className="kjb-fb-folio">{textIndex + 1}</div>
           </>
