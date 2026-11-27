@@ -592,8 +592,24 @@ jobs:
           name: macos-archive-log
           path: build/macos-archive.log
 
+      - name: Resolve upload mode
+        id: uploadmode
+        run: |
+          MODE="$(head -1 .github/asc-upload-mode 2>/dev/null | tr -d '[:space:]')"
+          DISPATCH="${{ inputs.upload }}"
+          if [ "$DISPATCH" = "upload" ] || [ "$DISPATCH" = "skip" ]; then
+            MODE="$DISPATCH"
+          fi
+          echo "Repo toggle: $(head -1 .github/asc-upload-mode 2>/dev/null || echo '<missing>'); dispatch input: $DISPATCH -> mode=$MODE"
+          if [ "$MODE" = "skip" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Upload mode: SKIP (build-only run)"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "Upload mode: UPLOAD"
+          fi
       - name: Export signed macOS package
-        if: inputs.upload == 'upload'
+        if: steps.uploadmode.outputs.skip != 'true'
         env:
           BUILD_NUMBER: ${{ steps.nextbuild.outputs.next }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -621,21 +637,36 @@ jobs:
           find build/macos-export -maxdepth 2 -type f -print
 
       - name: Upload macOS package to App Store Connect
-        if: inputs.upload == 'upload'
+        if: steps.uploadmode.outputs.skip != 'true'
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
-          set -euxo pipefail
+          # Surface altool's reason as a run annotation + job summary: the raw
+          # log needs a token that cannot download it, annotations do not.
+          set -uxo pipefail
           PKG=$(find build/macos-export -maxdepth 1 -type f \( -name '*.pkg' -o -name '*.zip' \) | head -1)
           test -n "$PKG"
+          set +e
           xcrun altool --upload-package "$PKG" \
             --type macos \
             --apple-id "${{ steps.ascapp.outputs.app_id }}" \
             --bundle-id "$BUNDLE_ID" \
             --bundle-version "${{ steps.nextbuild.outputs.next }}" \
             --apiKey "$ASC_KEY_ID" \
-            --apiIssuer "$ASC_ISSUER_ID"
+            --apiIssuer "$ASC_ISSUER_ID" 2>&1 | tee /tmp/altool.log
+          rc=${PIPESTATUS[0]}
+          if [ "$rc" -ne 0 ]; then
+            REASON="$(tail -25 /tmp/altool.log | sed 's/\x1b\[[0-9;]*m//g' | tr '\n' '|' | cut -c1-1800)"
+            echo "::error title=macOS ASC upload failed (altool exit $rc)::${REASON}"
+            {
+              echo "### macOS ASC upload failed (exit $rc)"
+              echo '```'
+              tail -40 /tmp/altool.log
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit $rc
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v6
