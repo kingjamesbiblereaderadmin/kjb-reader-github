@@ -83,7 +83,7 @@
 .kjb-fb-note { margin: 0.6em 0 1em; text-align: center; font-size: 0.88em; orphans: 2; widows: 2; }
 .kjb-fb-verse { margin: 0; orphans: 2; widows: 2; }
 .kjb-fb-verse sup { position: static; margin-right: 0.3em; font-size: 0.65em; font-weight: 700; line-height: 0; vertical-align: super; color: var(--fb-red); }
-.kjb-fb-first::first-letter { float: left; margin: 0.04em 0.1em 0 0; font-size: 3.1em; line-height: 0.9; font-weight: 700; }
+.kjb-fb-dropcap { float: left; margin: 0.04em 0.1em 0 0; font-size: 3.1em; line-height: 0.9; font-weight: 700; }
 .kjb-fb-flow .pilcrow { color: var(--fb-red); }
 .kjb-fb-flow em { font-style: italic; opacity: 0.82; }
 .kjb-fb-loading { position: absolute; inset: 56px 64px var(--fb-footer-height) 20px; display: grid; place-items: center; font-size: 0.9rem; }
@@ -128,12 +128,8 @@
   border-radius: 3px;
 }
 .kjb-flipbook .kjb-fb-note.kjb-fb-speaking { background: rgba(176, 132, 40, 0.26); }
-/* The opening drop cap is the paragraph's ::first-letter, so the verse span's
-   wash never reached it: the big letter sat outside the highlight while the
-   rest of verse 1 was marked. FlipBook marks the verse-1 paragraph itself
-   (kjb-fb-first-speaking) whenever its verse is the one being read, and the
-   cap carries the same wash. */
-.kjb-flipbook .kjb-fb-first.kjb-fb-first-speaking::first-letter {
+/* The explicit drop-cap span supports both the verse wash and word paint. */
+.kjb-flipbook .kjb-fb-first.kjb-fb-first-speaking .kjb-fb-dropcap {
   background: rgba(176, 132, 40, 0.26);
   border-radius: 2px;
 }

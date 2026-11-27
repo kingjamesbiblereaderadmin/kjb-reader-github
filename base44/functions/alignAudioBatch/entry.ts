@@ -18,8 +18,11 @@ export default async function(req) {
     // inline as a data: URI, and passing one of those (17,000+ characters) as a
     // query value is rejected by the database as "String value too long",
     // which failed every run of this backfill before it could measure anything.
-    const query = { timing_version: { $exists: false }, voice: 'en-GB-RyanNeural', url: { $regex: '^https?://' }, ref: { $regex: body.chapterKey ? `^${body.chapterKey}:\\d+(:h\\d+)?$` : '^[1-3A-Z]{3}:\\d+:\\d+(:h\\d+)?$' } };
+    const query = { voice: 'en-GB-RyanNeural', url: { $regex: '^https?://' }, ref: { $regex: body.chapterKey ? `^${body.chapterKey}:\\d+(:h\\d+)?$` : '^[1-3A-Z]{3}:\\d+:\\d+(:h\\d+)?$' } };
     if (body.clipId) query.id = String(body.clipId);
+    // Newer recordings can explicitly store null rather than omit this field.
+    // Both mean unaligned; checking only $exists silently skipped those verses.
+    const pendingQuery = { ...query, $or: [{ timing_version: { $exists: false } }, { timing_version: null }] };
     // A backfill run works through the queue until its deadline, so the pass
     // count only has to be high enough not to cap it (50 × 36 = 1,800 rows).
     const passes = body.backfill === true ? 50 : 1;
@@ -29,7 +32,7 @@ export default async function(req) {
     const deadline = Date.now() + 235000;
     if (body.statusOnly === true) {
       const [remaining, needsReview] = await Promise.all([
-        db.entities.TtsClip.count(query),
+        db.entities.TtsClip.count(pendingQuery),
         db.entities.TtsClip.count({ ...query, timing_version: -1 }),
       ]);
       return Response.json({ aligned: 0, remaining, needsReview, complete: remaining === 0 && needsReview === 0 });
@@ -37,7 +40,7 @@ export default async function(req) {
     const failures = [];
     let aligned = 0, reused = 0, more = false, deferred = false;
     for (let pass = 0; pass < passes && Date.now() < deadline; pass += 1) {
-      const page = await db.entities.TtsClip.filter(query, { sort: 'created_date', limit: 36 });
+      const page = await db.entities.TtsClip.filter(pendingQuery, { sort: 'created_date', limit: 36 });
       const rows = page.items || page;
       if (!rows.length) { more = false; break; }
       const existing = await db.entities.AudioTiming.filter({ audio_url: { $in: rows.map((r) => r.url) } }, { limit: 500 });
@@ -77,7 +80,7 @@ export default async function(req) {
       if (!more || deferred) break;
     }
     const [remaining, needsReview] = await Promise.all([
-      db.entities.TtsClip.count(query),
+      db.entities.TtsClip.count(pendingQuery),
       db.entities.TtsClip.count({ ...query, timing_version: -1 }),
     ]);
     return Response.json({ aligned, reused, failures, remaining, needsReview, more: remaining > 0, deferred, complete: remaining === 0 && needsReview === 0 });

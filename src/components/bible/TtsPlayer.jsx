@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Play, Pause, SkipBack, SkipForward, X, ChevronUp, ChevronRight, RotateCcw, Repeat, CloudDownload } from 'lucide-react';
 import OutputDeviceMenu from '@/components/bible/OutputDeviceMenu';
-import { publishSpeaking, getProgress, getCompletedWords, subscribeProgress, getWordMark, subscribeWordMark } from '@/lib/tts/speaking';
+import { publishSpeaking, getProgress, getCompletedWords, subscribeProgress } from '@/lib/tts/speaking';
 import { readingArea, revealElement, alignToTop, sitsLow, inRightColumn, followVisibleWords } from '@/lib/tts/readerFollow';
 import { isMobile } from '@/lib/readerPosition';
-import { paintWordHighlight, clearWordHighlight } from '@/lib/tts/wordHighlight';
+import useTtsWordHighlight from '@/hooks/useTtsWordHighlight';
 import { publishMediaMetadata, clearMediaMetadata } from '@/lib/tts/mediaSession';
 import useBibleTts from '@/hooks/useBibleTts';
 import { hasBundledAudio } from '@/lib/tts/localAudio';
@@ -75,21 +75,6 @@ function speakingTargets(kind, verse) {
   return el ? [el] : [];
 }
 
-// Book view prints every page as its own copy of the chapter's flow, and keeps a
-// hidden measuring copy of it too, so several elements can carry the same verse
-// number. The word highlight has to land on the copy actually showing on an open
-// page — and never on the next chapter printed on beneath it, whose verse 1
-// would otherwise be painted instead of this chapter's.
-function bookVerseElement(verse) {
-  const copies = [...document.querySelectorAll(`[data-fbv="${verse}"]`)];
-  return copies.find((el) => {
-    if (el.closest('.kjb-fb-measure, [data-fb-next], [data-fb-previous]')) return false;
-    const win = el.closest('.kjb-fb-window');
-    if (!win) return false;
-    const box = win.getBoundingClientRect();
-    return [...el.getClientRects()].some((r) => r.right > box.left + 1 && r.left < box.right - 1 && r.bottom > box.top && r.top < box.bottom);
-  }) || null;
-}
 
 // Where the reader can actually see. The page scrolls inside #kjb-scroll, which
 // is shorter than the window (the header sits above it, the nav bar and footer
@@ -194,6 +179,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   }, [onNextChapter, verses, chapterKey]);
 
   const tts = useBibleTts({ verses, chapterKey, subscript, colophon, titleText, endMarker, onChapterEnd: handleChapterEnd });
+  useTtsWordHighlight({ active: tts.status === 'playing', kind: tts.currentKind, verse: tts.currentVerse, chapterKey });
 
   // The web/PWA can carry a book for offline listening. Whether it does decides
   // two things in the bar: the download action itself, and whether Listen can
@@ -318,29 +304,12 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     const element = () => (note
       ? speakingTargets(note).find((el) => el.getBoundingClientRect().height > 0) || null
       : document.getElementById(`v${tts.currentVerse}`));
-    // Word by word: the word the voice is on is painted inside the verse that is
-    // playing, from that verse's own text (no wrapper elements). Book view has no
-    // #v element, so its open page's copy of the verse is painted instead. It
-    // follows the player's per-frame word mark rather than the coarse progress
-    // events, so the mark sits on the word being spoken as it is spoken.
-    const paintTarget = () => element() || (!note ? bookVerseElement(tts.currentVerse) : null);
-    const paint = (index) => { if (!note) paintWordHighlight(paintTarget(), index); };
     const follow = (progress, clipRef, completedWords) => {
       if (clipRef !== ref) return;
       if (followRef.current) followVisibleWords(element(), progress, completedWords);
     };
-    clearWordHighlight();
     follow(getProgress(ref), ref, getCompletedWords(ref));
-    paint(getWordMark(ref));
-    const unpaint = subscribeWordMark((index, markRef) => {
-      if (markRef === ref) paint(index);
-    });
-    const unsubscribe = subscribeProgress(follow);
-    return () => {
-      unpaint();
-      unsubscribe();
-      clearWordHighlight();
-    };
+    return subscribeProgress(follow);
   }, [tts.status, tts.currentVerse, tts.currentKind, chapterKey]);
 
   // While the chapter announcement plays, the heading is what is being spoken,

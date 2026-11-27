@@ -7,7 +7,7 @@ export default function verseWords(element) {
   if (!root) return [];
   const raw = root.textContent || '';
   const saved = cache.get(root);
-  if (saved?.raw === raw && saved.words.every((word) => root.contains(word.range.startContainer))) return saved.words;
+  if (saved?.raw === raw && saved.words.every((word) => root.contains(word.range.startContainer) && root.contains(word.range.endContainer))) return saved.words;
   const chars = [];
   let text = '';
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
@@ -32,7 +32,19 @@ export default function verseWords(element) {
     const range = document.createRange();
     range.setStart(start.node, start.offset);
     range.setEnd(end.node, end.offset + 1);
-    words.push({ range, index: words.length, start: match.index / text.length, end: (match.index + match[0].length) / text.length });
+    // A word can cross a floated drop cap or italic markup. Paint a separate
+    // range per text node, rather than one range crossing layout contexts.
+    const ranges = [];
+    let fragment = null;
+    for (const char of chars.slice(match.index, match.index + match[0].length)) {
+      if (!fragment || fragment.startContainer !== char.node) {
+        fragment = document.createRange();
+        fragment.setStart(char.node, char.offset);
+        ranges.push(fragment);
+      }
+      fragment.setEnd(char.node, char.offset + 1);
+    }
+    words.push({ range, ranges, index: words.length, start: match.index / text.length, end: (match.index + match[0].length) / text.length });
   }
   cache.set(root, { raw, words });
   return words;

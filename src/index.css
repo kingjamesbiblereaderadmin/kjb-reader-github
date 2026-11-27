@@ -1127,6 +1127,15 @@ html.kjb-native-ios select {
 /* The word being spoken inside the verse that is playing. Painted with the
    Custom Highlight API so the reader's own markup is never touched — nothing
    wraps the text, so nothing can go stale when the page re-renders. */
+/* Floated drop caps use their existing span because browser highlight painting
+   can omit floats. No wrapping or layout changes happen during playback. */
+.kjb-word-cap {
+  background-color: hsl(var(--accent) / 0.3) !important;
+  text-decoration: underline;
+  text-decoration-color: hsl(var(--accent) / 0.75);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
 ::highlight(kjb-word) {
   background-color: hsl(var(--accent) / 0.3);
   color: inherit;

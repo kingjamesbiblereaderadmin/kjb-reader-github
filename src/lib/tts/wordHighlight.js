@@ -5,43 +5,35 @@
 import verseWords from '@/lib/tts/verseWords';
 
 const NAME = 'kjb-word';
-const supported = typeof CSS !== 'undefined' && !!CSS.highlights && typeof Highlight !== 'undefined';
+const CAP_SELECTOR = '.kjb-dropcap-letter, .kjb-fb-dropcap';
+const markedCaps = new Set();
+const supported = () => typeof CSS !== 'undefined' && !!CSS.highlights && typeof Highlight !== 'undefined';
 
 export function clearWordHighlight() {
-  if (supported) CSS.highlights.delete(NAME);
+  if (supported()) CSS.highlights.delete(NAME);
+  markedCaps.forEach((cap) => cap.classList.remove('kjb-word-cap'));
+  markedCaps.clear();
 }
 
-// `completed` is how many words of the clip have FINISHED, or null when the
-// recording has no word timings yet — then nothing is painted and the whole-verse
-// wash alone marks the verse. The word being spoken right now is therefore the
-// next one, not the last finished one: painting `completed - 1` left the mark a
-// whole word behind the voice.
-export function paintWordHighlight(element, completed) {
-  if (!supported || !element || completed == null) return;
-  const words = verseWords(element);
-  if (!words.length) {
-    CSS.highlights.delete(NAME);
-    return;
-  }
-  const index = Math.min(completed, words.length - 1);
-  if (!(index >= 0)) {
-    CSS.highlights.delete(NAME);
-    return;
-  }
-  const { range } = words[index];
-  if (!range || !range.startContainer.isConnected) return;
-  const ranges = [range];
-  // The opening word is printed with its first letter enlarged as its own
-  // floated span. Paint that letter too while the opening word is spoken, so
-  // the drop cap lights up with the word instead of staying unmarked beside it.
-  if (index === 0) {
-    const cap = element.querySelector('.kjb-dropcap-letter')?.firstChild;
-    if (cap && cap.nodeType === 3 && cap.nodeValue) {
-      const capRange = document.createRange();
-      capRange.setStart(cap, 0);
-      capRange.setEnd(cap, cap.nodeValue.length);
-      ranges.push(capRange);
+// Paint every open page's copy. CSS clipping hides the parts outside that
+// page, so a word split across a spread never lands on just the other copy.
+export function paintWordHighlight(elements, index) {
+  clearWordHighlight();
+  if (index == null || index < 0) return;
+  const targets = Array.isArray(elements) ? elements : [elements];
+  const ranges = [];
+  for (const element of targets) {
+    if (!element?.isConnected) continue;
+    const word = verseWords(element)[index];
+    if (!word) continue;
+    for (const range of word.ranges || [word.range]) {
+      if (!range.startContainer.isConnected || !range.endContainer.isConnected) continue;
+      const cap = range.startContainer.parentElement?.closest(CAP_SELECTOR);
+      // Floated first letters are not painted consistently by the Custom
+      // Highlight API. Mark their existing span without changing the text.
+      if (cap) { cap.classList.add('kjb-word-cap'); markedCaps.add(cap); }
+      else ranges.push(range);
     }
   }
-  CSS.highlights.set(NAME, new Highlight(...ranges));
+  if (supported() && ranges.length) CSS.highlights.set(NAME, new Highlight(...ranges));
 }

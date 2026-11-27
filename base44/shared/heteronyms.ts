@@ -47,6 +47,8 @@ export const CORRECTED_IPA: Record<string, string> = {
   evildoer: 'ˈiːvəlˌduːə',
   evildoers: 'ˈiːvəlˌduːəz',
   teers: 'tɪəz',
+  // Standard British and international dictionary pronunciation: NAY-kid.
+  naked: 'ˈneɪkɪd',
   // The Authorised Version gives "blessed" its own syllable (BLESS-id). The
   // hyphen respelling on its own was flattened back to "blest" by the engine,
   // so the word is pinned in IPA the same way "teers" is.
@@ -123,8 +125,8 @@ function say(word: string, prev: string, next: string, next2: string): string {
     // The "-ed" words the Authorised Version reads with their own syllable.
     case 'blessed': return /^(have|hast|has|had|having)$/.test(prev) ? word : 'bless-ed';
     case 'learned': return /^(have|hast|has|had|having|never)$/.test(prev) ? word : 'learn-ed';
-    // "Nah-ked", not "nay-ked": the short "a" the Authorised Version gives it.
-    case 'naked': return 'nah-ked';
+    // Keep the spelling intact so CORRECTED_IPA supplies NAY-kid.
+    case 'naked': return word;
     // "cursed be Canaan" and "cursed is the ground" carry their own syllable;
     // "he cursed the LORD's anointed" is the plain past and does not.
     case 'cursed': return /^(he|she|they|we|ye|i|thou|it|had|have|hath|hast)$/.test(prev) && /^(the|his|her|their|thy|my|your|our|him|them|me|thee|this|that|a)$/.test(next) ? word : 'curs-ed';
@@ -172,5 +174,5 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   const cursedUpdated = /\bcurs-ed\b/i.test(out);
   const adarUpdated = /\badar\b/i.test(text);
   const satUpdated = /\bsatest\b/i.test(text);
-  return { text: out, changed, revision: satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : nakedUpdated ? 'h9' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
+  return { text: out, changed, revision: nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
 }

@@ -329,6 +329,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       el.removeAttribute('src');
     }
     publishProgress(0);
+    publishWordMark(null, -1);
     setIndex(-1);
     setAudibleIndex(-1);
     setIntroActive(false);
@@ -366,6 +367,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     const el = adoptBuffered(prepared);
     clearStall();
     publishProgress(0, clip.ref);
+    publishWordMark(clip.ref, -1);
 
     // The pause baked into the start and end of each clip is what a listener
     // hears as a gap between verses (see clipTrim). Measured while the clip was

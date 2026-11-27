@@ -3,7 +3,11 @@ import { renderVerseText } from '@/lib/bibleApi';
 
 export default function BookChapterBlocks({ bookName, chapter, verses = [], subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses }) {
   if (chapter === 0) return null;
-  const markup = (text, term = null) => ({ __html: renderVerseText(String(text).replace(/^<<[^>]*>>\s*/, ''), term) });
+  const markup = (text, term = null, dropCap = false) => {
+    let html = renderVerseText(String(text).replace(/^<<[^>]*>>\s*/, ''), term);
+    if (dropCap) html = html.replace(/^((?:<[^>]+>|\s|¶)*)(\p{L})/u, '$1<span class="kjb-fb-dropcap">$2</span>');
+    return { __html: html };
+  };
   const note = (text, term = null) => ({ __html: `<span class="pilcrow">¶</span> ${renderVerseText(String(text).replace(/^<<[^>]*>>\s*/, '').replace(/^[\u00B6\uFFFD]\s*/, ''), term)}` });
   const picked = (v) => selectedVerses?.has(Number(v.verse)) || selectedVerses?.has(String(v.verse));
   const filtered = !!(filterMode && !selectMode && selectedVerses?.size);
@@ -25,7 +29,7 @@ export default function BookChapterBlocks({ bookName, chapter, verses = [], subs
         {group.map((v) => <React.Fragment key={v.verse}>
           <span data-fbv={v.verse}>
             {Number(v.verse) !== 1 && <sup>{v.verse}</sup>}
-            <span className="kjb-verse-text" dangerouslySetInnerHTML={markup(v.text, Number(v.verse) === parseInt(jumpVerse, 10) ? searchTerm : null)} />
+            <span className="kjb-verse-text" dangerouslySetInnerHTML={markup(v.text, Number(v.verse) === parseInt(jumpVerse, 10) ? searchTerm : null, index === 0 && Number(v.verse) === 1)} />
           </span>{' '}
         </React.Fragment>)}
       </p>
