@@ -426,11 +426,19 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   // Idle, the section only exists while the toolbar's headphones button has it
   // open. During playback it always shows, and that same button switches
   // between the full controls and the compact pill.
+  // The reader opens the player, not the audio. Carrying on into the next
+  // chapter stops playback for a moment and starts it again, so opening the
+  // panel on every start put the popup back over the book at each chapter
+  // break. It is shown on the first start of a listening session only; the
+  // flag is cleared when listening is stopped.
+  const autoOpenedRef = useRef(false);
   useEffect(() => {
     onActiveChange?.(tts.isActive);
+    if (!tts.isActive || autoOpenedRef.current) return;
+    autoOpenedRef.current = true;
     // In book view the panel is opened and closed by the headphones button, so
     // starting the reading leaves it as it is rather than closing it.
-    if (tts.isActive) onOpenChange?.(vertical ? true : !hidden);
+    onOpenChange?.(vertical ? true : !hidden);
     // Only react to playback starting or stopping.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tts.isActive]);
@@ -669,7 +677,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
             </button>
           )}
           {(!idle || embedded || inline) && (
-            <button onClick={() => { tts.stop(); onOpenChange?.(false); }} aria-label={idle ? 'Close player' : 'Stop listening'} className={CONTROL}>
+            <button onClick={() => { autoOpenedRef.current = false; tts.stop(); onOpenChange?.(false); }} aria-label={idle ? 'Close player' : 'Stop listening'} className={CONTROL}>
               <X className="w-4 h-4" />
             </button>
           )}

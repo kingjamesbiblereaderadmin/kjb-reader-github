@@ -72,7 +72,10 @@ export function cleanHeadingForSpeech(raw) {
 // the clip already said "A Psalm of David" and the player then said it again as
 // the chapter's own line. Those clips are gone; asking the server again gets
 // the verse on its own.
-const URL_CACHE_KEY = 'kjb-tts-urls-v3';
+// v4: the same happened to the LAST verse of an epistle, voiced together with
+// its subscription ("Written to the Romans from Corinthus…"). Those clips are
+// gone too, so every device asks again.
+const URL_CACHE_KEY = 'kjb-tts-urls-v4';
 const URL_CACHE_MAX = 4000;
 const urlCache = new Map(); // `${voice}|${ref}` -> mp3 url
 let urlSaveTimer = null;
