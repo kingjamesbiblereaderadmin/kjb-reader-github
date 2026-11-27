@@ -9,9 +9,9 @@ import { isAppleStoreApp } from '@/lib/isAppleStoreApp';
 // descriptions at all.
 
 const APIS = [
-  ['Microsoft Azure AI Speech', 'the Listen voice. Verse text is sent to Azure and the audio comes back as an mp3 that is stored and replayed, so each verse is voiced once. It runs on the developer\u2019s own Azure subscription under the Microsoft Azure service terms, and the speech is played inside the app only \u2014 it is never sold or offered as audio on its own.'],
+  ['Microsoft Azure AI Speech', 'the Listen voice. Verse text is sent to Azure and the audio comes back as an mp3 that is stored and replayed, so each verse is voiced once. It runs on the developer\u2019s own Azure subscription under the Microsoft Azure service terms, and the speech is played inside the app only \u2014 it is never sold or offered as audio on its own. The Android and iOS apps carry the whole set of clips inside the app itself, so listening there needs no connection.'],
   ['Base44', 'the platform\u2019s APIs for hosting, backend functions, file storage and optional sign-in, used under Base44\u2019s terms of service.'],
-  ['DisCloud', 'hosts the pre-generated audio clips the app plays, under DisCloud\u2019s hosting terms.'],
+  ['Base44 file storage', 'holds the pre-generated audio clips the web app plays, so a verse already voiced is never generated or paid for twice.'],
   ['jsDelivr + Simple Icons', 'brand marks shown on this page. Simple Icons is released under CC0.'],
 ];
 

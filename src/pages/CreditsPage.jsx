@@ -232,7 +232,7 @@ export default function CreditsPage() {
           <div className="space-y-2.5">
             {[
               [<span key="b"><strong className="text-foreground">Base44</strong></span>, 'the web app platform — hosting, backend, and optional user authentication.'],
-              [<span key="v"><strong className="text-foreground">Microsoft Azure AI Speech</strong></span>, 'neural voice synthesis for the Listen player. Each verse is voiced once and the audio is cached, so replays cost nothing.'],
+              [<span key="v"><strong className="text-foreground">Microsoft Azure AI Speech</strong></span>, 'neural voice synthesis for the Listen player. Each verse is voiced once and the audio is cached, so replays cost nothing. The Android and iOS apps bundle the clips with the app, so listening works with no connection.'],
               [<span key="c"><strong className="text-foreground">Capacitor</strong></span>, (isAppleStoreApp() ? 'open source (MIT License) — wraps the web app into the native iOS app.' : 'open source (MIT License) — wraps the web app into the native Android and iOS apps.')],
               [<span key="g"><strong className="text-foreground">Gradle + Android SDK</strong></span>, 'compile and sign the Android app.'],
               [<span key="p"><strong className="text-foreground">Google Play Console</strong></span>, 'distributes the Android app on Google Play.'],
