@@ -1,5 +1,6 @@
 // Mirrors the server's narrowly scoped recording revisions. Printed text never changes.
 export default function pronunciationRevision(text) {
+  if (/\bcainan\b/i.test(text)) return 'h16';
   if (/\benos\b/i.test(text)) return 'h15';
   if (/\bnaked\b/i.test(text)) return 'h14';
   if (/\bsatest\b/i.test(text)) return 'h13';

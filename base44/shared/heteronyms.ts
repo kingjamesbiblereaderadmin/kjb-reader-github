@@ -47,6 +47,8 @@ export const CORRECTED_IPA: Record<string, string> = {
   evildoer: 'ˈiːvəlˌduːə',
   evildoers: 'ˈiːvəlˌduːəz',
   teers: 'tɪəz',
+  // Cainan is KAY-nuhn, with a hard K and stress on the first syllable.
+  cainan: 'ˈkeɪnən',
   // Keep Enos as EE-noss, never an "ay" sound in the final syllable.
   enos: 'ˈiːnɒs',
   // Standard British and international dictionary pronunciation: NAY-kid.
@@ -149,6 +151,7 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   // Only these corrections get a new recording key. Existing h2 recordings for
   // other settled pronunciations are retained and are not generated again.
   const auditUpdated = /\b(?:goeth|doeth|seeth|lieth|dieth|useth|oweth|loveth|moveth|giveth|crieth|flieth|trieth|drieth|aijeleth|alameth|alemeth|azmaveth|chinnereth|dabbasheth|elisabeth|gennesareth|hammoleketh|hareth|harosheth|haraseth|hareseth|hazarmaveth|japheth|jerubbesheth|jetheth|mephibosheth|meshullemeth|mispereth|nazareth|peleth|beseth|pochereth|remeth|shallecheth|shibboleth|sibboleth|sophereth|tanhumeth|tebeth|topheth|zereth|zoheleth|zoheth|bosheth|ishbosheth|twentieth|thirtieth|fortieth|fiftieth|sixtieth|seventieth|eightieth|ninetieth)\b/i.test(text);
+  const cainanUpdated = /\bcainan\b/i.test(text);
   const enosUpdated = /\benos\b/i.test(text);
   const nakedUpdated = /\bnaked\b/i.test(text);
   const blessedUpdated = /\bblessed\b/i.test(text);
@@ -177,5 +180,5 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   const cursedUpdated = /\bcurs-ed\b/i.test(out);
   const adarUpdated = /\badar\b/i.test(text);
   const satUpdated = /\bsatest\b/i.test(text);
-  return { text: out, changed, revision: enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
+  return { text: out, changed, revision: cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
 }

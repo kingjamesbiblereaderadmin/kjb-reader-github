@@ -24,7 +24,7 @@ export default async function(req) {
     const missing = scope.filter((item) => !saved.has(item.key));
     if (body.statusOnly === true) {
       const books = [...new Set(scope.map((item) => item.book))].map((name) => ({ book: name, missing: missing.filter((item) => item.book === name).length }));
-      return Response.json({ total: scope.length, cached: scope.length - missing.length, remaining: missing.length, books, complete: !missing.length });
+      return Response.json({ total: scope.length, cached: scope.length - missing.length, remaining: missing.length, books, complete: !missing.length, ...(body.includeMissing === true ? { missing } : {}) });
     }
     if (!book) return Response.json({ error: 'Choose one Bible book to restore' }, { status: 400 });
     if (!missing.length) return Response.json({ book, restored: 0, remaining: 0, complete: true });
@@ -50,6 +50,7 @@ export default async function(req) {
     const failures = [];
     let pendingRows = [];
     for (let at = 0; at < Math.min(missing.length, maxClips) && Date.now() < deadline; at += 6) {
+      const waveStarted = Date.now();
       const wave = missing.slice(at, Math.min(at + 6, maxClips));
       const results = await Promise.all(wave.map(async (item) => {
         try {
@@ -75,6 +76,10 @@ export default async function(req) {
         pendingRows = [];
       }
       if (failures.length) break;
+      // Stay below the upload service's observed per-caller limit while keeping
+      // all six upload slots active during each wave.
+      const wait = 1300 - (Date.now() - waveStarted);
+      if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
     }
     if (pendingRows.length) {
       await db.entities.TtsClip.bulkCreate(pendingRows);
