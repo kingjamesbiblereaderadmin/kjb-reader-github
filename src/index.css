@@ -1007,6 +1007,23 @@ html.kjb-native-ios select {
   box-decoration-break: clone;
 }
 
+/* "The End", "The End of the Prophets" and the Hebrew stanza names (ALEPH,
+   BETH…) while they are being read. The block they sit in is full width, so its
+   own wash and left rule landed nowhere near the words: these lines are washed
+   on the text instead, which is what makes them read as "this is playing". */
+#kjb-end-anchor.kjb-speaking {
+  background-color: transparent;
+  box-shadow: none;
+}
+#kjb-end-anchor.kjb-speaking .kjb-end-marker,
+.kjb-stanza-heading.kjb-speaking {
+  background-color: hsl(var(--accent) / 0.22);
+  box-shadow: 0 0 0 7px hsl(var(--accent) / 0.14);
+  border-radius: 0.3rem;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
 /* The book name and the chapter line are short, tight runs of type, and the
    wash sat straight on the glyphs like a highlighter pressed too hard. A halo
    in the same wash gives the highlight room around the words without adding

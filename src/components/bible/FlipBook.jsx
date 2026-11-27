@@ -364,6 +364,9 @@ export default function FlipBook({
       el.classList.toggle('kjb-fb-speaking', kind === 'head' ? spokenAt === 'intro' : spokenAt === `[data-fb-sec="${kind}"]`);
     });
     root.querySelectorAll('.kjb-fb-titlewrap').forEach((el) => el.classList.toggle('kjb-fb-speaking', spokenAt === 'intro'));
+    // The closing line ("The End", "The End of the Prophets") is read last, so
+    // it lights up like the notes do while the voice is on it.
+    root.querySelectorAll('.kjb-fb-endmark').forEach((el) => el.classList.toggle('kjb-fb-speaking', spokenAt === 'end'));
     let first = '';
     for (const v of verses) {
       const at = pageOf(`[data-fbv="${v.verse}"]`);
