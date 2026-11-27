@@ -249,6 +249,8 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   const clipsRef = useRef(clips);
   clipsRef.current = clips;
 
+  const prefetchedRef = useRef(new Map()); // url -> Audio
+
   const getAudio = useCallback(() => {
     if (!audioRef.current) {
       const el = new Audio();
@@ -257,6 +259,26 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     }
     return audioRef.current;
   }, []);
+
+  // Hand playback to the element that has already been buffering this clip.
+  // Re-pointing one element at a new src tears its pipeline down and waits for
+  // the file again, and that wait is the pause heard between verses; the
+  // prefetched element already holds the audio, so it starts at once.
+  const adoptBuffered = useCallback((url) => {
+    const ready = prefetchedRef.current.get(url);
+    const current = audioRef.current;
+    if (!ready) return getAudio();
+    prefetchedRef.current.delete(url);
+    if (current && current !== ready) {
+      current.pause();
+      current.onended = null;
+      current.onerror = null;
+      current.ontimeupdate = null;
+      current.removeAttribute('src');
+    }
+    audioRef.current = ready;
+    return ready;
+  }, [getAudio]);
 
   const clearStall = () => {
     if (stallRef.current) {
@@ -305,11 +327,13 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
 
     fetchingRef.current = false;
 
-    const el = getAudio();
+    const el = adoptBuffered(url);
     clearStall();
     el.ontimeupdate = null;
     el.onerror = null;
-    el.src = url;
+    // The adopted element already holds this clip: re-assigning the attribute
+    // would make the browser load it again, undoing the head start.
+    if (el.getAttribute('src') !== url) el.src = url;
     publishProgress(0);
 
     // A clip that will not load must never leave the chapter silent. Its
@@ -384,7 +408,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     }
     if (token === tokenRef.current) setStatus('playing');
     return true;
-  }, [getAudio]);
+  }, [adoptBuffered]);
 
   playClipRef.current = playClip;
 
@@ -393,7 +417,6 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   // Resolving the URL is only half of that wait: the mp3 itself still has to be
   // downloaded, which a hidden <audio> element does now so the player reads it
   // from the media cache when its turn comes.
-  const prefetchedRef = useRef(new Map()); // url -> Audio
   const prefetch = useCallback((clip) => {
     if (!clip) return;
     audioUrlFor(clip, voiceRef.current)

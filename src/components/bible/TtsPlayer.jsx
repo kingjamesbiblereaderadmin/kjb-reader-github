@@ -45,6 +45,24 @@ function clearSpeaking() {
   document.querySelectorAll(`.${SPEAKING_CLASS}`).forEach((el) => el.classList.remove(SPEAKING_CLASS));
 }
 
+// The element(s) that carry the highlight for what is being read: the verse, the
+// printed section around it, or a Hebrew stanza name (ALEPH, BETH) — which is
+// marked itself rather than the verse printed beneath it. The reader can keep a
+// second, hidden copy of a section for the two-column layout, so every match is
+// returned, not just the first: the first is the hidden one, which is why the
+// subscript looked unhighlighted while it was being read.
+function speakingTargets(kind, verse) {
+  const sectionSelector = SECTION_SELECTORS[kind];
+  if (sectionSelector) return [...document.querySelectorAll(sectionSelector)];
+  if (verse == null) return [];
+  if (kind === 'heading') {
+    const head = document.querySelector(`#v${verse} .kjb-stanza-heading`);
+    if (head) return [head];
+  }
+  const el = document.getElementById(`v${verse}`);
+  return el ? [el] : [];
+}
+
 // Where the reader can actually see. The page scrolls inside #kjb-scroll, which
 // is shorter than the window (the header sits above it, the nav bar and footer
 // below), so measuring against window.innerHeight called a verse "on screen"
@@ -288,27 +306,14 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
       timer = window.setTimeout(() => { if (followRef.current) revealElement(el); }, 320);
     };
 
-    // The printed furniture spoken around the verses — the superscription above
-    // verse 1, the subscription after the last verse, the closing line — carries
-    // the highlight while it is read. Book view marks them with its own
-    // attributes instead of the reader's anchors, so both are matched; matching
-    // only the anchors left them unhighlighted there.
-    const sectionSelector = SECTION_SELECTORS[tts.currentKind];
-    if (sectionSelector) {
-      const section = document.querySelector(sectionSelector);
-      if (section) {
-        section.classList.add(SPEAKING_CLASS);
-        if (!skipScrollRef.current) reveal(section);
-      }
+    const targets = speakingTargets(tts.currentKind, tts.currentVerse);
+    if (!targets.length) {
       skipScrollRef.current = false;
       return () => window.clearTimeout(timer);
     }
-    if (tts.currentVerse == null) return () => window.clearTimeout(timer);
-    const el = document.getElementById(`v${tts.currentVerse}`);
-    if (!el) return () => window.clearTimeout(timer);
-    el.classList.add(SPEAKING_CLASS);
+    targets.forEach((el) => el.classList.add(SPEAKING_CLASS));
     if (skipScrollRef.current) { skipScrollRef.current = false; return () => window.clearTimeout(timer); }
-    reveal(el);
+    reveal(targets[0]);
     return () => window.clearTimeout(timer);
   }, [tts.currentVerse, tts.currentKind]);
 
@@ -355,13 +360,11 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
         }
         return;
       }
-      const v = tts.currentVerse;
-      if (v == null) return;
-      const el = document.getElementById(`v${v}`);
-      if (el && !el.classList.contains(SPEAKING_CLASS)) {
-        clearSpeaking();
-        el.classList.add(SPEAKING_CLASS);
-      }
+      const targets = speakingTargets(tts.currentKind, tts.currentVerse);
+      if (!targets.length) return;
+      if (targets.every((el) => el.classList.contains(SPEAKING_CLASS))) return;
+      clearSpeaking();
+      targets.forEach((el) => el.classList.add(SPEAKING_CLASS));
     };
     let timer = 0;
     const observer = new MutationObserver(() => {
@@ -373,7 +376,7 @@ export default function TtsPlayer({ embedded = false, open = true, onOpenChange,
       observer.disconnect();
       window.clearTimeout(timer);
     };
-  }, [tts.isActive, tts.introActive, tts.currentVerse]);
+  }, [tts.isActive, tts.introActive, tts.currentVerse, tts.currentKind]);
 
   // Listening owns the scroll. Tapping elsewhere or scrolling by hand no longer
   // detaches the page from the voice: when the next verse would be out of view
