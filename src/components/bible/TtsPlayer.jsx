@@ -153,11 +153,14 @@ function revealElement(el, { center = false, instant = false } = {}) {
     (box.scroller || window).scrollBy(opts);
   };
 
-  // A verse taller than the visible area can never be shown whole. Trying to
-  // bring its foot into view scrolled its first line up under the toolbar, so
-  // put the top just below the bar and let the reader follow the voice down.
+  // A verse taller than the visible area can never be shown whole. Pinning its
+  // top (what this used to do) jumped the page at the start of every long verse,
+  // and the follow loop then scrolled straight back down to the words being read
+  // — the page lurched to the verse's first line and hunted from there. Once any
+  // of the verse is on screen the follow loop owns it, so nothing moves here;
+  // only a verse that is entirely off screen is brought in.
   if (r.height > bottom - top) {
-    if (r.top >= top - 2 && r.top <= top + 12) return;
+    if (r.bottom > top + 8 && r.top < bottom - 8) return;
     scroll(r.top - top);
     return;
   }
@@ -231,7 +234,12 @@ function followSpokenLine(el) {
     Math.min(drift, Math.max(0, r.bottom - bottom))
   );
   if (Math.abs(delta) < 6) return;
-  (box.scroller || window).scrollBy({ top: delta, behavior: 'smooth' });
+  // Scrolled instantly, not smoothly: the loop measures the spoken line again a
+  // quarter second later, and a smooth animation still in flight is measured
+  // mid-way — each tick would then add the whole remaining distance again, so
+  // the page overshot the line and hunted back up. A single line's step looks
+  // the same either way.
+  (box.scroller || window).scrollBy({ top: delta });
 }
 
 // A deliberate jump — a play press, a verse pick, a reset — lands at once and is
