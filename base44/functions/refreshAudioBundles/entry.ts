@@ -10,8 +10,8 @@ export default async function(req) {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     if (user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
     const body = await req.json().catch(() => ({}));
-    const maxBooks = body.maxBooks == null ? 3 : Number(body.maxBooks);
-    if (!Number.isInteger(maxBooks) || maxBooks < 1 || maxBooks > 3) return Response.json({ error: 'Choose between one and three books' }, { status: 400 });
+    const maxBooks = body.maxBooks == null ? 6 : Number(body.maxBooks);
+    if (!Number.isInteger(maxBooks) || maxBooks < 1 || maxBooks > 20) return Response.json({ error: 'Choose between one and twenty books' }, { status: 400 });
     const db = base44.asServiceRole;
     const targets = await pendingPronunciationTargets(db);
     if (targets.pending.length) return Response.json({ waitingForRecordings: targets.pending.length, updatedBooks: [] });

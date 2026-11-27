@@ -13,7 +13,7 @@
           "with": {
             "function_name": "refreshAudioBundles",
             "args": {
-              "maxBooks": 3
+              "maxBooks": 20
             }
           },
           "then": "end",
