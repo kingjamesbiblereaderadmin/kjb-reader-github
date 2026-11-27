@@ -317,12 +317,14 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     // layout, so follow the copy that is actually on screen.
     const element = () => (note
       ? speakingTargets(note).find((el) => el.getBoundingClientRect().height > 0) || null
-      : document.getElementById(`v${tts.currentVerse}`) || document.querySelector(`[data-fbv="${tts.currentVerse}"]`));
+      : document.getElementById(`v${tts.currentVerse}`));
+    // Word by word: the word the voice is on is painted inside the verse that is
+    // playing, from that verse's own text (no wrapper elements). Book view has no
+    // #v element, so its open page's copy of the verse is painted instead.
+    const paintTarget = () => element() || (!note ? bookVerseElement(tts.currentVerse) : null);
     const follow = (progress, clipRef, completedWords) => {
       if (clipRef !== ref) return;
-      // Word by word: the word the voice is on is painted inside the verse that
-      // is playing, from that verse's own text (no wrapper elements).
-      if (!note) paintWordHighlight(element(), completedWords);
+      if (!note) paintWordHighlight(paintTarget(), completedWords);
       if (followRef.current) followVisibleWords(element(), progress, completedWords);
     };
     follow(getProgress(ref), ref, getCompletedWords(ref));
