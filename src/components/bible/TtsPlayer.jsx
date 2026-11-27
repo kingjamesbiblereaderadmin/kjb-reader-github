@@ -75,6 +75,22 @@ function speakingTargets(kind, verse) {
   return el ? [el] : [];
 }
 
+// Book view prints every page as its own copy of the chapter's flow, and keeps a
+// hidden measuring copy of it too, so several elements can carry the same verse
+// number. The word highlight has to land on the copy actually showing on an open
+// page — and never on the next chapter printed on beneath it, whose verse 1
+// would otherwise be painted instead of this chapter's.
+function bookVerseElement(verse) {
+  const copies = [...document.querySelectorAll(`[data-fbv="${verse}"]`)];
+  return copies.find((el) => {
+    if (el.closest('.kjb-fb-measure, [data-fb-next], [data-fb-previous]')) return false;
+    const win = el.closest('.kjb-fb-window');
+    if (!win) return false;
+    const box = win.getBoundingClientRect();
+    return [...el.getClientRects()].some((r) => r.right > box.left + 1 && r.left < box.right - 1 && r.bottom > box.top && r.top < box.bottom);
+  }) || null;
+}
+
 // Where the reader can actually see. The page scrolls inside #kjb-scroll, which
 // is shorter than the window (the header sits above it, the nav bar and footer
 // below), so measuring against window.innerHeight called a verse "on screen"
