@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Play, Pause, SkipBack, SkipForward, X, ChevronDown, ChevronUp, ChevronRight, RotateCcw, Repeat, CloudDownload } from 'lucide-react';
 import OutputDeviceMenu from '@/components/bible/OutputDeviceMenu';
-import { publishSpeaking } from '@/lib/tts/speaking';
+import { publishSpeaking, getProgress } from '@/lib/tts/speaking';
 import { publishMediaMetadata, clearMediaMetadata } from '@/lib/tts/mediaSession';
 import useBibleTts from '@/hooks/useBibleTts';
 import useOfflineBook from '@/hooks/useOfflineBook';
@@ -169,6 +169,28 @@ function revealElement(el, { center = false, instant = false } = {}) {
     : above ? r.top - top : r.bottom - bottom);
 }
 
+// A verse taller than the screen can never be shown whole, so pinning its top
+// (what revealElement does) left the second half of a long verse under the fold
+// while the voice read on — the page never moved again for that verse. Instead,
+// while such a verse is being read, follow the voice down it: the point the clip
+// has reached walks from the top of the verse to its foot across the part of the
+// verse that does not fit, so every line being read comes into view.
+function followTallVerse(el) {
+  if (!el) return;
+  const box = scrollBox();
+  const r = el.getBoundingClientRect();
+  const top = box.top + topInset(box) + GAP_TOP;
+  const visible = box.bottom - PAD_BOTTOM - top;
+  if (visible <= 0) return;
+  const overflow = r.height - visible;
+  if (overflow <= 0) return;
+  // 0 at the start of the clip (verse top just under the bar) to 1 at its end
+  // (verse foot just above the bottom bar).
+  const delta = r.top - top + overflow * getProgress();
+  if (Math.abs(delta) < 6) return;
+  (box.scroller || window).scrollBy({ top: delta });
+}
+
 // A deliberate jump — a play press, a verse pick, a reset — lands at once and is
 // checked again after the bar has settled. Opening the player changes the
 // toolbar's height, and that reflow aborts a smooth scroll partway, which is what
@@ -332,6 +354,19 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     return () => window.clearTimeout(timer);
   }, [tts.currentVerse, tts.currentKind]);
 
+  // Long verses (Psalm 119, the genealogies) run past the foot of the screen, so
+  // while one is being read the page keeps following the voice down it instead
+  // of stopping once the verse's first line is in view.
+  useEffect(() => {
+    if (!tts.isActive || tts.currentVerse == null) return undefined;
+    const el = document.getElementById(`v${tts.currentVerse}`);
+    if (!el) return undefined;
+    const id = window.setInterval(() => {
+      if (followRef.current) followTallVerse(document.getElementById(`v${tts.currentVerse}`));
+    }, 250);
+    return () => window.clearInterval(id);
+  }, [tts.isActive, tts.currentVerse, tts.currentKind]);
+
   // While the chapter announcement plays, the heading is what is being spoken,
   // so the book name and chapter line carry the highlight (both the large
   // chapter heading and the two-column running head).
@@ -406,16 +441,24 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   useEffect(() => () => publishSpeaking(null), []);
 
   // What the lock screen and the phone's media card say. Left alone they show
-  // the page title ("KJB Reader"), so a listener had no way to tell which
-  // chapter was playing; they now name the chapter being read.
+  // the page title ("KJB Reader"), so a listener had no way to tell where the
+  // voice was. Each verse is read as its own clip, so the card's progress bar
+  // covers that verse; the title therefore names the exact verse being read
+  // (Psalm 28:3), falling back to the chapter while the chapter is announced or
+  // one of the printed notes is being read.
   useEffect(() => {
     if (!tts.isActive) {
       clearMediaMetadata();
       return;
     }
     const name = bookName || label;
-    publishMediaMetadata({ title: chapter >= 1 ? `${name} ${chapter}` : name });
-  }, [tts.isActive, bookName, label, chapter]);
+    const inVerse = tts.currentVerse != null && !tts.introActive
+      && !['sub', 'col', 'end', 'title'].includes(tts.currentKind);
+    const title = inVerse
+      ? `${name} ${chapter}:${tts.currentVerse}`
+      : chapter >= 1 ? `${name} ${chapter}` : name;
+    publishMediaMetadata({ title });
+  }, [tts.isActive, bookName, label, chapter, tts.currentVerse, tts.currentKind, tts.introActive]);
   useEffect(() => () => clearMediaMetadata(), []);
 
   const setHiddenPersisted = useCallback((value) => {
