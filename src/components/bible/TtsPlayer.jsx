@@ -7,6 +7,7 @@ import useBibleTts from '@/hooks/useBibleTts';
 import useOfflineBook from '@/hooks/useOfflineBook';
 import OfflineBookControl from '@/components/bible/OfflineBookControl';
 import { TTS_RATES, TTS_STORAGE, readStored, writeStored } from '@/lib/tts/voices';
+import { getBookByAbbr } from '@/lib/bibleData';
 
 // The reader's Listen player.
 //
@@ -486,16 +487,16 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   // the page title ("KJB Reader"), so a listener had no way to tell where the
   // voice was. Each verse is read as its own clip, so the card's progress bar
   // covers that verse; the title therefore names the exact verse being read in
-  // the reader's short book name (Ps 28:3), falling back to the chapter while the
+  // the book's plain name (Psalms 28:3), falling back to the chapter while the
   // chapter is announced or one of the printed notes is being read.
   useEffect(() => {
     if (!tts.isActive) {
       clearMediaMetadata();
       return;
     }
-    // The short book name, as the reader prints it ("Ps 28:3"): a lock screen
-    // has one line, and the full title ("Psalms 28:3") crowds it out.
-    const name = label || bookName;
+    // The book's plain name ("Psalms 28:3"), never its abbreviation and never
+    // the formal title ("The Book of Psalms"): a lock screen has one line.
+    const name = getBookByAbbr(bookKey)?.shortName || label || bookName;
     const inVerse = tts.currentVerse != null && !tts.introActive
       && !['sub', 'col', 'end', 'title'].includes(tts.currentKind);
     const title = inVerse
