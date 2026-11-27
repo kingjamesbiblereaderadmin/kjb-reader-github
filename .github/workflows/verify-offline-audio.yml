@@ -34,7 +34,7 @@ jobs:
 
       - name: Put the Genesis archive into the APK assets
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.AUDIO_RELEASE_TOKEN }}
         run: |
           mkdir -p android/app/src/main/assets/audio
           ID=$(curl -s -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/audio-v1" | jq -r '.assets[] | select(.name=="GEN.zip") | .id') && echo "GEN asset id: $ID" && curl -sL -H "Authorization: token $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/assets/$ID" -o /tmp/GEN.zip && python3 -m zipfile -e /tmp/GEN.zip android/app/src/main/assets/audio/GEN && echo "GEN clips: $(find android/app/src/main/assets/audio/GEN -name '*.mp3' | wc -l)"
