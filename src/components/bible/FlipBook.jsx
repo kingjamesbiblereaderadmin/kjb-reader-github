@@ -14,7 +14,7 @@ import './flipbook.css';
 
 // The whole chapter laid out as CSS columns, one column per page. Each page is a
 // window onto that same flow, shifted to its own column.
-const ChapterFlow = React.forwardRef(function ChapterFlow({ blocks, width, height, page, gap, textStyle, columnWidth, className }, ref) {
+const ChapterFlow = React.forwardRef(function ChapterFlow({ blocks, continuation = null, width, height, page, gap, textStyle, columnWidth, className }, ref) {
   return (
     <div
       ref={ref}
@@ -24,6 +24,7 @@ const ChapterFlow = React.forwardRef(function ChapterFlow({ blocks, width, heigh
     >
       {blocks}
       <span data-fb-end="" />
+      {continuation}
     </div>
   );
 });
@@ -82,6 +83,9 @@ export default React.forwardRef(function FlipBook({
   const [pageCount, setPageCount] = useState(1);
   const [contentsPageCount, setContentsPageCount] = useState(1);
   const [page, setPage] = useState(0);
+  // True when the chapter ends high enough on its last page to print the next
+  // chapter on in the space left under it.
+  const [fillNext, setFillNext] = useState(false);
   const [turn, setTurn] = useState(null); // { dir: 1 | -1, to }
   const [fontTick, setFontTick] = useState(0);
 
@@ -217,6 +221,11 @@ export default React.forwardRef(function FlipBook({
   useLayoutEffect(() => {
     if (loading || !measureRef.current || !pageW) return;
     const end = measureRef.current.querySelector('[data-fb-end]');
+    // Room left under the chapter's last line. A chapter that ends high on its
+    // last page otherwise leaves the rest of that page (and the facing one)
+    // empty, so the next chapter is printed on in that space instead.
+    const flowTop = measureRef.current.getBoundingClientRect().top;
+    setFillNext(textH - (end.getBoundingClientRect().top - flowTop) > textH * 0.3);
     const textPages = chapter === 0 ? 0 : Math.max(1, Math.floor((end.offsetLeft + 1) / (textW + gap)) + 1);
     const count = front.length + textPages;
     setPageCount(count);
@@ -423,6 +432,27 @@ export default React.forwardRef(function FlipBook({
   // The closing marker of a testament is printed at the foot of the last page.
   const showEnd = !!endMarker && !(filterMode && !selectMode && selectedVerses?.size);
 
+  // The next chapter, printed on under this one's last verse when the page has
+  // room for it. Its own opening ("Genesis / Chapter 3") marks where it begins,
+  // and a tap on it opens that chapter at the verse tapped.
+  const continuationBlocks = following?.verses?.length ? (
+    <div className="kjb-fb-continues" data-fb-next={`${following.book.abbr}:${following.chapter}`}>
+      <BookChapterBlocks
+        bookName={following.book.name}
+        chapter={following.chapter}
+        verses={following.verses}
+        subscript={following.subscript}
+        colophon={following.colophon}
+        paragraphs={paragraphs}
+      />
+    </div>
+  ) : null;
+  // A last page whose facing page already carries the next chapter (the
+  // continuation page) has nothing to fill, or that chapter would appear twice
+  // on the same spread.
+  const lastIsLeft = spread && (((pageCount - 1 - pageOffsetRef.current) % 2) + 2) % 2 === 0;
+  const fillLastPage = fillNext && !!continuationBlocks && !lastIsLeft;
+
   // One printed page: a title page, the contents, or running head, text and page number.
   const face = (index, side) => {
     if (index === -1 && hasBridge) return <div data-fb-previous="" className="h-full">{bridgeRef.current.face}</div>;
@@ -430,6 +460,8 @@ export default React.forwardRef(function FlipBook({
       <BookContinuation passage={following} {...{ side, padLeft, padRight, footerHeight, textW, textH, contentsH, zoomLevel, fontFamilyValue, isCursive, flowProps, textStyle, paragraphs }} />
     );
     const textIndex = index - front.length;
+    // The chapter's last page, with the next chapter printed on under it.
+    const continuesHere = fillLastPage && textIndex === textTotal - 1;
     return (
       <div className={`kjb-fb-page kjb-fb-${side}`} style={{ padding: `52px ${padRight}px ${footerHeight}px ${padLeft}px` }}>
         {index >= 0 && index < pageCount && (textIndex < 0 ? (
@@ -452,10 +484,18 @@ export default React.forwardRef(function FlipBook({
               className={`kjb-fb-head${textIndex === 0 ? ' kjb-fb-head-blank' : ''}`}
               aria-hidden={textIndex === 0 ? 'true' : undefined}
             >
-              {textIndex === 0 ? '\u00A0' : `${book.shortName} ${chapter}`}
+              {/* The page that carries the next chapter on is headed with that
+                  chapter, as a printed Bible's running head follows the text
+                  beneath it. */}
+              {textIndex === 0 ? '\u00A0' : continuesHere
+                ? `${following.book.shortName} ${following.chapter}`
+                : `${book.shortName} ${chapter}`}
             </div>
             <div className="kjb-fb-window" style={{ width: textW, height: textH }}>
-              <ChapterFlow blocks={blocks} {...flowProps} page={textIndex} textStyle={textStyle} />
+              <ChapterFlow
+                blocks={blocks} {...flowProps} page={textIndex} textStyle={textStyle}
+                continuation={continuesHere ? continuationBlocks : null}
+              />
               {showEnd && textIndex === textTotal - 1 && <p className="kjb-fb-endmark">{endMarker}</p>}
             </div>
             <div className="kjb-fb-folio">{textIndex + 1}</div>

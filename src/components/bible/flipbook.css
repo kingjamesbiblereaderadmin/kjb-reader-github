@@ -70,6 +70,10 @@
 .kjb-fb-flow .kjb-fb-title { margin: 0 0 0.5em; text-align: center; font-size: 1.35em; font-weight: 700; line-height: 1.25; hyphens: manual; -webkit-hyphens: manual; color: inherit; break-inside: avoid; break-after: avoid; }
 .kjb-fb-flow .kjb-fb-title-only { margin-top: 35%; font-size: 1.7em; }
 .kjb-fb-chapter { margin: 0 0 1em; text-align: center; font-size: 0.78em; letter-spacing: 0.2em; text-transform: uppercase; break-after: avoid; }
+/* The next chapter, printed on in the space left under the last verse of the
+   one before it. Its opening gets its own breathing space above, so it reads as
+   a chapter beginning rather than a run-on of the verse above. */
+.kjb-fb-continues { margin-top: 1.6em; }
 .kjb-fb-note { margin: 0.6em 0 1em; text-align: center; font-size: 0.88em; }
 .kjb-fb-verse { margin: 0; orphans: 2; widows: 2; }
 .kjb-fb-verse sup { position: static; margin-right: 0.3em; font-size: 0.65em; font-weight: 700; line-height: 0; vertical-align: super; color: var(--fb-red); }

@@ -114,7 +114,8 @@ function say(word: string, prev: string, next: string, next2: string): string {
     // The "-ed" words the Authorised Version reads with their own syllable.
     case 'blessed': return /^(have|hast|has|had|having)$/.test(prev) ? word : 'bless-ed';
     case 'learned': return /^(have|hast|has|had|having|never)$/.test(prev) ? word : 'learn-ed';
-    case 'naked': return 'nay-ked';
+    // "Nah-ked", not "nay-ked": the short "a" the Authorised Version gives it.
+    case 'naked': return 'nah-ked';
     // "cursed be Canaan" and "cursed is the ground" carry their own syllable;
     // "he cursed the LORD's anointed" is the plain past and does not.
     case 'cursed': return /^(he|she|they|we|ye|i|thou|it|had|have|hath|hast)$/.test(prev) && /^(the|his|her|their|thy|my|your|our|him|them|me|thee|this|that|a)$/.test(next) ? word : 'curs-ed';
@@ -135,6 +136,7 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   // Only these corrections get a new recording key. Existing h2 recordings for
   // other settled pronunciations are retained and are not generated again.
   const auditUpdated = /\b(?:goeth|doeth|seeth|lieth|dieth|useth|oweth|loveth|moveth|giveth|crieth|flieth|trieth|drieth|aijeleth|alameth|alemeth|azmaveth|chinnereth|dabbasheth|elisabeth|gennesareth|hammoleketh|hareth|harosheth|haraseth|hareseth|hazarmaveth|japheth|jerubbesheth|jetheth|mephibosheth|meshullemeth|mispereth|nazareth|peleth|beseth|pochereth|remeth|shallecheth|shibboleth|sibboleth|sophereth|tanhumeth|tebeth|topheth|zereth|zoheleth|zoheth|bosheth|ishbosheth|twentieth|thirtieth|fortieth|fiftieth|sixtieth|seventieth|eightieth|ninetieth)\b/i.test(text);
+  const nakedUpdated = /\bnaked\b/i.test(text);
   const blessedUpdated = /\bblessed\b/i.test(text);
   const tearsUpdated = /\btears\b/i.test(text);
   const evilUpdated = /\bevildoers?\b/i.test(text);
@@ -156,5 +158,5 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
     changed = true;
     return /^[A-Z]/.test(word) ? replacement.charAt(0).toUpperCase() + replacement.slice(1) : replacement;
   });
-  return { text: out, changed, revision: blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
+  return { text: out, changed, revision: nakedUpdated ? 'h9' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
 }
