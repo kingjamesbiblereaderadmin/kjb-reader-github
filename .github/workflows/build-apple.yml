@@ -31,10 +31,51 @@ on:
         required: false
         default: ''
         type: string
+      rename_asc_version:
+        description: 'Rename the editable ASC version record(s) to the release run name before building'
+        required: false
+        default: 'skip'
+        type: choice
+        options: [skip, rename]
+      asc_version_name:
+        description: 'ASC version name to rename to (blank = 2.<run_number>; also becomes the marketing version)'
+        required: false
+        default: ''
+        type: string
 
 jobs:
+
+  # Optional pre-build rename of the App Store Connect version record.
+  # `rename_asc_version: rename` renames the newest editable version record on
+  # both platforms to the release run name (2.<run_number>, or asc_version_name)
+  # so the record, the binary's CFBundleShortVersionString and the What's New
+  # header all agree. Best-effort: a rename ASC refuses (e.g. the version is
+  # already WAITING_FOR_REVIEW, or the name is not above the highest closed
+  # version) logs a warning and the build continues.
+  asc-rename-version:
+    if: ${{ inputs.rename_asc_version == 'rename' }}
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Python deps (script imports jwt/requests at module top)
+        run: pip install --quiet pyjwt requests cryptography
+      - name: Rename the editable ASC version record to the release run name
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          TARGET: ${{ inputs.asc_version_name || format('2.{0}', github.run_number) }}
+        run: |
+          set -o pipefail
+          python3 scripts/asc-rename-version.py --app 6813352869 --platform all --to "$TARGET" | tee -a "$GITHUB_STEP_SUMMARY"
+
   ios:
-    if: inputs.platform != 'macos'
+    needs: asc-rename-version
+    if: ${{ !cancelled() && needs.asc-rename-version.result != 'failure' && inputs.platform != 'macos' }}
     runs-on: xcode-27
     steps:
       - uses: actions/checkout@v5
@@ -142,7 +183,7 @@ jobs:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          REQUESTED: ${{ inputs.marketing_version || format('2.{0}', github.run_number) }}
+          REQUESTED: ${{ inputs.marketing_version || inputs.asc_version_name || format('2.{0}', github.run_number) }}
         run: |
           python3 -m venv /tmp/ascvenv 2>/dev/null || true
           /tmp/ascvenv/bin/pip install -q pyjwt requests cryptography
@@ -377,7 +418,8 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
   macos:
-    if: inputs.platform != 'ios'
+    needs: asc-rename-version
+    if: ${{ !cancelled() && needs.asc-rename-version.result != 'failure' && inputs.platform != 'ios' }}
     runs-on: xcode-27
     env:
       APP_NAME: KJB Reader
@@ -434,7 +476,7 @@ jobs:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          REQUESTED: ${{ inputs.marketing_version || format('2.{0}', github.run_number) }}
+          REQUESTED: ${{ inputs.marketing_version || inputs.asc_version_name || format('2.{0}', github.run_number) }}
         run: |
           python3 -m venv /tmp/ascvenv 2>/dev/null || true
           /tmp/ascvenv/bin/pip install -q pyjwt requests cryptography
