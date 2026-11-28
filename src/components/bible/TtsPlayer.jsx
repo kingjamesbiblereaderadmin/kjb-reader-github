@@ -83,7 +83,10 @@ function speakingTargets(kind, verse) {
     return [...document.querySelectorAll(sectionSelector)]
       .filter((el) => !el.closest('[data-fb-next], [data-fb-previous]'));
   }
-  if (verse == null) return [];
+  // Verse 0 is the page's own opening (a title page), not a verse: it has no
+  // element to follow, and treating it as one is what let the view be pulled
+  // off a title page while it was being read.
+  if (verse == null || verse <= 0) return [];
   if (kind === 'heading') {
     // A stanza name is printed inside the verse it opens, and the reader's
     // heading band carries the same name once that copy has scrolled past it.
@@ -356,15 +359,33 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
 
   // Announcements belong at the chapter opening, not at a saved scroll offset.
   useEffect(() => {
-    if ((!tts.introActive && tts.currentKind !== 'title') || tts.status !== 'playing') return;
+    if ((!tts.introActive && tts.currentKind !== 'title') || tts.status !== 'playing') return undefined;
     followRef.current = true;
     skipScrollRef.current = false;
     const bookView = document.querySelector('[data-testid="kjb-flipbook"]');
     if (bookView) {
       bookView.querySelectorAll('.kjb-fb-titlewrap').forEach((page) => page.scrollTo({ top: 0, left: 0 }));
-      return; // The book's playback follower turns to its opening page.
+      return undefined; // The book's playback follower turns to its opening page.
     }
-    (document.getElementById('kjb-scroll') || window).scrollTo({ top: 0, behavior: 'instant' });
+    const scroller = document.getElementById('kjb-scroll') || window;
+    const toTop = () => scroller.scrollTo({ top: 0, behavior: 'instant' });
+    toTop();
+    // A title page is the cover followed by the whole table of contents, so it
+    // is a long page: the player panel opening above it re-lays the page a
+    // moment later, and the single jump above could be undone by that reflow,
+    // leaving the view at the foot of the page while the title was being read.
+    // Hold the opening until the layout has settled, unless the reader scrolls
+    // the page themselves.
+    let userTookOver = false;
+    const takeover = () => { userTookOver = true; };
+    scroller.addEventListener('touchstart', takeover, { once: true, passive: true });
+    scroller.addEventListener('wheel', takeover, { once: true, passive: true });
+    const timers = [120, 350, 800].map((ms) => setTimeout(() => { if (!userTookOver) toTop(); }, ms));
+    return () => {
+      timers.forEach(clearTimeout);
+      scroller.removeEventListener('touchstart', takeover);
+      scroller.removeEventListener('wheel', takeover);
+    };
   }, [tts.introActive, tts.currentKind, tts.status]);
 
   // Columns, font size and paragraph spacing rebuild the chapter's markup, and

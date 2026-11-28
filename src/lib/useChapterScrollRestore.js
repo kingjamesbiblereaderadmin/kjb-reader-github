@@ -19,6 +19,9 @@ export function useChapterScrollRestore({
 }) {
   useLayoutEffect(() => {
     if (loading) return;
+    // A title page (chapter 0) always opens at its top: it is the cover, and
+    // there is no verse or saved offset on it worth restoring.
+    if (!chapter) return;
     if (highlightVerse) {
       // First pass runs synchronously, PRE-PAINT (we're in useLayoutEffect and
       // the verse DOM already exists) and with an instant jump — previously the

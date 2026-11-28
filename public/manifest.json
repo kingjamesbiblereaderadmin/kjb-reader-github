@@ -3,7 +3,7 @@
   "name": "KJB Reader",
   "short_name": "KJB Reader",
   "lang": "en-GB",
-  "version": "v20261128_1346",
+  "version": "v20261128_1347",
   "description": "Read the King James Bible (Pure Cambridge Edition) with offline support, daily verses, and beautiful typography.",
   "start_url": "/",
   "scope": "/",
