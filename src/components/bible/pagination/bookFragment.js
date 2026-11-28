@@ -21,31 +21,58 @@ function verseSpanAt(element, offset) {
   return span && span !== element && element.contains(span) ? span : null;
 }
 
+// The marker the player washes a verse by: the verse's own span (head) or the
+// span its continuation carries (tail).
+const isMarked = (node) => !!(node && node.nodeType === 1 && node.hasAttribute
+  && (node.hasAttribute('data-fbv') || node.hasAttribute('data-fbv-tail')));
+
 export function fragment(element, start, end) {
   const range = document.createRange();
   range.setStart(...boundary(element, start));
   range.setEnd(...boundary(element, end));
   const copy = element.cloneNode(false);
   const contents = range.cloneContents();
-  // A verse cut in two keeps only its text in the tail; the verse's own span —
-  // the marker the player uses to wash the verse being read — stayed with the
-  // head. Wrapping the tail back in a copy of that span, marked as the tail,
-  // is what lets the half on the next column or page be washed as well, so one
-  // verse lights up whole instead of half of it.
-  const span = start ? verseSpanAt(element, start) : null;
-  const first = contents.firstChild;
-  const alreadyMarked = !!(first && first.nodeType === 1 && first.hasAttribute
-    && (first.hasAttribute('data-fbv') || first.hasAttribute('data-fbv-tail')));
-  if (span && !alreadyMarked) {
-    const wrapper = span.cloneNode(false);
-    const verse = wrapper.getAttribute('data-fbv') ?? wrapper.getAttribute('data-fbv-tail');
-    wrapper.removeAttribute('data-fbv');
-    wrapper.removeAttribute('data-fbv-tail');
-    wrapper.setAttribute('data-fbv-tail', verse);
-    wrapper.appendChild(contents);
-    copy.appendChild(wrapper);
+  // The verse span a cut falls inside — the verse that carries on into the next
+  // column or page.
+  const span = verseSpanAt(element, start);
+  if (!start) {
+    // The head. When the cut falls inside the verse the block begins with,
+    // that verse's own span is the range's common ancestor, and cloneContents
+    // leaves the common ancestor out — so the first part of the verse lost the
+    // mark the player washes and only the half after the break lit up. Put the
+    // span back around those words: one verse, washed whole.
+    if (span && !contents.querySelector('[data-fbv], [data-fbv-tail]')) {
+      const wrapper = span.cloneNode(false);
+      wrapper.appendChild(contents);
+      copy.appendChild(wrapper);
+    } else {
+      copy.appendChild(contents);
+    }
   } else {
-    copy.appendChild(contents);
+    // A cut that lands at the very end of a verse's text leaves an empty copy
+    // of that verse's span at the head of the tail; the words after the cut
+    // belong to the next verse, so it is dropped rather than washing them —
+    // and nothing of that verse is left to mark.
+    const verseOf = (el) => (el ? el.getAttribute('data-fbv') ?? el.getAttribute('data-fbv-tail') : null);
+    let verseEnded = false;
+    while (isMarked(contents.firstChild) && !contents.firstChild.textContent.trim()) {
+      if (verseOf(contents.firstChild) === verseOf(span)) verseEnded = true;
+      contents.removeChild(contents.firstChild);
+    }
+    // Wrapping the tail back in a copy of that span, marked as the tail, is
+    // what lets the half on the next column or page be washed as well, so one
+    // verse lights up whole instead of half of it.
+    if (span && !verseEnded && !isMarked(contents.firstChild)) {
+      const wrapper = span.cloneNode(false);
+      const verse = wrapper.getAttribute('data-fbv') ?? wrapper.getAttribute('data-fbv-tail');
+      wrapper.removeAttribute('data-fbv');
+      wrapper.removeAttribute('data-fbv-tail');
+      wrapper.setAttribute('data-fbv-tail', verse);
+      wrapper.appendChild(contents);
+      copy.appendChild(wrapper);
+    } else {
+      copy.appendChild(contents);
+    }
   }
   if (start) { copy.style.textIndent = '0'; copy.style.marginTop = '0'; }
   return copy;
