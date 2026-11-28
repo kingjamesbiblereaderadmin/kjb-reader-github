@@ -40,7 +40,7 @@ function visibleShare(words, flowLeft, colPeriod, boundaryCol) {
 /** Printed-book view with controls anchored to the actual open pages. */
 export default React.forwardRef(function FlipBook({
   book, abbr, chapter, verses, subscript, colophon, endMarker, loading, error,
-  fontFamilyValue, isCursive, zoomLevel, jumpVerse, jumpSection, tappedVerses, onVerseTap,
+  fontFamilyValue, isCursive, zoomLevel, jumpVerse, jumpSection, landVerse, tappedVerses, onVerseTap,
   twoColumns, paragraphs, searchTerm, selectMode, selectedVerses, filterMode,
   onNextChapter, onPrevChapter, canPrev, canNext, controls, viewControl, onSelectBook, onOpenPassage,
 }, ref) {
@@ -380,6 +380,22 @@ export default React.forwardRef(function FlipBook({
     return rect ? front.length + Math.floor((rect.left - flow.getBoundingClientRect().left + 1) / (textW + gap)) : null;
   }, [front, textW, gap]);
 
+  // Opening the book from the scrolling reader lands on the page that holds the
+  // verse that was at the top of the page there, so switching between the two
+  // views keeps the reader on the same words. It is a landing, not a turn: the
+  // spread is simply the first one shown.
+  const landedVerseRef = useRef(null);
+  useEffect(() => {
+    if (loading || !pageCount || landVerse == null) return;
+    if (landedVerseRef.current === landVerse) return;
+    const target = pageOf(`[data-fbv="${parseInt(landVerse, 10)}"]`);
+    if (target == null) return;
+    landedVerseRef.current = landVerse;
+    const offset = pageOffsetRef.current;
+    const to = Math.max(firstPage, offset + Math.floor((Math.min(target, pageCount - 1) - offset) / step) * step);
+    setPage(to);
+  }, [landVerse, pageCount, loading, pageOf, firstPage, step]);
+
   // Where the voice needs to be once the sheet that is already swinging lands.
   const pendingTurnRef = useRef(null);
   const turnTo = (target) => {
@@ -553,6 +569,13 @@ export default React.forwardRef(function FlipBook({
     return () => window.removeEventListener('keydown', onKey, true);
   }, [go]);
 
+  // The turn lands two frames after the sheet's last frame has been painted.
+  // Swapping the page inside the animationend handler let React drop the sheet
+  // in the same tick, so the browser sometimes painted one frame of the spread
+  // underneath (the old left page) before the new one was ready: that was the
+  // brief flash when the reading jumped from the foot of one spread to the head
+  // of the next.
+  const landTurnRef = useRef(null);
   const landTurn = (to) => {
     setPage(to);
     setTurn(null);
@@ -561,9 +584,11 @@ export default React.forwardRef(function FlipBook({
     if (pending != null && pending !== to) window.setTimeout(() => turnToRef.current?.(pending), 0);
   };
 
+  useLayoutEffect(() => { landTurnRef.current = landTurn; });
+
   const finishTurn = (e) => {
     if (e.target !== e.currentTarget || !turn) return;
-    landTurn(turn.to);
+    requestAnimationFrame(() => requestAnimationFrame(() => landTurnRef.current?.(turn.to)));
   };
 
   // Safety commit: if the sheet's animationend never arrives (a dropped
@@ -697,7 +722,12 @@ export default React.forwardRef(function FlipBook({
     onOpenPassage(target.book.abbr, target.chapter, null);
     return true;
   };
-  useImperativeHandle(ref, () => ({ prepareListeningAdvance: () => preserveFacingPage() }));
+  useImperativeHandle(ref, () => ({
+    prepareListeningAdvance: () => preserveFacingPage(),
+    // The verse at the head of the open spread, so the scrolling reader can be
+    // put back on the same words when the book is closed.
+    getAnchorVerse: () => anchorRef.current?.verse ?? null,
+  }));
 
   // "Genesis 2 · pages 1–2 of 4", counting text pages only.
   const shown = Array.from({ length: step }, (_, i) => page + i - front.length + 1).filter((n) => n >= 1 && n <= textTotal);
@@ -815,7 +845,7 @@ export default React.forwardRef(function FlipBook({
           </div>
           <ChapterFlow ref={measureRef} blocks={blocks} prefix={carry} continuation={continuationBlocks} {...flowProps} page={0} textStyle={textStyle} />
         </div>
-        <div className="kjb-fb-book" style={{ width: pageW ? pageW * step : '100%', height: pageH || '100%', '--fb-footer-height': `${footerHeight}px` }}>
+        <div className={`kjb-fb-book${turn ? ' kjb-fb-turning' : ''}`} style={{ width: pageW ? pageW * step : '100%', height: pageH || '100%', '--fb-footer-height': `${footerHeight}px` }}>
           <FlipBookChrome
             controls={controls} viewControl={viewControl} where={where}
             onPrevious={() => go(-1)} onNext={() => go(1)}
