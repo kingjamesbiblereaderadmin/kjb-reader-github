@@ -369,6 +369,7 @@ function respell(text: string) {
 
 // Split "-eth" verbs into their own final syllable. The stem keeps its silent e
 // where the table above lists it, so the syllable stays open.
+// Pinned words stay whole here too, so the bulk run voices them the same way.
 function splitEth(text: string) {
   return splitVerbEndings(text, ETH_SILENT_E, hasIpa);
 }
