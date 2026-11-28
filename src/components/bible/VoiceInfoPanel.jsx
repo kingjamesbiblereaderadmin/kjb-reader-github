@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { getPlatformLabel, permissionSummary } from '@/lib/platformPermissions';
@@ -11,8 +11,11 @@ const TRIGGER = 'py-2 text-[11px] font-semibold uppercase tracking-widest text-m
 const BODY = 'text-xs text-foreground/85 leading-relaxed';
 
 export default function VoiceInfoPanel({ bundledAudio = false }) {
+  // Held here, not inside the accordion, so opening one section never disturbs
+  // the ones already open: each row folds on its own.
+  const [open, setOpen] = useState([]);
   return (
-    <Accordion type="multiple" className="font-sans">
+    <Accordion type="multiple" value={open} onValueChange={setOpen} className="font-sans">
       <AccordionItem value="voice" className="border-border">
         <AccordionTrigger className={TRIGGER}>The voice</AccordionTrigger>
         <AccordionContent className="pb-2">
@@ -28,7 +31,9 @@ export default function VoiceInfoPanel({ bundledAudio = false }) {
 
       <AccordionItem value="permissions" className="border-border">
         <AccordionTrigger className={TRIGGER}>
-          Permissions <span className="ml-1 normal-case tracking-normal font-normal">({getPlatformLabel()})</span>
+          <span className="flex-1 text-left">
+            Permissions <span className="normal-case tracking-normal font-normal">&mdash; {getPlatformLabel()}</span>
+          </span>
         </AccordionTrigger>
         <AccordionContent className="pb-2">
           <ul className={BODY}>
