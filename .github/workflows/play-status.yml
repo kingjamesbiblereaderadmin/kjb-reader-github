@@ -1,0 +1,63 @@
+name: Play Status
+# Read-only: reports what Google Play actually holds for each track, so a
+# "not sent for review" state in the console can be checked against the API.
+on:
+  workflow_dispatch:
+    inputs:
+      package_name:
+        description: 'Application id to inspect'
+        required: false
+        default: 'com.kingjamesbiblereader.twa'
+        type: string
+jobs:
+  status:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install google-auth
+        run: pip install --quiet google-auth requests
+      - name: Dump Play tracks and releases
+        env:
+          PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          PACKAGE: ${{ inputs.package_name }}
+        run: |
+          python3 - <<'PY'
+          import json, os, requests
+          from google.oauth2 import service_account
+          from google.auth.transport.requests import Request
+
+          info = json.loads(os.environ["PLAY_JSON"])
+          pkg = os.environ["PACKAGE"]
+          creds = service_account.Credentials.from_service_account_info(
+              info, scopes=["https://www.googleapis.com/auth/androidpublisher"])
+          creds.refresh(Request())
+          base = f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{pkg}"
+          h = {"Authorization": f"Bearer {creds.token}"}
+
+          r = requests.post(f"{base}/edits", headers=h)
+          r.raise_for_status()
+          edit = r.json()["id"]
+          print("opened edit", edit)
+          try:
+              t = requests.get(f"{base}/edits/{edit}/tracks", headers=h)
+              t.raise_for_status()
+              for track in t.json().get("tracks", []):
+                  print(f"\n=== track {track['track']} ===")
+                  rels = track.get("releases", [])
+                  if not rels:
+                      print("  (no releases)")
+                  for rel in rels:
+                      print("  release:", rel.get("name"))
+                      print("    status:", rel.get("status"))
+                      print("    versionCodes:", rel.get("versionCodes"))
+                      print("    userFraction:", rel.get("userFraction"))
+                      print("    releaseNotes:", json.dumps(rel.get("releaseNotes"))[:300])
+              a = requests.get(f"{base}/edits/{edit}/details", headers=h)
+              if a.ok:
+                  print("\napp details:", json.dumps(a.json())[:400])
+          finally:
+              d = requests.delete(f"{base}/edits/{edit}", headers=h)
+              print("\nclosed edit:", d.status_code)
+          PY
