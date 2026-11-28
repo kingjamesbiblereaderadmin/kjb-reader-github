@@ -29,9 +29,27 @@ export function usedHeight(probe) {
   return Math.max(probe.scrollHeight, bottom - top);
 }
 
+// Where a column may break: after a spoken word only. A verse number or the
+// drop-cap letter is never a break point — a column must not end with a lone
+// verse number while its verse carries on in the next column, which left the
+// verse's wash covering only that number.
+function cutPoints(element) {
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+  const ends = [];
+  let offset = 0, node;
+  while ((node = walker.nextNode())) {
+    const value = node.nodeValue || '';
+    if (!node.parentElement?.closest('sup, .pilcrow, .kjb-fb-dropcap')) {
+      for (const match of value.matchAll(/\S+\s*/g)) ends.push(offset + match.index + match[0].length);
+    }
+    offset += value.length;
+  }
+  return ends;
+}
+
 export function fittingFragment(probe, element, height) {
   const text = element.textContent || '';
-  const ends = [...text.matchAll(/\S+\s*/g)].map((match) => match.index + match[0].length);
+  const ends = cutPoints(element);
   let low = 0, high = ends.length;
   while (low < high) {
     const mid = Math.ceil((low + high) / 2);
@@ -41,7 +59,7 @@ export function fittingFragment(probe, element, height) {
     part.remove();
     if (fits) low = mid; else high = mid - 1;
   }
-  if (!low) return null;
+  if (!low || !ends.length) return null;
   const cut = ends[low - 1];
   return { head: fragment(element, 0, cut), tail: cut < text.length ? fragment(element, cut, text.length) : null };
 }
