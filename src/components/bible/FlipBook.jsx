@@ -174,6 +174,11 @@ export default React.forwardRef(function FlipBook({
   const padLeft = pageW < 420 ? 18 : 32;
   const padRight = 60; // the tools live in the page margin, never over scripture
   const textW = Math.max(120, pageW - padLeft - padRight);
+  // A title page has no text column to line up with, so it is centred on the
+  // paper. Centring it inside the text column (which gives up a wider margin on
+  // the right for the tools) left the book's name and chapter count visibly
+  // left of the page's middle.
+  const frontW = textW + Math.max(0, padRight - padLeft);
   // Air between the hairline rule and the first line of scripture, and between
   // the last line and the page bar at the foot, so the text never crowds the
   // controls above it or the footer below it.
@@ -693,7 +698,7 @@ export default React.forwardRef(function FlipBook({
       <div className={`kjb-fb-page kjb-fb-${side}`} style={{ padding: `${padTop}px ${padRight}px ${footerHeight}px ${padLeft}px` }}>
         {index >= 0 && index < displayCount && (textIndex < 0 ? (
           typeof front[index] === 'string' ? (
-            <FittedPage width={textW} height={contentsH} zoom={zoomLevel / 100} fontFamilyValue={fontFamilyValue} isCursive={isCursive}>
+            <FittedPage width={frontW} height={contentsH} zoom={zoomLevel / 100} fontFamilyValue={fontFamilyValue} isCursive={isCursive}>
               <TitlePage type={front[index]} book={book} />
             </FittedPage>
           ) : (

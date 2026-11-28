@@ -10,7 +10,7 @@ export default function BookContinuation({ passage, side, padLeft, padRight, pad
   const title = chapter === 0;
   const type = book.abbr === 'MAT' ? 'testament-new' : 'testament-old';
   return <div className={`kjb-fb-page kjb-fb-${side} notranslate`} translate="no" data-fb-next={`${book.abbr}:${chapter}`} style={{ padding: `${padTop}px ${padRight}px ${footerHeight}px ${padLeft}px` }}>
-    {title ? <FittedPage width={textW} height={contentsH} zoom={zoomLevel / 100} fontFamilyValue={fontFamilyValue} isCursive={isCursive}>
+    {title ? <FittedPage width={textW + Math.max(0, padRight - padLeft)} height={contentsH} zoom={zoomLevel / 100} fontFamilyValue={fontFamilyValue} isCursive={isCursive}>
       <TitlePage type={type} book={book} />
     </FittedPage> : <>
       {/* Same hairline as the facing page, so both pages' text starts level. */}
