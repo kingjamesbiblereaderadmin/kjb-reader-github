@@ -236,12 +236,14 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
       // 2 rather than chapter 1, is a fresh start: "Genesis, chapter 2", not a
       // bare "Chapter 2" with no word of where you are.
       const bookChanged = prev.book !== fullName || !announcedRef.current;
-      // A numbered book's announcement is voiced from the ordinal form, and a
-      // clip is cached by its reference, so those books ask for a take of their
-      // own rather than replaying one recorded as "one Samuel".
-      const ordinal = NUMBERED_BOOK.test(String(fullName)) ? '-n2' : '';
+      // Said with the book's plain name, and with a numbered book's numeral
+      // spoken as an ordinal ("First Samuel", never "one Samuel"). A clip is
+      // cached by its reference, so numbered books ask for a take of their own
+      // rather than replaying one recorded from the old wording.
+      const plainName = label || fullName;
+      const ordinal = NUMBERED_BOOK.test(String(plainName)) ? '-n2' : '';
       const introText = bookChanged
-        ? `${spokenBook(fullName)}, chapter ${chapter}`
+        ? `${spokenBook(plainName)}, chapter ${chapter}`
         : `Chapter ${chapter}`;
       // A clip is cached by its reference, not by its words, so the bare
       // "Chapter 3" must not share ":intro" with the book-named line: whichever
@@ -449,11 +451,11 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   const playFrom = (verse) => {
     followRef.current = true;
     skipScrollRef.current = true;
-    const name = bookName || label;
+    const plainName = label || bookName;
     const intro = chapter >= 1
       ? {
-        ref: `${chapterKey}:intro${NUMBERED_BOOK.test(String(name)) ? '-n2' : ''}`,
-        text: `${spokenBook(name)}, chapter ${chapter}`,
+        ref: `${chapterKey}:intro${NUMBERED_BOOK.test(String(plainName)) ? '-n2' : ''}`,
+        text: `${spokenBook(plainName)}, chapter ${chapter}`,
       }
       : null;
     // This press has just named the book, so the chapters that roll on from it
