@@ -22,7 +22,7 @@ export function scrollToVerse({ verseNum, posRef, topRef, scrolledVerseRef, inst
   const occ = posRef.current?.occurrence || 0;
   emphasizeOccurrence(verseEl.querySelectorAll('mark[data-occ]'), occ);
   const scroller = document.getElementById('kjb-scroll');
-  const stickyOffset = stickyChromeHeight(topRef) + 6;
+  const stickyOffset = stickyChromeHeight(topRef);
   const body = verseEl.querySelector('[data-kjb-verse-body]') || verseEl;
   let topRect = body.getClientRects()[0]?.top ?? verseEl.getBoundingClientRect().top;
   const heading = verseEl.querySelector('.font-bold.text-center');

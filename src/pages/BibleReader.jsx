@@ -13,6 +13,7 @@ import TitlePage from '@/components/bible/TitlePage';
 import BibleContents from '@/components/bible/ContentsPage';
 import RunningHead from '@/components/bible/RunningHead';
 import StanzaHeading from '@/components/bible/StanzaHeading';
+import AnchoredReaderBand from '@/components/bible/AnchoredReaderBand';
 import { useHeaderHide } from '@/lib/HeaderHideContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Accessibility } from 'lucide-react';
@@ -1980,7 +1981,7 @@ export default function BibleReader() {
           toolbar, so scrolling a long chapter never takes the book's name, its
           chapter number and the way back into book view off the screen. */}
       {!flipbookOpen && (
-      <div id="kjb-anchored-heading" data-kjb-anchored-band className="print:static sticky z-[95] -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background pt-2 pb-3" style={{ top: stickyTop }}>
+      <AnchoredReaderBand top={stickyTop}>
       {bookToggleNode}
       {/* In two columns the chapter's name and number are printed as a running
           head instead of the large heading — and it lives in this band too, so
@@ -2018,13 +2019,12 @@ export default function BibleReader() {
           <StanzaHeading stanzas={stanzaList} fontFamily={fontFamily} zoomLevel={zoomLevel} />
         </div>
       )}
-      <div data-kjb-reader-gap aria-hidden="true" className="absolute inset-x-0 top-full h-5 bg-background pointer-events-none print:hidden" />
-      </div>
+      </AnchoredReaderBand>
       )}
 
       <div
         ref={readerContentRef}
-        className={`kjb-reader-content leading-loose text-foreground pt-5 ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`}
+        className={`kjb-reader-content leading-loose text-foreground ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`}
         style={{ fontSize: `${zoomLevel / 100 * 1.125}rem`, lineHeight: zoomLevel > 100 ? '1.8' : '1.6', ...(fontFamily !== 'cursive' ? { fontFamily: getFontFamilyValue(fontFamily) } : {}) }}
       >
         {loading && <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>}

@@ -19,7 +19,7 @@ export default function useActiveStanza(stanzas) {
 
     const measure = () => {
       frame = 0;
-      // Change names only once the printed copy is behind the clear gutter.
+      // Change names only once the printed copy is behind the pinned heading.
       const line = readerTopEdge() + 1;
       let current = stanzas[0].verse;
       for (let i = 1; i < stanzas.length; i += 1) {

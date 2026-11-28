@@ -9,7 +9,7 @@ export function scrollBox() {
 
 export function readingArea() {
   const box = scrollBox();
-  const top = readerTopEdge() + 12;
+  const top = readerTopEdge();
   let bottom = box.bottom;
   document.querySelectorAll('nav').forEach((nav) => {
     const rect = nav.getBoundingClientRect();
