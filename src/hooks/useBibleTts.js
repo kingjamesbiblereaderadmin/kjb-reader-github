@@ -140,7 +140,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const needsPronunciationRefresh = pronunciationRevision;
 
 function audioCacheKey(clip, voice) {
-  const revision = needsPronunciationRefresh(clip.text);
+  const revision = clip.h22 ? 'h22' : needsPronunciationRefresh(clip.text);
   return `${voice}|${clip.ref || clip.text}${revision ? `|pronunciation-${revision}` : ''}`;
 }
 
@@ -149,7 +149,7 @@ async function audioUrlFor(clip, voice) {
   // bundled from the take stored now, so the device's own copy is always the
   // current one and is used even for a note that names a revision — which is
   // what lets the Psalm titles, stanza names and closing lines play offline.
-  const revised = clip.kind === 'verse' && needsPronunciationRefresh(clip.text);
+  const revised = clip.kind === 'verse' && (clip.h22 || needsPronunciationRefresh(clip.text));
   const useUpdatedRecording = revised && (typeof navigator === 'undefined' || navigator.onLine !== false);
   // Bundled audio first: the native apps ship every verse, so a clip already on
   // the device plays with no request at all. Deliberately not cached in
@@ -189,7 +189,9 @@ async function audioUrlFor(clip, voice) {
       const res = await base44.functions.invoke('ttsVerse', {
         text: clip.text,
         voice,
-        ref: clip.ref,
+        // The corrected take of a verse that printed a face is filed under its
+        // own key, so ask for that one rather than the take it replaced.
+        ref: clip.h22 ? `${clip.ref}:h22` : clip.ref,
         engine: engineForVoice(voice),
       });
       const data = res?.data ?? res;
@@ -298,7 +300,12 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       const head = cleanHeadingForSpeech(v.heading);
       if (head) list.push({ verse: n, kind: 'heading', text: head, ref: `${key}:h${n}` });
       const text = cleanVerseForSpeech(v.text);
-      if (text) list.push({ verse: n, kind: 'verse', text, ref: `${key}:${n}` });
+      // A verse whose printed text sets a colon or semicolon against a closing
+      // bracket ("(…truth;)") was voiced before the face was stripped, and the
+      // corrected take is stored under its own key. The speech text no longer
+      // holds the bracket, so the signal comes from the verse as printed.
+      const h22 = /[;:]\s*[)\]]/.test(String(v.text || '')) || undefined;
+      if (text) list.push({ verse: n, kind: 'verse', text, ref: `${key}:${n}`, h22 });
     });
     // The chapter's furniture is spoken once. A colophon that repeats the last
     // verse, or a closing line that repeats the colophon, was heard twice in a
