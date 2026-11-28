@@ -665,16 +665,26 @@ export default React.forwardRef(function FlipBook({
   }, [page, chapterKey]);
 
   // Text pages only (the title page and the table of books come before them).
+  // The facing page of the open spread must always be renderable: a count that
+  // stopped one page short left the right-hand page as bare paper instead of
+  // carrying the next chapter on.
   const displayCount = fillLastPage && spread
-    ? Math.max(pageCount, pageOffsetRef.current + Math.ceil((pageCount - pageOffsetRef.current) / step) * step)
+    ? Math.max(page + step, pageCount, pageOffsetRef.current + Math.ceil((pageCount - pageOffsetRef.current) / step) * step)
     : pageCount;
   const textTotal = Math.max(0, displayCount - front.length);
+  // Where the next chapter's text begins in this chapter's own laid-out flow.
+  const followingEntry = following ? chapterLayout.find((entry) => entry.key === following.key) : null;
 
   // One printed page: a title page, the contents, or running head and text. Page
   // numbers are shown once, in the book's bottom bar.
   const face = (index, side) => {
     if (index === -1 && hasBridge) return <div data-fb-previous={bridgeRef.current.fromKey || ''} className="h-full">{bridgeRef.current.face}</div>;
-    if (index === pageCount && following && spread && !fillLastPage) return (
+    // The facing page carries the next chapter on whenever this chapter's text
+    // ends before it — printed inside this chapter's flow when the two were
+    // laid out together, otherwise as the next chapter's own opening page. It
+    // was left blank whenever the flow had nothing on that page.
+    if (index === pageCount && following && spread
+      && (!fillLastPage || !followingEntry || followingEntry.page > index - front.length)) return (
       <BookContinuation passage={following} {...{ side, padLeft, padRight, padTop, ruleGap, footerHeight, textW, textH, contentsH, zoomLevel, fontFamilyValue, isCursive, flowProps, textStyle, paragraphs }} />
     );
     const textIndex = index - front.length;
@@ -759,8 +769,12 @@ export default React.forwardRef(function FlipBook({
   // page — so the foot never says less than the pages show.
   const visibleFollowing = followingChapters.filter((passage) => {
     const position = chapterLayout.find((entry) => entry.key === passage.key);
-    return fillLastPage ? position && position.page < page + step - front.length
-      && position.endPage >= page - front.length
+    return fillLastPage
+      ? (position && position.page < page + step - front.length && position.endPage >= page - front.length)
+        // The facing page can carry the next chapter's own first page even when
+        // this chapter's flow stops short of it, so the foot names it too.
+        || (passage === following && spread && page + 1 === pageCount
+          && (!followingEntry || followingEntry.page > page + step - 1 - front.length))
       : passage === following && spread && page + 1 === pageCount;
   });
   const lastFollowing = visibleFollowing[visibleFollowing.length - 1] || null;
