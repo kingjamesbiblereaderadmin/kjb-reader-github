@@ -72,9 +72,8 @@
    one before it. Its opening gets its own breathing space above, so it reads as
    a chapter beginning rather than a run-on of the verse above. */
 .kjb-fb-continues { margin-top: 1.6em; }
-/* The next chapter starts on a fresh page unless its opening and its first verse
-   both fit under the chapter above: verse 1 is never left stranded at the foot
-   of a page with the rest of the chapter overleaf. */
+/* Keep each chapter's opening with its first verse while the surrounding
+   chapters flow continuously through every column and facing page. */
 .kjb-fb-continues .kjb-fb-opening, .kjb-fb-continued-current .kjb-fb-opening { break-after: avoid; }
 .kjb-fb-continues .kjb-fb-opening + .kjb-fb-verse,
 .kjb-fb-continued-current .kjb-fb-opening + .kjb-fb-verse { break-before: avoid; }

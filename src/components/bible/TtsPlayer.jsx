@@ -265,14 +265,11 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
       // that follows it must still say where the reader is: rolling from the
       // New Testament title page into Matthew 1 announced only "Chapter one".
       const bookChanged = prev.book !== fullName || !announcedRef.current || prev.chapter === 0;
-      // Said with the book's plain name, and with a numbered book's numeral
-      // spoken as an ordinal ("First Samuel", never "one Samuel"). A clip is
-      // cached by its reference, so numbered books ask for a take of their own
-      // rather than replaying one recorded from the old wording.
-      const plainName = label || fullName;
-      const ordinal = NUMBERED_BOOK.test(String(plainName)) ? '-n2' : '';
+      // The spoken announcement uses the full printed book title, never the
+      // compact toolbar label. A separate reference avoids old shortened takes.
+      const ordinal = NUMBERED_BOOK.test(String(fullName)) ? '-n2' : '';
       const introText = bookChanged
-        ? `${spokenBook(plainName)}, chapter ${spokenChapter(chapter)}`
+        ? `${spokenBook(fullName)}, chapter ${spokenChapter(chapter)}`
         : `Chapter ${spokenChapter(chapter)}`;
       // A clip is cached by its reference, not by its words, so the bare
       // "Chapter 3" must not share ":intro" with the book-named line: whichever
@@ -282,7 +279,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
       // clip key of its own: the take recorded from "chapter 119" said "one
       // nineteen" and must not play over the corrected wording.
       const wordsKey = Number(chapter) >= 100 ? '-c2' : '';
-      const introKey = bookChanged ? `${chapterKey}:intro${ordinal}${wordsKey}` : `${chapterKey}:chapter${wordsKey}`;
+      const introKey = bookChanged ? `${chapterKey}:intro-full${ordinal}${wordsKey}` : `${chapterKey}:chapter${wordsKey}`;
       // The title page's own clip names neither book nor chapter, so it must
       // not count as the announcement that has already said where we are.
       if (!titleText) announcedRef.current = true;
@@ -486,11 +483,11 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   const playFrom = (verse) => {
     followRef.current = true;
     skipScrollRef.current = true;
-    const plainName = label || bookName;
+    const fullName = bookName || label;
     const intro = chapter >= 1
       ? {
-        ref: `${chapterKey}:intro${NUMBERED_BOOK.test(String(plainName)) ? '-n2' : ''}${Number(chapter) >= 100 ? '-c2' : ''}`,
-        text: `${spokenBook(plainName)}, chapter ${spokenChapter(chapter)}`,
+        ref: `${chapterKey}:intro-full${NUMBERED_BOOK.test(String(fullName)) ? '-n2' : ''}${Number(chapter) >= 100 ? '-c2' : ''}`,
+        text: `${spokenBook(fullName)}, chapter ${spokenChapter(chapter)}`,
       }
       : null;
     // This press has just named the book, so the chapters that roll on from it

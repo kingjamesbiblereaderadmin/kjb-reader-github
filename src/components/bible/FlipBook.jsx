@@ -2,9 +2,12 @@ import React, { useCallback, useEffect, useImperativeHandle, useLayoutEffect, us
 import FlipBookChrome from '@/components/bible/FlipBookChrome';
 import BookChapterBlocks from '@/components/bible/BookChapterBlocks';
 import BookContinuation from '@/components/bible/BookContinuation';
+import BookFlowCarry from '@/components/bible/BookFlowCarry';
 import { ensureShyMap, installShyCopySanitizer } from '@/lib/softHyphens';
-import BookFlowPrefix from '@/components/bible/BookFlowPrefix';
-import useFollowingChapter from '@/hooks/useFollowingChapter';
+import ChapterFlow from '@/components/bible/ChapterFlow';
+import BookFollowingChapters from '@/components/bible/BookFollowingChapters';
+import useBookContinuations from '@/hooks/useBookContinuations';
+import bookFlowGeometry from '@/lib/bookFlowGeometry';
 import TitlePage from '@/components/bible/TitlePage';
 import ContentsFlow from '@/components/bible/ContentsFlow';
 import FittedPage from '@/components/bible/FittedPage';
@@ -13,24 +16,6 @@ import verseWords from '@/lib/tts/verseWords';
 import { getVerseHighlight } from '@/lib/verseHighlights';
 import './flipbook.css';
 
-
-// The whole chapter laid out as CSS columns, one column per page. Each page is a
-// window onto that same flow, shifted to its own column.
-const ChapterFlow = React.forwardRef(function ChapterFlow({ blocks, continuation = null, prefix = null, width, height, page, gap, textStyle, columnWidth, className }, ref) {
-  return (
-    <div
-      ref={ref}
-      className={`kjb-fb-flow notranslate ${className}`}
-      lang="en"
-      style={{ ...textStyle, width, height, columnWidth, columnGap: gap, transform: `translateX(${-page * (width + gap)}px)` }}
-    >
-      <BookFlowPrefix prefix={prefix} height={height} />
-      <div data-fb-current="" className={prefix ? 'kjb-fb-continued-current' : undefined}>{blocks}</div>
-      <span data-fb-end="" />
-      {continuation}
-    </div>
-  );
-});
 
 // How much of a verse the open pages show, as a share of its characters, ending
 // exactly on the last visible word. The voice spends its time on characters, so
@@ -81,17 +66,18 @@ export default React.forwardRef(function FlipBook({
   // A chapter beginning on the right stays there when audio crosses into it.
   const bridgeRef = useRef(null);
   const carryRef = useRef(null);
+  const carriesRef = useRef(new Map());
+  const advanceRef = useRef(null);
+  const layoutRef = useRef([]);
+  const [chapterLayout, setChapterLayout] = useState([]);
+  const [lookahead, setLookahead] = useState({ key: '', count: 1 });
   const pageOffsetRef = useRef(0);
   const pageOffsetsRef = useRef(new Map());
   const [stage, setStage] = useState({ w: 0, h: 0 });
   const [pageCount, setPageCount] = useState(1);
   const [contentsPageCount, setContentsPageCount] = useState(1);
   const [page, setPage] = useState(0);
-  // True when the chapter ends high enough on its last page to print the next
-  // chapter on in the space left under it.
-  const [fillNext, setFillNext] = useState(false);
-  // The first page that carries the printed-on chapter from its top column on.
-  const [nextFromPage, setNextFromPage] = useState(1);
+
   const [turn, setTurn] = useState(null); // { dir: 1 | -1, to }
   const [fontTick, setFontTick] = useState(0);
 
@@ -170,12 +156,9 @@ export default React.forwardRef(function FlipBook({
   }, []);
 
   const chromeProbeRef = useRef(null);
-  const prepareRef = useRef(null);
 
   const spread = stage.w >= 760;
   const step = spread ? 2 : 1;
-  const hasBridge = spread && bridgeRef.current?.toKey === chapterKey;
-  const firstPage = hasBridge ? -1 : 0;
   // The open book fills the whole reading area: no desk showing around it.
   const edge = 6;
   const pageW = Math.floor(Math.max(0, (stage.w - edge * 2) / step));
@@ -211,9 +194,15 @@ export default React.forwardRef(function FlipBook({
   // carry away in that case, so the book flipped to a page showing the next
   // chapter on its own instead of carrying on where the voice already was.
   const near = (a, b) => Math.abs((a || 0) - (b || 0)) <= 2;
-  const carry = carryRef.current?.toKey === chapterKey && near(carryRef.current.width, textW)
-    && near(carryRef.current.height, textH) && near(carryRef.current.gap, gap) ? carryRef.current : null;
+  const savedCarry = carryRef.current?.toKey === chapterKey ? carryRef.current : carriesRef.current.get(chapterKey);
+  const carry = savedCarry && near(savedCarry.width, textW) && near(savedCarry.height, textH)
+    && near(savedCarry.gap, gap) && savedCarry.zoom === zoomLevel
+    && savedCarry.font === fontFamilyValue && savedCarry.paragraphs === paragraphs ? savedCarry : null;
+  const hasBridge = spread && bridgeRef.current?.toKey === chapterKey
+    && (!bridgeRef.current.needsCarry || !!carry);
+  const firstPage = hasBridge ? -1 : 0;
   const flowProps = {
+    passageKey: `${abbr}:${chapter}`,
     width: textW, height: textH, gap, columnWidth: Math.floor(colW * 100) / 100,
     className: `${isCursive ? 'cursive-em-style' : ''} ${perPage === 2 ? 'kjb-fb-twocol' : ''}`,
   };
@@ -229,18 +218,18 @@ export default React.forwardRef(function FlipBook({
   useLayoutEffect(() => {
     const el = chromeProbeRef.current;
     if (!el) return;
-    const next = Math.ceil(el.getBoundingClientRect().height);
+    const next = Math.ceil(Math.max(...[...el.children].map((head) => {
+      const styles = getComputedStyle(head);
+      return head.getBoundingClientRect().height + parseFloat(styles.marginTop) + parseFloat(styles.marginBottom);
+    })));
     if (next > 0) setChromeH((current) => (Math.abs(current - next) > 0.5 ? next : current));
-  }, [textW, textStyle, fontTick, chapterKey]);
+  });
 
   // The closing marker of a testament ("The End", "The End of the Prophets") is
   // printed last, so it belongs in the chapter's own flow: when the final page
   // has no room left under the colophon it turns onto the next page with the
   // rest of the text instead of sitting over the verse above it.
   const showEnd = !!endMarker && !(filterMode && !selectMode && selectedVerses?.size);
-  // A filtered passage (a searched verse, a picked selection) keeps the facing
-  // page for the next chapter instead of printing it on under the excerpt.
-  const excerpt = !!(filterMode && !selectMode && selectedVerses?.size);
   const blocks = useMemo(() => (<>
     <BookChapterBlocks {...{ bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses }} />
     {showEnd && <p className="kjb-fb-endmark">{endMarker}</p>}
@@ -248,13 +237,12 @@ export default React.forwardRef(function FlipBook({
   // The next chapter is known even when the view is filtered down to a searched
   // verse or a picked selection: the facing page then carries that chapter on
   // instead of leaving a blank sheet after the excerpt.
-  const following = useFollowingChapter(book, chapter, canNext && !selectMode);
-  const continuationBlocks = useMemo(() => following?.verses?.length ? (
-    <div className="kjb-fb-continues" data-fb-next={`${following.book.abbr}:${following.chapter}`}>
-      <BookChapterBlocks bookName={following.book.name} chapter={following.chapter}
-        verses={following.verses} subscript={following.subscript} colophon={following.colophon} paragraphs={paragraphs} />
-    </div>
-  ) : null, [following?.book, following?.chapter, following?.verses, following?.subscript, following?.colophon, paragraphs, fontTick]);
+  const lookaheadCount = lookahead.key === chapterKey ? lookahead.count : 1;
+  const followingChapters = useBookContinuations(book, chapter, canNext && !selectMode, lookaheadCount);
+  const following = followingChapters[0] || null;
+  const continuationBlocks = following?.chapter > 0
+    ? <BookFollowingChapters passages={followingChapters} paragraphs={paragraphs} /> : null;
+  const fillLastPage = chapter > 0 && !!continuationBlocks;
 
   // A new chapter opens at its first page, or its last when turning backwards.
   // The measuring effect below must re-run when the text or the page geometry
@@ -265,50 +253,36 @@ export default React.forwardRef(function FlipBook({
   // Next did nothing and Prev only jumped chapter.
   const flowSignature = useMemo(() => [
     chapterKey, front.length, contentsPageCount, textW, textH, gap, step, pageW, fontTick,
-    zoomLevel, fontFamilyValue || '', perPage,
+    zoomLevel, fontFamilyValue || '', perPage, paragraphs, hasBridge, !!carry,
     verses.length, verses.reduce((total, verse) => total + String(verse.text || '').length, 0),
     colophon ? String(colophon).length : 0,
     subscript ? String(subscript).length : 0,
-    following ? `${following.book?.abbr}:${following.chapter}:${following.verses?.length || 0}` : '',
+    followingChapters.map((passage) => `${passage.key}:${passage.verses.length}`).join(','),
     // A filtered view prints only its selected verses, so the pages must be
     // counted again when that selection changes.
     filterMode ? `${selectMode ? 'select' : 'filter'}:${selectedVerses?.size || 0}:${[...(selectedVerses || [])].join(',')}` : '',
   ].join('|'), [chapterKey, front.length, contentsPageCount, textW, textH, gap, step, pageW, fontTick,
-    zoomLevel, fontFamilyValue, perPage, verses, colophon, subscript, following,
+    zoomLevel, fontFamilyValue, perPage, paragraphs, hasBridge, carry, verses, colophon, subscript, followingChapters,
     filterMode, selectMode, selectedVerses]);
   const shownKeyRef = useRef(null);
   useLayoutEffect(() => {
     if (loading || !measureRef.current || !pageW) return;
-    const end = measureRef.current.querySelector('[data-fb-end]');
-    // The pages this chapter's own text needs.
-    const ownPages = chapter === 0 ? 0 : Math.max(1, Math.floor((end.offsetLeft + 1) / (textW + gap)) + 1);
-    // The next chapter is printed on only when this one's text runs into the
-    // last column of its last page: it then opens at the top of the following
-    // column (see .kjb-fb-continues), never halfway down a page, and its
-    // columns count as pages of their own. A chapter that ends with a whole
-    // column to spare hands that space to the facing page instead, so the next
-    // chapter always begins cleanly at the top of a column.
-    const lastColStart = (ownPages - 1) * (textW + gap) + colW + gap;
-    const reachesLastCol = ownPages > 0 && end.offsetLeft >= lastColStart - 1;
-    const fill = chapter !== 0 && !excerpt && reachesLastCol;
-    // Count the whole flow when that chapter is printed on, or its columns
-    // would be cut off at the page count.
-    const flowWidth = measureRef.current.scrollWidth;
-    const flowPages = Math.max(1, Math.ceil((flowWidth || end.offsetLeft + colW) / (textW + gap)));
-    const textPages = fill ? Math.max(ownPages, flowPages) : ownPages;
-    setFillNext(fill);
-    // The first page that belongs to the next chapter from its top column on,
-    // so the running head names the chapter actually printed under it.
-    const nextStartCol = Math.floor((end.offsetLeft + 1) / (colW + gap)) + 1;
-    setNextFromPage(Math.ceil(nextStartCol / perPage));
-    const count = front.length + textPages;
+    const measured = bookFlowGeometry(measureRef.current, textW, colW, gap, perPage);
+    layoutRef.current = measured;
+    setChapterLayout((previous) => JSON.stringify(previous) === JSON.stringify(measured) ? previous : measured);
+    // Count only the active chapter. Neighbouring chapters fill its final spread,
+    // but must be promoted before turning into pages containing only their text.
+    // Counting the entire neighbour here was what stranded its last page on the
+    // left with an empty right-hand page and no further chapter available.
+    const ownPages = chapter === 0 ? 0 : (measured[0]?.endPage ?? 0) + 1;
+    const count = front.length + ownPages;
     setPageCount(count);
     const isNew = shownKeyRef.current !== chapterKey;
     shownKeyRef.current = chapterKey;
     const toEnd = landOnEndRef.current;
-    const bridged = spread && bridgeRef.current?.toKey === chapterKey;
+    const bridged = hasBridge;
     const minimum = bridged ? -1 : 0;
-    const pendingStart = bridged ? -1 : (pendingPageRef.current || 0);
+    const pendingStart = bridged ? -1 : Math.max(0, pendingPageRef.current || 0);
     // A one-page title may already have been read on the preceding spread.
     // Carry the unused page count forward instead of showing that title twice.
     if (isNew && !toEnd && pendingStart >= count && canNext && following) {
@@ -322,6 +296,13 @@ export default React.forwardRef(function FlipBook({
     } else pageOffsetRef.current %= step;
     const offset = pageOffsetRef.current;
     const lastStart = Math.max(0, offset + Math.floor((count - 1 - offset) / step) * step);
+    const tail = measured[measured.length - 1];
+    const lastPassage = followingChapters[followingChapters.length - 1];
+    if (fillLastPage && lastPassage?.chapter > 0 && followingChapters.length === lookaheadCount
+        && tail?.endPage < lastStart - front.length + step
+        && !(lastPassage.book.abbr === 'REV' && lastPassage.chapter === 22)) {
+      setLookahead({ key: chapterKey, count: lookaheadCount + 1 });
+    }
     setPage((p) => {
       if (isNew) return toEnd ? lastStart : Math.min(pendingStart, count - 1);
       return Math.max(minimum, Math.min(offset + Math.floor((p - offset) / step) * step, lastStart));
@@ -331,31 +312,23 @@ export default React.forwardRef(function FlipBook({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flowSignature, loading]);
 
-  // The next chapter carries straight on in the space under the last verse,
-  // including an empty second column. When that last page is on the left, the
-  // facing page continues the same flow (spill) rather than starting the next
-  // chapter again at its own opening.
-  const fillLastPage = fillNext && !!continuationBlocks;
-  // The printed-on chapter's columns are counted as pages of their own, so the
-  // flow never runs past the last page and nothing spills onto a facing page.
-  const spill = false;
-
   const go = useCallback((dir) => {
     if (loading || turn) return;
     const to = page + dir * step;
-    if (to < firstPage) { if (canPrev) { landOnEndRef.current = true; onPrevChapter(); } return; }
+    if (to < firstPage) {
+      if (canPrev && carry && to + carry.startPage >= 0 && onOpenPassage) {
+        const [previousBook, previousChapter] = carry.fromKey.split(':');
+        pendingPageRef.current = to + carry.startPage;
+        bridgeRef.current = null;
+        landOnEndRef.current = false;
+        onOpenPassage(previousBook, Number(previousChapter), null);
+      } else if (canPrev) { landOnEndRef.current = true; onPrevChapter(); }
+      return;
+    }
     if (to >= pageCount) {
       if (canNext) {
         landOnEndRef.current = false;
-        // Part of the next chapter is already on these pages: carry on after it
-        // (two pages on after a spill, otherwise one) instead of repeating it.
-        if (fillLastPage) {
-          prepareRef.current?.();
-          bridgeRef.current = null;
-          pendingPageRef.current = spill ? 2 : 1;
-          onNextChapter();
-          return;
-        }
+        if (fillLastPage && advanceRef.current?.(to)) return;
         pendingPageRef.current = following && spread ? Math.max(0, to - pageCount) : 0;
         onNextChapter();
       }
@@ -363,7 +336,7 @@ export default React.forwardRef(function FlipBook({
     }
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setPage(to); return; }
     setTurn({ dir, to });
-  }, [loading, turn, page, step, pageCount, onNextChapter, onPrevChapter, canPrev, canNext, following, spread, firstPage, spill, fillLastPage]);
+  }, [loading, turn, page, step, pageCount, onNextChapter, onPrevChapter, onOpenPassage, canPrev, canNext, following, spread, firstPage, fillLastPage, carry]);
 
   // The page on which a verse or section begins.
   const pageOf = useCallback((selector, progress = 0, completed = null) => {
@@ -542,7 +515,10 @@ export default React.forwardRef(function FlipBook({
   }, [turn]);
 
   // Text pages only (the title page and the table of books come before them).
-  const textTotal = Math.max(0, pageCount - front.length);
+  const displayCount = fillLastPage && spread
+    ? Math.max(pageCount, pageOffsetRef.current + Math.ceil((pageCount - pageOffsetRef.current) / step) * step)
+    : pageCount;
+  const textTotal = Math.max(0, displayCount - front.length);
 
   // One printed page: a title page, the contents, or running head and text. Page
   // numbers are shown once, in the book's bottom bar.
@@ -552,14 +528,15 @@ export default React.forwardRef(function FlipBook({
       <BookContinuation passage={following} {...{ side, padLeft, padRight, footerHeight, textW, textH, contentsH, zoomLevel, fontFamilyValue, isCursive, flowProps, textStyle, paragraphs }} />
     );
     const textIndex = index - front.length;
-    // The chapter's last page, with the next chapter printed on under it.
-    const spillsHere = spill && index === pageCount;
-    // The printed-on chapter is part of the same flow, so every page lays it
-    // out; the column break keeps it off the pages that belong to this one.
     const continuesHere = fillLastPage;
+    const atTop = [...chapterLayout].reverse().find((entry) => entry.page < textIndex
+      || (entry.page === textIndex && entry.columns === 0 && entry.top < 1));
+    const headedPassage = followingChapters.find((passage) => passage.key === atTop?.key);
+    const headBook = headedPassage?.book || book;
+    const headChapter = headedPassage?.chapter ?? chapter;
     return (
       <div className={`kjb-fb-page kjb-fb-${side}`} style={{ padding: `52px ${padRight}px ${footerHeight}px ${padLeft}px` }}>
-        {index >= 0 && (index < pageCount || spillsHere) && (textIndex < 0 ? (
+        {index >= 0 && index < displayCount && (textIndex < 0 ? (
           typeof front[index] === 'string' ? (
             <FittedPage width={textW} height={contentsH} zoom={zoomLevel / 100} fontFamilyValue={fontFamilyValue} isCursive={isCursive}>
               <TitlePage type={front[index]} book={book} />
@@ -576,15 +553,15 @@ export default React.forwardRef(function FlipBook({
                 so the page's top rule and foot rule line up with the facing
                 page, and the title is separated from the controls above. */}
             <div
-              className={`kjb-fb-head${textIndex === 0 ? ' kjb-fb-head-blank' : ''}`}
-              aria-hidden={textIndex === 0 ? 'true' : undefined}
+              className={`kjb-fb-head notranslate${textIndex === 0 && !carry ? ' kjb-fb-head-blank' : ''}`}
+              translate="no"
+              style={{ minHeight: Math.max(0, chromeH - 28) }}
+              aria-hidden={textIndex === 0 && !carry ? 'true' : undefined}
             >
               {/* The page that carries the next chapter on is headed with that
                   chapter, as a printed Bible's running head follows the text
                   beneath it. */}
-              {textIndex === 0 ? '\u00A0' : continuesHere && textIndex >= nextFromPage
-                ? `${following.book.shortName} ${following.chapter}`
-                : `${book.shortName} ${chapter}`}
+              {textIndex === 0 && !carry ? '\u00A0' : `${headBook.name}, Chapter ${headChapter}`}
             </div>
             <div className="kjb-fb-window" style={{ width: textW, height: textH }}>
               {textIndex === 0 && carry && <div data-fb-previous={carry.fromKey} className="absolute inset-0">{carry.underlay}</div>}
@@ -599,44 +576,42 @@ export default React.forwardRef(function FlipBook({
     );
   };
 
-  const preserveFacingPage = () => {
-    if (!following) return;
-    if (fillLastPage && page + step >= pageCount) {
-      const flow = measureRef.current;
-      const next = flow?.querySelector('[data-fb-next]');
-      const start = next?.getClientRects()[0];
-      if (start) {
-        const origin = flow.getBoundingClientRect();
-        const lastTextPage = pageCount - front.length - 1;
-        carryRef.current = {
-          toKey: `${following.book.abbr}-${following.chapter}`, fromKey: `${abbr}:${chapter}`,
-          width: textW, height: textH, gap,
-          columns: Math.floor((start.left - origin.left + 1) / (colW + gap)) % perPage,
-          top: Math.max(0, start.top - origin.top),
-          underlay: <>
-            {lastTextPage === 0 && carry?.underlay}
-            <ChapterFlow blocks={blocks} prefix={carry} {...flowProps} page={lastTextPage} textStyle={textStyle} />
-          </>,
-        };
-        if (spread) bridgeRef.current = { toKey: `${following.book.abbr}-${following.chapter}`, fromKey: `${abbr}:${chapter}`, face: face(page, 'left') };
-        // After a spill the new chapter's first two pages ARE this spread, so
-        // it stays open: listening carries on from verse 1 where it is printed.
-        // (A manual Next moves past it; see go().)
-        if (spill) { bridgeRef.current = null; pendingPageRef.current = 0; return; }
-        pendingPageRef.current = spread ? -1 : 0;
-        return;
-      }
+  const preserveFacingPage = (target = following, targetPage = null) => {
+    if (!target) return;
+    const position = layoutRef.current.find((entry) => entry.key === target.key);
+    if (fillLastPage && position) {
+      const nextCarry = {
+        toKey: `${target.book.abbr}-${target.chapter}`, fromKey: `${abbr}:${chapter}`,
+        width: textW, height: textH, gap, columns: position.columns, top: position.top,
+        startPage: position.page, zoom: zoomLevel, font: fontFamilyValue, paragraphs,
+        underlay: <BookFlowCarry columns={position.columns} top={position.top} colW={colW} gap={gap}
+          height={textH} page={position.page} prefix={carry} blocks={blocks}
+          continuation={continuationBlocks} flowProps={flowProps} textStyle={textStyle} />,
+      };
+      carryRef.current = nextCarry;
+      carriesRef.current.set(nextCarry.toKey, nextCarry);
+      const destination = (targetPage ?? page) - front.length - position.page;
+      const showBridge = targetPage == null && spread && destination === -1;
+      bridgeRef.current = showBridge
+        ? { toKey: nextCarry.toKey, fromKey: `${abbr}:${chapter}`, face: face(page, 'left'), needsCarry: true } : null;
+      pendingPageRef.current = Math.max(showBridge ? -1 : 0, destination);
+      return;
     }
     if (!spread || page + 1 !== pageCount) return;
     bridgeRef.current = {
-      toKey: `${following.book.abbr}-${following.chapter}`,
-      fromKey: `${abbr}:${chapter}`,
-      face: face(page, 'left'),
+      toKey: `${target.book.abbr}-${target.chapter}`, fromKey: `${abbr}:${chapter}`, face: face(page, 'left'),
     };
     pendingPageRef.current = -1;
   };
-  prepareRef.current = preserveFacingPage;
-  useImperativeHandle(ref, () => ({ prepareListeningAdvance: preserveFacingPage }));
+  advanceRef.current = (targetPage) => {
+    const position = layoutRef.current.slice(1).find((entry) => entry.endPage >= targetPage - front.length);
+    const target = followingChapters.find((passage) => passage.key === position?.key);
+    if (!target || !onOpenPassage) return false;
+    preserveFacingPage(target, targetPage);
+    onOpenPassage(target.book.abbr, target.chapter, null);
+    return true;
+  };
+  useImperativeHandle(ref, () => ({ prepareListeningAdvance: () => preserveFacingPage() }));
 
   // "Genesis 2 · pages 1–2 of 4", counting text pages only.
   const shown = Array.from({ length: step }, (_, i) => page + i - front.length + 1).filter((n) => n >= 1 && n <= textTotal);
@@ -644,8 +619,14 @@ export default React.forwardRef(function FlipBook({
   // The bar under the pages names the next chapter whenever the open pages
   // carry it on — printed under this chapter's last verse, or on the facing
   // page — so the foot never says less than the pages show.
-  const nextOnPages = !!following && (shown.length > 0 && ((fillLastPage && shown.includes(textTotal))
-    || (spread && page + 1 === pageCount && page < pageCount)));
+  const visibleFollowing = followingChapters.filter((passage) => {
+    const position = chapterLayout.find((entry) => entry.key === passage.key);
+    return fillLastPage ? position && position.page < page + step - front.length
+      && position.endPage >= page - front.length
+      : passage === following && spread && page + 1 === pageCount;
+  });
+  const lastFollowing = visibleFollowing[visibleFollowing.length - 1] || null;
+  const nextOnPages = shown.length > 0 && !!lastFollowing;
   // Which chapter the voice is reading, when it is reading something on these
   // pages. A continued page carries the end of this chapter and the start of
   // the next, so the foot naming both at once was telling the listener two
@@ -664,10 +645,8 @@ export default React.forwardRef(function FlipBook({
   // chapters on the open pages are separated, so "Genesis 2 · 3" is never
   // mistaken for the page of the chapter named after it.
   const whereLabel = !nextOnPages ? `${book.shortName} ${chapter}`
-    : following.book.abbr === abbr ? `${book.shortName} ${chapter}–${following.chapter}`
-      : shown.length > 1
-        ? `${book.shortName} ${chapter} · ${shown[0]} | ${following.book.shortName} ${following.chapter} · ${shown[1]}`
-        : `${book.shortName} ${chapter} · ${shown[0]} | ${following.book.shortName} ${following.chapter}`;
+    : lastFollowing.book.abbr === abbr ? `${book.shortName} ${chapter}–${lastFollowing.chapter}`
+      : `${book.shortName} ${chapter} | ${lastFollowing.book.shortName} ${lastFollowing.chapter}`;
   const where = !shown.length ? (shownContents.length
     ? `Contents · ${shownContents.length > 1 ? `pages ${shownContents[0]}–${shownContents[1]}` : `page ${shownContents[0]}`} of ${contentsPageCount}`
     : 'Title page')
@@ -703,15 +682,13 @@ export default React.forwardRef(function FlipBook({
   // A tap on a verse selects it, as in the normal reader; a tap elsewhere turns.
   const onPageTap = (dir) => (e) => {
     const verse = e.target.closest('[data-fbv]');
-    const previous = e.target.closest('[data-fb-previous]')?.dataset.fbPrevious;
-    if (verse && previous) {
-      const [book, chapter] = previous.split(':');
-      onOpenPassage?.(book, Number(chapter), Number(verse.dataset.fbv));
-      return;
-    }
-    if (e.target.closest('[data-fb-next]') && following) {
-      preserveFacingPage();
-      onOpenPassage?.(following.book.abbr, following.chapter, verse ? Number(verse.dataset.fbv) : null);
+    const source = e.target.closest('[data-fb-next], [data-fb-current], [data-fb-previous]');
+    const sourceKey = source?.dataset.fbNext || source?.dataset.fbCurrent || source?.dataset.fbPrevious;
+    if (sourceKey && sourceKey !== `${abbr}:${chapter}`) {
+      const [targetBook, targetChapter] = sourceKey.split(':');
+      const target = followingChapters.find((passage) => passage.key === sourceKey);
+      if (target) preserveFacingPage(target);
+      onOpenPassage?.(targetBook, Number(targetChapter), verse ? Number(verse.dataset.fbv) : null);
       return;
     }
     if (verse) { onVerseTap?.(Number(verse.dataset.fbv)); return; }
@@ -748,10 +725,11 @@ export default React.forwardRef(function FlipBook({
         {/* Invisible copy used only to count pages. */}
         <div className="kjb-fb-measure" aria-hidden="true" style={{ width: textW, height: textH }}>
           {/* Out of flow: only measured, never laid into the page. */}
-          <div ref={chromeProbeRef} style={{ position: 'absolute', left: 0, top: 0, display: 'flex', flexDirection: 'column' }}>
-            <div className="kjb-fb-head">{book.shortName} {chapter}</div>
+          <div ref={chromeProbeRef} style={{ position: 'absolute', left: 0, top: 0, width: textW }}>
+            <div className="kjb-fb-head">{book.name}, Chapter {chapter}</div>
+            {followingChapters.map((passage) => <div key={passage.key} className="kjb-fb-head">{passage.book.name}, Chapter {passage.chapter}</div>)}
           </div>
-          <ChapterFlow ref={measureRef} blocks={blocks} prefix={carry} continuation={excerpt ? null : continuationBlocks} {...flowProps} page={0} textStyle={textStyle} />
+          <ChapterFlow ref={measureRef} blocks={blocks} prefix={carry} continuation={continuationBlocks} {...flowProps} page={0} textStyle={textStyle} />
         </div>
         <div className="kjb-fb-book" style={{ width: pageW ? pageW * step : '100%', height: pageH || '100%', '--fb-footer-height': `${footerHeight}px` }}>
           <FlipBookChrome
