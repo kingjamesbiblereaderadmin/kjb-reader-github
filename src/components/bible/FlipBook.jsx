@@ -74,6 +74,10 @@ export default React.forwardRef(function FlipBook({
   const [lookahead, setLookahead] = useState({ key: '', count: 1 });
   const pageOffsetRef = useRef(0);
   const pageOffsetsRef = useRef(new Map());
+  // The verse at the top of the page being read. A type-size or font change
+  // reflows the chapter, so the same page NUMBER then holds a different
+  // passage; this keeps the reader on the words they were looking at.
+  const anchorRef = useRef(null);
   const [stage, setStage] = useState({ w: 0, h: 0 });
   const [pageCount, setPageCount] = useState(1);
   const [contentsPageCount, setContentsPageCount] = useState(1);
@@ -306,6 +310,18 @@ export default React.forwardRef(function FlipBook({
     }
     setPage((p) => {
       if (isNew) return toEnd ? lastStart : Math.min(pendingStart, count - 1);
+      // Changing the type size, the font or the window size reflows the
+      // chapter. Land on the page that now holds the verse that was at the
+      // top of the page — the same page number holds different text after a
+      // reflow, and at the end of a chapter the clamp used to throw the book
+      // back several spreads, which read as a page turning by itself.
+      const anchor = anchorRef.current;
+      if (anchor && anchor.chapterKey === chapterKey) {
+        const at = pageOf(`[data-fbv="${anchor.verse}"]`);
+        if (at != null) {
+          return Math.max(minimum, Math.min(offset + Math.floor((at - offset) / step) * step, lastStart));
+        }
+      }
       return Math.max(minimum, Math.min(offset + Math.floor((p - offset) / step) * step, lastStart));
     });
     if (isNew) { landOnEndRef.current = false; pendingPageRef.current = null; }
@@ -533,6 +549,16 @@ export default React.forwardRef(function FlipBook({
     return () => window.clearTimeout(id);
   }, [turn]);
 
+  // Remember the verse that leads the open spread. Keyed on the page and the
+  // chapter only, so a type-size change (which does not move the page by
+  // itself) keeps the verse captured BEFORE the text reflowed.
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const first = root.querySelector('.kjb-fb-slot [data-fbv]');
+    anchorRef.current = first ? { chapterKey, verse: Number(first.dataset.fbv) } : null;
+  }, [page, chapterKey]);
+
   // Text pages only (the title page and the table of books come before them).
   const displayCount = fillLastPage && spread
     ? Math.max(pageCount, pageOffsetRef.current + Math.ceil((pageCount - pageOffsetRef.current) / step) * step)
@@ -726,6 +752,10 @@ export default React.forwardRef(function FlipBook({
       return;
     }
     if (verse) { onVerseTap?.(Number(verse.dataset.fbv)); return; }
+    // A press meant for a control never turns the page: the zoom, font and
+    // verse panels sit over the book, so a tap on one of their buttons must
+    // not fall through to the page underneath it.
+    if (e.target.closest?.('button, input, select, textarea, a, [role="button"], [role="slider"], [role="menu"], [role="dialog"], .kjb-popover-panel, .kjb-selector-sheet, [data-radix-popper-content-wrapper]')) return;
     go(dir);
   };
 
