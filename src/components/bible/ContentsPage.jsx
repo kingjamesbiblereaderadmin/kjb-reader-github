@@ -21,10 +21,15 @@ export const CONTENTS_BOOKS = BIBLE_BOOKS.map((b) => ({
   testament: b.testament,
   chapters: b.chapters,
   table: TABLE_NAMES[b.abbr] || b.shortName,
+  full: b.name,
 }));
 
-/** One continuous table. The book view supplies the natural page boundaries. */
-export default function ContentsPage({ onSelectBook }) {
+/**
+ * One continuous table. The book view supplies the natural page boundaries.
+ * `fullNames` lists each book by its full canonical title ("The First Book of
+ * Moses, called Genesis") instead of the old table's wording ("I. Samuel").
+ */
+export default function ContentsPage({ onSelectBook, fullNames = false }) {
   return (
     <div className="notranslate kjb-contents" translate="no" lang="en">
       <h2 className="kjb-contents-title" data-contents-row="">
@@ -42,9 +47,9 @@ export default function ContentsPage({ onSelectBook }) {
             {CONTENTS_BOOKS.filter((b) => b.testament === testament).map((b) => (
               <li key={b.abbr} data-contents-row="">
                 <button type="button" className="kjb-contents-entry"
-                  aria-label={`${b.table}, ${b.chapters} ${b.chapters === 1 ? 'chapter' : 'chapters'}`}
+                  aria-label={`${fullNames ? b.full : b.table}, ${b.chapters} ${b.chapters === 1 ? 'chapter' : 'chapters'}`}
                   onClick={(e) => { e.stopPropagation(); onSelectBook?.(b.abbr); }}>
-                  <span className="kjb-contents-name">{b.table}</span>
+                  <span className="kjb-contents-name">{fullNames ? b.full : b.table}</span>
                   <span className="kjb-contents-leader" aria-hidden="true" />
                   <span className="kjb-contents-number">{b.chapters}</span>
                 </button>

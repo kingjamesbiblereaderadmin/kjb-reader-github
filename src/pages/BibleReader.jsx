@@ -2034,7 +2034,7 @@ export default function BibleReader() {
             <TitlePage type={pos.abbr === 'GEN' ? 'testament-old' : pos.abbr === 'MAT' ? 'testament-new' : 'book'} book={book} />
             {pos.abbr === 'GEN' && (
               <div className="kjb-frontmatter-contents">
-                <BibleContents onSelectBook={(abbr) => navigate(abbr, 1)} />
+                <BibleContents onSelectBook={(abbr) => navigate(abbr, 1)} fullNames />
               </div>
             )}
           </div>

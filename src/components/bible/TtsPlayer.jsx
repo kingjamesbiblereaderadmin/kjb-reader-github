@@ -389,27 +389,40 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     };
   }, [tts.introActive, tts.currentKind, tts.status]);
 
-  // A title page is read as one piece, and it is far taller than the screen
-  // (the cover, then the whole table of contents beneath it). The page moves
-  // down it as the voice goes: each part of the page comes into view as the
-  // part before it is finished, instead of the reading running on past the foot
-  // of the screen while the page sits still.
+  // A title page is spoken down its cover, line by line. The page holds still
+  // while the line being read is on screen and moves on only once the reading
+  // has finished what is visible — then the next line is brought into view, and
+  // so on to the end of the cover.
   useEffect(() => {
     if (tts.currentKind !== 'title' || tts.status !== 'playing') return undefined;
     const scroller = document.getElementById('kjb-scroll');
-    const page = document.querySelector('.kjb-frontmatter');
-    if (!scroller || !page) return undefined;
+    const cover = document.querySelector('.kjb-frontmatter .kjb-titlepage');
+    if (!scroller || !cover) return undefined;
     const ref = `${chapterKey}:title`;
+    // The cover's own lines, in the order the voice reads them.
+    const lines = () => [...cover.querySelectorAll('p, h1, h2, h3')]
+      .filter((el) => el.textContent.trim() && el.getBoundingClientRect().height > 0);
     const follow = () => {
       if (!followRef.current) return;
-      // How much of the page has been read, from its top to its foot.
-      const progress = getProgress(ref) || 0;
-      const top = page.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
-      const room = page.offsetHeight - scroller.clientHeight;
-      if (room <= 0) return;
-      const target = Math.max(0, top + progress * room);
-      if (Math.abs(scroller.scrollTop - target) < 2) return;
-      scroller.scrollTo({ top: target, behavior: 'auto' });
+      const list = lines();
+      if (!list.length) return;
+      // The voice reads those lines in order, so its position in the clip says
+      // which line it is on.
+      const counts = list.map((el) => el.textContent.trim().split(/\s+/).length);
+      const total = counts.reduce((sum, n) => sum + n, 0) || 1;
+      let remaining = total * (getProgress(ref) || 0);
+      let line = list[list.length - 1];
+      for (let i = 0; i < list.length; i += 1) {
+        remaining -= counts[i];
+        if (remaining <= 0) { line = list[i]; break; }
+      }
+      const box = scroller.getBoundingClientRect();
+      const r = line.getBoundingClientRect();
+      // The line being read is still in view: the page stays where it is.
+      if (r.bottom <= box.bottom - 24) return;
+      const target = scroller.scrollTop + (r.bottom - (box.bottom - 24));
+      if (target <= scroller.scrollTop + 2) return;
+      scroller.scrollTo({ top: target, behavior: 'smooth' });
     };
     follow();
     return subscribeProgress(follow);
