@@ -14,6 +14,7 @@ import usePreviewMode from '@/hooks/usePreviewMode';
 import { TTS_RATES, TTS_STORAGE, readStored, writeStored } from '@/lib/tts/voices';
 import { getBookByAbbr } from '@/lib/bibleData';
 import { getPlatformLabel, permissionSummary } from '@/lib/platformPermissions';
+import { Link } from 'react-router-dom';
 import bookAnnouncement from '@/components/bible/bookAnnouncement';
 
 // The reader's Listen player.
@@ -709,7 +710,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
                 <Info className="w-4 h-4" />
               </button>
             </PopoverTrigger>
-            <PopoverContent align="center" side="top" className="w-72 p-3 font-sans">
+            <PopoverContent align="center" side="top" className="w-80 p-3 font-sans">
               <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">The voice</p>
               <p className="text-xs text-foreground/85 leading-relaxed">
                 <span className="font-semibold text-foreground notranslate" translate="no">Microsoft Azure AI Speech</span>
@@ -724,6 +725,13 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
               <ul className="text-xs text-foreground/85 leading-relaxed">
                 {permissionSummary().map((line) => <li key={line}>• {line}</li>)}
               </ul>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mt-2.5 mb-1">Licensing</p>
+              <p className="text-xs text-foreground/85 leading-relaxed">
+                Free for personal, non-commercial reading and study, never sold. The King James text is public domain, though commercial use in the UK may need a Cambridge University Press or King&rsquo;s Printer licence. The audio is played inside the app only.
+              </p>
+              <p className="text-xs text-foreground/85 leading-relaxed mt-1">
+                Full terms on the <Link to="/credits" className="text-primary hover:underline">Credits page</Link>.
+              </p>
               <p className="text-[11px] text-muted-foreground leading-relaxed mt-2.5">
                 Feedback:{' '}
                 <a href="mailto:kingjamesbiblereader@outlook.sg" className="text-primary hover:underline notranslate" translate="no">kingjamesbiblereader@outlook.sg</a>
