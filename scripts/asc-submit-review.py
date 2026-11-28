@@ -26,6 +26,7 @@ Usage:
 """
 import argparse
 import base64
+import re
 import os
 import sys
 import time
@@ -145,6 +146,9 @@ def pick_build(app, build_no, platform, wait_minutes):
             if state == "VALID":
                 log(f"build {build_no} ({platform}) is VALID "
                     f"(preReleaseVersion {pv.get('version')})")
+                b = dict(b)
+                b["attributes"] = dict(b["attributes"])
+                b["attributes"]["_pre_version"] = pv.get("version")
                 return b
             last = state
         if time.time() > deadline:
@@ -157,6 +161,52 @@ def pick_build(app, build_no, platform, wait_minutes):
 def attach_build(version_id, build_id):
     return api("PATCH", f"/v1/appStoreVersions/{version_id}/relationships/build",
                body={"data": {"type": "builds", "id": build_id}})
+
+
+VERSION_IN_NOTES = re.compile(r"(app\s+version\s*:?\s*)(\d+(?:\.\d+)+)", re.I)
+
+
+def sync_whats_new(version_id, target, dry_run):
+    """Make the What's New header carry the version being submitted.
+
+    A version record can be renamed (2.419 -> 2.427) while the notes still name
+    the old release, and App Review would then see a store page whose What's New
+    header disagrees with the version. This rewrites just the version token in
+    the header (keeping the bullets), or adds the header line when the notes do
+    not carry one at all. Returns a list of (locale, old_header, new_header).
+    """
+    r = api("GET", f"/v1/appStoreVersions/{version_id}/appStoreVersionLocalizations",
+            params={"limit": 50})
+    if not r.ok:
+        return []
+    changed = []
+    for loc in r.json().get("data", []):
+        attrs = loc["attributes"]
+        text = (attrs.get("whatsNew") or "").strip()
+        if not text:
+            log(f"localization {attrs.get('locale')}: no What's New text to sync")
+            continue
+        first, _, rest = text.partition("\n")
+        m = VERSION_IN_NOTES.search(first)
+        if m and m.group(2) == target:
+            continue
+        if m:
+            new_first = first[:m.start(2)] + target + first[m.end(2):]
+            new_text = new_first + ("\n" + rest if rest else "")
+        else:
+            new_text = f"iOS/MacOS App Version: {target}\n\n{text}"
+        changed.append((attrs.get("locale"), first, new_text.split("\n")[0]))
+        if dry_run:
+            continue
+        patch = api("PATCH", f"/v1/appStoreVersionLocalizations/{loc['id']}",
+                    body={"data": {"type": "appStoreVersionLocalizations", "id": loc["id"],
+                                   "attributes": {"whatsNew": new_text}}})
+        if patch.status_code not in (200, 201):
+            log(f"localization {attrs.get('locale')}: What's New PATCH failed "
+                f"({patch.status_code}): {patch.text[:300]}")
+        else:
+            log(f"localization {attrs.get('locale')}: What's New header -> {target}")
+    return changed
 
 
 def whats_new_state(version_id):
@@ -217,6 +267,8 @@ def main():
                     help="how long to wait for the build to finish processing")
     ap.add_argument("--dry-run", action="store_true",
                     help="report what would happen; change nothing")
+    ap.add_argument("--allow-build-version-mismatch", action="store_true",
+                    help="submit even when the build's own version differs from the record")
     ap.add_argument("--verify", action="store_true",
                     help="create the review submission and delete it again without submitting")
     args = ap.parse_args()
@@ -258,6 +310,21 @@ def main():
             print(f"- {platform}: not submitted, build {build_no} not VALID yet")
             failures += 1
             continue
+
+        # The record and the binary must name the same release, otherwise the
+        # store page says 2.427 while the shipped app reports its own version.
+        binary_version = build["attributes"].get("_pre_version")
+        if binary_version and binary_version != target and not args.allow_build_version_mismatch:
+            log(f"{platform}: build {build_no} is version {binary_version}, record is "
+                f"{target}; refusing to submit a mismatched pair")
+            print(f"- {platform}: not submitted, build {build_no} is {binary_version} "
+                  f"but the record is {target}")
+            failures += 1
+            continue
+
+        synced = sync_whats_new(version["id"], target, args.dry_run)
+        for locale, old_head, new_head in synced:
+            print(f"- {platform}: What's New header {old_head!r} -> {new_head!r} ({locale})")
 
         if args.dry_run:
             log(f"{platform}: would attach build {build_no} ({build['id']}) and submit")
