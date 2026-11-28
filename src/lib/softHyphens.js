@@ -259,19 +259,21 @@ function fillLongStretches(w, own) {
   return merged;
 }
 
-// Every gap between two letters is a break point, for every word of 2+ letters.
-// A browser breaks at the LAST point that fits, so each line fills as far as it
+// A break point between two letters, so each justified line fills as far as it
 // can before dropping down, with no gaps left by words that could only split in
-// a few places. Splits can land anywhere in a word ("m-ade", "hi-m"); the clean
-// dictionary/syllable points below are kept in case that is ever wanted again.
+// a few places. A break always leaves at least TWO letters on each side: a
+// point at the very last letter turned "and" into "an-" at the end of one line
+// and a lone "d" at the head of the next, which reads as a clipped letter, and
+// the same happened at the first letter ("a-" / "nd"). Words of three letters
+// or fewer therefore have no break point and simply move whole to the next line.
 const allPointsCache = new Map();
 function wordPoints(w) {
   const n = w.length;
-  if (n < 2) return null;
+  if (n < 4) return null;
   let pts = allPointsCache.get(n);
   if (!pts) {
     pts = [];
-    for (let i = 1; i < n; i++) pts.push(i);
+    for (let i = 2; i <= n - 2; i++) pts.push(i);
     allPointsCache.set(n, pts);
   }
   return pts;
