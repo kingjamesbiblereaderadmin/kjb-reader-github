@@ -10,11 +10,14 @@ function boundary(element, offset) {
 }
 
 // The verse span a cut at `offset` falls inside — the verse that carries on
-// into the next column or page.
+// into the next column or page. A tail is matched too: a verse long enough to
+// run over a column AND a page arrives here as a tail already, and looking only
+// for a head meant that second cut left no marker at all, so the last stretch
+// of a long verse was never washed while it was read.
 function verseSpanAt(element, offset) {
   const [node] = boundary(element, offset);
   const start = node.nodeType === 1 ? node : node.parentElement;
-  const span = start && start.closest ? start.closest('[data-fbv]') : null;
+  const span = start && start.closest ? start.closest('[data-fbv], [data-fbv-tail]') : null;
   return span && span !== element && element.contains(span) ? span : null;
 }
 
@@ -31,11 +34,13 @@ export function fragment(element, start, end) {
   // verse lights up whole instead of half of it.
   const span = start ? verseSpanAt(element, start) : null;
   const first = contents.firstChild;
-  const alreadyMarked = !!(first && first.nodeType === 1 && first.hasAttribute && first.hasAttribute('data-fbv'));
+  const alreadyMarked = !!(first && first.nodeType === 1 && first.hasAttribute
+    && (first.hasAttribute('data-fbv') || first.hasAttribute('data-fbv-tail')));
   if (span && !alreadyMarked) {
     const wrapper = span.cloneNode(false);
-    const verse = wrapper.getAttribute('data-fbv');
+    const verse = wrapper.getAttribute('data-fbv') ?? wrapper.getAttribute('data-fbv-tail');
     wrapper.removeAttribute('data-fbv');
+    wrapper.removeAttribute('data-fbv-tail');
     wrapper.setAttribute('data-fbv-tail', verse);
     wrapper.appendChild(contents);
     copy.appendChild(wrapper);
