@@ -176,7 +176,10 @@ export default React.forwardRef(function FlipBook({
   const padLeft = pageW < 420 ? 18 : 32;
   const padRight = 60; // the tools live in the page margin, never over scripture
   const textW = Math.max(120, pageW - padLeft - padRight);
-  const contentH = Math.max(120, pageH - 52 - footerHeight);
+  // Top padding leaves the passage row above the page room to breathe, with the
+  // hairline rule under it separating the controls from the scripture.
+  const padTop = 72;
+  const contentH = Math.max(120, pageH - padTop - footerHeight);
   // A hair of slack under the last line, so a descender is never shaved off by
   // the window's edge.
   const textH = Math.max(80, contentH - 10);
@@ -671,12 +674,12 @@ export default React.forwardRef(function FlipBook({
   const face = (index, side) => {
     if (index === -1 && hasBridge) return <div data-fb-previous={bridgeRef.current.fromKey || ''} className="h-full">{bridgeRef.current.face}</div>;
     if (index === pageCount && following && spread && !fillLastPage) return (
-      <BookContinuation passage={following} {...{ side, padLeft, padRight, footerHeight, textW, textH, contentsH, zoomLevel, fontFamilyValue, isCursive, flowProps, textStyle, paragraphs }} />
+      <BookContinuation passage={following} {...{ side, padLeft, padRight, padTop, footerHeight, textW, textH, contentsH, zoomLevel, fontFamilyValue, isCursive, flowProps, textStyle, paragraphs }} />
     );
     const textIndex = index - front.length;
     const continuesHere = fillLastPage;
     return (
-      <div className={`kjb-fb-page kjb-fb-${side}`} style={{ padding: `52px ${padRight}px ${footerHeight}px ${padLeft}px` }}>
+      <div className={`kjb-fb-page kjb-fb-${side}`} style={{ padding: `${padTop}px ${padRight}px ${footerHeight}px ${padLeft}px` }}>
         {index >= 0 && index < displayCount && (textIndex < 0 ? (
           typeof front[index] === 'string' ? (
             <FittedPage width={textW} height={contentsH} zoom={zoomLevel / 100} fontFamilyValue={fontFamilyValue} isCursive={isCursive}>
@@ -689,6 +692,9 @@ export default React.forwardRef(function FlipBook({
           )
         ) : (
           <>
+            {/* The rule under the passage row: it closes the controls off from
+                the text and gives the first line a line of air above it. */}
+            <span aria-hidden="true" className="kjb-fb-toprule" style={{ left: padLeft, right: padRight, top: padTop - 14 }} />
             <div className="kjb-fb-window" style={{ width: textW, height: textH }}>
               {textIndex === 0 && carry && <div data-fb-previous={carry.fromKey} className="absolute inset-0">{carry.underlay}</div>}
               <ChapterFlow

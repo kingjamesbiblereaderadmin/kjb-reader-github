@@ -9,7 +9,7 @@ export default function AnchoredReaderBand({ top, children }) {
     <div
       id="kjb-anchored-heading"
       data-kjb-anchored-band
-      className="print:static sticky z-[95] -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background pt-2 pb-6 [&>div:last-child]:mb-0"
+      className="print:static sticky z-[95] -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background pt-2 pb-4 [&>div:last-child]:mb-0"
       style={{ top }}
     >
       {children}

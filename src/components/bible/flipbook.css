@@ -19,6 +19,8 @@
 /* An opening page has no running head, but the ruled line still separates the
    controls from the title and keeps the foot rules of both pages level. */
 .kjb-fb-head-blank { letter-spacing: 0; }
+/* The hairline under the passage row at the top of a text page. */
+.kjb-fb-toprule { position: absolute; height: 0; border-top: 1px solid var(--fb-rule); pointer-events: none; }
 /* Never shrink: the text window's height is exactly the column height the flow
    is fragmented at, so a few pixels of squeeze (a taller running head, a larger
    root size) cut the foot off every column. */
