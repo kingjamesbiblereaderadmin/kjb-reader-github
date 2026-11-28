@@ -10,10 +10,12 @@ export async function bibleAudioInventory() {
   BOOK_ORDER.forEach((book, index) => {
     Object.entries(bible[book] || {}).forEach(([chapter, verses]) => {
       if (!Array.isArray(verses)) return;
-      verses.forEach((verse) => {
+      verses.forEach((verse, at) => {
         const text = processVerse(verse, { book, chapter: Number(chapter) }).text;
         const ref = `${BOOK_CODES[index]}:${chapter}:${verse.verse}`;
-        const revision = applyHeteronyms(text).revision;
+        // The verse closing a Psalm 119 stanza is filed under the take that
+        // holds the verse alone, without the stanza name printed under it.
+        const revision = verses[at + 1]?.heading ? 'h25' : applyHeteronyms(text).revision;
         inventory.push({ book: BOOK_CODES[index], ref, key: revision ? `${ref}:${revision}` : ref, text });
       });
     });

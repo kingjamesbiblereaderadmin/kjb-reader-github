@@ -144,7 +144,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const needsPronunciationRefresh = pronunciationRevision;
 
 function audioCacheKey(clip, voice) {
-  const revision = clip.h22 ? 'h22' : needsPronunciationRefresh(clip.text);
+  const revision = clip.h25 ? 'h25' : clip.h22 ? 'h22' : needsPronunciationRefresh(clip.text);
   return `${voice}|${clip.ref || clip.text}${revision ? `|pronunciation-${revision}` : ''}`;
 }
 
@@ -153,7 +153,7 @@ async function audioUrlFor(clip, voice) {
   // bundled from the take stored now, so the device's own copy is always the
   // current one and is used even for a note that names a revision — which is
   // what lets the Psalm titles, stanza names and closing lines play offline.
-  const revised = clip.kind === 'verse' && (clip.h22 || needsPronunciationRefresh(clip.text));
+  const revised = clip.kind === 'verse' && (clip.h22 || clip.h25 || needsPronunciationRefresh(clip.text));
   const useUpdatedRecording = revised && (typeof navigator === 'undefined' || navigator.onLine !== false);
   // Bundled audio first: the native apps ship every verse, so a clip already on
   // the device plays with no request at all. Deliberately not cached in
@@ -173,7 +173,7 @@ async function audioUrlFor(clip, voice) {
     throw Object.assign(new Error('Listen needs a connection. Reconnect, then press play again.'), { code: 'offline' });
   }
 
-  const revision = clip.h22 ? 'h22' : needsPronunciationRefresh(clip.text);
+  const revision = clip.h25 ? 'h25' : clip.h22 ? 'h22' : needsPronunciationRefresh(clip.text);
   const key = audioCacheKey(clip, voice);
   const hit = urlCache.get(key);
   if (hit) return hit;
@@ -199,9 +199,10 @@ async function audioUrlFor(clip, voice) {
         // name the recorded library was heard to get wrong. The reference is
         // named here so the corrected take plays the moment it exists, without
         // waiting on the server's own revision lookup.
-        ref: clip.h22 ? `${clip.ref}:h22`
-          : revision === 'h23' || revision === 'h24' ? `${clip.ref}:${revision}`
-            : clip.ref,
+        ref: clip.h25 ? `${clip.ref}:h25`
+          : clip.h22 ? `${clip.ref}:h22`
+            : revision === 'h23' || revision === 'h24' ? `${clip.ref}:${revision}`
+              : clip.ref,
         engine: engineForVoice(voice),
       });
       const data = res?.data ?? res;
@@ -329,6 +330,13 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     // the closing line the reader sees, read after the last verse.
     const end = cleanVerseForSpeech(endMarker);
     if (end && !sameWords(end, lastText())) list.push({ verse: 0, kind: 'end', text: end, ref: `${key}:end` });
+    // The verse that closes a stanza was once voiced together with the stanza
+    // name printed under it ("…utterly. Beth"), so the name was heard twice: at
+    // the end of that verse and again as its own line. Those takes are asked for
+    // again under their own key, so the verse plays on its own.
+    for (let i = 1; i < list.length; i += 1) {
+      if (list[i].kind === 'heading' && list[i - 1].kind === 'verse') list[i - 1].h25 = true;
+    }
     return list;
   }, [verses, chapterKey, subscript, colophon, titleText, endMarker]);
   const lastClipRef = useRef(null);

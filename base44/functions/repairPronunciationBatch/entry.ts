@@ -18,7 +18,11 @@ export default async function(req) {
     // only missing revision keys, rather than charging for completed work again.
     const passes = body.backfill === true ? 5 : 1;
     for (let pass = 0; pass < passes && Date.now() < deadline - 45000; pass += 1) {
-      const items = pending.slice(pass * 20, (pass + 1) * 20).map(({ ref, text }) => ({ ref, text }));
+      // A stanza-closing verse is filed under a key its own text cannot name
+      // (it depends on the stanza heading printed after it), so that key is sent
+      // as the reference; every other repair is named by its plain verse ref.
+      const items = pending.slice(pass * 20, (pass + 1) * 20)
+        .map(({ ref, text, expected }) => ({ ref: expected.endsWith(':h25') ? expected : ref, text }));
       if (!items.length) break;
       const result = await base44.functions.invoke('ttsBulk', { voice: 'en-GB-RyanNeural', items });
       const data = result.data || result;
