@@ -431,6 +431,7 @@ const IPA_NAMES: Record<string, string> = {
 // these refs move to a fresh key and are voiced once from the text the reader
 // sends now; every other verse keeps the clip it already has.
 const SPEECH_FIX_REFS = new Set([
+  'COL:4:18', 'EPH:6:24', 'GAL:6:18', 'PHP:4:23',
   '1CO:16:24', '1SA:31:13', '1TH:2:14', '1TH:5:28', '1TI:1:20', '1TI:6:21',
   '2CO:13:14', '2CO:1:16', '2TH:3:18', '2TI:2:17', '2TI:4:22', 'ACT:10:1',
   'ACT:10:24', 'ACT:10:37', 'ACT:11:1', 'ACT:11:11', 'ACT:11:28', 'ACT:11:29',

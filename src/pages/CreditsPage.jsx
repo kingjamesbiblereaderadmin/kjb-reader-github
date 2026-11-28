@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, BookOpen, Type, Wrench, Info, ArrowLeft, Scale } from 'lucide-react';
+import { Heart, BookOpen, Type, Wrench, Info, ArrowLeft, Scale, Mic } from 'lucide-react';
 import FontsSection from '@/components/credits/FontsSection';
+import PronunciationSection from '@/components/credits/PronunciationSection';
 import LicensingSection from '@/components/credits/LicensingSection';
 import { isAppleStoreApp } from '@/lib/isAppleStoreApp';
 
@@ -225,6 +226,10 @@ export default function CreditsPage() {
         {/* Fonts */}
         <Section edge="from-purple-500 to-fuchsia-400" iconBg="from-purple-500 to-fuchsia-500" eyebrow="Typography" icon={<Type className="w-5 h-5" />} title="Fonts">
           <FontsSection />
+        </Section>
+
+        <Section edge="from-sky-500 to-cyan-400" iconBg="from-sky-500 to-cyan-500" eyebrow="The voice" icon={<Mic className="w-5 h-5" />} title="Pronunciation">
+          <PronunciationSection />
         </Section>
 
         {/* Built With & Thanks */}

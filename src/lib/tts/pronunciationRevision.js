@@ -1,5 +1,13 @@
 // Mirrors the server's narrowly scoped recording revisions. Printed text never changes.
 export default function pronunciationRevision(text) {
+  // The closing notes of the epistles name men the engine reads off the
+  // letters ("Tychicus" as "Tiki Coos", "Onesimus" as "Onessi Muse"), and the
+  // same names stand in the verses. Naming the revision here makes the reader
+  // skip the take it remembers and ask for the re-voiced one.
+  if (/\b(?:tychicus|onesimus|timotheus|cenchrea|pacatiana)\b/i.test(text)) return 'h23';
+  // Names the recorded library was heard to get wrong, now pinned in IPA, so
+  // those verses ask for the re-voiced take instead of the one they remember.
+  if (/\b(?:euodias|epaphras|sopater|belteshazzar|jozadak|zerubbabel|ahaziah|mishael|mattaniah|puteoli|syracuse|trogyllium|gallio|paphos|pamphylia|pisidia|galatia|antioch|laodicea)\b/i.test(text)) return 'h24';
   if (/[;:]\s*\)/.test(text)) return 'h22';
   if (/\bwrath(?:ful)?\b/i.test(text)) return 'h21';
   if (/\bhereticks?\b/i.test(text)) return 'h20';

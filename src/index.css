@@ -1062,10 +1062,20 @@ html.kjb-native-ios select {
    above). The block they sit in kept its own tint as well, so the two washes
    stacked and the words being read showed as a darker patch inside a lighter
    one. One highlight only: the words. */
+/* The subscript and the colophon are read as their own clips, so the block
+   itself carries the wash. It used to be held back because the words inside it
+   were washed one by one — but word marks are gone (the whole verse is washed
+   now), which left these two lines with no highlight at all while they played.
+   One highlight only: the block, exactly as a verse gets. */
 #kjb-subscript-anchor.kjb-speaking,
 #kjb-colophon-anchor.kjb-speaking {
-  background-color: transparent;
-  box-shadow: none;
+  background-color: hsl(var(--accent) / 0.10);
+  box-shadow: inset 3px 0 0 hsl(var(--accent));
+}
+.dark #kjb-subscript-anchor.kjb-speaking,
+.dark #kjb-colophon-anchor.kjb-speaking {
+  background-color: hsl(var(--accent) / 0.28);
+  box-shadow: inset 4px 0 0 hsl(var(--accent)), 0 0 0 1px hsl(var(--accent) / 0.28);
 }
 #kjb-end-anchor.kjb-speaking .kjb-end-marker,
 .kjb-stanza-heading.kjb-speaking {
