@@ -394,16 +394,29 @@ export default React.forwardRef(function FlipBook({
   // views keeps the reader on the same words. It is a landing, not a turn: the
   // spread is simply the first one shown.
   const landedVerseRef = useRef(null);
+  // The landing is retried while the pages are still being measured (on a
+  // narrow screen the chapter's flow is laid out a frame later, so the verse is
+  // not in it on the first pass). It must not stay pending after that: it used
+  // to, and the next reflow — minimising the header, changing the type size —
+  // re-ran this effect and pulled the book back to the verse it was OPENED on,
+  // which is the chapter's first page when the reader opened it at the top.
+  const landTryRef = useRef({ verse: null, page: null });
   useEffect(() => {
     if (loading || !pageCount || landVerse == null) return;
     if (landedVerseRef.current === landVerse) return;
+    if (landTryRef.current.verse !== landVerse) landTryRef.current = { verse: landVerse, page };
+    else if (page !== landTryRef.current.page) {
+      // The reader has turned a page of their own: the landing is stale.
+      landedVerseRef.current = landVerse;
+      return;
+    }
     const target = pageOf(`[data-fbv="${parseInt(landVerse, 10)}"]`);
     if (target == null) return;
     landedVerseRef.current = landVerse;
     const offset = pageOffsetRef.current;
     const to = Math.max(firstPage, offset + Math.floor((Math.min(target, pageCount - 1) - offset) / step) * step);
     setPage(to);
-  }, [landVerse, pageCount, loading, pageOf, firstPage, step]);
+  }, [landVerse, pageCount, loading, pageOf, firstPage, step, page]);
 
   // Where the voice needs to be once the sheet that is already swinging lands.
   const pendingTurnRef = useRef(null);
