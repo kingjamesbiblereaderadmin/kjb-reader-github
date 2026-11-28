@@ -35,7 +35,7 @@ export default function paginateBookColumns(source, width, height, gap, prefix, 
   try {
     for (const passage of source.children) {
       const blocks = [...passage.children];
-      // A heading plus its printed note must have room for three verses, not
+      // A heading plus its printed note must have room for two verses, not
       // just a token line or two. Very long openings may still span columns.
       // Only a column that already holds scripture counts as occupied: the
       // spacer reserving the previous chapter's tail (prefix.top) is a child
@@ -48,15 +48,15 @@ export default function paginateBookColumns(source, width, height, gap, prefix, 
         for (const block of blocks) {
           const marks = [...block.querySelectorAll('[data-fbv]')];
           let part = block.cloneNode(true);
-          if (marks.length > 3 - verses && verses < 3) {
-            const end = marks[3 - verses - 1];
+          if (marks.length > 2 - verses && verses < 2) {
+            const end = marks[2 - verses - 1];
             const range = document.createRange();
             range.setStart(block, 0); range.setEndAfter(end);
             part = block.cloneNode(false); part.appendChild(range.cloneContents());
           }
           sample.appendChild(part);
           verses += marks.length;
-          if (verses >= 3) break;
+          if (verses >= 2) break;
         }
         const openingHeight = Math.min(height, usedHeight(sample));
         sample.remove();
