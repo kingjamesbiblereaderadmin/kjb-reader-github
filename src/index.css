@@ -1086,6 +1086,17 @@ html.kjb-native-ios select {
   box-decoration-break: clone;
 }
 
+/* The stanza name (ALEPH, BETH…) is read as its own clip and washed on its
+   own while it plays. It sits INSIDE the verse element that follows it, so the
+   verse's own wash covered it a second time once the verse began reading — the
+   name looked highlighted twice in a row. Mask it with the page colour so only
+   the verse beneath carries that wash. */
+.kjb-speaking .kjb-stanza-heading:not(.kjb-speaking) {
+  background-color: hsl(var(--background));
+  box-shadow: none;
+  border-radius: 0.25rem;
+}
+
 /* The book name and the chapter line are short, tight runs of type, and the
    wash sat straight on the glyphs like a highlighter pressed too hard. A halo
    in the same wash gives the highlight room around the words without adding

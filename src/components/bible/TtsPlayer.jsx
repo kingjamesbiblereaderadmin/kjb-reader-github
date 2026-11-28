@@ -26,6 +26,16 @@ import { getBookByAbbr } from '@/lib/bibleData';
 // class is also what makes the highlight survive the reader's own re-renders.
 const SPEAKING_CLASS = 'kjb-speaking';
 
+// The Psalms run past a hundred chapters, and Psalm 119 is named the way it is
+// said aloud — "one nineteen", not "one hundred and nineteen". No other book
+// goes above a hundred, so this only ever changes the Psalms.
+function spokenChapter(n) {
+  const num = Number(n);
+  if (!Number.isFinite(num) || num < 100) return String(n);
+  const rest = num - 100;
+  return rest < 10 ? `one oh ${rest}` : `one ${rest}`;
+}
+
 // The non-verse pieces the player reads: the superscription, the subscription
 // and the closing line. The reader gives the first two anchors; book view marks
 // all three with its own page attributes, so each kind matches either form.
@@ -228,12 +238,20 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
       // 2 rather than chapter 1, is a fresh start: "Genesis, chapter 2", not a
       // bare "Chapter 2" with no word of where you are.
       const bookChanged = prev.book !== fullName || !announcedRef.current;
-      const introText = bookChanged ? `${fullName}, chapter ${chapter}` : `Chapter ${chapter}`;
+      const introText = bookChanged
+        ? `${fullName}, chapter ${spokenChapter(chapter)}`
+        : `Chapter ${spokenChapter(chapter)}`;
       // A clip is cached by its reference, not by its words, so the bare
       // "Chapter 3" must not share ":intro" with the book-named line: whichever
       // of the two was voiced first played for both, and after a refresh the
       // player asked for "Genesis, chapter 1" and got a cached "Chapter 1".
-      const introKey = bookChanged ? `${chapterKey}:intro` : `${chapterKey}:chapter`;
+      // A clip is cached by reference, not by its words, so a reworded
+      // announcement must ask for a take of its own: the chapter numbers now
+      // said "one nineteen" would otherwise replay the old recording.
+      const reworded = Number(chapter) >= 100 ? '-one' : '';
+      const introKey = bookChanged
+        ? `${chapterKey}:intro${reworded}`
+        : `${chapterKey}:chapter${reworded}`;
       announcedRef.current = true;
       skipScrollRef.current = true;
       followRef.current = true;
