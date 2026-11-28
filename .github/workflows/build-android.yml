@@ -175,6 +175,21 @@ jobs:
             exit 1
           fi
           printf '%s' "$PLAY_JSON" > "$RUNNER_TEMP/play.json"
+      - name: Resolve Play deobfuscation files
+        # minifyEnabled is false in android/app/build.gradle, so release builds
+        # produce no R8 mapping.txt and passing the path makes the action warn
+        # "Unable to find 'mappingFile'". Resolve it only when it really exists.
+        if: ${{ inputs.play_track != 'none' && inputs.play_track != '' }}
+        id: deobf
+        run: |
+          M=android/app/build/outputs/mapping/release/mapping.txt
+          if [ -f "$M" ]; then
+            echo "mapping=$M" >> "$GITHUB_OUTPUT"
+            echo "Using mapping file: $M"
+          else
+            echo "mapping=" >> "$GITHUB_OUTPUT"
+            echo "No R8 mapping file (minifyEnabled is off); uploading without one."
+          fi
       - name: Upload to Play track
         if: ${{ inputs.play_track != 'none' && inputs.play_track != '' }}
         uses: r0adkll/upload-google-play@v1
@@ -182,10 +197,12 @@ jobs:
           serviceAccountJson: ${{ runner.temp }}/play.json
           packageName: com.kingjamesbiblereader.twa
           releaseFiles: android/app/build/outputs/bundle/release/kjbreader.aab
-          track: ${{ inputs.play_track }}
+          # `tracks` (not the deprecated `track`): one or more comma-separated
+          # track names, e.g. production or internal,beta.
+          tracks: ${{ inputs.play_track }}
           releaseName: KJBReader.v${{ env.VERSION_NAME }}
           status: ${{ inputs.play_status }}
-          mappingFile: android/app/build/outputs/mapping/release/mapping.txt
+          mappingFile: ${{ steps.deobf.outputs.mapping }}
       - name: Upload AAB
         uses: actions/upload-artifact@v6
         with:
