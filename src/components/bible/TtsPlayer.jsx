@@ -708,12 +708,24 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
                 <Info className="w-4 h-4" />
               </button>
             </PopoverTrigger>
-            <PopoverContent align="center" side="top" className="w-72 p-3 font-sans">
+            <PopoverContent align="center" side="top" className="w-80 max-h-[70vh] overflow-y-auto p-3 font-sans">
               <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">The voice</p>
               <p className="text-xs text-foreground/85 leading-relaxed">
                 Read by <span className="font-semibold text-foreground notranslate" translate="no">Microsoft Azure AI Speech</span> neural voices
                 (<span className="notranslate" translate="no">en-GB-RyanNeural</span>). Each verse is voiced once and the audio is cached, so replays cost nothing.
               </p>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mt-3 mb-1.5">Where the audio is</p>
+              <p className="text-xs text-foreground/85 leading-relaxed">
+                {bundledAudio
+                  ? 'Every verse is stored inside this app itself, so the whole Bible plays with no connection and nothing is ever downloaded.'
+                  : 'Verses you have played are stored on this device, so they replay with no connection. A book you have not played yet is fetched once, then kept.'}
+              </p>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mt-3 mb-1.5">Permissions used</p>
+              <ul className="text-xs text-foreground/85 leading-relaxed space-y-1">
+                <li>• Network access, to load the Bible text and the audio.</li>
+                <li>• Storage on this device, to keep the offline copy.</li>
+                <li>• No camera, microphone, location, contacts, photos, or notifications.</li>
+              </ul>
               <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mt-3 mb-1.5">Feedback</p>
               <p className="text-xs text-foreground/85 leading-relaxed">
                 Wrong word, bad pronunciation, or audio that will not play? Email{' '}
