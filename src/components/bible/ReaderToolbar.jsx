@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ChevronDown, CheckSquare, X, ZoomIn, Minus, Plus, Type, Share2, Printer, AlignJustify, AlignLeft, List, Columns2, Headphones } from 'lucide-react';
 import ReaderControlSlot from '@/components/bible/ReaderControlSlot';
+import ZoomControl from '@/components/bible/ZoomControl';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import BookSelector from '@/components/bible/BookSelector';
 import ChapterSelector from '@/components/bible/ChapterSelector';
@@ -250,37 +251,17 @@ export default function ReaderToolbar({
           {showZoomPopover && !isMobile() && (
             <ToolbarPopover align={bookMode ? 'end' : 'center'} className={`[&>*]:!overflow-y-auto ${bookMode ? 'kjb-book-popover' : ''}`} onClose={() => setShowZoomPopover(false)}>
               <div className="bg-card border border-border rounded-xl shadow-xl p-4 w-64 relative overflow-hidden">
-                <div className="flex items-center justify-between mb-3 pr-6">
-                  <span className="font-sans text-xs font-medium text-foreground">Text Size</span>
-                  <span className="font-sans text-xs font-semibold text-primary">{zoomLevel}%</span>
-                </div>
                 <button onClick={() => setShowZoomPopover(false)} className="absolute top-3 right-3 p-1 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"><X className="w-4 h-4" /></button>
-                <div className="flex items-center gap-2 mb-2">
-                  <button onClick={() => adjustZoom(-5)} className="p-1.5 rounded-lg bg-secondary hover:bg-accent/20 transition-colors"><Minus className="w-3.5 h-3.5" /></button>
-                  <input type="range" min="75" max="250" step="5" value={zoomLevel} onChange={handleZoomChange} className="flex-1 h-2 bg-muted-foreground/30 rounded-lg appearance-none cursor-pointer accent-primary" />
-                  <button onClick={() => adjustZoom(5)} className="p-1.5 rounded-lg bg-secondary hover:bg-accent/20 transition-colors"><Plus className="w-3.5 h-3.5" /></button>
+                <div className="pr-6">
+                  <ZoomControl value={zoomLevel} onChange={handleZoomChange} onReset={resetZoom} />
                 </div>
-                {zoomLevel !== 100 && (
-                  <button onClick={resetZoom} className="w-full mt-2 px-2 py-1.5 rounded-lg bg-primary/10 text-primary font-sans text-xs font-medium hover:bg-primary/20 transition-colors">Reset to 100%</button>
-                )}
               </div>
             </ToolbarPopover>
           )}
           </Popover>
           <SelectorSheet open={showZoomPopover && isMobile()} onClose={() => setShowZoomPopover(false)} title="Text Size">
             <div className="space-y-4 p-2">
-              <div className="flex items-center justify-between">
-                <span className="font-sans text-sm font-medium text-foreground">Zoom Level</span>
-                <span className="font-sans text-sm font-semibold text-primary">{zoomLevel}%</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <button onClick={() => adjustZoom(-5)} className="p-2 rounded-lg bg-secondary hover:bg-accent/20 transition-colors"><Minus className="w-4 h-4" /></button>
-                <input type="range" min="75" max="250" step="5" value={zoomLevel} onChange={handleZoomChange} className="flex-1 h-3 bg-muted-foreground/30 rounded-lg appearance-none cursor-pointer accent-primary" />
-                <button onClick={() => adjustZoom(5)} className="p-2 rounded-lg bg-secondary hover:bg-accent/20 transition-colors"><Plus className="w-4 h-4" /></button>
-              </div>
-              {zoomLevel !== 100 && (
-                <button onClick={resetZoom} className="w-full px-4 py-3 rounded-lg bg-primary/10 text-primary font-sans text-sm font-medium hover:bg-primary/20 transition-colors">Reset to 100%</button>
-              )}
+              <ZoomControl value={zoomLevel} onChange={handleZoomChange} onReset={resetZoom} large />
             </div>
           </SelectorSheet>
           </div>

@@ -96,6 +96,11 @@
    left as a single stranded line at the foot of a page. */
 .kjb-fb-note { margin: 0.6em 0 1em; text-align: center; font-size: 0.88em; orphans: 2; widows: 2; }
 .kjb-fb-verse { margin: 0; orphans: 2; widows: 2; }
+/* Line-by-line book pages: a little air above and below every verse, so the
+   text does not read as one solid block. Padding (not margin) so the spacing
+   is part of each verse's measured height and survives a page break. Paragraph
+   mode keeps its own paragraph gap. */
+.kjb-fb-verse:not(.kjb-fb-para) { padding-block: 0.35em; }
 .kjb-fb-verse sup { position: static; margin-right: 0.3em; font-size: 0.65em; font-weight: 700; line-height: 0; vertical-align: super; color: var(--fb-red); }
 .kjb-fb-dropcap { float: left; margin: 0.04em 0.1em 0 0; font-size: 3.1em; line-height: 0.9; font-weight: 700; }
 .kjb-fb-flow .pilcrow { color: var(--fb-red); }

@@ -326,23 +326,41 @@ export default function BibleReader() {
     });
   };
 
-  const adjustZoom = (delta) => {
-    const newZoom = Math.max(75, Math.min(250, zoomLevel + delta));
-    setZoomLevel(newZoom);
-    try { localStorage.setItem('kjb-zoom', String(newZoom)); } catch {}
+  const applyZoom = (value) => {
+    setZoomLevel(value);
+    try { localStorage.setItem('kjb-zoom', String(value)); } catch {}
     window.dispatchEvent(new Event('storage'));
   };
 
-  const handleZoomChange = (e) => {
-    const newZoom = parseInt(e.target.value);
-    setZoomLevel(newZoom);
-    try { localStorage.setItem('kjb-zoom', String(newZoom)); } catch {}
-    window.dispatchEvent(new Event('storage'));
+  // A new text size re-lays the whole chapter in book mode, which takes longer
+  // than one drag step, so applying every step queued layouts and the text fell
+  // behind the thumb. Apply the first step at once, then at most every ~100ms,
+  // and always land the last value.
+  const zoomAtRef = useRef(0);
+  const zoomTimerRef = useRef(0);
+  const handleZoomChange = (value) => {
+    const newZoom = parseInt(value, 10);
+    if (!flipbookOpen) { applyZoom(newZoom); return; }
+    clearTimeout(zoomTimerRef.current);
+    const wait = 100 - (Date.now() - zoomAtRef.current);
+    if (wait <= 0) {
+      zoomAtRef.current = Date.now();
+      applyZoom(newZoom);
+      return;
+    }
+    zoomTimerRef.current = setTimeout(() => {
+      zoomAtRef.current = Date.now();
+      applyZoom(newZoom);
+    }, wait);
+  };
+
+  const adjustZoom = (delta) => {
+    applyZoom(Math.max(75, Math.min(250, zoomLevel + delta)));
   };
 
   const resetZoom = () => {
-    setZoomLevel(100);
-    try { localStorage.setItem('kjb-zoom', '100'); } catch {}
+    clearTimeout(zoomTimerRef.current);
+    applyZoom(100);
   };
 
   const toggleSelectMode = () => {
