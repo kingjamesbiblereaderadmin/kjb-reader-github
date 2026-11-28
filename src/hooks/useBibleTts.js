@@ -931,8 +931,12 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   }, []);
 
   // Leaving the chapter (or the reader) stops the audio — a clip from Genesis 2
-  // must never keep playing over Genesis 3.
+  // must never keep playing over Genesis 3. The saved place goes with it: a
+  // chapter opened again later starts fresh from the verse on screen instead of
+  // picking up wherever it was left, so listening somewhere else in the Bible
+  // never changes what pressing Listen does when the reader comes back.
   useEffect(() => {
+    resumePoint = null;
     hardStop();
     return hardStop;
   }, [chapterKey, hardStop]);
