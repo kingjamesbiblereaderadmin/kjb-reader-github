@@ -30,9 +30,15 @@ const ENGINE = 'azure';
 // module-level windows bound what an anonymous caller can cost: one caller can
 // generate a handful of new verses in a window, and the endpoint as a whole has
 // an hourly ceiling well above ordinary reading.
-const CALLER_MAX = 12;
+// The allowance has to cover a whole chapter being heard for the first time:
+// 12 new verses per ten minutes ran out a few verses in, and the reader then
+// sat on "Reconnecting" for the rest of the window. A chapter is at most 176
+// verses, so the per-caller window now allows a full one (with room for the
+// prefetch that runs ahead of the voice), and the hourly ceiling is high enough
+// that ordinary reading never reaches it.
+const CALLER_MAX = 200;
 const CALLER_WINDOW_MS = 10 * 60 * 1000;
-const GLOBAL_MAX = 240;
+const GLOBAL_MAX = 1200;
 const GLOBAL_WINDOW_MS = 60 * 60 * 1000;
 const callerHits = new Map<string, number[]>();
 let memoryGlobalHits: number[] = [];
@@ -743,10 +749,10 @@ export default async function (req) {
   // caller's budget: replays of a voiced verse are served from the cache above
   // and never counted.
   if (!takeCallerBudget(callerKey(req))) {
-    return json({ error: 'busy', detail: 'Too many new verses at once. Try again in a few minutes.' }, 429);
+    return json({ error: 'busy', retry_after: 30, detail: 'Too many new verses at once. Try again in a few minutes.' }, 429);
   }
   if (!(await takeGlobalBudget(base44.asServiceRole || base44))) {
-    return json({ error: 'busy', detail: 'The voice library has hit its hourly limit. Try again later.' }, 429);
+    return json({ error: 'busy', retry_after: 300, detail: 'The voice library has hit its hourly limit. Try again later.' }, 429);
   }
   const generated = await synthesize(text, voice);
   if (!generated.ok) {

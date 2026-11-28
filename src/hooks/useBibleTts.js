@@ -175,6 +175,7 @@ async function audioUrlFor(clip, voice) {
     too_long: 'That verse is too long for one clip.',
     network: 'Could not reach the speech service.',
     throttled: 'The speech service is busy. Retrying\u2026',
+    busy: 'The voice is catching up. Resuming in a moment\u2026',
   };
 
   let last = null;
@@ -244,6 +245,11 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
   sinkRef.current = sinkId;
   const statusRef = useRef(status);
   statusRef.current = status;
+  // The clip the reading is meant to be on, and when it last actually sounded.
+  // The watchdog below reads them to put the reading back on its feet after any
+  // failure path that could not resume by itself.
+  const indexRef = useRef(-1);
+  const lastSoundRef = useRef(Date.now());
 
   // Only Chromium exposes setSinkId, so this is a no-op on Safari and iOS.
   const applySink = useCallback((el) => {
@@ -534,6 +540,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     // passes the foot of the page a long verse starts on.
     el.ontimeupdate = () => {
       if (finished || token !== tokenRef.current || audioRef.current !== el) return;
+      lastSoundRef.current = Date.now();
       // The clip is playing, so it no longer counts as a verse that failed
       // earlier. (The stall heartbeat keeps running while it plays.)
       attemptsRef.current.delete(clipKey);
@@ -556,6 +563,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     let started = false;
     el.onplaying = () => {
       if (token !== tokenRef.current || audioRef.current !== el) return;
+      lastSoundRef.current = Date.now();
       startWordMark();
       if (!started) { started = true; setAudibleClip(clip); onStarted?.(); }
       if (!holdRef.current) setStatus('playing');
@@ -644,6 +652,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       resumePoint = null;
       setStatus('idle');
       setIndex(-1);
+      indexRef.current = -1;
       setAudibleIndex(-1);
       onEndRef.current?.();
       return;
@@ -680,6 +689,8 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     publishProgress(0, list[i].ref);
     setIntroActive(false);
     setIndex(i);
+    indexRef.current = i;
+    lastSoundRef.current = Date.now();
     resumePoint = { chapterKey, verse: list[i].verse, time: startAtRef.current };
     // Start the requested clip before competing next-verse downloads.
     const advance = () => {
@@ -825,6 +836,35 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     setRateState(value);
     writeStored(TTS_STORAGE.rate, value);
     if (audioRef.current) audioRef.current.playbackRate = value;
+  }, []);
+
+  // The reading must never stop on its own. Every failure path above tries to
+  // resume the same verse, but a retry belongs to the request that scheduled it:
+  // a chapter change, a voice change or a new start cancels it, and a retry that
+  // was cancelled while the reader sat still left the player saying "Reconnecting"
+  // for good. This heartbeat is the guarantee that outlives all of them: while
+  // the player believes it is playing or preparing, and nothing has sounded for
+  // half a minute, the current verse is simply asked for again from the top.
+  useEffect(() => {
+    const id = setInterval(() => {
+      const state = statusRef.current;
+      if (state !== 'playing' && state !== 'loading') return;
+      // Paused, backgrounded or offline is not a stall: those are states the
+      // reader or the phone chose, and the wake/online handlers resume them.
+      if (document.hidden || holdRef.current) {
+        lastSoundRef.current = Date.now();
+        return;
+      }
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        lastSoundRef.current = Date.now();
+        return;
+      }
+      if (Date.now() - lastSoundRef.current < 30000) return;
+      lastSoundRef.current = Date.now();
+      tokenRef.current += 1;
+      playAtRef.current?.(Math.max(indexRef.current, 0), tokenRef.current);
+    }, 5000);
+    return () => clearInterval(id);
   }, []);
 
   // A phone suspends the media element while the app is in the background, on a
