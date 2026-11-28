@@ -27,49 +27,13 @@ const ENGINE = 'azure';
 // Spend guard. A clip that is already cached is free to serve, but every cache
 // miss is billed to the app's speech account, and this endpoint is public: the
 // reader plays without an account, so it cannot simply demand a login. Two
-// module-level windows bound what an anonymous caller can cost: one caller can
-// generate a handful of new verses in a window, and the endpoint as a whole has
-// an hourly ceiling well above ordinary reading.
-// The allowance has to cover a whole chapter being heard for the first time:
-// 12 new verses per ten minutes ran out a few verses in, and the reader then
-// sat on "Reconnecting" for the rest of the window. A chapter is at most 176
-// verses, so the per-caller window now allows a full one (with room for the
-// prefetch that runs ahead of the voice), and the hourly ceiling is high enough
-// that ordinary reading never reaches it.
-const CALLER_MAX = 200;
-const CALLER_WINDOW_MS = 10 * 60 * 1000;
+// One hourly ceiling for the endpoint as a whole, counted only for verses that
+// are voiced for the first time; a verse that already has a clip is served from
+// storage and never counted. There is deliberately no limit per connection: a
+// listener may work through as many chapters as they like.
 const GLOBAL_MAX = 1200;
 const GLOBAL_WINDOW_MS = 60 * 60 * 1000;
-const callerHits = new Map<string, number[]>();
 let memoryGlobalHits: number[] = [];
-
-// The caller key is taken only from signals the platform sets. The FIRST
-// X-Forwarded-For entry is whatever the client typed, so sending a new value on
-// every request bought a fresh budget each time; the LAST entry is the address
-// the proxy appended, and cf-connecting-ip is set by the edge itself.
-function callerKey(req) {
-  const cf = String(req.headers.get('cf-connecting-ip') || '').trim();
-  if (cf) return cf;
-  const hops = String(req.headers.get('x-forwarded-for') || '')
-    .split(',')
-    .map((h) => h.trim())
-    .filter(Boolean);
-  return hops.length ? hops[hops.length - 1] : 'unknown';
-}
-
-function takeCallerBudget(key: string) {
-  const now = Date.now();
-  const mine = (callerHits.get(key) || []).filter((t) => now - t < CALLER_WINDOW_MS);
-  if (mine.length >= CALLER_MAX) {
-    callerHits.set(key, mine);
-    return false;
-  }
-  mine.push(now);
-  callerHits.set(key, mine);
-  // The map only has to hold the callers active in this window.
-  if (callerHits.size > 5000) callerHits.clear();
-  return true;
-}
 
 // The endpoint-wide ceiling is counted in a TtsStat row, not in module memory:
 // memory belongs to one isolate, so a cold start (or a second instance) handed
@@ -745,12 +709,8 @@ export default async function (req) {
     console.error('[ttsVerse] cache lookup failed', err?.message);
   }
 
-  // 2. Generate. Only a miss reaches this point, so only a miss is charged to a
-  // caller's budget: replays of a voiced verse are served from the cache above
-  // and never counted.
-  if (!takeCallerBudget(callerKey(req))) {
-    return json({ error: 'busy', retry_after: 30, detail: 'Too many new verses at once. Try again in a few minutes.' }, 429);
-  }
+  // 2. Generate. Only a miss reaches this point, so only a miss is counted:
+  // replays of a voiced verse are served from the cache above and never counted.
   if (!(await takeGlobalBudget(base44.asServiceRole || base44))) {
     return json({ error: 'busy', retry_after: 300, detail: 'The voice library has hit its hourly limit. Try again later.' }, 429);
   }
