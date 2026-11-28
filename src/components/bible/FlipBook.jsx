@@ -12,7 +12,7 @@ import bookFlowGeometry from '@/lib/bookFlowGeometry';
 import TitlePage from '@/components/bible/TitlePage';
 import ContentsFlow from '@/components/bible/ContentsFlow';
 import FittedPage from '@/components/bible/FittedPage';
-import { useSpeaking, getProgress, getCompletedWords, subscribeProgress } from '@/lib/tts/speaking';
+import { useSpeaking, getProgress, getCompletedWords, getWordMark, subscribeProgress, subscribeWordMark } from '@/lib/tts/speaking';
 import bookFlowWords from '@/components/bible/pagination/bookFlowWords';
 import { getVerseHighlight } from '@/lib/verseHighlights';
 import { getBookByAbbr } from '@/lib/bibleData';
@@ -480,23 +480,33 @@ export default React.forwardRef(function FlipBook({
       }
       const clipRef = `${abbr}:${chapter}:${speaking.verse}`;
       const completed = getCompletedWords(clipRef);
-      // The last word the open pages show has been played only when the word
-      // after it begins, because the word clock counts words whose audio has
-      // STARTED. Reaching `neededWords` alone meant the page turned on that
-      // word's first instant, so it swung away while the word was still being
-      // said; one more word (or the clip's own end) is its last sound.
+      // The turn is due the instant the last visible word's own audio ends, so
+      // the word after it is already heard from the page it is printed on.
+      // `completed` counts words whose measured audio has FINISHED, so reaching
+      // `neededWords` is that word's last sound — waiting for one more word
+      // held the page a whole word behind the voice. The word mark moves on the
+      // same moment, a frame at a time, so it lands even between timeupdates.
       const ended = completed == null
         ? getProgress(clipRef) >= need
-        : completed > neededWords || getProgress(clipRef) >= 0.999;
+        : completed >= neededWords || getWordMark(clipRef) >= neededWords || getProgress(clipRef) >= 0.999;
       if (!ended) return true;
       requested = true;
       turnToRef.current?.(page + step);
       return false;
     };
     if (!read()) return undefined;
-    return subscribeProgress((_progress, ref) => {
-      if (ref === `${abbr}:${chapter}:${speaking.verse}`) read();
+    if (!neededWords) return undefined;
+    const spokenRef = `${abbr}:${chapter}:${speaking.verse}`;
+    const unsubscribe = subscribeProgress((_progress, ref) => {
+      if (ref === spokenRef) read();
     });
+    // The word mark is published every animation frame while the clip plays, so
+    // the turn is not left waiting for the next timeupdate (up to a quarter of
+    // a second after the word had finished).
+    const unsubscribeMark = subscribeWordMark((index, ref) => {
+      if (ref === spokenRef && index >= neededWords) read();
+    });
+    return () => { unsubscribe(); unsubscribeMark(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spokenAt, speaking?.playing, page, step, pageCount, turn, loading, textW, gap, colW, perPage, front.length, abbr, chapter, passageFilter, selectedVerses, selectMode, jumpVerse, searchTerm]);
 
