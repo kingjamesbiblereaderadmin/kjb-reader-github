@@ -4,9 +4,11 @@ import { getShyMap, injectShyHtml } from '@/lib/softHyphens';
 
 export default function BookChapterBlocks({ bookName, showBookTitle = true, chapter, verses = [], subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses }) {
   if (chapter === 0) return null;
-  const markup = (text, term = null, dropCap = false) => {
+  const markup = (text, term = null, dropCapNum = null) => {
     let html = renderVerseText(String(text).replace(/^<<[^>]*>>\s*/, ''), term);
-    if (dropCap) html = html.replace(/^((?:<[^>]+>|\s|¶)*)(\p{L})/u, '$1<span class="kjb-fb-dropcap">$2</span>');
+    // Verse 1 is set with a drop cap, and its number sits beside the big letter
+    // as every other verse's number sits at the head of its own line.
+    if (dropCapNum != null) html = html.replace(/^((?:<[^>]+>|\s|¶)*)(\p{L})/u, `$1<span class="kjb-fb-dropcap-group"><span class="kjb-fb-dropcap-num">${dropCapNum}</span><span class="kjb-fb-dropcap">$2</span></span>`);
     // The app's own break points (as in the Read view), so justified lines break
     // words with a dash instead of stretching the spaces, even beside the drop
     // cap, where the browser's own hyphenation often gives up.
@@ -33,7 +35,7 @@ export default function BookChapterBlocks({ bookName, showBookTitle = true, chap
         {group.map((v) => <React.Fragment key={v.verse}>
           <span data-fbv={v.verse}>
             {Number(v.verse) !== 1 && <sup>{v.verse}</sup>}
-            <span className="kjb-verse-text" dangerouslySetInnerHTML={markup(v.text, Number(v.verse) === parseInt(jumpVerse, 10) ? searchTerm : null, index === 0 && Number(v.verse) === 1)} />
+            <span className="kjb-verse-text" dangerouslySetInnerHTML={markup(v.text, Number(v.verse) === parseInt(jumpVerse, 10) ? searchTerm : null, index === 0 && Number(v.verse) === 1 ? v.verse : null)} />
           </span>{' '}
         </React.Fragment>)}
       </p>

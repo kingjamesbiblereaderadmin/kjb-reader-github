@@ -525,22 +525,21 @@
   .overflow-x-auto::-webkit-scrollbar, .overflow-scroll::-webkit-scrollbar {
     display: none;
   }
-  /* Pilcrow paragraph mark — black in light mode, white in dark mode, non-selectable, serif.
+  /* Pilcrow paragraph mark — the same accent tone as a verse number, in both
+     themes, so the paragraph breaks belong to the same text system instead of
+     reading as a separate black (or, on the dark page, invisible) glyph.
      Force a serif font that always has the ¶ glyph, so accessibility fonts like
      OpenDyslexic (which lack a pilcrow glyph) don't render it as a missing-glyph box. */
   :root .pilcrow {
-    color: #000000;
-    opacity: 0.5;
+    color: hsl(var(--accent));
+    opacity: 1;
     font-style: normal;
     user-select: none;
     -webkit-user-select: none;
   }
-  /* Dark mode: white at half strength all but vanished against the dark page,
-     so the paragraph mark could not be seen at all. It sits brighter now, still
-     quieter than the scripture it introduces. */
   .dark .pilcrow {
-    color: #ffffff;
-    opacity: 0.8;
+    color: hsl(var(--accent));
+    opacity: 1;
     font-style: normal;
     user-select: none;
     -webkit-user-select: none;

@@ -114,6 +114,12 @@
 .kjb-fb-verse:not(.kjb-fb-para) { padding-block: 0.35em; }
 .kjb-fb-verse sup { position: static; margin-right: 0.3em; font-size: 0.65em; font-weight: 700; line-height: 0; vertical-align: super; color: var(--fb-red); }
 .kjb-fb-dropcap { float: left; margin: 0.04em 0.1em 0 0; font-size: 3.1em; line-height: 0.9; font-weight: 700; }
+/* Verse 1's own number, set beside its drop cap: the number and the big letter
+   float together as one unit, so the number stays to the left of the cap and
+   the verse flows beside both — the arrangement every other verse's number has
+   at the head of its line. */
+.kjb-fb-dropcap-group { float: left; display: flex; align-items: flex-start; }
+.kjb-fb-dropcap-num { margin: 0.14em 0.26em 0 0; font-size: 0.65em; font-weight: 700; line-height: 1; color: var(--fb-red); font-family: 'Inter', system-ui, sans-serif; }
 .kjb-fb-flow .pilcrow { color: var(--fb-red); }
 .kjb-fb-flow em { font-style: italic; opacity: 0.82; }
 .kjb-fb-loading { position: absolute; inset: 56px 64px var(--fb-footer-height) 20px; display: grid; place-items: center; font-size: 0.9rem; }
