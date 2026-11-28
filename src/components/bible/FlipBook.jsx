@@ -310,14 +310,27 @@ export default React.forwardRef(function FlipBook({
     }
     setPage((p) => {
       if (isNew) return toEnd ? lastStart : Math.min(pendingStart, count - 1);
-      // Changing the type size, the font or the window size reflows the
-      // chapter. Land on the page that now holds the verse that was at the
-      // top of the page — the same page number holds different text after a
-      // reflow, and at the end of a chapter the clamp used to throw the book
-      // back several spreads, which read as a page turning by itself.
+      // Changing the type size, the font, the columns, the paragraph setting or
+      // the window size reflows the chapter. Land on the page that now holds the
+      // verse that was at the top of the page — the same page number holds
+      // different text after a reflow, and at the end of a chapter the clamp used
+      // to throw the book back several spreads, which read as a page turning by
+      // itself.
+      //
+      // While the voice is reading, the verse being spoken wins. The stored
+      // anchor is the verse that was at the top of the page, and a reflow can
+      // leave it a page or more away from the voice, so changing the columns or
+      // the paragraph setting showed the wrong page until the next verse change
+      // pulled the book back. Land on the spoken verse, and on the column that
+      // holds the word being said, in the same frame as the reflow.
       const anchor = anchorRef.current;
-      if (anchor && anchor.chapterKey === chapterKey) {
-        const at = pageOf(`[data-fbv="${anchor.verse}"]`);
+      const spoken = speaking?.kind === 'verse' && speaking.verse != null ? speaking.verse : null;
+      const anchorVerse = spoken ?? (anchor && anchor.chapterKey === chapterKey ? anchor.verse : null);
+      if (anchorVerse != null) {
+        const clipRef = `${abbr}:${chapter}:${anchorVerse}`;
+        const at = spoken != null
+          ? pageOf(`[data-fbv="${anchorVerse}"]`, getProgress(clipRef), getCompletedWords(clipRef))
+          : pageOf(`[data-fbv="${anchorVerse}"]`);
         if (at != null) {
           return Math.max(minimum, Math.min(offset + Math.floor((at - offset) / step) * step, lastStart));
         }
