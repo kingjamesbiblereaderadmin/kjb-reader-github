@@ -34,6 +34,24 @@ function spokenBook(name) {
   return String(name || '').replace(NUMBERED_BOOK, (m, n) => `${['First', 'Second', 'Third'][Number(n) - 1]} `);
 }
 
+// Chapters past 99 are read out as digits by the engine ("one nineteen"), so
+// those numbers are written in words: "chapter one hundred nineteen". Chapters
+// below a hundred are left as digits, which it already says correctly.
+const ONES = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
+  'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen',
+  'eighteen', 'nineteen'];
+const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+function numberWords(n) {
+  if (n < 20) return ONES[n];
+  if (n < 100) return `${TENS[Math.floor(n / 10)]}${n % 10 ? `-${ONES[n % 10]}` : ''}`;
+  const rest = n % 100;
+  return `${ONES[Math.floor(n / 100)]} hundred${rest ? ` ${numberWords(rest)}` : ''}`;
+}
+function spokenChapter(chapter) {
+  const n = Number(chapter);
+  return Number.isInteger(n) && n >= 100 && n < 1000 ? numberWords(n) : String(chapter);
+}
+
 // The non-verse pieces the player reads: the superscription, the subscription
 // and the closing line. The reader gives the first two anchors; book view marks
 // all three with its own page attributes, so each kind matches either form.
@@ -251,13 +269,17 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
       const plainName = label || fullName;
       const ordinal = NUMBERED_BOOK.test(String(plainName)) ? '-n2' : '';
       const introText = bookChanged
-        ? `${spokenBook(plainName)}, chapter ${chapter}`
-        : `Chapter ${chapter}`;
+        ? `${spokenBook(plainName)}, chapter ${spokenChapter(chapter)}`
+        : `Chapter ${spokenChapter(chapter)}`;
       // A clip is cached by its reference, not by its words, so the bare
       // "Chapter 3" must not share ":intro" with the book-named line: whichever
       // of the two was voiced first played for both, and after a refresh the
       // player asked for "Genesis, chapter 1" and got a cached "Chapter 1".
-      const introKey = bookChanged ? `${chapterKey}:intro${ordinal}` : `${chapterKey}:chapter`;
+      // A chapter number written out in words is a different line, so it gets a
+      // clip key of its own: the take recorded from "chapter 119" said "one
+      // nineteen" and must not play over the corrected wording.
+      const wordsKey = Number(chapter) >= 100 ? '-c2' : '';
+      const introKey = bookChanged ? `${chapterKey}:intro${ordinal}${wordsKey}` : `${chapterKey}:chapter${wordsKey}`;
       announcedRef.current = true;
       skipScrollRef.current = true;
       followRef.current = true;
@@ -462,8 +484,8 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     const plainName = label || bookName;
     const intro = chapter >= 1
       ? {
-        ref: `${chapterKey}:intro${NUMBERED_BOOK.test(String(plainName)) ? '-n2' : ''}`,
-        text: `${spokenBook(plainName)}, chapter ${chapter}`,
+        ref: `${chapterKey}:intro${NUMBERED_BOOK.test(String(plainName)) ? '-n2' : ''}${Number(chapter) >= 100 ? '-c2' : ''}`,
+        text: `${spokenBook(plainName)}, chapter ${spokenChapter(chapter)}`,
       }
       : null;
     // This press has just named the book, so the chapters that roll on from it

@@ -240,7 +240,10 @@ export default React.forwardRef(function FlipBook({
     <BookChapterBlocks {...{ bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses }} />
     {showEnd && <p className="kjb-fb-endmark">{endMarker}</p>}
   </>), [bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses, showEnd, endMarker, fontTick]);
-  const following = useFollowingChapter(book, chapter, canNext && !filterMode && !selectMode);
+  // The next chapter is known even when the view is filtered down to a searched
+  // verse or a picked selection: the facing page then carries that chapter on
+  // instead of leaving a blank sheet after the excerpt.
+  const following = useFollowingChapter(book, chapter, canNext && !selectMode);
   const continuationBlocks = useMemo(() => following?.verses?.length ? (
     <div className="kjb-fb-continues" data-fb-next={`${following.book.abbr}:${following.chapter}`}>
       <BookChapterBlocks bookName={following.book.name} chapter={following.chapter}
@@ -262,8 +265,12 @@ export default React.forwardRef(function FlipBook({
     colophon ? String(colophon).length : 0,
     subscript ? String(subscript).length : 0,
     following ? `${following.book?.abbr}:${following.chapter}:${following.verses?.length || 0}` : '',
+    // A filtered view prints only its selected verses, so the pages must be
+    // counted again when that selection changes.
+    filterMode ? `${selectMode ? 'select' : 'filter'}:${selectedVerses?.size || 0}:${[...(selectedVerses || [])].join(',')}` : '',
   ].join('|'), [chapterKey, front.length, contentsPageCount, textW, textH, gap, step, pageW, fontTick,
-    zoomLevel, fontFamilyValue, perPage, verses, colophon, subscript, following]);
+    zoomLevel, fontFamilyValue, perPage, verses, colophon, subscript, following,
+    filterMode, selectMode, selectedVerses]);
   const shownKeyRef = useRef(null);
   useLayoutEffect(() => {
     if (loading || !measureRef.current || !pageW) return;
@@ -278,7 +285,12 @@ export default React.forwardRef(function FlipBook({
     const pageRight = textPages * (textW + gap);
     const rects = [...(firstVerse?.getClientRects() || [])].filter((rect) => rect.width && rect.height);
     const fits = rects.length > 0 && rects.every((rect) => rect.right - flowLeft <= pageRight + 1);
-    setFillNext(chapter !== 0 && fits);
+    // A filtered passage (a searched verse, a picked selection) keeps its own
+    // page to itself: the next chapter opens on the facing page rather than
+    // being printed on under the excerpt, so the spread never ends in blank
+    // paper.
+    const excerpt = !!(filterMode && !selectMode && selectedVerses?.size);
+    setFillNext(chapter !== 0 && fits && !excerpt);
     const count = front.length + textPages;
     setPageCount(count);
     const isNew = shownKeyRef.current !== chapterKey;
