@@ -173,6 +173,7 @@ async function audioUrlFor(clip, voice) {
     throw Object.assign(new Error('Listen needs a connection. Reconnect, then press play again.'), { code: 'offline' });
   }
 
+  const revision = clip.h22 ? 'h22' : needsPronunciationRefresh(clip.text);
   const key = audioCacheKey(clip, voice);
   const hit = urlCache.get(key);
   if (hit) return hit;
@@ -193,9 +194,14 @@ async function audioUrlFor(clip, voice) {
       const res = await base44.functions.invoke('ttsVerse', {
         text: clip.text,
         voice,
-        // The corrected take of a verse that printed a face is filed under its
-        // own key, so ask for that one rather than the take it replaced.
-        ref: clip.h22 ? `${clip.ref}:h22` : clip.ref,
+        // A corrected take is filed under its own key, so ask for that one
+        // rather than the take it replaced: a verse that printed a face, or a
+        // name the recorded library was heard to get wrong. The reference is
+        // named here so the corrected take plays the moment it exists, without
+        // waiting on the server's own revision lookup.
+        ref: clip.h22 ? `${clip.ref}:h22`
+          : revision === 'h23' || revision === 'h24' ? `${clip.ref}:${revision}`
+            : clip.ref,
         engine: engineForVoice(voice),
       });
       const data = res?.data ?? res;

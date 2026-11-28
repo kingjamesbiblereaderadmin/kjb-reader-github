@@ -430,6 +430,8 @@ const IPA_NAMES: Record<string, string> = {
 // read a second time with no highlight. A clip is keyed by its reference, so
 // these refs move to a fresh key and are voiced once from the text the reader
 // sends now; every other verse keeps the clip it already has.
+// Re-saved so this function rebuilds against the current pronunciation tables
+// in base44/shared/heteronyms.ts, which it imports.
 const SPEECH_FIX_REFS = new Set([
   'COL:4:18', 'EPH:6:24', 'GAL:6:18', 'PHP:4:23',
   '1CO:16:24', '1SA:31:13', '1TH:2:14', '1TH:5:28', '1TI:1:20', '1TI:6:21',
@@ -679,9 +681,14 @@ export default async function (req) {
   const ligatureWord = /\b(?:caesar|caesarea|judaea|alphaeus|galilaean|galilaeans|arimathaea|thaddaeus|aeneas|hymenaeus|lebbaeus|idumaea|bartimaeus|timaeus|praetorium|ituraea|aenon|chaldaeans|epaenetus)\b/i.test(text);
   // Every correction is keyed by the revision the text resolves to, exactly as
   // the bulk run keys it, so a clip voiced there is found here.
+  // A caller may already name the take it wants ("EPH:6:24:v2", "PSA:3:1:h22"),
+  // and that key is used exactly as given — the revision is never appended a
+  // second time.
+  const alreadyKeyed = /:(?:v2|h\d+)$/.test(ref);
   const clipRef = SPEECH_FIX_REFS.has(ref) ? `${ref}:v2`
-    : spoken.revision ? `${ref}:${spoken.revision}`
-      : ref;
+    : alreadyKeyed ? ref
+      : spoken.revision ? `${ref}:${spoken.revision}`
+        : ref;
   const seed = clipRef ? `${voice}|ref:${clipRef}` : `${voice}|text:${text}`;
   const hash = await sha256Hex(`${engine}|${seed}`);
 
