@@ -13,7 +13,7 @@ import OfflineBookControl from '@/components/bible/OfflineBookControl';
 import usePreviewMode from '@/hooks/usePreviewMode';
 import { TTS_RATES, TTS_STORAGE, readStored, writeStored } from '@/lib/tts/voices';
 import { getBookByAbbr } from '@/lib/bibleData';
-import { getPlatformLabel, permissionRows } from '@/lib/platformPermissions';
+import { getPlatformLabel, permissionSummary } from '@/lib/platformPermissions';
 import bookAnnouncement from '@/components/bible/bookAnnouncement';
 
 // The reader's Listen player.
@@ -709,35 +709,24 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
                 <Info className="w-4 h-4" />
               </button>
             </PopoverTrigger>
-            <PopoverContent align="center" side="top" className="w-80 max-h-[70vh] overflow-y-auto p-3 font-sans">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">The voice</p>
+            <PopoverContent align="center" side="top" className="w-72 p-3 font-sans">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">The voice</p>
               <p className="text-xs text-foreground/85 leading-relaxed">
-                Read by <span className="font-semibold text-foreground notranslate" translate="no">Microsoft Azure AI Speech</span> neural voices
-                (<span className="notranslate" translate="no">en-GB-RyanNeural</span>). Each verse is voiced once and the audio is cached, so replays cost nothing.
+                <span className="font-semibold text-foreground notranslate" translate="no">Microsoft Azure AI Speech</span>
+                (<span className="notranslate" translate="no">en-GB-RyanNeural</span>), voiced once per verse and cached.{' '}
+                {bundledAudio ? 'The clips are stored inside this app, so it plays offline.' : 'Verses you play are kept on this device for offline replay.'}
               </p>
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mt-3 mb-1.5">Where the audio is</p>
-              <p className="text-xs text-foreground/85 leading-relaxed">
-                {bundledAudio
-                  ? 'Every verse is stored inside this app itself, so the whole Bible plays with no connection and nothing is ever downloaded.'
-                  : 'Verses you have played are stored on this device, so they replay with no connection. A book you have not played yet is fetched once, then kept.'}
+              {/* What this copy may ask for depends on where it runs: the Android
+                  app, the iOS app, an installed web app, or a browser. */}
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mt-2.5 mb-1">
+                Permissions &mdash; <span className="normal-case tracking-normal">{getPlatformLabel()}</span>
               </p>
-              {/* What this copy is allowed to ask for depends on where it runs:
-                  the Android app, the iOS app, an installed web app, or the
-                  website in a browser. */}
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mt-3 mb-1.5">
-                Permissions used &mdash; <span className="normal-case tracking-normal">{getPlatformLabel()}</span>
-              </p>
-              <ul className="text-xs text-foreground/85 leading-relaxed space-y-1">
-                {permissionRows().map(([title, detail]) => (
-                  <li key={title}>
-                    <span className="font-semibold text-foreground">{title}:</span> {detail}
-                  </li>
-                ))}
+              <ul className="text-xs text-foreground/85 leading-relaxed">
+                {permissionSummary().map((line) => <li key={line}>• {line}</li>)}
               </ul>
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mt-3 mb-1.5">Feedback</p>
-              <p className="text-xs text-foreground/85 leading-relaxed">
-                Wrong word, bad pronunciation, or audio that will not play? Email{' '}
-                <a href="mailto:kingjamesbiblereader@outlook.sg" className="text-primary hover:underline notranslate" translate="no">kingjamesbiblereader@outlook.sg</a>.
+              <p className="text-[11px] text-muted-foreground leading-relaxed mt-2.5">
+                Feedback:{' '}
+                <a href="mailto:kingjamesbiblereader@outlook.sg" className="text-primary hover:underline notranslate" translate="no">kingjamesbiblereader@outlook.sg</a>
               </p>
             </PopoverContent>
           </Popover>

@@ -60,3 +60,16 @@ const ROWS = {
 export function permissionRows() {
   return ROWS[getPlatformKind()] || ROWS.web;
 }
+
+// The same answer in two lines, for the small player panel where the full
+// licensing list would not fit.
+const SHORT = {
+  android: ['No camera, microphone, location or contacts.', 'Internet and network state; storage on Android 9 and older, for exports.'],
+  ios: ['No permission prompts at all.', 'Network only, to load the text and the audio.'],
+  pwa: ['Nothing is asked for when you install.', 'Device storage holds the offline copy, your settings and played verses.'],
+  web: ['No camera, microphone, location or contacts.', 'Browser storage holds your settings and the verses you have played.'],
+};
+
+export function permissionSummary() {
+  return SHORT[getPlatformKind()] || SHORT.web;
+}
