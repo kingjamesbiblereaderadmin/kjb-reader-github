@@ -528,11 +528,23 @@ export default React.forwardRef(function FlipBook({
     );
     const textIndex = index - front.length;
     const continuesHere = fillLastPage;
-    const atTop = [...chapterLayout].reverse().find((entry) => entry.page < textIndex
-      || (entry.page === textIndex && entry.columns === 0 && entry.top < 1));
-    const headedPassage = followingChapters.find((passage) => passage.key === atTop?.key);
-    const headBook = headedPassage?.book || book;
-    const headChapter = headedPassage?.chapter ?? chapter;
+    // Every chapter the open page actually carries, so a page that ends one
+    // chapter and begins the next names both in its running head.
+    const chapterAt = (key) => {
+      const passage = followingChapters.find((item) => item.key === key);
+      if (passage) return { book: passage.book, chapter: passage.chapter };
+      const [keyAbbr, keyChapter] = key.split(':');
+      return { book: keyAbbr === abbr ? book : followingChapters.find((item) => item.book.abbr === keyAbbr)?.book || book, chapter: Number(keyChapter) };
+    };
+    const pageKeys = [...new Set([
+      ...(carry && textIndex === 0 ? [carry.fromKey] : []),
+      ...chapterLayout.filter((entry) => entry.page <= textIndex && entry.endPage >= textIndex).map((entry) => entry.key),
+    ])];
+    const pageChapters = (pageKeys.length ? pageKeys : [`${abbr}:${chapter}`]).map(chapterAt);
+    const sameBook = pageChapters.every((item) => item.book.abbr === pageChapters[0].book.abbr);
+    const headLabel = pageChapters.length === 1 ? `${pageChapters[0].book.shortName}, Chapter ${pageChapters[0].chapter}`
+      : sameBook ? `${pageChapters[0].book.shortName}, Chapters ${pageChapters[0].chapter}–${pageChapters[pageChapters.length - 1].chapter}`
+        : pageChapters.map((item) => `${item.book.shortName} ${item.chapter}`).join(' | ');
     return (
       <div className={`kjb-fb-page kjb-fb-${side}`} style={{ padding: `52px ${padRight}px ${footerHeight}px ${padLeft}px` }}>
         {index >= 0 && index < displayCount && (textIndex < 0 ? (
@@ -560,7 +572,7 @@ export default React.forwardRef(function FlipBook({
               {/* The page that carries the next chapter on is headed with that
                   chapter, as a printed Bible's running head follows the text
                   beneath it. */}
-              {textIndex === 0 && !carry ? '\u00A0' : `${headBook.shortName}, Chapter ${headChapter}`}
+              {textIndex === 0 && !carry ? '\u00A0' : headLabel}
             </div>
             <div className="kjb-fb-window" style={{ width: textW, height: textH }}>
               {textIndex === 0 && carry && <div data-fb-previous={carry.fromKey} className="absolute inset-0">{carry.underlay}</div>}
