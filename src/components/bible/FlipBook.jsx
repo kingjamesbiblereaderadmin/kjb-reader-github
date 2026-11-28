@@ -14,6 +14,7 @@ import ContentsFlow from '@/components/bible/ContentsFlow';
 import FittedPage from '@/components/bible/FittedPage';
 import { useSpeaking, getProgress, getCompletedWords, getWordMark, subscribeProgress, subscribeWordMark } from '@/lib/tts/speaking';
 import bookFlowWords from '@/components/bible/pagination/bookFlowWords';
+import bookPageAnchor from '@/components/bible/pagination/bookPageAnchor';
 import { getVerseHighlight } from '@/lib/verseHighlights';
 import { getBookByAbbr } from '@/lib/bibleData';
 import './flipbook.css';
@@ -332,7 +333,7 @@ export default React.forwardRef(function FlipBook({
         const clipRef = `${abbr}:${chapter}:${anchorVerse}`;
         const at = spoken != null
           ? pageOf(`[data-fbv="${anchorVerse}"]`, getProgress(clipRef), getCompletedWords(clipRef))
-          : pageOf(`[data-fbv="${anchorVerse}"]`);
+          : pageOf(`[data-fbv="${anchorVerse}"], [data-fbv-tail="${anchorVerse}"]`, anchor.progress);
         if (at != null) {
           return Math.max(minimum, Math.min(offset + Math.floor((at - offset) / step) * step, lastStart));
         }
@@ -536,14 +537,21 @@ export default React.forwardRef(function FlipBook({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turn, page, loading, speaking?.playing, spokenAt, pageCount, abbr, chapter]);
 
-  // A verse or section picked in the toolbar, or a search result, opens its page.
+  // A jump is a navigation request, not a permanent instruction. Page counts
+  // change when the header is hidden; that must not replay an old verse pick.
+  const handledJumpRef = useRef(null);
   useEffect(() => {
     if (loading) return;
-    if (jumpSection === 'subscript') turnTo(pageOf('[data-fb-sec="sub"]'));
-    else if (jumpSection === 'colophon') turnTo(pageOf('[data-fb-sec="col"]'));
-    else if (jumpVerse) turnTo(pageOf(`[data-fbv="${parseInt(jumpVerse, 10)}"]`));
+    const request = JSON.stringify([chapterKey, jumpVerse, jumpSection, searchTerm]);
+    if (handledJumpRef.current === request) return;
+    const target = jumpSection === 'subscript' ? pageOf('[data-fb-sec="sub"]')
+      : jumpSection === 'colophon' ? pageOf('[data-fb-sec="col"]')
+        : jumpVerse ? pageOf(`[data-fbv="${parseInt(jumpVerse, 10)}"]`) : null;
+    if ((jumpSection || jumpVerse) && target == null) return;
+    handledJumpRef.current = request;
+    if (target != null) turnTo(target);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jumpVerse, jumpSection, searchTerm, pageCount, loading]);
+  }, [chapterKey, jumpVerse, jumpSection, searchTerm, pageCount, loading]);
 
   // Marks are put on after each render, because every page is its own copy.
   useLayoutEffect(() => {
@@ -653,21 +661,12 @@ export default React.forwardRef(function FlipBook({
     return () => window.clearTimeout(id);
   }, [turn]);
 
-  // Remember the verse that leads the open spread. Keyed on the page and the
-  // chapter only, so a type-size change (which does not move the page by
-  // itself) keeps the verse captured BEFORE the text reflowed.
+  // Capture from the measured output's open columns, never a slot's hidden
+  // source or its clipped off-page columns, which all still begin at verse 1.
+  // Keep this independent of geometry so reflow restores the PREVIOUS anchor.
   useLayoutEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
-    // Only a verse of the chapter being read. The last spread of a chapter
-    // prints the next chapter's opening (and the first spread can carry the
-    // previous chapter's tail), so the first verse found on the page could be
-    // another chapter's verse 1 — which a reflow (minimising the header, a type
-    // size change) then resolved against THIS chapter and sent the book back to
-    // its opening. Keep the last position when the spread shows no verse of
-    // this chapter; anchor.chapterKey guards against a stale one.
-    const first = root.querySelector('.kjb-fb-slot [data-fb-current] [data-fbv]');
-    if (first) anchorRef.current = { chapterKey, verse: Number(first.dataset.fbv) };
+    const anchor = bookPageAnchor(measureRef.current, `${abbr}:${chapter}`, page - front.length, perPage, step);
+    if (anchor) anchorRef.current = { chapterKey, ...anchor };
   }, [page, chapterKey]);
 
   // Text pages only (the title page and the table of books come before them).
