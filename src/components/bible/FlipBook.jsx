@@ -367,20 +367,27 @@ export default React.forwardRef(function FlipBook({
     return rect ? front.length + Math.floor((rect.left - flow.getBoundingClientRect().left + 1) / (textW + gap)) : null;
   }, [front, textW, gap]);
 
+  // Where the voice needs to be once the sheet that is already swinging lands.
+  const pendingTurnRef = useRef(null);
   const turnTo = (target) => {
     if (target == null) return;
     const offset = pageOffsetRef.current;
     const to = Math.max(firstPage, offset + Math.floor((Math.min(target, pageCount - 1) - offset) / step) * step);
+    // A sheet already swinging owns the page until it lands. Remember where the
+    // voice needs to be and go there afterwards, so a request made mid-flip is
+    // neither lost nor allowed to restart the sheet halfway through.
+    if (turn) { if (to !== turn.to) pendingTurnRef.current = to; return; }
     if (to === page) return;
     const near = Math.abs(to - page) === step;
     if (near && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) setTurn({ dir: to > page ? 1 : -1, to });
     else { setTurn(null); setPage(to); }
   };
 
-  // The book turns itself to wherever the voice is — a beat after the voice
-  // moves there. Turning at the very instant the next verse began pulled the
-  // page away while the reader was still on the last words the open pages
-  // showed, so the turn came before the verse in view was finished.
+  // The book turns itself to wherever the voice is, at the moment the voice
+  // moves on. The verse it leaves has already been spoken to its last word by
+  // then (the next clip only starts after that), so the old fixed 600 ms beat
+  // only made the flip arrive late — and the last words still on the open pages
+  // are handled exactly, by the visible-share turn below.
   const turnToRef = useRef(turnTo);
   useLayoutEffect(() => { turnToRef.current = turnTo; });
   const spokenAt = !speaking ? '' : speaking.intro || speaking.kind === 'title' ? 'intro'
@@ -396,8 +403,7 @@ export default React.forwardRef(function FlipBook({
     const completed = speaking.kind === 'verse' ? getCompletedWords(`${abbr}:${chapter}:${speaking.verse}`) : null;
     const target = spokenAt === 'intro' ? 0 : spokenAt === 'end' ? pageCount - 1 : pageOf(spokenAt, progress, completed);
     if (target == null) return undefined;
-    const id = window.setTimeout(() => turnToRef.current?.(target), 600);
-    return () => window.clearTimeout(id);
+    turnToRef.current?.(target);
     // Only when the voice moves or the pages are re-laid: turning by hand stays.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spokenAt, speaking?.playing, pageCount, step, loading, chapterKey]);
@@ -436,15 +442,13 @@ export default React.forwardRef(function FlipBook({
       }
       const clipRef = `${abbr}:${chapter}:${speaking.verse}`;
       const completed = getCompletedWords(clipRef);
-      // One word of slack: the turn waits until the voice is past the last word
-      // the open pages show, never on its final instant — the page used to move
-      // while that word was still being spoken.
-      if (completed == null ? getProgress(clipRef) < need : completed <= neededWords) return true;
+      // The last word the open pages show is finished when the count of spoken
+      // words reaches it: `completed` only counts words whose audio has ended,
+      // so this is that word's own end, not one word later and never its first
+      // instant. The page then flips like a page, instead of being swapped out.
+      if (completed == null ? getProgress(clipRef) < need : completed < neededWords) return true;
       requested = true;
-      // During listening, reveal the next text immediately. A decorative turn
-      // otherwise hides its first words for another 650 ms while speech goes on.
-      setTurn(null);
-      setPage(page + step);
+      turnToRef.current?.(page + step);
       return false;
     };
     if (!read()) return undefined;
@@ -536,10 +540,17 @@ export default React.forwardRef(function FlipBook({
     return () => window.removeEventListener('keydown', onKey, true);
   }, [go]);
 
+  const landTurn = (to) => {
+    setPage(to);
+    setTurn(null);
+    const pending = pendingTurnRef.current;
+    pendingTurnRef.current = null;
+    if (pending != null && pending !== to) window.setTimeout(() => turnToRef.current?.(pending), 0);
+  };
+
   const finishTurn = (e) => {
     if (e.target !== e.currentTarget || !turn) return;
-    setPage(turn.to);
-    setTurn(null);
+    landTurn(turn.to);
   };
 
   // Safety commit: if the sheet's animationend never arrives (a dropped
@@ -547,7 +558,7 @@ export default React.forwardRef(function FlipBook({
   // never left disabled by a turn that will not finish.
   useEffect(() => {
     if (!turn) return undefined;
-    const id = window.setTimeout(() => { setPage(turn.to); setTurn(null); }, 900);
+    const id = window.setTimeout(() => landTurn(turn.to), 900);
     return () => window.clearTimeout(id);
   }, [turn]);
 
