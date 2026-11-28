@@ -12,6 +12,16 @@ on:
         type: choice
         options: [completed, draft]
         default: draft
+      release_notes:
+        description: 'Play release notes (What''s New) for this upload; blank = leave unchanged. Write \n for line breaks. Max 500 chars.'
+        required: false
+        default: ''
+        type: string
+      release_notes_locale:
+        description: 'Play locale for the release notes'
+        required: false
+        default: 'en-GB'
+        type: string
 jobs:
   build:
     runs-on: ubuntu-26.04
@@ -190,6 +200,29 @@ jobs:
             echo "mapping=" >> "$GITHUB_OUTPUT"
             echo "No R8 mapping file (minifyEnabled is off); uploading without one."
           fi
+      - name: Prepare Play release notes
+        # The action reads a directory of files named whatsnew-<locale>, so a
+        # dispatch input (single line) is written out as one localized file.
+        # Play caps release notes at 500 characters per locale, so an overlong
+        # note fails here with a clear message instead of inside the upload.
+        if: ${{ inputs.play_track != 'none' && inputs.play_track != '' && inputs.release_notes != '' }}
+        id: notes
+        env:
+          NOTES: ${{ inputs.release_notes }}
+          LOCALE: ${{ inputs.release_notes_locale }}
+        run: |
+          set -euo pipefail
+          LEN=$(printf '%b' "$NOTES" | wc -m)
+          if [ "$LEN" -gt 500 ]; then
+            echo "::error title=Play release notes too long::release_notes is $LEN characters; Google Play allows 500 per locale. Shorten it and dispatch again."
+            exit 1
+          fi
+          DIR="$RUNNER_TEMP/whatsnew"
+          mkdir -p "$DIR"
+          printf '%b\n' "$NOTES" > "$DIR/whatsnew-$LOCALE"
+          echo "dir=$DIR" >> "$GITHUB_OUTPUT"
+          echo "Release notes for $LOCALE ($LEN chars):"
+          cat "$DIR/whatsnew-$LOCALE"
       - name: Upload to Play track
         if: ${{ inputs.play_track != 'none' && inputs.play_track != '' }}
         uses: r0adkll/upload-google-play@v1
@@ -203,6 +236,8 @@ jobs:
           releaseName: KJBReader.v${{ env.VERSION_NAME }}
           status: ${{ inputs.play_status }}
           mappingFile: ${{ steps.deobf.outputs.mapping }}
+          # Empty when no release_notes input was given (notes stay unchanged).
+          whatsNewDirectory: ${{ steps.notes.outputs.dir }}
       - name: Upload AAB
         uses: actions/upload-artifact@v6
         with:
