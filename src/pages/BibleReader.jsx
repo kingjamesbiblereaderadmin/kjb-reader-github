@@ -1956,24 +1956,19 @@ export default function BibleReader() {
     />
   );
 
-  // The view switch. In the book it sits in the page's upper-right corner; on
-  // the scrolling page it is laid over the right of the heading band instead of
-  // taking a row of its own, so the toolbar, the book's name and the text are
-  // the only rows the reader sees. It is a quiet pill rather than an underlined
-  // link, and on a phone it is the mark alone, so a long book name can never
-  // run into it.
+  // The book's upper-right corner holds the return-to-normal-view control.
   const bookToggleNode = (
-    <div className={`kjb-book-toggle-row print:hidden z-[1] flex justify-end ${flipbookOpen ? 'relative -mt-6' : 'shrink-0 pt-1'}`}>
+    <div className={`kjb-book-toggle-row print:hidden relative z-[1] flex justify-end ${flipbookOpen ? '-mt-6' : ''}`}>
       <button
         onClick={() => { closeAllMenus(); toggleBookView(); }}
         data-testid="flipbook-open-btn"
         aria-pressed={flipbookOpen}
         aria-label={flipbookOpen ? 'Normal view' : 'Read as book'}
         title={flipbookOpen ? 'Normal view' : 'Read as book'}
-        className="kjb-book-toggle flex items-center gap-1.5 rounded-full border border-border/70 bg-background/80 px-2.5 py-1 font-sans text-xs font-medium text-muted-foreground backdrop-blur-sm transition-colors hover:border-border hover:text-foreground"
+        className="kjb-book-toggle flex items-center gap-1.5 py-1 font-serif text-sm text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground"
       >
-        <BookOpen className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline">{flipbookOpen ? 'Normal view' : 'Read as book'}</span>
+        <BookOpen className="w-4 h-4" />
+        <span>{flipbookOpen ? 'Normal view' : 'Read as book'}</span>
       </button>
     </div>
   );
@@ -2029,11 +2024,7 @@ export default function BibleReader() {
           chapter number and the way back into book view off the screen. */}
       {!flipbookOpen && (
       <AnchoredReaderBand top={stickyTop}>
-      {/* One row: the book's name and chapter, with the view switch beside them
-          rather than on a line of its own. The title keeps the free width, so a
-          long name never runs under the switch and nothing is cut off. */}
-      <div className="flex items-start gap-3">
-      <div className="min-w-0 flex-1">
+      {bookToggleNode}
       {/* In two columns the chapter's name and number are printed as a running
           head instead of the large heading — and it lives in this band too, so
           the book you are in never scrolls away. (The large heading stays for
@@ -2042,20 +2033,17 @@ export default function BibleReader() {
         <RunningHead bookName={book.name} chapter={pos.chapter} baseFontRem={zoomLevel / 100 * 0.7} isCursive={fontFamily === 'cursive'} />
       )}
       {!isViewingTitlePage && (!(filterMode && selectedVerses.size > 0) || chapterSubscript) && (
-        <div className={`text-center mb-3 ${(!columnMode || pos.chapter === 1 || (filterMode && selectedVerses.size > 0)) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
+        <div className={`text-center mb-4 ${(!columnMode || pos.chapter === 1 || (filterMode && selectedVerses.size > 0)) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
           {filterMode && selectedVerses.size > 0 ? null : (
             <>
-              <h1 className={`notranslate kjb-book-title ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} text-3xl md:text-4xl font-bold text-foreground mb-1.5 leading-tight`} style={{ fontStyle: 'normal', fontWeight: '900' }}>{book.name}</h1>
-              <p className={`notranslate kjb-chapter-heading font-sans text-muted-foreground tracking-widest uppercase mt-1.5 ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100 * 0.875}rem`, fontWeight: fontFamily === 'cursive' ? '400' : undefined }}>
+              <h1 className={`notranslate kjb-book-title ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} text-3xl md:text-4xl font-bold text-foreground mb-2 leading-tight`} style={{ fontStyle: 'normal', fontWeight: '900' }}>{book.name}</h1>
+              <p className={`notranslate kjb-chapter-heading font-sans text-muted-foreground tracking-widest uppercase mt-2 ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`} style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100 * 0.875}rem`, fontWeight: fontFamily === 'cursive' ? '400' : undefined }}>
                 Chapter {pos.chapter}
               </p>
             </>
           )}
         </div>
       )}
-      </div>
-      {bookToggleNode}
-      </div>
       {/* The Psalm superscription and the stanza name of the passage being read
           are printed with the chapter number, as one heading — they belong to
           the chapter's title, not to the verse text below it. */}
