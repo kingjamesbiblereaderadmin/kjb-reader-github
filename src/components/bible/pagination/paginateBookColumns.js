@@ -37,7 +37,11 @@ export default function paginateBookColumns(source, width, height, gap, prefix, 
       const blocks = [...passage.children];
       // A heading plus its printed note must have room for three verses, not
       // just a token line or two. Very long openings may still span columns.
-      if (probe.childNodes.length && blocks.length) {
+      // Only a column that already holds scripture counts as occupied: the
+      // spacer reserving the previous chapter's tail (prefix.top) is a child
+      // but no text, and counting it pushed the chapter a whole page on,
+      // leaving that page with nothing but the previous chapter's last verse.
+      if (probe.textContent.trim() && blocks.length) {
         const sample = probe.cloneNode(false);
         source.parentElement.appendChild(sample);
         let verses = 0;
