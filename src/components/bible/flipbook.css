@@ -71,10 +71,7 @@
 /* The next chapter, printed on in the space left under the last verse of the
    one before it. Its opening gets its own breathing space above, so it reads as
    a chapter beginning rather than a run-on of the verse above. */
-/* A new chapter always opens at the top of a fresh column, never halfway down
-   one: the heading and its first verse read as a chapter beginning, and the
-   running head above the column names the chapter actually printed there. */
-.kjb-fb-continues { margin-top: 1.6em; break-before: column; }
+.kjb-fb-continues { margin-top: 1.6em; }
 /* The next chapter starts on a fresh page unless its opening and its first verse
    both fit under the chapter above: verse 1 is never left stranded at the foot
    of a page with the rest of the chapter overleaf. */
