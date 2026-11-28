@@ -20,7 +20,8 @@ const ChapterFlow = React.forwardRef(function ChapterFlow({ blocks, continuation
   return <>
     <div ref={sourceRef} className={classes} translate="no" lang="en" aria-hidden="true"
       style={{ ...textStyle, position: 'absolute', top: 0, left: 0, width: columnWidth, height: 'auto', visibility: 'hidden', pointerEvents: 'none' }}>
-      <div data-fb-current={passageKey}>{blocks}</div>
+      {/* A following chapter keeps its opening spacing when audio makes it current. */}
+      <div data-fb-current={passageKey} className={prefix ? 'kjb-fb-continued-current' : undefined}>{blocks}</div>
       {continuation}
     </div>
     <div ref={setRef} className={classes} translate="no" lang="en"

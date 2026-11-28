@@ -76,7 +76,10 @@
 /* A chapter that opens part-way through the flow — a new chapter of the same
    book ("Chapter 27") or a new book with its printed title — gets real air
    above, so the verses before it never crowd against its heading. */
-.kjb-fb-continues .kjb-fb-opening { padding-top: 2.5em; }
+/* Promoting the next chapter during playback must retain the same opening gap.
+   Pagination still clears this padding when the chapter starts a new column. */
+.kjb-fb-continues .kjb-fb-opening,
+.kjb-fb-continued-current .kjb-fb-opening { padding-top: 2.5em; }
 .kjb-fb-continues .kjb-fb-title { margin-top: 0; }
 .kjb-fb-chapter { margin: 0 0 1em; text-align: center; font-size: 0.78em; letter-spacing: 0.2em; text-transform: uppercase; break-after: avoid; }
 /* The next chapter, printed on in the space left under the last verse of the
