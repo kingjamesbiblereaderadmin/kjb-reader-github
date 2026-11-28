@@ -43,11 +43,11 @@ on:
         default: ''
         type: string
       submit_for_review:
-        description: 'After uploading, attach the build and submit the version to App Review'
+        description: 'After uploading, sync the What''s New header, attach the build and submit to App Review'
         required: false
-        default: 'skip'
+        default: 'submit'
         type: choice
-        options: [skip, submit]
+        options: [submit, skip]
 
 jobs:
 
@@ -454,12 +454,13 @@ jobs:
         if: steps.uploadmode.outputs.skip == 'true'
         run: echo "Skipped the App Store Connect upload per .github/asc-upload-mode (or the dispatch input). The build+export still validated this commit."
       - name: Submit to App Store review (iOS)
-        # The App Store counterpart of the Play upload's completed status: the
-        # upload step only puts the binary in ASC, so this attaches the build
-        # this run uploaded to the version record and hands the version to App
-        # Review. Best-effort like the rename: a submit Apple refuses (nothing
-        # editable, build still processing, a review already open) is reported
-        # as an error annotation and the run keeps its uploaded build.
+        # The App Store counterpart of the Play upload's completed status and on
+        # by default: the upload step only puts the binary in ASC, so this syncs
+        # the What's New header to the version being submitted, attaches the
+        # build this run uploaded and hands the version to App Review. A pair
+        # that does not match (binary version != record, nothing editable, build
+        # still processing) is refused with an annotation and the run keeps its
+        # uploaded build.
         if: ${{ steps.uploadmode.outputs.skip != 'true' && inputs.submit_for_review == 'submit' }}
         continue-on-error: true
         env:
@@ -782,12 +783,13 @@ jobs:
           exit $rc
 
       - name: Submit to App Store review (macOS)
-        # The App Store counterpart of the Play upload's completed status: the
-        # upload step only puts the binary in ASC, so this attaches the build
-        # this run uploaded to the version record and hands the version to App
-        # Review. Best-effort like the rename: a submit Apple refuses (nothing
-        # editable, build still processing, a review already open) is reported
-        # as an error annotation and the run keeps its uploaded build.
+        # The App Store counterpart of the Play upload's completed status and on
+        # by default: the upload step only puts the binary in ASC, so this syncs
+        # the What's New header to the version being submitted, attaches the
+        # build this run uploaded and hands the version to App Review. A pair
+        # that does not match (binary version != record, nothing editable, build
+        # still processing) is refused with an annotation and the run keeps its
+        # uploaded build.
         if: ${{ steps.uploadmode.outputs.skip != 'true' && inputs.submit_for_review == 'submit' }}
         continue-on-error: true
         env:
