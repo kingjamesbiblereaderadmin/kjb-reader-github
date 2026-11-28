@@ -512,7 +512,9 @@ function splitEth(text: string) {
 }
 
 // The one entry point: clean the source markup, respell the hard words, then
-// give every "-eth" verb its own final syllable. Handed "pleaseth" a neural
+// give every "-eth" verb its own final syllable. Words pinned in IPA are left
+// whole (hasIpa), so a pin such as liveth survives the -eth break and the
+// phoneme tag is what the engine hears. Handed "pleaseth" a neural
 // voice can split it as "please" + "s" + "eth"; with the break written in it
 // reads the word the way the Authorised Version is read aloud: "pleas-eth".
 // Three or more letters are required before the ending so that short words
