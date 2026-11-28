@@ -149,18 +149,16 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     // for chapter-wide search scanning.
     const dropCapIsActualMatch = /^(?:<[^>]+>|\s)*<mark\b/.test(html);
     const needsOwnTint = showHighlight || (highlight && (isDirectJump || !searchTerm || dropCapIsActualMatch));
-    const dropRaw = needsOwnTint
-      ? highlightColors.find(c => c.name === (persistedColor || highlightColor))?.color
-      : null;
-    const dropHighlight = dropRaw
-      ? (dropRaw.startsWith('#') ? `${dropRaw}99` : `hsl(var(--accent) / 0.6)`)
+    // Exactly the classes the verse text uses, so the cap's shade matches it
+    // in both light and dark mode.
+    const dropHighlight = needsOwnTint
+      ? highlightColors.find(c => c.name === (persistedColor || highlightColor))?.bg
       : null;
     // In select mode the letter gets NO tint of its own — the group below
     // carries a single layer (see groupStyle) so the two boxes can't stack
     // into a misaligned double edge.
-    const letterStyle = dropHighlight && !selectMode
-      ? ` style="background-color:${dropHighlight};border-radius:0.1em;"`
-      : '';
+    const letterTint = dropHighlight && !selectMode ? ` ${dropHighlight}` : '';
+    const letterStyle = letterTint ? ' style="border-radius:0.1em;"' : '';
     // When the letter carries its own tint, mask the inline highlight behind the
     // float with the page background so the two layers don't stack into a
     // darker box. The number cell stays transparent (only the letter is masked).
@@ -190,8 +188,8 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
       /^((?:<[^>]+>|\s)*)([A-Za-z])([A-Za-z]*)/,
       (match, lead, first, rest) => {
         const groupInner = paragraphMode
-          ? `<span class="kjb-dropcap-num">${verse.verse}</span><span class="kjb-dropcap-letter"${letterStyle}>${first}</span>`
-          : `<span class="kjb-dropcap-letter"${letterStyle}>${first}</span>`;
+          ? `<span class="kjb-dropcap-num">${verse.verse}</span><span class="kjb-dropcap-letter${letterTint}"${letterStyle}>${first}</span>`
+          : `<span class="kjb-dropcap-letter${letterTint}"${letterStyle}>${first}</span>`;
         const group = `<span class="kjb-dropcap-group${paragraphMode ? ' kjb-dropcap-group-para' : ''}"${groupAttr}>${groupInner}</span>`;
         // The KJB prints the opening word in capitals ("IN the beginning",
         // "AND it came to pass"), so the enlarged first letter left its
