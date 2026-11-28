@@ -27,7 +27,7 @@ on:
         default: ''
         type: string
       marketing_version:
-        description: 'Marketing version override (blank = 2.<run_number>, auto-bumped past any closed ASC version)'
+        description: 'Marketing version override (blank = 2.<build_number>, auto-bumped past any closed ASC version)'
         required: false
         default: ''
         type: string
@@ -38,7 +38,7 @@ on:
         type: choice
         options: [skip, rename]
       asc_version_name:
-        description: 'ASC version name to rename to (blank = 2.<run_number>; also becomes the marketing version)'
+        description: 'ASC version name to rename to (blank = 2.<build_number>; also becomes the marketing version)'
         required: false
         default: ''
         type: string
@@ -47,7 +47,7 @@ jobs:
 
   # Optional pre-build rename of the App Store Connect version record.
   # `rename_asc_version: rename` renames the newest editable version record on
-  # both platforms to the release run name (2.<run_number>, or asc_version_name)
+  # both platforms to the release build number (2.<build>, or asc_version_name)
   # so the record, the binary's CFBundleShortVersionString and the What's New
   # header all agree. Best-effort: a rename ASC refuses (e.g. the version is
   # already WAITING_FOR_REVIEW, or the name is not above the highest closed
@@ -63,12 +63,32 @@ jobs:
           python-version: '3.12'
       - name: Install Python deps (script imports jwt/requests at module top)
         run: pip install --quiet pyjwt requests cryptography
-      - name: Rename the editable ASC version record to the release run name
+      - name: Resolve the release build number (same rule as the build jobs)
+        # The ASC name must match the build number this run will ship, so this
+        # mirrors the build jobs' resolution: pinned dispatch input, else the
+        # next collision-free ASC build number. No --revoke-dev-certs here: the
+        # rename must not touch signing assets.
+        id: relbuild
         env:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          TARGET: ${{ inputs.asc_version_name || format('2.{0}', github.run_number) }}
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.build_number }}" ]; then
+            BUILD="${{ inputs.build_number }}"
+            echo "Using pinned build number from dispatch input: $BUILD"
+          else
+            BUILD=$(python3 scripts/asc-next-build.py)
+          fi
+          echo "build=$BUILD" >> "$GITHUB_OUTPUT"
+          echo "Release build number: $BUILD"
+      - name: Rename the editable ASC version record to match the release build
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          TARGET: ${{ inputs.asc_version_name || format('2.{0}', steps.relbuild.outputs.build) }}
         run: |
           set -o pipefail
           python3 scripts/asc-rename-version.py --app 6813352869 --platform all --to "$TARGET" | tee -a "$GITHUB_STEP_SUMMARY"
@@ -183,7 +203,7 @@ jobs:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          REQUESTED: ${{ inputs.marketing_version || inputs.asc_version_name || format('2.{0}', github.run_number) }}
+          REQUESTED: ${{ inputs.marketing_version || inputs.asc_version_name || format('2.{0}', steps.nextbuild.outputs.next) }}
         run: |
           python3 -m venv /tmp/ascvenv 2>/dev/null || true
           /tmp/ascvenv/bin/pip install -q pyjwt requests cryptography
@@ -476,7 +496,7 @@ jobs:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          REQUESTED: ${{ inputs.marketing_version || inputs.asc_version_name || format('2.{0}', github.run_number) }}
+          REQUESTED: ${{ inputs.marketing_version || inputs.asc_version_name || format('2.{0}', steps.nextbuild.outputs.next) }}
         run: |
           python3 -m venv /tmp/ascvenv 2>/dev/null || true
           /tmp/ascvenv/bin/pip install -q pyjwt requests cryptography
