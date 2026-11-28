@@ -135,14 +135,23 @@
 .kjb-flipbook [data-fb-colour='purple'],
 .kjb-flipbook [data-fb-colour='purple'] .kjb-fb-dropcap { background: rgba(192, 132, 252, 0.3); }
 .kjb-flipbook .kjb-fb-tapped { text-decoration: underline dotted var(--fb-red); text-underline-offset: 3px; }
-.kjb-flipbook .kjb-fb-speaking,
-.kjb-flipbook [data-fbv].kjb-fb-speaking .kjb-fb-dropcap { background: hsl(var(--accent) / 0.10); }
+.kjb-flipbook .kjb-fb-speaking { background: hsl(var(--accent) / 0.10); }
+/* The big letter of a chapter's opening verse is a floated box taller than the
+   text line, and its ink rises above that box, so washing the box painted the
+   air under the chapter heading and made the letter look lifted off its line —
+   it started the moment the chapter's name was announced. The letter itself
+   carries the mark instead: same tint, no box, so no space is painted and
+   nothing appears to move. */
+.kjb-flipbook [data-fbv].kjb-fb-speaking .kjb-fb-dropcap,
+.kjb-flipbook [data-fb-colour].kjb-fb-speaking .kjb-fb-dropcap {
+  background: transparent !important;
+  color: hsl(var(--accent)) !important;
+}
 /* The verse being read is marked in the accent colour, so a highlighter colour
    stored on that verse gives way to it while the voice is on it: a yellow
    highlight under an accent wash read as two clashing tints. */
 .kjb-flipbook [data-fb-colour].kjb-fb-speaking,
-.kjb-flipbook [data-fb-colour].kjb-fb-speaking mark,
-.kjb-flipbook [data-fb-colour].kjb-fb-speaking .kjb-fb-dropcap { background: hsl(var(--accent) / 0.10) !important; }
+.kjb-flipbook [data-fb-colour].kjb-fb-speaking mark { background: hsl(var(--accent) / 0.10) !important; }
 .kjb-flipbook .kjb-fb-speaking mark { background: hsl(var(--accent) / 0.32) !important; color: inherit; }
 /* The subscription and the postscript: one flat wash. A halo around it read as
    a second highlight on the words. The player also puts .kjb-speaking on these
@@ -170,11 +179,14 @@
 }
 /* Book view in dark mode: same lift as the reader, so the page being read is
    as unmistakable on a dark page as on a light one. */
-.dark .kjb-flipbook .kjb-fb-speaking,
-.dark .kjb-flipbook [data-fbv].kjb-fb-speaking .kjb-fb-dropcap { background: hsl(var(--accent) / 0.28); }
+.dark .kjb-flipbook .kjb-fb-speaking { background: hsl(var(--accent) / 0.28); }
+.dark .kjb-flipbook [data-fbv].kjb-fb-speaking .kjb-fb-dropcap,
+.dark .kjb-flipbook [data-fb-colour].kjb-fb-speaking .kjb-fb-dropcap {
+  background: transparent !important;
+  color: hsl(var(--accent)) !important;
+}
 .dark .kjb-flipbook [data-fb-colour].kjb-fb-speaking,
-.dark .kjb-flipbook [data-fb-colour].kjb-fb-speaking mark,
-.dark .kjb-flipbook [data-fb-colour].kjb-fb-speaking .kjb-fb-dropcap { background: hsl(var(--accent) / 0.28) !important; }
+.dark .kjb-flipbook [data-fb-colour].kjb-fb-speaking mark { background: hsl(var(--accent) / 0.28) !important; }
 .dark .kjb-flipbook .kjb-fb-speaking mark { background: hsl(var(--accent) / 0.5) !important; }
 .dark .kjb-flipbook .kjb-fb-note.kjb-fb-speaking { background: hsl(var(--accent) / 0.34); }
 .dark .kjb-flipbook .kjb-fb-opening.kjb-fb-speaking .kjb-fb-title,
