@@ -73,7 +73,8 @@ export default function paginateBookColumns(source, width, height, gap, prefix, 
           block.remove();
           const split = fittingFragment(probe, block, height);
           if (split && split.tail) {
-            if (block.classList.contains('kjb-fb-verse')) split.head.style.textAlignLast = 'justify';
+            // A split creates a real last line, which may hold only a few words.
+            // Stretching it to the column edge creates oversized spaces.
             wrapper.appendChild(split.head);
             nextColumn();
             block = split.tail;
