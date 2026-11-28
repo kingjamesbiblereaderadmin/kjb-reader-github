@@ -22,10 +22,11 @@ const ENGINE = 'azure';
 const AZURE_PROXY_URL = 'https://solene-921ed14e.base44.app/functions/ttsAzure';
 const MAX_ITEMS = 40;
 const MAX_CHARS = 900;
-// One line at a time. Voicing several at once inside a batch made the clip write
-// fail under load, and a failed write means the audio was paid for and then
-// thrown away, so the slow setting is the cheap one.
-const CONCURRENCY = 1;
+// A few lines at a time. One at a time was safe but slow: a batch of twenty took
+// the better part of a minute, so a library-wide repair crawled. Three in flight
+// keeps the speech proxy and the clip writes well inside their limits (a failed
+// line is retried, and only a line that truly fails is left for the next run).
+const CONCURRENCY = 3;
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',

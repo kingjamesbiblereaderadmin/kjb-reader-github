@@ -14,14 +14,17 @@ export default async function(req) {
     const { candidates, pending, latestByBook } = await pendingPronunciationTargets(base44.asServiceRole, body.revision || '');
     const status = { repaired: 0, remaining: pending.length, reviewedVerses: 31102, targetedVerses: candidates.length, latestByBook };
     if (body.statusOnly === true || !pending.length) return Response.json(status);
-    // Small persisted batches survive interruption. Subsequent runs discover
-    // only missing revision keys, rather than charging for completed work again.
-    const passes = body.backfill === true ? 5 : 1;
-    for (let pass = 0; pass < passes && Date.now() < deadline - 45000; pass += 1) {
+    // Each pass voices a full batch (the bulk endpoint's own maximum), so a run
+    // gets through the repair list in a few minutes instead of a few hours.
+    // Subsequent runs discover only missing revision keys, rather than charging
+    // for completed work again.
+    const BATCH = 40;
+    const passes = body.backfill === true ? 6 : 1;
+    for (let pass = 0; pass < passes && Date.now() < deadline - 30000; pass += 1) {
       // A stanza-closing verse is filed under a key its own text cannot name
       // (it depends on the stanza heading printed after it), so that key is sent
       // as the reference; every other repair is named by its plain verse ref.
-      const items = pending.slice(pass * 20, (pass + 1) * 20)
+      const items = pending.slice(pass * BATCH, (pass + 1) * BATCH)
         .map(({ ref, text, expected }) => ({ ref: expected.endsWith(':h25') ? expected : ref, text }));
       if (!items.length) break;
       const result = await base44.functions.invoke('ttsBulk', { voice: 'en-GB-RyanNeural', items });
