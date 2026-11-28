@@ -370,12 +370,13 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     const scroller = document.getElementById('kjb-scroll') || window;
     const toTop = () => scroller.scrollTo({ top: 0, behavior: 'instant' });
     toTop();
-    // A title page is the cover followed by the whole table of contents, so it
-    // is a long page: the player panel opening above it re-lays the page a
-    // moment later, and the single jump above could be undone by that reflow,
-    // leaving the view at the foot of the page while the title was being read.
-    // Hold the opening until the layout has settled, unless the reader scrolls
-    // the page themselves.
+    // A title page opens at its own top and then follows the voice down the
+    // page (the effect below), so it is not held here.
+    if (tts.currentKind === 'title') return undefined;
+    // The player panel opening above the chapter re-lays the page a moment
+    // later, so the single jump above could be undone by that reflow. Hold the
+    // opening until the layout has settled, unless the reader scrolls the page
+    // themselves.
     let userTookOver = false;
     const takeover = () => { userTookOver = true; };
     scroller.addEventListener('touchstart', takeover, { once: true, passive: true });
@@ -387,6 +388,32 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
       scroller.removeEventListener('wheel', takeover);
     };
   }, [tts.introActive, tts.currentKind, tts.status]);
+
+  // A title page is read as one piece, and it is far taller than the screen
+  // (the cover, then the whole table of contents beneath it). The page moves
+  // down it as the voice goes: each part of the page comes into view as the
+  // part before it is finished, instead of the reading running on past the foot
+  // of the screen while the page sits still.
+  useEffect(() => {
+    if (tts.currentKind !== 'title' || tts.status !== 'playing') return undefined;
+    const scroller = document.getElementById('kjb-scroll');
+    const page = document.querySelector('.kjb-frontmatter');
+    if (!scroller || !page) return undefined;
+    const ref = `${chapterKey}:title`;
+    const follow = () => {
+      if (!followRef.current) return;
+      // How much of the page has been read, from its top to its foot.
+      const progress = getProgress(ref) || 0;
+      const top = page.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+      const room = page.offsetHeight - scroller.clientHeight;
+      if (room <= 0) return;
+      const target = Math.max(0, top + progress * room);
+      if (Math.abs(scroller.scrollTop - target) < 2) return;
+      scroller.scrollTo({ top: target, behavior: 'auto' });
+    };
+    follow();
+    return subscribeProgress(follow);
+  }, [tts.currentKind, tts.status, chapterKey]);
 
   // Columns, font size and paragraph spacing rebuild the chapter's markup, and
   // a rebuilt verse is a different element: the class the highlight lives on is
