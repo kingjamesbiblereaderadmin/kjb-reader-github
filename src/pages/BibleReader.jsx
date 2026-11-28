@@ -1995,7 +1995,7 @@ export default function BibleReader() {
           {chapterSubscript && (
             <p
               onClick={() => handleSectionClick('subscript')} id="kjb-subscript-anchor"
-              className={`notranslate kjb-subscript text-sm text-foreground mt-2 mb-4 max-w-lg mx-auto leading-relaxed text-center transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`}
+              className={`notranslate kjb-subscript text-sm text-foreground mt-5 mb-4 max-w-lg mx-auto leading-relaxed text-center transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`}
               style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem` }}
             >
               <SubscriptContent text={chapterSubscript} kind="sub" searchTerm={sectionActive('subscript') ? searchTerm : null} />
