@@ -743,6 +743,12 @@ export default React.forwardRef(function FlipBook({
           <div ref={chromeProbeRef} style={{ position: 'absolute', left: 0, top: 0, width: textW }}>
             <div className="kjb-fb-head">{book.shortName}, Chapter {chapter}</div>
             {followingChapters.map((passage) => <div key={passage.key} className="kjb-fb-head">{passage.book.shortName}, Chapter {passage.chapter}</div>)}
+            {/* A page carrying the end of one book and the start of the next is
+                headed with both names, which is longer than either alone — it is
+                measured here so the text window is never squeezed by it. */}
+            {following && following.book.abbr !== abbr && (
+              <div className="kjb-fb-head">{book.shortName} {chapter} | {following.book.shortName} {following.chapter}</div>
+            )}
           </div>
           <ChapterFlow ref={measureRef} blocks={blocks} prefix={carry} continuation={continuationBlocks} {...flowProps} page={0} textStyle={textStyle} />
         </div>
