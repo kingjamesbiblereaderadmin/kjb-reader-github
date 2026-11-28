@@ -120,7 +120,7 @@
    at the head of its line. */
 .kjb-fb-dropcap-group { float: left; display: flex; align-items: flex-start; }
 .kjb-fb-dropcap-num { margin: 0.14em 0.26em 0 0; font-size: 0.65em; font-weight: 700; line-height: 1; color: var(--fb-red); font-family: 'Inter', system-ui, sans-serif; }
-.kjb-fb-flow .pilcrow { color: var(--fb-ink); }
+.kjb-fb-flow .pilcrow { color: inherit; }
 .kjb-fb-flow em { font-style: italic; opacity: 0.82; }
 .kjb-fb-loading { position: absolute; inset: 56px 64px var(--fb-footer-height) 20px; display: grid; place-items: center; font-size: 0.9rem; }
 

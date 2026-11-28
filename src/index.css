@@ -525,20 +525,9 @@
   .overflow-x-auto::-webkit-scrollbar, .overflow-scroll::-webkit-scrollbar {
     display: none;
   }
-  /* Pilcrow paragraph mark — the same accent tone as a verse number, in both
-     themes, so the paragraph breaks belong to the same text system instead of
-     reading as a separate black (or, on the dark page, invisible) glyph.
-     Force a serif font that always has the ¶ glyph, so accessibility fonts like
-     OpenDyslexic (which lack a pilcrow glyph) don't render it as a missing-glyph box. */
+  /* Use the surrounding text's exact colour in every theme and reading mode. */
   :root .pilcrow {
-    color: hsl(var(--foreground));
-    opacity: 1;
-    font-style: normal;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-  .dark .pilcrow {
-    color: hsl(var(--foreground));
+    color: inherit;
     opacity: 1;
     font-style: normal;
     user-select: none;
