@@ -359,7 +359,12 @@ export default React.forwardRef(function FlipBook({
     else { setTurn(null); setPage(to); }
   };
 
-  // The book turns itself to wherever the voice is.
+  // The book turns itself to wherever the voice is — a beat after the voice
+  // moves there. Turning at the very instant the next verse began pulled the
+  // page away while the reader was still on the last words the open pages
+  // showed, so the turn came before the verse in view was finished.
+  const turnToRef = useRef(turnTo);
+  useLayoutEffect(() => { turnToRef.current = turnTo; });
   const spokenAt = !speaking ? '' : speaking.intro || speaking.kind === 'title' ? 'intro'
     : speaking.kind === 'sub' ? '[data-fb-sec="sub"]' : speaking.kind === 'col' ? '[data-fb-sec="col"]'
       : speaking.kind === 'end' ? 'end'
@@ -368,10 +373,13 @@ export default React.forwardRef(function FlipBook({
         : speaking.kind === 'heading' ? `[data-fb-heading="${speaking.verse}"]`
           : speaking.verse != null ? `[data-fbv="${speaking.verse}"]` : '';
   useEffect(() => {
-    if (!spokenAt || !speaking?.playing || loading) return;
+    if (!spokenAt || !speaking?.playing || loading) return undefined;
     const progress = speaking.kind === 'verse' ? getProgress(`${abbr}:${chapter}:${speaking.verse}`) : 0;
     const completed = speaking.kind === 'verse' ? getCompletedWords(`${abbr}:${chapter}:${speaking.verse}`) : null;
-    turnTo(spokenAt === 'intro' ? 0 : spokenAt === 'end' ? pageCount - 1 : pageOf(spokenAt, progress, completed));
+    const target = spokenAt === 'intro' ? 0 : spokenAt === 'end' ? pageCount - 1 : pageOf(spokenAt, progress, completed);
+    if (target == null) return undefined;
+    const id = window.setTimeout(() => turnToRef.current?.(target), 600);
+    return () => window.clearTimeout(id);
     // Only when the voice moves or the pages are re-laid: turning by hand stays.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spokenAt, speaking?.playing, pageCount, step, loading, chapterKey]);
@@ -410,7 +418,10 @@ export default React.forwardRef(function FlipBook({
       }
       const clipRef = `${abbr}:${chapter}:${speaking.verse}`;
       const completed = getCompletedWords(clipRef);
-      if (completed == null ? getProgress(clipRef) < need : completed < neededWords) return true;
+      // One word of slack: the turn waits until the voice is past the last word
+      // the open pages show, never on its final instant — the page used to move
+      // while that word was still being spoken.
+      if (completed == null ? getProgress(clipRef) < need : completed <= neededWords) return true;
       requested = true;
       // During listening, reveal the next text immediately. A decorative turn
       // otherwise hides its first words for another 650 ms while speech goes on.

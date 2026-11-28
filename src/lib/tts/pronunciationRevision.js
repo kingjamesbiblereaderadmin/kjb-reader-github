@@ -8,6 +8,9 @@ export default function pronunciationRevision(text) {
   // is spoken as one word now, so those verses ask for the re-voiced take.
   // Elijah is said ee-LY-juh now (a long "ee" before the stress), so those
   // verses ask for the re-voiced take instead of the one they remember.
+  // "prophecies" is the plural noun (PROF-uh-seez), not the verb, so those
+  // verses ask for the take voiced from the pinned IPA.
+  if (/\bprophecies\b/i.test(text)) return 'h29';
   if (/\belijah\b/i.test(text)) return 'h28';
   if (/[A-Z][a-z]+-[a-z]/.test(text)) return 'h27';
   // Bernice was pinned to the wrong reading, and Galatia, Antioch and Laodicea
