@@ -46,8 +46,10 @@ on:
 jobs:
 
   # Optional pre-build rename of the App Store Connect version record.
-  # `rename_asc_version: rename` renames the newest editable version record on
-  # both platforms to the release build number (2.<build>, or asc_version_name)
+  # `rename_asc_version: rename` resolves this release's marketing version
+  # (x.xxx, e.g. 2.422) and renames the newest editable version record on both
+  # platforms to it, so the ASC name matches the binary and the
+  # "iOS/MacOS App Version: X.XXX" What's New header
   # so the record, the binary's CFBundleShortVersionString and the What's New
   # header all agree. Best-effort: a rename ASC refuses (e.g. the version is
   # already WAITING_FOR_REVIEW, or the name is not above the highest closed
@@ -56,6 +58,8 @@ jobs:
     if: ${{ inputs.rename_asc_version == 'rename' }}
     runs-on: ubuntu-latest
     continue-on-error: true
+    outputs:
+      version: ${{ steps.relver.outputs.version }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
@@ -83,12 +87,27 @@ jobs:
           fi
           echo "build=$BUILD" >> "$GITHUB_OUTPUT"
           echo "Release build number: $BUILD"
-      - name: Rename the editable ASC version record to match the release build
+      - name: Resolve the marketing version for this release
+        # Same resolver as the build jobs, so the ASC record name is exactly the
+        # marketing version that ends up in the binary and in the
+        # "iOS/MacOS App Version: X.XXX" What's New header.
+        id: relver
         env:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          TARGET: ${{ inputs.asc_version_name || format('2.{0}', steps.relbuild.outputs.build) }}
+          REQUESTED: ${{ inputs.marketing_version || inputs.asc_version_name || format('2.{0}', steps.relbuild.outputs.build) }}
+        run: |
+          set -euo pipefail
+          V=$(python3 scripts/asc-next-version.py --app 6813352869 --platform all --requested "$REQUESTED")
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "Marketing version for this release: $V (requested: $REQUESTED)"
+      - name: Rename the editable ASC version record to the marketing version
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          TARGET: ${{ steps.relver.outputs.version }}
         run: |
           set -o pipefail
           python3 scripts/asc-rename-version.py --app 6813352869 --platform all --to "$TARGET" | tee -a "$GITHUB_STEP_SUMMARY"
@@ -203,7 +222,7 @@ jobs:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          REQUESTED: ${{ inputs.marketing_version || inputs.asc_version_name || format('2.{0}', steps.nextbuild.outputs.next) }}
+          REQUESTED: ${{ inputs.marketing_version || inputs.asc_version_name || needs.asc-rename-version.outputs.version || format('2.{0}', steps.nextbuild.outputs.next) }}
         run: |
           python3 -m venv /tmp/ascvenv 2>/dev/null || true
           /tmp/ascvenv/bin/pip install -q pyjwt requests cryptography
@@ -496,7 +515,7 @@ jobs:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          REQUESTED: ${{ inputs.marketing_version || inputs.asc_version_name || format('2.{0}', steps.nextbuild.outputs.next) }}
+          REQUESTED: ${{ inputs.marketing_version || inputs.asc_version_name || needs.asc-rename-version.outputs.version || format('2.{0}', steps.nextbuild.outputs.next) }}
         run: |
           python3 -m venv /tmp/ascvenv 2>/dev/null || true
           /tmp/ascvenv/bin/pip install -q pyjwt requests cryptography
