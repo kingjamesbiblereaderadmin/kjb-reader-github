@@ -16,7 +16,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.63';
 const PAGE = 500;
 const MAX_PAGES = 200; // 100,000 rows: far past the 31,102 verse clips
 const CACHE_MS = 60 * 60 * 1000;
-const INDEX_REVISION = 'announcements-2';
+const INDEX_REVISION = 'announcements-3';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -54,12 +54,17 @@ export default async function (req) {
 
     const books: Record<string, Record<string, string>> = {};
     const revisions: Record<string, number> = {};
+    // Ties on the same revision are broken by age: a verse re-recorded under
+    // the same key must win over an older row of it (including rows left by a
+    // previous app instance), so the newest take is the one served.
+    const recordedAt: Record<string, string> = {};
     // The chapter's printed notes (Psalm superscriptions, epistle
     // subscriptions, the Hebrew stanza names, book title pages and the two
     // closing lines) carry a word where a verse carries a number, so they are
     // listed separately: the apps bundle them from here.
     const notes: Record<string, string> = {};
     const noteRevisions: Record<string, number> = {};
+    const noteRecordedAt: Record<string, string> = {};
     let cursor: string | null = null;
 
     for (let page = 0; page < MAX_PAGES; page += 1) {
@@ -84,9 +89,13 @@ export default async function (req) {
         if (suffix) key = key.slice(0, -suffix[0].length);
         const revisionKey = `${book}:${key}`;
         const bucket = books[book] || (books[book] = {});
-        if (!bucket[key] || revision > (revisions[revisionKey] || 0)) {
+        const at = String(row?.created_date || '');
+        const newer = revision > (revisions[revisionKey] || 0)
+          || (revision === (revisions[revisionKey] || 0) && at > (recordedAt[revisionKey] || ''));
+        if (!bucket[key] || newer) {
           bucket[key] = url;
           revisions[revisionKey] = revision;
+          recordedAt[revisionKey] = at;
         }
 
         // Notes keep their own label as the key ("PSA:3:sub", "PSA:119:h1",
@@ -97,7 +106,10 @@ export default async function (req) {
         if (label && /^(?:sub|col|end|title|book-full|chapter(?:-c2)?|h\d+)$/.test(label)) {
           const noteKey = `${book}:${parts[1]}:${label}`;
           const noteRevision = parts.length > 3 ? Number((parts[3].match(/^h(\d+)$/) || [])[1] || 0) : 0;
-          if (!notes[noteKey] || noteRevision > (noteRevisions[noteKey] || 0)) {
+          const noteAt = String(row?.created_date || '');
+          if (!notes[noteKey] || noteRevision > (noteRevisions[noteKey] || 0)
+              || (noteRevision === (noteRevisions[noteKey] || 0) && noteAt > (noteRecordedAt[noteKey] || ''))) {
+            noteRecordedAt[noteKey] = noteAt;
             notes[noteKey] = url;
             noteRevisions[noteKey] = noteRevision;
           }
