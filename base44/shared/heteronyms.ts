@@ -472,7 +472,12 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   // Verses printing "heretick" were voiced from the unpinned letters.
   const heretickUpdated = /\bhereticks?\b/i.test(text);
   const updated = /\bmarketh\b|\btheir\s+desert\b|\bbow\s+down\b/i.test(text);
-  const source = String(text || '').replace(/\b(their\s+)desert\b/gi, '$1dih-zurt');
+  // The Authorised Version hyphenates compound names ("Beth-lehem", "Beth-el",
+  // "En-gedi", "Kirjath-jearim"). A hyphen makes the voice read two words, so
+  // the printed hyphen is dropped and the name is spoken as one word — which is
+  // also what lets its pinned form (BETH-li-hem, BETHEL) apply.
+  const joined = String(text || '').replace(/([A-Z][a-z]+)-(?=[a-z])/g, '$1');
+  const source = joined.replace(/\b(their\s+)desert\b/gi, '$1dih-zurt');
   if (source !== text) changed = true;
   const fixed = source.replace(RESPELL_RE, (word: string) => {
     const replacement = RESPELL[word.toLowerCase()];
@@ -505,5 +510,9 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   // had no pin at all although their verses were re-recorded. Those four are
   // voiced once more so the corrected pins are what actually plays.
   const repinnedUpdated = /\b(?:bernice|galatia|antioch|laodicea)\b/i.test(text);
-  return { text: out, changed, revision: repinnedUpdated ? 'h26' : siteNamesUpdated ? 'h24' : namesUpdated ? 'h23' : heretickUpdated ? 'h20' : sowUpdated ? 'h19' : baptizeUpdated ? 'h18' : sosthenesUpdated ? 'h17' : cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
+  // A compound name the text hyphenates ("Beth-lehem", "Beth-el", "En-gedi") is
+  // now spoken as one word, so those verses are voiced once more without the
+  // break the hyphen was making.
+  const hyphenatedName = /[A-Z][a-z]+-[a-z]/.test(String(text || ''));
+  return { text: out, changed, revision: hyphenatedName ? 'h27' : repinnedUpdated ? 'h26' : siteNamesUpdated ? 'h24' : namesUpdated ? 'h23' : heretickUpdated ? 'h20' : sowUpdated ? 'h19' : baptizeUpdated ? 'h18' : sosthenesUpdated ? 'h17' : cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
 }

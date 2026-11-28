@@ -13,10 +13,24 @@ export default function useFollowingChapter(book, chapter, enabled) {
   const key = nextBook ? `${nextBook.abbr}:${nextChapter}` : '';
   const cached = enabled && nextBook && nextChapter > 0 ? fetchChapterSync(nextBook.apiName, nextChapter) : null;
   useEffect(() => {
-    if (!enabled || !nextBook || nextChapter === 0 || cached || loaded?.key === key) return;
+    if (!enabled || !nextBook || nextChapter === 0 || cached || loaded?.key === key) return undefined;
     let alive = true;
-    fetchChapter(nextBook.apiName, nextChapter).then((data) => { if (alive) setLoaded({ key, data }); });
-    return () => { alive = false; };
+    let attempt = 0;
+    let timer = 0;
+    // The next chapter is printed on the facing page, so a single failed load
+    // left that page blank for the rest of the session. Ask again shortly
+    // instead of giving up on the first failure.
+    const load = () => {
+      fetchChapter(nextBook.apiName, nextChapter)
+        .then((data) => { if (alive) setLoaded({ key, data }); })
+        .catch(() => {
+          if (!alive || attempt >= 3) return;
+          attempt += 1;
+          timer = setTimeout(load, 700 * attempt);
+        });
+    };
+    load();
+    return () => { alive = false; clearTimeout(timer); };
   }, [enabled, key, !!cached]); // Chapter data already lives in the reader's offline Bible cache.
   if (!enabled || !nextBook) return null;
   const data = cached || (loaded?.key === key ? loaded.data : null);

@@ -290,7 +290,14 @@ export default React.forwardRef(function FlipBook({
     // being printed on under the excerpt, so the spread never ends in blank
     // paper.
     const excerpt = !!(filterMode && !selectMode && selectedVerses?.size);
-    setFillNext(chapter !== 0 && fits && !excerpt);
+    // The next chapter prints on under this one only when this one's text
+    // actually reaches the last column of its last page. A chapter that ends
+    // with a whole empty column (Psalm 23, a single searched verse) pushed the
+    // next chapter's opening up onto the left page and left the facing page
+    // blank; there it now takes a page of its own instead.
+    const lastColStart = (textPages - 1) * (textW + gap) + colW + gap;
+    const reachesLastCol = end.offsetLeft >= lastColStart - 1;
+    setFillNext(chapter !== 0 && fits && !excerpt && reachesLastCol);
     const count = front.length + textPages;
     setPageCount(count);
     const isNew = shownKeyRef.current !== chapterKey;
