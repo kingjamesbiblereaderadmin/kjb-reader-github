@@ -309,8 +309,13 @@
        BARE (no hyphen), producing orphaned fragments like "Jehospha" + "t"
        in 2 Kings 8:16. Those fallbacks stay only as the last resort for a
        word with no dictionary break point that's wider than the column. */
-    -webkit-hyphens: auto;
-    hyphens: auto;
+    /* The app's own break points (soft hyphens, hyphenation.json) — `manual`
+       honours exactly those, with a visible dash, and covers Bible names the
+       browser's dictionary does not know. `auto` was leaving long words whole,
+       which pushed them to the next line and stretched the line above around
+       two words. Print keeps `auto` (its own rule below). */
+    -webkit-hyphens: manual;
+    hyphens: manual;
     /* Safety net for any word hyphens can't find a break point for (browser
        hyphenation dictionaries don't cover every word/name). Without this, an
        unbreakable word that's wider than the column just overflows straight

@@ -2134,7 +2134,12 @@ export default function BibleReader() {
               style={{ top: '0', backgroundColor: 'hsl(var(--border))' }}
             />
           )}
-          <div ref={useColumns ? columnsContainerRef : null} data-testid={useColumns ? 'kjb-two-col-container' : undefined} className={`${useColumns ? 'kjb-two-col text-justify hyphens-auto' : 'text-justify'} ${paragraphMode ? 'text-justify px-2 sm:px-4' : ''}`} style={useColumns ? { fontSize: 'inherit', columnCount: 2, columnGap: fontFamily === 'cursive' ? '3.5rem' : '2.5rem', columnRule: '1px solid hsl(var(--border))' } : { fontSize: 'inherit' }}>
+          {/* hyphens-manual, not auto: the browser's own dictionary does not know
+              Bible names, so it moved a long word whole to the next line and
+              stretched the line above around two words. The verses already carry
+              the app's own break points (soft hyphens), and manual is what makes
+              them break, with a visible dash, so every justified line fills. */}
+          <div ref={useColumns ? columnsContainerRef : null} data-testid={useColumns ? 'kjb-two-col-container' : undefined} className={`${useColumns ? 'kjb-two-col text-justify hyphens-manual' : 'text-justify hyphens-manual'} ${paragraphMode ? 'text-justify px-2 sm:px-4' : ''}`} style={useColumns ? { fontSize: 'inherit', columnCount: 2, columnGap: fontFamily === 'cursive' ? '3.5rem' : '2.5rem', columnRule: '1px solid hsl(var(--border))' } : { fontSize: 'inherit' }}>
             {shownVerses.map((v, idx) => renderVerse(v, idx === 0))}
           </div>
           </div>
