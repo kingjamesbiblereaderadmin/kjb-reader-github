@@ -673,11 +673,9 @@ export default async function (req) {
   // into a replacement character ("Jud'ea"), so any verse holding one is moved
   // to the same fresh key as the refs listed above.
   const ligatureWord = /\b(?:caesar|caesarea|judaea|alphaeus|galilaean|galilaeans|arimathaea|thaddaeus|aeneas|hymenaeus|lebbaeus|idumaea|bartimaeus|timaeus|praetorium|ituraea|aenon|chaldaeans|epaenetus)\b/i.test(text);
-  // v3: the æ-ligature names were first re-voiced as :v2, before Judaea and
-  // Cæsar were pinned in IPA, so those takes still said "joo-DAY-uh". A new key
-  // is what makes the reader ask for the pinned take instead of replaying the
-  // one it already holds.
-  const clipRef = SPEECH_FIX_REFS.has(ref) ? `${ref}:v2` : ligatureWord ? `${ref}:v3`
+  // Every correction is keyed by the revision the text resolves to, exactly as
+  // the bulk run keys it, so a clip voiced there is found here.
+  const clipRef = SPEECH_FIX_REFS.has(ref) ? `${ref}:v2`
     : spoken.revision ? `${ref}:${spoken.revision}`
       : ref;
   const seed = clipRef ? `${voice}|ref:${clipRef}` : `${voice}|text:${text}`;
