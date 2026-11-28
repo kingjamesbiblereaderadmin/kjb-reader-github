@@ -111,8 +111,17 @@
 .kjb-fb-loading { position: absolute; inset: 56px 64px var(--fb-footer-height) 20px; display: grid; place-items: center; font-size: 0.9rem; }
 
 /* The turning sheet, hinged on the spine. */
-.kjb-fb-leaf { position: absolute; top: 0; bottom: 0; z-index: 3; transform-style: preserve-3d; -webkit-transform-style: preserve-3d; pointer-events: none; }
-.kjb-fb-side { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+/* The sheet is its own compositing layer for the length of the turn, and both
+   of its faces are opaque paper: a half-rasterised face during the rotation
+   used to let the page underneath show through for a frame. */
+.kjb-fb-leaf { position: absolute; top: 0; bottom: 0; z-index: 3; transform-style: preserve-3d; -webkit-transform-style: preserve-3d; pointer-events: none; will-change: transform; }
+.kjb-fb-side { position: absolute; inset: 0; background: var(--fb-paper); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+/* The drop shadow under the book is a filter on an ancestor of the 3D sheet.
+   While a sheet is in the air the browser has to re-rasterise the filtered
+   subtree every frame, and on WebKit that occasionally landed a frame late —
+   which read as a flash of the page under the sheet. The shadow is dropped for
+   the turn and comes back when the sheet lands. */
+.kjb-fb-book.kjb-fb-turning { filter: none; }
 .kjb-fb-side-back { transform: rotateY(180deg); }
 .kjb-fb-leaf-fwd { transform-origin: left center; animation: kjb-fb-fwd 650ms cubic-bezier(0.45, 0.05, 0.25, 1) forwards; }
 .kjb-fb-leaf-back { transform-origin: right center; animation: kjb-fb-back 650ms cubic-bezier(0.45, 0.05, 0.25, 1) forwards; }
@@ -349,9 +358,12 @@
 @media (max-width: 480px) {
   .kjb-book-player { width: 190px; right: 54px; }
 }
-.kjb-book-navigation { display: grid; grid-template-columns: minmax(44px, 1fr) minmax(0, 3fr) minmax(44px, 1fr); align-items: center; gap: 4px; min-height: 64px; margin-inline: 12px; padding-block: 8px; border-top: 1px solid var(--fb-rule); }
-.kjb-book-page-step { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 8px; font-size: 0.8rem; }
-.kjb-book-position { text-align: center; font-family: var(--font-serif); font-size: 0.72rem; line-height: 1.5; font-variant-numeric: tabular-nums; }
+/* The two turning controls keep their own width and the page count gives way:
+   with fixed fractional columns a narrow page squeezed "Prev"/"Next" past the
+   edge of the paper, which is what left them clipped. */
+.kjb-book-navigation { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 4px; min-height: 64px; margin-inline: 12px; padding-block: 8px; border-top: 1px solid var(--fb-rule); }
+.kjb-book-page-step { display: flex; align-items: center; justify-content: center; gap: 4px; min-width: 44px; padding: 0 8px; font-size: 0.8rem; white-space: nowrap; }
+.kjb-book-position { min-width: 0; overflow: hidden; text-align: center; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-serif); font-size: 0.72rem; line-height: 1.5; font-variant-numeric: tabular-nums; }
 @media (max-width: 760px) {
   .kjb-book-location { left: 6px; right: 52px; gap: 0; }
   .kjb-book-location > div:first-child { max-width: 6rem; }
