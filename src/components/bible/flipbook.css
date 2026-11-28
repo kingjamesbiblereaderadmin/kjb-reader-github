@@ -154,14 +154,15 @@
    reads as the same highlight and nothing appears to move. */
 .kjb-flipbook [data-fbv].kjb-fb-speaking .kjb-fb-dropcap,
 .kjb-flipbook [data-fb-colour].kjb-fb-speaking .kjb-fb-dropcap {
-  /* The letter is washed like the text it opens, not tinted with the accent.
-     The wash is a band sized to the cap instead of the float's whole box: the
-     box is taller than the ink, and painting all of it put a patch of accent in
-     the air above the letter, which made the letter look lifted off its line. */
+  /* The letter is washed like the text it opens, in the same accent at the same
+     strength (0.10, the verse wash) so the two read as one highlight. The band
+     is the float's own box, top-aligned with the first line, and it reaches one
+     right margin further than the box: that margin is the strip of bare paper
+     that used to show between the letter's highlight and the verse's. */
   background-color: transparent !important;
-  background-image: linear-gradient(hsl(var(--accent) / 0.14), hsl(var(--accent) / 0.14)) !important;
-  background-size: 100% 70% !important;
-  background-position: 0 16% !important;
+  background-image: linear-gradient(hsl(var(--accent) / 0.10), hsl(var(--accent) / 0.10)) !important;
+  background-size: calc(100% + 0.1em) 100% !important;
+  background-position: 0 0 !important;
   background-repeat: no-repeat !important;
   color: inherit !important;
 }
@@ -211,14 +212,17 @@
 }
 .kjb-flipbook .kjb-fb-titlewrap.kjb-fb-speaking .kjb-fb-title,
 .kjb-flipbook [data-fb-sec='head'].kjb-fb-speaking .kjb-fb-title {
-  background: hsl(var(--accent) / 0.16);
-  border-radius: 3px;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
+  /* The printed book name is a heading whose words are washed by the rule
+     above. Painting a band behind the whole heading as well put a second tint
+     under the words, so the name read as doubly highlighted: the heading stays
+     clear and the words carry the single mark. */
+  background: transparent;
+  box-shadow: none;
 }
 .dark .kjb-flipbook .kjb-fb-titlewrap.kjb-fb-speaking .kjb-fb-title,
 .dark .kjb-flipbook [data-fb-sec='head'].kjb-fb-speaking .kjb-fb-title {
-  background: hsl(var(--accent) / 0.34);
+  background: transparent;
+  box-shadow: none;
 }
 
 /* Book view in dark mode: same lift as the reader, so the page being read is
@@ -226,10 +230,11 @@
 .dark .kjb-flipbook .kjb-fb-speaking { background: hsl(var(--accent) / 0.28); }
 .dark .kjb-flipbook [data-fbv].kjb-fb-speaking .kjb-fb-dropcap,
 .dark .kjb-flipbook [data-fb-colour].kjb-fb-speaking .kjb-fb-dropcap {
+  /* Same geometry, same strength as the dark verse wash (0.28). */
   background-color: transparent !important;
-  background-image: linear-gradient(hsl(var(--accent) / 0.34), hsl(var(--accent) / 0.34)) !important;
-  background-size: 100% 70% !important;
-  background-position: 0 16% !important;
+  background-image: linear-gradient(hsl(var(--accent) / 0.28), hsl(var(--accent) / 0.28)) !important;
+  background-size: calc(100% + 0.1em) 100% !important;
+  background-position: 0 0 !important;
   background-repeat: no-repeat !important;
   color: inherit !important;
 }
