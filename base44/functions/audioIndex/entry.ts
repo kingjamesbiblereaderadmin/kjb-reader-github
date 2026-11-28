@@ -80,7 +80,9 @@ export default async function (req) {
         if (!ref || !url) continue;
         const cut = ref.indexOf(':');
         if (cut < 1) continue;
-        const book = ref.slice(0, cut);
+        // Jude's clips are recorded under JUD while the app asks for them as
+        // JDE (its own book code), so both names must reach the same clips.
+        const book = ref.slice(0, cut) === 'JUD' ? 'JDE' : ref.slice(0, cut);
         let key = ref.slice(cut + 1);
         if (!key) continue;
         // Prefer the newest pronunciation revision regardless of row order.

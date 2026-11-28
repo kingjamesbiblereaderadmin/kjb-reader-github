@@ -133,8 +133,12 @@ async function main() {
   const noteEntries = await loadNotes();
   const notesByBook = new Map();
   for (const note of noteEntries) {
-    if (!notesByBook.has(note.book)) notesByBook.set(note.book, []);
-    notesByBook.get(note.book).push(note);
+    // Jude's chapter notes are recorded under the other spelling of its code
+    // (JUD) while its archive — and the app's own lookup — use JDE, so the
+    // notes are filed in the archive's folder or they would never ship.
+    const book = note.book === 'JUD' ? 'JDE' : note.book;
+    if (!notesByBook.has(book)) notesByBook.set(book, []);
+    notesByBook.get(book).push(note);
   }
   console.log(`chapter notes: ${noteEntries.length}`);
 
