@@ -13,8 +13,7 @@ import OfflineBookControl from '@/components/bible/OfflineBookControl';
 import usePreviewMode from '@/hooks/usePreviewMode';
 import { TTS_RATES, TTS_STORAGE, readStored, writeStored } from '@/lib/tts/voices';
 import { getBookByAbbr } from '@/lib/bibleData';
-import { getPlatformLabel, permissionSummary } from '@/lib/platformPermissions';
-import { Link } from 'react-router-dom';
+import VoiceInfoPanel from '@/components/bible/VoiceInfoPanel';
 import bookAnnouncement from '@/components/bible/bookAnnouncement';
 
 // The reader's Listen player.
@@ -710,32 +709,10 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
                 <Info className="w-4 h-4" />
               </button>
             </PopoverTrigger>
-            <PopoverContent align="center" side="top" className="w-80 p-3 font-sans">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">The voice</p>
-              <p className="text-xs text-foreground/85 leading-relaxed">
-                <span className="font-semibold text-foreground notranslate" translate="no">Microsoft Azure AI Speech</span>
-                (<span className="notranslate" translate="no">en-GB-RyanNeural</span>), voiced once per verse and cached.{' '}
-                {bundledAudio ? 'The clips are stored inside this app, so it plays offline.' : 'Verses you play are kept on this device for offline replay.'}
-              </p>
-              {/* What this copy may ask for depends on where it runs: the Android
-                  app, the iOS app, an installed web app, or a browser. */}
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mt-2.5 mb-1">
-                Permissions &mdash; <span className="normal-case tracking-normal">{getPlatformLabel()}</span>
-              </p>
-              <ul className="text-xs text-foreground/85 leading-relaxed">
-                {permissionSummary().map((line) => <li key={line}>• {line}</li>)}
-              </ul>
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mt-2.5 mb-1">Licensing</p>
-              <p className="text-xs text-foreground/85 leading-relaxed">
-                Free for personal, non-commercial reading and study, never sold. The King James text is public domain, though commercial use in the UK may need a Cambridge University Press or King&rsquo;s Printer licence. The audio is played inside the app only.
-              </p>
-              <p className="text-xs text-foreground/85 leading-relaxed mt-1">
-                Full terms on the <Link to="/credits" className="text-primary hover:underline">Credits page</Link>.
-              </p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed mt-2.5">
-                Feedback:{' '}
-                <a href="mailto:kingjamesbiblereader@outlook.sg" className="text-primary hover:underline notranslate" translate="no">kingjamesbiblereader@outlook.sg</a>
-              </p>
+            {/* Below the icon, folded into short sections so the panel opens
+                compact instead of as one long block. */}
+            <PopoverContent align="center" side="bottom" className="w-72 p-2.5 font-sans">
+              <VoiceInfoPanel bundledAudio={bundledAudio} />
             </PopoverContent>
           </Popover>
           {!previewMode && <OfflineBookControl offline={offlineBook} online={netOnline} compact={inline || vertical} />}
