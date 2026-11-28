@@ -68,6 +68,47 @@ export default function BibleReader() {
     setFlipbookOpen(on);
     try { localStorage.setItem('kjb-book-view', String(on)); } catch {}
   };
+  // Switching between the scrolling page and the printed book keeps the reader
+  // on the same words: the verse at the top of the page opens the book on its
+  // own spread, and the verse at the head of that spread is scrolled back into
+  // view when the book is closed.
+  const [landVerse, setLandVerse] = useState(null);
+  const readTopVerse = () => {
+    const scroller = document.getElementById('kjb-scroll');
+    const top = (scroller ? scroller.getBoundingClientRect().top : 0) + (stickyTop || 0) + 4;
+    const nodes = document.querySelectorAll('#kjb-scroll [id^="v"], [id^="v"]');
+    for (const node of nodes) {
+      if (!/^v\d+$/.test(node.id)) continue;
+      if (node.getBoundingClientRect().bottom > top) return Number(node.id.slice(1));
+    }
+    return null;
+  };
+  const scrollReaderToVerse = (verse) => {
+    const el = document.getElementById(`v${verse}`);
+    if (!el) return;
+    const scroller = document.getElementById('kjb-scroll');
+    const y = el.getBoundingClientRect().top
+      - (scroller ? scroller.getBoundingClientRect().top : 0)
+      + (scroller ? scroller.scrollTop : window.scrollY)
+      - (stickyTop || 0) - 4;
+    const top = Math.max(0, Math.round(y));
+    if (scroller) scroller.scrollTo({ top, behavior: 'auto' });
+    else window.scrollTo({ top, behavior: 'auto' });
+  };
+  const toggleBookView = () => {
+    if (!flipbookOpen) {
+      setLandVerse(readTopVerse());
+      setBookView(true);
+      return;
+    }
+    const verse = flipbookRef.current?.getAnchorVerse?.() ?? null;
+    setBookView(false);
+    if (verse != null) {
+      // The page stays mounted but hidden, so the scroller collapses while the
+      // book is open; put it back on the verse once the page is laid out again.
+      requestAnimationFrame(() => requestAnimationFrame(() => scrollReaderToVerse(verse)));
+    }
+  };
   // In book view the header chevron also puts away the app's main footer. A
   // flag on <html> leaves the saved footer mode alone, so it returns as it was.
   useEffect(() => {
@@ -1919,7 +1960,7 @@ export default function BibleReader() {
   const bookToggleNode = (
     <div className={`kjb-book-toggle-row print:hidden relative z-[1] flex justify-end ${flipbookOpen ? '-mt-6' : ''}`}>
       <button
-        onClick={() => { closeAllMenus(); setBookView(!flipbookOpen); }}
+        onClick={() => { closeAllMenus(); toggleBookView(); }}
         data-testid="flipbook-open-btn"
         aria-pressed={flipbookOpen}
         aria-label={flipbookOpen ? 'Normal view' : 'Read as book'}
@@ -1965,7 +2006,7 @@ export default function BibleReader() {
           endMarker={(pos.abbr === 'MAL' && pos.chapter === 4) || (pos.abbr === 'REV' && pos.chapter === 22) ? resolveEndMarker(book.apiName, pos.chapter) : null}
           loading={loading} error={error}
           fontFamilyValue={fontFamily === 'cursive' ? null : getFontFamilyValue(fontFamily)} isCursive={fontFamily === 'cursive'}
-          zoomLevel={zoomLevel} jumpVerse={highlightVerse} jumpSection={highlightSection} tappedVerses={tappedVerses}
+          zoomLevel={zoomLevel} jumpVerse={highlightVerse} jumpSection={highlightSection} landVerse={landVerse} tappedVerses={tappedVerses}
           twoColumns={columnOn} paragraphs={paragraphMode} searchTerm={searchTerm}
           selectMode={selectMode} selectedVerses={selectedVerses} filterMode={filterMode}
           onVerseTap={selectMode ? toggleVerseSelect : toggleTappedVerse}
