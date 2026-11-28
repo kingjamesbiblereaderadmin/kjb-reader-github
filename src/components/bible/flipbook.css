@@ -487,11 +487,17 @@
 /* Book view with the header chevron closed: the app's main footer goes too. */
 html[data-kjb-book-immersive] [data-kjb-bottom-nav],
 html[data-kjb-book-immersive] [data-kjb-app-footer] { display: none !important; }
-html[data-kjb-book-immersive] #kjb-scroll { padding-bottom: env(safe-area-inset-bottom, 0px) !important; }
-/* With the header and footer put away the book owns the whole screen. Stated in
-   CSS, not only in the measured pixel height, so the pages, their text and the
-   book's own bottom bar always reach the screen's bottom edge — a measurement
-   taken before the chrome went away used to leave the book short on phones. */
+/* Immersive: the book owns the whole screen. No reserved strip at the foot of
+   the scroller — that reserved safe-area space was the band of background left
+   under the book's own page bar on phones. */
+html[data-kjb-book-immersive] #kjb-scroll { padding-bottom: 0 !important; }
+/* The book's height is stated in CSS, not only in the measured pixel height, so
+   the pages, their text and the page bar always reach the screen's bottom edge.
+   Full screen height, with the home indicator's clearance carried by the bar
+   itself below (its controls stay tappable, the paper still touches the edge). */
 html[data-kjb-book-immersive] .kjb-flipbook {
-  height: calc(100dvh - env(safe-area-inset-bottom, 0px)) !important;
+  height: 100dvh !important;
+}
+html[data-kjb-book-immersive] .kjb-book-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
