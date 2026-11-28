@@ -26,14 +26,12 @@ import { getBookByAbbr } from '@/lib/bibleData';
 // class is also what makes the highlight survive the reader's own re-renders.
 const SPEAKING_CLASS = 'kjb-speaking';
 
-// The Psalms run past a hundred chapters, and Psalm 119 is named the way it is
-// said aloud — "one nineteen", not "one hundred and nineteen". No other book
-// goes above a hundred, so this only ever changes the Psalms.
-function spokenChapter(n) {
-  const num = Number(n);
-  if (!Number.isFinite(num) || num < 100) return String(n);
-  const rest = num - 100;
-  return rest < 10 ? `one oh ${rest}` : `one ${rest}`;
+// Books whose title opens with a numeral are named with the ordinal, the way
+// they are read aloud: "First Samuel", never "one Samuel". Everything else is
+// said exactly as printed, so no chapter or book number is ever reworded.
+const NUMBERED_BOOK = /^([123])\s+/;
+function spokenBook(name) {
+  return String(name || '').replace(NUMBERED_BOOK, (m, n) => `${['First', 'Second', 'Third'][Number(n) - 1]} `);
 }
 
 // The non-verse pieces the player reads: the superscription, the subscription
@@ -238,20 +236,18 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
       // 2 rather than chapter 1, is a fresh start: "Genesis, chapter 2", not a
       // bare "Chapter 2" with no word of where you are.
       const bookChanged = prev.book !== fullName || !announcedRef.current;
+      // A numbered book's announcement is voiced from the ordinal form, and a
+      // clip is cached by its reference, so those books ask for a take of their
+      // own rather than replaying one recorded as "one Samuel".
+      const ordinal = NUMBERED_BOOK.test(String(fullName)) ? '-n2' : '';
       const introText = bookChanged
-        ? `${fullName}, chapter ${spokenChapter(chapter)}`
-        : `Chapter ${spokenChapter(chapter)}`;
+        ? `${spokenBook(fullName)}, chapter ${chapter}`
+        : `Chapter ${chapter}`;
       // A clip is cached by its reference, not by its words, so the bare
       // "Chapter 3" must not share ":intro" with the book-named line: whichever
       // of the two was voiced first played for both, and after a refresh the
       // player asked for "Genesis, chapter 1" and got a cached "Chapter 1".
-      // A clip is cached by reference, not by its words, so a reworded
-      // announcement must ask for a take of its own: the chapter numbers now
-      // said "one nineteen" would otherwise replay the old recording.
-      const reworded = Number(chapter) >= 100 ? '-one' : '';
-      const introKey = bookChanged
-        ? `${chapterKey}:intro${reworded}`
-        : `${chapterKey}:chapter${reworded}`;
+      const introKey = bookChanged ? `${chapterKey}:intro${ordinal}` : `${chapterKey}:chapter`;
       announcedRef.current = true;
       skipScrollRef.current = true;
       followRef.current = true;
@@ -453,8 +449,12 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
   const playFrom = (verse) => {
     followRef.current = true;
     skipScrollRef.current = true;
+    const name = bookName || label;
     const intro = chapter >= 1
-      ? { ref: `${chapterKey}:intro`, text: `${bookName || label}, chapter ${chapter}` }
+      ? {
+        ref: `${chapterKey}:intro${NUMBERED_BOOK.test(String(name)) ? '-n2' : ''}`,
+        text: `${spokenBook(name)}, chapter ${chapter}`,
+      }
       : null;
     // This press has just named the book, so the chapters that roll on from it
     // only need "Chapter 4". Marking it here is what keeps continuous playback
