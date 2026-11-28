@@ -1,12 +1,11 @@
 import React from 'react';
-import { isAppleStoreApp } from '@/lib/isAppleStoreApp';
+import { getPlatformLabel, permissionRows } from '@/lib/platformPermissions';
 
 // The app's own licence, the third-party APIs it calls and the terms each is
 // used under, the open-source licences it builds on, and the device permissions
-// the installed apps actually ask for. The permission list comes from the
-// shipping manifests: Android declares INTERNET, ACCESS_NETWORK_STATE and (API
-// 28 and below) write access to Downloads; the iOS app declares no usage
-// descriptions at all.
+// this copy actually asks for. Those differ by platform (the Android app, the
+// iOS app, an installed web app, or the website in a browser), so the list is
+// chosen by which copy is running instead of naming every platform at once.
 
 const APIS = [
   ['Microsoft Azure AI Speech', 'the Listen voice. Verse text is sent to Azure and the audio comes back as an mp3 that is stored and replayed, so each verse is voiced once. It runs on the developer\u2019s own Azure subscription under the Microsoft Azure service terms, and the speech is played inside the app only \u2014 it is never sold or offered as audio on its own. The Android and iOS apps carry the whole set of clips inside the app itself, so listening there needs no connection.'],
@@ -20,21 +19,6 @@ const APP_LICENCES = [
   'Open-source components keep their own licences: Capacitor (MIT), the Lucide interface icons (ISC), and the LibreOffice hyphenation patterns (LGPL/MPL).',
   'The typefaces are used under the SIL Open Font License 1.1, which allows free use and redistribution but not sale of the fonts on their own.',
 ];
-
-function permissions() {
-  if (isAppleStoreApp()) {
-    return [
-      ['No special permissions', 'the iOS app asks for none. There is no request for camera, microphone, location, contacts or notifications.'],
-      ['Network only', 'it uses standard HTTPS to load the Bible text, search results and audio when the device is online.'],
-    ];
-  }
-  return [
-    ['Internet access', 'loads the Bible text, search results and audio when the device is online.'],
-    ['Network state', 'tells the app whether to open the live site or the offline copy it carries.'],
-    ['Storage — Android 9 and older only', 'saves files you export (PDF, HTML) into your Downloads folder. Android 10 and later needs no permission for this.'],
-    ['Nothing else', 'there is no request for camera, microphone, location, contacts or notifications.'],
-  ];
-}
 
 const LIST = 'font-sans text-sm text-foreground/85 leading-relaxed flex items-start gap-2';
 const HEAD = 'font-sans text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mt-5 mb-2';
@@ -62,9 +46,9 @@ export default function LicensingSection() {
         ))}
       </div>
 
-      <p className={HEAD}>Permissions the app asks for</p>
+      <p className={HEAD}>Permissions this copy asks for &mdash; <span className="normal-case tracking-normal text-foreground/70">{getPlatformLabel()}</span></p>
       <div className="space-y-2">
-        {permissions().map(([title, detail]) => (
+        {permissionRows().map(([title, detail]) => (
           <p key={title} className={LIST}>
             <span className="text-accent mt-1">–</span>
             <span><strong className="text-foreground">{title}:</strong> <span className="text-muted-foreground">{detail}</span></span>

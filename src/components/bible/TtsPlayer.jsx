@@ -13,6 +13,7 @@ import OfflineBookControl from '@/components/bible/OfflineBookControl';
 import usePreviewMode from '@/hooks/usePreviewMode';
 import { TTS_RATES, TTS_STORAGE, readStored, writeStored } from '@/lib/tts/voices';
 import { getBookByAbbr } from '@/lib/bibleData';
+import { getPlatformLabel, permissionRows } from '@/lib/platformPermissions';
 import bookAnnouncement from '@/components/bible/bookAnnouncement';
 
 // The reader's Listen player.
@@ -720,11 +721,18 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
                   ? 'Every verse is stored inside this app itself, so the whole Bible plays with no connection and nothing is ever downloaded.'
                   : 'Verses you have played are stored on this device, so they replay with no connection. A book you have not played yet is fetched once, then kept.'}
               </p>
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mt-3 mb-1.5">Permissions used</p>
+              {/* What this copy is allowed to ask for depends on where it runs:
+                  the Android app, the iOS app, an installed web app, or the
+                  website in a browser. */}
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mt-3 mb-1.5">
+                Permissions used &mdash; <span className="normal-case tracking-normal">{getPlatformLabel()}</span>
+              </p>
               <ul className="text-xs text-foreground/85 leading-relaxed space-y-1">
-                <li>• Network access, to load the Bible text and the audio.</li>
-                <li>• Storage on this device, to keep the offline copy.</li>
-                <li>• No camera, microphone, location, contacts, photos, or notifications.</li>
+                {permissionRows().map(([title, detail]) => (
+                  <li key={title}>
+                    <span className="font-semibold text-foreground">{title}:</span> {detail}
+                  </li>
+                ))}
               </ul>
               <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mt-3 mb-1.5">Feedback</p>
               <p className="text-xs text-foreground/85 leading-relaxed">
