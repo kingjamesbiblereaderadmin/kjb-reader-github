@@ -305,6 +305,10 @@ export default function CreditsPage() {
               <span className="text-accent mt-1">•</span>
               <span><strong className="text-foreground">AI Disclaimer:</strong> This app was built with the assistance of artificial intelligence (AI). AI-generated code and content may contain errors. The King James Bible text itself is not AI-generated. Please report any issues so we can correct them.</span>
             </p>
+            <p className="font-sans text-sm text-foreground/85 leading-relaxed flex items-start gap-2">
+              <span className="text-accent mt-1">•</span>
+              <span><strong className="text-foreground">Feedback:</strong> Found a mistake, a wrong word, or something the Listen voice says badly? Email <a href="mailto:kingjamesbiblereader@outlook.sg" className="text-primary hover:underline notranslate" translate="no">kingjamesbiblereader@outlook.sg</a> and it will be put right.</span>
+            </p>
           </div>
           <div className="rounded-xl bg-secondary/60 border border-border px-4 py-3 mt-4">
             <p className="font-sans text-xs text-muted-foreground leading-relaxed">© 2026 <span className="notranslate" translate="no">Shawn Poh Hanlin</span>. This app is public domain and freely shareable.</p>
