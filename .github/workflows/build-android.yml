@@ -8,10 +8,10 @@ on:
         options: [none, internal, alpha, beta, production]
         default: none
       play_status:
-        description: 'Release status when uploading'
+        description: 'Release status when uploading: completed sends it to Google review, draft leaves it unpublished'
         type: choice
         options: [completed, draft]
-        default: draft
+        default: completed
       release_notes:
         description: 'Play release notes (What''s New) for this upload; blank = leave unchanged. Write \n for line breaks. Max 500 chars.'
         required: false
@@ -235,6 +235,9 @@ jobs:
           tracks: ${{ inputs.play_track }}
           releaseName: KJBReader.v${{ env.VERSION_NAME }}
           status: ${{ inputs.play_status }}
+          # Always submit the committed edit to Google for review (the action
+          # would otherwise be able to hold it back with changesNotSentForReview).
+          changesNotSentForReview: false
           mappingFile: ${{ steps.deobf.outputs.mapping }}
           # Empty when no release_notes input was given (notes stay unchanged).
           whatsNewDirectory: ${{ steps.notes.outputs.dir }}
