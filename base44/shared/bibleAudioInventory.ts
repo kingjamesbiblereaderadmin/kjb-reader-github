@@ -1,6 +1,7 @@
 import { BOOK_ORDER, loadPceBible, processVerse } from './biblePceData.ts';
 import { BOOK_CODES } from './bibleBookCodes.ts';
 import { applyHeteronyms } from './heteronyms.ts';
+import { normalizeSpeechText } from './normalizeSpeechText.ts';
 
 export const LIBRARY_VOICE = 'en-GB-RyanNeural';
 
@@ -15,7 +16,7 @@ export async function bibleAudioInventory() {
         const ref = `${BOOK_CODES[index]}:${chapter}:${verse.verse}`;
         // The verse closing a Psalm 119 stanza is filed under the take that
         // holds the verse alone, without the stanza name printed under it.
-        const revision = verses[at + 1]?.heading ? 'h25' : applyHeteronyms(text).revision;
+        const revision = verses[at + 1]?.heading ? 'h25' : applyHeteronyms(normalizeSpeechText(text)).revision;
         inventory.push({ book: BOOK_CODES[index], ref, key: revision ? `${ref}:${revision}` : ref, text });
       });
     });

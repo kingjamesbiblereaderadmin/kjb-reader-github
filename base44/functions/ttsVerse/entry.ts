@@ -11,6 +11,7 @@
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.63';
 import { applyHeteronyms, CORRECTED_IPA } from '../../shared/heteronyms.ts';
+import { normalizeSpeechText } from '../../shared/normalizeSpeechText.ts';
 import { splitVerbEndings } from '../../shared/verbEndings.ts';
 
 const CORS_HEADERS = {
@@ -106,30 +107,7 @@ type SynthResult =
 // and then the letter "s" as two separate words. Everything sent to the engine
 // goes through here, so the reader, the bulk run and any other caller sound the
 // same and no word ever arrives broken at its apostrophe.
-function normalizeSpeechText(raw: string) {
-  let s = String(raw || '');
-  s = s.replace(/<<[^>]*>>/g, ' ');
-  s = s.replace(/([A-Za-z\]])[\u00B6\uFFFD\u000F\u2019](?=[A-Za-z\[])/g, "$1'");
-  s = s.replace(/([A-Za-z\]])[\u00B6\uFFFD\u000F\u2019](?=[^A-Za-z\[]|$)/g, "$1'");
-  // A placeholder standing where a letter belongs, after a space ("in \uFFFDnon
-  // near to Salim"), is the \u00C6 ligature the source lost, not a pilcrow.
-  s = s.replace(/(^|[\s(\[])[\u00B6\uFFFD\u000F](?=[a-z])/g, '$1\u00C6');
-  s = s.replace(/[\u00B6\uFFFD\u000F]/g, ' ');
-  s = s.replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"');
-  s = s.replace(/[\u00C6]/g, 'Ae').replace(/[\u00E6]/g, 'ae');
-  s = s.replace(/\[([^\]]*)\]/g, '$1');
-  // The KJB prints whole words in capitals ("LORD", "GOD", "IN the beginning"),
-  // and a neural voice can spell an all-caps word out letter by letter. Title
-  // casing it changes nothing a listener hears except that it is read as a word.
-  s = s.replace(/\b[A-Z]{2,}\b/g, (w) => w.charAt(0) + w.slice(1).toLowerCase());
-  // A colon or semicolon printed beside a bracket is punctuation, but a speech
-  // engine reads ";)" as "winky smiley" and ":(" as "sad face". The printed
-  // punctuation stays; the face never reaches the voice. Real emoji go too.
-  s = s.replace(/([:;])-?[)\]]/g, '$1');
-  s = s.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '');
-  s = s.replace(/\s+([,.;:!?])/g, '$1');
-  return s.replace(/\s+/g, ' ').trim();
-}
+
 
 // A neural voice reads what is spelled. King James spellings it has never met
 // come out wrong - "asswaged" as ass-waged, "Hezekiah" with a flat first

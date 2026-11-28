@@ -87,8 +87,9 @@ export const CORRECTED_IPA: Record<string, string> = {
   // engine can guess ("KAI-zar", "joo-DAY-uh").
   caesar: 'ˈsiːzə',
   caesarea: 'ˌsiːzəˈriːə',
-  // Shawn's chosen pronunciation: joo-DAY-uh, not joo-DEE-uh.
-  judaea: 'dʒuːˈdeɪə',
+  // Cambridge Dictionary UK: https://dictionary.cambridge.org/pronunciation/english/judaea
+  // Standard British joo-DEE-uh replaces the earlier custom joo-DAY-uh.
+  judaea: 'dʒuːˈdiːə',
   alphaeus: 'ælˈfiːəs',
   galilaean: 'ˌɡælɪˈliːən',
   galilaeans: 'ˌɡælɪˈliːənz',
@@ -599,5 +600,6 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   // once, not once per word.
   const contextUpdated = /\b(?:read|readeth|readest|reading|lead|leadeth|leadest|leading|leads|bow|bows|bowed|boweth|bowing|sow|soweth|sowest|sowed|tear|tears|wound|wounds|learned|prophesy|prophesied|prophesieth|prophesying|prophesyings|prophesyest|prophecy|incense|shew|shewed|shewedst|shewest|sheweth|shewing|shewn|shewbread|shewbreads|victuals|blessedness)\b/i.test(text)
     || /\blive\s+coals?\b/i.test(text);
-  return { text: out, changed, revision: contextUpdated ? 'h31' : lucreUpdated ? 'h30' : propheciesUpdated ? 'h29' : elijahUpdated ? 'h28' : hyphenatedName ? 'h27' : repinnedUpdated ? 'h26' : siteNamesUpdated ? 'h24' : namesUpdated ? 'h23' : heretickUpdated ? 'h20' : sowUpdated ? 'h19' : baptizeUpdated ? 'h18' : sosthenesUpdated ? 'h17' : cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
+  const britishUpdated = /\b(?:judaea|judæa)\b/i.test(text);
+  return { text: out, changed, revision: britishUpdated ? 'h32' : contextUpdated ? 'h31' : lucreUpdated ? 'h30' : propheciesUpdated ? 'h29' : elijahUpdated ? 'h28' : hyphenatedName ? 'h27' : repinnedUpdated ? 'h26' : siteNamesUpdated ? 'h24' : namesUpdated ? 'h23' : heretickUpdated ? 'h20' : sowUpdated ? 'h19' : baptizeUpdated ? 'h18' : sosthenesUpdated ? 'h17' : cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
 }

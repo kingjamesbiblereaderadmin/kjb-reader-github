@@ -11,8 +11,12 @@ export default async function(req) {
     const body = await req.json().catch(() => ({}));
     if (body.revision && !PRONUNCIATION_REVISIONS.includes(body.revision)) return Response.json({ error: 'Invalid pronunciation revision' }, { status: 400 });
     const deadline = Date.now() + 190000;
-    const { candidates, pending, latestByBook } = await pendingPronunciationTargets(base44.asServiceRole, body.revision || '');
-    const status = { repaired: 0, remaining: pending.length, reviewedVerses: 31102, targetedVerses: candidates.length, latestByBook };
+    const { candidates, pending, latestByBook, scannedBooks, scannedChapters, scannedVerses } = await pendingPronunciationTargets(base44.asServiceRole, body.revision || '');
+    const status = { repaired: 0, remaining: pending.length, scannedBooks, scannedChapters, scannedVerses,
+      targetedVerses: candidates.length, latestByBook, voice: 'en-GB-RyanNeural',
+      pronunciationStandard: 'Standard British English (Received Pronunciation)', pronunciationVerified: false,
+      verificationNote: 'Text scanning and recording completion do not verify spoken pronunciation. Independent listening review is still required.',
+      complete: pending.length === 0 };
     if (body.statusOnly === true || !pending.length) return Response.json(status);
     // Each pass voices a full batch (the bulk endpoint's own maximum), so a run
     // gets through the repair list in a few minutes instead of a few hours.
@@ -21,11 +25,11 @@ export default async function(req) {
     const BATCH = 40;
     const passes = body.backfill === true ? 6 : 1;
     for (let pass = 0; pass < passes && Date.now() < deadline - 30000; pass += 1) {
-      // A stanza-closing verse is filed under a key its own text cannot name
-      // (it depends on the stanza heading printed after it), so that key is sent
-      // as the reference; every other repair is named by its plain verse ref.
+      // Record exactly the take whose absence put it in the queue. Recomputing
+      // a legacy closing/stanza key in the bulk endpoint can save the wrong take
+      // and leave the requested one missing on every subsequent run.
       const items = pending.slice(pass * BATCH, (pass + 1) * BATCH)
-        .map(({ ref, text, expected }) => ({ ref: expected.endsWith(':h25') ? expected : ref, text }));
+        .map(({ text, expected }) => ({ ref: expected, text }));
       if (!items.length) break;
       const result = await base44.functions.invoke('ttsBulk', { voice: 'en-GB-RyanNeural', items });
       const data = result.data || result;

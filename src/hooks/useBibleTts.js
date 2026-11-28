@@ -199,10 +199,7 @@ async function audioUrlFor(clip, voice) {
         // name the recorded library was heard to get wrong. The reference is
         // named here so the corrected take plays the moment it exists, without
         // waiting on the server's own revision lookup.
-        ref: clip.h25 ? `${clip.ref}:h25`
-          : clip.h22 ? `${clip.ref}:h22`
-            : revision === 'h23' || revision === 'h24' ? `${clip.ref}:${revision}`
-              : clip.ref,
+        ref: revision ? `${clip.ref}:${revision}` : clip.ref,
         engine: engineForVoice(voice),
       });
       const data = res?.data ?? res;

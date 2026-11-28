@@ -13,6 +13,10 @@ const SOURCES = [
     body: 'Received Pronunciation (RP) transcriptions for the names and places the dictionaries carry, which is the standard British form the narration follows.',
   },
   {
+    title: 'Cambridge Dictionary, UK pronunciations',
+    body: 'The UK entry for Judaea supplies joo-DEE-uh, replacing the earlier custom pronunciation. British dictionary forms take precedence over custom respellings.',
+  },
+  {
     title: 'Wiktionary',
     body: 'International Phonetic Alphabet entries for the biblical proper names the general dictionaries do not list, such as Tychicus, Onesimus and Cenchrea.',
   },
@@ -21,8 +25,8 @@ const SOURCES = [
     body: 'The forms the version is read with in public reading: bless-ed and curs-ed with their own syllable, bap-TIZE with the stress on the last, and the -eth verbs given their own final syllable.',
   },
   {
-    title: 'The recordings themselves',
-    body: 'Every verse that has been recorded is transcribed back and compared with the printed text. A name the voice misread — Tychicus heard as "Tiki Coos", Puteoli as "Peolti Olli" — is caught that way and recorded again.',
+    title: 'Recording checks and their limits',
+    body: 'Recording coverage, transcripts and word timings help identify missing or suspect audio. They do not prove correct pronunciation, tense or stress. The complete narration has not received an independent listening sign-off.',
   },
 ];
 
@@ -65,6 +69,7 @@ export default function PronunciationSection() {
         Pronunciation references:{' '}
         <a href="https://www.oed.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Oxford English Dictionary</a>,{' '}
         <a href="https://www.collinsdictionary.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Collins English Dictionary</a>,{' '}
+        <a href="https://dictionary.cambridge.org/pronunciation/english/judaea" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Cambridge Dictionary, UK pronunciation of Judaea</a>,{' '}
         <a href="https://en.wiktionary.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Wiktionary</a>.
         {' '}Where those disagree, the British RP form is used.
       </p>

@@ -17,6 +17,8 @@ export default function pronunciationRevision(text) {
   // speech ("prophesy" as the noun, "incense" as the verb, "shew" as "shoo"),
   // was voiced again under one revision — mirrored here so the reader asks for
   // that take instead of replaying the one it remembers.
+  // Cambridge's UK form replaces the previous custom Judaea pronunciation.
+  if (/\b(?:judaea|judæa)\b/i.test(text)) return 'h32';
   if (/\b(?:read|readeth|readest|reading|lead|leadeth|leadest|leading|leads|bow|bows|bowed|boweth|bowing|sow|soweth|sowest|sowed|tear|tears|wound|wounds|learned|prophesy|prophesied|prophesieth|prophesying|prophesyings|prophesyest|prophecy|incense|shew|shewed|shewedst|shewest|sheweth|shewing|shewn|shewbread|shewbreads|victuals|blessedness)\b/i.test(text)
       || /\blive\s+coals?\b/i.test(text)) return 'h31';
   if (/\blucre\b/i.test(text)) return 'h30';

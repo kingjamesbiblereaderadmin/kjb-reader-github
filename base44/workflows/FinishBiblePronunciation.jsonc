@@ -42,7 +42,7 @@
     ]
   },
   "name": "Finish Bible Pronunciation Repairs",
-  "description": "Completes only the audited h5 to h28 recording refreshes in saved batches. Completed revision keys are skipped. The finite schedule archives after 720 runs; no speech is generated when the repair queue is empty.",
+  "description": "Completes targeted British-English recording corrections through h32, including the h31 context corrections. Completed revision keys are skipped. Recording completion is not pronunciation verification. The existing finite schedule is unchanged; an empty queue generates no speech.",
   "trigger": {
     "condition": null,
     "config": {
