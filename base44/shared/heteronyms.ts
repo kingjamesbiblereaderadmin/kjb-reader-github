@@ -123,6 +123,12 @@ export const CORRECTED_IPA: Record<string, string> = {
   paphos: 'ˈpeɪfɒs',
   pamphylia: 'pæmˈfɪliə',
   pisidia: 'pɪˈsɪdiə',
+  // Galatia, Antioch and Laodicea triggered a re-recording with the site names
+  // but were never pinned, so those takes were voiced from the bare letters
+  // again. Pinned in the dictionary forms.
+  galatia: 'ɡəˈleɪʃə',
+  antioch: 'ˈæntiɒk',
+  laodicea: 'leɪˌɒdɪˈsiːə',
   // The rest — right in the dictionary form, applied to every recording made
   // from here on (a verse keeps its old clip until something else re-voices it).
   nicopolis: 'nɪˈkɒpəlɪs',
@@ -181,7 +187,8 @@ export const CORRECTED_IPA: Record<string, string> = {
   agabus: 'ˈæɡəbəs',
   demetrius: 'dɪˈmiːtriəs',
   diana: 'daɪˈænə',
-  bernice: 'bəˈnaɪsi',
+  // Bernice (Acts 25–26) is BUR-neess, never "ber-NY-see".
+  bernice: 'bɜːˈniːs',
   drusilla: 'druːˈsɪlə',
   lysias: 'ˈlɪsiəs',
   porcius: 'ˈpɔːʃəs',
@@ -494,5 +501,9 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   const cursedUpdated = /\bcurs-ed\b/i.test(out);
   const adarUpdated = /\badar\b/i.test(text);
   const satUpdated = /\bsatest\b/i.test(text);
-  return { text: out, changed, revision: siteNamesUpdated ? 'h24' : namesUpdated ? 'h23' : heretickUpdated ? 'h20' : sowUpdated ? 'h19' : baptizeUpdated ? 'h18' : sosthenesUpdated ? 'h17' : cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
+  // Bernice was pinned to the wrong reading, and Galatia, Antioch and Laodicea
+  // had no pin at all although their verses were re-recorded. Those four are
+  // voiced once more so the corrected pins are what actually plays.
+  const repinnedUpdated = /\b(?:bernice|galatia|antioch|laodicea)\b/i.test(text);
+  return { text: out, changed, revision: repinnedUpdated ? 'h26' : siteNamesUpdated ? 'h24' : namesUpdated ? 'h23' : heretickUpdated ? 'h20' : sowUpdated ? 'h19' : baptizeUpdated ? 'h18' : sosthenesUpdated ? 'h17' : cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
 }

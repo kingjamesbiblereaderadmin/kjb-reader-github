@@ -4,6 +4,9 @@ export default function pronunciationRevision(text) {
   // letters ("Tychicus" as "Tiki Coos", "Onesimus" as "Onessi Muse"), and the
   // same names stand in the verses. Naming the revision here makes the reader
   // skip the take it remembers and ask for the re-voiced one.
+  // Bernice was pinned to the wrong reading, and Galatia, Antioch and Laodicea
+  // carried no pin at all, so those takes ask for the corrected one by name.
+  if (/\b(?:bernice|galatia|antioch|laodicea)\b/i.test(text)) return 'h26';
   if (/\b(?:tychicus|onesimus|timotheus|cenchrea|pacatiana)\b/i.test(text)) return 'h23';
   // Names the recorded library was heard to get wrong, now pinned in IPA, so
   // those verses ask for the re-voiced take instead of the one they remember.
