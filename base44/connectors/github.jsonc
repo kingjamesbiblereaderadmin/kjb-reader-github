@@ -3,6 +3,7 @@
   "scopes": [
     "read:user",
     "read:org",
-    "repo"
+    "repo",
+    "workflow"
   ]
 }
