@@ -14,5 +14,14 @@ export function normalizeSpeechText(raw) {
   s = s.replace(/([:;])-?[)\]]/g, '$1');
   s = s.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '');
   s = s.replace(/\s+([,.;:!?])/g, '$1');
+  // "I John, who also am your brother" is the apostle speaking, but the engine
+  // reads "I" before a book's name as that book's roman numeral: Revelation 1:9
+  // came out "First John". A comma after the pronoun is the one mark that says
+  // it is the speaker, and the engine reads it as "I". Only names that are also
+  // books of the Bible are listed: any other name is never taken for a numeral,
+  // so a comma there would only add a pause that is not in the verse.
+  for (const name of ['John', 'Daniel']) {
+    s = s.replace(new RegExp(`(^|[^A-Za-z])I\\s+${name}\\b`, 'g'), `$1I, ${name}`);
+  }
   return s.replace(/\s+/g, ' ').trim();
 }
