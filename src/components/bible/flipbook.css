@@ -171,14 +171,17 @@
    above the heading looked gone for as long as the chapter was being announced.
    The air stays clear: the words carry the wash, with the same halo the running
    head gets, so the heading never shifts while it is read. */
-.kjb-flipbook .kjb-fb-opening.kjb-fb-speaking {
-  background-color: transparent;
+.kjb-flipbook .kjb-fb-opening.kjb-fb-speaking,
+.dark .kjb-flipbook .kjb-fb-opening.kjb-fb-speaking {
+  background: transparent;
+  box-shadow: none;
 }
-.kjb-flipbook .kjb-fb-opening.kjb-fb-speaking .kjb-fb-title,
-.kjb-flipbook .kjb-fb-opening.kjb-fb-speaking .kjb-fb-chapter {
+.kjb-flipbook .kjb-fb-opening.kjb-fb-speaking .kjb-fb-heading-text {
   background-color: hsl(var(--accent) / 0.18);
   box-shadow: 0 0 0 7px hsl(var(--accent) / 0.12);
   border-radius: 0.4rem;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
 }
 /* Book view in dark mode: same lift as the reader, so the page being read is
    as unmistakable on a dark page as on a light one. */
@@ -192,8 +195,7 @@
 .dark .kjb-flipbook [data-fb-colour].kjb-fb-speaking mark { background: hsl(var(--accent) / 0.28) !important; }
 .dark .kjb-flipbook .kjb-fb-speaking mark { background: hsl(var(--accent) / 0.5) !important; }
 .dark .kjb-flipbook .kjb-fb-note.kjb-fb-speaking { background: hsl(var(--accent) / 0.34); }
-.dark .kjb-flipbook .kjb-fb-opening.kjb-fb-speaking .kjb-fb-title,
-.dark .kjb-flipbook .kjb-fb-opening.kjb-fb-speaking .kjb-fb-chapter {
+.dark .kjb-flipbook .kjb-fb-opening.kjb-fb-speaking .kjb-fb-heading-text {
   background-color: hsl(var(--accent) / 0.34);
   box-shadow: 0 0 0 7px hsl(var(--accent) / 0.22);
 }

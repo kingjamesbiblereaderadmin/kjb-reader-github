@@ -129,7 +129,7 @@ export default function RunningHead({ bookName, chapter, baseFontRem, isCursive 
   const fontSize = `${baseFontRem * scale}rem`;
 
   return (
-    <div className={`kjb-running-head mb-6 print:hidden ${isCursive ? 'cursive-em-style' : 'font-serif'}`}>
+    <div className={`kjb-running-head print:hidden ${isCursive ? 'cursive-em-style' : 'font-serif'}`}>
       <div
         ref={containerRef}
         data-testid="kjb-running-head"

@@ -1973,7 +1973,7 @@ export default function BibleReader() {
           toolbar, so scrolling a long chapter never takes the book's name, its
           chapter number and the way back into book view off the screen. */}
       {!flipbookOpen && (
-      <div id="kjb-anchored-heading" data-kjb-anchored-band className="print:static sticky z-[95] -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background pt-1 pb-3" style={{ top: stickyTop }}>
+      <div id="kjb-anchored-heading" data-kjb-anchored-band className="print:static sticky z-[95] -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background pt-1" style={{ top: stickyTop }}>
       {bookToggleNode}
       {/* In two columns the chapter's name and number are printed as a running
           head instead of the large heading — and it lives in this band too, so

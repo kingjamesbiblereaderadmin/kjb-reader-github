@@ -23,8 +23,8 @@ export default function BookChapterBlocks({ bookName, showBookTitle = true, chap
   });
   return <>
     <div className="kjb-fb-opening" data-fb-sec="head">
-      {showBookTitle && <h2 className="kjb-fb-title">{bookName}</h2>}
-      <p className="kjb-fb-chapter">Chapter {chapter}</p>
+      {showBookTitle && <h2 className="kjb-fb-title"><span className="kjb-fb-heading-text">{bookName}</span></h2>}
+      <p className="kjb-fb-chapter"><span className="kjb-fb-heading-text">Chapter {chapter}</span></p>
     </div>
     {subscript && <p className="kjb-fb-note" data-fb-sec="sub" dangerouslySetInnerHTML={note(subscript, jumpSection === 'subscript' ? searchTerm : null)} />}
     {groups.map((group, index) => <React.Fragment key={group[0].verse}>
