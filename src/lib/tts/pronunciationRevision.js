@@ -6,6 +6,9 @@ export default function pronunciationRevision(text) {
   // skip the take it remembers and ask for the re-voiced one.
   // A compound name printed with a hyphen ("Beth-lehem", "Beth-el", "En-gedi")
   // is spoken as one word now, so those verses ask for the re-voiced take.
+  // Elijah is said ee-LY-juh now (a long "ee" before the stress), so those
+  // verses ask for the re-voiced take instead of the one they remember.
+  if (/\belijah\b/i.test(text)) return 'h28';
   if (/[A-Z][a-z]+-[a-z]/.test(text)) return 'h27';
   // Bernice was pinned to the wrong reading, and Galatia, Antioch and Laodicea
   // carried no pin at all, so those takes ask for the corrected one by name.
