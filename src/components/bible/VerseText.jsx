@@ -502,10 +502,10 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     // Pilcrow verse: render as a block (new paragraph) with gap above, no indent
     if (hasPilcrow && !isFirstVerse) {
       return (
-        <span id={id} data-pilcrow="true" className="block relative mt-12 scroll-mt-24">
+        <span id={id} data-kjb-has-stanza={stanzaHeading ? 'true' : undefined} data-pilcrow="true" className="block relative mt-12 scroll-mt-24">
           {stanzaHeading}
           <span
-            onClick={handleVerseClick}
+            data-kjb-verse-body onClick={handleVerseClick}
             className="inline leading-relaxed rounded cursor-pointer px-[0.3em] py-[0.2em]"
           >
             <sup className="text-accent font-sans font-bold text-[0.65em] mr-2 select-none">{verse.verse}</sup>
@@ -528,10 +528,10 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     }
     // Normal inline verse
     return (
-      <span id={id} className="inline relative scroll-mt-24">
+      <span id={id} data-kjb-has-stanza={stanzaHeading ? 'true' : undefined} className="inline relative scroll-mt-24">
         {stanzaHeading}
         <span
-          onClick={handleVerseClick}
+          data-kjb-verse-body onClick={handleVerseClick}
           className="inline leading-loose rounded cursor-pointer px-[0.3em] py-[0.2em]"
         >
           {!dropCap && (
@@ -576,10 +576,10 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
   // floated/pulled back via CSS so it still begins at the left margin.
   if (dropCap) {
     return (
-      <span id={id} className="block relative mt-2 scroll-mt-24" style={{ display: 'flow-root' }}>
+      <span id={id} data-kjb-has-stanza={stanzaHeading ? 'true' : undefined} className="block relative mt-2 scroll-mt-24" style={{ display: 'flow-root' }}>
         {stanzaHeading}
         <span
-          onClick={handleVerseClick}
+          data-kjb-verse-body onClick={handleVerseClick}
           className="flex items-start leading-relaxed rounded cursor-pointer px-[0.4em] py-[0.15em] gap-[0.6em] w-full"
         >
           {/* Spacer matching the verse-number column so verse 1's text column
@@ -605,10 +605,10 @@ export default function VerseText({ verse, highlight = false, id, bookName, abbr
     );
   }
   return (
-    <span id={id} data-pilcrow={hasPilcrow && !isFirstVerse ? 'true' : undefined} className={`block relative scroll-mt-24 ${hasPilcrow && !isFirstVerse ? 'mt-12' : 'mt-3'}`}>
+    <span id={id} data-kjb-has-stanza={stanzaHeading ? 'true' : undefined} data-pilcrow={hasPilcrow && !isFirstVerse ? 'true' : undefined} className={`block relative scroll-mt-24 ${hasPilcrow && !isFirstVerse ? 'mt-12' : 'mt-3'}`}>
       {stanzaHeading}
       <span
-        onClick={handleVerseClick}
+        data-kjb-verse-body onClick={handleVerseClick}
         className="flex items-start leading-relaxed rounded cursor-pointer px-[0.4em] py-[0.15em] gap-[0.6em] w-full"
       >
         <sup className="text-accent font-sans font-bold text-[0.6em] shrink-0 select-none mt-[0.2em] mr-[0.3em] inline-block text-right w-[1.6em]">{verse.verse}</sup>

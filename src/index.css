@@ -1110,15 +1110,25 @@ html.kjb-native-ios select {
   box-shadow: 0 0 0 7px hsl(var(--accent) / 0.26);
 }
 
-/* The stanza name (ALEPH, BETH…) is read as its own clip and washed on its
-   own while it plays. It sits INSIDE the verse element that follows it, so the
-   verse's own wash covered it a second time once the verse began reading — the
-   name looked highlighted twice in a row. Mask it with the page colour so only
-   the verse beneath carries that wash. */
-.kjb-speaking .kjb-stanza-heading:not(.kjb-speaking) {
-  background-color: hsl(var(--background));
+/* A stanza and its opening verse share a layout wrapper, not a highlight.
+   Painting that wrapper tinted the space around BETH even when its letters
+   were masked. Keep it clear and paint only the separate verse body instead.
+   The heading still carries its own speaking class for its own audio clip.
+   Two-column verses already paint only .kjb-verse-text, so leave that intact. */
+:root [data-kjb-has-stanza].kjb-speaking {
+  background-color: transparent;
   box-shadow: none;
-  border-radius: 0.25rem;
+}
+:not(.kjb-two-col) > [data-kjb-has-stanza].kjb-speaking > [data-kjb-verse-body] {
+  background-color: hsl(var(--accent) / 0.10);
+  box-shadow: inset 3px 0 0 hsl(var(--accent));
+  border-radius: 0.2rem;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.dark :not(.kjb-two-col) > [data-kjb-has-stanza].kjb-speaking > [data-kjb-verse-body] {
+  background-color: hsl(var(--accent) / 0.28);
+  box-shadow: inset 4px 0 0 hsl(var(--accent)), 0 0 0 1px hsl(var(--accent) / 0.28);
 }
 
 /* The book name and the chapter line are short, tight runs of type, and the
