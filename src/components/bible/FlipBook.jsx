@@ -560,7 +560,7 @@ export default React.forwardRef(function FlipBook({
               {/* The page that carries the next chapter on is headed with that
                   chapter, as a printed Bible's running head follows the text
                   beneath it. */}
-              {textIndex === 0 && !carry ? '\u00A0' : `${headBook.name}, Chapter ${headChapter}`}
+              {textIndex === 0 && !carry ? '\u00A0' : `${headBook.shortName}, Chapter ${headChapter}`}
             </div>
             <div className="kjb-fb-window" style={{ width: textW, height: textH }}>
               {textIndex === 0 && carry && <div data-fb-previous={carry.fromKey} className="absolute inset-0">{carry.underlay}</div>}
@@ -725,8 +725,8 @@ export default React.forwardRef(function FlipBook({
         <div className="kjb-fb-measure" aria-hidden="true" style={{ width: textW, height: textH }}>
           {/* Out of flow: only measured, never laid into the page. */}
           <div ref={chromeProbeRef} style={{ position: 'absolute', left: 0, top: 0, width: textW }}>
-            <div className="kjb-fb-head">{book.name}, Chapter {chapter}</div>
-            {followingChapters.map((passage) => <div key={passage.key} className="kjb-fb-head">{passage.book.name}, Chapter {passage.chapter}</div>)}
+            <div className="kjb-fb-head">{book.shortName}, Chapter {chapter}</div>
+            {followingChapters.map((passage) => <div key={passage.key} className="kjb-fb-head">{passage.book.shortName}, Chapter {passage.chapter}</div>)}
           </div>
           <ChapterFlow ref={measureRef} blocks={blocks} prefix={carry} continuation={continuationBlocks} {...flowProps} page={0} textStyle={textStyle} />
         </div>

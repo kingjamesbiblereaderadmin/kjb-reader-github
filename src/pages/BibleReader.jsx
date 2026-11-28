@@ -1980,7 +1980,7 @@ export default function BibleReader() {
           the book you are in never scrolls away. (The large heading stays for
           print, where the running head is not shown.) */}
       {!isViewingTitlePage && columnMode && pos.chapter !== 1 && !(filterMode && selectedVerses.size > 0) && (
-        <RunningHead bookName={book.name} chapter={pos.chapter} baseFontRem={zoomLevel / 100 * 0.7} isCursive={fontFamily === 'cursive'} />
+        <RunningHead bookName={book.shortName} chapter={pos.chapter} baseFontRem={zoomLevel / 100 * 0.7} isCursive={fontFamily === 'cursive'} />
       )}
       {!isViewingTitlePage && (!(filterMode && selectedVerses.size > 0) || chapterSubscript) && (
         <div className={`text-center mb-4 ${(!columnMode || pos.chapter === 1 || (filterMode && selectedVerses.size > 0)) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
