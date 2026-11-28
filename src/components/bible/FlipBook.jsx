@@ -646,8 +646,15 @@ export default React.forwardRef(function FlipBook({
   useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root) return;
-    const first = root.querySelector('.kjb-fb-slot [data-fbv]');
-    anchorRef.current = first ? { chapterKey, verse: Number(first.dataset.fbv) } : null;
+    // Only a verse of the chapter being read. The last spread of a chapter
+    // prints the next chapter's opening (and the first spread can carry the
+    // previous chapter's tail), so the first verse found on the page could be
+    // another chapter's verse 1 — which a reflow (minimising the header, a type
+    // size change) then resolved against THIS chapter and sent the book back to
+    // its opening. Keep the last position when the spread shows no verse of
+    // this chapter; anchor.chapterKey guards against a stale one.
+    const first = root.querySelector('.kjb-fb-slot [data-fb-current] [data-fbv]');
+    if (first) anchorRef.current = { chapterKey, verse: Number(first.dataset.fbv) };
   }, [page, chapterKey]);
 
   // Text pages only (the title page and the table of books come before them).
