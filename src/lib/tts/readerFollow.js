@@ -11,7 +11,9 @@ export function readingArea() {
   const bar = document.querySelector('[data-kjb-reader-toolbar-wrap], [data-kjb-minimized-header]');
   const band = document.getElementById('kjb-anchored-heading');
   // Use the pinned chrome's sizes, not its transient position during a jump.
-  const top = box.top + (bar?.getBoundingClientRect().height || 0) + (band?.getBoundingClientRect().height || 0) + 4;
+  // A little air under the pinned heading: a verse brought to the top of the
+  // reading area sits clear of the band instead of touching its edge.
+  const top = box.top + (bar?.getBoundingClientRect().height || 0) + (band?.getBoundingClientRect().height || 0) + 12;
   let bottom = box.bottom;
   document.querySelectorAll('nav').forEach((nav) => {
     const rect = nav.getBoundingClientRect();

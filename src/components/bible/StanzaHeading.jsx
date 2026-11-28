@@ -28,7 +28,7 @@ export default function StanzaHeading({ stanzas, fontFamily, zoomLevel }) {
     <p
       data-kjb-stanza={current.verse}
       data-kjb-speaking={reading ? 'true' : undefined}
-      className={`notranslate kjb-stanza-heading font-bold text-foreground select-none not-italic tracking-wide mt-2 ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'}`}
+      className={`notranslate kjb-stanza-heading font-bold text-foreground select-none not-italic tracking-wide mt-1 ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'}`}
       style={{ fontSize: `${zoomLevel / 100 * 1.2}rem` }}
     >
       {String(current.heading).toUpperCase()}

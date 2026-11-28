@@ -1980,7 +1980,7 @@ export default function BibleReader() {
           toolbar, so scrolling a long chapter never takes the book's name, its
           chapter number and the way back into book view off the screen. */}
       {!flipbookOpen && (
-      <div id="kjb-anchored-heading" data-kjb-anchored-band className="print:static sticky z-[95] -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background pt-2 pb-4" style={{ top: stickyTop }}>
+      <div id="kjb-anchored-heading" data-kjb-anchored-band className="print:static sticky z-[95] -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 bg-background pt-2 pb-3" style={{ top: stickyTop }}>
       {bookToggleNode}
       {/* In two columns the chapter's name and number are printed as a running
           head instead of the large heading — and it lives in this band too, so
@@ -2005,11 +2005,11 @@ export default function BibleReader() {
           are printed with the chapter number, as one heading — they belong to
           the chapter's title, not to the verse text below it. */}
       {!isViewingTitlePage && (chapterSubscript || stanzaList.length > 0) && (
-        <div className="text-center mb-2" style={{ fontSize: `${zoomLevel / 100}rem` }}>
+        <div className="text-center mb-0" style={{ fontSize: `${zoomLevel / 100}rem` }}>
           {chapterSubscript && (
             <p
               onClick={() => handleSectionClick('subscript')} id="kjb-subscript-anchor"
-              className={`notranslate kjb-subscript text-sm text-foreground mt-3 max-w-lg mx-auto leading-relaxed text-center transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`}
+              className={`notranslate kjb-subscript text-sm text-foreground mt-1 max-w-lg mx-auto leading-relaxed text-center transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`}
               style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem` }}
             >
               <SubscriptContent text={chapterSubscript} kind="sub" searchTerm={sectionActive('subscript') ? searchTerm : null} />
@@ -2023,7 +2023,7 @@ export default function BibleReader() {
 
       <div
         ref={readerContentRef}
-        className={`kjb-reader-content leading-loose text-foreground ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`}
+        className={`kjb-reader-content leading-loose text-foreground pt-3 ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`}
         style={{ fontSize: `${zoomLevel / 100 * 1.125}rem`, lineHeight: zoomLevel > 100 ? '1.8' : '1.6', ...(fontFamily !== 'cursive' ? { fontFamily: getFontFamilyValue(fontFamily) } : {}) }}
       >
         {loading && <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>}
