@@ -96,21 +96,27 @@ export default React.forwardRef(function FlipBook({
     const read = () => {
       const el = rootRef.current;
       if (!el) return;
-      // Stop at the footer's real top edge. The bottom nav is fixed and sits
-      // over the scroller, so the scroller's own bottom is the screen bottom,
-      // not the visible one — and how much room the footer takes differs in
-      // each footer mode. Measuring the nav itself is what keeps the book's
+      // With the header put away the footer goes with it, so the book owns the
+      // whole screen. The scroller's own box was measured while the footer (and
+      // the header above it) still held their space, and kept the book short of
+      // the screen's bottom edge; once immersive, measure the real screen.
+      const immersive = document.documentElement.hasAttribute('data-kjb-book-immersive');
+      // Otherwise stop at the footer's real top edge. The bottom nav is fixed
+      // and sits over the scroller, so the scroller's own bottom is the screen
+      // bottom, not the visible one — and how much room the footer takes differs
+      // in each footer mode. Measuring the nav itself is what keeps the book's
       // page controls flush with the footer after it is expanded or minimized,
       // instead of leaving a band of empty space under them.
-      let bottom = scroller ? scroller.getBoundingClientRect().bottom : window.innerHeight;
+      let bottom = immersive ? window.innerHeight
+        : scroller ? scroller.getBoundingClientRect().bottom : window.innerHeight;
       bottom = Math.min(bottom, window.innerHeight);
       const nav = document.querySelector('[data-kjb-bottom-nav]');
-      if (nav && getComputedStyle(nav).display !== 'none') {
+      if (!immersive && nav && getComputedStyle(nav).display !== 'none') {
         const navTop = nav.getBoundingClientRect().top;
         if (navTop > 0) bottom = Math.min(bottom, navTop);
       }
       // With the footer put away, still keep clear of the home indicator.
-      if (scroller && document.documentElement.hasAttribute('data-kjb-book-immersive')) {
+      if (scroller && immersive) {
         bottom -= parseFloat(getComputedStyle(scroller).paddingBottom) || 0;
       }
       const top = el.getBoundingClientRect().top + (scroller ? scroller.scrollTop : window.scrollY);
@@ -126,11 +132,17 @@ export default React.forwardRef(function FlipBook({
     // The footer swaps to a different element when its mode changes, so the
     // observed node goes away with it: measure again once the DOM has settled.
     const onFooterMode = () => { read(); window.setTimeout(read, 80); };
+    // Minimising the header hides the app chrome in the same commit as this
+    // attribute flips, so watch it directly: the book's height then follows the
+    // screen edge instead of the space the footer used to occupy.
+    const chromeObserver = new MutationObserver(onFooterMode);
+    chromeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-kjb-book-immersive'] });
     window.addEventListener('resize', read);
     window.addEventListener('orientationchange', read);
     window.addEventListener('kjb-footer-mode-change', onFooterMode);
     return () => {
       ro.disconnect();
+      chromeObserver.disconnect();
       window.removeEventListener('resize', read);
       window.removeEventListener('orientationchange', read);
       window.removeEventListener('kjb-footer-mode-change', onFooterMode);
