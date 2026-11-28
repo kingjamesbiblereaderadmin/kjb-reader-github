@@ -45,7 +45,7 @@ const ANDROID_PACKS = [
 // by the public audioIndex endpoint. They are written beside the verses here,
 // so a whole chapter reads with no connection.
 const APP_URL = process.env.KJB_APP_URL || 'https://kingjamesbiblereader.base44.app';
-const NOTE_LABEL = /^(?:sub|col|end|title|h\d+)$/;
+const NOTE_LABEL = /^(?:sub|col|end|title|book-full|chapter(?:-c2)?|h\d+)$/;
 
 
 // Extract one archive. Python's zipfile is used first because it behaves the

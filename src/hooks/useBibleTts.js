@@ -687,16 +687,18 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       return;
     }
 
-    const intro = introRef.current;
-    if (intro) {
-      introRef.current = null;
+    const queuedIntro = introRef.current;
+    if (queuedIntro) {
+      const queue = Array.isArray(queuedIntro) ? queuedIntro : [queuedIntro];
+      const intro = queue[0];
+      introRef.current = queue.length > 1 ? queue.slice(1) : null;
       // Warm the verse while the label speaks, and do not move the highlight
       // until the verse itself starts: the book name and chapter line carry the
       // highlight for as long as the announcement lasts.
       prefetch(list[i]);
       prefetch(list[i + 1]);
       const fallThrough = () => {
-        setIntroActive(false);
+        if (!introRef.current) setIntroActive(false);
         playAtRef.current?.(i, token);
       };
       const announced = await playClip(intro, token, fallThrough, fallThrough, () => {
@@ -705,10 +707,7 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       });
       // A chapter announcement that cannot be fetched must never strand
       // playback on a silent "Listening": fall through to the verse itself.
-      if (!announced && token === tokenRef.current) {
-        setIntroActive(false);
-        playAtRef.current?.(i, token);
-      }
+      if (!announced && token === tokenRef.current) fallThrough();
       return;
     }
 

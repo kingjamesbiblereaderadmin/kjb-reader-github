@@ -6,7 +6,7 @@ export function recordingTimingQuery(chapterKey = '') {
     url: { $regex: '^(https?://|data:audio/mpeg;base64,)' },
     // The trailing suffix is either a pronunciation revision (:h7) or the
     // re-voiced key a speech fix moved a verse to (:v2).
-    ref: { $regex: `^${prefix}(\\d{1,3}|sub|col|end|title|intro|chapter|h\\d{1,3})(:h\\d+|:v\\d+)?$` },
+    ref: { $regex: `^${prefix}(\\d{1,3}|sub|col|end|title|book-full|intro(?:-full)?(?:-n2)?(?:-c2)?|chapter(?:-c2)?|h\\d{1,3})(:h\\d+|:v\\d+)?$` },
   };
 }
 

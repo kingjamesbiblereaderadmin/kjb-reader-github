@@ -574,7 +574,8 @@ export default async function (req) {
     if (text.length > MAX_CHARS) return json({ error: 'too_long', ref, max: MAX_CHARS }, 400);
     // A verse with a settled pronunciation gets its own cache key so it is
     // voiced once more; the caller still hears back the reference it sent.
-    clean.push({ ref, key: spoken.revision ? `${ref}:${spoken.revision}` : ref, text });
+    const keyed = /:(?:v\d+|h\d+|book-full|chapter(?:-c2)?)$/.test(ref);
+    clean.push({ ref, key: !keyed && spoken.revision ? `${ref}:${spoken.revision}` : ref, text });
   }
 
   const client = createClientFromRequest(req);

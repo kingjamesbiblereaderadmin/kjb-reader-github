@@ -26,10 +26,15 @@ export default async function (req) {
       // omitting it. Counting only $exists:false read those as finished and
       // would have started the builds while thousands were still unaligned.
       db.entities.TtsClip.count({ ...base, $or: [{ timing_version: { $exists: false } }, { timing_version: null }, { timing_version: -1 }] }),
-      base44.functions.invoke('repairPronunciationBatch', { statusOnly: true }),
+      Promise.all([
+        base44.functions.invoke('repairPronunciationBatch', { statusOnly: true }),
+        base44.functions.invoke('recordBookAnnouncements', { statusOnly: true }),
+      ]),
       db.entities.TtsStat.filter({ key: 'push' }, { limit: 1 }),
     ]);
-    const repairsLeft = Number((repairResponse.data || repairResponse).remaining);
+    const repairStatus = repairResponse[0].data || repairResponse[0];
+    const announcementStatus = repairResponse[1].data || repairResponse[1];
+    const repairsLeft = Number(repairStatus.remaining) + Number(announcementStatus.remaining) + Number(announcementStatus.aliasesRemaining);
     if (!Number.isFinite(repairsLeft)) throw new Error('Could not confirm pronunciation completion');
     const ready = untimed === 0 && repairsLeft === 0;
     const marker = (markerPage.items || markerPage)[0] || null;
@@ -53,7 +58,7 @@ export default async function (req) {
     const sourceReady = code[0].includes("return 'h15'") && code[1].includes('paintRangeHighlight') && code[2].includes('BookFlowPrefix');
     const release = responses[3];
     const assets = new Map((release?.assets || []).map((asset) => [asset.name, asset.updated_at]));
-    const latestByBook = (repairResponse.data || repairResponse).latestByBook || {};
+    const latestByBook = repairStatus.latestByBook || {};
     const staleBooks = Object.entries(latestByBook).filter(([book, date]) => {
       const updated = assets.get(`${book === 'JUD' ? 'JDE' : book}.zip`);
       return !updated || Date.parse(updated) < Date.parse(String(date));

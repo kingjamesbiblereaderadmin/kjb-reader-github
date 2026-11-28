@@ -16,7 +16,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.63';
 const PAGE = 500;
 const MAX_PAGES = 200; // 100,000 rows: far past the 31,102 verse clips
 const CACHE_MS = 60 * 60 * 1000;
-const INDEX_REVISION = 'notes-1';
+const INDEX_REVISION = 'announcements-2';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -94,7 +94,7 @@ export default async function (req) {
         // collide with a verse above.
         const parts = ref.split(':');
         const label = parts.length > 2 ? parts[2] : '';
-        if (label && /^(?:sub|col|end|title|h\d+)$/.test(label)) {
+        if (label && /^(?:sub|col|end|title|book-full|chapter(?:-c2)?|h\d+)$/.test(label)) {
           const noteKey = `${book}:${parts[1]}:${label}`;
           const noteRevision = parts.length > 3 ? Number((parts[3].match(/^h(\d+)$/) || [])[1] || 0) : 0;
           if (!notes[noteKey] || noteRevision > (noteRevisions[noteKey] || 0)) {

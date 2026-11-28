@@ -684,7 +684,7 @@ export default async function (req) {
   // A caller may already name the take it wants ("EPH:6:24:v2", "PSA:3:1:h22"),
   // and that key is used exactly as given — the revision is never appended a
   // second time.
-  const alreadyKeyed = /:(?:v2|h\d+)$/.test(ref);
+  const alreadyKeyed = /:(?:v2|h\d+|book-full|chapter(?:-c2)?)$/.test(ref);
   const clipRef = SPEECH_FIX_REFS.has(ref) ? `${ref}:v2`
     : alreadyKeyed ? ref
       : spoken.revision ? `${ref}:${spoken.revision}`

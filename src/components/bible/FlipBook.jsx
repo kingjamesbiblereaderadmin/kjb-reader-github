@@ -12,7 +12,7 @@ import TitlePage from '@/components/bible/TitlePage';
 import ContentsFlow from '@/components/bible/ContentsFlow';
 import FittedPage from '@/components/bible/FittedPage';
 import { useSpeaking, getProgress, getCompletedWords, subscribeProgress } from '@/lib/tts/speaking';
-import verseWords from '@/lib/tts/verseWords';
+import bookFlowWords from '@/components/bible/pagination/bookFlowWords';
 import { getVerseHighlight } from '@/lib/verseHighlights';
 import './flipbook.css';
 
@@ -21,10 +21,10 @@ import './flipbook.css';
 // exactly on the last visible word. The voice spends its time on characters, so
 // this lands on that word's end far more closely than the verse's pixel width —
 // which is what made the turn happen before the word was finished.
-function visibleShare(el, flowLeft, colPeriod, boundaryCol) {
+function visibleShare(words, flowLeft, colPeriod, boundaryCol) {
   let end = 0;
   let completed = 0;
-  for (const word of verseWords(el)) {
+  for (const word of words) {
     const rects = [...word.range.getClientRects()].filter((rect) => rect.width && rect.height);
     if (!rects.length) continue;
     const visible = rects.every((rect) => Math.floor((rect.right - flowLeft - 1) / colPeriod) < boundaryCol);
@@ -202,8 +202,8 @@ export default React.forwardRef(function FlipBook({
     && (!bridgeRef.current.needsCarry || !!carry);
   const firstPage = hasBridge ? -1 : 0;
   const flowProps = {
-    passageKey: `${abbr}:${chapter}`,
-    width: textW, height: textH, gap, columnWidth: Math.floor(colW * 100) / 100,
+    passageKey: `${abbr}:${chapter}`, layoutVersion: fontTick,
+    width: textW, height: textH, gap, columnWidth: colW,
     className: `${isCursive ? 'cursive-em-style' : ''} ${perPage === 2 ? 'kjb-fb-twocol' : ''}`,
   };
 
@@ -231,9 +231,9 @@ export default React.forwardRef(function FlipBook({
   // rest of the text instead of sitting over the verse above it.
   const showEnd = !!endMarker && !(filterMode && !selectMode && selectedVerses?.size);
   const blocks = useMemo(() => (<>
-    <BookChapterBlocks {...{ bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses }} />
+    <BookChapterBlocks {...{ bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses }} showBookTitle={!carry || carry.fromKey.split(':')[0] !== abbr} />
     {showEnd && <p className="kjb-fb-endmark">{endMarker}</p>}
-  </>), [bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses, showEnd, endMarker, fontTick]);
+  </>), [bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses, showEnd, endMarker, fontTick, !!carry]);
   // The next chapter is known even when the view is filtered down to a searched
   // verse or a picked selection: the facing page then carries that chapter on
   // instead of leaving a blank sheet after the excerpt.
@@ -241,7 +241,7 @@ export default React.forwardRef(function FlipBook({
   const followingChapters = useBookContinuations(book, chapter, canNext && !selectMode, lookaheadCount);
   const following = followingChapters[0] || null;
   const continuationBlocks = following?.chapter > 0
-    ? <BookFollowingChapters passages={followingChapters} paragraphs={paragraphs} /> : null;
+    ? <BookFollowingChapters passages={followingChapters} paragraphs={paragraphs} currentBook={abbr} /> : null;
   const fillLastPage = chapter > 0 && !!continuationBlocks;
 
   // A new chapter opens at its first page, or its last when turning backwards.
@@ -341,11 +341,10 @@ export default React.forwardRef(function FlipBook({
   // The page on which a verse or section begins.
   const pageOf = useCallback((selector, progress = 0, completed = null) => {
     const flow = measureRef.current;
-    const el = flow?.querySelector(selector);
-    if (!el) return null;
-    const words = verseWords(el);
+    const { elements, words } = bookFlowWords(flow, selector);
+    if (!elements.length) return null;
     const word = (completed == null ? words.find((item) => item.end > progress) : words[completed]) || words[words.length - 1];
-    const rect = word?.range.getClientRects()[0] || el.getClientRects()[0];
+    const rect = word?.range.getClientRects()[0] || elements[0].getClientRects()[0];
     return rect ? front.length + Math.floor((rect.left - flow.getBoundingClientRect().left + 1) / (textW + gap)) : null;
   }, [front, textW, gap]);
 
@@ -392,9 +391,9 @@ export default React.forwardRef(function FlipBook({
     const read = () => {
       if (turn || requested) return true;
       if (!need) {
-        const el = flow.querySelector(spokenAt);
-        const rects = el ? el.getClientRects() : null;
-        if (!rects || !rects.length) return false;
+        const { elements, words } = bookFlowWords(flow, spokenAt);
+        const rects = elements.flatMap((element) => [...element.getClientRects()]);
+        if (!rects.length) return false;
         let x1 = -Infinity;
         for (const r of rects) x1 = Math.max(x1, r.right - flowLeft);
         // Where the open pages stop in the chapter's flow.
@@ -403,7 +402,7 @@ export default React.forwardRef(function FlipBook({
         const textEnd = Math.max(0, page + step - front.length);
         const visibleEnd = textEnd * (textW + gap);
         if (x1 <= visibleEnd + 1) return false;
-        const boundary = visibleShare(el, flowLeft, colW + gap, textEnd * perPage);
+        const boundary = visibleShare(words, flowLeft, colW + gap, textEnd * perPage);
         need = boundary.fraction;
         neededWords = boundary.completed;
         if (!need || need >= 1) return false;

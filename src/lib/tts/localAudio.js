@@ -34,7 +34,7 @@ function nativePlatform() {
 // label instead of a verse number ("PSA:3:sub" -> 003_sub.mp3, "PSA:119:h1" ->
 // 119_h1.mp3, "GEN:0:title" -> 000_title.mp3), so they sit beside the verses in
 // the same folder and play from the device exactly like one.
-const NOTE_LABEL = /^(?:sub|col|end|title|h\d+)$/;
+const NOTE_LABEL = /^(?:sub|col|end|title|book-full|chapter(?:-c2)?|h\d+)$/;
 
 function clipPath(ref) {
   const parts = String(ref || '').split(':');

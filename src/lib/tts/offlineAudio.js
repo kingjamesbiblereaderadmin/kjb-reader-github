@@ -23,7 +23,7 @@ const INDEX_KEY = 'index';
 // verses, so a book downloaded from here carries the Psalm titles, stanza names
 // and closing lines too. Bumping the label makes a device fetch the new index
 // instead of reusing the verse-only one it cached.
-const INDEX_REVISION = 'notes-1';
+const INDEX_REVISION = 'announcements-2';
 const INDEX_MAX_AGE = 24 * 60 * 60 * 1000;
 const PROGRESS_EVERY = 10;
 

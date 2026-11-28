@@ -2,7 +2,7 @@ import React from 'react';
 import { renderVerseText } from '@/lib/bibleApi';
 import { getShyMap, injectShyHtml } from '@/lib/softHyphens';
 
-export default function BookChapterBlocks({ bookName, chapter, verses = [], subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses }) {
+export default function BookChapterBlocks({ bookName, showBookTitle = true, chapter, verses = [], subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses }) {
   if (chapter === 0) return null;
   const markup = (text, term = null, dropCap = false) => {
     let html = renderVerseText(String(text).replace(/^<<[^>]*>>\s*/, ''), term);
@@ -23,7 +23,7 @@ export default function BookChapterBlocks({ bookName, chapter, verses = [], subs
   });
   return <>
     <div className="kjb-fb-opening" data-fb-sec="head">
-      <h2 className="kjb-fb-title">{bookName}</h2>
+      {showBookTitle && <h2 className="kjb-fb-title">{bookName}</h2>}
       <p className="kjb-fb-chapter">Chapter {chapter}</p>
     </div>
     {subscript && <p className="kjb-fb-note" data-fb-sec="sub" dangerouslySetInnerHTML={note(subscript, jumpSection === 'subscript' ? searchTerm : null)} />}

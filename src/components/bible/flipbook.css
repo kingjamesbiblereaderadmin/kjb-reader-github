@@ -63,7 +63,14 @@
 @media (pointer: coarse) {
   .kjb-contents-entry { min-height: 44px; }
 }
-.kjb-fb-flow { position: relative; column-fill: auto; line-height: 1.5; text-align: justify; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; font-family: Merriweather, Georgia, serif; }
+.kjb-fb-flow { position: relative; line-height: 1.5; text-align: justify; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; font-family: Merriweather, Georgia, serif; }
+.kjb-fb-column { position: absolute; top: 0; display: flow-root; }
+.kjb-fb-column > [data-fb-current], .kjb-fb-column > [data-fb-next] { display: contents; }
+.kjb-fb-twocol > .kjb-fb-column::before { content: ''; position: absolute; left: -9px; top: 0; bottom: 0; border-left: 1px solid var(--fb-rule); }
+.kjb-fb-column:first-child::before { display: none; }
+.kjb-fb-column:has([data-fb-oversize]) { overflow-y: auto; }
+.kjb-fb-column .kjb-fb-opening { break-inside: avoid; }
+.kjb-fb-column .kjb-fb-opening:first-child { margin-top: 0; }
 
 .kjb-fb-flow .kjb-fb-title { margin: 0 0 0.5em; text-align: center; font-size: 1.35em; font-weight: 700; line-height: 1.25; hyphens: manual; -webkit-hyphens: manual; color: inherit; break-inside: avoid; break-after: avoid; }
 .kjb-fb-flow .kjb-fb-title-only { margin-top: 35%; font-size: 1.7em; }

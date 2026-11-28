@@ -76,7 +76,7 @@ final class LocalAudioServer {
         let name: String
         if let verse = Int(third) {
             name = String(format: "%03d_%03d.mp3", chapter, verse)
-        } else if ["sub", "col", "end", "title"].contains(third)
+        } else if ["sub", "col", "end", "title", "book-full", "chapter", "chapter-c2"].contains(third)
                     || (third.hasPrefix("h") && third.dropFirst().allSatisfy(\.isNumber)) {
             name = String(format: "%03d_%@.mp3", chapter, third)
         } else {

@@ -1,22 +1,22 @@
-// Use actual content rectangles, not the width of a chapter plus one neighbour.
-// A zero-height end marker can otherwise create an extra, empty final page.
+// Group a passage's real, pre-measured column fragments into page positions.
 export default function bookFlowGeometry(flow, width, columnWidth, gap, columns) {
   const origin = flow.getBoundingClientRect();
-  return [...flow.querySelectorAll(':scope > [data-fb-current], :scope > [data-fb-next]')].map((element) => {
-    const opening = element.querySelector('.kjb-fb-opening');
-    const start = (opening || element).getClientRects()[0];
+  const passages = new Map();
+  for (const element of flow.querySelectorAll('[data-fb-current], [data-fb-next]')) {
+    if (!element.textContent.trim()) continue;
     const range = document.createRange();
-    range.selectNodeContents(element.lastElementChild || element);
+    range.selectNodeContents(element);
     const rects = [...range.getClientRects()].filter((rect) => rect.width > 0 && rect.height > 0);
-    const end = rects[rects.length - 1] || start;
-    if (!start || !end) return null;
+    if (!rects.length) continue;
+    const start = rects[0];
+    const end = rects[rects.length - 1];
     const column = Math.max(0, Math.floor((start.left - origin.left + 1) / (columnWidth + gap)));
-    return {
-      key: element.dataset.fbNext || element.dataset.fbCurrent,
-      page: Math.floor(column / columns),
-      columns: column % columns,
-      top: Math.max(0, start.top - origin.top),
-      endPage: Math.max(0, Math.floor((end.left - origin.left + 1) / (width + gap))),
-    };
-  }).filter(Boolean);
+    const endPage = Math.max(0, Math.floor((end.left - origin.left + 1) / (width + gap)));
+    const key = element.dataset.fbNext || element.dataset.fbCurrent;
+    const saved = passages.get(key);
+    if (saved) saved.endPage = Math.max(saved.endPage, endPage);
+    else passages.set(key, { key, page: Math.floor(column / columns), columns: column % columns,
+      top: Math.max(0, start.top - origin.top), endPage });
+  }
+  return [...passages.values()];
 }

@@ -16,10 +16,26 @@
               "backfill": true
             }
           },
-          "then": "end",
+          "then": "record_full_titles",
           "x-base44": {
             "title": "Refresh remaining audited recordings",
             "description": "Skip completed repairs"
+          }
+        }
+      },
+      {
+        "record_full_titles": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "recordBookAnnouncements",
+            "args": {
+              "backfill": true
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Finish full-title announcements",
+            "description": "Reuse recorded titles and chapter numbers"
           }
         }
       }

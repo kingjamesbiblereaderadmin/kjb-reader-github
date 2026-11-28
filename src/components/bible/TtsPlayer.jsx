@@ -12,6 +12,7 @@ import OfflineBookControl from '@/components/bible/OfflineBookControl';
 import usePreviewMode from '@/hooks/usePreviewMode';
 import { TTS_RATES, TTS_STORAGE, readStored, writeStored } from '@/lib/tts/voices';
 import { getBookByAbbr } from '@/lib/bibleData';
+import bookAnnouncement from '@/components/bible/bookAnnouncement';
 
 // The reader's Listen player.
 //
@@ -34,23 +35,6 @@ function spokenBook(name) {
   return String(name || '').replace(NUMBERED_BOOK, (m, n) => `${['First', 'Second', 'Third'][Number(n) - 1]} `);
 }
 
-// Chapters past 99 are read out as digits by the engine ("one nineteen"), so
-// those numbers are written in words: "chapter one hundred nineteen". Chapters
-// below a hundred are left as digits, which it already says correctly.
-const ONES = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
-  'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen',
-  'eighteen', 'nineteen'];
-const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
-function numberWords(n) {
-  if (n < 20) return ONES[n];
-  if (n < 100) return `${TENS[Math.floor(n / 10)]}${n % 10 ? `-${ONES[n % 10]}` : ''}`;
-  const rest = n % 100;
-  return `${ONES[Math.floor(n / 100)]} hundred${rest ? ` ${numberWords(rest)}` : ''}`;
-}
-function spokenChapter(chapter) {
-  const n = Number(chapter);
-  return Number.isInteger(n) && n >= 100 && n < 1000 ? numberWords(n) : String(chapter);
-}
 
 // The non-verse pieces the player reads: the superscription, the subscription
 // and the closing line. The reader gives the first two anchors; book view marks
@@ -265,27 +249,13 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
       // that follows it must still say where the reader is: rolling from the
       // New Testament title page into Matthew 1 announced only "Chapter one".
       const bookChanged = prev.book !== fullName || !announcedRef.current || prev.chapter === 0;
-      // The spoken announcement uses the full printed book title, never the
-      // compact toolbar label. A separate reference avoids old shortened takes.
-      const ordinal = NUMBERED_BOOK.test(String(fullName)) ? '-n2' : '';
-      const introText = bookChanged
-        ? `${spokenBook(fullName)}, chapter ${spokenChapter(chapter)}`
-        : `Chapter ${spokenChapter(chapter)}`;
-      // A clip is cached by its reference, not by its words, so the bare
-      // "Chapter 3" must not share ":intro" with the book-named line: whichever
-      // of the two was voiced first played for both, and after a refresh the
-      // player asked for "Genesis, chapter 1" and got a cached "Chapter 1".
-      // A chapter number written out in words is a different line, so it gets a
-      // clip key of its own: the take recorded from "chapter 119" said "one
-      // nineteen" and must not play over the corrected wording.
-      const wordsKey = Number(chapter) >= 100 ? '-c2' : '';
-      const introKey = bookChanged ? `${chapterKey}:intro-full${ordinal}${wordsKey}` : `${chapterKey}:chapter${wordsKey}`;
+      // Full titles and chapter numbers have separate, offline-ready recordings.
       // The title page's own clip names neither book nor chapter, so it must
       // not count as the announcement that has already said where we are.
       if (!titleText) announcedRef.current = true;
       skipScrollRef.current = true;
       followRef.current = true;
-      tts.start(1, titleText ? null : { ref: introKey, text: introText });
+      tts.start(1, titleText ? null : bookAnnouncement(bookKey, spokenBook(fullName), chapter, bookChanged));
     }
     prevPosRef.current = { book: fullName, chapter };
     // tts.start is stable; depending on the whole hook object would re-run on
@@ -484,12 +454,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     followRef.current = true;
     skipScrollRef.current = true;
     const fullName = bookName || label;
-    const intro = chapter >= 1
-      ? {
-        ref: `${chapterKey}:intro-full${NUMBERED_BOOK.test(String(fullName)) ? '-n2' : ''}${Number(chapter) >= 100 ? '-c2' : ''}`,
-        text: `${spokenBook(fullName)}, chapter ${spokenChapter(chapter)}`,
-      }
-      : null;
+    const intro = chapter >= 1 ? bookAnnouncement(bookKey, spokenBook(fullName), chapter) : null;
     // This press has just named the book, so the chapters that roll on from it
     // only need "Chapter 4". Marking it here is what keeps continuous playback
     // from naming the book again at a chapter boundary, which used to happen
