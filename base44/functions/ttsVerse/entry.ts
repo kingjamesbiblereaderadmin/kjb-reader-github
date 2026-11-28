@@ -183,8 +183,6 @@ const PRONOUNCE: Record<string, string> = {
   nazarene: 'naz-uh-REEN',
   judaea: 'joo-DAY-uh',
   heretick: 'HER-e-tik',
-  wrath: 'roth',
-  wrathful: 'roth-ful',
   hereticks: 'HER-e-tiks',
   ashtoreth: 'ASH-tuh-reth',
   milcom: 'MIL-kom',
