@@ -782,8 +782,13 @@ export default function SearchPage() {
       const scroller = document.getElementById('kjb-scroll');
       if (scroller) scroller.scrollTo({ top: 0 });
     }
+    // numberedBookFilter is NOT a dependency: runSearch sets it itself (clears
+    // it at the start, then sets it again for a numbered-book query), so
+    // watching it made every "1 timothy" / "2 kings" search re-run itself in
+    // an endless loop — the whole Bible was rescanned over and over, which is
+    // what made those searches feel slow.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [testamentFilter, wholeWord, caseSensitive, numberedBookFilter]);
+  }, [testamentFilter, wholeWord, caseSensitive]);
 
   // Re-run search whenever URL changes (fixes header search bar)
   useEffect(() => {
