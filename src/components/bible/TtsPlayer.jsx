@@ -610,6 +610,11 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
         {/* In the minimized bar every control stays on one line at its own size
             (no wrapping, no stretching): the row scrolls sideways on a phone
             instead of stacking onto a second line. */}
+        {/* Two groups, never three rows. The transport (previous, play, next)
+            keeps its own row at its own size, and everything else sits in one
+            non-wrapping row that scrolls sideways on a narrow phone instead of
+            stacking a control on a line of its own. On a wide screen the two
+            groups stand side by side as one bar. */}
         <div className={vertical
           ? 'flex flex-col items-stretch gap-1 [&>*]:w-full'
           : inline
@@ -620,6 +625,11 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
             // the bar.
             ? 'flex flex-nowrap items-center justify-start gap-1 [&>*]:flex-none overflow-x-auto'
             : 'flex flex-wrap items-center justify-center gap-2 sm:gap-3'}>
+        <div className={vertical
+          ? 'flex flex-col items-stretch gap-1 [&>*]:w-full'
+          : inline
+            ? 'contents'
+            : 'flex flex-none items-center justify-center gap-2 sm:gap-3 [&>*]:flex-none'}>
           <button onClick={withFollow(tts.prev)} disabled={idle} aria-label="Previous verse" className={`${CONTROL} disabled:opacity-40 disabled:pointer-events-none`}>
             <SkipBack className="w-4 h-4" />
           </button>
@@ -650,10 +660,12 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
           <button onClick={withFollow(tts.next)} disabled={idle} aria-label="Next verse" className={`${CONTROL} disabled:opacity-40 disabled:pointer-events-none`}>
             <SkipForward className="w-4 h-4" />
           </button>
-          {/* A deliberate line break on a phone: the transport keeps the first
-              row and the rest of the controls form their own centred row, so a
-              single control is never stranded on a line of its own. */}
-          {!inline && !vertical && <div aria-hidden="true" className="basis-full h-0 -my-1 sm:hidden" />}
+        </div>
+        <div className={vertical
+          ? 'flex flex-col items-stretch gap-1 [&>*]:w-full'
+          : inline
+            ? 'contents'
+            : 'flex flex-none items-center justify-center gap-2 max-w-full overflow-x-auto [&>*]:flex-none'}>
           <button
             onClick={restartChapter}
             aria-label="Reset playback and start this chapter again from verse 1"
@@ -729,6 +741,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
               <X className="w-4 h-4" />
             </button>
           )}
+        </div>
         </div>
 
         {tts.error && (
