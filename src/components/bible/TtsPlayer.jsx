@@ -625,11 +625,12 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
             // the bar.
             ? 'flex flex-nowrap items-center justify-start gap-1 [&>*]:flex-none overflow-x-auto'
             : 'flex flex-wrap items-center justify-center gap-2 sm:gap-3'}>
-        <div className={vertical
-          ? 'flex flex-col items-stretch gap-1 [&>*]:w-full'
-          : inline
-            ? 'contents'
-            : 'flex flex-none items-center justify-center gap-2 sm:gap-3 [&>*]:flex-none'}>
+        {/* The book view's player panel lays its own three-column grid, so in
+            that mode the group is transparent: its buttons are the grid's
+            items, exactly as before the rows were split. */}
+        <div className={vertical || inline
+          ? 'contents'
+          : 'flex flex-none items-center justify-center gap-2 sm:gap-3 [&>*]:flex-none'}>
           <button onClick={withFollow(tts.prev)} disabled={idle} aria-label="Previous verse" className={`${CONTROL} disabled:opacity-40 disabled:pointer-events-none`}>
             <SkipBack className="w-4 h-4" />
           </button>
@@ -661,11 +662,9 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
             <SkipForward className="w-4 h-4" />
           </button>
         </div>
-        <div className={vertical
-          ? 'flex flex-col items-stretch gap-1 [&>*]:w-full'
-          : inline
-            ? 'contents'
-            : 'flex flex-none items-center justify-center gap-2 max-w-full overflow-x-auto [&>*]:flex-none'}>
+        <div className={vertical || inline
+          ? 'contents'
+          : 'flex flex-none items-center justify-center gap-2 max-w-full overflow-x-auto [&>*]:flex-none'}>
           <button
             onClick={restartChapter}
             aria-label="Reset playback and start this chapter again from verse 1"
