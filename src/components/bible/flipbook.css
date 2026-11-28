@@ -36,7 +36,10 @@
 /* Hebrew stanza names (ALEPH, BETH…): printed as their own centred line above
    the verse that opens the stanza, and washed while the voice reads them. */
 .kjb-fb-heading { margin: 1em 0 0.45em; text-align: center; font-weight: 700; letter-spacing: 0.1em; font-family: Merriweather, Georgia, serif; break-inside: avoid; break-after: avoid; }
-.kjb-flipbook .kjb-fb-heading.kjb-fb-speaking { background: hsl(var(--accent) / 0.22); box-shadow: 0 0 0 6px hsl(var(--accent) / 0.14); border-radius: 3px; }
+/* The chapter line under the book name: one flat wash, no halo. A halo is a
+   second tint drawn outside the words, and around a heading that already sits
+   on a washed block it read as highlights overlapping each other. */
+.kjb-flipbook .kjb-fb-heading.kjb-fb-speaking { background: hsl(var(--accent) / 0.16); box-shadow: none; border-radius: 3px; }
 
 /* ---- Contents: one continuous, typeset book list ----------------------- */
 .kjb-fb-contents-window { flex: none; margin: 12px 0; overflow: hidden; }
@@ -144,16 +147,23 @@
 .kjb-flipbook [data-fb-colour='purple'] .kjb-fb-dropcap { background: rgba(192, 132, 252, 0.3); }
 .kjb-flipbook .kjb-fb-tapped { text-decoration: underline dotted var(--fb-red); text-underline-offset: 3px; }
 .kjb-flipbook .kjb-fb-speaking { background: hsl(var(--accent) / 0.10); }
-/* The big letter of a chapter's opening verse is a floated box taller than the
-   text line, and its ink rises above that box, so washing the box painted the
-   air under the chapter heading and made the letter look lifted off its line —
-   it started the moment the chapter's name was announced. The letter itself
-   carries the mark instead: same tint, no box, so no space is painted and
-   nothing appears to move. */
+/* The big letter of a chapter's opening verse is a floated box taller than its
+   ink, so washing the whole box painted air under the chapter heading and made
+   the letter look lifted off its line. The letter is washed like the rest of
+   the verse, but with a band the height of the cap rather than the box, so it
+   reads as the same highlight and nothing appears to move. */
 .kjb-flipbook [data-fbv].kjb-fb-speaking .kjb-fb-dropcap,
 .kjb-flipbook [data-fb-colour].kjb-fb-speaking .kjb-fb-dropcap {
-  background: transparent !important;
-  color: hsl(var(--accent)) !important;
+  /* The letter is washed like the text it opens, not tinted with the accent.
+     The wash is a band sized to the cap instead of the float's whole box: the
+     box is taller than the ink, and painting all of it put a patch of accent in
+     the air above the letter, which made the letter look lifted off its line. */
+  background-color: transparent !important;
+  background-image: linear-gradient(hsl(var(--accent) / 0.14), hsl(var(--accent) / 0.14)) !important;
+  background-size: 100% 70% !important;
+  background-position: 0 16% !important;
+  background-repeat: no-repeat !important;
+  color: inherit !important;
 }
 /* The verse being read is marked in the accent colour, so a highlighter colour
    stored on that verse gives way to it while the voice is on it: a yellow
@@ -182,19 +192,46 @@
   box-shadow: none;
 }
 .kjb-flipbook .kjb-fb-opening.kjb-fb-speaking .kjb-fb-heading-text {
-  background-color: hsl(var(--accent) / 0.18);
-  box-shadow: 0 0 0 7px hsl(var(--accent) / 0.12);
+  background-color: hsl(var(--accent) / 0.16);
+  box-shadow: none;
   border-radius: 0.4rem;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
+/* One highlight only on the printed book name. The catch-all wash below also
+   lands on the blocks that hold the name — the title page's own wrapper and the
+   full-width section that opens a chapter — so the name sat inside a wide band
+   while its words carried a tighter wash of their own. Two tints over each
+   other is what made the title look smeared. The words carry the mark; the
+   blocks that hold them stay clear. */
+.kjb-flipbook .kjb-fb-titlewrap.kjb-fb-speaking,
+.kjb-flipbook [data-fb-sec='head'].kjb-fb-speaking {
+  background: transparent;
+  box-shadow: none;
+}
+.kjb-flipbook .kjb-fb-titlewrap.kjb-fb-speaking .kjb-fb-title,
+.kjb-flipbook [data-fb-sec='head'].kjb-fb-speaking .kjb-fb-title {
+  background: hsl(var(--accent) / 0.16);
+  border-radius: 3px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.dark .kjb-flipbook .kjb-fb-titlewrap.kjb-fb-speaking .kjb-fb-title,
+.dark .kjb-flipbook [data-fb-sec='head'].kjb-fb-speaking .kjb-fb-title {
+  background: hsl(var(--accent) / 0.34);
+}
+
 /* Book view in dark mode: same lift as the reader, so the page being read is
    as unmistakable on a dark page as on a light one. */
 .dark .kjb-flipbook .kjb-fb-speaking { background: hsl(var(--accent) / 0.28); }
 .dark .kjb-flipbook [data-fbv].kjb-fb-speaking .kjb-fb-dropcap,
 .dark .kjb-flipbook [data-fb-colour].kjb-fb-speaking .kjb-fb-dropcap {
-  background: transparent !important;
-  color: hsl(var(--accent)) !important;
+  background-color: transparent !important;
+  background-image: linear-gradient(hsl(var(--accent) / 0.34), hsl(var(--accent) / 0.34)) !important;
+  background-size: 100% 70% !important;
+  background-position: 0 16% !important;
+  background-repeat: no-repeat !important;
+  color: inherit !important;
 }
 .dark .kjb-flipbook [data-fb-colour].kjb-fb-speaking,
 .dark .kjb-flipbook [data-fb-colour].kjb-fb-speaking mark { background: hsl(var(--accent) / 0.28) !important; }
@@ -202,9 +239,9 @@
 .dark .kjb-flipbook .kjb-fb-note.kjb-fb-speaking { background: hsl(var(--accent) / 0.34); }
 .dark .kjb-flipbook .kjb-fb-opening.kjb-fb-speaking .kjb-fb-heading-text {
   background-color: hsl(var(--accent) / 0.34);
-  box-shadow: 0 0 0 7px hsl(var(--accent) / 0.22);
+  box-shadow: none;
 }
-.dark .kjb-flipbook .kjb-fb-heading.kjb-fb-speaking { background: hsl(var(--accent) / 0.42); box-shadow: 0 0 0 6px hsl(var(--accent) / 0.26); }
+.dark .kjb-flipbook .kjb-fb-heading.kjb-fb-speaking { background: hsl(var(--accent) / 0.42); box-shadow: none; }
 .dark .kjb-flipbook .kjb-fb-endmark.kjb-fb-speaking { background: hsl(var(--accent) / 0.42); }
 /* The floated drop cap sits outside its verse span's background, so each verse
    state above names it too, with the same shade as the text. */
