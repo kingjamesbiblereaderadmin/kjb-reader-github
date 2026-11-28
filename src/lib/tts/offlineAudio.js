@@ -23,7 +23,11 @@ const INDEX_KEY = 'index';
 // verses, so a book downloaded from here carries the Psalm titles, stanza names
 // and closing lines too. Bumping the label makes a device fetch the new index
 // instead of reusing the verse-only one it cached.
-const INDEX_REVISION = 'announcements-2';
+// audio-3: the pinned re-voice of livest/liveth (h34) and the h29-h33 fixes
+// before it gave many verses a new clip URL. Bumping the label makes every
+// device fetch the index again at once instead of keeping a day-old one that
+// still points at the older take.
+const INDEX_REVISION = 'audio-3';
 const INDEX_MAX_AGE = 24 * 60 * 60 * 1000;
 const PROGRESS_EVERY = 10;
 
@@ -132,6 +136,42 @@ async function putClip(row) {
   }
 }
 
+/**
+ * Drop the clips whose stored URL is no longer the one the server publishes for
+ * that verse. The index names books JDE for Jude while the clip rows use JUD,
+ * so the lookup follows the same mapping the index does.
+ */
+async function pruneStaleClips(books) {
+  if (!books) return;
+  let rows = [];
+  try {
+    const db = await openDb();
+    rows = await new Promise((resolve, reject) => {
+      const tx = db.transaction(CLIPS, 'readonly');
+      const req = tx.objectStore(CLIPS).getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+  } catch { return; }
+  const stale = [];
+  for (const row of rows) {
+    const ref = String(row?.ref || '');
+    const cut = ref.indexOf(':');
+    if (cut < 0 || !row?.url) continue;
+    const book = ref.slice(0, cut) === 'JUD' ? 'JDE' : ref.slice(0, cut);
+    const current = books?.[book]?.[ref.slice(cut + 1)];
+    if (current && current !== row.url) stale.push(ref);
+  }
+  if (!stale.length) return;
+  try {
+    const db = await openDb();
+    const tx = db.transaction(CLIPS, 'readwrite');
+    const store = tx.objectStore(CLIPS);
+    stale.forEach((ref) => { revokeCachedUrl(ref); store.delete(ref); });
+    await txDone(tx);
+  } catch { /* the clip simply gets refetched later */ }
+}
+
 async function clipKeys(book) {
   const db = await openDb();
   const prefix = `${book}:`;
@@ -215,6 +255,11 @@ export async function loadIndex({ force = false } = {}) {
       count: Number(data.count) || 0,
       books: data.books,
     });
+    // A re-voiced verse gets a new clip URL. Clips are kept by verse reference,
+    // so a book already on the device would otherwise keep playing the older
+    // take for ever: any clip whose URL no longer matches the index is dropped
+    // here and fetched again the next time it is needed.
+    await pruneStaleClips(data.books);
     return data;
   } catch (err) {
     if (stored?.books) return stored;
