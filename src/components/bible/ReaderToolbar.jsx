@@ -87,7 +87,7 @@ export default function ReaderToolbar({
         onClickCapture={(e) => {
           // Tapping empty space inside the toolbar (the gaps/padding between
           // buttons, not a button or an open popover) closes any open menu.
-          if (anyMenuOpen && !e.target.closest('button, [role="menu"], .kjb-popover-panel')) {
+          if (anyMenuOpen && !e.target.closest('button, [role="menu"], .kjb-popover-panel, .kjb-selector-sheet')) {
             closeAllMenus();
           }
         }}
@@ -253,7 +253,7 @@ export default function ReaderToolbar({
               <div className="bg-card border border-border rounded-xl shadow-xl p-4 w-64 relative overflow-hidden">
                 <button onClick={() => setShowZoomPopover(false)} className="absolute top-3 right-3 p-1 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"><X className="w-4 h-4" /></button>
                 <div className="pr-6">
-                  <ZoomControl value={zoomLevel} onChange={handleZoomChange} onReset={resetZoom} />
+                  <ZoomControl value={zoomLevel} onChange={handleZoomChange} onReset={resetZoom} commitOnRelease={bookMode} />
                 </div>
               </div>
             </ToolbarPopover>
@@ -261,7 +261,7 @@ export default function ReaderToolbar({
           </Popover>
           <SelectorSheet open={showZoomPopover && isMobile()} onClose={() => setShowZoomPopover(false)} title="Text Size">
             <div className="space-y-4 p-2">
-              <ZoomControl value={zoomLevel} onChange={handleZoomChange} onReset={resetZoom} large />
+              <ZoomControl value={zoomLevel} onChange={handleZoomChange} onReset={resetZoom} commitOnRelease={bookMode} large />
             </div>
           </SelectorSheet>
           </div>

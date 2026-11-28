@@ -27,7 +27,13 @@ export default function SelectorSheet({ open, onClose, title, children, tall = f
   // inside the reader toolbar's stacking context (z-index + transforms), so
   // the sheet renders behind/within the toolbar instead of full-screen.
   return createPortal(
-    <div className="kjb-selector-sheet fixed inset-0 z-[200] flex flex-col justify-end">
+    <div className="kjb-selector-sheet fixed inset-0 z-[200] flex flex-col justify-end"
+      onClick={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
+      onTouchCancel={(e) => e.stopPropagation()}
+    >
       {/* Backdrop — closes only when the press starts on the backdrop itself. */}
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"

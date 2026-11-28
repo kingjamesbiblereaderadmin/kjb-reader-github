@@ -17,6 +17,10 @@ export default function ToolbarPopover({ onClose, align = 'start', className, ch
       onCloseAutoFocus={(e) => e.preventDefault()}
       onEscapeKeyDown={onClose}
       onClick={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
+      onTouchCancel={(e) => e.stopPropagation()}
       style={{ maxHeight: 'min(70vh, var(--radix-popover-content-available-height))' }}
       className={cn(
         'kjb-popover-panel print:hidden z-[110] flex w-auto flex-col rounded-2xl border-0 bg-transparent p-0 shadow-none backdrop-blur-none [&>*]:min-h-0 [&>*]:shrink',

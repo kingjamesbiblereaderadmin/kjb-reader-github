@@ -7,6 +7,7 @@ import { ensureShyMap, installShyCopySanitizer } from '@/lib/softHyphens';
 import ChapterFlow from '@/components/bible/ChapterFlow';
 import BookFollowingChapters from '@/components/bible/BookFollowingChapters';
 import useBookContinuations from '@/hooks/useBookContinuations';
+import useBookPageGestures from '@/hooks/useBookPageGestures';
 import bookFlowGeometry from '@/lib/bookFlowGeometry';
 import TitlePage from '@/components/bible/TitlePage';
 import ContentsFlow from '@/components/bible/ContentsFlow';
@@ -61,7 +62,6 @@ export default React.forwardRef(function FlipBook({
 
   const [stageEl, setStageEl] = useState(null);
   const measureRef = useRef(null);
-  const touchRef = useRef(null);
   const landOnEndRef = useRef(false);
   const pendingPageRef = useRef(null);
   // A chapter beginning on the right stays there when audio crosses into it.
@@ -354,6 +354,8 @@ export default React.forwardRef(function FlipBook({
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setPage(to); return; }
     setTurn({ dir, to });
   }, [loading, turn, page, step, pageCount, onNextChapter, onPrevChapter, onOpenPassage, canPrev, canNext, following, spread, firstPage, fillLastPage, carry]);
+
+  const pageGestures = useBookPageGestures(go);
 
   // The page on which a verse or section begins.
   const pageOf = useCallback((selector, progress = 0, completed = null) => {
@@ -737,10 +739,9 @@ export default React.forwardRef(function FlipBook({
     }
   }
 
-  const stop = (e) => e.stopPropagation();
-
   // A tap on a verse selects it, as in the normal reader; a tap elsewhere turns.
   const onPageTap = (dir) => (e) => {
+    if (!e.currentTarget.contains(e.target)) return;
     const verse = e.target.closest('[data-fbv]');
     const source = e.target.closest('[data-fb-next], [data-fb-current], [data-fb-previous]');
     const sourceKey = source?.dataset.fbNext || source?.dataset.fbCurrent || source?.dataset.fbPrevious;
@@ -767,17 +768,6 @@ export default React.forwardRef(function FlipBook({
       role="region"
       aria-label="Book view"
       data-testid="kjb-flipbook"
-      onTouchStart={(e) => { if (e.target.closest?.('[data-kjb-book-controls]')) { touchRef.current = null; return; } stop(e); touchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }}
-      onTouchMove={stop}
-      onTouchEnd={(e) => {
-        stop(e);
-        const from = touchRef.current;
-        touchRef.current = null;
-        if (!from) return;
-        const dx = e.changedTouches[0].clientX - from.x;
-        const dy = e.changedTouches[0].clientY - from.y;
-        if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.4) go(dx < 0 ? 1 : -1);
-      }}
     >
       <div ref={setStageEl} className="kjb-fb-stage">
         {/* A continuous contents flow is measured independently of scripture. */}
@@ -814,11 +804,11 @@ export default React.forwardRef(function FlipBook({
             <p className="kjb-fb-loading" role="status">Loading…</p>
           ) : (
             <>
-            <div className="kjb-fb-slot" style={{ left: 0, width: pageW }} onClick={onPageTap(spread ? -1 : 1)}>
+            <div className="kjb-fb-slot" style={{ left: 0, width: pageW }} {...pageGestures} onClick={onPageTap(spread ? -1 : 1)}>
               {face(left, spread ? 'left' : 'single')}
             </div>
             {spread && (
-              <div className="kjb-fb-slot" style={{ left: pageW, width: pageW }} onClick={onPageTap(1)}>
+              <div className="kjb-fb-slot" style={{ left: pageW, width: pageW }} {...pageGestures} onClick={onPageTap(1)}>
                 {face(right, 'right')}
               </div>
             )}
