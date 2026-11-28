@@ -1110,26 +1110,8 @@ html.kjb-native-ios select {
   box-shadow: 0 0 0 7px hsl(var(--accent) / 0.26);
 }
 
-/* A stanza and its opening verse share a layout wrapper, not a highlight.
-   Painting that wrapper tinted the space around BETH even when its letters
-   were masked. Keep it clear and paint only the separate verse body instead.
-   The heading still carries its own speaking class for its own audio clip.
-   Two-column verses already paint only .kjb-verse-text, so leave that intact. */
-:root [data-kjb-has-stanza].kjb-speaking {
-  background-color: transparent;
-  box-shadow: none;
-}
-:not(.kjb-two-col) > [data-kjb-has-stanza].kjb-speaking > [data-kjb-verse-body] {
-  background-color: hsl(var(--accent) / 0.10);
-  box-shadow: inset 3px 0 0 hsl(var(--accent));
-  border-radius: 0.2rem;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-}
-.dark :not(.kjb-two-col) > [data-kjb-has-stanza].kjb-speaking > [data-kjb-verse-body] {
-  background-color: hsl(var(--accent) / 0.28);
-  box-shadow: inset 4px 0 0 hsl(var(--accent)), 0 0 0 1px hsl(var(--accent) / 0.28);
-}
+/* Playback marks [data-kjb-verse-body] directly. Stanza labels and the
+   spacing around them are outside that surface and cannot share its wash. */
 
 /* The book name and the chapter line are short, tight runs of type, and the
    wash sat straight on the glyphs like a highlighter pressed too hard. A halo
@@ -1165,14 +1147,8 @@ html.kjb-native-ios select {
   box-shadow: 0 0 0 7px hsl(var(--accent) / 0.26);
 }
 
-/* A drop-cap verse floats its big letter past the verse-number column, so the
-   3px inset rule would sit in the gutter beside nothing at all. There the wash
-   on its own marks the verse. (:has() keeps this tied to the markup rather than
-   to a class the player would have to know about; without :has() support the
-   rule simply stays, exactly as before.) */
-.kjb-speaking:has(.kjb-dropcap-group) {
-  box-shadow: none;
-}
+/* Drop-cap verses keep the same left rule as every other verse. The player
+   now paints the verse body, which contains both its number and large letter. */
 
 /* The rest of an all-caps opening word ("IN the beginning", "AND it came to
    pass"): set smaller than body text so it reads as part of the big letter's
@@ -1199,7 +1175,7 @@ span.inline.kjb-speaking .kjb-dropcap-letter {
 .dark span.inline.kjb-speaking .kjb-dropcap-letter {
   background-color: hsl(var(--accent) / 0.28) !important;
 }
-.kjb-two-col > span.inline.kjb-speaking .kjb-dropcap-letter {
+.kjb-two-col > span.inline > [data-kjb-verse-body].kjb-speaking .kjb-dropcap-letter {
   background-color: hsl(var(--accent) / 0.14) !important;
 }
 
@@ -1232,15 +1208,15 @@ span.inline.kjb-speaking .kjb-dropcap-letter {
    first half, which left the part of the verse in the second column unwashed
    (the "half a verse" highlight). An inline background is painted on every
    line fragment, so both halves light up. */
-.kjb-two-col > span.kjb-speaking {
+.kjb-two-col > span > [data-kjb-verse-body].kjb-speaking {
   background-color: transparent;
   background-image: none;
   box-shadow: none;
 }
-.kjb-two-col > span.kjb-speaking .kjb-verse-text {
+.kjb-two-col > span > [data-kjb-verse-body].kjb-speaking .kjb-verse-text {
   background-color: hsl(var(--accent) / 0.14) !important;
 }
-.dark .kjb-two-col > span.kjb-speaking .kjb-verse-text {
+.dark .kjb-two-col > span > [data-kjb-verse-body].kjb-speaking .kjb-verse-text {
   background-color: hsl(var(--accent) / 0.28) !important;
 }
 /* The drop cap is a float, so it sits outside the inline text's wash and the
@@ -1248,7 +1224,7 @@ span.inline.kjb-speaking .kjb-dropcap-letter {
    columns. Let the cap take the very shade its own text is painted with — the
    reading wash, or the page colour when a saved highlight masks it — so there
    is one highlight, letter and words alike. */
-.kjb-two-col > span:not(.inline).kjb-speaking .kjb-dropcap-group {
+.kjb-two-col > span:not(.inline) > [data-kjb-verse-body].kjb-speaking .kjb-dropcap-group {
   background-color: inherit !important;
 }
 /* Only what is being read carries the wash. The superscription sits directly
@@ -1286,8 +1262,8 @@ span.inline.kjb-speaking .kjb-dropcap-letter {
 }
 
 @media print {
-  .kjb-two-col > span.kjb-speaking { background-image: none !important; }
-  .kjb-two-col > span.kjb-speaking .kjb-verse-text { background-color: transparent !important; }
+  .kjb-two-col > span > [data-kjb-verse-body].kjb-speaking { background-image: none !important; }
+  .kjb-two-col > span > [data-kjb-verse-body].kjb-speaking .kjb-verse-text { background-color: transparent !important; }
   .kjb-speaking { background-color: transparent; box-shadow: none; }
   .kjb-speaking .kjb-dropcap-group { background-color: transparent; }
 }

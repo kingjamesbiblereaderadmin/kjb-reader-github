@@ -1,4 +1,5 @@
 import { emphasizeOccurrence } from '@/lib/occurrenceLabel';
+import readerTopEdge from '@/lib/readerTopEdge';
 
 // Scrolls the reader so the given verse element sits under the sticky
 // toolbar. Extracted from BibleReader so the reader and its scroll hooks
@@ -11,9 +12,8 @@ import { emphasizeOccurrence } from '@/lib/occurrenceLabel';
 // How much of the top of the scroller is covered by the reader's anchored
 // chrome: the sticky toolbar, plus the chapter heading that now stays under it.
 export function stickyChromeHeight(topRef) {
-  const toolbarH = topRef?.current ? topRef.current.getBoundingClientRect().height : 0;
-  const band = typeof document === 'undefined' ? null : document.getElementById('kjb-anchored-heading');
-  return toolbarH + (band ? band.getBoundingClientRect().height : 0);
+  const scroller = document.getElementById('kjb-scroll');
+  return readerTopEdge(topRef?.current) - (scroller?.getBoundingClientRect().top || 0);
 }
 
 export function scrollToVerse({ verseNum, posRef, topRef, scrolledVerseRef, instant = false }) {
@@ -23,8 +23,8 @@ export function scrollToVerse({ verseNum, posRef, topRef, scrolledVerseRef, inst
   emphasizeOccurrence(verseEl.querySelectorAll('mark[data-occ]'), occ);
   const scroller = document.getElementById('kjb-scroll');
   const stickyOffset = stickyChromeHeight(topRef) + 6;
-  const numEl = verseEl.querySelector('sup, .kjb-dropcap-num');
-  let topRect = numEl ? numEl.getBoundingClientRect().top : verseEl.getBoundingClientRect().top;
+  const body = verseEl.querySelector('[data-kjb-verse-body]') || verseEl;
+  let topRect = body.getClientRects()[0]?.top ?? verseEl.getBoundingClientRect().top;
   const heading = verseEl.querySelector('.font-bold.text-center');
   if (heading && heading.getBoundingClientRect().top < topRect) topRect = heading.getBoundingClientRect().top;
   const target = scroller

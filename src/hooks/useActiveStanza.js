@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import readerTopEdge from '@/lib/readerTopEdge';
 
 // Which stanza of the chapter the reader has reached. Each stanza's Hebrew name
 // is printed in the text where it opens; the heading band repeats the name, so
@@ -18,9 +19,8 @@ export default function useActiveStanza(stanzas) {
 
     const measure = () => {
       frame = 0;
-      const band = document.getElementById('kjb-anchored-heading');
-      // The band's own bottom edge: anything above it is hidden behind the band.
-      const line = (band ? band.getBoundingClientRect().bottom : 0) + 1;
+      // Change names only once the printed copy is behind the clear gutter.
+      const line = readerTopEdge() + 1;
       let current = stanzas[0].verse;
       for (let i = 1; i < stanzas.length; i += 1) {
         const el = document.getElementById(`v${stanzas[i].verse}`)?.querySelector('.kjb-stanza-heading');

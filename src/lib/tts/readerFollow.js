@@ -1,4 +1,5 @@
 import verseWords from '@/lib/tts/verseWords';
+import readerTopEdge from '@/lib/readerTopEdge';
 
 export function scrollBox() {
   const scroller = document.getElementById('kjb-scroll');
@@ -8,12 +9,7 @@ export function scrollBox() {
 
 export function readingArea() {
   const box = scrollBox();
-  const bar = document.querySelector('[data-kjb-reader-toolbar-wrap], [data-kjb-minimized-header]');
-  const band = document.getElementById('kjb-anchored-heading');
-  // Use the pinned chrome's sizes, not its transient position during a jump.
-  // A little air under the pinned heading: a verse brought to the top of the
-  // reading area sits clear of the band instead of touching its edge.
-  const top = box.top + (bar?.getBoundingClientRect().height || 0) + (band?.getBoundingClientRect().height || 0) + 12;
+  const top = readerTopEdge() + 12;
   let bottom = box.bottom;
   document.querySelectorAll('nav').forEach((nav) => {
     const rect = nav.getBoundingClientRect();
@@ -24,7 +20,13 @@ export function readingArea() {
 
 function firstRect(element) {
   const range = verseWords(element)[0]?.range;
-  return range?.getClientRects()[0] || element.getClientRects()[0];
+  const word = range?.getClientRects()[0] || element.getClientRects()[0];
+  if (!word) return null;
+  const body = element.matches('[data-kjb-verse-body]') ? element : element.querySelector('[data-kjb-verse-body]');
+  const surface = body?.getClientRects()[0];
+  // Align the painted surface, not just the letter ink inside its padding.
+  const top = surface?.height ? Math.min(surface.top, word.top) : word.top;
+  return { top, bottom: word.bottom, left: word.left, height: word.bottom - top };
 }
 
 function moveTo(area, rect) {

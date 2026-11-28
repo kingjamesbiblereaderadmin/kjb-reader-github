@@ -2018,12 +2018,13 @@ export default function BibleReader() {
           <StanzaHeading stanzas={stanzaList} fontFamily={fontFamily} zoomLevel={zoomLevel} />
         </div>
       )}
+      <div data-kjb-reader-gap aria-hidden="true" className="absolute inset-x-0 top-full h-5 bg-background pointer-events-none print:hidden" />
       </div>
       )}
 
       <div
         ref={readerContentRef}
-        className={`kjb-reader-content leading-loose text-foreground pt-3 ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`}
+        className={`kjb-reader-content leading-loose text-foreground pt-5 ${fontFamily === 'cursive' ? 'cursive-em-style' : ''}`}
         style={{ fontSize: `${zoomLevel / 100 * 1.125}rem`, lineHeight: zoomLevel > 100 ? '1.8' : '1.6', ...(fontFamily !== 'cursive' ? { fontFamily: getFontFamilyValue(fontFamily) } : {}) }}
       >
         {loading && <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>}

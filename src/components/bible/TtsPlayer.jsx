@@ -95,7 +95,9 @@ function speakingTargets(kind, verse) {
     if (heads.length) return heads;
   }
   const el = document.getElementById(`v${verse}`);
-  return el ? [el] : [];
+  // Highlight the verse's own surface, never its stanza/layout wrapper.
+  const body = el?.querySelector('[data-kjb-verse-body]') || el;
+  return body ? [body] : [];
 }
 
 
