@@ -42,6 +42,16 @@ on:
         required: false
         default: ''
         type: string
+      release_notes:
+        description: 'App Store What''s New text, one line per bullet (blank = leave the existing notes)'
+        required: false
+        default: ''
+        type: string
+      release_notes_locale:
+        description: 'Locale the App Store release notes are written to'
+        required: false
+        default: 'en-GB'
+        type: string
       submit_for_review:
         description: 'After uploading, sync the What''s New header, attach the build and submit to App Review'
         required: false
@@ -235,6 +245,27 @@ jobs:
           NEXT=$(/tmp/ascvenv/bin/python scripts/asc-next-version.py --app 6813352869 --platform all --requested "$REQUESTED")
           echo "version=$NEXT" >> "$GITHUB_OUTPUT"
           echo "Next marketing version: $NEXT (requested: $REQUESTED)"
+
+      - name: Write App Store release notes (iOS)
+        # The App Store counterpart of the Build Android release_notes option.
+        # The header and the AI footer are added by the script, so the dispatch
+        # input only carries the bullets.
+        if: ${{ inputs.release_notes != '' }}
+        continue-on-error: true
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_RELEASE_NOTES: ${{ inputs.release_notes }}
+          TARGET: ${{ steps.nextver.outputs.version }}
+          LOCALE: ${{ inputs.release_notes_locale }}
+        run: |
+          set -o pipefail
+          /tmp/ascvenv/bin/pip install -q pyjwt requests cryptography
+          /tmp/ascvenv/bin/python scripts/asc-write-notes.py \
+            --app 6813352869 --platform IOS \
+            --version "$TARGET" --locale "$LOCALE" \
+            | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Write signing key
         env:
@@ -551,6 +582,27 @@ jobs:
           NEXT=$(/tmp/ascvenv/bin/python scripts/asc-next-version.py --app 6813352869 --platform all --requested "$REQUESTED")
           echo "version=$NEXT" >> "$GITHUB_OUTPUT"
           echo "Next marketing version: $NEXT (requested: $REQUESTED)"
+
+      - name: Write App Store release notes (macOS)
+        # The App Store counterpart of the Build Android release_notes option.
+        # The header and the AI footer are added by the script, so the dispatch
+        # input only carries the bullets.
+        if: ${{ inputs.release_notes != '' }}
+        continue-on-error: true
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_RELEASE_NOTES: ${{ inputs.release_notes }}
+          TARGET: ${{ steps.nextver.outputs.version }}
+          LOCALE: ${{ inputs.release_notes_locale }}
+        run: |
+          set -o pipefail
+          /tmp/ascvenv/bin/pip install -q pyjwt requests cryptography
+          /tmp/ascvenv/bin/python scripts/asc-write-notes.py \
+            --app 6813352869 --platform MAC_OS \
+            --version "$TARGET" --locale "$LOCALE" \
+            | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Write App Store Connect API key
         env:
