@@ -11,6 +11,14 @@ export default function pronunciationRevision(text) {
   // "prophecies" is the plural noun (PROF-uh-seez), not the verb, so those
   // verses ask for the take voiced from the pinned IPA.
   // "lucre" is LOO-kuh, so those verses ask for the take voiced from the pin.
+  // Every word the AV spells the same but says differently by part of speech
+  // ("read" reed/red, "lead" leed/led, "bow" boh/bough, "sow" soh/sau, "tear",
+  // "wound", "learned"), plus the forms the engine reads with the other part of
+  // speech ("prophesy" as the noun, "incense" as the verb, "shew" as "shoo"),
+  // was voiced again under one revision — mirrored here so the reader asks for
+  // that take instead of replaying the one it remembers.
+  if (/\b(?:read|readeth|readest|reading|lead|leadeth|leadest|leading|leads|bow|bows|bowed|boweth|bowing|sow|soweth|sowest|sowed|tear|tears|wound|wounds|learned|prophesy|prophesied|prophesieth|prophesying|prophesyings|prophesyest|prophecy|incense|shew|shewed|shewedst|shewest|sheweth|shewing|shewn|shewbread|shewbreads|victuals|blessedness)\b/i.test(text)
+      || /\blive\s+coals?\b/i.test(text)) return 'h31';
   if (/\blucre\b/i.test(text)) return 'h30';
   if (/\bprophecies\b/i.test(text)) return 'h29';
   if (/\belijah\b/i.test(text)) return 'h28';

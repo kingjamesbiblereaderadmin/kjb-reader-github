@@ -449,22 +449,23 @@ export default React.forwardRef(function FlipBook({
   useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root) return;
-    root.querySelectorAll('[data-fbv]').forEach((el) => {
+    // A verse that runs over a column or page break is printed as TWO elements:
+    // the head, which keeps data-fbv, and the tail, which is marked data-fbv-tail.
+    // Both carry the same verse, so every state a verse can show — being read,
+    // tapped, selected, jumped to, and the reader's own highlighter colour — is
+    // applied to both. Only the reading wash used to reach the tail, so a
+    // highlighted verse was tinted on one side of the column and bare on the
+    // other.
+    root.querySelectorAll('[data-fbv], [data-fbv-tail]').forEach((el) => {
       if (el.closest('[data-fb-next], [data-fb-previous]')) return;
-      const n = Number(el.dataset.fbv);
-      el.classList.toggle('kjb-fb-speaking', spokenAt === `[data-fbv="${el.dataset.fbv}"]`);
+      const n = Number(el.dataset.fbv ?? el.dataset.fbvTail);
+      if (!Number.isFinite(n)) return;
+      el.classList.toggle('kjb-fb-speaking', spokenAt === `[data-fbv="${n}"]`);
       el.classList.toggle('kjb-fb-tapped', !!tappedVerses?.has(n));
       el.classList.toggle('kjb-fb-selected', !!(selectMode && (selectedVerses?.has(n) || selectedVerses?.has(String(n)))));
       el.classList.toggle('kjb-fb-jumped', !selectMode && !searchTerm && n === parseInt(jumpVerse, 10));
       const colour = getVerseHighlight(abbr, chapter, n);
       if (colour) el.dataset.fbColour = colour; else delete el.dataset.fbColour;
-    });
-    // The half of a verse that carries on into the next column or page keeps
-    // its own copy of the verse span, so it is washed with the half the verse
-    // started on — one verse lit across both, never only half of it.
-    root.querySelectorAll('[data-fbv-tail]').forEach((el) => {
-      if (el.closest('[data-fb-next], [data-fb-previous]')) return;
-      el.classList.toggle('kjb-fb-speaking', spokenAt === `[data-fbv="${el.dataset.fbvTail}"]`);
     });
     root.querySelectorAll('[data-fb-heading]').forEach((el) => {
       if (el.closest('[data-fb-next], [data-fb-previous]')) return;

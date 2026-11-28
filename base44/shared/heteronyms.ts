@@ -10,7 +10,14 @@
 // run) must build a clip from exactly the same words, or the cache would hand
 // back one pronunciation for a verse and make another for the same verse.
 
-const WORD = /\b(?:lead|bow|bows|sow|tear|tears|read|live|wound|blessed|learned|naked|cursed|aged|crooked|beloved)\b/gi;
+const WORD = /\b(?:lead|leadeth|leadest|leading|leads|bow|bows|bowed|boweth|bowing|sow|soweth|sowest|sowed|tear|tears|read|readeth|readest|reading|live|wound|wounds|blessed|blessedness|learned|naked|cursed|aged|crooked|beloved)\b/gi;
+
+// Words that settle which sense a spelling carries. Every branch below returns
+// an explicit respelling — never the bare word — because leaving it bare let the
+// engine guess the other tense ("whoso readeth" came out as the past "red").
+const MODAL = /^(?:shall|shalt|will|wilt|would|may|might|must|can|could|should|to|let|do|doth|dost|didst)$/;
+const PAST_MARK = /^(?:have|hast|has|hath|had|having|did|never|not|ye|we|they|he|she|it|i|thou|and|then|when|after|afterward|also|which|that|who|whosoever|as|so|thus|but|if|because|wherefore|for|therefore)$/;
+const OBJECT_AFTER = /^(?:it|in|all|before|therein|them|out|the|unto|from|their|his|her|this|that|of|thereout|thereof)$/;
 
 // Spellings the engine reads wrongly whatever the sentence says around them:
 // the priority names from the app's own pronunciation audit, plus the archaic
@@ -49,6 +56,31 @@ export const CORRECTED_IPA: Record<string, string> = {
   // "lucre" (filthy lucre) is LOO-kuh: a long u and a soft final -re, never
   // "LOO-ker" with the r sounded.
   lucre: 'ˈluːkə',
+  // ── The other part of speech the engine gives these words ──
+  // "prophesy" and its inflections are the VERB — PROF-uh-sigh, with a long i
+  // in the last syllable. Read off the letters the engine gave them the noun's
+  // -ee, so "they shall prophesy" came out as "prophecy".
+  prophesy: 'ˈprɒfɪsaɪ',
+  prophesied: 'ˈprɒfɪsaɪd',
+  prophesieth: 'ˈprɒfɪsaɪɪθ',
+  prophesying: 'ˈprɒfɪsaɪɪŋ',
+  prophesyings: 'ˈprɒfɪsaɪɪŋz',
+  prophesyest: 'ˈprɒfɪsaɪɪst',
+  // "incense" is the NOUN — IN-sens, stress on the first syllable. The engine
+  // stresses it as the verb (in-SENS), which the KJB never uses here.
+  incense: 'ˈɪnsɛns',
+  // "shew" and its family are the AV's spelling of "show" — SHO, never "shoo".
+  shew: 'ʃəʊ',
+  shewed: 'ʃəʊd',
+  shewedst: 'ˈʃəʊdɪst',
+  shewest: 'ˈʃəʊɪst',
+  sheweth: 'ˈʃəʊɪθ',
+  shewing: 'ˈʃəʊɪŋ',
+  shewn: 'ʃəʊn',
+  shewbread: 'ˈʃəʊbrɛd',
+  shewbreads: 'ˈʃəʊbrɛdz',
+  // "victuals" is VIT-lz — the c is silent and the u is swallowed.
+  victuals: 'ˈvɪtəlz',
   // Words the KJB prints with the æ ligature (Cæsar, Judæa, Cæsarea …). The
   // reader spells the ligature out as "ae" before speaking, so they are keyed by
   // the plain spelling and pinned to standard British forms; left to itself the
@@ -405,38 +437,66 @@ const secondAfter = (after: string) => {
 // letter by the engine.
 function say(word: string, prev: string, next: string, next2: string): string {
   switch (word) {
-    // The metal is always the noun in a list ("iron, tin, and lead") or after
-    // "as", "of", "with". Everything else is the verb, which the KJB otherwise
-    // spells "led" or "leadeth": "lead the people", "lead Zedekiah to Babylon".
+    // ── read: present "reed", past "red" ──
+    // "he that readeth" is the present; "have ye not read" is the past.
+    case 'read':
+      if (MODAL.test(prev)) return 'reed';
+      if (PAST_MARK.test(prev)) return 'red';
+      if (OBJECT_AFTER.test(next)) return 'red';
+      return 'reed';
+    case 'readeth':
+    case 'readest':
+    case 'reading':
+      return `reed${word.slice(4)}`;
+    // ── live: the verb is liv, the adjective in "a live coal" is lyve ──
+    case 'live':
+      return /^(?:coal|coals)$/.test(next) ? 'lyve' : 'liv';
+    // ── lead: the metal is led, the verb is leed ──
     case 'lead':
-      if (/^(as|like|of|with|than|from|upon)$/.test(prev)) return 'led';
-      if (/^(the|a|and|or)$/.test(prev) && /^(is|was|be|and|they|in|or|that)?$/.test(next)) return 'led';
+      if (/^(?:as|like|of|with|than|from|upon)$/.test(prev)) return 'led';
+      if (/^(?:and|or)$/.test(prev) && !/^(?:the|a|an|his|her|their|thy|my|your|our|them|me|thee|you|him|it|us|forth|away|up|out|into|unto|to|through|in|about)$/.test(next)) return 'led';
       return 'leed';
-    // The weapon and the rainbow are long "o"; bending the knee is "bau".
+    case 'leadeth':
+    case 'leadest':
+    case 'leading':
+    case 'leads':
+      return `leed${word.slice(4)}`;
+    // ── bow: bending is bough, the weapon and the rainbow are boh ──
     case 'bow':
-      if (/^(down|yourselves|yourself|thyself|himself|themselves|unto|to|before|at)$/.test(next)) return 'bough';
-      if (next === 'the' && /^(knee|knees)$/.test(next2)) return 'bau';
-      if (/^(my|his|her|their|thy|our|your|the|a|this|that)$/.test(prev)) return 'boh';
-      return 'bau';
+      if (/^(?:down|yourselves|yourself|thyself|himself|themselves|unto|to|before|at)$/.test(next)) return 'bough';
+      if (next === 'the' && /^(?:knee|knees)$/.test(next2)) return 'bau';
+      if (/^(?:my|his|her|their|thy|our|your|the|a|this|that|with|whose)$/.test(prev)) return 'boh';
+      return 'bough';
     case 'bows': return 'bohz';
-    // Scattering seed is long "o"; "the sow that was washed" is a pig.
-    case 'sow': return /^(a|the)$/.test(prev) ? 'sau' : 'soh';
-    // Weeping is "teer"; rending in pieces is "tair".
+    case 'bowed': return 'boughd';
+    case 'boweth':
+    case 'bowing':
+      return `bough${word.slice(3)}`;
+    // ── sow: scattering seed is soh, the pig is sau ──
+    case 'sow':
+      return /^(?:a|the|that)$/.test(prev) ? 'sau' : 'soh';
+    case 'sowed': return 'sohd';
+    case 'soweth':
+    case 'sowest':
+      return `soh${word.slice(3)}`;
+    // ── tear: weeping is teer, rending is tair ──
     case 'tears': return 'teers';
     case 'tear': return 'tair';
-    // "have ye not read" is the past, "he that readeth" is the present.
-    case 'read':
-      if (/^(shall|shalt|will|wilt|would|may|might|must|can|could|should|to|let|do|doth|dost)$/.test(prev)) return word;
-      if (/^(have|hast|has|hath|had|having|did|never|not|ye|we|they|and|then|when|after|afterward|also|which)$/.test(prev)) return 'red';
-      if (/^(it|in|all|before|therein|them|out|the|not|unto|from|their|his|her|this|that)$/.test(next)) return 'red';
-      return word;
-    // "a live coal" is the only place the adjective appears.
-    case 'live': return /^(coal|coals)$/.test(next) ? 'lyve' : word;
-    // "wound about" is the past of wind; an injury keeps its own sound.
-    case 'wound': return /^(about|round|roundabout)$/.test(next) ? 'wownd' : word;
-    // The "-ed" words the Authorised Version reads with their own syllable.
-    case 'blessed': return /^(have|hast|has|had|having)$/.test(prev) ? word : 'bless-ed';
-    case 'learned': return /^(have|hast|has|had|having|never)$/.test(prev) ? word : 'learn-ed';
+    // ── wound: an injury is woond, "wound about" is the past of wind ──
+    case 'wound': return /^(?:about|round|roundabout)$/.test(next) ? 'wownd' : 'woond';
+    case 'wounds': return 'woondz';
+    // ── -ed words the AV gives a syllable of their own ──
+    case 'blessed':
+      // "hath blessed" is the plain past; "Blessed be the LORD" takes the second.
+      return /^(?:have|hast|has|hath|had|having)$/.test(prev) ? 'blest' : 'bless-ed';
+    case 'blessedness': return 'bless-ed-ness';
+    case 'learned':
+      // "a learned man", "learned in all wisdom" are the adjective;
+      // "I have learned" is the past.
+      if (/^(?:have|hast|has|hath|had|having|never|ye|we|they|he|she|i|thou)$/.test(prev)) return 'learnd';
+      if (/^(?:a|an|the|was|were|is|are|being|most|very|more)$/.test(prev)) return 'learn-ed';
+      if (/^(?:in|of|man|men)$/.test(next)) return 'learn-ed';
+      return 'learnd';
     // Keep the spelling intact so CORRECTED_IPA supplies NAY-kid.
     case 'naked': return word;
     // "cursed be Canaan" and "cursed is the ground" carry their own syllable;
@@ -531,5 +591,13 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   // now spoken as one word, so those verses are voiced once more without the
   // break the hyphen was making.
   const hyphenatedName = /[A-Z][a-z]+-[a-z]/.test(String(text || ''));
-  return { text: out, changed, revision: lucreUpdated ? 'h30' : propheciesUpdated ? 'h29' : elijahUpdated ? 'h28' : hyphenatedName ? 'h27' : repinnedUpdated ? 'h26' : siteNamesUpdated ? 'h24' : namesUpdated ? 'h23' : heretickUpdated ? 'h20' : sowUpdated ? 'h19' : baptizeUpdated ? 'h18' : sosthenesUpdated ? 'h17' : cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
+  // Every word the AV spells the same but says differently by part of speech
+  // ("read" reed/red, "lead" leed/led, "bow" boh/bough, "sow" soh/sau, "tear",
+  // "wound", "learned"), plus the forms the engine reads with the other part of
+  // speech ("prophesy" as the noun, "incense" as the verb, "shew" as "shoo"),
+  // is voiced again under ONE revision — so each affected verse is recorded
+  // once, not once per word.
+  const contextUpdated = /\b(?:read|readeth|readest|reading|lead|leadeth|leadest|leading|leads|bow|bows|bowed|boweth|bowing|sow|soweth|sowest|sowed|tear|tears|wound|wounds|learned|prophesy|prophesied|prophesieth|prophesying|prophesyings|prophesyest|prophecy|incense|shew|shewed|shewedst|shewest|sheweth|shewing|shewn|shewbread|shewbreads|victuals|blessedness)\b/i.test(text)
+    || /\blive\s+coals?\b/i.test(text);
+  return { text: out, changed, revision: contextUpdated ? 'h31' : lucreUpdated ? 'h30' : propheciesUpdated ? 'h29' : elijahUpdated ? 'h28' : hyphenatedName ? 'h27' : repinnedUpdated ? 'h26' : siteNamesUpdated ? 'h24' : namesUpdated ? 'h23' : heretickUpdated ? 'h20' : sowUpdated ? 'h19' : baptizeUpdated ? 'h18' : sosthenesUpdated ? 'h17' : cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
 }
