@@ -113,18 +113,25 @@
 
 /* verse marks: saved colours, tapped verse, and the voice (which wins) */
 .kjb-flipbook [data-fbv] { -webkit-box-decoration-break: clone; box-decoration-break: clone; border-radius: 2px; }
-.kjb-flipbook [data-fb-colour='yellow'] { background: rgba(250, 204, 21, 0.36); }
-.kjb-flipbook [data-fb-colour='green'] { background: rgba(74, 222, 128, 0.32); }
-.kjb-flipbook [data-fb-colour='blue'] { background: rgba(96, 165, 250, 0.32); }
-.kjb-flipbook [data-fb-colour='pink'] { background: rgba(244, 114, 182, 0.3); }
-.kjb-flipbook [data-fb-colour='purple'] { background: rgba(192, 132, 252, 0.3); }
+.kjb-flipbook [data-fb-colour='yellow'],
+.kjb-flipbook [data-fb-colour='yellow'] .kjb-fb-dropcap { background: rgba(250, 204, 21, 0.36); }
+.kjb-flipbook [data-fb-colour='green'],
+.kjb-flipbook [data-fb-colour='green'] .kjb-fb-dropcap { background: rgba(74, 222, 128, 0.32); }
+.kjb-flipbook [data-fb-colour='blue'],
+.kjb-flipbook [data-fb-colour='blue'] .kjb-fb-dropcap { background: rgba(96, 165, 250, 0.32); }
+.kjb-flipbook [data-fb-colour='pink'],
+.kjb-flipbook [data-fb-colour='pink'] .kjb-fb-dropcap { background: rgba(244, 114, 182, 0.3); }
+.kjb-flipbook [data-fb-colour='purple'],
+.kjb-flipbook [data-fb-colour='purple'] .kjb-fb-dropcap { background: rgba(192, 132, 252, 0.3); }
 .kjb-flipbook .kjb-fb-tapped { text-decoration: underline dotted var(--fb-red); text-underline-offset: 3px; }
-.kjb-flipbook .kjb-fb-speaking { background: hsl(var(--accent) / 0.10); }
+.kjb-flipbook .kjb-fb-speaking,
+.kjb-flipbook [data-fbv].kjb-fb-speaking .kjb-fb-dropcap { background: hsl(var(--accent) / 0.10); }
 /* The verse being read is marked in the accent colour, so a highlighter colour
    stored on that verse gives way to it while the voice is on it: a yellow
    highlight under an accent wash read as two clashing tints. */
 .kjb-flipbook [data-fb-colour].kjb-fb-speaking,
-.kjb-flipbook [data-fb-colour].kjb-fb-speaking mark { background: hsl(var(--accent) / 0.10) !important; }
+.kjb-flipbook [data-fb-colour].kjb-fb-speaking mark,
+.kjb-flipbook [data-fb-colour].kjb-fb-speaking .kjb-fb-dropcap { background: hsl(var(--accent) / 0.10) !important; }
 .kjb-flipbook .kjb-fb-speaking mark { background: hsl(var(--accent) / 0.32) !important; color: inherit; }
 /* The subscription and the postscript: one flat wash. A halo around it read as
    a second highlight on the words. The player also puts .kjb-speaking on these
@@ -137,18 +144,18 @@
 .kjb-flipbook .kjb-fb-note.kjb-fb-speaking { background: hsl(var(--accent) / 0.14); }
 /* Book view in dark mode: same lift as the reader, so the page being read is
    as unmistakable on a dark page as on a light one. */
-.dark .kjb-flipbook .kjb-fb-speaking { background: hsl(var(--accent) / 0.28); }
+.dark .kjb-flipbook .kjb-fb-speaking,
+.dark .kjb-flipbook [data-fbv].kjb-fb-speaking .kjb-fb-dropcap { background: hsl(var(--accent) / 0.28); }
 .dark .kjb-flipbook [data-fb-colour].kjb-fb-speaking,
-.dark .kjb-flipbook [data-fb-colour].kjb-fb-speaking mark { background: hsl(var(--accent) / 0.28) !important; }
+.dark .kjb-flipbook [data-fb-colour].kjb-fb-speaking mark,
+.dark .kjb-flipbook [data-fb-colour].kjb-fb-speaking .kjb-fb-dropcap { background: hsl(var(--accent) / 0.28) !important; }
 .dark .kjb-flipbook .kjb-fb-speaking mark { background: hsl(var(--accent) / 0.5) !important; }
 .dark .kjb-flipbook .kjb-fb-note.kjb-fb-speaking { background: hsl(var(--accent) / 0.34); }
 .dark .kjb-flipbook .kjb-fb-heading.kjb-fb-speaking { background: hsl(var(--accent) / 0.42); box-shadow: 0 0 0 6px hsl(var(--accent) / 0.26); }
 .dark .kjb-flipbook .kjb-fb-endmark.kjb-fb-speaking { background: hsl(var(--accent) / 0.42); }
-/* The explicit drop-cap span supports both the verse wash and word paint. */
-.kjb-flipbook .kjb-fb-first.kjb-fb-first-speaking .kjb-fb-dropcap {
-  background: hsl(var(--accent) / 0.14);
-  border-radius: 2px;
-}
+/* The floated drop cap sits outside its verse span's background, so each verse
+   state above names it too, with the same shade as the text. */
+.kjb-flipbook .kjb-fb-dropcap { border-radius: 2px; }
 
 .kjb-fb-twocol { column-rule: 1px solid var(--fb-rule); font-size: 0.92em; }
 .kjb-fb-twocol .kjb-fb-title { font-size: 1.12em; }
@@ -161,7 +168,9 @@
 .kjb-fb-para.kjb-fb-gap { margin-top: 1.25em; }
 .kjb-fb-para.kjb-fb-gap.kjb-fb-flush { margin-top: 0; }
 .kjb-flipbook mark { background: rgba(250, 204, 21, 0.55); color: inherit; border-radius: 2px; }
-.kjb-flipbook .kjb-fb-jumped { background: rgba(140, 47, 35, 0.12); }
+.kjb-flipbook .kjb-fb-jumped,
+.kjb-flipbook .kjb-fb-jumped .kjb-fb-dropcap { background: rgba(140, 47, 35, 0.12); }
+.kjb-flipbook .kjb-fb-selected .kjb-fb-dropcap { background: rgba(37, 99, 235, 0.18); }
 .kjb-flipbook .kjb-fb-selected { background: rgba(37, 99, 235, 0.18); box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.45); }
 
 /* The controls are anchored to the actual paper, not to a surrounding card.
