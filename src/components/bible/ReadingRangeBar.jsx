@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 // Slim action bar shown when reading a verse range / search result.
 // `filterMode` controls whether the reader is filtered to only the selected
 // verses (true) or showing the full chapter with them highlighted (false).
-export default function ReadingRangeBar({ label, filterMode, copyFeedback, shareFeedback, shareLinkFeedback, saveFeedback, onCopy, onCopyPerVerse, onShareText, onShareTextPerVerse, onShareLink, onSave, onToggleView, onClear, onPrintPage, onPrintContents }) {
+export default function ReadingRangeBar({ label, filterMode, showViewToggle = true, copyFeedback, shareFeedback, shareLinkFeedback, saveFeedback, onCopy, onCopyPerVerse, onShareText, onShareTextPerVerse, onShareLink, onSave, onToggleView, onClear, onPrintPage, onPrintContents }) {
   const prevLabelRef = useRef(label);
 
   useEffect(() => {
@@ -95,15 +95,17 @@ export default function ReadingRangeBar({ label, filterMode, copyFeedback, share
         <Printer className="w-3.5 h-3.5" /> Print
       </button>
 
-      {/* Toggle between filtered (verses only) and full-chapter views */}
-      <button
+      {/* Toggle between filtered (verses only) and full-chapter views. Book mode
+          has no verse-only view — it always prints the whole chapter — so the
+          toggle is not offered there. */}
+      {showViewToggle && <button
         onClick={onToggleView}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent/10 text-accent hover:bg-accent/20 font-sans text-xs font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
       >
         {filterMode
           ? <><AlignLeft className="w-3.5 h-3.5" /> Full Chapter</>
           : <><Filter className="w-3.5 h-3.5" /> Verses Only</>}
-      </button>
+      </button>}
       <button
         id="kjb-reading-range-clear-btn"
         onClick={(e) => {
