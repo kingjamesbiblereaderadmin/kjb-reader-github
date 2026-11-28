@@ -234,14 +234,16 @@ export default React.forwardRef(function FlipBook({
   // printed last, so it belongs in the chapter's own flow: when the final page
   // has no room left under the colophon it turns onto the next page with the
   // rest of the text instead of sitting over the verse above it.
-  const showEnd = !!endMarker && !(filterMode && !selectMode && selectedVerses?.size);
+  const showEnd = !!endMarker;
   const blocks = useMemo(() => (<>
-    <BookChapterBlocks {...{ bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses }} showBookTitle={!carry || carry.fromKey.split(':')[0] !== abbr} />
+    <BookChapterBlocks {...{ bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode: false, selectMode, selectedVerses }} showBookTitle={!carry || carry.fromKey.split(':')[0] !== abbr} />
     {showEnd && <p className="kjb-fb-endmark">{endMarker}</p>}
   </>), [bookName, chapter, verses, subscript, colophon, paragraphs, searchTerm, jumpVerse, jumpSection, filterMode, selectMode, selectedVerses, showEnd, endMarker, fontTick, !!carry]);
-  // The next chapter is known even when the view is filtered down to a searched
-  // verse or a picked selection: the facing page then carries that chapter on
-  // instead of leaving a blank sheet after the excerpt.
+  // A reference (a looked-up verse range, a search hit, a picked selection) does
+  // not cut the chapter down in book mode: the whole chapter is printed and the
+  // picked verses are washed, so the page still reads as the chapter it is. The
+  // next chapter carries on as it always has at the foot of the chapter.
+  const passageFilter = !!(filterMode && !selectMode && selectedVerses?.size);
   const lookaheadCount = lookahead.key === chapterKey ? lookahead.count : 1;
   const followingChapters = useBookContinuations(book, chapter, canNext && !selectMode, lookaheadCount);
   const following = followingChapters[0] || null;
@@ -496,7 +498,7 @@ export default React.forwardRef(function FlipBook({
       if (ref === `${abbr}:${chapter}:${speaking.verse}`) read();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spokenAt, speaking?.playing, page, step, pageCount, turn, loading, textW, gap, colW, perPage, front.length, abbr, chapter]);
+  }, [spokenAt, speaking?.playing, page, step, pageCount, turn, loading, textW, gap, colW, perPage, front.length, abbr, chapter, passageFilter, selectedVerses, selectMode, jumpVerse, searchTerm]);
 
   // The sheet that a turn by hand swung has landed: put the book back on the
   // words the voice is on, so reading on never leaves the pages behind.
@@ -538,7 +540,11 @@ export default React.forwardRef(function FlipBook({
       el.classList.toggle('kjb-fb-speaking', spokenAt === `[data-fbv="${n}"]`);
       el.classList.toggle('kjb-fb-tapped', !!tappedVerses?.has(n));
       el.classList.toggle('kjb-fb-selected', !!(selectMode && (selectedVerses?.has(n) || selectedVerses?.has(String(n)))));
-      el.classList.toggle('kjb-fb-jumped', !selectMode && !searchTerm && n === parseInt(jumpVerse, 10));
+      // Book mode always prints the whole chapter, so a looked-up reference is
+      // marked on its own verses instead of replacing the chapter: they take the
+      // same warm wash the reader gets when they jump to a verse.
+      const referenced = !!(passageFilter && (selectedVerses?.has(n) || selectedVerses?.has(String(n))));
+      el.classList.toggle('kjb-fb-jumped', referenced || (!selectMode && !searchTerm && n === parseInt(jumpVerse, 10)));
       const colour = getVerseHighlight(abbr, chapter, n);
       if (colour) el.dataset.fbColour = colour; else delete el.dataset.fbColour;
     });
