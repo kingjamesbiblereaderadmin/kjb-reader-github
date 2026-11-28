@@ -535,9 +535,12 @@
     user-select: none;
     -webkit-user-select: none;
   }
+  /* Dark mode: white at half strength all but vanished against the dark page,
+     so the paragraph mark could not be seen at all. It sits brighter now, still
+     quieter than the scripture it introduces. */
   .dark .pilcrow {
     color: #ffffff;
-    opacity: 0.5;
+    opacity: 0.8;
     font-style: normal;
     user-select: none;
     -webkit-user-select: none;
