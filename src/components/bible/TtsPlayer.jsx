@@ -611,10 +611,11 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
             (no wrapping, no stretching): the row scrolls sideways on a phone
             instead of stacking onto a second line. */}
         {/* Two groups, never three rows. The transport (previous, play, next)
-            keeps its own row at its own size, and everything else sits in one
-            non-wrapping row that scrolls sideways on a narrow phone instead of
-            stacking a control on a line of its own. On a wide screen the two
-            groups stand side by side as one bar. */}
+            keeps its own row at its own size, and the rest of the controls sit
+            in one non-wrapping row beside it. On a wide screen the two groups
+            make a single bar, divided by a hairline, with room between the
+            controls; on a phone the second row keeps its icons and drops their
+            words, so it fits the width instead of being cut off at the edge. */}
         <div className={vertical
           ? 'flex flex-col items-stretch gap-1 [&>*]:w-full'
           : inline
@@ -624,7 +625,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
             // view, which is what made the row look like it was spanning past
             // the bar.
             ? 'flex flex-nowrap items-center justify-start gap-1 [&>*]:flex-none overflow-x-auto'
-            : 'flex flex-wrap items-center justify-center gap-2 sm:gap-3'}>
+            : 'flex flex-wrap items-center justify-center gap-y-2.5 gap-x-2 py-0.5 sm:gap-3'}>
         {/* The book view's player panel lays its own three-column grid, so in
             that mode the group is transparent: its buttons are the grid's
             items, exactly as before the rows were split. */}
@@ -646,7 +647,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
               className="h-10 px-3 flex items-center justify-center gap-1.5 rounded-lg bg-secondary border border-border text-muted-foreground font-sans text-xs font-medium whitespace-nowrap opacity-70 touch-manipulation"
             >
               <CloudDownload className="w-4 h-4 flex-shrink-0" />
-              {!vertical && 'Download this book to listen offline'}
+              {!vertical && <span className="hidden sm:inline">Download this book to listen offline</span>}
             </button>
           ) : (
             <button
@@ -664,7 +665,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
         </div>
         <div className={vertical || inline
           ? 'contents'
-          : 'flex flex-none items-center justify-center gap-2 max-w-full overflow-x-auto [&>*]:flex-none'}>
+          : 'flex flex-none items-center justify-center gap-1.5 max-w-full overflow-x-auto [&>*]:flex-none sm:gap-2.5 sm:border-l sm:border-border/70 sm:pl-3 [&_span]:hidden sm:[&_span]:inline'}>
           <button
             onClick={restartChapter}
             aria-label="Reset playback and start this chapter again from verse 1"
@@ -710,7 +711,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
             {/* The slim bar is short of room, so the switch is its icon alone
                 there; the full row spells it out. */}
             {vertical ? <span className="text-[10px] font-semibold">{autoContinue ? 'On' : 'Off'}</span>
-              : !inline && (autoContinue ? 'Continueth' : 'One chapter')}
+              : !inline && <span>{autoContinue ? 'Continueth' : 'One chapter'}</span>}
           </button>
           <OutputDeviceMenu value={tts.sinkId} onChange={tts.setSink} buttonClass={CONTROL} />
           {/* Where the voice comes from, and where to send a fault. */}
