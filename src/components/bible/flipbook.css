@@ -122,7 +122,8 @@
 .kjb-fb-titlepage .bg-accent { background: var(--fb-red) !important; }
 
 /* verse marks: saved colours, tapped verse, and the voice (which wins) */
-.kjb-flipbook [data-fbv] { -webkit-box-decoration-break: clone; box-decoration-break: clone; border-radius: 2px; }
+.kjb-flipbook [data-fbv],
+.kjb-flipbook [data-fbv-tail] { -webkit-box-decoration-break: clone; box-decoration-break: clone; border-radius: 2px; }
 .kjb-flipbook [data-fb-colour='yellow'],
 .kjb-flipbook [data-fb-colour='yellow'] .kjb-fb-dropcap { background: rgba(250, 204, 21, 0.36); }
 .kjb-flipbook [data-fb-colour='green'],

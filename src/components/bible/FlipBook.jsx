@@ -448,6 +448,13 @@ export default React.forwardRef(function FlipBook({
       const colour = getVerseHighlight(abbr, chapter, n);
       if (colour) el.dataset.fbColour = colour; else delete el.dataset.fbColour;
     });
+    // The half of a verse that carries on into the next column or page keeps
+    // its own copy of the verse span, so it is washed with the half the verse
+    // started on — one verse lit across both, never only half of it.
+    root.querySelectorAll('[data-fbv-tail]').forEach((el) => {
+      if (el.closest('[data-fb-next], [data-fb-previous]')) return;
+      el.classList.toggle('kjb-fb-speaking', spokenAt === `[data-fbv="${el.dataset.fbvTail}"]`);
+    });
     root.querySelectorAll('[data-fb-heading]').forEach((el) => {
       if (el.closest('[data-fb-next], [data-fb-previous]')) return;
       el.classList.toggle('kjb-fb-speaking', spokenAt === `[data-fb-heading="${el.dataset.fbHeading}"]`);

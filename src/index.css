@@ -1191,17 +1191,23 @@ span.inline.kjb-speaking .kjb-dropcap-letter {
 @media print { .kjb-word-overlay { display: none; } }
 
 /* In two columns the space between verses is each verse's own padding (below,
-   plus above for pilcrow verses). Keep the wash and left rule to the text, so
-   the gaps stay clear. A box-shadow can't be clipped, hence the gradient. */
+   plus above for pilcrow verses). Keep the wash to the text, so the gaps stay
+   clear — painted on the verse's own inline text instead of the verse row.
+   A verse that runs over the column rule is ONE box broken in two, and a
+   background image clipped to that box's content box is only painted on its
+   first half, which left the part of the verse in the second column unwashed
+   (the "half a verse" highlight). An inline background is painted on every
+   line fragment, so both halves light up. */
 .kjb-two-col > span.kjb-speaking {
   background-color: transparent;
-  background-image: linear-gradient(to right, hsl(var(--accent)) 3px, hsl(var(--accent) / 0.14) 3px);
-  background-origin: content-box;
-  background-clip: content-box;
+  background-image: none;
   box-shadow: none;
 }
-.kjb-two-col > span.kjb-speaking:has(.kjb-dropcap-group) {
-  background-image: linear-gradient(hsl(var(--accent) / 0.14), hsl(var(--accent) / 0.14));
+.kjb-two-col > span.kjb-speaking .kjb-verse-text {
+  background-color: hsl(var(--accent) / 0.14) !important;
+}
+.dark .kjb-two-col > span.kjb-speaking .kjb-verse-text {
+  background-color: hsl(var(--accent) / 0.28) !important;
 }
 
 /* ---- Verse rows: numbers and breathing room ----------------------------
@@ -1228,6 +1234,7 @@ span.inline.kjb-speaking .kjb-dropcap-letter {
 
 @media print {
   .kjb-two-col > span.kjb-speaking { background-image: none !important; }
+  .kjb-two-col > span.kjb-speaking .kjb-verse-text { background-color: transparent !important; }
   .kjb-speaking { background-color: transparent; box-shadow: none; }
   .kjb-speaking .kjb-dropcap-group { background-color: transparent; }
 }

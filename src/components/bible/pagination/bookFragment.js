@@ -9,12 +9,39 @@ function boundary(element, offset) {
   return [element, element.childNodes.length];
 }
 
+// The verse span a cut at `offset` falls inside — the verse that carries on
+// into the next column or page.
+function verseSpanAt(element, offset) {
+  const [node] = boundary(element, offset);
+  const start = node.nodeType === 1 ? node : node.parentElement;
+  const span = start && start.closest ? start.closest('[data-fbv]') : null;
+  return span && span !== element && element.contains(span) ? span : null;
+}
+
 export function fragment(element, start, end) {
   const range = document.createRange();
   range.setStart(...boundary(element, start));
   range.setEnd(...boundary(element, end));
   const copy = element.cloneNode(false);
-  copy.appendChild(range.cloneContents());
+  const contents = range.cloneContents();
+  // A verse cut in two keeps only its text in the tail; the verse's own span —
+  // the marker the player uses to wash the verse being read — stayed with the
+  // head. Wrapping the tail back in a copy of that span, marked as the tail,
+  // is what lets the half on the next column or page be washed as well, so one
+  // verse lights up whole instead of half of it.
+  const span = start ? verseSpanAt(element, start) : null;
+  const first = contents.firstChild;
+  const alreadyMarked = !!(first && first.nodeType === 1 && first.hasAttribute && first.hasAttribute('data-fbv'));
+  if (span && !alreadyMarked) {
+    const wrapper = span.cloneNode(false);
+    const verse = wrapper.getAttribute('data-fbv');
+    wrapper.removeAttribute('data-fbv');
+    wrapper.setAttribute('data-fbv-tail', verse);
+    wrapper.appendChild(contents);
+    copy.appendChild(wrapper);
+  } else {
+    copy.appendChild(contents);
+  }
   if (start) { copy.style.textIndent = '0'; copy.style.marginTop = '0'; }
   return copy;
 }
