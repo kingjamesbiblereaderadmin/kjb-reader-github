@@ -2071,19 +2071,12 @@ export default function BibleReader() {
 
           return (
           <>
-          {/* The vertical divider between the two verse columns is continued
-              upward so it MEETS the running head's horizontal rule — a clean
-              T junction, like a printed Bible's column rule meeting the
-              running head — but it never crosses ABOVE that rule (an earlier
-              version ran it over the head to the top of the page, cutting the
-              book/chapter heading with a "+" crossover). The overlay is
-              anchored to a wrapper that starts at the columns; top:-1.5rem
-              bridges exactly the RunningHead's mb-6 margin, landing on the
-              rule's bottom edge. With no running head (chapter 1) it simply
-              matches the columns box, like the column-rule itself.
-              Absolutely-positioned overlay — it can't push or resize any
-              text, rule, or toolbar button. */}
-          <div className="relative">
+          {/* Space the visible superscription from the running-head rule here,
+              OUTSIDE the columns and the highlighted note. A first-item margin
+              can be discarded at a column boundary; padding on this wrapper
+              cannot, including short chapters that do not need two columns.
+              The divider still starts at the rule, above the clear gap. */}
+          <div className={subscriptBlock ? 'relative pt-5' : 'relative'}>
           {useColumns && (
             <div
               aria-hidden="true"
