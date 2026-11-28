@@ -261,7 +261,10 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
       // whenever the book changes after that. A refresh, or starting on chapter
       // 2 rather than chapter 1, is a fresh start: "Genesis, chapter 2", not a
       // bare "Chapter 2" with no word of where you are.
-      const bookChanged = prev.book !== fullName || !announcedRef.current;
+      // A title page speaks its own words and names no book, so the chapter
+      // that follows it must still say where the reader is: rolling from the
+      // New Testament title page into Matthew 1 announced only "Chapter one".
+      const bookChanged = prev.book !== fullName || !announcedRef.current || prev.chapter === 0;
       // Said with the book's plain name, and with a numbered book's numeral
       // spoken as an ordinal ("First Samuel", never "one Samuel"). A clip is
       // cached by its reference, so numbered books ask for a take of their own
@@ -280,7 +283,9 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
       // nineteen" and must not play over the corrected wording.
       const wordsKey = Number(chapter) >= 100 ? '-c2' : '';
       const introKey = bookChanged ? `${chapterKey}:intro${ordinal}${wordsKey}` : `${chapterKey}:chapter${wordsKey}`;
-      announcedRef.current = true;
+      // The title page's own clip names neither book nor chapter, so it must
+      // not count as the announcement that has already said where we are.
+      if (!titleText) announcedRef.current = true;
       skipScrollRef.current = true;
       followRef.current = true;
       tts.start(1, titleText ? null : { ref: introKey, text: introText });
