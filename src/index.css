@@ -1096,6 +1096,20 @@ html.kjb-native-ios select {
   box-decoration-break: clone;
 }
 
+/* The stanza name set with the chapter number is washed while the voice reads
+   it, whether or not its printed copy in the text is still on screen. */
+.kjb-stanza-heading[data-kjb-speaking='true'] {
+  background-color: hsl(var(--accent) / 0.22);
+  box-shadow: 0 0 0 7px hsl(var(--accent) / 0.14);
+  border-radius: 0.3rem;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.dark .kjb-stanza-heading[data-kjb-speaking='true'] {
+  background-color: hsl(var(--accent) / 0.42);
+  box-shadow: 0 0 0 7px hsl(var(--accent) / 0.26);
+}
+
 /* The stanza name (ALEPH, BETH…) is read as its own clip and washed on its
    own while it plays. It sits INSIDE the verse element that follows it, so the
    verse's own wash covered it a second time once the verse began reading — the

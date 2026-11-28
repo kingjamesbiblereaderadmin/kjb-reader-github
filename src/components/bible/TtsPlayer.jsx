@@ -85,13 +85,14 @@ function speakingTargets(kind, verse) {
   }
   if (verse == null) return [];
   if (kind === 'heading') {
-    // A stanza name is printed inside the verse it opens, and the one the reader
-    // is in is also set with the chapter number in the heading band. Prefer the
-    // band: it is always on screen, while the printed copy may have scrolled
-    // under it.
-    const head = document.querySelector(`[data-kjb-stanza="${verse}"]`)
-      || document.querySelector(`#v${verse} .kjb-stanza-heading`);
-    if (head) return [head];
+    // A stanza name is printed inside the verse it opens, and the reader's
+    // heading band carries the same name once that copy has scrolled past it.
+    // Both are marked, so the name is washed whichever of the two is on screen.
+    const heads = [
+      document.querySelector(`[data-kjb-stanza="${verse}"]`),
+      document.querySelector(`#v${verse} .kjb-stanza-heading`),
+    ].filter(Boolean);
+    if (heads.length) return heads;
   }
   const el = document.getElementById(`v${verse}`);
   return el ? [el] : [];
