@@ -33,6 +33,7 @@ export default function CurrentlyReadingIndicator({
   gospelMode,
   gospelLabel,
   occurrenceLabel,
+  chapterOnly = false,
 }) {
   const isFilterMode = filterMode && selectedVerses.size > 0;
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
@@ -73,11 +74,13 @@ export default function CurrentlyReadingIndicator({
     clearLabel = 'Clear';
   } else if (effectiveSearchTerm) {
     // A typed/looked-up verse or range ("Romans 3:25", "Ephesians 2:8-9") is a
-    // reference jump, not a keyword search: it reads "Reading", not "Searched".
+    // reference the reader asked for, not a keyword search: it reads "Looked up",
+    // not "Searched", and not "Reading", which said the reader was working
+    // through the chapter when they had only asked for one passage.
     // A reference LIST with a stepper ("Romans 3:25, Ephesians 2:8-9") and real
     // keywords keep the "Searched" pill.
     const isSingleReference = /\d+\s*:\s*\d+/.test(effectiveSearchTerm) && !(totalResults > 1);
-    typeLabel = isSingleReference ? 'Reading' : `Searched: "${effectiveSearchTerm}"`;
+    typeLabel = isSingleReference ? 'Looked up' : `Searched: "${effectiveSearchTerm}"`;
     const isStanza = book.abbr === 'PSA' && pos.chapter === 119 && selectedVerses && selectedVerses.size > 1;
     const searchVerses = isStanza
       ? ` (Stanza)`
@@ -87,11 +90,11 @@ export default function CurrentlyReadingIndicator({
           ? `:${formatVerseRange([...selectedVerses])}`
           : (verseNum ? `:${verseNum}${occurrenceLabel || ''}` : ''));
     reference = `${book.shortName} ${pos.chapter}${searchVerses}${sectionSuffix}`;
-    clearLabel = (selectedVerses && selectedVerses.size > 0) || filterMode ? 'Show Full Chapter' : 'Clear search';
+    clearLabel = chapterOnly ? 'Clear' : (selectedVerses && selectedVerses.size > 0) || filterMode ? 'Show Full Chapter' : 'Clear search';
   } else if (isFilterMode) {
-    typeLabel = 'Reading';
+    typeLabel = 'Looked up';
     reference = `${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}`;
-    clearLabel = 'Show Full Chapter';
+    clearLabel = chapterOnly ? 'Clear' : 'Show Full Chapter';
   } else if (verseNum) {
     reference = `${book.shortName} ${pos.chapter}:${verseNum}`;
   } else {
