@@ -1896,8 +1896,14 @@ export default function BibleReader() {
       titleText={titlePageSpoken}
       endMarker={resolveEndMarker(book?.apiName, pos.chapter) || ''}
       onNextChapter={passageFilter ? null : () => {
+        // The next chapter is the thing that keeps the reading alive, so the
+        // move happens FIRST: the book's carry preparation only decides which
+        // page that chapter opens on, and must never stand between the voice
+        // and the chapter it is waiting for. (Both run in the same tick, so the
+        // preparation still lands before the book lays the new chapter out.)
+        const advanced = goNext(true);
         flipbookRef.current?.prepareListeningAdvance();
-        return goNext(true);
+        return advanced;
       }}
     />
   ) : null;

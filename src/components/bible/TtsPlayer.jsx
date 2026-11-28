@@ -198,6 +198,39 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     return () => document.removeEventListener('click', onDocumentClick);
   }, []);
 
+  // The reading must never stop dead at a chapter boundary. The handoff runs
+  // through the reader (move to the chapter, its verses arrive, the start
+  // fires), and any one of those links can drop out without a word — leaving
+  // the player idle, the page on the old chapter, and the sound simply gone.
+  // This watch outlives the whole handoff: a few seconds after a chapter ends,
+  // if nothing has begun, it asks the reader once more, or starts the chapter
+  // that is now open. One attempt only, and it is cancelled the moment the next
+  // chapter starts (or the listener stops).
+  const onNextChapterRef = useRef(onNextChapter);
+  onNextChapterRef.current = onNextChapter;
+  const chapterKeyRef = useRef(chapterKey);
+  chapterKeyRef.current = chapterKey;
+  const startRef = useRef(null);
+  const continueWatchRef = useRef(0);
+  const armContinueWatch = useCallback(() => {
+    window.clearTimeout(continueWatchRef.current);
+    continueWatchRef.current = window.setTimeout(() => {
+      continueWatchRef.current = 0;
+      // The next chapter is reading: the handoff landed.
+      if (!continueRef.current) return;
+      if (chapterKeyRef.current === endedChapterRef.current) {
+        // The reader never left the chapter: ask it once more.
+        if (onNextChapterRef.current?.()) { armContinueWatch(); return; }
+        continueRef.current = false;
+        return;
+      }
+      // The next chapter is open but silent: read it from its first verse.
+      continueRef.current = false;
+      startRef.current?.(1);
+    }, 4000);
+  }, []);
+  useEffect(() => () => window.clearTimeout(continueWatchRef.current), []);
+
   const handleChapterEnd = useCallback(() => {
     if (!autoContinueRef.current || !onNextChapter) return;
     endedVersesRef.current = verses;
@@ -206,9 +239,13 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
     // Arm before navigation: a warm chapter can commit synchronously.
     continueRef.current = true;
     if (!onNextChapter()) continueRef.current = false;
-  }, [onNextChapter, verses, chapterKey]);
+    armContinueWatch();
+  }, [onNextChapter, verses, chapterKey, armContinueWatch]);
 
   const tts = useBibleTts({ verses, chapterKey, subscript, colophon, titleText, endMarker, onChapterEnd: handleChapterEnd });
+  // The chapter-end watch above reaches the player through this ref, because
+  // the player itself is created after the callback it feeds.
+  startRef.current = tts.start;
   // Owner's call (2026-11-27): the whole verse is washed, not word by word.
   // The word mark was over-tall on a drop cap, stepped only part of a long
   // verse, and left marks on the page just turned away. The wash below is the
@@ -737,7 +774,7 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
             </button>
           )}
           {(!idle || embedded || inline) && (
-            <button onClick={() => { autoOpenedRef.current = false; tts.stop(); onOpenChange?.(false); }} aria-label={idle ? 'Close player' : 'Stop listening'} className={CONTROL}>
+            <button onClick={() => { autoOpenedRef.current = false; continueRef.current = false; tts.stop(); onOpenChange?.(false); }} aria-label={idle ? 'Close player' : 'Stop listening'} className={CONTROL}>
               <X className="w-4 h-4" />
             </button>
           )}
