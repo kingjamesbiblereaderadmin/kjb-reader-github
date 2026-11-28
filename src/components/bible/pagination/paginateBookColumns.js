@@ -61,7 +61,8 @@ export default function paginateBookColumns(source, width, height, gap, prefix, 
       for (const original of blocks) {
         let block = original.cloneNode(true);
         while (block) {
-          if (!usedHeight(probe)) block.style.marginTop = '0';
+          // A heading that opens a column sits flush with the column's first line.
+          if (!usedHeight(probe)) { block.style.marginTop = '0'; block.style.paddingTop = '0'; }
           let wrapper = wrapperFor(passage);
           wrapper.appendChild(block);
           if (usedHeight(probe) <= height) break;

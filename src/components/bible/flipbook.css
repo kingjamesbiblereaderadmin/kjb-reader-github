@@ -70,14 +70,13 @@
 .kjb-fb-column:first-child::before { display: none; }
 .kjb-fb-column:has([data-fb-oversize]) { overflow-y: auto; }
 .kjb-fb-column .kjb-fb-opening { break-inside: avoid; }
-.kjb-fb-column .kjb-fb-opening:first-child { margin-top: 0; }
 
 .kjb-fb-flow .kjb-fb-title { margin: 0 0 0.5em; text-align: center; font-size: 1.35em; font-weight: 700; line-height: 1.25; hyphens: manual; -webkit-hyphens: manual; color: inherit; break-inside: avoid; break-after: avoid; }
 .kjb-fb-flow .kjb-fb-title-only { margin-top: 35%; font-size: 1.7em; }
 /* A chapter that opens part-way through the flow — a new chapter of the same
    book ("Chapter 27") or a new book with its printed title — gets real air
    above, so the verses before it never crowd against its heading. */
-.kjb-fb-continues .kjb-fb-opening { margin-top: 3em; }
+.kjb-fb-continues .kjb-fb-opening { padding-top: 2.5em; }
 .kjb-fb-continues .kjb-fb-title { margin-top: 0; }
 .kjb-fb-chapter { margin: 0 0 1em; text-align: center; font-size: 0.78em; letter-spacing: 0.2em; text-transform: uppercase; break-after: avoid; }
 /* The next chapter, printed on in the space left under the last verse of the
