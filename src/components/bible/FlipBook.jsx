@@ -16,7 +16,6 @@ import { useSpeaking, getProgress, getCompletedWords, getWordMark, subscribeProg
 import bookFlowWords from '@/components/bible/pagination/bookFlowWords';
 import bookPageAnchor from '@/components/bible/pagination/bookPageAnchor';
 import { getVerseHighlight } from '@/lib/verseHighlights';
-import { getBookByAbbr } from '@/lib/bibleData';
 import './flipbook.css';
 
 
@@ -49,11 +48,6 @@ export default React.forwardRef(function FlipBook({
   const rootRef = useRef(null);
   const [height, setHeight] = useState(520);
   const [footerHeight, setFooterHeight] = useState(64);
-  // Height of the running head above the text, measured from the
-  // page's own markup. It is not a constant: at a larger root size (the legible
-  // font, browser zoom) both grow, and a fixed reserve then left the text window
-  // taller than the room beneath it — the foot of every column was cut off.
-  const [chromeH, setChromeH] = useState(104);
   const publishedSpeaking = useSpeaking();
   const speaking = publishedSpeaking?.chapterKey === `${abbr}:${chapter}` ? publishedSpeaking : null;
   const [, setHighlightTick] = useState(0);
@@ -173,8 +167,6 @@ export default React.forwardRef(function FlipBook({
     return () => { alive = false; };
   }, []);
 
-  const chromeProbeRef = useRef(null);
-
   const spread = stage.w >= 760;
   const step = spread ? 2 : 1;
   // The open book fills the whole reading area: no desk showing around it.
@@ -186,8 +178,8 @@ export default React.forwardRef(function FlipBook({
   const textW = Math.max(120, pageW - padLeft - padRight);
   const contentH = Math.max(120, pageH - 52 - footerHeight);
   // A hair of slack under the last line, so a descender is never shaved off by
-  // the window's edge even when the measured chrome is a pixel out.
-  const textH = Math.max(80, contentH - chromeH - 10); // running head, its margins and a little foot room
+  // the window's edge.
+  const textH = Math.max(80, contentH - 10);
 
   // Contents flow through real page-sized columns, without a testament break.
   const contentsH = Math.max(80, contentH - 24);
@@ -229,19 +221,6 @@ export default React.forwardRef(function FlipBook({
     fontSize: `${(zoomLevel / 100) * 1.05}rem`,
     ...(fontFamilyValue ? { fontFamily: fontFamilyValue } : {}),
   }), [zoomLevel, fontFamilyValue]);
-
-  // Measure the running head as it actually renders, so the text window is
-  // always exactly the space left under it. Declared here, after
-  // the sizes it depends on.
-  useLayoutEffect(() => {
-    const el = chromeProbeRef.current;
-    if (!el) return;
-    const next = Math.ceil(Math.max(...[...el.children].map((head) => {
-      const styles = getComputedStyle(head);
-      return head.getBoundingClientRect().height + parseFloat(styles.marginTop) + parseFloat(styles.marginBottom);
-    })));
-    if (next > 0) setChromeH((current) => (Math.abs(current - next) > 0.5 ? next : current));
-  });
 
   // The closing marker of a testament ("The End", "The End of the Prophets") is
   // printed last, so it belongs in the chapter's own flow: when the final page
@@ -696,26 +675,6 @@ export default React.forwardRef(function FlipBook({
     );
     const textIndex = index - front.length;
     const continuesHere = fillLastPage;
-    // Every chapter the open page actually carries, so a page that ends one
-    // chapter and begins the next names both in its running head.
-    const chapterAt = (key) => {
-      const passage = followingChapters.find((item) => item.key === key);
-      if (passage) return { book: passage.book, chapter: passage.chapter };
-      const [keyAbbr, keyChapter] = key.split(':');
-      // A page that carries the end of the previous chapter names THAT book
-      // (Romans 16 under a 1 Corinthians 1 heading read "1 Corinthians,
-      // Chapters 16–1"), so the abbreviation is resolved on its own.
-      return { book: keyAbbr === abbr ? book : getBookByAbbr(keyAbbr) || book, chapter: Number(keyChapter) };
-    };
-    const pageKeys = [...new Set([
-      ...(carry && textIndex === 0 ? [carry.fromKey] : []),
-      ...chapterLayout.filter((entry) => entry.page <= textIndex && entry.endPage >= textIndex).map((entry) => entry.key),
-    ])];
-    const pageChapters = (pageKeys.length ? pageKeys : [`${abbr}:${chapter}`]).map(chapterAt);
-    const sameBook = pageChapters.every((item) => item.book.abbr === pageChapters[0].book.abbr);
-    const headLabel = pageChapters.length === 1 ? `${pageChapters[0].book.shortName}, Chapter ${pageChapters[0].chapter}`
-      : sameBook ? `${pageChapters[0].book.shortName}, Chapters ${pageChapters[0].chapter}–${pageChapters[pageChapters.length - 1].chapter}`
-        : pageChapters.map((item) => `${item.book.shortName} ${item.chapter}`).join(' | ');
     return (
       <div className={`kjb-fb-page kjb-fb-${side}`} style={{ padding: `52px ${padRight}px ${footerHeight}px ${padLeft}px` }}>
         {index >= 0 && index < displayCount && (textIndex < 0 ? (
@@ -730,21 +689,6 @@ export default React.forwardRef(function FlipBook({
           )
         ) : (
           <>
-            {/* The chapter's opening page carries its own title, so the running
-                head is left blank there — but it keeps its height and its rule,
-                so the page's top rule and foot rule line up with the facing
-                page, and the title is separated from the controls above. */}
-            <div
-              className={`kjb-fb-head notranslate${textIndex === 0 && !carry ? ' kjb-fb-head-blank' : ''}`}
-              translate="no"
-              style={{ minHeight: Math.max(0, chromeH - 28) }}
-              aria-hidden={textIndex === 0 && !carry ? 'true' : undefined}
-            >
-              {/* The page that carries the next chapter on is headed with that
-                  chapter, as a printed Bible's running head follows the text
-                  beneath it. */}
-              {textIndex === 0 && !carry ? '\u00A0' : headLabel}
-            </div>
             <div className="kjb-fb-window" style={{ width: textW, height: textH }}>
               {textIndex === 0 && carry && <div data-fb-previous={carry.fromKey} className="absolute inset-0">{carry.underlay}</div>}
               <ChapterFlow
@@ -903,17 +847,6 @@ export default React.forwardRef(function FlipBook({
         )}
         {/* Invisible copy used only to count pages. */}
         <div className="kjb-fb-measure" aria-hidden="true" style={{ width: textW, height: textH }}>
-          {/* Out of flow: only measured, never laid into the page. */}
-          <div ref={chromeProbeRef} style={{ position: 'absolute', left: 0, top: 0, width: textW }}>
-            <div className="kjb-fb-head">{book.shortName}, Chapter {chapter}</div>
-            {followingChapters.map((passage) => <div key={passage.key} className="kjb-fb-head">{passage.book.shortName}, Chapter {passage.chapter}</div>)}
-            {/* A page carrying the end of one book and the start of the next is
-                headed with both names, which is longer than either alone — it is
-                measured here so the text window is never squeezed by it. */}
-            {following && following.book.abbr !== abbr && (
-              <div className="kjb-fb-head">{book.shortName} {chapter} | {following.book.shortName} {following.chapter}</div>
-            )}
-          </div>
           <ChapterFlow ref={measureRef} blocks={blocks} prefix={carry} continuation={continuationBlocks} {...flowProps} page={0} textStyle={textStyle} />
         </div>
         <div className={`kjb-fb-book${turn ? ' kjb-fb-turning' : ''}`} style={{ width: pageW ? pageW * step : '100%', height: pageH || '100%', '--fb-footer-height': `${footerHeight}px` }}>

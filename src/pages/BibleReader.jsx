@@ -12,6 +12,7 @@ import VerseText from '@/components/bible/VerseText';
 import TitlePage from '@/components/bible/TitlePage';
 import BibleContents from '@/components/bible/ContentsPage';
 import StanzaHeading from '@/components/bible/StanzaHeading';
+import RunningHead from '@/components/bible/RunningHead';
 import AnchoredReaderBand from '@/components/bible/AnchoredReaderBand';
 import { useHeaderHide } from '@/lib/HeaderHideContext';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -2030,9 +2031,13 @@ export default function BibleReader() {
       {!flipbookOpen && (
       <AnchoredReaderBand top={stickyTop}>
       {bookToggleNode}
-      {/* The chapter's own heading. In two columns it is kept for print only:
-          the reader toolbar already names the book and chapter, so printing the
-          running head here as well repeated the same book name on screen. */}
+      {/* In two columns the chapter's name and number are printed as a running
+          head instead of the large heading — and it lives in this band too, so
+          the book you are in never scrolls away. (The large heading stays for
+          print, where the running head is not shown.) */}
+      {!isViewingTitlePage && columnMode && pos.chapter !== 1 && !(filterMode && selectedVerses.size > 0) && (
+        <RunningHead bookName={book.name} chapter={pos.chapter} baseFontRem={zoomLevel / 100 * 0.7} isCursive={fontFamily === 'cursive'} />
+      )}
       {!isViewingTitlePage && (!(filterMode && selectedVerses.size > 0) || chapterSubscript) && (
         <div className={`text-center mb-4 ${(!columnMode || pos.chapter === 1 || (filterMode && selectedVerses.size > 0)) ? '' : 'hidden print:block'}`} style={{ fontSize: `${zoomLevel / 100}rem` }}>
           {filterMode && selectedVerses.size > 0 ? null : (
