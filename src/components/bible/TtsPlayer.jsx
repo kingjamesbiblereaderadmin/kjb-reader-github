@@ -72,7 +72,15 @@ function clearSpeaking() {
 // subscript looked unhighlighted while it was being read.
 function speakingTargets(kind, verse) {
   const sectionSelector = SECTION_SELECTORS[kind];
-  if (sectionSelector) return [...document.querySelectorAll(sectionSelector)];
+  // Book view prints the next chapter on under this one (and keeps the previous
+  // page's flow while turning), so a NEIGHBOURING chapter's superscription,
+  // subscription or postscript is in the document at the same time. Only the
+  // copies belonging to the chapter being read are washed, or the other
+  // chapter's note lit up along with it.
+  if (sectionSelector) {
+    return [...document.querySelectorAll(sectionSelector)]
+      .filter((el) => !el.closest('[data-fb-next], [data-fb-previous]'));
+  }
   if (verse == null) return [];
   if (kind === 'heading') {
     const head = document.querySelector(`#v${verse} .kjb-stanza-heading`);

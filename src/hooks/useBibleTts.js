@@ -666,7 +666,6 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
         && words(list[i]) === just.words) {
       return playAtRef.current?.(i + 1, token);
     }
-    if (list[i]) lastClipRef.current = { chapterKey, kind: list[i].kind, words: words(list[i]) };
     holdRef.current = false;
     if (i < 0 || i >= list.length) {
       // End of the chapter. The player decides whether that means "stop" or
@@ -721,7 +720,15 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
       else if (list[i].kind === 'verse') versePauseRef.current.wait(nextClip, 250);
       else nextClip();
     };
-    const playing = playClip(list[i], token, advance, advance, () => setAudibleIndex(i));
+    // What was last HEARD is recorded only once the clip actually sounds. It used
+    // to be recorded before the chapter announcement played, so the announcement's
+    // own fall-through found the superscription already "said" and skipped it —
+    // Listen read "Psalms, chapter 24" and went straight to verse 1, and the
+    // superscription only came out after stepping back a verse.
+    const playing = playClip(list[i], token, advance, advance, () => {
+      setAudibleIndex(i);
+      lastClipRef.current = { chapterKey, kind: list[i].kind, words: words(list[i]) };
+    });
     prefetch(list[i + 1]);
     prefetch(list[i + 2]);
     await playing;
@@ -750,6 +757,10 @@ export default function useBibleTts({ verses, chapterKey, subscript, colophon, t
     }
     startAtRef.current = 0;
     introRef.current = intro;
+    // A fresh press starts a fresh run, so what was heard in the previous one
+    // (the superscription, a closing note) must not count as "just said" — it
+    // would otherwise be stepped over on a restart of the same chapter.
+    lastClipRef.current = null;
     // A fresh press starts the waiting over for every verse.
     attemptsRef.current.clear();
     if (retryTimerRef.current) {
