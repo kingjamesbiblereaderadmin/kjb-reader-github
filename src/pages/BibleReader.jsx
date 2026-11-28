@@ -2030,7 +2030,7 @@ export default function BibleReader() {
         {loading && <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>}
         {error && <div className="text-center py-16 text-destructive font-sans">{error}</div>}
         {!loading && !error && isViewingTitlePage && (
-          <div className="kjb-frontmatter" style={{ '--kjb-frontmatter-zoom': zoomLevel / 100 }}>
+          <div className="kjb-frontmatter pb-12" style={{ '--kjb-frontmatter-zoom': zoomLevel / 100 }}>
             <TitlePage type={pos.abbr === 'GEN' ? 'testament-old' : pos.abbr === 'MAT' ? 'testament-new' : 'book'} book={book} />
             {pos.abbr === 'GEN' && (
               <div className="kjb-frontmatter-contents">
