@@ -21,7 +21,7 @@ export default function pronunciationRevision(text) {
   // of "give" — and were voiced as the adjective ("LYVE-est", the sound of a
   // live broadcast) before they were pinned in IPA, so those verses ask for the
   // re-voiced take instead of the one they remember.
-  if (/\b(?:livest|liveth)\b/i.test(text)) return 'h33';
+  if (/\b(?:livest|liveth)\b/i.test(text)) return 'h34';
   // Cambridge's UK form replaces the previous custom Judaea pronunciation.
   if (/\b(?:judaea|judæa)\b/i.test(text)) return 'h32';
   if (/\b(?:read|readeth|readest|reading|lead|leadeth|leadest|leading|leads|bow|bows|bowed|boweth|bowing|sow|soweth|sowest|sowed|tear|tears|wound|wounds|learned|prophesy|prophesied|prophesieth|prophesying|prophesyings|prophesyest|prophecy|incense|shew|shewed|shewedst|shewest|sheweth|shewing|shewn|shewbread|shewbreads|victuals|blessedness)\b/i.test(text)
