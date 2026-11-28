@@ -30,7 +30,7 @@ jobs:
           GRADLE_FILE=android/app/build.gradle
           VERSION_CODE="$GITHUB_RUN_NUMBER"
           VERSION_NAME="2.$GITHUB_RUN_NUMBER"
-          export VERSION_NAME
+          echo "VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
           sed -i -E "s/^([[:space:]]*versionCode )[0-9]+/\1$VERSION_CODE/" "$GRADLE_FILE"
           python3 - <<'PYVER'
           import os, re
@@ -182,6 +182,7 @@ jobs:
           packageName: com.kingjamesbiblereader.twa
           releaseFiles: android/app/build/outputs/bundle/release/kjbreader.aab
           track: ${{ inputs.play_track }}
+          releaseName: KJBReader.v${{ env.VERSION_NAME }}
           status: ${{ inputs.play_status }}
           mappingFile: android/app/build/outputs/mapping/release/mapping.txt
       - name: Upload AAB
