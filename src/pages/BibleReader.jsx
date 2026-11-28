@@ -1508,6 +1508,10 @@ export default function BibleReader() {
     };
   }, [filterMode, selectedVerses, searchTerm, gospelMode, pos.abbr, pos.chapter]);
 
+  // A saved reading is re-applied only when it actually changed. Every setting
+  // write (zoom, layout) fires 'storage', and re-reading the same saved verse
+  // there washed it and brought the reading bar back for no reason.
+  const lastReadingSyncedRef = useRef(null);
   useEffect(() => {
     const sync = () => {
       try { setZoomLevel(parseInt(localStorage.getItem('kjb-zoom') || '100')); } catch {}
@@ -1532,7 +1536,8 @@ export default function BibleReader() {
       } catch {}
       try {
         const saved = localStorage.getItem('kjb-last-reading');
-        if (saved) {
+        if (saved && saved !== lastReadingSyncedRef.current) {
+          lastReadingSyncedRef.current = saved;
           const parsed = JSON.parse(saved);
           if (parsed) {
             setLastReadingPos(parsed);

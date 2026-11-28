@@ -40,14 +40,17 @@ export default function ZoomControl({ value, onChange, onReset, large = false, c
           <Plus className={icon} />
         </button>
       </div>
-      {live !== 100 && (
-        <button
-          onClick={reset}
-          className={`w-full ${large ? 'mt-4 px-4 py-3 text-sm' : 'mt-2 px-2 py-1.5 text-xs'} rounded-lg bg-primary/10 text-primary font-sans font-medium hover:bg-primary/20 transition-colors`}
-        >
-          Reset to 100%
-        </button>
-      )}
+      {/* Kept in the layout at every size: mounting it only away from 100%
+          grew the panel mid-drag, and the popover jumped. */}
+      <button
+        onClick={reset}
+        disabled={live === 100}
+        aria-hidden={live === 100}
+        tabIndex={live === 100 ? -1 : undefined}
+        className={`w-full ${large ? 'mt-4 px-4 py-3 text-sm' : 'mt-2 px-2 py-1.5 text-xs'} rounded-lg bg-primary/10 text-primary font-sans font-medium hover:bg-primary/20 transition-colors ${live === 100 ? 'invisible' : ''}`}
+      >
+        Reset to 100%
+      </button>
     </>
   );
 }
