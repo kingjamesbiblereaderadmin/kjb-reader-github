@@ -342,6 +342,12 @@ export default React.forwardRef(function FlipBook({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flowSignature, loading]);
 
+  // The voice keeps the page while it reads: a turn by hand is a detour, and
+  // the book goes back to the words being spoken once the sheet has landed.
+  const manualTurnRef = useRef(false);
+  const voicePlayingRef = useRef(false);
+  useLayoutEffect(() => { voicePlayingRef.current = !!speaking?.playing; });
+
   const go = useCallback((dir) => {
     if (loading || turn) return;
     const to = page + dir * step;
@@ -364,6 +370,7 @@ export default React.forwardRef(function FlipBook({
       }
       return;
     }
+    if (voicePlayingRef.current) manualTurnRef.current = true;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setPage(to); return; }
     setTurn({ dir, to });
   }, [loading, turn, page, step, pageCount, onNextChapter, onPrevChapter, onOpenPassage, canPrev, canNext, following, spread, firstPage, fillLastPage, carry]);
@@ -471,11 +478,15 @@ export default React.forwardRef(function FlipBook({
       }
       const clipRef = `${abbr}:${chapter}:${speaking.verse}`;
       const completed = getCompletedWords(clipRef);
-      // The last word the open pages show is finished when the count of spoken
-      // words reaches it: `completed` only counts words whose audio has ended,
-      // so this is that word's own end, not one word later and never its first
-      // instant. The page then flips like a page, instead of being swapped out.
-      if (completed == null ? getProgress(clipRef) < need : completed < neededWords) return true;
+      // The last word the open pages show has been played only when the word
+      // after it begins, because the word clock counts words whose audio has
+      // STARTED. Reaching `neededWords` alone meant the page turned on that
+      // word's first instant, so it swung away while the word was still being
+      // said; one more word (or the clip's own end) is its last sound.
+      const ended = completed == null
+        ? getProgress(clipRef) >= need
+        : completed > neededWords || getProgress(clipRef) >= 0.999;
+      if (!ended) return true;
       requested = true;
       turnToRef.current?.(page + step);
       return false;
@@ -486,6 +497,19 @@ export default React.forwardRef(function FlipBook({
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spokenAt, speaking?.playing, page, step, pageCount, turn, loading, textW, gap, colW, perPage, front.length, abbr, chapter]);
+
+  // The sheet that a turn by hand swung has landed: put the book back on the
+  // words the voice is on, so reading on never leaves the pages behind.
+  useEffect(() => {
+    if (!manualTurnRef.current || turn || loading) return;
+    manualTurnRef.current = false;
+    if (!speaking?.playing) return;
+    const progress = speaking.kind === 'verse' ? getProgress(`${abbr}:${chapter}:${speaking.verse}`) : 0;
+    const completed = speaking.kind === 'verse' ? getCompletedWords(`${abbr}:${chapter}:${speaking.verse}`) : null;
+    const target = spokenAt === 'intro' ? 0 : spokenAt === 'end' ? pageCount - 1 : pageOf(spokenAt, progress, completed);
+    if (target != null) turnToRef.current?.(target);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [turn, page, loading, speaking?.playing, spokenAt, pageCount, abbr, chapter]);
 
   // A verse or section picked in the toolbar, or a search result, opens its page.
   useEffect(() => {
