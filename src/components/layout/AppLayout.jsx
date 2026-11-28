@@ -351,6 +351,31 @@ export default function AppLayout() {
       window.removeEventListener('storage', onStorage);
     };
   }, []);
+  // The fixed bottom nav sits over the scrolling page, so the page needs that
+  // much clearance at its foot or the last line (and the chapter's prev/next
+  // buttons) stays half-hidden under it. The nav's real height changes with
+  // the footer mode AND with the reading/accessibility font (bigger labels
+  // make a taller bar), so measure it instead of assuming a mode's height.
+  const [navHeight, setNavHeight] = useState(null);
+  useEffect(() => {
+    const nav = document.querySelector('[data-kjb-bottom-nav]');
+    if (!nav) return undefined;
+    const read = () => setNavHeight(Math.round(nav.getBoundingClientRect().height));
+    read();
+    const ro = new ResizeObserver(read);
+    ro.observe(nav, { box: 'border-box' });
+    window.addEventListener('resize', read);
+    window.addEventListener('orientationchange', read);
+    window.addEventListener('kjb-layout-zoom-changed', read);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', read);
+      window.removeEventListener('orientationchange', read);
+      window.removeEventListener('kjb-layout-zoom-changed', read);
+    };
+  }, [footerMode, pathname]);
+  const navClearance = navHeight ?? (footerMode === 'bar' ? 20 : footerMode === 'two' ? 112 : 64);
+
   // Footer is always visible on desktop, controlled by bottom nav on mobile
   const isRoot = pathname === '/';
 
@@ -535,7 +560,7 @@ export default function AppLayout() {
       <main
         id="kjb-scroll"
         className="flex-1 overflow-y-auto sm:!pb-0 relative"
-        style={{ paddingBottom: `calc(${footerMode === 'bar' ? '1.25rem' : footerMode === 'two' ? '7rem' : '4rem'} + env(safe-area-inset-bottom))`, paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}
+        style={{ paddingBottom: `calc(${navClearance}px + 0.75rem)`, paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}
       >
         <div key={reloadKey} className={isReloading ? 'opacity-50 pointer-events-none' : ''}>
           <Outlet />
