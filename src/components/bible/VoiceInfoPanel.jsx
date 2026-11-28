@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { getPlatformLabel, permissionSummary } from '@/lib/platformPermissions';
@@ -11,11 +11,11 @@ const TRIGGER = 'py-2 text-[11px] font-semibold uppercase tracking-widest text-m
 const BODY = 'text-xs text-foreground/85 leading-relaxed';
 
 export default function VoiceInfoPanel({ bundledAudio = false }) {
-  // Held here, not inside the accordion, so opening one section never disturbs
-  // the ones already open: each row folds on its own.
-  const [open, setOpen] = useState([]);
+  // One section at a time: opening a row folds the one already open, so the
+  // panel stays the height of a single answer instead of growing past the
+  // screen. `collapsible` lets the open row be closed again by tapping it.
   return (
-    <Accordion type="multiple" value={open} onValueChange={setOpen} className="font-sans">
+    <Accordion type="single" collapsible className="font-sans">
       <AccordionItem value="voice" className="border-border">
         <AccordionTrigger className={TRIGGER}>The voice</AccordionTrigger>
         <AccordionContent className="pb-2">

@@ -759,8 +759,14 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
               </button>
             </PopoverTrigger>
             {/* Below the icon, folded into short sections so the panel opens
-                compact instead of as one long block. */}
-            <PopoverContent align="center" side="bottom" className="w-72 p-2.5 font-sans">
+                compact instead of as one long block. It is kept clear of the
+                screen edges and scrolls inside itself, so a long section (the
+                permissions list on a small phone, or in book view near the
+                foot of the page) is never cut off by the viewport. */}
+            <PopoverContent
+              align="center" side="bottom" sideOffset={8} collisionPadding={12}
+              className="w-72 max-w-[calc(100vw-1.5rem)] max-h-[calc(100dvh-1.5rem)] overflow-y-auto overscroll-contain p-2.5 font-sans"
+            >
               <VoiceInfoPanel bundledAudio={bundledAudio} />
             </PopoverContent>
           </Popover>
