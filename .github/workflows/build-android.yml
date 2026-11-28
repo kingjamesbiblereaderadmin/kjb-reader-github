@@ -6,7 +6,7 @@ on:
         description: 'Upload the AAB to Google Play (needs the PLAY_SERVICE_ACCOUNT_JSON secret)'
         type: choice
         options: [none, internal, alpha, beta, production]
-        default: none
+        default: production
       play_status:
         description: 'Release status when uploading: completed sends it to Google review, draft leaves it unpublished'
         type: choice
