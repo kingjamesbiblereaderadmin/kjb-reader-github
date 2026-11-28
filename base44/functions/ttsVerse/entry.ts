@@ -122,6 +122,11 @@ function normalizeSpeechText(raw: string) {
   // and a neural voice can spell an all-caps word out letter by letter. Title
   // casing it changes nothing a listener hears except that it is read as a word.
   s = s.replace(/\b[A-Z]{2,}\b/g, (w) => w.charAt(0) + w.slice(1).toLowerCase());
+  // A colon or semicolon printed beside a bracket is punctuation, but a speech
+  // engine reads ";)" as "winky smiley" and ":(" as "sad face". The printed
+  // punctuation stays; the face never reaches the voice. Real emoji go too.
+  s = s.replace(/([:;])-?[)\]]/g, '$1');
+  s = s.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '');
   s = s.replace(/\s+([,.;:!?])/g, '$1');
   return s.replace(/\s+/g, ' ').trim();
 }
@@ -153,8 +158,6 @@ const PRONOUNCE: Record<string, string> = {
   nazarene: 'naz-uh-REEN',
   judaea: 'joo-DAY-uh',
   heretick: 'HER-e-tik',
-  wrath: 'roth',
-  wrathful: 'roth-ful',
   hereticks: 'HER-e-tiks',
   ashtoreth: 'ASH-tuh-reth',
   milcom: 'MIL-kom',
