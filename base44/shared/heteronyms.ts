@@ -226,9 +226,9 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   // reads either pair as a winking smiley and says the words out loud. The
   // closing parenthesis is silent anyway, so it is dropped before the text is
   // voiced or hashed.
-  const smileyUpdated = /[;:]\)/.test(text);
+  const smileyUpdated = /[;:]\s*\)/.test(text);
   const updated = /\bmarketh\b|\btheir\s+desert\b|\bbow\s+down\b/i.test(text);
-  const source = String(text || '').replace(/([;:])\)/g, '$1').replace(/\b(their\s+)desert\b/gi, '$1dih-zurt');
+  const source = String(text || '').replace(/([;:])\s*\)/g, '$1').replace(/\b(their\s+)desert\b/gi, '$1dih-zurt');
   if (source !== text) changed = true;
   const fixed = source.replace(RESPELL_RE, (word: string) => {
     const replacement = RESPELL[word.toLowerCase()];
