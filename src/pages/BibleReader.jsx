@@ -1816,6 +1816,11 @@ export default function BibleReader() {
   // travels with verse 1, the colophon follows the chapter's own last verse.
   const spokenSubscript = !passageFilter || selectedVerses.has(1) || selectedVerses.has('1') ? chapterSubscript : '';
   const spokenColophon = !passageFilter || (verses.length > 0 && selectedVerses.has(parseInt(verses[verses.length - 1].verse, 10))) ? colophon : '';
+  // The stanza name that opens the chapter (Psalm 119's ALEPH) is printed with
+  // the chapter number, so verse 1 itself carries no heading.
+  const openingHeading = verses.length > 0 && (!passageFilter || selectedVerses.has(1) || selectedVerses.has('1'))
+    ? (verses[0].heading || null)
+    : null;
   const titlePageSpoken = isViewingTitlePage ? (pos.abbr === 'GEN'
     ? "The Holy Bible. Containing the Old and New Testaments. Translated out of the original tongues, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches. Authorised King James Bible."
     : pos.abbr === 'MAT'
@@ -1992,13 +1997,25 @@ export default function BibleReader() {
               </p>
             </>
           )}
+        </div>
+      )}
+      {/* The Psalm superscription and the stanza name that opens the chapter
+          are printed with the chapter number, as one heading — they belong to
+          the chapter's title, not to the verse text below it. */}
+      {!isViewingTitlePage && (chapterSubscript || openingHeading) && (
+        <div className="text-center mb-2" style={{ fontSize: `${zoomLevel / 100}rem` }}>
           {chapterSubscript && (
             <p
               onClick={() => handleSectionClick('subscript')} id="kjb-subscript-anchor"
-              className={`notranslate kjb-subscript text-sm text-foreground mt-5 mb-4 max-w-lg mx-auto leading-relaxed text-center transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`}
+              className={`notranslate kjb-subscript text-sm text-foreground mt-3 max-w-lg mx-auto leading-relaxed text-center transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`}
               style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem` }}
             >
               <SubscriptContent text={chapterSubscript} kind="sub" searchTerm={sectionActive('subscript') ? searchTerm : null} />
+            </p>
+          )}
+          {openingHeading && (
+            <p className={`notranslate kjb-stanza-heading font-bold text-foreground select-none not-italic tracking-wide mt-2 ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'}`} style={{ fontSize: `${zoomLevel / 100 * 1.2}rem` }}>
+              {String(openingHeading).toUpperCase()}
             </p>
           )}
         </div>
@@ -2041,7 +2058,7 @@ export default function BibleReader() {
           const renderVerse = (v, isFirstOverall) => (
             <React.Fragment key={`${pos.abbr}-${pos.chapter}-${v.verse}`}>
               <VerseText
-                verse={v}
+                verse={isFirstOverall && parseInt(v.verse, 10) === 1 && v.heading ? { ...v, heading: null } : v}
                 highlight={tappedVerses.size > 0 ? tappedVerses.has(parseInt(v.verse, 10)) : (parseInt(highlightVerse, 10) === parseInt(v.verse, 10) || highlightedVerses.has(parseInt(v.verse, 10)))}
                 id={`v${v.verse}`} bookName={book.name} abbr={pos.abbr} chapter={pos.chapter}
                 isFirstVerse={isFirstOverall} paragraphMode={paragraphMode} selectMode={selectMode}
@@ -2059,24 +2076,9 @@ export default function BibleReader() {
             </React.Fragment>
           );
 
-          const subscriptBlock = columnMode && !isViewingTitlePage && !(filterMode && selectedVerses.size > 0) && chapterSubscript ? (
-            <p
-              onClick={() => handleSectionClick('subscript')} id="kjb-subscript-anchor"
-              className={`notranslate kjb-subscript text-center text-foreground mb-4 leading-relaxed transition-colors duration-500 rounded-lg cursor-pointer ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'} ${sectionActive('subscript') ? 'bg-accent/20 ring-1 ring-accent/40 px-3 py-2' : ''}`}
-              style={{ fontStyle: 'normal', fontSize: `${zoomLevel / 100}rem`, breakInside: 'avoid' }}
-            >
-              <SubscriptContent text={chapterSubscript} kind="sub" searchTerm={sectionActive('subscript') ? searchTerm : null} />
-            </p>
-          ) : null;
-
           return (
           <>
-          {/* Space the visible superscription from the running-head rule here,
-              OUTSIDE the columns and the highlighted note. A first-item margin
-              can be discarded at a column boundary; padding on this wrapper
-              cannot, including short chapters that do not need two columns.
-              The divider still starts at the rule, above the clear gap. */}
-          <div className={subscriptBlock ? 'relative pt-5' : 'relative'}>
+          <div className="relative">
           {useColumns && (
             <div
               aria-hidden="true"
@@ -2086,7 +2088,6 @@ export default function BibleReader() {
             />
           )}
           <div ref={useColumns ? columnsContainerRef : null} data-testid={useColumns ? 'kjb-two-col-container' : undefined} className={`${useColumns ? 'kjb-two-col text-justify hyphens-auto' : 'text-justify'} ${paragraphMode ? 'text-justify px-2 sm:px-4' : ''}`} style={useColumns ? { fontSize: 'inherit', columnCount: 2, columnGap: fontFamily === 'cursive' ? '3.5rem' : '2.5rem', columnRule: '1px solid hsl(var(--border))' } : { fontSize: 'inherit' }}>
-            {subscriptBlock}
             {shownVerses.map((v, idx) => renderVerse(v, idx === 0))}
           </div>
           </div>
