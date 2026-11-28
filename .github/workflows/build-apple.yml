@@ -42,6 +42,12 @@ on:
         required: false
         default: ''
         type: string
+      submit_for_review:
+        description: 'After uploading, attach the build and submit the version to App Review'
+        required: false
+        default: 'skip'
+        type: choice
+        options: [skip, submit]
 
 jobs:
 
@@ -447,6 +453,28 @@ jobs:
       - name: Upload skipped (build-only)
         if: steps.uploadmode.outputs.skip == 'true'
         run: echo "Skipped the App Store Connect upload per .github/asc-upload-mode (or the dispatch input). The build+export still validated this commit."
+      - name: Submit to App Store review (iOS)
+        # The App Store counterpart of the Play upload's completed status: the
+        # upload step only puts the binary in ASC, so this attaches the build
+        # this run uploaded to the version record and hands the version to App
+        # Review. Best-effort like the rename: a submit Apple refuses (nothing
+        # editable, build still processing, a review already open) is reported
+        # as an error annotation and the run keeps its uploaded build.
+        if: ${{ steps.uploadmode.outputs.skip != 'true' && inputs.submit_for_review == 'submit' }}
+        continue-on-error: true
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          BUILD_NUMBER: ${{ steps.nextbuild.outputs.next }}
+          MARKETING_VERSION: ${{ steps.nextver.outputs.version }}
+        run: |
+          set -o pipefail
+          /tmp/ascvenv/bin/pip install -q pyjwt requests cryptography
+          /tmp/ascvenv/bin/python scripts/asc-submit-review.py \
+            --app 6813352869 --platform IOS \
+            --version "$MARKETING_VERSION" --build "$BUILD_NUMBER" \
+            --wait-minutes 45 | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Upload iOS artifact
         uses: actions/upload-artifact@v6
         with:
@@ -753,6 +781,28 @@ jobs:
           fi
           exit $rc
 
+      - name: Submit to App Store review (macOS)
+        # The App Store counterpart of the Play upload's completed status: the
+        # upload step only puts the binary in ASC, so this attaches the build
+        # this run uploaded to the version record and hands the version to App
+        # Review. Best-effort like the rename: a submit Apple refuses (nothing
+        # editable, build still processing, a review already open) is reported
+        # as an error annotation and the run keeps its uploaded build.
+        if: ${{ steps.uploadmode.outputs.skip != 'true' && inputs.submit_for_review == 'submit' }}
+        continue-on-error: true
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          BUILD_NUMBER: ${{ steps.nextbuild.outputs.next }}
+          MARKETING_VERSION: ${{ steps.nextver.outputs.version }}
+        run: |
+          set -o pipefail
+          /tmp/ascvenv/bin/pip install -q pyjwt requests cryptography
+          /tmp/ascvenv/bin/python scripts/asc-submit-review.py \
+            --app 6813352869 --platform MAC_OS \
+            --version "$MARKETING_VERSION" --build "$BUILD_NUMBER" \
+            --wait-minutes 45 | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v6
         with:
