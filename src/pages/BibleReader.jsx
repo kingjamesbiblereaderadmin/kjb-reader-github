@@ -12,6 +12,7 @@ import VerseText from '@/components/bible/VerseText';
 import TitlePage from '@/components/bible/TitlePage';
 import BibleContents from '@/components/bible/ContentsPage';
 import RunningHead from '@/components/bible/RunningHead';
+import StanzaHeading from '@/components/bible/StanzaHeading';
 import { useHeaderHide } from '@/lib/HeaderHideContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Accessibility } from 'lucide-react';
@@ -1816,11 +1817,12 @@ export default function BibleReader() {
   // travels with verse 1, the colophon follows the chapter's own last verse.
   const spokenSubscript = !passageFilter || selectedVerses.has(1) || selectedVerses.has('1') ? chapterSubscript : '';
   const spokenColophon = !passageFilter || (verses.length > 0 && selectedVerses.has(parseInt(verses[verses.length - 1].verse, 10))) ? colophon : '';
-  // The stanza name that opens the chapter (Psalm 119's ALEPH) is printed with
-  // the chapter number, so verse 1 itself carries no heading.
-  const openingHeading = verses.length > 0 && (!passageFilter || selectedVerses.has(1) || selectedVerses.has('1'))
-    ? (verses[0].heading || null)
-    : null;
+  // The Hebrew stanza names printed through the chapter (Psalm 119's ALEPH,
+  // BETH…). The heading band carries the one the reader is in, so it needs the
+  // whole list, not just the opening name.
+  const stanzaList = useMemo(() => verses
+    .filter((v) => v.heading && Number(v.verse))
+    .map((v) => ({ verse: Number(v.verse), heading: v.heading })), [verses]);
   const titlePageSpoken = isViewingTitlePage ? (pos.abbr === 'GEN'
     ? "The Holy Bible. Containing the Old and New Testaments. Translated out of the original tongues, and with the former translations diligently compared and revised, by His Majesty's special command. Appointed to be read in churches. Authorised King James Bible."
     : pos.abbr === 'MAT'
@@ -1999,10 +2001,10 @@ export default function BibleReader() {
           )}
         </div>
       )}
-      {/* The Psalm superscription and the stanza name that opens the chapter
+      {/* The Psalm superscription and the stanza name of the passage being read
           are printed with the chapter number, as one heading — they belong to
           the chapter's title, not to the verse text below it. */}
-      {!isViewingTitlePage && (chapterSubscript || openingHeading) && (
+      {!isViewingTitlePage && (chapterSubscript || stanzaList.length > 0) && (
         <div className="text-center mb-2" style={{ fontSize: `${zoomLevel / 100}rem` }}>
           {chapterSubscript && (
             <p
@@ -2013,11 +2015,7 @@ export default function BibleReader() {
               <SubscriptContent text={chapterSubscript} kind="sub" searchTerm={sectionActive('subscript') ? searchTerm : null} />
             </p>
           )}
-          {openingHeading && (
-            <p className={`notranslate kjb-stanza-heading font-bold text-foreground select-none not-italic tracking-wide mt-2 ${fontFamily === 'cursive' ? 'cursive-em-style' : 'font-serif'}`} style={{ fontSize: `${zoomLevel / 100 * 1.2}rem` }}>
-              {String(openingHeading).toUpperCase()}
-            </p>
-          )}
+          <StanzaHeading stanzas={stanzaList} fontFamily={fontFamily} zoomLevel={zoomLevel} />
         </div>
       )}
       </div>

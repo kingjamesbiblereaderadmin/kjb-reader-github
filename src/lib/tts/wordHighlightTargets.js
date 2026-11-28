@@ -20,7 +20,7 @@ export default function wordHighlightTargets(clip) {
     verse: `[data-fbv="${Number(verse)}"]`, heading: `[data-fb-heading="${Number(verse)}"]`,
     sub: '[data-fb-sec="sub"]', col: '[data-fb-sec="col"]', end: '.kjb-fb-endmark', title: '.kjb-titlepage',
   } : {
-    verse: `#v${Number(verse)}`, heading: `#v${Number(verse)} .kjb-stanza-heading`,
+    verse: `#v${Number(verse)}`, heading: `#v${Number(verse)} .kjb-stanza-heading, [data-kjb-stanza="${Number(verse)}"]`,
     sub: '#kjb-subscript-anchor', col: '#kjb-colophon-anchor', end: '#kjb-end-anchor .kjb-end-marker', title: '.kjb-titlepage',
   };
   return selectors[kind] ? select(selectors[kind]).map((el) => [el]) : [];
