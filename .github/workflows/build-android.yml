@@ -1,6 +1,17 @@
 name: Build Android
 on:
   workflow_dispatch:
+    inputs:
+      play_track:
+        description: 'Upload the AAB to Google Play (needs the PLAY_SERVICE_ACCOUNT_JSON secret)'
+        type: choice
+        options: [none, internal, alpha, beta, production]
+        default: none
+      play_status:
+        description: 'Release status when uploading'
+        type: choice
+        options: [completed, draft]
+        default: draft
 jobs:
   build:
     runs-on: ubuntu-26.04
@@ -150,6 +161,29 @@ jobs:
         with:
           name: android-apk
           path: android/app/build/outputs/apk/release/kjbreader.apk
+      - name: Publish to Google Play
+        # Owner-driven only: runs when play_track names a track and the service
+        # account secret exists. The AAB carries the fast-follow asset packs, so
+        # the same upload delivers the Listen audio.
+        if: ${{ inputs.play_track != 'none' && inputs.play_track != '' }}
+        env:
+          PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$PLAY_JSON" ]; then
+            echo "PLAY_SERVICE_ACCOUNT_JSON is not set; skipping Play upload" >&2
+            exit 1
+          fi
+          printf '%s' "$PLAY_JSON" > "$RUNNER_TEMP/play.json"
+      - name: Upload to Play track
+        if: ${{ inputs.play_track != 'none' && inputs.play_track != '' }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJson: ${{ runner.temp }}/play.json
+          packageName: com.kingjamesbiblereader.twa
+          releaseFiles: android/app/build/outputs/bundle/release/kjbreader.aab
+          track: ${{ inputs.play_track }}
+          status: ${{ inputs.play_status }}
+          mappingFile: android/app/build/outputs/mapping/release/mapping.txt
       - name: Upload AAB
         uses: actions/upload-artifact@v6
         with:
