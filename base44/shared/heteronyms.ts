@@ -79,6 +79,12 @@ export const CORRECTED_IPA: Record<string, string> = {
   shewn: 'ʃəʊn',
   shewbread: 'ˈʃəʊbrɛd',
   shewbreads: 'ˈʃəʊbrɛdz',
+  // "live" in "thou livest" and "he liveth" is the VERB — LIV, the short i of
+  // "give" — but the engine reads the -est and -eth forms as the adjective and
+  // says "LYVE-est", the sound of a live broadcast. Every occurrence in the AV
+  // is the verb, so both forms are pinned rather than left to the letters.
+  livest: 'ˈlɪvɪst',
+  liveth: 'ˈlɪvɪθ',
   // "victuals" is VIT-lz — the c is silent and the u is swallowed.
   victuals: 'ˈvɪtəlz',
   // Words the KJB prints with the æ ligature (Cæsar, Judæa, Cæsarea …). The
@@ -523,6 +529,9 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   // Elijah is now pinned with a long "ee" before the stress (ee-LY-juh), so
   // every verse that prints the name is voiced once more.
   const elijahUpdated = /\belijah\b/i.test(text);
+  // "livest" and "liveth" were voiced as the adjective ("LYVE-est") before they
+  // were pinned in IPA, so every verse that prints one is voiced once more.
+  const liveUpdated = /\b(?:livest|liveth)\b/i.test(text);
   // "prophecies" was voiced as the verb ("pro-FEE-seez") before the plural noun
   // was pinned in IPA, so every verse that prints it is voiced once more.
   const propheciesUpdated = /\bprophecies\b/i.test(text);
@@ -601,5 +610,5 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   const contextUpdated = /\b(?:read|readeth|readest|reading|lead|leadeth|leadest|leading|leads|bow|bows|bowed|boweth|bowing|sow|soweth|sowest|sowed|tear|tears|wound|wounds|learned|prophesy|prophesied|prophesieth|prophesying|prophesyings|prophesyest|prophecy|incense|shew|shewed|shewedst|shewest|sheweth|shewing|shewn|shewbread|shewbreads|victuals|blessedness)\b/i.test(text)
     || /\blive\s+coals?\b/i.test(text);
   const britishUpdated = /\b(?:judaea|judæa)\b/i.test(text);
-  return { text: out, changed, revision: britishUpdated ? 'h32' : contextUpdated ? 'h31' : lucreUpdated ? 'h30' : propheciesUpdated ? 'h29' : elijahUpdated ? 'h28' : hyphenatedName ? 'h27' : repinnedUpdated ? 'h26' : siteNamesUpdated ? 'h24' : namesUpdated ? 'h23' : heretickUpdated ? 'h20' : sowUpdated ? 'h19' : baptizeUpdated ? 'h18' : sosthenesUpdated ? 'h17' : cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
+  return { text: out, changed, revision: liveUpdated ? 'h33' : britishUpdated ? 'h32' : contextUpdated ? 'h31' : lucreUpdated ? 'h30' : propheciesUpdated ? 'h29' : elijahUpdated ? 'h28' : hyphenatedName ? 'h27' : repinnedUpdated ? 'h26' : siteNamesUpdated ? 'h24' : namesUpdated ? 'h23' : heretickUpdated ? 'h20' : sowUpdated ? 'h19' : baptizeUpdated ? 'h18' : sosthenesUpdated ? 'h17' : cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
 }
