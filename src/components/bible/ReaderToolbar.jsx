@@ -437,6 +437,7 @@ export default function ReaderToolbar({
               currentResultIndex={gospelMode ? gospelResultIndex : searchResultIndex}
               totalResults={gospelMode ? gospelTotalResults : searchTotalResults}
               occurrenceLabel={!gospelMode && searchTerm ? getOccurrenceLabel(searchResultIndex) : ''}
+              chapterOnly={bookMode}
               onPrevResult={() => {
                 if (gospelMode) {
                   const { results, index } = getGospelNav();
@@ -577,8 +578,8 @@ export default function ReaderToolbar({
 
       {!selectMode && selectedVerses.size > 0 && tappedVerseNums.length === 0 && (
         <ReadingRangeBar
-          label={searchTerm ? (/\d+:\d+/.test(searchTerm) ? `Currently Reading: ${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}` : `Search: "${searchTerm}"`) : gospelMode ? 'Gospel' : lastReadingActive ? (lastReadingPos?.fromRandom ? 'Random Chapter' : 'Daily Verse') : `Reading ${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}`}
-          filterMode={filterMode} copyFeedback={copyFeedback} shareFeedback={shareFeedback} shareLinkFeedback={shareLinkFeedback} saveFeedback={saveFeedback}
+          label={searchTerm ? (/\d+:\d+/.test(searchTerm) ? `Looked up: ${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}` : `Search: "${searchTerm}"`) : gospelMode ? 'Gospel' : lastReadingActive ? (lastReadingPos?.fromRandom ? 'Random Chapter' : 'Daily Verse') : `Looked up ${book.shortName} ${pos.chapter}:${formatVerseRange([...selectedVerses])}`}
+          filterMode={filterMode} showViewToggle={!bookMode} copyFeedback={copyFeedback} shareFeedback={shareFeedback} shareLinkFeedback={shareLinkFeedback} saveFeedback={saveFeedback}
           onCopy={handleCopySelected} onCopyPerVerse={handleCopyPerVerse} onShareText={handleShareChapter} onShareTextPerVerse={handleSharePerVerse} onShareLink={handleShareLink} onSave={handleSaveSelected} onPrintPage={() => { if (nativePrintCurrentPage()) return; if (columnMode && isIOSDevice()) { printChapter(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode); return; } window.print(); }}
           onPrintContents={() => printChapter(verses, book, pos, filterMode, selectedVerses, colophon, columnMode, paragraphMode)}
           onToggleView={() => {
