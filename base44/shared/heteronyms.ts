@@ -46,6 +46,9 @@ export const CORRECTED_IPA: Record<string, string> = {
   // with a soft c. Left to the letters the engine says "pro-FEE-seez", which is
   // the sound of the verb "prophesy".
   prophecies: 'ˈprɒfɪsiːz',
+  // "lucre" (filthy lucre) is LOO-kuh: a long u and a soft final -re, never
+  // "LOO-ker" with the r sounded.
+  lucre: 'ˈluːkə',
   // Words the KJB prints with the æ ligature (Cæsar, Judæa, Cæsarea …). The
   // reader spells the ligature out as "ae" before speaking, so they are keyed by
   // the plain spelling and pinned to standard British forms; left to itself the
@@ -462,6 +465,8 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   // "prophecies" was voiced as the verb ("pro-FEE-seez") before the plural noun
   // was pinned in IPA, so every verse that prints it is voiced once more.
   const propheciesUpdated = /\bprophecies\b/i.test(text);
+  // "lucre" was read off the letters, so it is voiced again from the pin.
+  const lucreUpdated = /\blucre\b/i.test(text);
   const cainanUpdated = /\bcainan\b/i.test(text);
   const enosUpdated = /\benos\b/i.test(text);
   const nakedUpdated = /\bnaked\b/i.test(text);
@@ -526,5 +531,5 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   // now spoken as one word, so those verses are voiced once more without the
   // break the hyphen was making.
   const hyphenatedName = /[A-Z][a-z]+-[a-z]/.test(String(text || ''));
-  return { text: out, changed, revision: propheciesUpdated ? 'h29' : elijahUpdated ? 'h28' : hyphenatedName ? 'h27' : repinnedUpdated ? 'h26' : siteNamesUpdated ? 'h24' : namesUpdated ? 'h23' : heretickUpdated ? 'h20' : sowUpdated ? 'h19' : baptizeUpdated ? 'h18' : sosthenesUpdated ? 'h17' : cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
+  return { text: out, changed, revision: lucreUpdated ? 'h30' : propheciesUpdated ? 'h29' : elijahUpdated ? 'h28' : hyphenatedName ? 'h27' : repinnedUpdated ? 'h26' : siteNamesUpdated ? 'h24' : namesUpdated ? 'h23' : heretickUpdated ? 'h20' : sowUpdated ? 'h19' : baptizeUpdated ? 'h18' : sosthenesUpdated ? 'h17' : cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
 }

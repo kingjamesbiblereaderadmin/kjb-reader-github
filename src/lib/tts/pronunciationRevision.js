@@ -10,6 +10,8 @@ export default function pronunciationRevision(text) {
   // verses ask for the re-voiced take instead of the one they remember.
   // "prophecies" is the plural noun (PROF-uh-seez), not the verb, so those
   // verses ask for the take voiced from the pinned IPA.
+  // "lucre" is LOO-kuh, so those verses ask for the take voiced from the pin.
+  if (/\blucre\b/i.test(text)) return 'h30';
   if (/\bprophecies\b/i.test(text)) return 'h29';
   if (/\belijah\b/i.test(text)) return 'h28';
   if (/[A-Z][a-z]+-[a-z]/.test(text)) return 'h27';

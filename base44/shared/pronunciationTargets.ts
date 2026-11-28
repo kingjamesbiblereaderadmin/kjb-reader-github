@@ -4,7 +4,7 @@ import { BOOK_CODES } from './bibleBookCodes.ts';
 
 // Every revision a recording can be filed under. A verse is repaired only when
 // its own text still resolves to one of these.
-export const PRONUNCIATION_REVISIONS = ['h5', 'h6', 'h7', 'h8', 'h9', 'h10', 'h11', 'h12', 'h13', 'h14', 'h15', 'h16', 'h17', 'h18', 'h19', 'h20', 'h21', 'h22', 'h23', 'h24', 'h25', 'h26', 'h27', 'h28', 'h29', 'v2'];
+export const PRONUNCIATION_REVISIONS = ['h5', 'h6', 'h7', 'h8', 'h9', 'h10', 'h11', 'h12', 'h13', 'h14', 'h15', 'h16', 'h17', 'h18', 'h19', 'h20', 'h21', 'h22', 'h23', 'h24', 'h25', 'h26', 'h27', 'h28', 'h29', 'h30', 'v2'];
 const BOOKS = BOOK_CODES;
 
 export async function pendingPronunciationTargets(db, revision = '') {
