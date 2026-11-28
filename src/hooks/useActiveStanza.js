@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 
-// Which stanza of the chapter the reader is in. The Hebrew names are printed in
-// the text where each stanza opens, and the reader's heading band repeats the
-// one you are in — so it has to follow the page. Reports the opening verse of
-// that stanza, or null when there is nothing to name.
+// Which stanza of the chapter the reader has reached. Each stanza's Hebrew name
+// is printed in the text where it opens; the heading band repeats the name, so
+// the band only takes a name over once its printed copy has scrolled up behind
+// the band — the two are never on screen together. The opening stanza's name is
+// set in the band itself, so it needs no printed copy of its own.
 export default function useActiveStanza(stanzas) {
   const [active, setActive] = useState(null);
 
@@ -18,28 +19,19 @@ export default function useActiveStanza(stanzas) {
     const measure = () => {
       frame = 0;
       const band = document.getElementById('kjb-anchored-heading');
-      // Just under the heading band: the first verse still showing below it is
-      // where the reader has got to.
-      const line = (band ? band.getBoundingClientRect().bottom : 0) + 2;
-      let verse = null;
-      for (const el of document.querySelectorAll('[id^="v"]')) {
-        if (!/^v\d+$/.test(el.id)) continue;
+      // The band's own bottom edge: anything above it is hidden behind the band.
+      const line = (band ? band.getBoundingClientRect().bottom : 0) + 1;
+      let current = stanzas[0].verse;
+      for (let i = 1; i < stanzas.length; i += 1) {
+        const el = document.getElementById(`v${stanzas[i].verse}`)?.querySelector('.kjb-stanza-heading');
+        if (!el) continue;
         const r = el.getBoundingClientRect();
         if (r.height === 0) continue;
-        if (r.bottom > line) {
-          verse = Number(el.id.slice(1));
-          break;
-        }
+        // Still printed below the band: the reader has not passed it yet.
+        if (r.bottom > line) break;
+        current = stanzas[i].verse;
       }
-      // Past the last verse of the chapter (the foot of the page): the reader is
-      // still in the last stanza, so its name stays up.
-      if (verse == null) {
-        setActive(stanzas[stanzas.length - 1].verse);
-        return;
-      }
-      let found = stanzas[0];
-      for (const s of stanzas) if (s.verse <= verse) found = s;
-      setActive(found.verse);
+      setActive(current);
     };
 
     const onScroll = () => {

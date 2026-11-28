@@ -2,9 +2,9 @@ import React, { useMemo } from 'react';
 import useActiveStanza from '@/hooks/useActiveStanza';
 
 // The Hebrew stanza name printed with the chapter number (Psalm 119's ALEPH,
-// BETH, GIMEL…). It names the stanza the reader is actually in, so it changes as
-// the chapter is scrolled through; the names themselves stay printed in the text
-// where they open each stanza. Its own state lives here, so following the page
+// BETH, GIMEL…). It names the stanza the reader is in, and changes only once
+// that stanza's printed name has scrolled up behind the band, so the name is
+// never shown twice at once. Its own state lives here, so following the page
 // never re-renders the chapter's verses.
 export default function StanzaHeading({ stanzas, fontFamily, zoomLevel }) {
   const active = useActiveStanza(stanzas);
