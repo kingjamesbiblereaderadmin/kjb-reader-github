@@ -1072,6 +1072,16 @@ html.kjb-native-ios select {
   background-color: hsl(var(--accent) / 0.10);
   box-shadow: inset 3px 0 0 hsl(var(--accent));
 }
+/* The words inside those two lines carried their own wash as well, so the
+   superscription and the postscript showed two shades stacked while they were
+   being read. The block above is the one highlight; the words stay clear.
+   (Scoped by id so it also beats the dark-mode note shade.) */
+#kjb-subscript-anchor .kjb-speaking-note,
+#kjb-colophon-anchor .kjb-speaking-note {
+  background-color: transparent;
+  box-shadow: none;
+  padding: 0;
+}
 .dark #kjb-subscript-anchor.kjb-speaking,
 .dark #kjb-colophon-anchor.kjb-speaking {
   background-color: hsl(var(--accent) / 0.28);
