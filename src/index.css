@@ -1219,6 +1219,14 @@ span.inline.kjb-speaking .kjb-dropcap-letter {
 .dark .kjb-two-col > span.kjb-speaking .kjb-verse-text {
   background-color: hsl(var(--accent) / 0.28) !important;
 }
+/* The drop cap is a float, so it sits outside the inline text's wash and the
+   big letter of verse 1 stayed unhighlighted while the chapter was read in two
+   columns. Let the cap take the very shade its own text is painted with — the
+   reading wash, or the page colour when a saved highlight masks it — so there
+   is one highlight, letter and words alike. */
+.kjb-two-col > span.kjb-speaking .kjb-dropcap-group {
+  background-color: inherit !important;
+}
 
 /* ---- Verse rows: numbers and breathing room ----------------------------
    Preflight raises <sup> (top: -0.5em, line-height: 0), which left each verse
