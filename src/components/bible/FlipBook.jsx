@@ -174,13 +174,16 @@ export default React.forwardRef(function FlipBook({
   const padLeft = pageW < 420 ? 18 : 32;
   const padRight = 60; // the tools live in the page margin, never over scripture
   const textW = Math.max(120, pageW - padLeft - padRight);
-  // Top padding leaves the passage row above the page room to breathe, with the
-  // hairline rule under it separating the controls from the scripture.
-  const padTop = 72;
+  // Air between the hairline rule and the first line of scripture, and between
+  // the last line and the page bar at the foot, so the text never crowds the
+  // controls above it or the footer below it.
+  const ruleGap = 26;
+  const footAir = 26;
+  // The rule stays where it sits under the passage row; the text starts a
+  // breathing space below it instead of butting against it.
+  const padTop = 72 + (ruleGap - 14);
   const contentH = Math.max(120, pageH - padTop - footerHeight);
-  // A hair of slack under the last line, so a descender is never shaved off by
-  // the window's edge.
-  const textH = Math.max(80, contentH - 10);
+  const textH = Math.max(80, contentH - footAir);
 
   // Contents flow through real page-sized columns, without a testament break.
   const contentsH = Math.max(80, contentH - 24);
@@ -672,7 +675,7 @@ export default React.forwardRef(function FlipBook({
   const face = (index, side) => {
     if (index === -1 && hasBridge) return <div data-fb-previous={bridgeRef.current.fromKey || ''} className="h-full">{bridgeRef.current.face}</div>;
     if (index === pageCount && following && spread && !fillLastPage) return (
-      <BookContinuation passage={following} {...{ side, padLeft, padRight, padTop, footerHeight, textW, textH, contentsH, zoomLevel, fontFamilyValue, isCursive, flowProps, textStyle, paragraphs }} />
+      <BookContinuation passage={following} {...{ side, padLeft, padRight, padTop, ruleGap, footerHeight, textW, textH, contentsH, zoomLevel, fontFamilyValue, isCursive, flowProps, textStyle, paragraphs }} />
     );
     const textIndex = index - front.length;
     const continuesHere = fillLastPage;
@@ -692,7 +695,7 @@ export default React.forwardRef(function FlipBook({
           <>
             {/* The rule under the passage row: it closes the controls off from
                 the text and gives the first line a line of air above it. */}
-            <span aria-hidden="true" className="kjb-fb-toprule" style={{ left: padLeft, right: padRight, top: padTop - 14 }} />
+            <span aria-hidden="true" className="kjb-fb-toprule" style={{ left: padLeft, right: padRight, top: padTop - ruleGap }} />
             <div className="kjb-fb-window" style={{ width: textW, height: textH }}>
               {textIndex === 0 && carry && <div data-fb-previous={carry.fromKey} className="absolute inset-0">{carry.underlay}</div>}
               <ChapterFlow
