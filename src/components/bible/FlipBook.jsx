@@ -14,6 +14,7 @@ import FittedPage from '@/components/bible/FittedPage';
 import { useSpeaking, getProgress, getCompletedWords, subscribeProgress } from '@/lib/tts/speaking';
 import bookFlowWords from '@/components/bible/pagination/bookFlowWords';
 import { getVerseHighlight } from '@/lib/verseHighlights';
+import { getBookByAbbr } from '@/lib/bibleData';
 import './flipbook.css';
 
 
@@ -534,7 +535,10 @@ export default React.forwardRef(function FlipBook({
       const passage = followingChapters.find((item) => item.key === key);
       if (passage) return { book: passage.book, chapter: passage.chapter };
       const [keyAbbr, keyChapter] = key.split(':');
-      return { book: keyAbbr === abbr ? book : followingChapters.find((item) => item.book.abbr === keyAbbr)?.book || book, chapter: Number(keyChapter) };
+      // A page that carries the end of the previous chapter names THAT book
+      // (Romans 16 under a 1 Corinthians 1 heading read "1 Corinthians,
+      // Chapters 16–1"), so the abbreviation is resolved on its own.
+      return { book: keyAbbr === abbr ? book : getBookByAbbr(keyAbbr) || book, chapter: Number(keyChapter) };
     };
     const pageKeys = [...new Set([
       ...(carry && textIndex === 0 ? [carry.fromKey] : []),
