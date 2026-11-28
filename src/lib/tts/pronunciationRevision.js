@@ -21,6 +21,11 @@ export default function pronunciationRevision(text) {
   // of "give" — and were voiced as the adjective ("LYVE-est", the sound of a
   // live broadcast) before they were pinned in IPA, so those verses ask for the
   // re-voiced take instead of the one they remember.
+  // "I John" and "I Daniel" are the speaker, not the book's numeral: the engine
+  // said "First John". Those verses were voiced again from text that keeps a
+  // comma after the pronoun, so the reader asks for that take instead of the
+  // "First John" one it remembers (and the one an older bundle still holds).
+  if (/(?:^|[^A-Za-z])I,?\s+(?:John|Daniel)\b/.test(text)) return 'h35';
   if (/\b(?:livest|liveth)\b/i.test(text)) return 'h34';
   // Cambridge's UK form replaces the previous custom Judaea pronunciation.
   if (/\b(?:judaea|judæa)\b/i.test(text)) return 'h32';
