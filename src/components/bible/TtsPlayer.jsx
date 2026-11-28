@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Play, Pause, SkipBack, SkipForward, X, ChevronUp, ChevronRight, RotateCcw, Repeat, CloudDownload } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, X, ChevronUp, ChevronRight, RotateCcw, Repeat, CloudDownload, Info } from 'lucide-react';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import OutputDeviceMenu from '@/components/bible/OutputDeviceMenu';
 import { publishSpeaking, getProgress, getCompletedWords, subscribeProgress } from '@/lib/tts/speaking';
 import { readingArea, revealElement, alignToTop, sitsLow, inRightColumn, followVisibleWords } from '@/lib/tts/readerFollow';
@@ -700,6 +701,26 @@ export default function TtsPlayer({ embedded = false, inline = false, vertical =
               : !inline && (autoContinue ? 'Continueth' : 'One chapter')}
           </button>
           <OutputDeviceMenu value={tts.sinkId} onChange={tts.setSink} buttonClass={CONTROL} />
+          {/* Where the voice comes from, and where to send a fault. */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button aria-label="About the voice and feedback" title="About the voice" data-testid="tts-info-btn" className={CONTROL}>
+                <Info className="w-4 h-4" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="center" side="top" className="w-72 p-3 font-sans">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">The voice</p>
+              <p className="text-xs text-foreground/85 leading-relaxed">
+                Read by <span className="font-semibold text-foreground notranslate" translate="no">Microsoft Azure AI Speech</span> neural voices
+                (<span className="notranslate" translate="no">en-GB-RyanNeural</span>). Each verse is voiced once and the audio is cached, so replays cost nothing.
+              </p>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mt-3 mb-1.5">Feedback</p>
+              <p className="text-xs text-foreground/85 leading-relaxed">
+                Wrong word, bad pronunciation, or audio that will not play? Email{' '}
+                <a href="mailto:kingjamesbiblereader@outlook.sg" className="text-primary hover:underline notranslate" translate="no">kingjamesbiblereader@outlook.sg</a>.
+              </p>
+            </PopoverContent>
+          </Popover>
           {!previewMode && <OfflineBookControl offline={offlineBook} online={netOnline} compact={inline || vertical} />}
           {/* Hides the player while the reading carries on. Sideways in the slim
               bar and book view, so it is not mistaken for the show-header
