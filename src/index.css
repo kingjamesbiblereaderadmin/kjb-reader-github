@@ -1224,8 +1224,19 @@ span.inline.kjb-speaking .kjb-dropcap-letter {
    columns. Let the cap take the very shade its own text is painted with — the
    reading wash, or the page colour when a saved highlight masks it — so there
    is one highlight, letter and words alike. */
-.kjb-two-col > span.kjb-speaking .kjb-dropcap-group {
+.kjb-two-col > span:not(.inline).kjb-speaking .kjb-dropcap-group {
   background-color: inherit !important;
+}
+/* Only what is being read carries the wash. The superscription sits directly
+   above verse 1 and is read as its own clip, so while verse 1 plays it must
+   stay clear instead of sharing the verse's highlight. */
+#kjb-subscript-anchor:has(+ span.kjb-speaking) {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+#kjb-subscript-anchor:has(+ span.kjb-speaking) .kjb-speaking-note {
+  background-color: transparent !important;
+  box-shadow: none !important;
 }
 
 /* ---- Verse rows: numbers and breathing room ----------------------------
