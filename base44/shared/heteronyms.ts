@@ -221,8 +221,14 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   // Verses printing "heretick" were voiced from the unpinned letters.
   const heretickUpdated = /\bhereticks?\b/i.test(text);
   const wrathUpdated = /\bwrath(?:ful)?\b/i.test(text);
+  // The Authorised Version closes many parentheticals with a semicolon or a
+  // colon ("(the same is Zoar;)", "the stone of Israel:)"). A speech engine
+  // reads either pair as a winking smiley and says the words out loud. The
+  // closing parenthesis is silent anyway, so it is dropped before the text is
+  // voiced or hashed.
+  const smileyUpdated = /[;:]\)/.test(text);
   const updated = /\bmarketh\b|\btheir\s+desert\b|\bbow\s+down\b/i.test(text);
-  const source = String(text || '').replace(/\b(their\s+)desert\b/gi, '$1dih-zurt');
+  const source = String(text || '').replace(/([;:])\)/g, '$1').replace(/\b(their\s+)desert\b/gi, '$1dih-zurt');
   if (source !== text) changed = true;
   const fixed = source.replace(RESPELL_RE, (word: string) => {
     const replacement = RESPELL[word.toLowerCase()];
@@ -243,5 +249,5 @@ export function applyHeteronyms(text: string): { text: string; changed: boolean;
   const cursedUpdated = /\bcurs-ed\b/i.test(out);
   const adarUpdated = /\badar\b/i.test(text);
   const satUpdated = /\bsatest\b/i.test(text);
-  return { text: out, changed, revision: wrathUpdated ? 'h21' : heretickUpdated ? 'h20' : sowUpdated ? 'h19' : baptizeUpdated ? 'h18' : sosthenesUpdated ? 'h17' : cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
+  return { text: out, changed, revision: smileyUpdated ? 'h22' : wrathUpdated ? 'h21' : heretickUpdated ? 'h20' : sowUpdated ? 'h19' : baptizeUpdated ? 'h18' : sosthenesUpdated ? 'h17' : cainanUpdated ? 'h16' : enosUpdated ? 'h15' : nakedUpdated ? 'h14' : satUpdated ? 'h13' : adarUpdated ? 'h12' : cursedUpdated ? 'h10' : blessedUpdated ? 'h8' : auditUpdated ? 'h7' : tearsUpdated ? 'h6' : evilUpdated ? 'h5' : newlyUpdated ? 'h4' : updated ? 'h3' : changed ? 'h2' : '' };
 }

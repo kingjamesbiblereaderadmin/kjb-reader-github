@@ -1,5 +1,6 @@
 // Mirrors the server's narrowly scoped recording revisions. Printed text never changes.
 export default function pronunciationRevision(text) {
+  if (/[;:]\)/.test(text)) return 'h22';
   if (/\bwrath(?:ful)?\b/i.test(text)) return 'h21';
   if (/\bhereticks?\b/i.test(text)) return 'h20';
   if (/\b(?:soweth|sowest|sowed|sower|sowers|sowing)\b/i.test(text)) return 'h19';
